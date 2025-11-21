@@ -75,8 +75,7 @@ def section_headers(doc_lines: List[str]) -> List[str]:
     return headers
 
 
-class TestDocumentationStructure:
-    """Test the structure and formatting of the documentation."""
+from typing import List, Set
 
     def test_has_overview(self, section_headers: List[str]):
         """Test that there's an Overview section."""
