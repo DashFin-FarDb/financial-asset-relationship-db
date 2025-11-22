@@ -311,13 +311,14 @@ class TestPrAgentWorkflow:
         assert isinstance(jobs["pr-agent-trigger"], dict), (
             "'pr-agent-trigger' job must be a mapping"
         )
-    
+
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
-    f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
-)
+        """Test that trigger job runs on a supported Ubuntu runner."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         runs_on = review_job.get("runs-on", "")
+        assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
+            f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
+        )
         assert "ubuntu" in runs_on.lower(), (
             "Review job should run on Ubuntu runner"
         )
@@ -336,42 +337,29 @@ assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
     def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
         Ensure every actions/checkout step in the review job provides a `token` in its `with` mapping.
-        
+
         Fails the test if any checkout step omits the `token` key.
         """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
-        
+
         checkout_steps = [
-            s for s in steps 
+            s for s in steps
             if s.get("uses", "").startswith("actions/checkout")
         ]
-        
+
         for step in checkout_steps:
             step_with = step.get("with", {})
-def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
-    """Test that checkout steps explicitly define a non-empty token."""
-    review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-    steps = review_job.get("steps", [])
+            token = step_with.get("token")
+            assert isinstance(token, str) and token.strip(), (
+                "Checkout step must specify a non-empty token for better security. "
+                "Use ${{ secrets.GITHUB_TOKEN }} or similar."
+            )
 
-    checkout_steps = [
-        s for s in steps 
-        if s.get("uses", "").startswith("actions/checkout")
-    ]
-
-    for step in checkout_steps:
-        step_with = step.get("with", {})
-        token = step_with.get("token")
-        assert isinstance(token, str) and token.strip(), (
-            "Checkout step must specify a non-empty token for better security. "
-            "Use ${{ secrets.GITHUB_TOKEN }} or similar."
-        )
-    
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """Asserts the workflow's trigger job includes a setup-python step."""
-
-        ]
-        assert len(python_steps) > 0, "pr-agent-trigger job must set up Python"
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = review_job.get("steps", [])
 
         python_steps = [
             s for s in steps
@@ -1192,79 +1180,9 @@ class TestWorkflowEnvAndSecrets:
         # Check top-level env
         if "env" in config:
             invalid = check_env_vars(config["env"])
-@pytest.mark.parametrize("workflow_file", get_workflow_files())
-def test_workflow_env_vars_naming_convention(workflow_file: Path):
-    """
-    Ensure environment variable names in a workflow file are uppercase and contain only letters, digits or underscores.
-    
-    Checks environment variables at both the top-level workflow `env` and each job's `env`, and fails the test if any variable names do not match the required naming convention.
-    """
-    config = load_yaml_safe(workflow_file)
-    
-    def check_env_vars(env_dict):
-        """
-        Identify environment variable names that do not follow the convention of using only upper-case letters, digits and underscores.
-        
-        Parameters:
-            env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided it is treated as absent and no invalid names are returned.
-        
-        Returns:
-            invalid_keys (List[str]): List of keys from `env_dict` that are not composed solely of upper-case letters, digits and underscores.
-        """
-        if not isinstance(env_dict, dict):
-            return []
-        invalid = []
-    def check_env_vars(env_dict):
-        """
-        Identify environment variable names that do not follow the convention of using only upper-case letters, digits and underscores.
-    
-        Parameters:
-            env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided it is treated as absent and no invalid names are returned.
-    
-        Returns:
-            invalid_keys (List[str]): List of keys from `env_dict` that are not composed solely of upper-case letters, digits and underscores.
-        """
-        if not isinstance(env_dict, dict):
-            return []
-        invalid = []
-        for key in env_dict.keys():
-            # Ensure all characters are either alphanumeric or underscore
-            is_valid_chars = all(c.isalnum() or c == '_' for c in key)
-            if not key.isupper() or not is_valid_chars:
-                invalid.append(key)
-        return invalid
-
-    # Check top-level env
-    if "env" in config:
-        invalid = check_env_vars(config["env"])
-        assert not invalid, (
-            f"Workflow {workflow_file.name} has invalid env var names: {invalid}"
-        )
-
-    # Check job-level env
-    jobs = config.get("jobs", {})
-    for job_name, job_config in jobs.items():
-        if "env" in job_config:
-            invalid = check_env_vars(job_config["env"])
-            assert not invalid, (
-                f"Job '{job_name}' in {workflow_file.name} has invalid env var names: {invalid}"
-            )
-        
-        # Check top-level env
-        if "env" in config:
-            invalid = check_env_vars(config["env"])
             assert not invalid, (
                 f"Workflow {workflow_file.name} has invalid env var names: {invalid}"
             )
-        
-        # Check job-level env
-        jobs = config.get("jobs", {})
-        for job_name, job_config in jobs.items():
-            if "env" in job_config:
-                invalid = check_env_vars(job_config["env"])
-                assert not invalid, (
-                    f"Job '{job_name}' in {workflow_file.name} has invalid env var names: {invalid}"
-                )
 
         # Check job-level env
         jobs = config.get("jobs", {})
