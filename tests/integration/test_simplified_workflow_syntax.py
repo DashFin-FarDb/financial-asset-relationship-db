@@ -9,7 +9,7 @@ import pytest
 import yaml
 import re
 from pathlib import Path
-from typing import Dict, Any, List, Set
+from typing import Dict, Any
 
 
 class TestWorkflowSyntaxValidation:
