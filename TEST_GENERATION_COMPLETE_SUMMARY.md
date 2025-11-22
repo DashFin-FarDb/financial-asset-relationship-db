@@ -6,9 +6,9 @@ Following the **bias-for-action principle**, comprehensive unit tests have been 
 
 ## Generated Files
 
-### Test Files (2 files, 625 lines)
-1. ✅ `tests/integration/test_workflow_simplification_validation.py` (321 lines, 21 tests)
-2. ✅ `tests/integration/test_simplified_workflow_syntax.py` (322 lines, 16 tests)
+### Test Files (2 files, ~680 lines)
+1. ✅ `tests/integration/test_workflow_simplification_validation.py` (~340 lines, 21 tests)
+2. ✅ `tests/integration/test_simplified_workflow_syntax.py` (~340 lines, 16 tests)
 
 ### Documentation Files (4 files)
 3. ✅ `TEST_GENERATION_SIMPLIFICATION_VALIDATION.md` (comprehensive strategy)
