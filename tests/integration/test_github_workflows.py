@@ -303,7 +303,6 @@ class TestPrAgentWorkflow:
         assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
             f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
         )
-        assert "ubuntu" in runs_on.lower(), "Review job should run on Ubuntu runner"
 
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
         """Test that review job checks out the code."""
