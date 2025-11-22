@@ -61,15 +61,19 @@ class TestWorkflowSyntaxValidation:
                         f"Action should use specific version, not @{version}: {uses}"
     
     def test_pr_agent_secrets_properly_referenced(self, pr_agent_workflow):
-        """Ensure secrets are referenced correctly."""
+        """Ensure tokens are referenced correctly using supported contexts."""
+        # Search both the parsed dump and raw content to avoid formatting artifacts
         workflow_str = yaml.dump(pr_agent_workflow)
-        
-        # Find all secret references
-        secret_refs = re.findall(r'\$\{\{\s*secrets\.(\w+)\s*\}\}', workflow_str)
-        
-        # Common secrets that should be present
-        assert "GITHUB_TOKEN" in secret_refs, \
-            "Should use GITHUB_TOKEN secret"
+        with open(".github/workflows/pr-agent.yml") as f:
+            raw_content = f.read()
+        combined = f"{workflow_str}\n{raw_content}"
+
+        # Match both secrets.GITHUB_TOKEN and github.token usages
+        secrets_refs = re.findall(r'\$\{\{\s*secrets\.([A-Z0-9_]+)\s*\}\}', combined, flags=re.IGNORECASE)
+        github_token_refs = re.findall(r'\$\{\{\s*github\.token\s*\}\}', combined, flags=re.IGNORECASE)
+
+        assert ("GITHUB_TOKEN" in [s.upper() for s in secrets_refs]) or (len(github_token_refs) > 0), \
+            "Should reference an authentication token via secrets.GITHUB_TOKEN or github.token"
 
 
 class TestSimplifiedWorkflowBestPractices:
