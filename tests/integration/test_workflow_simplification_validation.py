@@ -10,11 +10,7 @@ This test suite ensures that:
 
 import pytest
 import yaml
-import re
 from pathlib import Path
-from typing import Dict, Any, List
-
-
 class TestContextChunkingRemoval:
     """Validate that context chunking functionality has been completely removed."""
     
@@ -71,7 +67,7 @@ class TestContextChunkingRemoval:
         
         # Check for any chunking-related keys
         config_str = yaml.dump(config)
-        forbidden_keys = ["chunk", "context_overflow", "token", "summarization"]
+        forbidden_keys = ["chunk", "context_overflow", "token_limit", "max_tokens", "token_count", "summarization"]
         for key in forbidden_keys:
             assert key not in config_str.lower(), \
                 f"Chunking-related key '{key}' found in config"

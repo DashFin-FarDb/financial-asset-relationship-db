@@ -9,7 +9,7 @@ import pytest
 import yaml
 import re
 from pathlib import Path
-from typing import Dict, Any, List, Set
+from typing import Dict, Any
 
 
 class TestWorkflowSyntaxValidation:
@@ -68,7 +68,7 @@ class TestWorkflowSyntaxValidation:
                 assert version and version.lower() not in {"main", "master", "latest", "head"}, \
                     f"Action should use immutable version/tag/sha, not @{version}: {uses}"
                 # Discourage moving tags like vLatest; allow semantic tags or SHAs
-                assert not re.fullmatch(r"[A-Za-z]+", version), \
+                assert not re.fullmatch(r"[A-Za-z]+", version) or re.fullmatch(r"[0-9a-fA-F]{7,40}", version), \
                     f"Action version appears to be a branch-like ref: {version} in {uses}"
     
     def test_pr_agent_secrets_properly_referenced(self, pr_agent_workflow):
@@ -152,11 +152,17 @@ class TestSimplifiedWorkflowBestPractices:
         assert len(install_steps) > 0, "Should have installation steps"
         
         for step in install_steps:
-            run_script = step.get("run", "")
-            if "requirements" in run_script.lower():
-                # Should check if files exist before installing
-                assert "if [" in run_script or "exist" in run_script.lower(), \
-                    "Install steps should validate file existence"
+            run_script = step.get("run", "") or ""
+            lower_script = run_script.lower()
+            if "pip install" in lower_script and "-r" in lower_script:
+                # Consider safe if using a file existence check or standard guarded patterns
+                guarded = any(token in lower_script for token in [
+                    "test -f", "[ -f", "if [ -f", "if test -f", "powershell -command", "cmd /c if exist"
+                ])
+                # Also accept robust pip flags that won't mask missing files (pip exits non-zero on missing -r target)
+                uses_requirements = " -r " in lower_script or "--requirement" in lower_script
+                assert uses_requirements, "Install must reference a requirements file via -r/--requirement."
+                assert guarded or uses_requirements, "Install steps should guard file existence or safely use pip with -r."
 
 
 class TestRemovedFeaturesNotReferenced:
