@@ -326,6 +326,7 @@ class TestPrAgentWorkflow:
     def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
         Test that checkout steps explicitly define a token only if configured.
+        This validates the pr-agent-trigger job's checkout configuration.
         """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
