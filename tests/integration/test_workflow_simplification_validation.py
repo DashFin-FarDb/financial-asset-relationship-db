@@ -11,9 +11,6 @@ This test suite ensures that:
 import pytest
 import yaml
 from pathlib import Path
-from typing import Dict, Any, List
-
-
 class TestContextChunkingRemoval:
     """Validate that context chunking functionality has been completely removed."""
     
