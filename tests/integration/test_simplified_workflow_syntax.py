@@ -23,19 +23,22 @@ class TestWorkflowSyntaxValidation:
     
     def test_pr_agent_has_required_triggers(self, pr_agent_workflow):
         """Verify pr-agent.yml has appropriate triggers."""
-        # Read the raw YAML to check for trigger configuration
-        with open(".github/workflows/pr-agent.yml") as f:
-            workflow_content = f.read()
-        
-        # Check that the workflow has the required event triggers
-        assert "pull_request:" in workflow_content or "pull_request" in workflow_content, \
-            "Should have pull_request trigger"
-        assert "pull_request_review:" in workflow_content or "pull_request_review" in workflow_content, \
-            "Should have pull_request_review trigger"
-        assert "issue_comment:" in workflow_content or "issue_comment" in workflow_content, \
-            "Should have issue_comment trigger"
-        assert "check_suite:" in workflow_content or "check_suite" in workflow_content, \
-            "Should have check_suite trigger"
+        triggers = pr_agent_workflow.get("on")
+        assert triggers is not None, "Workflow must define 'on' triggers"
+
+        # Normalize to dict if list/str forms are used
+        if isinstance(triggers, str):
+            trigger_keys = {triggers}
+        elif isinstance(triggers, list):
+            trigger_keys = set(triggers)
+        elif isinstance(triggers, dict):
+            trigger_keys = set(triggers.keys())
+        else:
+            pytest.fail(f"Unexpected type for 'on': {type(triggers)}")
+
+        required = {"pull_request", "pull_request_review", "issue_comment", "check_suite"}
+        missing = required - trigger_keys
+        assert not missing, f"Missing required triggers: {', '.join(sorted(missing))}"
     
     def test_pr_agent_jobs_have_permissions(self, pr_agent_workflow):
         """Ensure jobs specify required permissions."""
