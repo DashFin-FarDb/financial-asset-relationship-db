@@ -1089,7 +1089,7 @@ class TestWorkflowEnvAndSecrets:
         return [
             key
             for key in env_dict.keys()
-            if not key.isupper() or not all(c.isalnum() or c == "_" for c in key)
+            if not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
         ]
 
     @staticmethod
