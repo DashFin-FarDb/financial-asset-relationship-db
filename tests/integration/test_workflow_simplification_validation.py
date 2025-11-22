@@ -129,17 +129,38 @@ class TestWorkflowSimplification:
     
     def test_pr_agent_workflow_no_duplicate_keys(self):
         """Ensure no duplicate YAML keys in pr-agent.yml."""
+        from yaml.constructor import ConstructorError
+
+        class DuplicateKeyLoader(yaml.SafeLoader):
+            pass
+
+        def construct_mapping(loader, node, deep=False):
+            mapping = {}
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                if key in mapping:
+                    raise ConstructorError(
+                        "while constructing a mapping",
+                        node.start_mark,
+                        f"found duplicate key: {key!r}",
+                        key_node.start_mark,
+                    )
+                value = loader.construct_object(value_node, deep=deep)
+                mapping[key] = value
+            return mapping
+
+        DuplicateKeyLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping
+        )
+
         workflow_path = Path(".github/workflows/pr-agent.yml")
-        
-        with open(workflow_path) as f:
+        with open(workflow_path, "r") as f:
             content = f.read()
-        
-        # Parse and re-serialize to check for duplicates
+
         try:
-            workflow = yaml.safe_load(content)
-            assert workflow is not None
-        except yaml.YAMLError as e:
-            pytest.fail(f"YAML parsing error (possible duplicate keys): {e}")
+            yaml.load(content, Loader=DuplicateKeyLoader)
+        except ConstructorError as e:
+            pytest.fail(f"Duplicate YAML key detected in pr-agent.yml: {e}")
     
     def test_apisec_scan_workflow_credentials_handling(self):
         """Verify apisec-scan.yml properly handles missing credentials."""
