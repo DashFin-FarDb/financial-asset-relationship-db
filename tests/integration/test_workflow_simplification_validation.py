@@ -155,9 +155,9 @@ class TestWorkflowSimplification:
         
         try:
             yaml.load(content, Loader=DuplicateKeySafeLoader)
-        except yaml.YAMLError:
-            pass
-        
+        except yaml.YAMLError as e:
+            pytest.fail(f"Invalid YAML in pr-agent.yml: {e}")
+
         if duplicates:
             pytest.fail(
                 f"Found duplicate YAML keys in pr-agent.yml: {duplicates}. "
