@@ -418,6 +418,7 @@ class TestWorkflowMaintainability:
                     context = content[start:match.end()]
                     
                     # Should have explanation
-                    if '#' not in context.split('\n')[-2]:
+                    lines = context.split('\n')
+                    if len(lines) >= 2 and '#' not in lines[-2]:
                         # Warning only, not failure
                         pass
