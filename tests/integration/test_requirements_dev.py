@@ -166,8 +166,6 @@ class TestVersionSpecifications:
         for pkg, ver_spec in requirements:
             if ver_spec:
                 try:
-
-                try:
                     SpecifierSet(ver_spec)
                 except Exception as e:
                     assert False, f"Invalid version specifier for {pkg}: {ver_spec} ({e})"
@@ -305,8 +303,9 @@ class TestRequirementsFileFormatting:
         with open(REQUIREMENTS_FILE, 'r') as f:
             lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
         
-        # Find lines that start with either PyYAML or types-PyYAML
-        pyyaml_lines = [line for line in lines if line.startswith('PyYAML') or line.startswith('types-PyYAML')]
+        # Find lines that start with PyYAML or types-PyYAML
+        pyyaml_lines = [line for line in lines if line.startswith('PyYAML') and not line.startswith('types-PyYAML')]
+        types_pyyaml_lines = [line for line in lines if line.startswith('types-PyYAML')]
         
         assert len(pyyaml_lines) == 1, (
             f"Should have exactly 1 line for PyYAML, found {len(pyyaml_lines)}"
@@ -317,7 +316,7 @@ class TestRequirementsFileFormatting:
         
         # Verify both are present
         has_pyyaml = any(line.startswith('PyYAML>=') for line in pyyaml_lines)
-        has_types = any(line.startswith('types-PyYAML>=') for line in pyyaml_lines)
+        has_types = any(line.startswith('types-PyYAML>=') for line in types_pyyaml_lines)
         
         assert has_pyyaml, "Should have PyYAML>=6.0"
         assert has_types, "Should have types-PyYAML>=6.0"

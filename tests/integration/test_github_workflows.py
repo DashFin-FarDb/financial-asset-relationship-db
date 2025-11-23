@@ -16,6 +16,17 @@ yaml = pytest.importorskip("yaml")
 # Define workflows directory path used across tests
 WORKFLOWS_DIR = Path(".github") / "workflows"
 
+# Path to workflows directory
+def test_pr_agent_has_trigger_job(pr_agent_workflow: Dict[str, Any]):
+    """Test that pr-agent workflow has the trigger job."""
+    jobs = pr_agent_workflow.get("jobs", {})
+    assert "pr-agent-trigger" in jobs, (
+        "pr-agent workflow must define the 'pr-agent-trigger' job"
+    )
+    assert isinstance(jobs["pr-agent-trigger"], dict), (
+        "'pr-agent-trigger' job must be a mapping"
+    )
+
 
 def get_workflow_files() -> List[Path]:
     """
