@@ -416,7 +416,7 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
                 "Python version should be 3.11"
             )
     
-    def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
+        # Check for duplicate step names efficiently (O(n))
         """Test that there are no duplicate setup steps in the workflow."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
