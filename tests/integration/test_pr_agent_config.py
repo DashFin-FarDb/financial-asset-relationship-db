@@ -126,8 +126,8 @@ class TestPRAgentConfigValues:
         
         # Should be in format X.Y.Z
         parts = version.split('.')
-        assert len(parts) >= 2, f"Version should be semantic (X.Y.Z): {version}"
-        
+        assert len(parts) == 3, f"Version should be semantic (X.Y.Z): {version}"
+
         for part in parts:
             assert part.isdigit(), f"Version parts should be numeric: {version}"
     
