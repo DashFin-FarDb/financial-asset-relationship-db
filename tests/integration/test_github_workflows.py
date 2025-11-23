@@ -411,8 +411,8 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
             s for s in steps 
             if s.get("uses", "").startswith("actions/setup-python")
         ]
-        
-    def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
         """Test that there are no duplicate setup steps in the workflow."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
