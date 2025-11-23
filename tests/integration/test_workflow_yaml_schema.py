@@ -272,13 +272,13 @@ class TestWorkflowBestPractices:
             
             for job_name, job_data in jobs.items():
                 steps = job_data.get('steps', [])
-                
-                for i, step in enumerate(steps):
-                    uses = step.get('uses', '')
                     if uses:
                         # Should not use @main or @master
                         if '@main' in uses or '@master' in uses:
                             warnings.warn(
+                                f"{filename} job '{job_name}' step {i} "
+                                f"uses unstable version: {uses}"
+                            )
                                 f"{filename} job '{job_name}' step {i} "
                                 f"uses unstable version: {uses}"
                             )
