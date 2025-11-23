@@ -290,13 +290,12 @@ class TestPRAgentConfigMaintainability:
             expected_filtered = [s for s in expected_order if s in section_names]
             
             for i, section in enumerate(section_names):
-                if i < len(expected_filtered):
-                    # Allow some flexibility but maintain general order
-                    assert expected_filtered.index(section) <= i + 1, (
-                        f"Config sections should be in logical order. "
-                        f"Found {section} out of expected position."
-                    )
-
+                expected_index = expected_filtered.index(section)
+                assert expected_index == i, (
+                    f"Config sections should be in logical order. "
+                    f"Expected {section} at position {expected_index}, but found at position {i}. "
+                    f"Expected order: {expected_filtered}, Actual order: {section_names}"
+    # Removed duplicate text-based section order test. The YAML-based version below is the single source of truth.
 
 class TestPRAgentConfigBackwardCompatibility:
     """Test that config maintains necessary backward compatibility."""
