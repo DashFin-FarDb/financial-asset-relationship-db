@@ -21,7 +21,7 @@ class TestDeletedContextChunker:
         """Workflows should not reference the deleted context_chunker.py."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             
@@ -66,11 +66,11 @@ class TestDeletedContextChunker:
             with open(req_dev, 'r') as f:
                 content = f.read()
             
-            # If chunker is removed, these shouldn't be required anymore
-            # (unless used elsewhere)
-            if 'tiktoken' in content:
-                # This is okay if it's optional or used elsewhere
-                pass
+            chunking_dependencies = ['tiktoken']
+            
+            for dep in chunking_dependencies:
+                assert dep not in content, \
+                    f"requirements-dev.txt still contains chunking dependency: {dep}"
     
     def test_scripts_directory_exists_or_empty(self):
         """Scripts directory should either not exist or not be referenced."""
@@ -135,29 +135,45 @@ class TestDeletedLabelerConfig:
         """Labeler action should not be called without proper config."""
         label_workflow = Path(".github/workflows/label.yml")
         
-        if label_workflow.exists():
-            import yaml
-            with open(label_workflow, 'r') as f:
-                data = yaml.safe_load(f)
+if not label_workflow.exists():
+    pytest.skip(f"Label workflow not found at {label_workflow.absolute()}")
+        
+        import yaml
+        with open(label_workflow, 'r') as f:
+            data = yaml.safe_load(f)
+        
+        jobs = data.get('jobs', {})
+        default_labeler_config = Path(".github/labeler.yml")
+        
+        for job_name, job_data in jobs.items():
+            steps = job_data.get('steps', [])
             
-            # Check if labeler action is used
-            jobs = data.get('jobs', {})
-            for job_name, job_data in jobs.items():
-                steps = job_data.get('steps', [])
-                
-                for step in steps:
-                    uses = step.get('uses', '')
-                    if 'labeler' in uses:
-                        # Should either:
-                        # 1. Not use labeler action anymore, or
-                        # 2. Have conditional execution, or
-                        # 3. Have inline configuration
-                        step_if = step.get('if', '')
-                        with_config = step.get('with', {})
+            for step in steps:
+                uses = step.get('uses', '')
+                if 'labeler' in uses:
+                    with_config = step.get('with', {})
+                    
+                    config_path = with_config.get('configuration-path') if with_config else None
+                    
+if config_path:
+    config_file = Path(config_path)
+    absolute_path = config_file.resolve()
+    assert config_file.exists(), \
+        f"Labeler action in {job_name} references missing config file: {config_path} (resolved to: {absolute_path})"
+elif not default_labeler_config.exists():
+    # Check for actual label pattern configuration, not just metadata keys
+    has_label_patterns = with_config and any(
+        key not in ['sync-labels', 'dot', 'pr-number', 'configuration-path'] 
+        for key in with_config.keys()
+    )
+    step_if = step.get('if', '')
+    has_conditional = bool(step_if)
+    
+    assert has_label_patterns or has_conditional, \
+        f"Labeler action in {job_name} has no label patterns (missing .github/labeler.yml and no inline patterns or conditional)"
                         
-                        # If using labeler, should have handling
-                        # (This test documents expected behavior)
-                        pass
+                        assert has_inline_config or has_conditional, \
+                            f"Labeler action in {job_name} has no config (missing .github/labeler.yml and no inline config or conditional)"
 
 
 class TestDeletedScriptsREADME:
@@ -228,15 +244,23 @@ class TestWorkflowConfigConsistency:
             # Config should not have chunking settings if workflow doesn't use them
             workflow_content = yaml.dump(workflow)
             
-            if 'chunking' not in workflow_content and 'chunk' not in workflow_content:
-                # Config might still have it, but it shouldn't be actively referenced
-                pass  # Just documenting the relationship
+# Check for chunking settings using parsed structure rather than string matching
+if 'chunking' not in workflow and not any('chunk' in str(key).lower() for key in workflow.keys()):
+    assert 'chunking' not in config and not any('chunk' in str(key).lower() for key in config.keys()), \
+        "PR Agent config contains chunking settings but workflow doesn't use them"
+            
+# More comprehensive YAML structure validation
+assert isinstance(config, dict), "PR Agent config should parse to a dictionary"
+assert isinstance(workflow, dict), "PR Agent workflow should parse to a dictionary"
+            
+            # Workflow should have required jobs
+            assert 'jobs' in workflow, "PR Agent workflow should define jobs"
     
     def test_no_missing_config_files_referenced(self):
         """Workflows should not reference missing configuration files."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             import yaml
             with open(workflow_file, 'r') as f:
                 content = f.read()
@@ -273,7 +297,7 @@ class TestBackwardCompatibility:
     
     def test_environment_variables_still_valid(self):
         """Environment variables should still be valid after deletions."""
-        workflows = list(Path(".github/workflows").glob("*.yml"))
+        workflows = list(Path(".github/workflows").glob("*.yml")) + list(Path(".github/workflows").glob("*.yaml"))
         
         for workflow_file in workflows:
             import yaml
@@ -295,7 +319,7 @@ class TestBackwardCompatibility:
     
     def test_action_inputs_valid(self):
         """Action inputs should not reference deleted files or features."""
-        workflows = list(Path(".github/workflows").glob("*.yml"))
+        workflows = list(Path(".github/workflows").glob("*.yml")) + list(Path(".github/workflows").glob("*.yaml"))
         
         for workflow_file in workflows:
             import yaml

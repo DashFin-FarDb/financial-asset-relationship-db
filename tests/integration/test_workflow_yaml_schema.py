@@ -81,7 +81,7 @@ class TestWorkflowGitHubActionsSchema:
         workflow_dir = Path(".github/workflows")
         workflows = {}
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflows[workflow_file.name] = yaml.safe_load(f)
         
@@ -172,7 +172,7 @@ class TestWorkflowSecurity:
     def workflow_files(self):
         """Get all workflow files."""
         workflow_dir = Path(".github/workflows")
-        return list(workflow_dir.glob("*.yml"))
+        return list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))
     
     def test_no_hardcoded_secrets(self, workflow_files):
         """Workflows should not contain hardcoded secrets."""
@@ -187,18 +187,28 @@ class TestWorkflowSecurity:
                 content = f.read()
             
             for pattern in dangerous_patterns:
-                if pattern in content:
-                    # Check if it's in a comment or properly using secrets
-                    lines_with_pattern = [
-                        line for line in content.split('\n') 
-                        if pattern in line
-                    ]
-                    
+                    import re
+                    secret_ref_re = re.compile(r'\$\{\{\s*secrets\.[A-Za-z0-9_]+\s*\}\}')
+                    # Allow occurrences only if the dangerous pattern is entirely within a proper secret reference.
                     for line in lines_with_pattern:
-                        if not line.strip().startswith('#'):
-                            # Should be using ${{ secrets.* }}
-                            assert 'secrets.' in line or '${{' in line, \
-                                f"{workflow_file.name} may contain hardcoded secret: {pattern}"
+                        stripped = line.strip()
+                        if stripped.startswith('#'):
+                            continue
+                        # If the line contains a valid secret reference, ensure no dangerous pattern appears outside it.
+                        valid_refs = list(secret_ref_re.finditer(line))
+                        if valid_refs:
+                            # Mask valid secret reference spans, then check remaining text for dangerous patterns
+                            masked = list(line)
+                            for m in valid_refs:
+                                for i in range(m.start(), m.end()):
+                                    masked[i] = ' '
+                            remaining = ''.join(masked)
+                            assert pattern not in remaining, \
+                                f"{workflow_file.name} may contain hardcoded secret outside secrets.* reference: {pattern}"
+                        else:
+                            # No valid secret reference present; any dangerous pattern is a failure.
+                            assert False, \
+                                f"{workflow_file.name} may contain hardcoded secret without secrets.* reference: {pattern}"
     
     def test_pull_request_safe_checkout(self, workflow_files):
         """PR workflows should checkout safely (not HEAD of PR)."""
@@ -222,8 +232,12 @@ class TestWorkflowSecurity:
                             with_data = step.get('with', {})
                             ref = with_data.get('ref', '')
                             if ref and 'head' in ref.lower() and 'sha' not in ref.lower():
-                                warnings.warn(
-                                    f"{workflow_file.name} job '{job_name}' "
+import os
+import pytest
+import warnings
+import yaml
+from pathlib import Path
+from typing import Dict, Any, List
                                     f"checks out PR HEAD (potential security risk)"
                                 )
 
@@ -259,7 +273,7 @@ class TestWorkflowBestPractices:
         workflow_dir = Path(".github/workflows")
         workflows = {}
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflows[workflow_file.name] = yaml.safe_load(f)
         
@@ -326,7 +340,7 @@ class TestWorkflowCrossPlatform:
         workflow_dir = Path(".github/workflows")
         workflows = {}
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflows[workflow_file.name] = yaml.safe_load(f)
         
@@ -382,7 +396,7 @@ class TestWorkflowMaintainability:
         """Workflows should have explanatory comments."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             
@@ -400,7 +414,7 @@ class TestWorkflowMaintainability:
         """Complex expressions should have explanatory comments."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             
@@ -418,8 +432,11 @@ class TestWorkflowMaintainability:
                     # Check if there's a comment nearby
                     start = max(0, match.start() - 200)
                     context = content[start:match.end()]
-                    
+
+                    import warnings
                     # Should have explanation
-                    if '#' not in context.split('\n')[-2]:
+                    lines = context.split('\n')
+                    if len(lines) < 2 or '#' not in lines[-2]:
+                        line_num = content[:match.start()].count('\n') + 1
+                        warnings.warn(f"{workflow_file.name}: complex expression at line {line_num} lacks explanation: {match.group()}")
                         # Warning only, not failure
-                        pass

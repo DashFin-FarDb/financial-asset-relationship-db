@@ -399,16 +399,6 @@ class TestPrAgentWorkflow:
             "Each step should have a unique name."
         )
 
-    if isinstance(fetch_depth, str):
-        assert fetch_depth.isdigit(), (
-            f"fetch-depth should be numeric, got '{fetch_depth}'"
-        )
-        fetch_depth = int(fetch_depth)
-    assert isinstance(fetch_depth, int), (
-        f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
-    )
-        assert fetch_depth >= 0, "fetch-depth cannot be negative"
-
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
         """Ensure checkout steps in the trigger job have valid fetch-depth values."""
 
@@ -431,12 +421,12 @@ class TestPrAgentWorkflow:
             self._assert_valid_fetch_depth({"fetch-depth": invalid_fetch_depth})
 
     def test_pr_agent_fetch_depth_allows_absent(self):
-            """Missing fetch-depth is permitted for checkout steps."""
-            # Test empty configuration
-            self._assert_valid_fetch_depth({})
-            # Test configuration with other parameters but no fetch-depth
-            self._assert_valid_fetch_depth({"token": "${{ secrets.GITHUB_TOKEN }}"})
+        """Missing fetch-depth is permitted for checkout steps."""
+        # Test empty configuration
         self._assert_valid_fetch_depth({})
+        # Test configuration with other parameters but no fetch-depth
+        self._assert_valid_fetch_depth({"token": "${{ secrets.GITHUB_TOKEN }}"})
+
 class TestWorkflowSecurity:
     """Test suite for workflow security best practices."""
     
@@ -1096,8 +1086,8 @@ class TestWorkflowEnvAndSecrets:
         return [
             key
             for key in env_dict.keys()
-            if not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
-        if not isinstance(key, str) or not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
+            if not isinstance(key, str) or not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
+        ]
 
     @staticmethod
     def _env_scopes(config: Dict[str, Any], workflow_name: str) -> List[Tuple[str, Dict[str, Any]]]:
@@ -2001,7 +1991,7 @@ class TestWorkflowYAMLStructureValidation:
         workflow_dir = Path(".github/workflows")
         assert workflow_dir.exists(), "Workflows directory not found"
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 try:
                     workflow = yaml.safe_load(f)
@@ -2028,7 +2018,7 @@ class TestWorkflowYAMLStructureValidation:
             'workflow_call', 'repository_dispatch', 'workflow_run'
         }
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflow = yaml.safe_load(f)
             
@@ -2057,7 +2047,7 @@ class TestWorkflowYAMLStructureValidation:
         workflow_dir = Path(".github/workflows")
         assert workflow_dir.exists(), "Workflows directory not found"
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflow = yaml.safe_load(f)
             
@@ -2103,7 +2093,7 @@ class TestWorkflowYAMLStructureValidation:
         
         import re
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             
@@ -2128,7 +2118,7 @@ class TestWorkflowSecurityEnhancements:
         workflow_dir = Path(".github/workflows")
         assert workflow_dir.exists(), "Workflows directory not found"
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflow = yaml.safe_load(f)
             
@@ -2163,7 +2153,7 @@ class TestWorkflowSecurityEnhancements:
         import re
         version_pattern = r'@v\d+|@[a-f0-9]{40}'  # @v1, @v2, etc or full SHA
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflow = yaml.safe_load(f)
             
@@ -2198,7 +2188,7 @@ class TestWorkflowSecurityEnhancements:
         
         import re
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             

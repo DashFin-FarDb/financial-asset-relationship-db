@@ -311,7 +311,7 @@ class TestWorkflowSimplificationsConsistency:
             '.github/scripts/context_chunker.py'
         ]
         
-        for workflow_file in WORKFLOWS_DIR.glob("*.yml"):
+        for workflow_file in list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             
@@ -367,7 +367,7 @@ class TestWorkflowSimplificationsBenefits:
     def test_workflows_use_versioned_actions(self):
         """Test that workflows use versioned actions (not floating tags)."""
         
-        for workflow_file in WORKFLOWS_DIR.glob("*.yml"):
+        for workflow_file in list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml")):
             workflow = yaml.safe_load(workflow_file.read_text())
             
             for job_name, job in workflow.get('jobs', {}).items():
