@@ -252,13 +252,16 @@ class TestPRAgentWorkflowDependencyInstallation:
                     "Python install should reference requirements-dev.txt"
     
     def test_node_install_uses_working_directory(self, pr_agent_job: Dict[str, Any]):
-        """Test that Node install step uses frontend working directory."""
+        """Test that Node install step runs in the frontend directory."""
         steps = pr_agent_job.get('steps', [])
         for step in steps:
             if step.get('name') == 'Install Node dependencies':
-                working_dir = step.get('working-directory', '')
-                assert 'frontend' in working_dir, \
-                    "Node install should use frontend working directory"
+                run_script = step.get('run', '') or ''
+                working_dir = step.get('working-directory', '') or ''
+                assert (
+                    'frontend' in working_dir
+                    or re.search(r'\bcd\s+frontend\b', run_script)
+                ), "Node install should execute in the frontend directory (via working-directory or 'cd frontend')"
 
 
 class TestPRAgentWorkflowTestingSteps:
