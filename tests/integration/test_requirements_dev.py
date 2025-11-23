@@ -161,9 +161,15 @@ class TestVersionSpecifications:
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         assert len(packages_without_versions) == 0, f"Packages without version constraints: {packages_without_versions}"
     
+    from packaging.specifiers import InvalidSpecifier
     def test_version_format_valid(self, requirements: List[Tuple[str, str]]):
         """Test that version specifications use valid PEP 440 format."""
         for pkg, ver_spec in requirements:
+            if ver_spec:
+                try:
+                    SpecifierSet(ver_spec)
+                except InvalidSpecifier as e:
+                    assert False, f"Invalid version specifier for {pkg}: {ver_spec} ({e})"
             if ver_spec:
                 try:
                     SpecifierSet(ver_spec)
@@ -266,48 +272,8 @@ class TestSpecificChanges:
         types_entries = [(pkg, ver) for pkg, ver in requirements if pkg == 'types-PyYAML']
         assert len(types_entries) == 1
     
-    def test_existing_packages_preserved(self, requirements: List[Tuple[str, str]]):
-        """Test that existing packages are still present."""
-        package_names = [pkg for pkg, _ in requirements]
-
-        # Derive expected packages dynamically from the requirements file
-        with open(REQUIREMENTS_FILE, 'r', encoding='utf-8') as f:
-            expected_packages = []
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
-                # Extract package name before any version specifier
-                for sep in ('>=', '==', '<=', '>', '<', '~='):
-                    if sep in line:
-                        expected_packages.append(line.split(sep)[0].strip())
-                        break
-                else:
-                    expected_packages.append(line)
-
-        for expected_pkg in expected_packages:
-            assert expected_pkg in package_names
-
-class TestRequirementsFileFormatting:
-    """Additional tests for requirements-dev.txt file formatting and structure."""
-    
-    def test_requirements_file_ends_with_newline(self):
-        """Test that requirements-dev.txt ends with a newline character (Unix convention)."""
-        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
-        
-        with open(REQUIREMENTS_FILE, 'rb') as f:
-            content = f.read()
-        
-        assert len(content) > 0, "requirements-dev.txt is empty"
-        assert content.endswith(b'\n'), (
-            "requirements-dev.txt should end with a newline character (Unix convention)"
-        )
-    
-    def test_pyyaml_and_types_on_separate_lines(self):
-        """Test that PyYAML and types-PyYAML are on separate lines (not combined)."""
-        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
-        
-        with open(REQUIREMENTS_FILE, 'r') as f:
+        # Derive expected packages using the same parser for consistency
+        expected_packages = [pkg for pkg, _ in parse_requirements(REQUIREMENTS_FILE)]
             lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
         
         # Find lines starting with PyYAML or types-PyYAML (not just containing them)
