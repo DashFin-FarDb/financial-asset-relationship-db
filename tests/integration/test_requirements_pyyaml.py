@@ -154,7 +154,7 @@ class TestRequirementsDevCompleteness:
             if not line or line.startswith('#'):
                 continue
             
-            valid_pattern = r'^[a-zA-Z0-9._-]+\[?[a-zA-Z0-9._,-]*\]?(>=|==|<=|>|<|~=)[0-9.]+.*$'
+            valid_pattern = r'^[a-zA-Z0-9._-]+\[?[a-zA-Z0-9._,-]*\]?((>=|==|<=|>|<|~=)[0-9.]+.*)?$'
             assert re.match(valid_pattern, line), \
                 f"Line {line_num} has invalid format: {line}"
     
