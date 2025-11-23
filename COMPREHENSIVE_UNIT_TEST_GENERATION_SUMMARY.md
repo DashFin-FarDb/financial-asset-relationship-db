@@ -196,7 +196,7 @@ Validates edge case handling:
 |--------|-------|
 | **Test Files Generated** | 2 |
 | **Documentation Files Created** | 3 |
-| **Total Test Lines** | 889 lines |
++| **Total Test Lines** | 889 lines |
 | **Total Test Methods** | 75 |
 | **Total Test Classes** | 21 |
 | **Files Validated** | 6 (5 workflows + 1 config) |

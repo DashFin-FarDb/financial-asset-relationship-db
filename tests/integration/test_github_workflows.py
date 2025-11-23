@@ -300,6 +300,11 @@ class TestPrAgentWorkflow:
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         runs_on = review_job.get("runs-on", "")
+        assert "ubuntu" in runs_on.lower(), (
+            f"PR Agent trigger job should run on Ubuntu runner, got '{runs_on}'"
+        )
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        runs_on = review_job.get("runs-on", "")
         assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
             f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
         )
@@ -381,27 +386,18 @@ class TestPrAgentWorkflow:
 
         step_names = [s.get("name") for s in steps if s.get("name")]
         seen = set()
-        duplicate_names = {
-            name for name in step_names
-            if name in seen or seen.add(name)
-        }
+        duplicate_names = []
+        for name in step_names:
+            if name in seen:
+                duplicate_names.append(name)
+            else:
+                seen.add(name)
+        duplicate_names = set(duplicate_names)
 
         assert not duplicate_names, (
             f"Found duplicate step names: {duplicate_names}. "
             "Each step should have a unique name."
         )
-
-    @staticmethod
-    def _assert_valid_fetch_depth(step_with: Dict[str, Any]) -> None:
-        """Validate checkout fetch-depth value."""
-        if "fetch-depth" not in step_with:
-            return
-
-        fetch_depth = step_with["fetch-depth"]
-        assert isinstance(fetch_depth, int), (
-            f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
-        )
-        assert fetch_depth >= 0, "fetch-depth cannot be negative"
 
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
         """Ensure checkout steps in the trigger job have valid fetch-depth values."""
@@ -426,8 +422,11 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_fetch_depth_allows_absent(self):
         """Missing fetch-depth is permitted for checkout steps."""
-
+        # Test empty configuration
         self._assert_valid_fetch_depth({})
+        # Test configuration with other parameters but no fetch-depth
+        self._assert_valid_fetch_depth({"token": "${{ secrets.GITHUB_TOKEN }}"})
+
 class TestWorkflowSecurity:
     """Test suite for workflow security best practices."""
     
@@ -1087,7 +1086,7 @@ class TestWorkflowEnvAndSecrets:
         return [
             key
             for key in env_dict.keys()
-            if not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
+            if not isinstance(key, str) or not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
         ]
 
     @staticmethod
@@ -1992,7 +1991,7 @@ class TestWorkflowYAMLStructureValidation:
         workflow_dir = Path(".github/workflows")
         assert workflow_dir.exists(), "Workflows directory not found"
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 try:
                     workflow = yaml.safe_load(f)
@@ -2019,7 +2018,7 @@ class TestWorkflowYAMLStructureValidation:
             'workflow_call', 'repository_dispatch', 'workflow_run'
         }
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflow = yaml.safe_load(f)
             
@@ -2048,7 +2047,7 @@ class TestWorkflowYAMLStructureValidation:
         workflow_dir = Path(".github/workflows")
         assert workflow_dir.exists(), "Workflows directory not found"
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflow = yaml.safe_load(f)
             
@@ -2094,7 +2093,7 @@ class TestWorkflowYAMLStructureValidation:
         
         import re
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             
@@ -2119,7 +2118,7 @@ class TestWorkflowSecurityEnhancements:
         workflow_dir = Path(".github/workflows")
         assert workflow_dir.exists(), "Workflows directory not found"
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflow = yaml.safe_load(f)
             
@@ -2154,7 +2153,7 @@ class TestWorkflowSecurityEnhancements:
         import re
         version_pattern = r'@v\d+|@[a-f0-9]{40}'  # @v1, @v2, etc or full SHA
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 workflow = yaml.safe_load(f)
             
@@ -2189,7 +2188,7 @@ class TestWorkflowSecurityEnhancements:
         
         import re
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             

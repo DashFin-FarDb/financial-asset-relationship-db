@@ -243,8 +243,9 @@ class TestPRAgentConfigIntegration:
         
         # Check that agent name in config appears in workflow
         agent_name = config_data.get('agent', {}).get('name', '')
-        if agent_name:
-            # Workflow might reference the agent name in comments or outputs
+            # Workflow should reference the configured agent name
+            assert agent_name in workflow_content, \
+                "Agent name from config must be referenced in the workflow"
             assert any(char.isalnum() for char in agent_name), \
                 "Agent name should contain alphanumeric characters"
     

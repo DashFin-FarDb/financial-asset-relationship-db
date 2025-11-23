@@ -63,7 +63,7 @@ class TestPRAgentWorkflowSimplification:
         job = pr_agent_workflow['jobs']['pr-agent-trigger']
         setup_python_steps = [
             step for step in job['steps']
-            if step.get('name') == 'Setup Python'
+            if 'setup' in step.get('name', '').lower() and 'python' in step.get('name', '').lower()
         ]
         assert len(setup_python_steps) == 1, "Should have exactly one 'Setup Python' step"
     
@@ -93,7 +93,7 @@ class TestPRAgentWorkflowSimplification:
         # Check that the script doesn't reference chunking
         script = parse_step.get('run', '')
         assert 'context_chunker.py' not in script
-        assert 'chunked' not in script.lower() or 'chunk' not in script.lower()
+        assert 'chunked' not in script.lower() and 'chunk' not in script.lower()
         assert 'CONTEXT_SIZE' not in script
     
     def test_no_pyyaml_installation_in_dependencies(self, pr_agent_workflow: Dict[str, Any]):
@@ -314,14 +314,16 @@ class TestWorkflowConsistency:
     
     def test_all_workflows_valid_yaml(self):
         """Verify all workflow files are still valid YAML."""
-        workflow_files = list(WORKFLOWS_DIR.glob("*.yml"))
+        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
         
         for wf_file in workflow_files:
             with open(wf_file, 'r', encoding='utf-8') as f:
                 try:
-                    yaml.safe_load(f)
+                    content = f.read()
+                    yaml.safe_load(content)
                 except yaml.YAMLError as e:
-                    pytest.fail(f"Invalid YAML in {wf_file.name}: {e}")
+                    lines_preview = "\n".join(content.splitlines()[:10])
+                    pytest.fail(f"Invalid YAML in {wf_file.name}: {e}\nFirst 10 lines:\n{lines_preview}")
     
     def test_no_broken_references(self, pr_agent_workflow: Dict[str, Any]):
         """Verify no steps reference removed features."""
@@ -370,7 +372,7 @@ class TestRemovedFilesNotReferenced:
     def test_no_scripts_readme_references(self):
         """Verify no references to removed scripts README."""
         # Check all workflow files
-        for wf_file in WORKFLOWS_DIR.glob("*.yml"):
+        for wf_file in list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml")):
             with open(wf_file, 'r', encoding='utf-8') as f:
                 content = f.read()
                 assert '.github/scripts/README.md' not in content
@@ -398,8 +400,8 @@ class TestRequirementsDevUpdates:
                 content = f.read()
             
             # Should not be in main requirements
-            assert 'PyYAML' not in content or 'pyyaml' not in content.lower()
-    
+            assert 'pyyaml' not in content.lower()
+            assert 'PyYAML' not in content and 'pyyaml' not in content.lower()
     def test_all_dev_requirements_have_versions(self):
         """Verify all dev requirements have version specifiers."""
         req_file = Path(__file__).parent.parent.parent / "requirements-dev.txt"

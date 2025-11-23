@@ -22,7 +22,10 @@ class TestWorkflowModifications:
         
         # Should not reference chunking
         assert 'context_chunker' not in content
-        assert 'chunking' not in content.lower() or '# chunking' in content.lower()  # Allow in comments
+        content_lower = content.lower()
+        if 'chunking' in content_lower:
+            assert content_lower.count('chunking') == content_lower.count('# chunking'), \
+                "Found 'chunking' references outside of comments"
         assert 'tiktoken' not in content
     
     def test_pr_agent_workflow_has_simplified_parsing(self):
@@ -200,7 +203,7 @@ class TestBranchIntegration:
         """Workflows should not reference non-existent files."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             
@@ -230,11 +233,10 @@ class TestDocumentationConsistency:
             'COMPREHENSIVE_BRANCH_TEST_GENERATION_SUMMARY.md'
         ]
         
-        for summary_file in summary_files:
-            path = Path(summary_file)
-            if path.exists():
-                # File should not be empty
-                assert path.stat().st_size > 0
+for summary_file in summary_files:
+    path = Path(summary_file)
+    assert path.is_file(), f"Required summary file '{summary_file}' does not exist or is not a file"
+    assert path.stat().st_size > 0, f"Summary file '{summary_file}' is empty"
     
     def test_no_misleading_documentation(self):
         """Documentation should not reference removed features as active."""
