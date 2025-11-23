@@ -52,8 +52,11 @@ class TestWorkflowRequirementsConsistency:
     def pr_agent_workflow(self) -> Dict[str, Any]:
         """Load PR agent workflow."""
         workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'pr-agent.yml'
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
+        try:
+            with open(workflow_path, 'r') as f:
+                return yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            pytest.fail(f"Failed to parse workflow YAML at {workflow_path}: {e}")
     
     def test_pyyaml_in_requirements_for_workflows(self, requirements_dev: Set[str]):
         """Test that PyYAML is in requirements for workflow YAML processing."""
