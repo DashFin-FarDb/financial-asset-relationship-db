@@ -1134,12 +1134,12 @@ class TestWorkflowStepConfiguration:
             step_ids = [s.get("id") for s in steps if "id" in s]
             
             duplicates = [sid for sid in step_ids if step_ids.count(sid) > 1]
-            assert not duplicates, (
-                f"Job '{job_name}' in {workflow_file.name} has duplicate step IDs: {duplicates}"
-            )
-    
-    @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    def test_workflow_steps_continue_on_error_usage(self, workflow_file: Path):
+        for key in env_dict.keys():
+            # Ensure all characters are either alphanumeric or underscore
+            is_valid_chars = all(c.isalnum() or c == '_' for c in key)
+            if not key.isupper() or not is_valid_chars:
+                invalid.append(key)
+        return invalid
         """Test that continue-on-error is used sparingly and intentionally."""
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
