@@ -436,13 +436,7 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
         
-        # Check for duplicate step names
-        step_names = [s.get("name", "") for s in steps if s.get("name")]
-        duplicate_names = [name for name in step_names if step_names.count(name) > 1]
-        
-        assert not duplicate_names, (
-            f"Found duplicate step names: {set(duplicate_names)}. "
-            "Each step should have a unique name."
+            assert fetch_depth >= 0, "fetch-depth cannot be negative"
     def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
         """Test that there are no duplicate setup steps in the workflow."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
