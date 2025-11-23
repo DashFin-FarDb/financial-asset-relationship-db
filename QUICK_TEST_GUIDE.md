@@ -2,9 +2,9 @@
 
 ## What Was Generated
 
-### New Test Files (681 lines, 70+ tests)
-1. `tests/integration/test_pr_agent_config_validation.py` - Configuration validation (294 lines, 40+ tests)
-2. `tests/integration/test_workflow_simplifications.py` - Workflow simplification tests (387 lines, 30+ tests)
+### New Test Files (788 lines, 70+ tests)
+1. `tests/integration/test_pr_agent_config_validation.py` - Configuration validation (408 lines, 40+ tests)
+2. `tests/integration/test_workflow_simplifications.py` - Workflow simplification tests (380 lines, 30+ tests)
 
 ## Quick Start
 
@@ -57,7 +57,7 @@ pytest tests/integration/ --cov=.github --cov-report=html
 | Metric | Value |
 |--------|-------|
 | New files | 2 |
-| Total lines | 681 |
+| Total lines | 788 |
 | Test classes | 15 |
 | Test methods | 70+ |
 | New dependencies | 0 |
