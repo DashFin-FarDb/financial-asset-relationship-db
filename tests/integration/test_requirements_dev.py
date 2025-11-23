@@ -347,7 +347,6 @@ class TestRequirementsPackageIntegrity:
         types_version = None
         
         for line in content.split('\n'):
-    @staticmethod
             if line.startswith('PyYAML>='):
                 pyyaml_version = line.split('>=')[1].strip()
             elif line.startswith('types-PyYAML>='):
