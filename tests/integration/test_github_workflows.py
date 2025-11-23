@@ -308,16 +308,6 @@ class TestPrAgentWorkflow:
         assert isinstance(jobs["pr-agent-trigger"], dict), (
             "'pr-agent-trigger' job must be a mapping"
         )
-        assert isinstance(jobs["pr-agent-trigger"], dict), (
-            "'pr-agent-trigger' job must be a mapping"
-def test_pr_agent_has_trigger_job(self, pr_agent_workflow: Dict[str, Any]):
-    jobs = pr_agent_workflow.get("jobs", {})
-    assert "pr-agent-trigger" in jobs, (
-        "pr-agent workflow must define the 'pr-agent-trigger' job"
-    )
-    assert isinstance(jobs["pr-agent-trigger"], dict), (
-        "'pr-agent-trigger' job must be a mapping"
-    )
     
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
         """Ensure the trigger job runs on a standard Ubuntu runner."""
@@ -355,23 +345,11 @@ def test_pr_agent_has_trigger_job(self, pr_agent_workflow: Dict[str, Any]):
         
         for step in checkout_steps:
             step_with = step.get("with", {})
-def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
-    """Test that checkout steps explicitly define a non-empty token."""
-    review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-    steps = review_job.get("steps", [])
-
-    checkout_steps = [
-        s for s in steps 
-        if s.get("uses", "").startswith("actions/checkout")
-    ]
-
-    for step in checkout_steps:
-        step_with = step.get("with", {})
-        token = step_with.get("token")
-        assert isinstance(token, str) and token.strip(), (
-            "Checkout step must specify a non-empty token for better security. "
-            "Use ${{ secrets.GITHUB_TOKEN }} or similar."
-        )
+            token = step_with.get("token")
+            assert isinstance(token, str) and token.strip(), (
+                "Checkout step must specify a non-empty token for better security. "
+                "Use ${{ secrets.GITHUB_TOKEN }} or similar."
+            )
     
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """Assert the trigger job includes a setup-python step."""
@@ -459,44 +437,6 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
             )
             # Reject negative integers
             assert fetch_depth >= 0, "fetch-depth cannot be negative"
-            assert isinstance(fetch_depth, int), (
-                f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
-            )
-            # Reject negative integers
-            assert fetch_depth >= 0, "fetch-depth cannot be negative"
-            step_with = step.get("with", {})
-            # It's acceptable for fetch-depth to be omitted entirely
-            if "fetch-depth" not in step_with:
-                continue
-            fetch_depth = step_with["fetch-depth"]
-            # Reject non-integer types (including strings)
-            assert isinstance(fetch_depth, int), (
-                f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
-            )
-            # Reject negative integers
-            assert fetch_depth >= 0, "fetch-depth cannot be negative"
-            step_with = step.get("with", {})
-            # It's acceptable for fetch-depth to be omitted entirely
-            if "fetch-depth" not in step_with:
-                continue
-            fetch_depth = step_with["fetch-depth"]
-            # Reject non-integer types (including strings)
-            assert isinstance(fetch_depth, int), (
-                f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
-            )
-            # Reject negative integers
-            assert fetch_depth >= 0, "fetch-depth cannot be negative"
-            assert isinstance(fetch_depth, int), (
-                f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
-            )
-            # Reject negative integers
-            assert fetch_depth >= 0, "fetch-depth cannot be negative"
-            step_with = step.get("with", {})
-            if "fetch-depth" in step_with:
-                fetch_depth = step_with["fetch-depth"]
-                assert isinstance(fetch_depth, int) or fetch_depth == 0, (
-                    "fetch-depth should be an integer"
-                )
 
 
 class TestWorkflowSecurity:
@@ -1176,19 +1116,11 @@ class TestWorkflowEnvAndSecrets:
                 return []
             invalid = []
             for key in env_dict.keys():
-                if not key.isupper() or not key.replace("_", "").isalnum():
+                # Allow uppercase letters, digits, and underscores only
+                if not key.isupper() or not all(c.isalnum() or c == '_' for c in key):
                     invalid.append(key)
             return invalid
 
-def check_env_vars(env_dict):
-    if not isinstance(env_dict, dict):
-        return []
-    invalid = []
-    for key in env_dict.keys():
-        # Allow uppercase letters, digits, and underscores only
-        if not key.isupper() or not all(c.isalnum() or c == '_' for c in key):
-            invalid.append(key)
-    return invalid
         if "env" in config:
             invalid = check_env_vars(config["env"])
             assert not invalid, (
