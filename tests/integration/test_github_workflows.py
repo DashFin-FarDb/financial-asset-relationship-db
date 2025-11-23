@@ -431,8 +431,11 @@ def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any])
             self._assert_valid_fetch_depth({"fetch-depth": invalid_fetch_depth})
 
     def test_pr_agent_fetch_depth_allows_absent(self):
-        """Missing fetch-depth is permitted for checkout steps."""
-
+            """Missing fetch-depth is permitted for checkout steps."""
+            # Test empty configuration
+            self._assert_valid_fetch_depth({})
+            # Test configuration with other parameters but no fetch-depth
+            self._assert_valid_fetch_depth({"token": "${{ secrets.GITHUB_TOKEN }}"})
         self._assert_valid_fetch_depth({})
 class TestWorkflowSecurity:
     """Test suite for workflow security best practices."""
