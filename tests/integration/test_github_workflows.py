@@ -361,13 +361,15 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
     trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
     steps = trigger_job.get("steps", [])
 
+    """Test that checkout steps explicitly define a non-empty token."""
+    trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+    steps = trigger_job.get("steps", [])
+
     checkout_steps = [
         s for s in steps
         if s.get("uses", "").startswith("actions/checkout")
     ]
 
-    for step in checkout_steps:
-        step_with = step.get("with", {})
         token = step_with.get("token")
         assert isinstance(token, str) and token.strip(), (
             "Checkout step must specify a non-empty token for better security. "
