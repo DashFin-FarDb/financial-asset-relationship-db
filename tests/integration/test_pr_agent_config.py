@@ -330,7 +330,7 @@ class TestPRAgentConfigMaintainability:
                 assert expected_index == i, (
                     f"Config sections should be in logical order. "
                     f"Expected {section} at position {expected_index}, but found at position {i}. "
-                    f"Expected order: {expected_filtered}, Actual order: {section_names}"
+                    f"Expected order: {expected_filtered}, Actual order: {section_names}")
     # Removed duplicate text-based section order test. The YAML-based version below is the single source of truth.
 
 class TestPRAgentConfigBackwardCompatibility:
