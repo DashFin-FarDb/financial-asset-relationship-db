@@ -29,8 +29,17 @@ class TestWorkflowYAMLSyntax:
     @pytest.fixture
     def workflows_dir(self) -> Path:
         """Get the workflows directory path."""
-        return Path(__file__).parent.parent.parent / '.github' / 'workflows'
-    
+        """Get the workflows directory path."""
+        workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+        try:
+          # Ensure the directory exists and is accessible
+          if not workflows_dir.exists():
+            pytest.fail(f"Workflows directory not found: {workflows_dir}")
+          if not workflows_dir.is_dir():
+            pytest.fail(f"Workflows path is not a directory: {workflows_dir}")
+        except Exception as e:
+          pytest.fail(f"Error accessing workflows directory {workflows_dir}: {e}")
+        return workflows_dir
     @pytest.fixture
     def workflow_files(self, workflows_dir: Path) -> List[Path]:
         """Get all workflow YAML files."""
