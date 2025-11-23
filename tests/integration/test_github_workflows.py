@@ -7,13 +7,26 @@ duplicate keys, invalid syntax, and missing required fields.
 """
 
 import pytest
-import yaml
 from pathlib import Path
 from typing import Any, Dict, List
 
+# Skip this module if PyYAML is not installed
+yaml = pytest.importorskip("yaml")
+
+# Define workflows directory path used across tests
+WORKFLOWS_DIR = Path(".github") / "workflows"
+yaml = pytest.importorskip("yaml")
 
 # Path to workflows directory
-WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
+def test_pr_agent_has_trigger_job(self, pr_agent_workflow: Dict[str, Any]):
+    """Test that pr-agent workflow has the trigger job."""
+    jobs = pr_agent_workflow.get("jobs", {})
+    assert "pr-agent-trigger" in jobs, (
+        "pr-agent workflow must define the 'pr-agent-trigger' job"
+    )
+    assert isinstance(jobs["pr-agent-trigger"], dict), (
+        "'pr-agent-trigger' job must be a mapping"
+    )
 
 
 def get_workflow_files() -> List[Path]:

@@ -9,10 +9,11 @@ duplicate keys.
 import os
 import pytest
 import tempfile
-import yaml
 from pathlib import Path
 from typing import List
 from unittest.mock import Mock, patch, mock_open
+
+yaml = pytest.importorskip("yaml")
 
 # Import functions from the module we're testing
 from tests.integration.test_github_workflows import (
