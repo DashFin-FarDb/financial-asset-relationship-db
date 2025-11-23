@@ -17,7 +17,7 @@ pytest tests/integration/test_pr_agent_config_validation.py \
 ### Run Specific Test Classes
 ```bash
 # Configuration tests
-pytest tests/integration/test_pr_agent_config_validation.py::TestPRAgentConfigContextRemoval -v
+pytest tests/integration/test_pr_agent_config_validation.py::TestPRAgentConfigStructure -v
 
 # Workflow simplification tests
 pytest tests/integration/test_workflow_simplifications.py::TestPRAgentWorkflowSimplification -v
