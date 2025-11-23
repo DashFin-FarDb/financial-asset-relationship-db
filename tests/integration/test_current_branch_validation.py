@@ -203,7 +203,7 @@ class TestBranchIntegration:
         """Workflows should not reference non-existent files."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             

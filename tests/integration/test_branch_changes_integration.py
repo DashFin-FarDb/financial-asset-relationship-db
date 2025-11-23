@@ -19,7 +19,7 @@ class TestWorkflowConfigurationIntegration:
         """All workflows should declare appropriate permissions."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
             
@@ -35,7 +35,7 @@ class TestWorkflowConfigurationIntegration:
         """Workflows should only depend on available actions and tools."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
             
@@ -75,7 +75,7 @@ class TestWorkflowConfigurationIntegration:
         workflow_dir = Path(".github/workflows")
         python_versions = set()
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
             
@@ -99,7 +99,7 @@ class TestWorkflowConfigurationIntegration:
         workflow_dir = Path(".github/workflows")
         node_versions = set()
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
             
@@ -143,7 +143,7 @@ class TestRequirementsConsistency:
         
         # Check workflows
         workflow_dir = Path(".github/workflows")
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             
@@ -283,7 +283,7 @@ class TestGitHubActionsEcosystem:
         workflow_dir = Path(".github/workflows")
         workflow_triggers = {}
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
             
@@ -316,7 +316,7 @@ class TestGitHubActionsEcosystem:
         workflow_dir = Path(".github/workflows")
         workflow_names = []
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
             
@@ -336,7 +336,7 @@ class TestGitHubActionsEcosystem:
     def test_reasonable_workflow_count(self):
         """Should not have too many workflows (maintainability)."""
         workflow_dir = Path(".github/workflows")
-        workflow_count = len(list(workflow_dir.glob("*.yml")))
+        workflow_count = len(list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")))
         
         # More than 20 workflows might be hard to maintain
         assert workflow_count <= 25, \
@@ -345,7 +345,7 @@ class TestGitHubActionsEcosystem:
     def test_all_workflows_documented(self):
         """All workflows should be documented somewhere."""
         workflow_dir = Path(".github/workflows")
-        workflows = [f.stem for f in workflow_dir.glob("*.yml")]
+        workflows = [f.stem for f in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))]
         
         # Check for workflow documentation
         doc_files = list(Path('.').glob('*.md')) + list(Path('.github').glob('*.md'))

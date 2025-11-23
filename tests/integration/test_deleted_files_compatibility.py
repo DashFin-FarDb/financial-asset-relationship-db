@@ -21,7 +21,7 @@ class TestDeletedContextChunker:
         """Workflows should not reference the deleted context_chunker.py."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
             
@@ -260,7 +260,7 @@ assert isinstance(workflow, dict), "PR Agent workflow should parse to a dictiona
         """Workflows should not reference missing configuration files."""
         workflow_dir = Path(".github/workflows")
         
-        for workflow_file in workflow_dir.glob("*.yml"):
+        for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             import yaml
             with open(workflow_file, 'r') as f:
                 content = f.read()
@@ -297,7 +297,7 @@ class TestBackwardCompatibility:
     
     def test_environment_variables_still_valid(self):
         """Environment variables should still be valid after deletions."""
-        workflows = list(Path(".github/workflows").glob("*.yml"))
+        workflows = list(Path(".github/workflows").glob("*.yml")) + list(Path(".github/workflows").glob("*.yaml"))
         
         for workflow_file in workflows:
             import yaml
@@ -319,7 +319,7 @@ class TestBackwardCompatibility:
     
     def test_action_inputs_valid(self):
         """Action inputs should not reference deleted files or features."""
-        workflows = list(Path(".github/workflows").glob("*.yml"))
+        workflows = list(Path(".github/workflows").glob("*.yml")) + list(Path(".github/workflows").glob("*.yaml"))
         
         for workflow_file in workflows:
             import yaml

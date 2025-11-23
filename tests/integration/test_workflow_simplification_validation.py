@@ -314,17 +314,16 @@ class TestWorkflowConsistency:
     
     def test_all_workflows_valid_yaml(self):
         """Verify all workflow files are still valid YAML."""
-        workflow_files = list(WORKFLOWS_DIR.glob("*.yml"))
+        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
         
         for wf_file in workflow_files:
             with open(wf_file, 'r', encoding='utf-8') as f:
                 try:
-                    try:
-                        content = f.read()
-                        yaml.safe_load(content)
-                    except yaml.YAMLError as e:
-                        lines_preview = "\n".join(content.splitlines()[:10])
-                        pytest.fail(f"Invalid YAML in {wf_file.name}: {e}\nFirst 10 lines:\n{lines_preview}")
+                    content = f.read()
+                    yaml.safe_load(content)
+                except yaml.YAMLError as e:
+                    lines_preview = "\n".join(content.splitlines()[:10])
+                    pytest.fail(f"Invalid YAML in {wf_file.name}: {e}\nFirst 10 lines:\n{lines_preview}")
     
     def test_no_broken_references(self, pr_agent_workflow: Dict[str, Any]):
         """Verify no steps reference removed features."""
@@ -373,7 +372,7 @@ class TestRemovedFilesNotReferenced:
     def test_no_scripts_readme_references(self):
         """Verify no references to removed scripts README."""
         # Check all workflow files
-        for wf_file in WORKFLOWS_DIR.glob("*.yml"):
+        for wf_file in list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml")):
             with open(wf_file, 'r', encoding='utf-8') as f:
                 content = f.read()
                 assert '.github/scripts/README.md' not in content
