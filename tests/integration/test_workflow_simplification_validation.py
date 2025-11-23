@@ -402,7 +402,7 @@ class TestRequirementsDevUpdates:
             
             # Should not be in main requirements
             assert 'pyyaml' not in content.lower()
-    
+            assert 'PyYAML' not in content and 'pyyaml' not in content.lower()
     def test_all_dev_requirements_have_versions(self):
         """Verify all dev requirements have version specifiers."""
         req_file = Path(__file__).parent.parent.parent / "requirements-dev.txt"
