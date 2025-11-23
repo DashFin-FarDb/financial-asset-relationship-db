@@ -25,7 +25,7 @@ The current branch includes several workflow simplifications:
 
 ## Test Classes and Coverage
 
-###  1. TestPRAgentWorkflowSimplification (9 tests)
+###  1. TestPRAgentWorkflowSimplification (7 tests)
 
 Tests that `pr-agent.yml` has been properly simplified:
 
