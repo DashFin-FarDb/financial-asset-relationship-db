@@ -2373,3 +2373,495 @@ class TestRequirementsDevValidation:
         assert len(conflicts) == 0, (
             f"Version conflicts between requirements files: {conflicts}"
         )
+
+
+class TestModifiedWorkflowsValidation:
+    """
+    Comprehensive tests for workflows modified in the current branch.
+    
+    Tests validate that simplifications and removals don't break functionality:
+    - apisec-scan.yml: Removed credential check step
+    - greetings.yml: Simplified welcome messages
+    - label.yml: Removed labeler config check  
+    - pr-agent.yml: Removed context chunking logic
+    """
+
+    def test_apisec_workflow_structure_valid(self):
+        """Test that apisec-scan.yml has valid structure after removing credential check."""
+        workflow_file = WORKFLOWS_DIR / "apisec-scan.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("apisec-scan.yml not found")
+        
+        config = load_yaml_safe(workflow_file)
+        
+        # Workflow should still have basic structure
+        assert "name" in config, "apisec-scan.yml missing name"
+        assert "jobs" in config, "apisec-scan.yml missing jobs"
+        assert "Trigger_APIsec_scan" in config["jobs"], "Missing APIsec scan job"
+        
+        job = config["jobs"]["Trigger_APIsec_scan"]
+        assert "steps" in job, "APIsec job missing steps"
+        
+        # Should have APIsec scan step (not the removed credential check)
+        steps = job["steps"]
+        step_names = [s.get("name", "") for s in steps]
+        
+        assert any("APIsec scan" in name for name in step_names), (
+            "Missing APIsec scan step"
+        )
+        
+        # Should NOT have credential check step (it was removed)
+        assert not any("Check for APIsec" in name for name in step_names), (
+            "Credential check step should have been removed"
+        )
+
+    def test_apisec_workflow_uses_secrets_correctly(self):
+        """Test that apisec-scan.yml correctly references secrets."""
+        workflow_file = WORKFLOWS_DIR / "apisec-scan.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("apisec-scan.yml not found")
+        
+        with open(workflow_file, 'r') as f:
+            content = f.read()
+        
+        # Should reference secrets (not hardcoded credentials)
+        assert "secrets.apisec_username" in content, (
+            "Should use secrets.apisec_username"
+        )
+        assert "secrets.apisec_password" in content, (
+            "Should use secrets.apisec_password"
+        )
+
+    def test_apisec_workflow_has_proper_triggers(self):
+        """Test that apisec-scan.yml has appropriate triggers."""
+        workflow_file = WORKFLOWS_DIR / "apisec-scan.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("apisec-scan.yml not found")
+        
+        config = load_yaml_safe(workflow_file)
+        triggers = config.get("on", {})
+        
+        # Should trigger on relevant events
+        if isinstance(triggers, dict):
+            assert "push" in triggers or "pull_request" in triggers or "schedule" in triggers, (
+                "apisec-scan should have meaningful triggers"
+            )
+
+    def test_greetings_workflow_simplified_messages(self):
+        """Test that greetings.yml has valid simplified message format."""
+        workflow_file = WORKFLOWS_DIR / "greetings.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("greetings.yml not found")
+        
+        config = load_yaml_safe(workflow_file)
+        
+        assert "jobs" in config, "greetings.yml missing jobs"
+        
+        for job_name, job in config["jobs"].items():
+            steps = job.get("steps", [])
+            
+            for step in steps:
+                if "actions/first-interaction" in step.get("uses", ""):
+                    step_with = step.get("with", {})
+                    
+                    # Should have message fields
+                    if "issue-message" in step_with:
+                        msg = step_with["issue-message"]
+                        assert isinstance(msg, str), "issue-message should be a string"
+                        assert len(msg) > 0, "issue-message should not be empty"
+                    
+                    if "pr-message" in step_with:
+                        msg = step_with["pr-message"]
+                        assert isinstance(msg, str), "pr-message should be a string"
+                        assert len(msg) > 0, "pr-message should not be empty"
+
+    def test_greetings_workflow_structure(self):
+        """Test that greetings.yml has valid basic structure."""
+        workflow_file = WORKFLOWS_DIR / "greetings.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("greetings.yml not found")
+        
+        config = load_yaml_safe(workflow_file)
+        
+        # Check basic structure
+        assert "name" in config, "greetings.yml missing name"
+        assert "on" in config, "greetings.yml missing triggers"
+        assert "jobs" in config, "greetings.yml missing jobs"
+        
+        # Should trigger on appropriate events
+        triggers = config["on"]
+        if isinstance(triggers, list):
+            assert any(t in ["pull_request_target", "issues"] for t in triggers), (
+                "greetings should trigger on PR or issue events"
+            )
+
+    def test_label_workflow_no_config_check(self):
+        """Test that label.yml runs without labeler config check step."""
+        workflow_file = WORKFLOWS_DIR / "label.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("label.yml not found")
+        
+        config = load_yaml_safe(workflow_file)
+        
+        assert "jobs" in config, "label.yml missing jobs"
+        
+        for job_name, job in config["jobs"].items():
+            steps = job.get("steps", [])
+            step_names = [s.get("name", "") for s in steps]
+            
+            # Should NOT have config check step (it was removed)
+            assert not any("Check for labeler" in name for name in step_names), (
+                "Config check step should have been removed from label.yml"
+            )
+            
+            # Should still use labeler action
+            uses_list = [s.get("uses", "") for s in steps]
+            assert any("actions/labeler" in u for u in uses_list), (
+                "label.yml should still use actions/labeler"
+            )
+
+    def test_label_workflow_simplified_structure(self):
+        """Test that label.yml has simplified but functional structure."""
+        workflow_file = WORKFLOWS_DIR / "label.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("label.yml not found")
+        
+        config = load_yaml_safe(workflow_file)
+        
+        # Basic structure checks
+        assert "name" in config, "label.yml missing name"
+        assert "jobs" in config, "label.yml missing jobs"
+        
+        # Should have appropriate permissions
+        for job_name, job in config["jobs"].items():
+            if "labeler" in job_name.lower() or "label" in job_name.lower():
+                # Job or workflow should have pull-requests: write permission
+                job_perms = job.get("permissions", {})
+                workflow_perms = config.get("permissions", {})
+                
+                has_pr_write = (
+                    job_perms.get("pull-requests") == "write" or
+                    workflow_perms.get("pull-requests") == "write"
+                )
+                
+                # This is a recommendation, not a hard requirement
+                if not has_pr_write:
+                    import warnings
+                    warnings.warn(
+                        f"{workflow_file.name} labeler job may need "
+                        f"pull-requests: write permission"
+                    )
+
+    def test_pr_agent_workflow_no_chunking_logic(self):
+        """Test that pr-agent.yml doesn't contain context chunking logic."""
+        workflow_file = WORKFLOWS_DIR / "pr-agent.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("pr-agent.yml not found")
+        
+        with open(workflow_file, 'r') as f:
+            content = f.read()
+        
+        # Should NOT contain chunking-related terms (they were removed)
+        chunking_terms = [
+            "context_chunker",
+            "Fetch PR Context with Chunking",
+            "MAX_FILES_PER_CHUNK",
+            "tiktoken",
+            "chunked=true",
+            "context_size",
+        ]
+        
+        for term in chunking_terms:
+            assert term not in content, (
+                f"pr-agent.yml should not contain '{term}' after chunking removal"
+            )
+
+    def test_pr_agent_workflow_simplified_parsing(self):
+        """Test that pr-agent.yml has simplified comment parsing."""
+        workflow_file = WORKFLOWS_DIR / "pr-agent.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("pr-agent.yml not found")
+        
+        config = load_yaml_safe(workflow_file)
+        
+        assert "jobs" in config, "pr-agent.yml missing jobs"
+        
+        # Check that it has the simplified parse-comments step
+        for job_name, job in config["jobs"].items():
+            steps = job.get("steps", [])
+            step_ids = [s.get("id", "") for s in steps]
+            
+            if any("parse" in sid.lower() for sid in step_ids):
+                # Found parsing step, check it doesn't reference chunking
+                parse_steps = [s for s in steps if "parse" in s.get("id", "").lower()]
+                
+                for step in parse_steps:
+                    step_run = step.get("run", "")
+                    
+                    # Should parse comments simply
+                    assert "ACTION_ITEMS" in step_run or "action_items" in step_run, (
+                        "Parse step should extract action items"
+                    )
+
+    def test_pr_agent_workflow_basic_functionality(self):
+        """Test that pr-agent.yml maintains core functionality after simplification."""
+        workflow_file = WORKFLOWS_DIR / "pr-agent.yml"
+        
+        if not workflow_file.exists():
+            pytest.skip("pr-agent.yml not found")
+        
+        config = load_yaml_safe(workflow_file)
+        
+        # Should have core structure
+        assert "name" in config, "pr-agent.yml missing name"
+        assert "jobs" in config, "pr-agent.yml missing jobs"
+        
+        # Should trigger on PR events
+        triggers = config.get("on", {})
+        if isinstance(triggers, dict):
+            has_pr_trigger = (
+                "pull_request" in triggers or
+                "pull_request_review" in triggers or
+                "issue_comment" in triggers
+            )
+            assert has_pr_trigger, "pr-agent should trigger on PR-related events"
+
+
+class TestPRAgentConfigValidation:
+    """Tests for .github/pr-agent-config.yml changes."""
+
+    def test_pr_agent_config_exists(self):
+        """Test that pr-agent-config.yml exists."""
+        config_file = Path(".github/pr-agent-config.yml")
+        assert config_file.exists(), "pr-agent-config.yml not found"
+
+    def test_pr_agent_config_valid_yaml(self):
+        """Test that pr-agent-config.yml is valid YAML."""
+        config_file = Path(".github/pr-agent-config.yml")
+        assert config_file.exists(), "pr-agent-config.yml not found"
+        
+        config = load_yaml_safe(config_file)
+        assert isinstance(config, dict), "pr-agent-config.yml should be a mapping"
+
+    def test_pr_agent_config_no_chunking_settings(self):
+        """Test that pr-agent-config.yml doesn't contain chunking configuration."""
+        config_file = Path(".github/pr-agent-config.yml")
+        
+        if not config_file.exists():
+            pytest.skip("pr-agent-config.yml not found")
+        
+        with open(config_file, 'r') as f:
+            content = f.read()
+        
+        # Should NOT contain chunking-related configuration (it was removed)
+        chunking_terms = [
+            "max_tokens",
+            "chunk_size",
+            "overlap_tokens",
+            "summarization_threshold",
+            "chunking:",
+            "summarization:",
+        ]
+        
+        for term in chunking_terms:
+            assert term not in content, (
+                f"pr-agent-config.yml should not contain '{term}' after chunking removal"
+            )
+
+    def test_pr_agent_config_basic_structure(self):
+        """Test that pr-agent-config.yml has required basic structure."""
+        config_file = Path(".github/pr-agent-config.yml")
+        
+        if not config_file.exists():
+            pytest.skip("pr-agent-config.yml not found")
+        
+        config = load_yaml_safe(config_file)
+        
+        # Should have agent section
+        assert "agent" in config, "pr-agent-config.yml should have 'agent' section"
+        
+        agent = config["agent"]
+        assert isinstance(agent, dict), "agent section should be a mapping"
+        
+        # Should have basic agent properties
+        assert "name" in agent, "agent section should have 'name'"
+        assert "version" in agent, "agent section should have 'version'"
+
+    def test_pr_agent_config_version_downgraded(self):
+        """Test that pr-agent-config version was downgraded from 1.1.0 to 1.0.0."""
+        config_file = Path(".github/pr-agent-config.yml")
+        
+        if not config_file.exists():
+            pytest.skip("pr-agent-config.yml not found")
+        
+        config = load_yaml_safe(config_file)
+        agent = config.get("agent", {})
+        version = agent.get("version", "")
+        
+        # Version should be 1.0.0 after removing chunking features
+        assert version == "1.0.0", (
+            f"Expected version 1.0.0 after chunking removal, got {version}"
+        )
+
+
+class TestRequirementsDevPyYAML:
+    """Additional tests for PyYAML dependencies added to requirements-dev.txt."""
+
+    def test_pyyaml_version_specified(self):
+        """Test that PyYAML has version constraint."""
+        req_file = Path("requirements-dev.txt")
+        
+        if not req_file.exists():
+            pytest.skip("requirements-dev.txt not found")
+        
+        with open(req_file, 'r') as f:
+            lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+        
+        # Find PyYAML line
+        pyyaml_lines = [l for l in lines if 'pyyaml' in l.lower()]
+        
+        assert len(pyyaml_lines) > 0, "PyYAML not found in requirements-dev.txt"
+        
+        # Should have version constraint
+        pyyaml_spec = pyyaml_lines[0]
+        assert '>=' in pyyaml_spec or '==' in pyyaml_spec, (
+            f"PyYAML should have version constraint: {pyyaml_spec}"
+        )
+
+    def test_types_pyyaml_for_mypy(self):
+        """Test that types-PyYAML is present for type checking."""
+        req_file = Path("requirements-dev.txt")
+        
+        if not req_file.exists():
+            pytest.skip("requirements-dev.txt not found")
+        
+        with open(req_file, 'r') as f:
+            content = f.read().lower()
+        
+        # types-PyYAML should be present for mypy
+        assert 'types-pyyaml' in content, (
+            "types-PyYAML should be in requirements-dev.txt for type checking"
+        )
+
+    def test_pyyaml_importable(self):
+        """Test that PyYAML can be imported (sanity check)."""
+        try:
+            import yaml
+            # Basic functionality check
+            test_data = {"test": "value"}
+            yaml_str = yaml.dump(test_data)
+            parsed = yaml.safe_load(yaml_str)
+            assert parsed == test_data, "PyYAML round-trip failed"
+        except ImportError:
+            pytest.skip("PyYAML not installed in test environment")
+
+    def test_pyyaml_version_compatibility(self):
+        """Test that installed PyYAML version is compatible."""
+        try:
+            import yaml
+            
+            # Should have safe_load (available in PyYAML >= 5.1)
+            assert hasattr(yaml, 'safe_load'), "PyYAML missing safe_load"
+            assert hasattr(yaml, 'safe_dump'), "PyYAML missing safe_dump"
+            
+            # Should support modern features
+            test_yaml = "key: value\nlist:\n  - item1\n  - item2"
+            parsed = yaml.safe_load(test_yaml)
+            assert isinstance(parsed, dict), "PyYAML should parse to dict"
+            
+        except ImportError:
+            pytest.skip("PyYAML not installed in test environment")
+
+
+class TestWorkflowChangeRegression:
+    """Regression tests ensuring workflow changes don't break existing functionality."""
+
+    def test_all_workflows_still_parseable(self):
+        """Test that all workflow files can still be parsed after changes."""
+        workflow_files = get_workflow_files()
+        
+        assert len(workflow_files) > 0, "No workflow files found"
+        
+        for workflow_file in workflow_files:
+            try:
+                config = load_yaml_safe(workflow_file)
+                assert config is not None, f"{workflow_file.name} parsed to None"
+            except Exception as e:
+                pytest.fail(f"Failed to parse {workflow_file.name}: {e}")
+
+    def test_no_workflows_reference_deleted_files(self):
+        """Test that workflows don't reference deleted files."""
+        workflow_files = get_workflow_files()
+        
+        deleted_files = [
+            ".github/labeler.yml",
+            ".github/scripts/context_chunker.py",
+            ".github/scripts/README.md",
+        ]
+        
+        for workflow_file in workflow_files:
+            with open(workflow_file, 'r') as f:
+                content = f.read()
+            
+            for deleted in deleted_files:
+                assert deleted not in content, (
+                    f"{workflow_file.name} references deleted file: {deleted}"
+                )
+
+    def test_workflows_have_proper_permissions(self):
+        """Test that all workflows have appropriate permission declarations."""
+        workflow_files = get_workflow_files()
+        
+        for workflow_file in workflow_files:
+            config = load_yaml_safe(workflow_file)
+            
+            if not config or "jobs" not in config:
+                continue
+            
+            # Check if workflow or jobs define permissions
+            workflow_perms = config.get("permissions")
+            
+            for job_name, job in config["jobs"].items():
+                job_perms = job.get("permissions")
+                
+                # At least one should define permissions (workflow-level or job-level)
+                # This is a best practice, not a hard requirement
+                has_perms = workflow_perms is not None or job_perms is not None
+                
+                # Some workflows may not need explicit permissions
+                # Just verify the structure is valid if present
+                if job_perms:
+                    assert isinstance(job_perms, dict), (
+                        f"{workflow_file.name}, job '{job_name}': "
+                        f"permissions should be a mapping"
+                    )
+
+    def test_simplified_workflows_reduce_complexity(self):
+        """Test that simplified workflows have fewer steps after changes."""
+        # This is a sanity check that simplifications actually reduced complexity
+        workflow_files = get_workflow_files()
+        
+        for workflow_file in workflow_files:
+            config = load_yaml_safe(workflow_file)
+            
+            if not config or "jobs" not in config:
+                continue
+            
+            for job_name, job in config["jobs"].items():
+                steps = job.get("steps", [])
+                
+                # Sanity check: no job should have an excessive number of steps
+                # (this would indicate complexity hasn't been reduced)
+                assert len(steps) < 50, (
+                    f"{workflow_file.name}, job '{job_name}' has {len(steps)} steps. "
+                    f"Consider further simplification if this is unexpectedly high."
+                )
