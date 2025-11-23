@@ -229,8 +229,12 @@ class TestWorkflowSecurity:
                             # If no ref specified, it's okay (checks out merge commit)
                             # If ref specified, shouldn't be dangerous
                             if ref and 'head' in ref.lower() and 'sha' not in ref.lower():
-                                pytest.warn(
-                                    f"{workflow_file.name} job '{job_name}' "
+import os
+import pytest
+import warnings
+import yaml
+from pathlib import Path
+from typing import Dict, Any, List
                                     f"checks out PR HEAD (potential security risk)"
                                 )
     
