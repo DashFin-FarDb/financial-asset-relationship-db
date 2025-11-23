@@ -398,7 +398,6 @@ class TestPrAgentWorkflow:
                 "Python version should be 3.11"
             )
 
-# [Lines 397-435 containing the malformed block should be completely removed]
     def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
         """Test that there are no duplicate setup steps in the workflow."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
