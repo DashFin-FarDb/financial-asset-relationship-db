@@ -156,12 +156,13 @@ class TestVersionSpecifications:
 
     def test_all_packages_have_versions(self, requirements: List[Tuple[str, str]]):
         """Test that all packages specify version constraints."""
-        allowed_unpinned = {'types-PyYAML'}
         packages_without_versions = [
             pkg for pkg, ver in requirements
-            if not ver and pkg not in allowed_unpinned
+            if not ver
         ]
-        assert not packages_without_versions, f"Found unpinned packages that are not in the allowed list: {packages_without_versions}"
+        assert not packages_without_versions, (
+            f"Found unpinned packages: {packages_without_versions}"
+        )
 
     def test_version_format_valid(self, requirements: List[Tuple[str, str]]):
         """Test that version specifications use valid format."""

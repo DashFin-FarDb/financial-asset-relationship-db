@@ -330,9 +330,9 @@ class TestPRAgentWorkflowPermissions:
         permissions = workflow_content.get('permissions', {})
         assert permissions.get('contents') == 'read', \
             "Workflow should have 'contents: read' permission"
-    
-    def test_pr_agent_job_has_issues_write(self, workflow_content: Dict[str, Any]):
-        """Test that pr-agent-trigger job has write access to issues."""
+        job = workflow_content['jobs']['pr-agent-trigger']
+        permissions = job.get('permissions', {})
+        assert permissions.get('issues') == 'write', \
         job = workflow_content['jobs']['pr-agent-trigger']
         permissions = job.get('permissions', {})
         assert permissions.get('issues') == 'write', \
