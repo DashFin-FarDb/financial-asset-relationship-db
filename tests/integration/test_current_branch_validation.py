@@ -232,9 +232,8 @@ class TestDocumentationConsistency:
         
         for summary_file in summary_files:
             path = Path(summary_file)
-            if path.exists():
-                # File should not be empty
-                assert path.stat().st_size > 0
+            assert path.exists(), f"Required summary file '{summary_file}' does not exist"
+            assert path.stat().st_size > 0, f"Summary file '{summary_file}' is empty"
     
     def test_no_misleading_documentation(self):
         """Documentation should not reference removed features as active."""
