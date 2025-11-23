@@ -66,11 +66,11 @@ class TestDeletedContextChunker:
             with open(req_dev, 'r') as f:
                 content = f.read()
             
-            # If chunker is removed, these shouldn't be required anymore
-            # (unless used elsewhere)
-            if 'tiktoken' in content:
-                # This is okay if it's optional or used elsewhere
-                pass
+            chunking_dependencies = ['tiktoken']
+            
+            for dep in chunking_dependencies:
+                assert dep not in content, \
+                    f"requirements-dev.txt still contains chunking dependency: {dep}"
     
     def test_scripts_directory_exists_or_empty(self):
         """Scripts directory should either not exist or not be referenced."""
