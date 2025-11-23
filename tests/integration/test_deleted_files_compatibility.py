@@ -135,8 +135,8 @@ class TestDeletedLabelerConfig:
         """Labeler action should not be called without proper config."""
         label_workflow = Path(".github/workflows/label.yml")
         
-        if not label_workflow.exists():
-            return
+if not label_workflow.exists():
+    pytest.skip(f"Label workflow not found at {label_workflow.absolute()}")
         
         import yaml
         with open(label_workflow, 'r') as f:
@@ -155,16 +155,22 @@ class TestDeletedLabelerConfig:
                     
                     config_path = with_config.get('configuration-path') if with_config else None
                     
-                    if config_path:
-                        config_file = Path(config_path)
-                        assert config_file.exists(), \
-                            f"Labeler action in {job_name} references missing config file: {config_path}"
-                    elif not default_labeler_config.exists():
-                        has_inline_config = with_config and any(
-                            key in with_config for key in ['sync-labels', 'dot', 'pr-number']
-                        )
-                        step_if = step.get('if', '')
-                        has_conditional = bool(step_if)
+if config_path:
+    config_file = Path(config_path)
+    absolute_path = config_file.resolve()
+    assert config_file.exists(), \
+        f"Labeler action in {job_name} references missing config file: {config_path} (resolved to: {absolute_path})"
+elif not default_labeler_config.exists():
+    # Check for actual label pattern configuration, not just metadata keys
+    has_label_patterns = with_config and any(
+        key not in ['sync-labels', 'dot', 'pr-number', 'configuration-path'] 
+        for key in with_config.keys()
+    )
+    step_if = step.get('if', '')
+    has_conditional = bool(step_if)
+    
+    assert has_label_patterns or has_conditional, \
+        f"Labeler action in {job_name} has no label patterns (missing .github/labeler.yml and no inline patterns or conditional)"
                         
                         assert has_inline_config or has_conditional, \
                             f"Labeler action in {job_name} has no config (missing .github/labeler.yml and no inline config or conditional)"
