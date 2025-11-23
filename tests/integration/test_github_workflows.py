@@ -386,10 +386,13 @@ def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any])
 
         step_names = [s.get("name") for s in steps if s.get("name")]
         seen = set()
-        duplicate_names = {
-            name for name in step_names
-            if name in seen or seen.add(name)
-        }
+        duplicate_names = []
+        for name in step_names:
+            if name in seen:
+                duplicate_names.append(name)
+            else:
+                seen.add(name)
+        duplicate_names = set(duplicate_names)
 
         assert not duplicate_names, (
             f"Found duplicate step names: {duplicate_names}. "
