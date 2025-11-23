@@ -434,10 +434,7 @@ class TestWorkflowMaintainability:
                     import warnings
                     # Should have explanation
                     lines = context.split('\n')
-                    if len(lines) < 2:
-                        line_num = content[:match.start()].count('\n') + 1
-                        warnings.warn(f"{workflow_file.name}: complex expression at line {line_num} lacks explanation: {match.group()}")
-                    elif '#' not in lines[-2]:
+                    if len(lines) < 2 or '#' not in lines[-2]:
                         line_num = content[:match.start()].count('\n') + 1
                         warnings.warn(f"{workflow_file.name}: complex expression at line {line_num} lacks explanation: {match.group()}")
                         # Warning only, not failure
