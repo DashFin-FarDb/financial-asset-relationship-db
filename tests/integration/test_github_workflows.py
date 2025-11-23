@@ -14,7 +14,7 @@ from typing import Any, Dict, List
 yaml = pytest.importorskip("yaml")
 
 # Define workflows directory path used across tests
-    WORKFLOWS_DIR = Path(".github") / "workflows"
+WORKFLOWS_DIR = Path(".github") / "workflows"
 
 # Path to workflows directory
 def test_pr_agent_has_trigger_job(pr_agent_workflow: Dict[str, Any]):
