@@ -399,16 +399,14 @@ def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any])
             "Each step should have a unique name."
         )
 
-    @staticmethod
-    def _assert_valid_fetch_depth(step_with: Dict[str, Any]) -> None:
-        """Validate checkout fetch-depth value."""
-        if "fetch-depth" not in step_with:
-            return
-
-        fetch_depth = step_with["fetch-depth"]
-        assert isinstance(fetch_depth, int), (
-            f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
+    if isinstance(fetch_depth, str):
+        assert fetch_depth.isdigit(), (
+            f"fetch-depth should be numeric, got '{fetch_depth}'"
         )
+        fetch_depth = int(fetch_depth)
+    assert isinstance(fetch_depth, int), (
+        f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
+    )
         assert fetch_depth >= 0, "fetch-depth cannot be negative"
 
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
