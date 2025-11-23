@@ -7,7 +7,6 @@ GitHub Actions workflow files, with special focus on recent changes:
 - Simplified labeler workflow  
 - Simplified APIsec scan workflow
 - Simplified PR agent workflow
-"""
 
 Tests cover:
 - YAML syntax validation
@@ -74,32 +73,45 @@ class TestWorkflowYAMLSyntax:
             )
     
     def test_no_duplicate_keys_in_yaml(self, workflow_files: List[Path]):
-        """Test that YAML files don't have duplicate keys (YAML allows but shouldn't)."""
+        """Test that YAML files don't have duplicate keys within the same object.
+        
+        Note: This is a simplified check that may not catch all duplicates due to
+        the complexity of YAML syntax (multiline strings, flow syntax, etc.). 
+        It primarily checks for obvious duplicates that would cause issues.
+        """
+        import re
+        
         for workflow_file in workflow_files:
-            with open(workflow_file, 'r') as f:
-                content = f.read()
-            
-            # Check for common duplicate key patterns
-            lines = content.split('\n')
-            seen_keys = {}
-            
-            for i, line in enumerate(lines, 1):
-                # Skip comments and empty lines
-                if line.strip().startswith('#') or not line.strip():
-                    continue
-                
-                # Check for key: value pattern at same indentation
-                if ':' in line:
-                    indent = len(line) - len(line.lstrip())
-                    key = line.split(':')[0].strip()
-                    
-                    key_id = f"{indent}:{key}"
-                    if key_id in seen_keys:
-                        pytest.fail(
-                            f"{workflow_file.name} has duplicate key '{key}' "
-                            f"at lines {seen_keys[key_id]} and {i}"
+            # Use PyYAML's safer duplicate key detection via custom constructor
+            def no_duplicates_constructor(loader, node, deep=False):
+                """Check for duplicate keys during YAML loading."""
+                mapping = {}
+                for key_node, value_node in node.value:
+                    key = loader.construct_object(key_node, deep=deep)
+                    if key in mapping:
+                        raise yaml.constructor.ConstructorError(
+                            f"Duplicate key: {key!r}",
+                            key_node.start_mark
                         )
-                    seen_keys[key_id] = i
+                    mapping[key] = loader.construct_object(value_node, deep=deep)
+                return mapping
+            
+            # Create a custom loader that checks for duplicates
+            class UniqueKeyLoader(yaml.SafeLoader):
+                pass
+            
+            UniqueKeyLoader.add_constructor(
+                yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                no_duplicates_constructor
+            )
+            
+            try:
+                with open(workflow_file, 'r') as f:
+                    yaml.load(f, Loader=UniqueKeyLoader)
+            except yaml.constructor.ConstructorError as e:
+                pytest.fail(
+                    f"{workflow_file.name} has duplicate key: {e.problem}"
+                )
 
 
 class TestGreetingsWorkflow:
