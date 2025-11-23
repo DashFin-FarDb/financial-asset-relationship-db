@@ -7,13 +7,28 @@ workflows can successfully use the installed dependencies.
 """
 
 import pytest
-import yaml
 from pathlib import Path
 from typing import List, Tuple
 
+yaml = pytest.importorskip("yaml")
 
-WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
-REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
+def find_project_root(start: Path) -> Path:
+    """Find project root by looking for common repo markers."""
+    markers = {".git", "pyproject.toml", "requirements-dev.txt", ".github"}
+    current = start.resolve()
+    for parent in [current] + list(current.parents):
+        try:
+            entries = {p.name for p in parent.iterdir()}
+        except Exception:
+            continue
+        if markers & entries:
+            return parent
+    # Fallback to three-level parent to preserve previous behavior
+    return Path(__file__).resolve().parents[3]
+
+PROJECT_ROOT = find_project_root(Path(__file__).parent)
+WORKFLOWS_DIR = PROJECT_ROOT / ".github" / "workflows"
+REQUIREMENTS_FILE = PROJECT_ROOT / "requirements-dev.txt"
 
 
 from packaging.requirements import Requirement
@@ -34,11 +49,9 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 req = Requirement(line)
                 # Only include the name and version specifier; ignore extras and markers for matching
                 requirements.append((req.name, str(req.specifier)))
-            except Exception:
-                # Fall back to previous behavior on unparseable lines
-                # Keep the raw (stripped) line with empty spec to avoid false negatives
-                requirements.append((line, ''))
-
+            except Exception as e:
+                # Surface unparseable requirement lines to avoid masking issues
+                raise ValueError(f"Failed to parse requirement line: '{line}'. Error: {e}") from e
     return requirements
 
 
@@ -218,6 +231,6 @@ class TestRequirementsMatchWorkflowNeeds:
                 major = int(version_parts[0])
                 minor = int(version_parts[1])
                 
-                assert major >= 3 and minor >= 8, (
+                assert (major > 3) or (major == 3 and minor >= 8), (
                     f"Workflow uses Python {python_version}, but requires 3.8+ for modern tooling"
                 )

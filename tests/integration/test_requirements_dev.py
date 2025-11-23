@@ -161,7 +161,6 @@ class TestVersionSpecifications:
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         assert len(packages_without_versions) == 0, f"Packages without version constraints: {packages_without_versions}"
     
-    from packaging.specifiers import InvalidSpecifier
     def test_version_format_valid(self, requirements: List[Tuple[str, str]]):
         """Test that version specifications use valid PEP 440 format."""
         for pkg, ver_spec in requirements:
@@ -272,13 +271,45 @@ class TestSpecificChanges:
         types_entries = [(pkg, ver) for pkg, ver in requirements if pkg == 'types-PyYAML']
         assert len(types_entries) == 1
     
-        # Derive expected packages using the same parser for consistency
-        expected_packages = [pkg for pkg, _ in parse_requirements(REQUIREMENTS_FILE)]
+    def test_existing_packages_preserved(self, requirements: List[Tuple[str, str]]):
+        """Test that existing packages are still present."""
+        package_names = [pkg for pkg, _ in requirements]
+        
+        expected_packages = [
+            'pytest',
+            'pytest-cov',
+            'pytest-asyncio',
+            'flake8',
+            'pylint',
+        ]
+        
+        for expected_pkg in expected_packages:
+            assert expected_pkg in package_names
+
+class TestRequirementsFileFormatting:
+    """Additional tests for requirements-dev.txt file formatting and structure."""
+    
+    def test_requirements_file_ends_with_newline(self):
+        """Test that requirements-dev.txt ends with a newline character (Unix convention)."""
+        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
+        
+        with open(REQUIREMENTS_FILE, 'rb') as f:
+            content = f.read()
+        
+        assert len(content) > 0, "requirements-dev.txt is empty"
+        assert content.endswith(b'\n'), (
+            "requirements-dev.txt should end with a newline character (Unix convention)"
+        )
+    
+    def test_pyyaml_and_types_on_separate_lines(self):
+        """Test that PyYAML and types-PyYAML are on separate lines (not combined)."""
+        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
+        
+        with open(REQUIREMENTS_FILE, 'r') as f:
             lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
         
-        # Find lines starting with PyYAML or types-PyYAML (not just containing them)
-        pyyaml_lines = [line for line in lines if line.startswith('PyYAML')]
-        types_pyyaml_lines = [line for line in lines if line.startswith('types-PyYAML')]
+        # Find lines that start with either PyYAML or types-PyYAML
+        pyyaml_lines = [line for line in lines if line.startswith('PyYAML') or line.startswith('types-PyYAML')]
         
         assert len(pyyaml_lines) == 1, (
             f"Should have exactly 1 line for PyYAML, found {len(pyyaml_lines)}"
@@ -287,9 +318,12 @@ class TestSpecificChanges:
             f"Should have exactly 1 line for types-PyYAML, found {len(types_pyyaml_lines)}"
         )
         
-        # Verify both are present with proper version constraints
-        assert pyyaml_lines[0].startswith('PyYAML>='), "Should have PyYAML>=6.0"
-        assert types_pyyaml_lines[0].startswith('types-PyYAML>='), "Should have types-PyYAML>=6.0"
+        # Verify both are present
+        has_pyyaml = any(line.startswith('PyYAML>=') for line in pyyaml_lines)
+        has_types = any(line.startswith('types-PyYAML>=') for line in pyyaml_lines)
+        
+        assert has_pyyaml, "Should have PyYAML>=6.0"
+        assert has_types, "Should have types-PyYAML>=6.0"
     
     def test_no_trailing_whitespace_in_lines(self):
         """Test that requirements-dev.txt has no trailing whitespace on any line."""
@@ -329,7 +363,7 @@ class TestRequirementsPackageIntegrity:
         """Test that no package appears multiple times in requirements-dev.txt."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         requirements = parse_requirements(REQUIREMENTS_FILE)
-        duplicates = self._find_duplicate_packages(requirements)
+        duplicates = TestRequirementsPackageIntegrity._find_duplicate_packages(requirements)
         assert len(duplicates) == 0, (
             f"Duplicate packages found in requirements-dev.txt: {duplicates}. "
             "Each package should appear only once."
@@ -370,14 +404,18 @@ class TestRequirementsPackageIntegrity:
         
         requirements = parse_requirements(REQUIREMENTS_FILE)
         
-        # Count operator usage
+        # Count operator usage using regex pattern that matches operators followed by version
+        # This avoids substring matching issues (e.g., >= being counted as both >= and >)
         operator_counts = {'>=': 0, '==': 0, '<=': 0, '>': 0, '<': 0, '~=': 0}
         
         for pkg, version_spec in requirements:
             if version_spec:
-                for op in operator_counts.keys():
-                    if op in version_spec:
-                        operator_counts[op] += 1
+                # Match operators followed by version numbers to avoid overlapping matches
+                # Pattern: operator followed by version (digits, dots, etc.)
+                for op in ['>=', '==', '<=', '~=', '>', '<']:
+                    # Use lookahead to ensure operator is followed by a version number
+                    pattern = re.escape(op) + r'(?=\d)'
+                    operator_counts[op] += len(re.findall(pattern, version_spec))
         
         # Most packages should use >= (minimum version specifier)
         total_specs = sum(operator_counts.values())
