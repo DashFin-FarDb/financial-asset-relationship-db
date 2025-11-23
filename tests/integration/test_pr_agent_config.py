@@ -295,28 +295,7 @@ class TestPRAgentConfigMaintainability:
                     f"Config sections should be in logical order. "
                     f"Expected {section} at position {expected_index}, but found at position {i}. "
                     f"Expected order: {expected_filtered}, Actual order: {section_names}"
-    def test_config_sections_are_organized(self, config_path: Path):
-        """Test that config sections are logically organized."""
-        # Load YAML preserving key order (PyYAML preserves order in modern versions)
-        with open(config_path, 'r') as f:
-            data = yaml.safe_load(f) or {}
-    
-        # Only consider top-level keys present in the file
-        actual_sections = [k for k in data.keys()]
-        expected_order = ['agent', 'monitoring', 'notifications', 'limits', 'debug']
-    
-        # Filter expected to those that actually exist
-        expected_filtered = [s for s in expected_order if s in actual_sections]
-        # Filter actual to only keys we care about (ignore unrelated keys)
-        actual_filtered = [s for s in actual_sections if s in expected_order]
-    
-        if len(actual_filtered) > 1:
-            # They must match exactly in order
-            assert actual_filtered == expected_filtered, (
-                "Config sections should be in logical order. "
-                f"Expected order (present only): {expected_filtered}, Actual order: {actual_filtered}"
-            )
-
+    # Removed duplicate text-based section order test. The YAML-based version below is the single source of truth.
 
 class TestPRAgentConfigBackwardCompatibility:
     """Test that config maintains necessary backward compatibility."""
