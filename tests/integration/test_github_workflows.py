@@ -1173,7 +1173,15 @@ class TestWorkflowEnvAndSecrets:
                     invalid.append(key)
             return invalid
 
-        # Check top-level env
+def check_env_vars(env_dict):
+    if not isinstance(env_dict, dict):
+        return []
+    invalid = []
+    for key in env_dict.keys():
+        # Allow uppercase letters, digits, and underscores only
+        if not key.isupper() or not all(c.isalnum() or c == '_' for c in key):
+            invalid.append(key)
+    return invalid
         if "env" in config:
             invalid = check_env_vars(config["env"])
             assert not invalid, (
