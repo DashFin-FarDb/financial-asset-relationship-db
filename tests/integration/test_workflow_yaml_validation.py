@@ -16,7 +16,7 @@ Tests cover:
 - Error handling
 """
 
-import os
+
 import pytest
 import yaml
 from pathlib import Path
@@ -29,16 +29,16 @@ class TestWorkflowYAMLSyntax:
     @pytest.fixture
     def workflows_dir(self) -> Path:
         """Get the workflows directory path."""
-        """Get the workflows directory path."""
+
         workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
         try:
-          # Ensure the directory exists and is accessible
-          if not workflows_dir.exists():
+        # Ensure the directory exists and is accessible
+        if not workflows_dir.exists():
             pytest.fail(f"Workflows directory not found: {workflows_dir}")
-          if not workflows_dir.is_dir():
+        if not workflows_dir.is_dir():
             pytest.fail(f"Workflows path is not a directory: {workflows_dir}")
         except Exception as e:
-          pytest.fail(f"Error accessing workflows directory {workflows_dir}: {e}")
+            pytest.fail(f"Error accessing workflows directory {workflows_dir}: {e}")
         return workflows_dir
     @pytest.fixture
     def workflow_files(self, workflows_dir: Path) -> List[Path]:
@@ -59,17 +59,16 @@ class TestWorkflowYAMLSyntax:
         required_keys = {'name', 'on', 'jobs'}
         
         for workflow_file in workflow_files:
-    for workflow_file in workflow_files:
-        with open(workflow_file, 'r') as f:
-            data = yaml.safe_load(f)
+            with open(workflow_file, 'r') as f:
+                data = yaml.safe_load(f)
 
-        if data is None:
-            pytest.fail(f"{workflow_file.name} is empty or invalid YAML")
+            if data is None:
+                pytest.fail(f"{workflow_file.name} is empty or invalid YAML")
 
-        missing_keys = required_keys - set(data.keys())
-        assert not missing_keys, (
-            f"{workflow_file.name} missing required keys: {missing_keys}"
-        )
+            missing_keys = required_keys - set(data.keys())
+            assert not missing_keys, (
+                f"{workflow_file.name} missing required keys: {missing_keys}"
+            )
     
     def test_workflow_names_are_descriptive(self, workflow_files: List[Path]):
         """Test that workflow names are descriptive and not empty."""
