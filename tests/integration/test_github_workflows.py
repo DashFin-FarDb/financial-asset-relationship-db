@@ -1134,12 +1134,12 @@ class TestWorkflowEnvAndSecrets:
 
         Parameters:
             workflow_file (Path): Path to the workflow YAML file being tested.
-
-        Notes:
-            Checks environment variables at both workflow level and job level for proper naming.
-        """
-        config = load_yaml_safe(workflow_file)
-
+        for key in env_dict.keys():
+            # Ensure all characters are either alphanumeric or underscore
+            is_valid_chars = all(c.isalnum() or c == '_' for c in key)
+            if not key.isupper() or not is_valid_chars:
+                invalid.append(key)
+        return invalid
         def check_env_vars(env_dict):
             """
             Identify environment variable names that do not follow the naming convention of upper-case letters, digits and underscores.
