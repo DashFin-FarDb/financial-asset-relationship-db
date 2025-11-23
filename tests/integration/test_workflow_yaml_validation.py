@@ -347,10 +347,23 @@ class TestWorkflowSecurityBestPractices:
     @pytest.fixture
     def all_workflows(self) -> Dict[str, Dict[str, Any]]:
         """Load all workflow files."""
-        workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+        @pytest.fixture(scope="module")
+        def all_workflows() -> Dict[str, Dict[str, Any]]:
+            """Load all workflow files once per module."""
+            workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+            workflows: Dict[str, Dict[str, Any]] = {}
+
+            # Gather both .yml and .yaml files
+            workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
+            for workflow_file in workflow_files:
+                with open(workflow_file, 'r') as f:
+                    workflows[workflow_file.name] = yaml.safe_load(f)
+
+            return workflows
         workflows = {}
         
-        for workflow_file in workflows_dir.glob('*.yml'):
+        workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
+        for workflow_file in workflow_files:
             with open(workflow_file, 'r') as f:
                 workflows[workflow_file.name] = yaml.safe_load(f)
         
@@ -425,7 +438,8 @@ class TestWorkflowPerformance:
         workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
         workflows = {}
         
-        for workflow_file in workflows_dir.glob('*.yml'):
+        workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
+        for workflow_file in workflow_files:
             with open(workflow_file, 'r') as f:
                 workflows[workflow_file.name] = yaml.safe_load(f)
         

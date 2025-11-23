@@ -28,14 +28,19 @@ class TestWorkflowRequirementsConsistency:
         """Load package names from requirements-dev.txt."""
         req_path = Path(__file__).parent.parent.parent / 'requirements-dev.txt'
         packages = set()
-        
-        with open(req_path, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#'):
-                    # Extract package name
-                    pkg_name = line.split('==')[0].split('>=')[0].split('[')[0].strip().lower()
-                    packages.add(pkg_name)
+
+        try:
+            with open(req_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        pkg_name = line.split('==')[0].split('>=')[0].split('[')[0].strip().lower()
+                        packages.add(pkg_name)
+        except FileNotFoundError:
+            pytest.fail(f"requirements-dev.txt not found at {req_path}")
+        except Exception as e:
+            pytest.fail(f"Failed to read or parse requirements-dev.txt at {req_path}: {e}")
+                # Removed unreachable duplicate parsing block
         
         return packages
     
@@ -43,8 +48,11 @@ class TestWorkflowRequirementsConsistency:
     def pr_agent_workflow(self) -> Dict[str, Any]:
         """Load PR agent workflow."""
         workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'pr-agent.yml'
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
+        try:
+            with open(workflow_path, 'r') as f:
+                return yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            pytest.fail(f"Failed to parse workflow YAML at {workflow_path}: {e}")
     
     def test_pyyaml_in_requirements_for_workflows(self, requirements_dev: Set[str]):
         """Test that PyYAML is in requirements for workflow YAML processing."""
@@ -86,24 +94,32 @@ class TestWorkflowRequirementsConsistency:
                 )
     
     def test_workflow_installs_python_dependencies(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that workflow installs Python dependencies correctly."""
-        for job_name, job_config in pr_agent_workflow['jobs'].items():
+        """Test that workflow installs Python dependencies correctly.
+    
+        Allows exceptions for jobs that intentionally do not install dependencies.
+        """
+        # Jobs that set up Python but are allowed to skip dependency installation
+        allowed_without_deps = {
+            # add job ids here if they legitimately don't need deps
+            # e.g., 'label_check', 'docs_lint'
+        }
+
+        for job_name, job_config in pr_agent_workflow.get('jobs', {}).items():
             steps = job_config.get('steps', [])
-            
+
             has_python_setup = False
             has_dep_install = False
-            
+
             for step in steps:
-                if 'uses' in step and 'setup-python' in step['uses']:
+                if 'uses' in step and 'setup-python' in str(step.get('uses', '')):
                     has_python_setup = True
-                
-                if 'run' in step:
-                    run_cmd = step['run'].lower()
-                    if 'pip install' in run_cmd:
-                        has_dep_install = True
-            
-            # If Python is setup, dependencies should be installed
-            if has_python_setup:
+
+                run_cmd = str(step.get('run', '')).lower()
+                if 'pip install' in run_cmd or 'python -m pip install' in run_cmd:
+                    has_dep_install = True
+
+            # If Python is setup, dependencies should be installed unless explicitly allowed
+            if has_python_setup and job_name not in allowed_without_deps:
                 assert has_dep_install, (
                     f"Job '{job_name}' sets up Python but doesn't install dependencies"
                 )
