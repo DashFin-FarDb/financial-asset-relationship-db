@@ -9,7 +9,7 @@ duplicate keys, invalid syntax, and missing required fields.
 import pytest
 import yaml
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List
 
 
 # Path to workflows directory
