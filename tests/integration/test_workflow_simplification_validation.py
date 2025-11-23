@@ -319,9 +319,12 @@ class TestWorkflowConsistency:
         for wf_file in workflow_files:
             with open(wf_file, 'r', encoding='utf-8') as f:
                 try:
-                    yaml.safe_load(f)
-                except yaml.YAMLError as e:
-                    pytest.fail(f"Invalid YAML in {wf_file.name}: {e}")
+                    try:
+                        content = f.read()
+                        yaml.safe_load(content)
+                    except yaml.YAMLError as e:
+                        lines_preview = "\n".join(content.splitlines()[:10])
+                        pytest.fail(f"Invalid YAML in {wf_file.name}: {e}\nFirst 10 lines:\n{lines_preview}")
     
     def test_no_broken_references(self, pr_agent_workflow: Dict[str, Any]):
         """Verify no steps reference removed features."""
