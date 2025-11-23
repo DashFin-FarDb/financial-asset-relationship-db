@@ -539,7 +539,24 @@ class TestWorkflowRegressionPrevention:
         
         for workflow_file in workflows_dir.glob('*.yml'):
             with open(workflow_file, 'r') as f:
-                content = f.read()
+            def test_no_workflow_references_deleted_script_files(self):
+                """
+                Test that no workflow file references deleted script files.
+                Note: .github/labeler.yml is allowed to remain and be referenced.
+                """
+                workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+    
+                for workflow_file in workflows_dir.glob('*.yml'):
+                    with open(workflow_file, 'r') as f:
+                        content = f.read()
+        
+                    # Should not reference deleted script files (labeler.yml is allowed)
+                    assert 'context_chunker.py' not in content, (
+                        f"{workflow_file.name} should not reference deleted context_chunker.py"
+                    )
+                    assert '.github/scripts/context_chunker' not in content, (
+                        f"{workflow_file.name} should not reference context_chunker path"
+                    )
             
             # Should not reference deleted files
             assert 'context_chunker.py' not in content, (
