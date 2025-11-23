@@ -69,15 +69,16 @@ class TestWorkflowRequirementsConsistency:
     
     def test_workflow_python_version_consistency(self, pr_agent_workflow: Dict[str, Any]):
         """Test that Python version in workflow is consistent."""
-        for job_name, job_config in pr_agent_workflow['jobs'].items():
+        jobs = pr_agent_workflow.get('jobs', {})
+        for job_name, job_config in jobs.items():
             steps = job_config.get('steps', [])
-            
+
             python_versions = []
             for step in steps:
                 if 'uses' in step and 'setup-python' in step['uses']:
                     if 'with' in step and 'python-version' in step['with']:
                         python_versions.append(step['with']['python-version'])
-            
+
             # All Python versions in a job should match
             if len(python_versions) > 1:
                 assert len(set(python_versions)) == 1, (
