@@ -28,9 +28,18 @@ class TestWorkflowRequirementsConsistency:
         """Load package names from requirements-dev.txt."""
         req_path = Path(__file__).parent.parent.parent / 'requirements-dev.txt'
         packages = set()
-        
-        with open(req_path, 'r') as f:
-            for line in f:
+
+        try:
+            with open(req_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        pkg_name = line.split('==')[0].split('>=')[0].split('[')[0].strip().lower()
+                        packages.add(pkg_name)
+        except FileNotFoundError:
+            pytest.fail(f"requirements-dev.txt not found at {req_path}")
+        except Exception as e:
+            pytest.fail(f"Failed to read or parse requirements-dev.txt at {req_path}: {e}")
                 line = line.strip()
                 if line and not line.startswith('#'):
                     # Extract package name
