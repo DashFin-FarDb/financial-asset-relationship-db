@@ -308,9 +308,6 @@ class TestPrAgentWorkflow:
         assert isinstance(jobs["pr-agent-trigger"], dict), (
             "'pr-agent-trigger' job must be a mapping"
         )
-        assert isinstance(jobs["pr-agent-trigger"], dict), (
-            "'pr-agent-trigger' job must be a mapping"
-        )
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
         """Ensure the pr-agent trigger job runs on a supported Ubuntu runner."""
