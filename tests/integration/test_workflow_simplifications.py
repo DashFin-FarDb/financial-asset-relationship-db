@@ -495,7 +495,8 @@ class TestPRAgentConfigSimplification:
         assert 'enabled' in agent, "Agent should have enabled flag"
 
 
-class TestDeletedFilesVerification:
+class TestDeletedScriptFilesVerification:
+    """Verify that script files meant to be deleted are actually gone."""
     """Verify that files meant to be deleted are actually gone."""
     
     def test_context_chunker_script_deleted(self):
