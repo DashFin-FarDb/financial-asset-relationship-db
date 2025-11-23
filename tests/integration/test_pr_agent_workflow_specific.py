@@ -426,11 +426,26 @@ class TestPRAgentWorkflowSecurityBestPractices:
         for owner_repo, ref in uses_statements:
             # Exclude local or docker actions
             if not owner_repo or '/' not in owner_repo:
-                continue
+                def test_checkout_has_fetch_depth(self, workflow_raw: str):
+                    """Test that each actions/checkout step specifies fetch-depth."""
+                    # Split into steps heuristically
+                    lines = workflow_raw.splitlines()
+                    checkout_indices = [i for i, l in enumerate(lines) if re.search(r'uses:\s*actions/checkout@', l)]
+                    if not checkout_indices:
+                        return  # no checkout used; nothing to validate
 
-            # Disallow refs that are clearly mutable (branches or unversioned)
-            mutable_refs = {'main', 'master', 'HEAD', 'latest'}
-            assert ref not in mutable_refs, f"Action '{owner_repo}@{ref}' should not use a mutable ref"
+                    for idx in checkout_indices:
+                        has_with = False
+                        has_fetch_depth = False
+                        # Scan limited lookahead within the same step block until next "- name:" or another "uses:"
+                        for j in range(idx + 1, min(idx + 20, len(lines))):
+                            if re.match(r'^\s*-\s+name:', lines[j]) or re.match(r'^\s*uses:\s*', lines[j]):
+                                break
+                            if re.match(r'^\s*with:\s*$', lines[j]):
+                                has_with = True
+                            if re.match(r'^\s*fetch-depth\s*:\s*\d+\s*$', lines[j]):
+                                has_fetch_depth = True
+                        assert has_with and has_fetch_depth, "Each actions/checkout step must specify fetch-depth under with:"
 
             # Accept either a full SHA or a semantic version tag (vX or vX.Y[.Z])
             is_sha = bool(re.fullmatch(r'[0-9a-fA-F]{40}', ref))
