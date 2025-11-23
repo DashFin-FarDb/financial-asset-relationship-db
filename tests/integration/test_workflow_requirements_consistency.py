@@ -94,24 +94,32 @@ class TestWorkflowRequirementsConsistency:
                 )
     
     def test_workflow_installs_python_dependencies(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that workflow installs Python dependencies correctly."""
-        for job_name, job_config in pr_agent_workflow['jobs'].items():
+        """Test that workflow installs Python dependencies correctly.
+    
+        Allows exceptions for jobs that intentionally do not install dependencies.
+        """
+        # Jobs that set up Python but are allowed to skip dependency installation
+        allowed_without_deps = {
+            # add job ids here if they legitimately don't need deps
+            # e.g., 'label_check', 'docs_lint'
+        }
+
+        for job_name, job_config in pr_agent_workflow.get('jobs', {}).items():
             steps = job_config.get('steps', [])
-            
+
             has_python_setup = False
             has_dep_install = False
-            
+
             for step in steps:
-                if 'uses' in step and 'setup-python' in step['uses']:
+                if 'uses' in step and 'setup-python' in str(step.get('uses', '')):
                     has_python_setup = True
-                
-                if 'run' in step:
-                    run_cmd = step['run'].lower()
-                    if 'pip install' in run_cmd:
-                        has_dep_install = True
-            
-            # If Python is setup, dependencies should be installed
-            if has_python_setup:
+
+                run_cmd = str(step.get('run', '')).lower()
+                if 'pip install' in run_cmd or 'python -m pip install' in run_cmd:
+                    has_dep_install = True
+
+            # If Python is setup, dependencies should be installed unless explicitly allowed
+            if has_python_setup and job_name not in allowed_without_deps:
                 assert has_dep_install, (
                     f"Job '{job_name}' sets up Python but doesn't install dependencies"
                 )
