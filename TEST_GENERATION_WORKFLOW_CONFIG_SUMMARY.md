@@ -125,7 +125,7 @@ Comprehensive unit and validation tests have been generated for the modified Git
 
 **Total Tests**: 19 comprehensive test cases
 
-### 3. test_workflow_requirements_consistency.py (NEW - 384 lines)
++### 3. test_workflow_requirements_consistency.py (NEW - 148 lines)
 
 **Purpose**: Integration tests ensuring consistency between workflows and requirements.
 
