@@ -160,7 +160,7 @@ Comprehensive unit and validation tests have been generated for the modified Git
 | Metric | Value |
 |--------|-------|
 | **New Test Files Created** | 3 |
-+| **Total Lines of Test Code** | 955 lines |
+| **Total Lines of Test Code** | 955 lines |
 | **Total Test Classes** | 21 |
 | **Total Test Methods** | 56 |
 | **Files Validated** | 9 workflow/config files |
