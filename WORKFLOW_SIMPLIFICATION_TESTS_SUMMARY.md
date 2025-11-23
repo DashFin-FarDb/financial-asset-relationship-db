@@ -177,7 +177,7 @@ pytest tests/integration/test_pr_agent_config_validation.py \
 | Metric | Value |
 |--------|-------|
 | **New Test Files** | 2 |
-| **Total Lines** | 681 |
+| **Total Lines** | 788 |
 | **Test Classes** | 15 |
 | **Test Methods** | 70+ |
 | **Configuration Tests** | 40+ |
