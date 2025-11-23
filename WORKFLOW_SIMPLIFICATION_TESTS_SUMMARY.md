@@ -29,7 +29,7 @@ The current branch includes several workflow simplifications:
 
 Tests that `pr-agent.yml` has been properly simplified:
 
-- ✅ `test_no_context_chunking_dependencies` - Verifies tiktoken/PyYAML not installed
+- ✅ `test_no_context_chunking_dependencies` - Verifies chunking/tiktoken steps are removed
 - ✅ `test_no_context_fetching_step` - Confirms "Fetch PR Context with Chunking" removed
 - ✅ `test_has_simplified_comment_parsing` - Validates simplified parsing step exists
 - ✅ `test_no_duplicate_setup_python_steps` - Regression test for duplicate key fix
