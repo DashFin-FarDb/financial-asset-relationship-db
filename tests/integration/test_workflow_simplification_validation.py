@@ -398,7 +398,7 @@ class TestRequirementsDevUpdates:
                 content = f.read()
             
             # Should not be in main requirements
-            assert 'PyYAML' not in content or 'pyyaml' not in content.lower()
+            assert 'pyyaml' not in content.lower()
     
     def test_all_dev_requirements_have_versions(self):
         """Verify all dev requirements have version specifiers."""
