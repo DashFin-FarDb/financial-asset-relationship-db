@@ -497,7 +497,6 @@ class TestPRAgentConfigSimplification:
 
 class TestDeletedScriptFilesVerification:
     """Verify that script files meant to be deleted are actually gone."""
-    """Verify that files meant to be deleted are actually gone."""
     
     def test_context_chunker_script_deleted(self):
         """Test that .github/scripts/context_chunker.py has been deleted."""
