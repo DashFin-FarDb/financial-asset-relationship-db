@@ -30,7 +30,7 @@ Comprehensive unit and validation tests have been generated for the modified Git
 
 ## Generated Test Files
 
-+### 1. test_workflow_yaml_validation.py (NEW - 474 lines)
+### 1. test_workflow_yaml_validation.py (NEW - 474 lines)
 
 **Purpose**: Comprehensive validation of all GitHub workflow YAML files.
 
