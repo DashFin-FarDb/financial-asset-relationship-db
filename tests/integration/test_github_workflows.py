@@ -1134,12 +1134,41 @@ class TestWorkflowEnvAndSecrets:
 
         Parameters:
             workflow_file (Path): Path to the workflow YAML file being tested.
+    def check_env_vars(env_dict):
+        """
+        Identify environment variable names that do not follow the convention of using only upper-case letters, digits and underscores.
+    
+        Parameters:
+            env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided it is treated as absent and no invalid names are returned.
+    
+        Returns:
+            invalid_keys (List[str]): List of keys from `env_dict` that are not composed solely of upper-case letters, digits and underscores.
+        """
+        if not isinstance(env_dict, dict):
+            return []
+        invalid = []
         for key in env_dict.keys():
             # Ensure all characters are either alphanumeric or underscore
             is_valid_chars = all(c.isalnum() or c == '_' for c in key)
             if not key.isupper() or not is_valid_chars:
                 invalid.append(key)
         return invalid
+
+    # Check top-level env
+    if "env" in config:
+        invalid = check_env_vars(config["env"])
+        assert not invalid, (
+            f"Workflow {workflow_file.name} has invalid env var names: {invalid}"
+        )
+
+    # Check job-level env
+    jobs = config.get("jobs", {})
+    for job_name, job_config in jobs.items():
+        if "env" in job_config:
+            invalid = check_env_vars(job_config["env"])
+            assert not invalid, (
+                f"Job '{job_name}' in {workflow_file.name} has invalid env var names: {invalid}"
+            )
         def check_env_vars(env_dict):
             """
             Identify environment variable names that do not follow the naming convention of upper-case letters, digits and underscores.
