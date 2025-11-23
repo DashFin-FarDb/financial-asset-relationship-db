@@ -93,7 +93,7 @@ class TestPRAgentWorkflowSimplification:
         # Check that the script doesn't reference chunking
         script = parse_step.get('run', '')
         assert 'context_chunker.py' not in script
-        assert 'chunked' not in script.lower() or 'chunk' not in script.lower()
+        assert 'chunked' not in script.lower() and 'chunk' not in script.lower()
         assert 'CONTEXT_SIZE' not in script
     
     def test_no_pyyaml_installation_in_dependencies(self, pr_agent_workflow: Dict[str, Any]):
