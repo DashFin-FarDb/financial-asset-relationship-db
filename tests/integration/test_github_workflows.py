@@ -429,7 +429,7 @@ def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any])
         self._assert_valid_fetch_depth({"token": "${{ secrets.GITHUB_TOKEN }}"})
 
 class TestWorkflowSecurity:
-    """Test suite for workflow security best practices."""
+        self._assert_valid_fetch_depth({})
     
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_hardcoded_secrets(self, workflow_file: Path):
