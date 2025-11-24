@@ -84,8 +84,12 @@ class TestRequirementsDevChanges:
         with open(path, 'r') as f:
             content = f.read()
         
-        assert any(line.strip().lower().startswith('pyyaml') for line in content.splitlines()), \
-            "PyYAML should be in requirements-dev.txt for workflow validation"
+        assert any(
+            ln for ln in (
+                line.strip() for line in content.splitlines()
+            )
+            if ln and not ln.startswith('#') and ln.split()[0].split('==')[0].split('~=')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0].split(';')[0] == 'PyYAML'
+        ), "PyYAML should be in requirements-dev.txt for workflow validation"
 
 
 if __name__ == "__main__":
