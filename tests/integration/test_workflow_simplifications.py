@@ -536,14 +536,10 @@ class TestWorkflowRegressionPrevention:
         Test that no workflow file references the deleted files.
         """
         workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
-        
-import os
-import pytest
-import warnings
-import yaml
-from pathlib import Path
-from typing import Dict, Any, List
-            
+        workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
+        for workflow_file in workflow_files:
+            with open(workflow_file, 'r') as f:
+                content = f.read()
             # Should not reference deleted files
             assert 'context_chunker.py' not in content, (
                 f"{workflow_file.name} should not reference deleted context_chunker.py"
