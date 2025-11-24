@@ -53,7 +53,6 @@ def label_workflow() -> Dict[str, Any]:
     workflow_path = WORKFLOWS_DIR / "label.yml"
     with open(workflow_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
-
 class TestPRAgentWorkflowSimplification:
     """Test suite for the simplified PR Agent workflow."""
     
