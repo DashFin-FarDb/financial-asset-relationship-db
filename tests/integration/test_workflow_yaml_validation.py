@@ -88,7 +88,7 @@ class TestRequirementsDevChanges:
         assert any(line.lower().startswith('pyyaml') for line in lines), \
             ln for ln in (
                 line.strip() for line in content.splitlines()
-            )
+            if ln and not ln.startswith('#') and ln.split()[0].split('==')[0].split('~=')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0].split(';')[0] == 'PyYAML'
             if ln and not ln.startswith('#') and ln.split()[0].split('==')[0].split('~=')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0].split(';')[0] == 'PyYAML'
         ), "PyYAML should be in requirements-dev.txt for workflow validation"
 
