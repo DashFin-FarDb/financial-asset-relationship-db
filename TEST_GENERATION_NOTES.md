@@ -15,7 +15,7 @@ Following the **bias-for-action principle**, one additional validation test file
 **File**: `tests/integration/test_workflow_yaml_validation.py`
 - **Purpose**: Validate YAML structure and simplification of modified workflow files
 - **Lines**: 92
-- **Tests**: 6 test methods across 2 test classes
+- **Tests**: 5 test methods across 2 test classes
 - **Coverage**: 
   - YAML syntax validation
   - GitHub Actions structure validation
