@@ -6,7 +6,7 @@ This test generation session created the following files:
 
 1. **`tests/integration/test_workflow_yaml_validation.py`**
    - New validation tests for modified workflow files
-   - 92 lines, 6 tests, 2 test classes
+    - 96 lines, 5 tests, 2 test classes
    - Validates YAML structure, GitHub Actions requirements, and workflow simplifications
 
 2. **`BRANCH_TEST_GENERATION_SUMMARY.md`**
