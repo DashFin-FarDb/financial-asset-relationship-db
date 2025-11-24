@@ -419,7 +419,21 @@ class TestPrAgentWorkflow:
             f"Found duplicate step names: {set(duplicate_names)}. "
             "Each step should have a unique name."
         )
+        )
+    
+    def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
+        """Ensure checkout steps in the trigger job have valid fetch-depth values."""
+
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
+
+        checkout_steps = [
+            s for s in steps
+            if s.get("uses", "").startswith("actions/checkout")
+        ]
+
         for step in checkout_steps:
+            step_with = step.get("with", {})
             # It's acceptable for fetch-depth to be omitted entirely
             if "fetch-depth" not in step_with:
                 continue
@@ -441,6 +455,43 @@ class TestPrAgentWorkflow:
                 continue
             fetch_depth = step_with["fetch-depth"]
             # Reject non-integer types (including strings)
+            assert isinstance(fetch_depth, int), (
+                f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
+            )
+            # Reject negative integers
+            assert fetch_depth >= 0, "fetch-depth cannot be negative"
+            step_with = step.get("with", {})
+            # It's acceptable for fetch-depth to be omitted entirely
+            if "fetch-depth" not in step_with:
+                continue
+            fetch_depth = step_with["fetch-depth"]
+            # Reject non-integer types (including strings)
+            assert isinstance(fetch_depth, int), (
+                f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
+            )
+            # Reject negative integers
+            assert fetch_depth >= 0, "fetch-depth cannot be negative"
+            assert isinstance(fetch_depth, int), (
+                f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
+            )
+            # Reject negative integers
+            assert fetch_depth >= 0, "fetch-depth cannot be negative"
+            step_with = step.get("with", {})
+            if "fetch-depth" in step_with:
+                fetch_depth = step_with["fetch-depth"]
+                assert isinstance(fetch_depth, int) or fetch_depth == 0, (
+                    "fetch-depth should be an integer"
+                )
+
+
+class TestWorkflowSecurity:
+    """Test suite for workflow security best practices."""
+    
+    @pytest.mark.parametrize("workflow_file", get_workflow_files())
+    def test_workflow_no_hardcoded_secrets(self, workflow_file: Path):
+        """Test that workflows don't contain hardcoded secrets or tokens."""
+        with open(workflow_file, 'r', encoding='utf-8') as f:
+            content = f.read()
         
         # Patterns that might indicate hardcoded secrets
         suspicious_patterns = [
