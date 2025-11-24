@@ -134,7 +134,32 @@ class TestWorkflowSimplification:
         with open(workflow_path) as f:
             content = f.read()
         
-        duplicates = []
+        class DuplicateKeySafeLoader(yaml.SafeLoader):
+            def __init__(self, stream):
+                super().__init__(stream)
+                self.duplicate_keys = []
+
+            def construct_mapping(self, node, deep=False):
+                mapping = {}
+                for key_node, value_node in node.value:
+                    key = self.construct_object(key_node, deep=False)
+                    if key in mapping:
+                        self.duplicate_keys.append(key)
+                    mapping[key] = self.construct_object(value_node, deep=deep)
+                return mapping
+
+        try:
+            loader = DuplicateKeySafeLoader(content)
+            yaml.load(content, Loader=lambda _: loader)
+        except yaml.YAMLError as e:
+            pytest.fail(f"YAML syntax error in pr-agent.yml: {e}")
+
+        if loader.duplicate_keys:
+            pytest.fail(
+                f"Found duplicate YAML keys in pr-agent.yml: {loader.duplicate_keys}. "
+                "Duplicate keys can cause unexpected behavior as YAML will "
+                "silently overwrite earlier values."
+            )
         
         class DuplicateKeySafeLoader(yaml.SafeLoader):
             pass
