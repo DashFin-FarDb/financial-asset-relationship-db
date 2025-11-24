@@ -264,7 +264,7 @@ assert isinstance(workflow, dict), "PR Agent workflow should parse to a dictiona
             
             # Extract file paths mentioned in workflow
             import re
-            import re
+            file_patterns = re.findall(r'\.github/[^\s\'"]+', content)
             file_patterns = re.findall(r'\.github/[^\s\'"]+', content)
             for file_path in file_patterns:
                 file_path = file_path.rstrip(',')
