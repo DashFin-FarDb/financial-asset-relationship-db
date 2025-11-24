@@ -131,7 +131,7 @@ class TestPRAgentConfigActions:
         actions = config.get("actions", {})
         
         for action_name, action_config in actions.items():
-            if "triggers" in action_config:
+            if isinstance(action_config, dict) and "triggers" in action_config:
                 assert isinstance(action_config["triggers"], list), \
                     f"Action '{action_name}' triggers should be a list"
     
