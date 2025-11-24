@@ -167,10 +167,10 @@ class TestWorkflowSimplification:
         def constructor_with_dup_check(loader, node):
             mapping = {}
             for key_node, value_node in node.value:
-                key = loader.construct_object(key_node, deep=False)
+                key = loader.construct_object(key_node)
                 if key in mapping:
                     duplicates.append(key)
-                mapping[key] = loader.construct_object(value_node, deep=False)
+                mapping[key] = loader.construct_object(value_node)
             return mapping
         
         DuplicateKeySafeLoader.add_constructor(
