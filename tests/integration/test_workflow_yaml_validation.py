@@ -30,6 +30,7 @@ class TestWorkflowYAMLSyntax:
     def workflows_dir(self) -> Path:
         """Get the workflows directory path."""
 
+
         workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
         try:
             # Ensure the directory exists and is accessible
