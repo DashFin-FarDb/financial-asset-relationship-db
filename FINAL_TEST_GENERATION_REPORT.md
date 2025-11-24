@@ -55,7 +55,7 @@ cd frontend && npm test -- --coverage
 |----------|-------|-------|-------|
 | **Frontend Tests** | 8 | ~3,700 | 200+ |
 | **Python Integration** | 7 | ~4,900 | 150+ |
-| **New Validation Tests** | 1 | 92 | 6 |
+| **New Validation Tests** | 1 | 97 | 5 |
 | **TOTAL** | 16 | ~8,700 | 356+ |
 
 ## Files Modified in This Session
