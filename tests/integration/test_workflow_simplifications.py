@@ -591,6 +591,8 @@ class TestWorkflowRegressionPrevention:
         try:
             yaml.load(content, Loader=DuplicateKeySafeLoader)
         except yaml.YAMLError:
+            # Ignore YAML errors here because this function only checks for duplicate keys.
+            # YAML validity is checked separately in test_workflow_files_remain_valid_yaml.
             pass
         
         return duplicates
