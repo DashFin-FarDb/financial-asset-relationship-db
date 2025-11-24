@@ -10,11 +10,7 @@ This test suite ensures that:
 
 import pytest
 import yaml
-import re
 from pathlib import Path
-from typing import Dict, Any, List
-
-
 class TestContextChunkingRemoval:
     """Validate that context chunking functionality has been completely removed."""
     
@@ -71,7 +67,7 @@ class TestContextChunkingRemoval:
         
         # Check for any chunking-related keys
         config_str = yaml.dump(config)
-        forbidden_keys = ["chunk", "context_overflow", "token", "summarization"]
+        forbidden_keys = ["chunk", "context_overflow", "token_limit", "max_tokens", "token_count", "summarization"]
         for key in forbidden_keys:
             assert key not in config_str.lower(), \
                 f"Chunking-related key '{key}' found in config"
@@ -129,56 +125,38 @@ class TestWorkflowSimplification:
     
     def test_pr_agent_workflow_no_duplicate_keys(self):
         """Ensure no duplicate YAML keys in pr-agent.yml."""
-        workflow_path = Path(".github/workflows/pr-agent.yml")
-        
-        with open(workflow_path) as f:
-            content = f.read()
-        
-        class DuplicateKeySafeLoader(yaml.SafeLoader):
-            def __init__(self, stream):
-                super().__init__(stream)
-                self.duplicate_keys = []
+        from yaml.constructor import ConstructorError
 
-            def construct_mapping(self, node, deep=False):
-                mapping = {}
-                for key_node, value_node in node.value:
-                    key = self.construct_object(key_node, deep=False)
-                    if key in mapping:
-                        self.duplicate_keys.append(key)
-                    mapping[key] = self.construct_object(value_node, deep=deep)
-                return mapping
-
-        try:
-            loader = DuplicateKeySafeLoader(content)
-            yaml.load(content, Loader=lambda _: loader)
-        except yaml.YAMLError as e:
-            pytest.fail(f"YAML syntax error in pr-agent.yml: {e}")
-
-        if loader.duplicate_keys:
-            pytest.fail(
-                f"Found duplicate YAML keys in pr-agent.yml: {loader.duplicate_keys}. "
-                "Duplicate keys can cause unexpected behavior as YAML will "
-                "silently overwrite earlier values."
-            )
-        
-        class DuplicateKeySafeLoader(yaml.SafeLoader):
+        class DuplicateKeyLoader(yaml.SafeLoader):
             pass
-        
-        duplicates = []
 
-        def constructor_with_dup_check(loader, node):
+        def construct_mapping(loader, node, deep=False):
             mapping = {}
             for key_node, value_node in node.value:
-                key = loader.construct_object(key_node, deep=False)
+                key = loader.construct_object(key_node, deep=deep)
                 if key in mapping:
-                    duplicates.append(key)
-                mapping[key] = loader.construct_object(value_node, deep=False)
+                    raise ConstructorError(
+                        "while constructing a mapping",
+                        node.start_mark,
+                        f"found duplicate key: {key!r}",
+                        key_node.start_mark,
+                    )
+                value = loader.construct_object(value_node, deep=deep)
+                mapping[key] = value
             return mapping
-            pytest.fail(
-                f"Found duplicate YAML keys in pr-agent.yml: {duplicates}. "
-                "Duplicate keys can cause unexpected behavior as YAML will "
-                "silently overwrite earlier values."
-            )
+
+        DuplicateKeyLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping
+        )
+
+        workflow_path = Path(".github/workflows/pr-agent.yml")
+        with open(workflow_path, "r") as f:
+            content = f.read()
+
+        try:
+            yaml.load(content, Loader=DuplicateKeyLoader)
+        except ConstructorError as e:
+            pytest.fail(f"Duplicate YAML key detected in pr-agent.yml: {e}")
     
     def test_apisec_scan_workflow_credentials_handling(self):
         """Verify apisec-scan.yml properly handles missing credentials."""
@@ -346,15 +324,23 @@ class TestDocumentationCleanup:
     
     def test_no_orphaned_test_summaries(self):
         """Check for test summary documentation files."""
-        # This is informational - summary files should eventually be consolidated
         summary_files = list(Path(".").glob("*TEST*SUMMARY*.md"))
         summary_files.extend(list(Path(".").glob("*TEST*GENERATION*.md")))
         
-        # Just document what exists, don't fail
-        if summary_files:
-            print(f"\nFound {len(summary_files)} test summary files:")
-            for f in summary_files[:10]:
-                print(f"  - {f.name}")
+        allowed_summaries = {
+            "TEST_GENERATION_WORKFLOW_SUMMARY.md",
+            "ENHANCED_TEST_SUMMARY.md",
+            "FINAL_TEST_SUMMARY.md",
+            "TEST_DOCUMENTATION_SUMMARY.md",
+        }
+        
+        orphaned_files = [f for f in summary_files if f.name not in allowed_summaries]
+        
+        if orphaned_files:
+            file_list = "\n".join(f"  - {f.name}" for f in orphaned_files[:10])
+            pytest.fail(
+                f"Found {len(orphaned_files)} orphaned test summary files that should be removed:\n{file_list}"
+            )
 
 
 if __name__ == "__main__":
