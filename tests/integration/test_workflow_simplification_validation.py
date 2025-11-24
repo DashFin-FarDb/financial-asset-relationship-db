@@ -167,20 +167,22 @@ class TestWorkflowSimplification:
         def constructor_with_dup_check(loader, node):
             mapping = {}
             for key_node, value_node in node.value:
-                key = loader.construct_object(key_node)
+        duplicates = []
+
+        def constructor_with_dup_check(loader, node):
+            mapping = {}
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=False)
                 if key in mapping:
-                    if key not in duplicates:
-                        duplicates.append(key)
-                mapping[key] = loader.construct_object(value_node)
+                    duplicates.append(key)
+                mapping[key] = loader.construct_object(value_node, deep=False)
             return mapping
-        
-        loader = DuplicateKeySafeLoader(content)
-        loader.add_constructor(
+
+        DuplicateKeySafeLoader.add_constructor(
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
             constructor_with_dup_check
         )
-        yaml.load(content, Loader=lambda stream: loader)
-        
+
         try:
             yaml.load(content, Loader=DuplicateKeySafeLoader)
         except yaml.YAMLError as e:
