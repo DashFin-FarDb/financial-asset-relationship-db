@@ -101,23 +101,23 @@ describe('NetworkVisualization Component', () => {
     });
 
     // New edge case tests
-    const dataWithMissingCoords: VisualizationData = {
+    const dataWithMissingCoords1: VisualizationData = {
       nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY' } as any], // missing x,y,z
       edges: [{ source: '1', target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
     };
-    render(<NetworkVisualization data={dataWithMissingCoords} />);
+    render(<NetworkVisualization data={dataWithMissingCoords1} />);
     await waitFor(() => {
       expect(screen.getByText(/missing coordinates/i)).toBeInTheDocument();
     });
 
-    const dataWithNullEdge: VisualizationData = {
+    const dataWithNullEdge2: VisualizationData = {
       nodes: [
         { id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY', x: 0, y: 0, z: 0, color: '#000', size: 5 },
         { id: '2', name: 'N2', symbol: 'S2', asset_class: 'BOND', x: 1, y: 1, z: 1, color: '#111', size: 5 },
       ],
       edges: [{ source: null as unknown as string, target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
     };
-    render(<NetworkVisualization data={dataWithNullEdge} />);
+    render(<NetworkVisualization data={dataWithNullEdge2} />);
     await waitFor(() => {
       expect(screen.getByText(/invalid edge/i)).toBeInTheDocument();
     });
