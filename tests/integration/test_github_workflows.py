@@ -333,15 +333,15 @@ def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any])
         for step in checkout_steps:
             step_with = step.get("with", {})
             token = step_with.get("token")
-            assert isinstance(token, str) and token.strip(), (
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """Asserts the workflow's trigger job includes a setup-python step."""
 
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-    def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
-        """Asserts the workflow's trigger job includes a setup-python step."""
+        steps = review_job.get("steps", [])
 
-        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        python_steps = [
+            s for s in steps
+            if s.get("uses", "").startswith("actions/setup-python")
         steps = review_job.get("steps", [])
 
         python_steps = [

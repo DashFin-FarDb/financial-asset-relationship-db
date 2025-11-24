@@ -414,7 +414,6 @@ class TestRequirementsDevUpdates:
             # Should have version specifier
             assert '>=' in line or '==' in line or '~=' in line, \
                 f"Requirement '{line}' should have a version specifier"
-
 class TestBackwardCompatibility:
     """Test suite ensuring changes don't break existing functionality."""
     

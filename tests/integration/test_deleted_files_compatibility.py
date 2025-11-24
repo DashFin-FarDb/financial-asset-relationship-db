@@ -173,7 +173,7 @@ class TestDeletedLabelerConfig:
                             f"Labeler action in {job_name} has no config (missing .github/labeler.yml and no inline config or conditional)"
 
 
-class TestDeletedScriptsREADME:
+                            assert has_label_patterns or has_conditional, \
     """Validate that scripts README removal doesn't leave broken documentation."""
     
     def test_main_docs_dont_reference_scripts_readme(self):
@@ -229,7 +229,7 @@ class TestWorkflowConfigConsistency:
 if 'chunking' not in workflow and not any('chunk' in str(key).lower() for key in workflow.keys()):
         workflow_path = Path(".github/workflows/pr-agent.yml")
         
-        if config_path.exists() and workflow_path.exists():
+if 'chunking' not in workflow and not any('chunk' in str(key).lower() for key in workflow.keys()):
             import yaml
             
             with open(config_path, 'r') as f:
@@ -264,8 +264,8 @@ assert isinstance(workflow, dict), "PR Agent workflow should parse to a dictiona
             
             # Extract file paths mentioned in workflow
             import re
+            import re
             file_patterns = re.findall(r'\.github/[^\s\'"]+', content)
-            
             for file_path in file_patterns:
                 file_path = file_path.rstrip(',')
                 path = Path(file_path)

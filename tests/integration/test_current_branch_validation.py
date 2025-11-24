@@ -61,6 +61,14 @@ class TestWorkflowModifications:
         step_names = [str(step.get('name', '')).lower() for step in steps if isinstance(step, dict)]
         assert not any('credential' in name or 'secret' in name for name in step_names), \
             "Found credential pre-check steps; these should be removed in the simplified workflow"
+        assert 'Trigger_APIsec_scan' in data['jobs']
+    
+        # Ensure no credential pre-check steps are present
+        job = data['jobs']['Trigger_APIsec_scan']
+        steps = job.get('steps', [])
+        step_names = [str(step.get('name', '')).lower() for step in steps if isinstance(step, dict)]
+        assert not any('credential' in name or 'secret' in name for name in step_names), \
+            "Found credential pre-check steps; these should be removed in the simplified workflow"
     
     def test_label_workflow_simplified(self):
         """Label workflow should be simplified without config checks."""
