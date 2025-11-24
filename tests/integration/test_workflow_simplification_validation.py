@@ -164,9 +164,6 @@ class TestWorkflowSimplification:
         class DuplicateKeySafeLoader(yaml.SafeLoader):
             pass
         
-        def constructor_with_dup_check(loader, node):
-            mapping = {}
-            for key_node, value_node in node.value:
         duplicates = []
 
         def constructor_with_dup_check(loader, node):
@@ -177,18 +174,6 @@ class TestWorkflowSimplification:
                     duplicates.append(key)
                 mapping[key] = loader.construct_object(value_node, deep=False)
             return mapping
-
-        DuplicateKeySafeLoader.add_constructor(
-            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-            constructor_with_dup_check
-        )
-
-        try:
-            yaml.load(content, Loader=DuplicateKeySafeLoader)
-        except yaml.YAMLError as e:
-            pytest.fail(f"Invalid YAML in pr-agent.yml: {e}")
-
-        if duplicates:
             pytest.fail(
                 f"Found duplicate YAML keys in pr-agent.yml: {duplicates}. "
                 "Duplicate keys can cause unexpected behavior as YAML will "
