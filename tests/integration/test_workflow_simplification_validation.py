@@ -169,7 +169,8 @@ class TestWorkflowSimplification:
             for key_node, value_node in node.value:
                 key = loader.construct_object(key_node)
                 if key in mapping:
-                    duplicates.append(key)
+                    if key not in duplicates:
+                        duplicates.append(key)
                 mapping[key] = loader.construct_object(value_node)
             return mapping
         
