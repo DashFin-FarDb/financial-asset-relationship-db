@@ -144,6 +144,19 @@ class TestDeletedLabelerConfig:
             jobs = data.get('jobs', {})
             for job_name, job_data in jobs.items():
                 steps = job_data.get('steps', [])
+    def test_no_broken_labeler_action_calls(self):
+        """Labeler action should not be called without proper config."""
+        label_workflow = Path(".github/workflows/label.yml")
+    
+        if label_workflow.exists():
+            import yaml
+            with open(label_workflow, 'r') as f:
+                data = yaml.safe_load(f)
+        
+            # Check if labeler action is used
+            jobs = data.get('jobs', {})
+            for job_name, job_data in jobs.items():
+                steps = job_data.get('steps', [])
             
                 for step in steps:
                     uses = step.get('uses', '')
@@ -158,20 +171,6 @@ class TestDeletedLabelerConfig:
                         # If using labeler, enforce proper handling
                         assert (step_if or with_config), \
                             f"Labeler action used without condition or inline config in step: {step}"
-    # Check for actual label pattern configuration, not just metadata keys
-    has_label_patterns = with_config and any(
-        key not in ['sync-labels', 'dot', 'pr-number', 'configuration-path'] 
-        for key in with_config.keys()
-    )
-    step_if = step.get('if', '')
-    has_conditional = bool(step_if)
-    
-    assert has_label_patterns or has_conditional, \
-        f"Labeler action in {job_name} has no label patterns (missing .github/labeler.yml and no inline patterns or conditional)"
-                        
-                        assert has_label_patterns or has_conditional, \
-                            f"Labeler action in {job_name} has no config (missing .github/labeler.yml and no inline config or conditional)"
-
 
                             assert has_label_patterns or has_conditional, \
     """Validate that scripts README removal doesn't leave broken documentation."""
