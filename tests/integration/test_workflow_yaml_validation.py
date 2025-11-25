@@ -390,7 +390,19 @@ class TestWorkflowSecurityBestPractices:
                     
                     # Note: This is a soft check - some actions use GITHUB_TOKEN automatically
                     if not has_perms:
-                        print(f"Warning: {workflow_name} - {job_name} may need explicit permissions")
+                        import warnings
+                        if not has_perms:
+                            warnings.warn(f"{workflow_name} - {job_name} may need explicit permissions", UserWarning)
+
+                        if len(steps) > 5:
+                            if 'timeout-minutes' not in job_config:
+                                warnings.warn(f"{workflow_name} - {job_name} with {len(steps)} steps has no timeout", UserWarning)
+
+                        if not has_concurrency:
+                            warnings.warn(f"{workflow_name} - {job_name} may benefit from concurrency group", UserWarning)
+
+                        if not has_version:
+                            warnings.warn(f"{req} has no version pin", UserWarning)
     
     def test_workflows_dont_expose_secrets_in_logs(self, all_workflows: Dict[str, Dict[str, Any]]):
         """Test that workflows don't echo or print secrets."""
