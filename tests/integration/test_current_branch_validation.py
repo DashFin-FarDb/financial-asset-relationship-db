@@ -116,13 +116,7 @@ class TestWorkflowModifications:
             test_files = [f for f in files_with_reference if 'test' in f]
             # All references should be in test files
             assert len(files_with_reference) == len(test_files)
-            result = subprocess.run(
-                ['rg', '-l', 'context_chunker', '--type', 'py'],
-                capture_output=True,
-                text=True,
-                cwd=repo_root,
-                check=False,
-            )
+            cwd=search_root,
             output = result.stdout or ""
             files_with_reference = output.strip().split('\n') if output.strip() else []
         except FileNotFoundError:
