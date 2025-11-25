@@ -500,5 +500,15 @@ class TestRequirementsDevChanges:
                 print(f"Info: {req} has no version pin")
 
 
+"""
+Comprehensive validation tests for GitHub workflow YAML files.
+
+This module tests the structure, syntax, and best practices of all
+GitHub Actions workflow files, with special focus on recent changes:
+- Simplified greetings workflow
+- Simplified labeler workflow  
+- Simplified APIsec scan workflow
+- Simplified PR agent workflow
+"""
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
