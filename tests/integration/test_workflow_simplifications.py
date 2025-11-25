@@ -279,10 +279,11 @@ class TestWorkflowSimplificationConsistency:
         ]
         
         for filename in workflow_files:
-            try:
-                workflow = load_workflow(filename)
-            except:
-                continue
+            workflow_path = WORKFLOWS_DIR / filename
+            if not workflow_path.exists():
+                pytest.skip(f"Workflow {filename} not found")
+            
+            workflow = load_workflow(filename)
             
             workflow_str = yaml.dump(workflow)
             
