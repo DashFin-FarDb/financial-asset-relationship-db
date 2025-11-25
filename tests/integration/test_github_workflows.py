@@ -278,12 +278,12 @@ class TestPrAgentWorkflow:
     
     def test_pr_agent_name(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Assert the pr-agent workflow's top-level "name" equals "PR Agent".
+        Assert the pr-agent workflow's top-level "name" equals "PR Agent Workflow".
         
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow fixture.
         """
-        assert pr_agent_workflow["name"] == "PR Agent"
+        assert pr_agent_workflow["name"] == "PR Agent Workflow"
     
     def test_pr_agent_triggers_on_pull_request(self, pr_agent_workflow: Dict[str, Any]):
         """Test that pr-agent workflow triggers on pull request events."""
@@ -297,33 +297,33 @@ class TestPrAgentWorkflow:
         jobs = pr_agent_workflow.get("jobs", {})
         assert "pr-agent-trigger" in jobs, "pr-agent workflow must have a 'pr-agent-trigger' job"
     
-    def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that review job runs on Ubuntu."""
-        review_job = pr_agent_workflow["jobs"]["review"]
-        runs_on = review_job.get("runs-on", "")
+    def test_pr_agent_trigger_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
+        """Test that pr-agent-trigger job runs on Ubuntu."""
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        runs_on = trigger_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), (
-            "Review job should run on Ubuntu runner"
+            "pr-agent-trigger job should run on Ubuntu runner"
         )
     
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that review job checks out the code."""
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
+        """Test that pr-agent-trigger job checks out the code."""
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
         
         checkout_steps = [
             s for s in steps 
             if s.get("uses", "").startswith("actions/checkout")
         ]
-        assert len(checkout_steps) > 0, "Review job must check out the repository"
+        assert len(checkout_steps) > 0, "pr-agent-trigger job must check out the repository"
     
     def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure every actions/checkout step in the review job provides a `token` in its `with` mapping.
+        Ensure every actions/checkout step in the pr-agent-trigger job provides a `token` in its `with` mapping.
         
         Fails the test if any checkout step omits the `token` key.
         """
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
         
         checkout_steps = [
             s for s in steps 
