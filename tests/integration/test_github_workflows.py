@@ -225,27 +225,34 @@ class TestWorkflowActions:
 
         for job_name, job_config in jobs.items():
             steps = job_config.get("steps", [])
-
-if action.startswith(("./", ".github/")):
-    continue
-                    # Action should have a version tag (e.g., @v1, @v3.5.2, or @<commit-sha>)
-                    assert "@" in action, (
-                        f"Step {idx} in job '{job_name}' of {workflow_file.name} "
-                        f"must specify a pinned version for action '{action}' (e.g., @v1, @v3.5.2, or @<commit-sha>). "
-                        f"Pinning action versions is a critical security best practice."
+            
+            for idx, step in enumerate(steps):
+                if "uses" not in step:
+                    continue
+                
+                action = step["uses"]
+                
+                if action.startswith(("./", ".github/")):
+                    continue
+                
+                # Action should have a version tag (e.g., @v1, @v3.5.2, or @<commit-sha>)
+                assert "@" in action, (
+                    f"Step {idx} in job '{job_name}' of {workflow_file.name} "
+                    f"must specify a pinned version for action '{action}' (e.g., @v1, @v3.5.2, or @<commit-sha>). "
+                    f"Pinning action versions is a critical security best practice."
+                )
+                # Disallow floating branches like @main or @master
+                ref = action.split("@", 1)[1].strip()
+                assert ref and ref.lower() not in {"main", "master", "latest", "stable"}, (
+                    f"Step {idx} in job '{job_name}' of {workflow_file.name} "
+                    f"uses a floating branch '{ref}' for action '{action}'. Use a tagged release or commit SHA."
+                )
+                # Informational: if pinned by full SHA, recommend considering semver tags for maintainability
+                if len(ref) == 40 and all(c in "0123456789abcdef" for c in ref.lower()):
+                    print(
+                        f"Info: Step {idx} in job '{job_name}' of {workflow_file.name} "
+                        f"pins '{action}' by commit SHA. Consider using a semantic version tag for easier maintenance."
                     )
-                    # Disallow floating branches like @main or @master
-                    ref = action.split("@", 1)[1].strip()
-                    assert ref and ref.lower() not in {"main", "master", "latest", "stable"}, (
-                        f"Step {idx} in job '{job_name}' of {workflow_file.name} "
-                        f"uses a floating branch '{ref}' for action '{action}'. Use a tagged release or commit SHA."
-                    )
-                    # Informational: if pinned by full SHA, recommend considering semver tags for maintainability
-                    if len(ref) == 40 and all(c in "0123456789abcdef" for c in ref.lower()):
-                        print(
-                            f"Info: Step {idx} in job '{job_name}' of {workflow_file.name} "
-                            f"pins '{action}' by commit SHA. Consider using a semantic version tag for easier maintenance."
-                        )
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_steps_have_names_or_uses(self, workflow_file: Path):
         """
@@ -299,13 +306,13 @@ class TestPrAgentWorkflow:
         assert "name" in pr_agent_workflow, (
             "pr-agent workflow must have a descriptive 'name' field"
         )
-assert "PR Agent" in pr_agent_workflow["name"], (
-    "pr-agent workflow name should contain 'PR Agent' for identification"
-)
+        assert "PR Agent" in pr_agent_workflow["name"], (
+            "pr-agent workflow name should contain 'PR Agent' for identification"
+        )
     
     def test_pr_agent_triggers_on_pull_request(self, pr_agent_workflow: Dict[str, Any]):
         """Test that pr-agent workflow triggers on pull_request events."""
-        raw_triggers = pr_agent_workflow.get("on", {})
+        raw_triggers = pr_agent_workflow.get("on") or pr_agent_workflow.get(True, {})
 
         # Normalize triggers to a set of explicit event names
         if isinstance(raw_triggers, str):
@@ -320,25 +327,12 @@ assert "PR Agent" in pr_agent_workflow["name"], (
         assert "pull_request" in normalized, (
             "pr-agent workflow must trigger on pull_request events"
         )
-        """Test that pr-agent workflow triggers on pull_request events."""
-        raw_triggers = pr_agent_workflow.get("on", {})
-
-        # Normalize triggers to a set of explicit event names
-        if isinstance(raw_triggers, str):
-            normalized = {raw_triggers}
-        elif isinstance(raw_triggers, list):
-            normalized = set(raw_triggers)
-        elif isinstance(raw_triggers, dict):
-            normalized = set(raw_triggers.keys())
-        else:
-            normalized = set()
-
-def test_pr_agent_trigger_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-    """Test that pr-agent-trigger job runs on Ubuntu."""
-    # Rely on test_pr_agent_has_trigger_job for job existence
-    trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-    runs_on = trigger_job.get("runs-on", "")
-    # ... rest of test ...
+    
+    def test_pr_agent_trigger_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
+        """Test that pr-agent-trigger job runs on Ubuntu."""
+        # Rely on test_pr_agent_has_trigger_job for job existence
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        runs_on = trigger_job.get("runs-on", "")
         # Be more specific about expected runner format
         assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
             f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
