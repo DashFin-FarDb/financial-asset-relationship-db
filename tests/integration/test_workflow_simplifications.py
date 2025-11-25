@@ -45,19 +45,26 @@ class TestGreetingsWorkflowSimplification:
         workflow = load_workflow("greetings.yml")
         
         assert "name" in workflow, "Workflow should have a name"
-        assert "on" in workflow, "Workflow should have triggers"
+        assert "on" in workflow or True in workflow, "Workflow should have triggers"
         assert "jobs" in workflow, "Workflow should have jobs"
     
     def test_greetings_triggers_correct_events(self):
         """Verify greetings workflow triggers on correct events."""
         workflow = load_workflow("greetings.yml")
-        triggers = workflow.get("on", [])
+        triggers = workflow.get("on") or workflow.get(True)
         
         if isinstance(triggers, list):
             assert "pull_request_target" in triggers, \
                 "Should trigger on pull_request_target"
             assert "issues" in triggers, \
                 "Should trigger on issues"
+        elif isinstance(triggers, dict):
+            assert "pull_request_target" in triggers, \
+                "Should trigger on pull_request_target"
+            assert "issues" in triggers, \
+                "Should trigger on issues"
+        else:
+            pytest.fail(f"Expected 'on' to be a list or dict, got {type(triggers).__name__}")
     
     def test_greetings_has_first_interaction_action(self):
         """Verify greetings uses first-interaction action."""
@@ -103,7 +110,7 @@ class TestLabelWorkflowSimplification:
         workflow = load_workflow("label.yml")
         
         assert "name" in workflow, "Workflow should have a name"
-        assert "on" in workflow, "Workflow should have triggers"
+        assert "on" in workflow or True in workflow, "Workflow should have triggers"
         assert "jobs" in workflow, "Workflow should have jobs"
     
     def test_label_uses_labeler_action(self):
@@ -151,7 +158,7 @@ class TestPRAgentWorkflowSimplification:
         workflow = load_workflow("pr-agent.yml")
         
         assert "name" in workflow, "Workflow should have a name"
-        assert "on" in workflow, "Workflow should have triggers"
+        assert "on" in workflow or True in workflow, "Workflow should have triggers"
         assert "jobs" in workflow, "Workflow should have jobs"
     
     def test_pr_agent_no_duplicate_setup_python(self):
@@ -211,7 +218,7 @@ class TestAPISecWorkflowSimplification:
         workflow = load_workflow("apisec-scan.yml")
         
         assert "name" in workflow, "Workflow should have a name"
-        assert "on" in workflow, "Workflow should have triggers"
+        assert "on" in workflow or True in workflow, "Workflow should have triggers"
         assert "jobs" in workflow, "Workflow should have jobs"
     
     def test_apisec_no_credentials_check(self):
@@ -279,10 +286,11 @@ class TestWorkflowSimplificationConsistency:
         ]
         
         for filename in workflow_files:
-            try:
-                workflow = load_workflow(filename)
-            except:
-                continue
+            workflow_path = WORKFLOWS_DIR / filename
+            if not workflow_path.exists():
+                pytest.skip(f"Workflow {filename} not found")
+            
+            workflow = load_workflow(filename)
             
             workflow_str = yaml.dump(workflow)
             
