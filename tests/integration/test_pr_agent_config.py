@@ -209,7 +209,7 @@ class TestPRAgentConfigSecurity:
                     k_l = str(k).lower()
                     # If key name suggests secret, ensure value is not a literal
                     if any(p in k_l for p in secret_key_patterns):
-                        if isinstance(v, str) and value_looks_secret(v):
+                        if isinstance(v, str) and not is_safe_placeholder(v):
                             return True
                         # Non-string values for secret-like keys should typically be empty/None
                         if v not in (None, '') and not isinstance(v, (str, dict, list)):
