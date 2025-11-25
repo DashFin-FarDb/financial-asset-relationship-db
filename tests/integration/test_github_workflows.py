@@ -297,18 +297,14 @@ class TestPrAgentWorkflow:
             "'pr-agent-trigger' job must be a mapping"
         )
 
-def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
+    def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
+        """Test that pr-agent workflow runs on Ubuntu."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-        runs_on = review_job.get("runs-on", "")
-        assert "ubuntu" in runs_on.lower(), (
-            f"PR Agent trigger job should run on Ubuntu runner, got '{runs_on}'"
-        )
-        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-
         runs_on = review_job.get("runs-on", "")
         assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
             f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
         )
+
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
         """Test that review job checks out the code."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
@@ -333,15 +329,12 @@ def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any])
         for step in checkout_steps:
             step_with = step.get("with", {})
             token = step_with.get("token")
+            assert token, "Checkout step should explicitly define a token"
+
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """Asserts the workflow's trigger job includes a setup-python step."""
 
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-        steps = review_job.get("steps", [])
-
-        python_steps = [
-            s for s in steps
-            if s.get("uses", "").startswith("actions/setup-python")
         steps = review_job.get("steps", [])
 
         python_steps = [
@@ -429,15 +422,14 @@ def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any])
         self._assert_valid_fetch_depth({"token": "${{ secrets.GITHUB_TOKEN }}"})
 
 class TestWorkflowSecurity:
-        with open(workflow_file, 'r', encoding='utf-8') as f:
-    
+    """Tests for workflow security best practices."""
+
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_hardcoded_secrets(self, workflow_file: Path):
         """Test that workflows don't contain hardcoded secrets or tokens."""
-        self._assert_valid_fetch_depth({})
+        with open(workflow_file, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Patterns that might indicate hardcoded secrets
         suspicious_patterns = [
             "ghp_",  # GitHub personal access token
             "gho_",  # GitHub OAuth token
@@ -1088,15 +1080,14 @@ class TestWorkflowEnvAndSecrets:
             key
             for key in env_dict.keys()
             if not isinstance(key, str) or not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
-            for key in env_dict.keys()
-        if not isinstance(key, str) or not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
-        if not isinstance(key, str) or not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
-        return [
-            key
-            for key in env_dict.keys()
-            if not key or not (any(c.isupper() for c in key) and all(c.isupper() or c.isdigit() or c == "_" for c in key))
-        if not isinstance(key, str) or not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
+        ]
 
+    @staticmethod
+    def _env_scopes(config: Dict[str, Any], workflow_name: str) -> List[Tuple[str, Any]]:
+        """Return list of (scope_name, env_dict) tuples for workflow and jobs."""
+        scopes = []
+        
+        if "env" in config:
             scopes.append((f"workflow:{workflow_name}", config["env"]))
 
         scopes.extend(
