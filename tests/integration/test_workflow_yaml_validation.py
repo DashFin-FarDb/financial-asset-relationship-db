@@ -129,8 +129,14 @@ class TestGreetingsWorkflow:
     def greetings_workflow(self) -> Dict[str, Any]:
         """Load the greetings workflow."""
         workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'greetings.yml'
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'greetings.yml'
+        try:
+            with open(workflow_path, 'r') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            pytest.fail(f"Workflow file {workflow_path} not found")
+        except OSError as e:
+            pytest.fail(f"Error reading {workflow_path}: {e}")
     
     def test_greetings_workflow_structure(self, greetings_workflow: Dict[str, Any]):
         """Test that greetings workflow has correct structure."""
