@@ -90,6 +90,7 @@ class TestWorkflowModifications:
         """Label workflow should be simplified without config checks."""
         workflow_path = Path(".github/workflows/label.yml")
         assert workflow_path.exists(), "Expected '.github/workflows/label.yml' to exist"
+    
     def test_greetings_workflow_simplified(self):
         """Greetings workflow should have simplified messages."""
         workflow_path = Path(".github/workflows/greetings.yml")
@@ -99,54 +100,6 @@ class TestWorkflowModifications:
         
         jobs = data.get('jobs', {})
         greeting_job = jobs.get('greeting', {})
-        search_root = Path(__file__).parent.parent.parent
-        files_with_reference = []
-
-        for py_path in search_root.rglob('*.py'):
-            try:
-                content = py_path.read_text(encoding='utf-8', errors='ignore')
-            except Exception:
-                # Skip unreadable files
-                continue
-            if 'context_chunker' in content:
-                files_with_reference.append(str(py_path))
-
-        # Should only appear in test files documenting the deletion
-        if files_with_reference:
-            test_files = [f for f in files_with_reference if 'test' in f]
-            # All references should be in test files
-            assert len(files_with_reference) == len(test_files)
-            result = subprocess.run(
-                ['rg', '-l', 'context_chunker', '--type', 'py'],
-                capture_output=True,
-                text=True,
-                cwd=repo_root,
-                check=False,
-            )
-            output = result.stdout or ""
-            files_with_reference = output.strip().split('\n') if output.strip() else []
-        except FileNotFoundError:
-            # Fallback: scan python files without ripgrep
-            files_with_reference = []
-            for py_file in repo_root.rglob('*.py'):
-                try:
-                    with open(py_file, 'r', encoding='utf-8', errors='ignore') as f:
-                        if 'context_chunker' in f.read():
-                            files_with_reference.append(str(py_file))
-                except OSError:
-                    continue
-    
-        if files_with_reference:
-            test_files = [f for f in files_with_reference if 'test' in f]
-            assert len(files_with_reference) == len(test_files)
-    
-    def test_labeler_config_deleted(self):
-                except OSError:
-                    continue
-    
-        if files_with_reference:
-            test_files = [f for f in files_with_reference if 'test' in f]
-            assert len(files_with_reference) == len(test_files)
     
     def test_labeler_config_deleted(self):
         """Labeler.yml configuration should be deleted."""
@@ -215,31 +168,6 @@ class TestPRAgentConfigSimplified:
         
         # Should not have chunking limits
         assert 'max_files_per_chunk' not in limits
-        for yaml_file in yaml_files:
-            try:
-                with open(yaml_file, 'r') as f:
-                    yaml.safe_load(f)
-            except (yaml.YAMLError, OSError, IOError) as e:
-                pytest.fail(f"Invalid or unreadable YAML in {yaml_file}: {e}")
-                    yaml.safe_load(f)
-            except yaml.YAMLError as e:
-        for yaml_file in yaml_files:
-            try:
-                with open(yaml_file, 'r') as f:
-                    yaml.safe_load(f)
-            except (yaml.YAMLError, OSError, IOError) as e:
-                pytest.fail(f"Invalid or unreadable YAML in {yaml_file}: {e}")
-                    yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in {yaml_file}: {e}")
-            try:
-                with open(yaml_file, 'r') as f:
-                    yaml.safe_load(f)
-            except (yaml.YAMLError, OSError, IOError) as e:
-                pytest.fail(f"Invalid or unreadable YAML in {yaml_file}: {e}")
-                    yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in {yaml_file}: {e}")
     
     def test_no_broken_workflow_references(self):
         """Workflows should not reference non-existent files."""
