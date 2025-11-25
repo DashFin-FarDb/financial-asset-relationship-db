@@ -34,8 +34,8 @@ pytest tests/integration/test_pr_agent_config.py \
 
 | File | Lines | Tests | Purpose |
 |------|-------|-------|---------|
-| `test_pr_agent_config.py` | 487 | 40+ | Config validation |
-| `test_workflow_simplifications.py` | 641 | 35+ | Workflow validation |
++| `test_pr_agent_config.py` | 398 | 40+ | Config validation |
++| `test_workflow_simplifications.py` | 290 | 35+ | Workflow validation |
 | **Total** | **1,128** | **75+** | **Complete coverage** |
 
 ## ✅ Key Validations
