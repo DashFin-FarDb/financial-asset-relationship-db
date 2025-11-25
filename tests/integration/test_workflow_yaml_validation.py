@@ -54,22 +54,12 @@ class TestWorkflowYAMLSyntax:
                 try:
                     yaml.safe_load(f)
                 except yaml.YAMLError as e:
-                    pytest.fail(f"Invalid YAML in {workflow_file.name}: {e}")
-    
-    def test_workflows_have_required_top_level_keys(self, workflow_files: List[Path]):
-        """Test that workflows have required top-level keys."""
-        required_keys = {'name', 'on', 'jobs'}
-        
-        for workflow_file in workflow_files:
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
-
             if data is None:
                 pytest.fail(f"{workflow_file.name} is empty or invalid YAML")
-
             missing_keys = required_keys - set(data.keys())
-            assert not missing_keys, (
-                f"{workflow_file.name} missing required keys: {missing_keys}"
+            assert not missing_keys, f"{workflow_file.name} missing required keys: {missing_keys}"
             )
     
     def test_workflow_names_are_descriptive(self, workflow_files: List[Path]):
@@ -99,34 +89,38 @@ class TestWorkflowYAMLSyntax:
             # Use PyYAML's safer duplicate key detection via custom constructor
             def no_duplicates_constructor(loader, node, deep=False):
                 """Check for duplicate keys during YAML loading."""
-                mapping = {}
-                for key_node, value_node in node.value:
-                    key = loader.construct_object(key_node, deep=deep)
-                    if key in mapping:
-                        raise yaml.constructor.ConstructorError(
-                            f"Duplicate key: {key!r}",
-                            key_node.start_mark
-                        )
-                    mapping[key] = loader.construct_object(value_node, deep=deep)
-                return mapping
-            
-            # Create a custom loader that checks for duplicates
-            class UniqueKeyLoader(yaml.SafeLoader):
-                pass
-            
-            UniqueKeyLoader.add_constructor(
-                yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-                no_duplicates_constructor
-            )
-            
-            try:
-                with open(workflow_file, 'r') as f:
-                    yaml.load(f, Loader=UniqueKeyLoader)
-            except yaml.constructor.ConstructorError as e:
-                pytest.fail(
-                    f"{workflow_file.name} has duplicate key: {e.problem}"
+        def test_no_duplicate_keys_in_yaml(self, workflow_files: List[Path]):
+            """Test that YAML files don't have duplicate keys within the same object.
+    
+            Uses a custom SafeLoader to reliably detect duplicates during parsing.
+            """
+            import yaml
+            for workflow_file in workflow_files:
+                def no_duplicates_constructor(loader, node, deep=False):
+                    mapping = {}
+                    for key_node, value_node in node.value:
+                        key = loader.construct_object(key_node, deep=deep)
+                        if key in mapping:
+                            raise yaml.constructor.ConstructorError(
+                                f"Duplicate key: {key!r}",
+                                key_node.start_mark
+                            )
+                        mapping[key] = loader.construct_object(value_node, deep=deep)
+                    return mapping
+        
+                class UniqueKeyLoader(yaml.SafeLoader):
+                    pass
+        
+                UniqueKeyLoader.add_constructor(
+                    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                    no_duplicates_constructor
                 )
-
+        
+                try:
+                    with open(workflow_file, 'r') as f:
+                        yaml.load(f, Loader=UniqueKeyLoader)
+                except yaml.constructor.ConstructorError as e:
+                    pytest.fail(f"{workflow_file.name} has duplicate key: {e.problem}")
 
 class TestGreetingsWorkflow:
     """Test the greetings workflow specifically."""
@@ -135,8 +129,14 @@ class TestGreetingsWorkflow:
     def greetings_workflow(self) -> Dict[str, Any]:
         """Load the greetings workflow."""
         workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'greetings.yml'
-        with open(workflow_path, 'r') as f:
-            return yaml.safe_load(f)
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'greetings.yml'
+        try:
+            with open(workflow_path, 'r') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            pytest.fail(f"Workflow file {workflow_path} not found")
+        except OSError as e:
+            pytest.fail(f"Error reading {workflow_path}: {e}")
     
     def test_greetings_workflow_structure(self, greetings_workflow: Dict[str, Any]):
         """Test that greetings workflow has correct structure."""
@@ -396,7 +396,19 @@ class TestWorkflowSecurityBestPractices:
                     
                     # Note: This is a soft check - some actions use GITHUB_TOKEN automatically
                     if not has_perms:
-                        print(f"Warning: {workflow_name} - {job_name} may need explicit permissions")
+                        import warnings
+                        if not has_perms:
+                            warnings.warn(f"{workflow_name} - {job_name} may need explicit permissions", UserWarning)
+
+                        if len(steps) > 5:
+                            if 'timeout-minutes' not in job_config:
+                                warnings.warn(f"{workflow_name} - {job_name} with {len(steps)} steps has no timeout", UserWarning)
+
+                        if not has_concurrency:
+                            warnings.warn(f"{workflow_name} - {job_name} may benefit from concurrency group", UserWarning)
+
+                        if not has_version:
+                            warnings.warn(f"{req} has no version pin", UserWarning)
     
     def test_workflows_dont_expose_secrets_in_logs(self, all_workflows: Dict[str, Dict[str, Any]]):
         """Test that workflows don't echo or print secrets."""
@@ -500,5 +512,15 @@ class TestRequirementsDevChanges:
                 print(f"Info: {req} has no version pin")
 
 
+"""
+Comprehensive validation tests for GitHub workflow YAML files.
+
+This module tests the structure, syntax, and best practices of all
+GitHub Actions workflow files, with special focus on recent changes:
+- Simplified greetings workflow
+- Simplified labeler workflow  
+- Simplified APIsec scan workflow
+- Simplified PR agent workflow
+"""
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

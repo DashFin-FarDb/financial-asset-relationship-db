@@ -520,10 +520,15 @@ class TestDeletedScriptFilesVerification:
         
         if scripts_dir.exists():
             # If it exists, should be empty or only contain __pycache__
-            contents = list(scripts_dir.iterdir())
-            non_cache = [f for f in contents if '__pycache__' not in str(f)]
-            
-            assert len(non_cache) == 0, (
+            ignorable_names = {'__pycache__', '.DS_Store', '.gitkeep'}
+            non_ignorable = [
+                f for f in contents
+                if f.name not in ignorable_names and not f.name.startswith('.')
+            ]
+
+            assert len(non_ignorable) == 0, (
+                f".github/scripts directory should be empty, found: {non_ignorable}"
+            )
                 f".github/scripts directory should be empty, found: {non_cache}"
             )
 
@@ -592,8 +597,10 @@ class TestWorkflowRegressionPrevention:
             yaml.load(content, Loader=DuplicateKeySafeLoader)
         except yaml.YAMLError:
             # Ignore YAML errors here because this function only checks for duplicate keys.
-            # YAML validity is checked separately in test_workflow_files_remain_valid_yaml.
-            pass
+            try:
+               yaml.load(content, Loader=DuplicateKeySafeLoader)
+           except yaml.YAMLError as e:
+               raise RuntimeError(f"Invalid YAML in {file_path}: {e}")
         
         return duplicates
     
