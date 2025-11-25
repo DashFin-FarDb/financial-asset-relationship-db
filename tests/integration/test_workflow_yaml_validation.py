@@ -99,34 +99,38 @@ class TestWorkflowYAMLSyntax:
             # Use PyYAML's safer duplicate key detection via custom constructor
             def no_duplicates_constructor(loader, node, deep=False):
                 """Check for duplicate keys during YAML loading."""
-                mapping = {}
-                for key_node, value_node in node.value:
-                    key = loader.construct_object(key_node, deep=deep)
-                    if key in mapping:
-                        raise yaml.constructor.ConstructorError(
-                            f"Duplicate key: {key!r}",
-                            key_node.start_mark
-                        )
-                    mapping[key] = loader.construct_object(value_node, deep=deep)
-                return mapping
-            
-            # Create a custom loader that checks for duplicates
-            class UniqueKeyLoader(yaml.SafeLoader):
-                pass
-            
-            UniqueKeyLoader.add_constructor(
-                yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-                no_duplicates_constructor
-            )
-            
-            try:
-                with open(workflow_file, 'r') as f:
-                    yaml.load(f, Loader=UniqueKeyLoader)
-            except yaml.constructor.ConstructorError as e:
-                pytest.fail(
-                    f"{workflow_file.name} has duplicate key: {e.problem}"
+        def test_no_duplicate_keys_in_yaml(self, workflow_files: List[Path]):
+            """Test that YAML files don't have duplicate keys within the same object.
+    
+            Uses a custom SafeLoader to reliably detect duplicates during parsing.
+            """
+            import yaml
+            for workflow_file in workflow_files:
+                def no_duplicates_constructor(loader, node, deep=False):
+                    mapping = {}
+                    for key_node, value_node in node.value:
+                        key = loader.construct_object(key_node, deep=deep)
+                        if key in mapping:
+                            raise yaml.constructor.ConstructorError(
+                                f"Duplicate key: {key!r}",
+                                key_node.start_mark
+                            )
+                        mapping[key] = loader.construct_object(value_node, deep=deep)
+                    return mapping
+        
+                class UniqueKeyLoader(yaml.SafeLoader):
+                    pass
+        
+                UniqueKeyLoader.add_constructor(
+                    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                    no_duplicates_constructor
                 )
-
+        
+                try:
+                    with open(workflow_file, 'r') as f:
+                        yaml.load(f, Loader=UniqueKeyLoader)
+                except yaml.constructor.ConstructorError as e:
+                    pytest.fail(f"{workflow_file.name} has duplicate key: {e.problem}")
 
 class TestGreetingsWorkflow:
     """Test the greetings workflow specifically."""
