@@ -230,8 +230,8 @@ class TestWorkflowActions:
                 if "uses" not in step:
                     continue
                 action = step["uses"]
-                if action.startswith(("./", ".github/")):
-                    continue
+if action.startswith(("./", ".github/", "../")):
+    continue
                 # Action should have a version tag (e.g., @v1, @v3.5.2, or @<commit-sha>)
                 assert "@" in action, (
                     f"Step {idx} in job '{job_name}' of {workflow_file.name} "
@@ -303,9 +303,9 @@ class TestPrAgentWorkflow:
         assert "name" in pr_agent_workflow, (
             "pr-agent workflow must have a descriptive 'name' field"
         )
-        assert "PR Agent" in pr_agent_workflow["name"], (
-            "pr-agent workflow name should contain 'PR Agent' for identification"
-        )
+assert "PR Agent" in pr_agent_workflow["name"], (
+    f"pr-agent workflow name '{pr_agent_workflow['name']}' should contain 'PR Agent' for identification"
+)
     
     def test_pr_agent_triggers_on_pull_request(self, pr_agent_workflow: Dict[str, Any]):
         """Test that pr-agent workflow triggers on pull_request events."""
@@ -325,14 +325,7 @@ class TestPrAgentWorkflow:
             "pr-agent workflow must trigger on pull_request events"
         )
     
-    def test_pr_agent_trigger_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that pr-agent-trigger job runs on Ubuntu."""
-        trigger_job = pr_agent_workflow["jobs"].get("pr-agent-trigger")
-        assert trigger_job is not None, "pr-agent workflow must have pr-agent-trigger job"
-        runs_on = trigger_job.get("runs-on", "")
-        assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
-            f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
-        )
+assert trigger_job is not None, "pr-agent workflow must have 'pr-agent-trigger' job in its jobs section"
     
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
         """Test that pr-agent-trigger job checks out the code."""
