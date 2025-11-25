@@ -3,8 +3,37 @@
 
 agent:
   name: "Financial DB PR Agent"
-  version: "1.0.0"
+  version: "1.1.0"
   enabled: true
+  
+  # Context length management
+  context:
+    max_tokens: 32000  # Maximum context length before chunking
+    chunk_size: 28000  # Size of each chunk (leave room for system prompts)
+    overlap_tokens: 2000  # Overlap between chunks for continuity
+    summarization_threshold: 30000  # Start summarizing at this token count
+    
+    # Chunking strategy
+    chunking:
+      enabled: true
+      strategy: "smart"  # Options: smart, sequential, priority
+      preserve_structure: true  # Maintain code structure across chunks
+      
+    # Summarization settings
+    summarization:
+      enabled: true
+      model: "gpt-3.5-turbo"  # Use faster model for summaries
+      max_summary_tokens: 2000  # Maximum tokens per summary
+      focus_on:
+        - "review_comments"
+        - "code_changes"
+        - "test_failures"
+        - "action_items"
+      preserve_context:
+        - "file_names"
+        - "function_signatures"
+        - "error_messages"
+        - "reviewer_names"
   
 # Monitoring settings
 monitoring:
@@ -224,6 +253,21 @@ limits:
   max_memory_usage: "1GB"
   max_concurrent_prs: 5
   rate_limit_requests: 100  # per hour
+  
+  # Context processing limits
+  max_files_per_chunk: 10
+  max_diff_lines: 5000  # Maximum diff lines before chunking
+  max_comment_length: 10000  # Maximum comment length to process
+  
+  # Fallback strategies when context exceeds limits
+  fallback:
+    on_context_overflow: "chunk_and_summarize"  # Options: chunk_and_summarize, summarize_only, prioritize, fail
+    priority_order:
+      - "review_comments"  # Always include review feedback
+      - "test_failures"    # Include test results
+      - "changed_files"    # Include actual code changes
+      - "ci_logs"          # Include CI logs (summarized)
+      - "full_diff"        # Full diff (lowest priority)
   
 # Debugging and logging
 debug:

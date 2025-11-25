@@ -74,6 +74,8 @@ permissions:
 jobs:
 
   Trigger_APIsec_scan:
+    # Skip if APIsec credentials are not configured
+    if: ${{ secrets.apisec_username != '' && secrets.apisec_password != '' }}
     concurrency:
       group: apisec-${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
@@ -83,6 +85,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+       - name: Check for APIsec credentials
+         run: |
+           if [ -z "${{ secrets.apisec_username }}" ] || [ -z "${{ secrets.apisec_password }}" ]; then
+             echo "⚠️ APIsec credentials not configured. Skipping scan."
+             echo "To enable APIsec scanning:"
+             echo "1. Register at https://cloud.apisec.ai/#/signup"
+             echo "2. Configure secrets: apisec_username and apisec_password"
+             exit 0
+           fi
        - name: APIsec scan
          uses: apisec-inc/apisec-run-scan@025432089674a28ba8fb55f8ab06c10215e772ea
          with:
