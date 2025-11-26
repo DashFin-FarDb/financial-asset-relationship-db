@@ -141,7 +141,11 @@ class ContextChunker:
         """Format review comments."""
         lines: List[str] = []
         for review in reviews:
-            user = review.get("user", {}).get("login", "unknown") if isinstance(review.get("user"), dict) else review.get("user", "unknown")
+            user_data = review.get("user", {})
+            if isinstance(user_data, dict):
+                user = user_data.get("login", "unknown")
+            else:
+                user = str(user_data) if user_data else "unknown"
             state = review.get("state", "unknown")
             body = review.get("body", "")
             lines.append(f"- **{user}** ({state}): {body[:500]}")
