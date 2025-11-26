@@ -78,6 +78,7 @@ next-env.d.ts
 .pytest_cache/
 .coverage
 coverage.xml
+junit.xml
 htmlcov/
 .tox/
 .hypothesis/
