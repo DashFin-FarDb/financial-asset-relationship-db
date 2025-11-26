@@ -531,7 +531,7 @@ class TestPrAgentWorkflow:
         """
         Verify sensitive keys in step `with` mappings use the GitHub secrets context or are empty.
         
-        Scans each job's steps and for any with keys containing token, password, key, or secret, ensures values start with '${{' (secrets context) or are empty.
+        Scans each job's steps and for any with keys containing token, password, key, or secret, ensures values start with "${{" (secrets context) or are empty.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
