@@ -233,9 +233,41 @@ class TestWorkflowConfigConsistency:
         # Workflow should have required jobs
         assert 'jobs' in workflow, "PR Agent workflow should define jobs"
         
-        # Check for chunking settings using parsed structure rather than string matching
-        if 'chunking' not in workflow and not any('chunk' in str(key).lower() for key in workflow.keys()):
-            assert 'chunking' not in config and not any('chunk' in str(key).lower() for key in config.keys()), \
+        # Check for chunking settings using recursive search through the entire workflow/config structure
+        def contains_chunking(obj):
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    if 'chunk' in str(k).lower():
+                        return True
+                    if contains_chunking(v):
+                        return True
+            elif isinstance(obj, list):
+                for item in obj:
+                    if contains_chunking(item):
+                        return True
+            elif isinstance(obj, str):
+                if 'chunk' in obj.lower():
+                    return True
+            return False
+
+        if not contains_chunking(workflow):
+            assert not contains_chunking(config), \
+                for k, v in obj.items():
+                    if 'chunk' in str(k).lower():
+                        return True
+                    if contains_chunking_setting(v):
+                        return True
+            elif isinstance(obj, list):
+                for item in obj:
+                    if contains_chunking_setting(item):
+                        return True
+            elif isinstance(obj, str):
+                if 'chunk' in obj.lower():
+                    return True
+            return False
+
+        if not contains_chunking_setting(workflow):
+            assert not contains_chunking_setting(config), \
                 "PR Agent config contains chunking settings but workflow doesn't use them"
     
     def test_no_missing_config_files_referenced(self):
