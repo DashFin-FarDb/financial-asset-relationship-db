@@ -2,14 +2,9 @@ const nextJest = require('next/jest')
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
-  dir: './',
-})
   moduleNameMapper: {
-    // Handle module aliases - specific patterns first
-    '^@/components/(.*)$': '<rootDir>/app/components/$1',
-    '^@/lib/(.*)$': '<rootDir>/app/lib/$1',
-    '^@/types/(.*)$': '<rootDir>/app/types/$1',
-    '^@/app/(.*)$': '<rootDir>/app/$1',
+    // Handle module aliases
+    '^@/(.*)$': '<rootDir>/app/$1',
   },
   testMatch: [
     '**/__tests__/**/*.[jt]s?(x)',
