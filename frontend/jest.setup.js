@@ -11,24 +11,7 @@ console.error = (...args) => {
   if (message.includes('some-pattern-to-ignore')) {
     return
   }
-  originalConsoleError(...args)
-}
-
-console.warn = (...args) => {
-  const message = args[0]?.toString() || ''
-  if (message.includes('some-pattern-to-ignore')) {
-    return
-  }
-  originalConsoleWarn(...args)
-}
-
-
 // Provide default environment values used throughout the app
-afterAll(() => {
-  console.error = originalConsoleError
-  console.warn = originalConsoleWarn
-})
-
 process.env.NEXT_PUBLIC_API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
