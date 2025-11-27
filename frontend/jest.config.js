@@ -18,6 +18,7 @@ const customJestConfig = {
   ],
   testPathIgnorePatterns: [
     '/node_modules/',
+    // Exclude test-utils.ts as it's a helper module, not a test file
     '<rootDir>/__tests__/test-utils.ts',
   ],
   collectCoverageFrom: [
