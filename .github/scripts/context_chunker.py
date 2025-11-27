@@ -140,6 +140,7 @@ class ContextChunker:
                     result_parts.append(truncated_section)
                     total_tokens += self.count_tokens(truncated_section)
                     was_truncated = True
+                was_truncated = True
                 break
 
         content = "\n\n".join(result_parts) if result_parts else json.dumps(pr_data, indent=2)
