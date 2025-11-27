@@ -17,7 +17,6 @@ process.env.NEXT_PUBLIC_API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
 // Mock react-plotly.js to avoid heavy rendering in tests
-jest.mock('react-plotly.js', () => () => null)
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
