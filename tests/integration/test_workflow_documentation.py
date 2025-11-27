@@ -77,7 +77,8 @@ def section_headers(doc_lines: List[str]) -> List[str]:
     return headers
 
 
-from typing import List, Set
+class TestDocumentationContent:
+    """Test suite for documentation content validation."""
 
     def test_has_overview(self, section_headers: List[str]):
         """Test that there's an Overview section."""
@@ -86,7 +87,7 @@ from typing import List, Set
 
     def test_has_generated_files_section(self, section_headers: List[str]):
         """Test that there's a section about generated files."""
-        generated = [h for h in section_headers 
+        generated = [h for h in section_headers
                     if 'generated' in h.lower() or 'file' in h.lower()]
         assert len(generated) > 0, "Should have a section about generated files"
 
