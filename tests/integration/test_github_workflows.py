@@ -1192,12 +1192,11 @@ class TestWorkflowEnvAndSecrets:
         # Check top-level env
         if "env" in config:
             invalid = check_env_vars(config["env"])
-            if invalid:
-                assert not invalid, (
-                    f"MAINTAINABILITY: Workflow {workflow_file.name} has environment variables "
-                    f"that don't follow UPPER_CASE convention: {invalid}. This can reduce "
-                    f"readability and consistency across workflows."
-                )
+            assert not invalid, (
+                f"MAINTAINABILITY: Workflow {workflow_file.name} has environment variables "
+                f"that don't follow UPPER_CASE convention: {invalid}. This can reduce "
+                f"readability and consistency across workflows."
+            )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_secrets_not_in_env_values(self, workflow_file: Path):
