@@ -28,6 +28,7 @@ except ImportError:
 class ContextChunker:
     """Handles chunking of PR context to fit within token limits."""
 
+
     def __init__(self, config_path: str = ".github/pr-agent-config.yml") -> None:
         """Initialize the context chunker with configuration."""
         self.config: Dict[str, Any] = {}
