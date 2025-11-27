@@ -34,30 +34,32 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock IntersectionObserver
 globalThis.IntersectionObserver = MockIntersectionObserver
-
-// Basic scroll/resize mocks for components that rely on them
-globalThis.scrollTo = jest.fn()
-globalThis.resizeTo = jest.fn()
-  constructor() {}
-
-  disconnect() {
-    return null
+class MockIntersectionObserver {
+  constructor(callback = () => {}, options = {}) {
+    this.callback = callback
+    this.options = options
   }
 
-  observe() {
-    return null
+  observe(target, options) {
+    // no-op
+  }
+
+  unobserve(target) {
+    // no-op
+  }
+
+  disconnect() {
+    // no-op
   }
 
   takeRecords() {
     return []
   }
-
-  unobserve() {
-    return null
-  }
 }
 
-global.IntersectionObserver = MockIntersectionObserver
+if (typeof globalThis !== 'undefined') {
+  globalThis.IntersectionObserver = MockIntersectionObserver
+}
 
 // Basic scroll/resize mocks for components that rely on them
 window.scrollTo = jest.fn()
