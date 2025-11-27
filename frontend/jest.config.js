@@ -10,13 +10,8 @@ const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
-    // Handle module aliases - specific patterns first
-    '^@/components/(.*)$': '<rootDir>/app/components/$1',
-    '^@/lib/(.*)$': '<rootDir>/app/lib/$1',
-    '^@/types/(.*)$': '<rootDir>/app/types/$1',
-    '^@/app/(.*)$': '<rootDir>/app/$1',
-    // Generic pattern last
-    '^@/(.*)$': '<rootDir>/$1',
+    // Handle module aliases
+    '^@/(.*)$': '<rootDir>/app/$1',
   },
   testMatch: [
     '**/__tests__/**/*.[jt]s?(x)',
