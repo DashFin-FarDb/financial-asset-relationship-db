@@ -18,7 +18,7 @@ const createJestConfig = nextJest({
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
     '!app/**/*.d.ts',
-    '!app/**/*.stories.{js,jsx,ts,tsx}',
+    '**/?(*.)+(spec|test).[jt]s?(x)';
     '!app/**/index.{js,jsx,ts,tsx}',
     '!app/**/_*.{js,jsx,ts,tsx}',
     '!**/node_modules/**',
