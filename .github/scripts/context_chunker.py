@@ -197,7 +197,9 @@ def main() -> None:
         # Read JSON from stdin
         input_data = sys.stdin.read()
         if not input_data.strip():
-            print("{}", file=sys.stdout)
+if not input_data.strip():
+    print(json.dumps({}), file=sys.stdout)
+    return
             return
 
         pr_data = json.loads(input_data)
