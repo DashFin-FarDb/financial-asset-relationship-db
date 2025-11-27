@@ -151,6 +151,19 @@ class ContextChunker:
         return "\n\n".join(result_parts) if result_parts else json.dumps(pr_data, indent=2)
 
     def _format_reviews(self, reviews: List[Dict[str, Any]]) -> str:
+        """Format review comments with token-aware truncation."""
+        lines: List[str] = []
+        for review in reviews:
+            user_data = review.get("user", {})
+            if isinstance(user_data, dict):
+                user = user_data.get("login", "unknown")
+            else:
+                user = str(user_data) if user_data else "unknown"
+            state = review.get("state", "unknown")
+            body = review.get("body", "")
+            truncated_body = self._truncate_to_tokens(body, 100)
+            lines.append(f"- **{user}** ({state}): {truncated_body}")
+        return "\n".join(lines)
         """Format review comments."""
         lines: List[str] = []
         for review in reviews:
