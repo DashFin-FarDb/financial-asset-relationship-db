@@ -28,6 +28,7 @@ except ImportError:
 class ContextChunker:
     """Handles chunking of PR context to fit within token limits."""
 
+
     def __init__(self, config_path: str = ".github/pr-agent-config.yml") -> None:
         """Initialize the context chunker with configuration."""
         self.config: Dict[str, Any] = {}
@@ -46,10 +47,6 @@ class ContextChunker:
         agent_cfg = (self.config.get("agent") or {}).get("context") or {}
         self.max_tokens: int = int(agent_cfg.get("max_tokens", 32000))
         self.chunk_size: int = int(agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000)))
-        self.overlap_tokens: int = int(agent_cfg.get("overlap_tokens", 2000))
-        self.summarization_threshold: int = int(
-            agent_cfg.get("summarization_threshold", int(self.max_tokens * 0.9))
-        )
 
         # Prepare priority order
         limits_cfg = (self.config.get("limits") or {}).get("fallback") or {}
@@ -87,16 +84,19 @@ class ContextChunker:
             pr_data: Dictionary containing PR information (reviews, files, etc.)
 
         Returns:
-            Tuple of (processed_content, was_chunked)
+            Tuple of (processed_content, was_truncated)
         """
-        processed_content = self._build_limited_content(pr_data)
-        token_count = self.count_tokens(processed_content)
-        was_chunked = token_count > self.chunk_size
-        return processed_content, was_chunked
+        processed_content, was_truncated = self._build_limited_content(pr_data)
+        return processed_content, was_truncated
 
-    def _build_limited_content(self, pr_data: Dict[str, Any]) -> str:
-        """Build size-limited content from PR data based on priority."""
+    def _build_limited_content(self, pr_data: Dict[str, Any]) -> Tuple[str, bool]:
+        """Build size-limited content from PR data based on priority.
+
+        Returns:
+            Tuple of (content_string, was_truncated)
+        """
         sections: List[Tuple[int, str, str]] = []  # (priority, name, content)
+        was_truncated = False
 
         # Extract reviews
         reviews = pr_data.get("reviews", [])
@@ -132,10 +132,16 @@ class ContextChunker:
                 remaining_tokens = self.max_tokens - total_tokens
                 if remaining_tokens > 100:
                     truncated = self._truncate_to_tokens(content, remaining_tokens - 50)
+                    # Ensure we end at a logical boundary (end of line) to avoid malformed markdown
+                    if "\n" in truncated:
+                        truncated = truncated.rsplit("\n", 1)[0]
+                    truncated += "\n\n[... truncated due to context size limits ...]"
                     result_parts.append(f"## {name.replace('_', ' ').title()} (truncated)\n{truncated}")
+                    was_truncated = True
                 break
 
-        return "\n\n".join(result_parts) if result_parts else json.dumps(pr_data, indent=2)
+        content = "\n\n".join(result_parts) if result_parts else json.dumps(pr_data, indent=2)
+        return content, was_truncated
 
     def _format_reviews(self, reviews: List[Dict[str, Any]]) -> str:
         """Format review comments."""
@@ -205,12 +211,12 @@ def main() -> None:
             return
 
         pr_data = json.loads(input_data)
-        processed, chunked = chunker.process_context(pr_data)
+        processed, was_truncated = chunker.process_context(pr_data)
 
         # Output processed content as JSON
         output = {
             "content": processed,
-            "chunked": chunked,
+            "was_truncated": was_truncated,
             "original_keys": list(pr_data.keys()) if isinstance(pr_data, dict) else [],
         }
         print(json.dumps(output, indent=2), file=sys.stdout)
