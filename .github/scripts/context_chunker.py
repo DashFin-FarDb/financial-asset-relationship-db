@@ -17,8 +17,6 @@ try:
     YAML_AVAILABLE = True
 except ImportError:
     YAML_AVAILABLE = False
-    print("Warning: PyYAML not available. Using default configuration. "
-          "Install with: pip install pyyaml", file=sys.stderr)
 
 try:
     import tiktoken
@@ -30,14 +28,7 @@ except ImportError:
 class ContextChunker:
     """Handles chunking of PR context to fit within token limits."""
 
-    try:
-        # Read JSON from stdin
-        input_data = sys.stdin.read()
-        if not input_data.strip():
-            print(json.dumps({}), file=sys.stdout)
-            return
-
-        pr_data = json.loads(input_data)
+    def __init__(self, config_path: str = ".github/pr-agent-config.yml") -> None:
         """Initialize the context chunker with configuration."""
         self.config: Dict[str, Any] = {}
 
@@ -55,10 +46,6 @@ class ContextChunker:
         agent_cfg = (self.config.get("agent") or {}).get("context") or {}
         self.max_tokens: int = int(agent_cfg.get("max_tokens", 32000))
         self.chunk_size: int = int(agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000)))
-        self.overlap_tokens: int = int(agent_cfg.get("overlap_tokens", 2000))
-        self.summarization_threshold: int = int(
-            agent_cfg.get("summarization_threshold", int(self.max_tokens * 0.9))
-        )
 
         # Prepare priority order
         limits_cfg = (self.config.get("limits") or {}).get("fallback") or {}
@@ -96,16 +83,19 @@ class ContextChunker:
             pr_data: Dictionary containing PR information (reviews, files, etc.)
 
         Returns:
-            Tuple of (processed_content, was_chunked)
+            Tuple of (processed_content, was_truncated)
         """
-        processed_content = self._build_limited_content(pr_data)
-        token_count = self.count_tokens(processed_content)
-        was_chunked = token_count > self.chunk_size
-        return processed_content, was_chunked
+        processed_content, was_truncated = self._build_limited_content(pr_data)
+        return processed_content, was_truncated
 
-    def _build_limited_content(self, pr_data: Dict[str, Any]) -> str:
-        """Build size-limited content from PR data based on priority."""
+    def _build_limited_content(self, pr_data: Dict[str, Any]) -> Tuple[str, bool]:
+        """Build size-limited content from PR data based on priority.
+
+        Returns:
+            Tuple of (content_string, was_truncated)
+        """
         sections: List[Tuple[int, str, str]] = []  # (priority, name, content)
+        was_truncated = False
 
         # Extract reviews
         reviews = pr_data.get("reviews", [])
@@ -141,29 +131,14 @@ class ContextChunker:
                 remaining_tokens = self.max_tokens - total_tokens
                 if remaining_tokens > 100:
                     truncated = self._truncate_to_tokens(content, remaining_tokens - 50)
-                    # Ensure we end at a logical boundary (end of line) to avoid malformed markdown
-                    if "\n" in truncated:
-                        truncated = truncated.rsplit("\n", 1)[0]
-                    truncated += "\n\n[... truncated due to context size limits ...]"
                     result_parts.append(f"## {name.replace('_', ' ').title()} (truncated)\n{truncated}")
+                    was_truncated = True
                 break
 
-        return "\n\n".join(result_parts) if result_parts else json.dumps(pr_data, indent=2)
+        content = "\n\n".join(result_parts) if result_parts else json.dumps(pr_data, indent=2)
+        return content, was_truncated
 
     def _format_reviews(self, reviews: List[Dict[str, Any]]) -> str:
-        """Format review comments with token-aware truncation."""
-        lines: List[str] = []
-        for review in reviews:
-            user_data = review.get("user", {})
-            if isinstance(user_data, dict):
-                user = user_data.get("login", "unknown")
-            else:
-                user = str(user_data) if user_data else "unknown"
-            state = review.get("state", "unknown")
-            body = review.get("body", "")
-            truncated_body = self._truncate_to_tokens(body, 100)
-            lines.append(f"- **{user}** ({state}): {truncated_body}")
-        return "\n".join(lines)
         """Format review comments."""
         lines: List[str] = []
         for review in reviews:
@@ -201,35 +176,6 @@ class ContextChunker:
         return "\n".join(lines)
 
     def _truncate_to_tokens(self, text: str, max_tokens: int) -> str:
-        """Truncate text to approximately max_tokens with UTF-8 safety."""
-        if self._encoder:
-            tokens = self._encoder.encode(text)
-            if len(tokens) <= max_tokens:
-                return text
-            # Ensure we don't break UTF-8 by decoding and re-encoding
-            truncated_tokens = tokens[:max_tokens]
-            decoded = self._encoder.decode(truncated_tokens)
-            # Handle potential partial characters at end
-            try:
-                decoded.encode('utf-8')
-                return decoded + "..."
-            except UnicodeEncodeError:
-                # Remove last character if it causes encoding issues
-                return decoded[:-1] + "..."
-        # Fallback: estimate 4 chars per token with UTF-8 safety
-        max_chars = max_tokens * 4
-        if len(text) <= max_chars:
-            return text
-        # Use proper Unicode-aware truncation
-        truncated = text[:max_chars]
-        # Remove any partial UTF-8 character at the end
-        while truncated:
-            try:
-                truncated.encode('utf-8')
-                break
-            except UnicodeEncodeError:
-                truncated = truncated[:-1]
-        return truncated + "..."
         """Truncate text to approximately max_tokens."""
         if self._encoder:
             tokens = self._encoder.encode(text)
@@ -250,18 +196,18 @@ def main() -> None:
 
     try:
         # Read JSON from stdin
-input_data = sys.stdin.read()
-if not input_data.strip():
-    print(json.dumps({}), file=sys.stdout)
-    return
+        input_data = sys.stdin.read()
+        if not input_data.strip():
+            print(json.dumps({}), file=sys.stdout)
+            return
 
         pr_data = json.loads(input_data)
-        processed, chunked = chunker.process_context(pr_data)
+        processed, was_truncated = chunker.process_context(pr_data)
 
         # Output processed content as JSON
         output = {
             "content": processed,
-            "chunked": chunked,
+            "chunked": was_truncated,
             "original_keys": list(pr_data.keys()) if isinstance(pr_data, dict) else [],
         }
         print(json.dumps(output, indent=2), file=sys.stdout)
