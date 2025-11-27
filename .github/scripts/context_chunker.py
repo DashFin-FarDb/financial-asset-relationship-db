@@ -141,6 +141,10 @@ class ContextChunker:
                 remaining_tokens = self.max_tokens - total_tokens
                 if remaining_tokens > 100:
                     truncated = self._truncate_to_tokens(content, remaining_tokens - 50)
+                    # Ensure we end at a logical boundary (end of line) to avoid malformed markdown
+                    if "\n" in truncated:
+                        truncated = truncated.rsplit("\n", 1)[0]
+                    truncated += "\n\n[... truncated due to context size limits ...]"
                     result_parts.append(f"## {name.replace('_', ' ').title()} (truncated)\n{truncated}")
                 break
 
