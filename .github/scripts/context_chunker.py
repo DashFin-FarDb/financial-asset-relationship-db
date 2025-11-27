@@ -201,6 +201,35 @@ class ContextChunker:
         return "\n".join(lines)
 
     def _truncate_to_tokens(self, text: str, max_tokens: int) -> str:
+        """Truncate text to approximately max_tokens with UTF-8 safety."""
+        if self._encoder:
+            tokens = self._encoder.encode(text)
+            if len(tokens) <= max_tokens:
+                return text
+            # Ensure we don't break UTF-8 by decoding and re-encoding
+            truncated_tokens = tokens[:max_tokens]
+            decoded = self._encoder.decode(truncated_tokens)
+            # Handle potential partial characters at end
+            try:
+                decoded.encode('utf-8')
+                return decoded + "..."
+            except UnicodeEncodeError:
+                # Remove last character if it causes encoding issues
+                return decoded[:-1] + "..."
+        # Fallback: estimate 4 chars per token with UTF-8 safety
+        max_chars = max_tokens * 4
+        if len(text) <= max_chars:
+            return text
+        # Use proper Unicode-aware truncation
+        truncated = text[:max_chars]
+        # Remove any partial UTF-8 character at the end
+        while truncated:
+            try:
+                truncated.encode('utf-8')
+                break
+            except UnicodeEncodeError:
+                truncated = truncated[:-1]
+        return truncated + "..."
         """Truncate text to approximately max_tokens."""
         if self._encoder:
             tokens = self._encoder.encode(text)
