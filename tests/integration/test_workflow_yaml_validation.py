@@ -115,7 +115,13 @@ class TestWorkflowStructure:
         """Each job should specify which runner to use."""
         jobs = workflow_content.get('jobs', {})
         
-        for job_name, job_config in jobs.items():
+def test_jobs_have_runs_on(self, workflow_content, workflow_file):
+    """Non-reusable jobs must specify which runner to use."""
+    jobs = workflow_content.get('jobs', {})
+    
+    for job_name, job_config in jobs.items():
+        if 'uses' in job_config:
+            continue  # Skip reusable workflow jobs
             if not isinstance(job_config, dict):
                 pytest.fail(f"Job '{job_name}' in {workflow_file.name} is not a dictionary")
 for job_name, job_config in jobs.items():
