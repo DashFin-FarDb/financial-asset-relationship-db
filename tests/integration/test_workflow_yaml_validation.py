@@ -115,7 +115,7 @@ class TestWorkflowStructure:
         """Each job should specify which runner to use."""
         jobs = workflow_content.get('jobs', {})
         
-def test_jobs_have_runs_on(self, workflow_content, workflow_file):
+def test_jobs_have_runs_on(workflow_content, workflow_file):
     """Non-reusable jobs must specify which runner to use."""
     jobs = workflow_content.get('jobs', {})
     
