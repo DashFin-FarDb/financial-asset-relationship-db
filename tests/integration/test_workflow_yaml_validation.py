@@ -118,11 +118,13 @@ class TestWorkflowStructure:
         for job_name, job_config in jobs.items():
             if not isinstance(job_config, dict):
                 pytest.fail(f"Job '{job_name}' in {workflow_file.name} is not a dictionary")
-
-            if 'uses' in job_config:
-                continue
-
-            assert 'runs-on' in job_config, \
+for job_name, job_config in jobs.items():
+    if 'uses' in job_config:
+        continue  # Skip reusable workflow jobs
+    
+    # Non-reusable jobs must specify a runner
+    assert 'runs-on' in job_config, \
+        f"Non-reusable job '{job_name}' in {workflow_file.name} must specify 'runs-on'"
                 f"Job '{job_name}' in {workflow_file.name} missing 'runs-on'"
     def test_jobs_have_steps(self, workflow_content, workflow_file):
         """Each job should have steps defined."""
