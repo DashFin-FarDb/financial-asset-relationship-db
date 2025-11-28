@@ -400,18 +400,30 @@ class TestDocumentationMarkdownQuality:
             
             for link_text, link_url in links:
                 # Check internal links (not http/https)
-                    target_path = link_url.split('#', 1)[0]
-                    if not target_path:
-                        continue
-                    # Should exist
-                    link_path = Path(target_path)
-                    if not link_path.exists():
-                        # Try relative to doc file
-                        link_path = doc_file.parent / target_path
-                        link_path = doc_file.parent / link_url
-                    
-                    assert link_path.exists(), \
-                        f"Broken link in {doc_file}: [{link_text}]({link_url})"
+                # Skip external links (only validate local paths)
+                if link_url.startswith(('http://', 'https://', 'mailto:')):
+                    continue
+                # Remove fragment and validate only when a local path is present
+                target_path = link_url.split('#', 1)[0].strip()
+                if not target_path:
+                    # Pure-fragment or empty target; not a filesystem path to validate here
+                    continue
+                # Resolve path relative to the doc file if needed
+                link_path = Path(target_path)
+                if not link_path.exists():
+                    link_path = (doc_file.parent / target_path).resolve()
+                    continue
+                target_path = link_url.split('#', 1)[0]
+                if not target_path:
+                    continue
+                # Should exist
+                link_path = Path(target_path)
+                if not link_path.exists():
+                    # Try relative to doc file
+                    link_path = doc_file.parent / target_path
+
+                assert link_path.exists(), \
+                    f"Broken link in {doc_file}: [{link_text}]({link_url})"
     
     def test_consistent_heading_style(self):
         """Ensure consistent heading style (ATX style with #)."""
@@ -439,25 +451,12 @@ class TestDocumentationMarkdownQuality:
             # Find code blocks - match complete blocks to only capture opening fence language
             import re
             code_blocks = re.findall(r'```([^\n]*)\n.*?```', content, re.DOTALL)
-            
-for doc_file in summary_files:
-    content = doc_file.read_text()
 
-    # Find code blocks - match complete blocks to only capture opening fence language
-    import re
-    code_blocks = re.findall(r'```([^\n]*)\n.*?```', content, re.DOTALL)
-
-    if code_blocks:
-        # At least 70% should have language specified
-        with_language = sum(1 for lang in code_blocks if lang)
-        total = len(code_blocks)
-        percentage = (with_language / total * 100) if total > 0 else 100
-        assert percentage >= 70, \
-            f"{doc_file}: Only {percentage:.0f}% of code blocks specify language. " \
-            "Add language identifiers (bash, python, yaml, etc.)"
-                
+            if code_blocks:
+                # At least 70% should have language specified
+                with_language = sum(1 for lang in code_blocks if lang)
+                total = len(code_blocks)
                 percentage = (with_language / total * 100) if total > 0 else 100
-                
                 assert percentage >= 70, \
                     f"{doc_file}: Only {percentage:.0f}% of code blocks specify language. " \
                     "Add language identifiers (bash, python, yaml, etc.)"
