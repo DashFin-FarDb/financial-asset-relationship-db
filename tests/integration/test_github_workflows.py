@@ -2574,10 +2574,11 @@ class TestWorkflowSecurityHardening:
             
             import re
             for pattern, description in dangerous_patterns:
-                matches = re.findall(pattern, workflow_str)
-                # If found, should be properly quoted/sanitized
-                for match in matches:
-                    assert '"' in workflow_str[max(0, workflow_str.index(match)-10):workflow_str.index(match)+len(match)+10], \
+                for match_obj in re.finditer(pattern, workflow_str):
+                    match = match_obj.group()
+                    start = match_obj.start()
+                    context = workflow_str[max(0, start-10):start+len(match)+10]
+                    assert '"' in context, \
                         f"{description} in {workflow_path}: {match}"
     
     def test_third_party_actions_pinned(self, workflow_files):
