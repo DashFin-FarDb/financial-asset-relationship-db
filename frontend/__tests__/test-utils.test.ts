@@ -611,7 +611,7 @@ describe('test-utils Mock Data Validation', () => {
       expect(vizData).toBeDefined();
     });
   });
-});
+
   describe('Additional Comprehensive Validations', () => {
     describe('Security and Injection Tests', () => {
       it('should not contain SQL injection patterns in any string fields', () => {

@@ -69,32 +69,34 @@ on:
 
 
 permissions:
-  contents: read
+  security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+  actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
 
 jobs:
-
   Trigger_APIsec_scan:
-    # Skip if APIsec credentials are not configured
-    if: ${{ secrets.apisec_username != '' && secrets.apisec_password != '' }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    # Note: Credential check is performed in the first step since secrets context
+    # is not available in job-level 'if' conditions
     concurrency:
       group: apisec-${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
-    permissions:
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     runs-on: ubuntu-latest
 
     steps:
        - name: Check for APIsec credentials
+         id: check-creds
          run: |
            if [ -z "${{ secrets.apisec_username }}" ] || [ -z "${{ secrets.apisec_password }}" ]; then
              echo "⚠️ APIsec credentials not configured. Skipping scan."
              echo "To enable APIsec scanning:"
              echo "1. Register at https://cloud.apisec.ai/#/signup"
              echo "2. Configure secrets: apisec_username and apisec_password"
-             exit 0
+             echo "has_credentials=false" >> $GITHUB_OUTPUT
+           else
+             echo "has_credentials=true" >> $GITHUB_OUTPUT
            fi
        - name: APIsec scan
+         if: steps.check-creds.outputs.has_credentials == 'true'
          uses: apisec-inc/apisec-run-scan@025432089674a28ba8fb55f8ab06c10215e772ea
          with:
           # The APIsec username with which the scans will be executed
@@ -106,6 +108,7 @@ jobs:
           # The name of the sarif format result file The file is written only if this property is provided.
           sarif-result-file: "apisec-results.sarif"
        - name: Import results
+         if: steps.check-creds.outputs.has_credentials == 'true'
          uses: github/codeql-action/upload-sarif@v3
          with:
           sarif_file: ./apisec-results.sarif
