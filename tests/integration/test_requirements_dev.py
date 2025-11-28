@@ -7,6 +7,7 @@ formatted, contains required packages, and has valid version specifications.
 
 import pytest
 import re
+import yaml
 from pathlib import Path
 from typing import List, Tuple
 
