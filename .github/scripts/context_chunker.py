@@ -1,4 +1,4 @@
-        self.config: Dict = {}
+self.config: Dict = {}
 
         # Load configuration if available
         cfg_file = Path(config_path)
@@ -44,7 +44,11 @@
         return processed_content, True
 
         def main():
-            """Example usage"""
+            """
+            Demonstrates how to instantiate ContextChunker and process a sample pull request payload.
+            
+            Creates a ContextChunker, constructs an example PR with reviews and file changes, calls process_context on that example, and prints the chunking status and the processed content to standard output.
+            """
             chunker = ContextChunker()
     
             # Example PR data

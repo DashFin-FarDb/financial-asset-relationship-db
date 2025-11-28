@@ -42,7 +42,12 @@ class TestDocumentationExists:
 
 @pytest.fixture(scope='session')
 def doc_content() -> str:
-    """Load the documentation content once per test session."""
+    """
+    Load and return the test documentation file's text.
+    
+    Returns:
+        content (str): UTF-8 decoded contents of the documentation file.
+    """
     try:
         with open(DOC_FILE, 'r', encoding='utf-8') as f:
             return f.read()
@@ -54,7 +59,18 @@ def doc_content() -> str:
 
 @pytest.fixture(scope='session')
 def doc_lines(doc_content: str) -> List[str]:
-    """Provide the documentation as a list of lines once per session."""
+    """
+    Split documentation content into a list of lines, preserving original line endings and ensuring the content is non-empty.
+    
+    Parameters:
+        doc_content (str): The full documentation text to split.
+    
+    Returns:
+        List[str]: The documentation as a list of lines with their trailing newline characters preserved.
+    
+    Raises:
+        Fails the running test via `pytest.fail` if `doc_content` is an empty string.
+    """
     if not doc_content:
         pytest.fail("Loaded documentation content is empty.")
     return doc_content.splitlines(keepends=True)
@@ -62,7 +78,15 @@ def doc_lines(doc_content: str) -> List[str]:
 
 @pytest.fixture(scope='session')
 def section_headers(doc_lines: List[str]) -> List[str]:
-    """Extract markdown section headers from the documentation lines."""
+    """
+    Return markdown section header lines from the provided document lines, excluding any headers that appear inside fenced code blocks.
+    
+    Parameters:
+        doc_lines (List[str]): Lines of the markdown document, each element including its original newline if present.
+    
+    Returns:
+        List[str]: Header lines (starting with '#') encountered outside fenced code blocks, stripped of leading and trailing whitespace.
+    """
     headers = []
     in_code_block = False
     for line in doc_lines:
@@ -81,7 +105,12 @@ class TestDocumentationContent:
     """Test suite for documentation content validation."""
 
     def test_has_overview(self, section_headers: List[str]):
-        """Test that there's an Overview section."""
+        """
+        Verify the document contains at least one section header mentioning "Overview".
+        
+        Parameters:
+            section_headers (List[str]): List of markdown section header lines extracted from the document (code-block headers excluded).
+        """
         overview = [h for h in section_headers if 'overview' in h.lower()]
         assert len(overview) > 0, "Should have an Overview section"
 
@@ -100,4 +129,3 @@ class TestDocumentationContent:
         """Test that document has sufficient number of sections."""
         assert len(section_headers) >= 5, \
             f"Document should have at least 5 major sections, found {len(section_headers)}"
-

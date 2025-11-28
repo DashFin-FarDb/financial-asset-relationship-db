@@ -14,18 +14,36 @@ class TestPyYAMLDependencyAddition:
     
     @pytest.fixture
     def requirements_file(self) -> Path:
-        """Return path to requirements-dev.txt."""
+        """
+        Path to the repository's requirements-dev.txt file.
+        
+        Returns:
+            Path: Path object pointing to requirements-dev.txt in the repository root.
+        """
         return Path('requirements-dev.txt')
     
     @pytest.fixture
     def requirements_content(self, requirements_file: Path) -> str:
-        """Load requirements-dev.txt content."""
+        """
+        Read and return the full contents of the requirements file.
+        
+        Returns:
+            str: The file contents as a single string.
+        """
         with open(requirements_file, 'r', encoding='utf-8') as f:
             return f.read()
     
     @pytest.fixture
     def requirements_lines(self, requirements_content: str) -> List[str]:
-        """Get non-comment, non-empty lines from requirements."""
+        """
+        Extract non-comment, non-empty lines from the given requirements content.
+        
+        Parameters:
+            requirements_content (str): Full contents of a requirements file.
+        
+        Returns:
+            List[str]: Requirement lines with surrounding whitespace removed, excluding blank lines and lines that start with `#`.
+        """
         lines = []
         for line in requirements_content.split('\n'):
             line = line.strip()
@@ -54,7 +72,11 @@ class TestPyYAMLDependencyAddition:
                 f"PyYAML should have version specifier: {line}"
     
     def test_pyyaml_version_at_least_6(self, requirements_lines: List[str]):
-        """Test that PyYAML version is at least 6.0."""
+        """
+        Assert that every PyYAML requirement line using a '>=' specifier pins the minimum version to 6.0 or higher.
+        
+        This only checks PyYAML lines that include a '>=<major>.<minor>' specifier; lines without such a specifier are not validated by this test.
+        """
         pyyaml_lines = [line for line in requirements_lines if line.startswith('PyYAML')]
         
         for line in pyyaml_lines:
@@ -65,7 +87,14 @@ class TestPyYAMLDependencyAddition:
                     f"PyYAML version should be >= 6.0, got {version}"
     
     def test_types_pyyaml_matches_pyyaml_version(self, requirements_lines: List[str]):
-        """Test that types-PyYAML version matches PyYAML major version."""
+        """
+        Check that the major version specified for `types-PyYAML` matches the major version specified for `PyYAML`.
+        
+        This inspects lines that start with `PyYAML>=` and `types-PyYAML>=`, extracts the leading integer of the `>=` version specifier, and asserts the two major versions are equal when both are present. If either package is not present with a `>=` specifier, the test is skipped (no assertion is made).
+        
+        Parameters:
+            requirements_lines (List[str]): Non-empty, non-comment lines from requirements-dev.txt.
+        """
         pyyaml_version = None
         types_version = None
         
@@ -89,7 +118,13 @@ class TestRequirementsDevYAMLUsage:
     """Test that PyYAML is needed for workflow validation."""
     
     def test_pyyaml_used_in_workflow_tests(self):
-        """Test that PyYAML is imported in workflow test files."""
+        """
+        Check that at least one workflow-related test file imports PyYAML.
+        
+        Reads tests/integration/test_github_workflows.py and
+        tests/integration/test_pr_agent_workflow_specific.py (if they exist)
+        and asserts that at least one contains the literal "import yaml".
+        """
         workflow_test_files = [
             Path('tests/integration/test_github_workflows.py'),
             Path('tests/integration/test_pr_agent_workflow_specific.py'),
@@ -125,7 +160,12 @@ class TestRequirementsDevCompleteness:
     
     @pytest.fixture
     def requirements_content(self) -> str:
-        """Load requirements-dev.txt content."""
+        """
+        Read the contents of requirements-dev.txt.
+        
+        Returns:
+            str: The full contents of requirements-dev.txt decoded as UTF-8.
+        """
         with open('requirements-dev.txt', 'r', encoding='utf-8') as f:
             return f.read()
     
@@ -148,7 +188,15 @@ class TestRequirementsDevCompleteness:
             f"Found duplicate packages: {duplicates}"
     
     def test_all_lines_valid_format(self, requirements_content: str):
-        """Test that all requirement lines have valid format."""
+        """
+        Validate each non-empty, non-comment line in the requirements content matches the allowed package/version specifier pattern.
+        
+        Parameters:
+            requirements_content (str): Full text of the requirements file to validate.
+        
+        Raises:
+            AssertionError: If any non-empty, non-comment line does not conform to the expected package specifier regex; the assertion message includes the line number and offending line.
+        """
         for line_num, line in enumerate(requirements_content.split('\n'), 1):
             line = line.strip()
             if not line or line.startswith('#'):
@@ -167,7 +215,11 @@ class TestRequirementsDevCompleteness:
                 f"requirements-dev.txt should include {package}"
     
     def test_has_linting_dependencies(self, requirements_content: str):
-        """Test that file includes linting dependencies."""
+        """
+        Verify that requirements-dev.txt contains the essential linting and formatting packages.
+        
+        Checks that the file includes `flake8`, `pylint` and `black`; raises an assertion if any expected package is missing.
+        """
         linting_packages = ['flake8', 'pylint', 'black']
         
         for package in linting_packages:
@@ -210,7 +262,12 @@ class TestRequirementsDevVersionPinning:
     
     @pytest.fixture
     def requirements_lines(self) -> List[str]:
-        """Get non-comment, non-empty lines from requirements."""
+        """
+        Retrieve non-empty, non-comment lines from requirements-dev.txt.
+        
+        Returns:
+            List[str]: Lines from requirements-dev.txt in file order that are not empty and do not start with '#'.
+        """
         with open('requirements-dev.txt', 'r', encoding='utf-8') as f:
             content = f.read()
         
@@ -229,7 +286,11 @@ class TestRequirementsDevVersionPinning:
                     f"Package should have version specifier: {line}"
     
     def test_pyyaml_and_types_both_pinned(self, requirements_lines: List[str]):
-        """Test that both PyYAML and types-PyYAML have version pins."""
+        """
+        Assert that both PyYAML and types-PyYAML are pinned with minimum-version specifiers in the provided requirement lines.
+        
+        Checks for the presence of `PyYAML>=` and `types-PyYAML>=` entries in `requirements_lines` and fails the test if either is missing.
+        """
         pyyaml_pinned = any(
             'PyYAML>=' in line for line in requirements_lines
         )

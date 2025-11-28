@@ -16,7 +16,17 @@ REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples."""
+    """
+    Parse a requirements file into a list of (package, version_spec) tuples.
+    
+    Lines that are empty or start with `#` are ignored; inline comments after `#` are removed. Each requirement line may contain multiple comma-separated specifiers (for example `pkg>=1.0,<=2.0`); these specifiers are collected and joined with commas. If a package has no specifier, the returned version_spec is an empty string.
+    
+    Returns:
+        List[Tuple[str, str]]: A list of (package_name, version_spec) tuples where `version_spec` is a comma-joined string of specifiers or an empty string when no version constraint is present.
+    
+    Raises:
+        AssertionError: If a requirement line contains a malformed package name.
+    """
     requirements = []
     
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -151,7 +161,14 @@ class TestVersionSpecifications:
     
     @pytest.fixture
     def requirements(self) -> List[Tuple[str, str]]:
-        """Parse and return requirements."""
+        """
+        Provide the parsed requirements from the shared requirements file.
+        
+        Returns:
+            requirements (List[Tuple[str, str]]): A list of (package, version_spec) tuples where `version_spec`
+            is a comma-joined string of specifiers (e.g. ">=1.0,<2.0") or an empty string if the package
+            has no version constraint.
+        """
         return parse_requirements(REQUIREMENTS_FILE)
 
     def test_all_packages_have_versions(self, requirements: List[Tuple[str, str]]):

@@ -83,7 +83,17 @@ class TestMarkdownFormatting:
             assert re.match(r'^#{1,6} .+', line), f"Heading '{line}' should have space after #"
     
     def test_no_trailing_whitespace(self, summary_lines: List[str]):
-        """Test that lines don't have trailing whitespace."""
+        """
+        Assert that no non-blank line ends with trailing whitespace.
+        
+        Checks each line in `summary_lines` and fails the test if any non-empty line finishes with one or more trailing whitespace characters.
+        
+        Parameters:
+            summary_lines (List[str]): Lines of the summary file to validate.
+        
+        Raises:
+            AssertionError: If one or more non-blank lines contain trailing whitespace.
+        """
         lines_with_trailing = [
             (i + 1, line) for i, line in enumerate(summary_lines)
             if line.rstrip() != line and line.strip() != ''
@@ -102,7 +112,17 @@ class TestMarkdownFormatting:
         assert open_block is False, "Code blocks not properly closed or mismatched triple backticks detected"
     
     def test_lists_properly_formatted(self, summary_lines: List[str]):
-        """Test that bullet lists use consistent markers."""
+        """
+        Validate that bullet list items have indentation in multiples of two spaces.
+        
+        Scans the provided lines for Markdown bullet items (starting with '-', '*', or '+') and asserts each item's leading indentation is an even number of spaces (a multiple of two).
+        
+        Parameters:
+            summary_lines (List[str]): Lines of the Markdown summary to inspect.
+        
+        Raises:
+            AssertionError: If any bullet list item has an odd number of leading spaces.
+        """
         list_lines = [line for line in summary_lines if re.match(r'^\s*[-*+] ', line)]
         if list_lines:
             # Check that indentation is consistent
@@ -238,7 +258,11 @@ class TestDocumentMaintainability:
             f"Too many long lines ({len(long_lines)}), consider breaking them up"
     
     def test_has_clear_structure(self, summary_content: str):
-        """Test that document has clear hierarchical structure."""
+        """
+        Verify the document contains a clear heading structure.
+        
+        Asserts the content includes at least one level-1 heading ("# ") and at least three level-2 headings ("## ").
+        """
         h1_count = len(re.findall(r'^# ', summary_content, re.MULTILINE))
         h2_count = len(re.findall(r'^## ', summary_content, re.MULTILINE))
         
@@ -261,10 +285,29 @@ class TestLinkValidation:
     """Test suite for link validation."""
 
     def test_internal_links_valid(self, summary_lines: List[str], summary_content: str):
+        """
+        Validate that all internal Markdown links reference existing headers using GitHub-style anchors.
+        
+        Parameters:
+            summary_lines (List[str]): The document split into lines; used to extract headers (lines starting with '#').
+            summary_content (str): The full document text; used to find internal links of the form [text](#anchor).
+        
+        Raises:
+            AssertionError: If any internal link references an anchor that does not match any header-derived GitHub anchor.
+        """
         import unicodedata
 
         def _to_gfm_anchor(text: str) -> str:
             # Lowercase
+            """
+            Convert a header string into a GitHub Flavoured Markdown (GFM) anchor.
+            
+            Parameters:
+                text (str): Header text to convert into an anchor.
+            
+            Returns:
+                str: Anchor string suitable for use as a GFM header anchor.
+            """
             s = text.strip().lower()
             # Normalize unicode to NFKD and remove diacritics
             s = unicodedata.normalize('NFKD', s)
@@ -349,7 +392,11 @@ class TestEdgeCases:
             "Document should not contain replacement characters (encoding issues)"
     
     def test_utf8_encoding(self):
-        """Test that file is properly UTF-8 encoded."""
+        """
+        Verify the summary file is valid UTF-8.
+        
+        Fails the test if reading the file raises a UnicodeDecodeError.
+        """
         try:
             with open(SUMMARY_FILE, 'r', encoding='utf-8') as f:
                 f.read()
@@ -357,7 +404,11 @@ class TestEdgeCases:
             pytest.fail("File should be valid UTF-8")
     
     def test_consistent_line_endings(self):
-        """Test that file uses consistent line endings throughout."""
+        """
+        Assert the summary file uses a single, recognised line-ending style.
+        
+        Skips the check if the file is empty. Lines that lack a terminating newline (e.g. a final file line) are ignored for the purposes of determining consistency. The test requires exactly one line-ending style among the terminated lines and permits only LF or CRLF as valid styles; files using CR or mixed endings will fail.
+        """
         with open(SUMMARY_FILE, 'rb') as f:
             content = f.read()
 
