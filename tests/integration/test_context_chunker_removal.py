@@ -44,7 +44,7 @@ class TestContextChunkerRemoval:
                     content = f.read()
                 
                 # Check for imports
-                import_pattern = re.compile(r'^\s*(?:from\s+context_chunker\b|import\s+context_chunker\b)', re.MULTILINE)
+                import_pattern = re.compile(r'(?:from\s+context_chunker\b|import\s+context_chunker\b)')
                 assert not import_pattern.search(content), f"{py_file} imports context_chunker"
             except Exception:
                 # Skip files that can't be read
