@@ -438,7 +438,7 @@ class TestDocumentationMarkdownQuality:
 
             # Find code blocks - match complete blocks to only capture opening fence language
             import re
-            code_blocks = re.findall(r'```(\w*)\n.*?```', content, re.DOTALL)
+            code_blocks = re.findall(r'```([^\n]*)\n.*?```', content, re.DOTALL)
             
             if code_blocks:
                 # At least 80% should have language specified
