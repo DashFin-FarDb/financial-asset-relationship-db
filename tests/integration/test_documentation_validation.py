@@ -400,11 +400,14 @@ class TestDocumentationMarkdownQuality:
             
             for link_text, link_url in links:
                 # Check internal links (not http/https)
-                if not link_url.startswith(('http://', 'https://', '#', 'mailto:')):
+                    target_path = link_url.split('#', 1)[0]
+                    if not target_path:
+                        continue
                     # Should exist
-                    link_path = Path(link_url)
+                    link_path = Path(target_path)
                     if not link_path.exists():
                         # Try relative to doc file
+                        link_path = doc_file.parent / target_path
                         link_path = doc_file.parent / link_url
                     
                     assert link_path.exists(), \
