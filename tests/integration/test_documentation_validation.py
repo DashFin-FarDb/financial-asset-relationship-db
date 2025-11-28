@@ -440,7 +440,15 @@ class TestDocumentationMarkdownQuality:
             import re
             code_blocks = re.findall(r'```([^\n]*)\n.*?```', content, re.DOTALL)
             
-            if code_blocks:
+if code_blocks:
+    # At least 70% should have language specified
+    with_language = sum(1 for lang in code_blocks if lang)
+    total = len(code_blocks)
+    
+    percentage = (with_language / total * 100) if total > 0 else 100
+    
+    assert percentage >= 70, \
+        f"{doc_file}: Only {percentage:.0f}% of code blocks specify language. " \
                 # At least 80% should have language specified
                 with_language = sum(1 for lang in code_blocks if lang)
                 total = len(code_blocks)
