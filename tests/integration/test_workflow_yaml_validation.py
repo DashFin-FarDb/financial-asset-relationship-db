@@ -112,26 +112,20 @@ class TestWorkflowStructure:
         assert len(jobs) > 0, "Workflow should have at least one job"
     
     def test_jobs_have_runs_on(self, workflow_content, workflow_file):
-        """Each job should specify which runner to use."""
+        """Non-reusable jobs must specify which runner to use."""
         jobs = workflow_content.get('jobs', {})
-        
-def test_jobs_have_runs_on(self, workflow_content, workflow_file):
-    """Non-reusable jobs must specify which runner to use."""
-    jobs = workflow_content.get('jobs', {})
-    
-    for job_name, job_config in jobs.items():
-        if 'uses' in job_config:
-            continue  # Skip reusable workflow jobs
+
+        for job_name, job_config in jobs.items():
             if not isinstance(job_config, dict):
                 pytest.fail(f"Job '{job_name}' in {workflow_file.name} is not a dictionary")
-for job_name, job_config in jobs.items():
-    if 'uses' in job_config:
-        continue  # Skip reusable workflow jobs
-    
-    # Non-reusable jobs must specify a runner
-    assert 'runs-on' in job_config, \
-        f"Non-reusable job '{job_name}' in {workflow_file.name} must specify 'runs-on'"
-                f"Job '{job_name}' in {workflow_file.name} missing 'runs-on'"
+
+            if 'uses' in job_config:
+                continue  # Skip reusable workflow jobs
+
+            # Non-reusable jobs must specify a runner
+            assert 'runs-on' in job_config, \
+                f"Non-reusable job '{job_name}' in {workflow_file.name} must specify 'runs-on'"
+
     def test_jobs_have_steps(self, workflow_content, workflow_file):
         """Each job should have steps defined."""
         jobs = workflow_content.get('jobs', {})
