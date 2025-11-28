@@ -195,12 +195,15 @@ class ContextChunker:
         max_chars = max_tokens * 4
         if len(text) <= max_chars:
             return text
-        return text[:max_chars] + "..."
+        snippet = text[:max_chars]
+        if len(text) > max_chars:
+            # Prefer truncation at a word boundary if possible
+            cut = snippet.rsplit(" ", 1)[0]
+            # If no space found (single long token), fall back to hard cut
+            safe = cut if cut else snippet
+            return safe.rstrip() + "..."
+        return text
 
-
-def main() -> None:
-    """Main entry point - reads from stdin, writes to stdout."""
-    chunker = ContextChunker()
 
 def main() -> None:
     """Main entry point - reads from stdin, writes to stdout."""
