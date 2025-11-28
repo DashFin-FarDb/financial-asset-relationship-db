@@ -28,6 +28,7 @@ except ImportError:
 class ContextChunker:
     """Handles chunking of PR context to fit within token limits."""
 
+
     def __init__(self, config_path: str = ".github/pr-agent-config.yml") -> None:
         """Initialize the context chunker with configuration."""
         self.config: Dict[str, Any] = {}
@@ -135,8 +136,11 @@ class ContextChunker:
                     if "\n" in truncated:
                         truncated = truncated.rsplit("\n", 1)[0]
                     truncated += "\n\n[... truncated due to context size limits ...]"
-                    result_parts.append(f"## {name.replace('_', ' ').title()} (truncated)\n{truncated}")
+                    truncated_section = f"## {name.replace('_', ' ').title()} (truncated)\n{truncated}"
+                    result_parts.append(truncated_section)
+                    total_tokens += self.count_tokens(truncated_section)
                     was_truncated = True
+                was_truncated = True
                 break
 
         content = "\n\n".join(result_parts) if result_parts else json.dumps(pr_data, indent=2)
@@ -153,7 +157,7 @@ class ContextChunker:
                 user = str(user_data) if user_data else "unknown"
             state = review.get("state", "unknown")
             body = review.get("body", "")
-            lines.append(f"- **{user}** ({state}): {body[:500]}")
+            lines.append(f"- **{user}** ({state}): {(body or '(no comment)')[:500]}")
         return "\n".join(lines)
 
     def _format_check_runs(self, check_runs: List[Dict[str, Any]]) -> str:
@@ -198,6 +202,10 @@ def main() -> None:
     """Main entry point - reads from stdin, writes to stdout."""
     chunker = ContextChunker()
 
+def main() -> None:
+    """Main entry point - reads from stdin, writes to stdout."""
+    chunker = ContextChunker()
+
     try:
         # Read JSON from stdin
         input_data = sys.stdin.read()
@@ -211,7 +219,7 @@ def main() -> None:
         # Output processed content as JSON
         output = {
             "content": processed,
-            "chunked": was_truncated,
+            "was_truncated": was_truncated,
             "original_keys": list(pr_data.keys()) if isinstance(pr_data, dict) else [],
         }
         print(json.dumps(output, indent=2), file=sys.stdout)
