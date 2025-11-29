@@ -44,18 +44,47 @@ class ContextChunker:
             print(f"Warning: Could not load config from {config_path}: {e}")
             return {}
     
+    def _get_token_encoder(self):
+        """
+        Lazily initialize and cache a tiktoken encoder if available.
+        The model can be configured via config['agent']['context']['tokenizer_model'] (default: 'cl100k_base').
+        """
+        if hasattr(self, "_encoder"):
+            return self._encoder
+        self._encoder = None
+        model_name = (
+            self.config.get('agent', {})
+            .get('context', {})
+            .get('tokenizer_model', 'cl100k_base')
+        )
+        try:
+            import tiktoken  # type: ignore
+            # Try model encoding first, fall back to explicit base
+            try:
+                self._encoder = tiktoken.encoding_for_model(model_name)
+            except Exception:
+                self._encoder = tiktoken.get_encoding('cl100k_base')
+        except Exception:
+            self._encoder = None
+        return self._encoder
+
     def estimate_tokens(self, text: str) -> int:
         """
         Estimate token count for text.
-        Rough approximation: ~4 characters per token for English text.
+        Uses tiktoken when available; falls back to a heuristic otherwise.
         """
-        # More accurate estimation considering code structure
+        encoder = self._get_token_encoder()
+        if encoder is not None:
+            try:
+                return len(encoder.encode(text))
+            except Exception:
+                # Fall back to heuristic if encoding fails unexpectedly
+                pass
+    
+        # Heuristic fallback (~4 chars per token), with minor adjustment for code structure
         tokens = len(text) / 4
-        
-        # Add extra tokens for code structure
         code_chars = len(re.findall(r'[{}()\[\];]', text))
         tokens += code_chars * 0.5
-        
         return int(tokens)
     
     def extract_content_sections(self, pr_data: Dict) -> Dict[str, str]:
