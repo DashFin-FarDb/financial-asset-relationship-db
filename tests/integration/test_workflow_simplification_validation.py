@@ -408,7 +408,7 @@ with open(req_file, 'r', encoding='utf-8') as f:
     lines = f.read().strip().split('\n')
         
         for line in lines:
-            line = line.strip()
+    lines = f.read().splitlines()
             if not line or line.startswith('#'):
                 continue
             
