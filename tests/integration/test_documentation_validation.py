@@ -188,7 +188,41 @@ class TestCodeExamples:
             assert 'pytest' in cmd, "pytest command should contain 'pytest'"
     
     def test_file_paths_in_examples_exist(self, summary_content: str):
-        """
+        def test_file_paths_in_examples(self, summary_content: str):
+            """
+            Assert that test file paths shown in documentation exist in the repository.
+    
+            Summary:
+                Scans the documentation for references to integration test files and verifies
+                each referenced file actually exists in the repo. This guards against stale
+                or incorrect example paths in the documentation.
+    
+            Searches:
+                The document content is scanned for file paths matching the pattern
+                "tests/integration/test_<name>.py". Each match is resolved from the repository
+                root (three levels up from this file).
+    
+            Parameters:
+                summary_content (str): The full text of the documentation to scan.
+    
+            Returns:
+                None: This is a pytest test; it asserts and raises on failure.
+    
+            Raises:
+                AssertionError: If one or more referenced test file paths are missing. The
+                assertion message consolidates all missing paths and shows their resolved
+                filesystem locations.
+    
+            Example:
+                Given a documentation snippet:
+        
+                    The integration tests are in files like:
+                    - tests/integration/test_github_workflows.py
+                    - tests/integration/test_requirements_pyyaml.py
+        
+                This test will resolve each path relative to the repo root and fail with a
+                single informative assertion if any referenced file does not exist.
+            """
         Assert that test file paths shown in documentation exist in the repository.
         
         Searches the provided document content for occurrences of test file paths matching
