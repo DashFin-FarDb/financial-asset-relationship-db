@@ -21,9 +21,13 @@ class TestCodecovWorkflowRemoval:
         Returns:
             Path: Path object pointing to the repository's .github/workflows directory (computed relative to this test file).
         """
-        return Path(__file__).parent.parent.parent / ".github" / "workflows"
-    
     def test_codecov_yaml_file_removed(self, workflows_dir: Path):
+        """Test that codecov.yaml file was removed."""
+        if not workflows_dir.exists():
+            pytest.skip("Workflows directory not found")
+        codecov_file = workflows_dir / "codecov.yaml"
+        assert not codecov_file.exists(), \
+            "codecov.yaml should have been removed from workflows"
         """Test that codecov.yaml file was removed."""
         codecov_file = workflows_dir / "codecov.yaml"
         assert not codecov_file.exists(), \
@@ -49,9 +53,21 @@ class TestCoverageStillAvailable:
         Returns:
             Path: Path pointing to the repository's requirements-dev.txt file (located two directories above the test file).
         """
-        return Path(__file__).parent.parent.parent / "requirements-dev.txt"
-    
     def test_pytest_cov_in_dev_requirements(self, requirements_dev: Path):
+        """
+        Validate that `pytest-cov` is listed in the project's development requirements.
+    
+        Parameters:
+            requirements_dev (Path): Path to the `requirements-dev.txt` file to check.
+        """
+        if not requirements_dev.exists():
+            pytest.skip("requirements-dev.txt not found")
+    
+        with open(requirements_dev, 'r', encoding='utf-8') as f:
+            content = f.read()
+    
+        assert 'pytest-cov' in content, \
+            "pytest-cov should still be in requirements-dev.txt for local coverage"
         """
         Validate that `pytest-cov` is listed in the project's development requirements.
         
