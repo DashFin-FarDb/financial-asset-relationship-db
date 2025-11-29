@@ -401,7 +401,7 @@ class TestRequirementsPackageIntegrity:
         # This avoids substring matching issues (e.g., >= being counted as both >= and >)
         operator_counts = {'>=': 0, '==': 0, '<=': 0, '>': 0, '<': 0, '~=': 0}
         
-        for pkg, version_spec in requirements:
+        for _pkg, version_spec in requirements:
             if version_spec:
                 # Match operators followed by version numbers to avoid overlapping matches
                 # Pattern: operator followed by version (digits, dots, etc.)
