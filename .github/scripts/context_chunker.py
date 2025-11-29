@@ -113,3 +113,28 @@ class ContextChunker:
                 text_parts.append(str(patch))
         result = "\n\n".join(text_parts).strip()
         return result, bool(result)
+
+    def count_tokens(self, text: str) -> int:
+        """
+        Count the number of tokens in the given text.
+
+        Uses the tiktoken encoder if available, otherwise falls back to a simple
+        word-based approximation (splitting on whitespace).
+
+        Args:
+            text (str): The text to count tokens for.
+
+        Returns:
+            int: The estimated number of tokens in the text.
+
+        Example:
+            >>> chunker = ContextChunker()
+            >>> token_count = chunker.count_tokens("Hello, world!")
+            >>> print(token_count)  # Number of tokens
+        """
+        if not text:
+            return 0
+        if self._encoder is not None:
+            return len(self._encoder.encode(text))
+        # Fallback: approximate tokens by splitting on whitespace
+        return len(text.split())
