@@ -20,7 +20,22 @@ from packaging.requirements import Requirement
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples."""
+    """
+    Parse a requirements file into a list of (package, version specifier) pairs.
+    
+    Blank lines and comment lines are ignored. Extras and environment markers are not included;
+    each returned tuple contains the package name and the string form of its version specifier
+    (which will be an empty string if no specifier is present).
+    
+    Parameters:
+        file_path (Path): Path to the requirements file to parse.
+    
+    Returns:
+        List[Tuple[str, str]]: A list of (package_name, version_specifier) tuples.
+    
+    Raises:
+        ValueError: If any non-empty, non-comment line cannot be parsed as a valid requirement.
+    """
     requirements: List[Tuple[str, str]] = []
 
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -116,7 +131,11 @@ class TestPyYAMLAvailability:
     """Test that PyYAML is properly configured for use in workflow tests."""
     
     def test_pyyaml_in_requirements_for_workflow_validation(self):
-        """Test that PyYAML is in requirements-dev.txt for workflow validation tests."""
+        """
+        Ensure PyYAML is listed in requirements-dev.txt so workflow YAML files can be parsed for validation.
+        
+        Checks that the requirements file exists and contains the `pyyaml` package name (case-insensitive).
+        """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         requirements = parse_requirements(REQUIREMENTS_FILE)
@@ -175,7 +194,12 @@ class TestRequirementsMatchWorkflowNeeds:
         )
     
     def test_has_required_dev_tools(self):
-        """Test that essential development tools are in requirements."""
+        """
+        Verify that essential development tools are listed in requirements-dev.txt.
+        
+        Checks that the requirements-dev.txt file exists and includes the tools: pytest, flake8, black and mypy.
+        Each missing tool causes the test to fail with an explanatory message.
+        """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         requirements = parse_requirements(REQUIREMENTS_FILE)

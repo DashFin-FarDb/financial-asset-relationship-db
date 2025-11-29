@@ -102,7 +102,14 @@ class TestMarkdownFormatting:
         assert open_block is False, "Code blocks not properly closed or mismatched triple backticks detected"
     
     def test_lists_properly_formatted(self, summary_lines: List[str]):
-        """Test that bullet lists use consistent markers."""
+        """
+        Validate that bullet list items use even indentation (multiples of two spaces).
+        
+        Checks lines that start with an optional indentation followed by a list marker ('-', '*', or '+') and a space, and asserts each list item's leading indentation is a multiple of two spaces. On failure, raises an AssertionError identifying the offending line.
+        
+        Parameters:
+            summary_lines (List[str]): Lines of the summary document to inspect.
+        """
         list_lines = [line for line in summary_lines if re.match(r'^\s*[-*+] ', line)]
         if list_lines:
             # Check that indentation is consistent
@@ -174,7 +181,14 @@ class TestCodeExamples:
             assert 'pytest' in cmd, "pytest command should contain 'pytest'"
     
     def test_file_paths_in_examples_exist(self, summary_content: str):
-        """Test that referenced file paths in examples actually exist."""
+        """
+        Verify that test file paths mentioned in documentation examples exist in the repository.
+        
+        Searches `summary_content` for occurrences of paths matching the pattern `tests/integration/test_*.py`, resolves each match against the repository root, and asserts that every referenced file exists. If any referenced files are missing the test fails with a single consolidated assertion message listing each missing path and its resolved location.
+        
+        Parameters:
+            summary_content (str): The documentation content to scan for referenced test file paths.
+        """
         # Look for test file references
         test_file_pattern = r'tests/integration/test_\w+\.py'
         mentioned_files = re.findall(test_file_pattern, summary_content)
@@ -238,7 +252,14 @@ class TestDocumentMaintainability:
             f"Too many long lines ({len(long_lines)}), consider breaking them up"
     
     def test_has_clear_structure(self, summary_content: str):
-        """Test that document has clear hierarchical structure."""
+        """
+        Validate the document contains a clear hierarchical heading structure.
+        
+        Ensures the content includes at least one level‑1 heading and at least three level‑2 headings.
+        
+        Parameters:
+        	summary_content (str): The full text of the summary file to validate.
+        """
         h1_count = len(re.findall(r'^# ', summary_content, re.MULTILINE))
         h2_count = len(re.findall(r'^## ', summary_content, re.MULTILINE))
         
@@ -265,6 +286,15 @@ class TestLinkValidation:
 
         def _to_gfm_anchor(text: str) -> str:
             # Lowercase
+            """
+            Convert a header string into a GitHub‑flavoured Markdown anchor.
+            
+            Parameters:
+                text (str): Header text to convert into an anchor.
+            
+            Returns:
+                anchor (str): Anchor suitable for GitHub‑Flavoured Markdown — lowercased, Unicode normalised with diacritics removed, punctuation and special characters removed, and whitespace collapsed into hyphens.
+            """
             s = text.strip().lower()
             # Normalize unicode to NFKD and remove diacritics
             s = unicodedata.normalize('NFKD', s)
