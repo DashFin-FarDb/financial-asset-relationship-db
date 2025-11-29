@@ -15,7 +15,12 @@ class TestCodecovWorkflowRemoval:
     
     @pytest.fixture
     def workflows_dir(self) -> Path:
-        """Return path to workflows directory."""
+        """
+        Path to the repository's GitHub Actions workflows directory.
+        
+        Returns:
+            Path: Path to the `.github/workflows` directory relative to this file.
+        """
         return Path(__file__).parent.parent.parent / ".github" / "workflows"
     
     def test_codecov_yaml_file_removed(self, workflows_dir: Path):
@@ -36,11 +41,20 @@ class TestCoverageStillAvailable:
     
     @pytest.fixture
     def requirements_dev(self) -> Path:
-        """Return path to requirements-dev.txt."""
+        """
+        Path to the project's requirements-dev.txt file.
+        
+        Returns:
+            Path: Path to the requirements-dev.txt file located at the repository root.
+        """
         return Path(__file__).parent.parent.parent / "requirements-dev.txt"
     
     def test_pytest_cov_in_dev_requirements(self, requirements_dev: Path):
-        """Test that pytest-cov is still in development requirements."""
+        """
+        Verify that 'pytest-cov' is listed in requirements-dev.txt.
+        
+        Checks the development requirements include the pytest-cov package so coverage can be executed locally.
+        """
         with open(requirements_dev, 'r', encoding='utf-8') as f:
             content = f.read()
         
@@ -48,7 +62,12 @@ class TestCoverageStillAvailable:
             "pytest-cov should still be in requirements-dev.txt for local coverage"
     
     def test_can_run_coverage_locally(self, requirements_dev: Path):
-        """Test that coverage can still be run locally."""
+        """
+        Ensure the project provides a pytest-cov specification that allows running coverage locally.
+        
+        Parameters:
+            requirements_dev (Path): Path to the project's requirements-dev.txt file; this file is checked for the presence of the exact requirement string 'pytest-cov>=4.0.0'.
+        """
         with open(requirements_dev, 'r', encoding='utf-8') as f:
             content = f.read()
         

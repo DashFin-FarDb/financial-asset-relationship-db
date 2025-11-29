@@ -22,7 +22,9 @@ class TestCodecovWorkflowRemoval:
             "codecov.yaml should have been removed from workflows directory"
     
     def test_codecov_yml_not_present(self):
-        """Test that codecov.yml variant doesn't exist either."""
+        """
+        Check that .github/workflows/codecov.yml is not present.
+        """
         codecov_yml = Path('.github/workflows/codecov.yml')
         assert not codecov_yml.exists(), \
             "codecov.yml should not exist in workflows directory"
@@ -71,7 +73,11 @@ class TestCodecovWorkflowRemoval:
             "codecov.yaml should not be in the list"
     
     def test_codecov_upload_conditional(self):
-        """Test that Codecov upload is conditional on Python version."""
+        """
+        Verify the CI workflow's Codecov upload step is guarded by a conditional and set to continue on error.
+        
+        Asserts that .github/workflows/ci.yml contains a `test` job with an "Upload coverage to Codecov" step that includes an `if` condition and a `continue-on-error` flag.
+        """
         ci_workflow = Path('.github/workflows/ci.yml')
         
         with open(ci_workflow, 'r', encoding='utf-8') as f:
@@ -101,13 +107,26 @@ class TestGitignorePatternChanges:
     
     @pytest.fixture
     def gitignore_content(self) -> str:
-        """Load .gitignore content."""
+        """
+        Read and return the repository's .gitignore file contents.
+        
+        Returns:
+            str: The full contents of `.gitignore`.
+        """
         with open('.gitignore', 'r', encoding='utf-8') as f:
             return f.read()
     
     @pytest.fixture
     def gitignore_lines(self, gitignore_content: str) -> List[str]:
-        """Get non-empty .gitignore lines."""
+        """
+        Return a list of meaningful .gitignore entries.
+        
+        Parameters:
+            gitignore_content (str): Raw content of a .gitignore file.
+        
+        Returns:
+            List[str]: Stripped, non-empty lines excluding comment lines (those starting with '#').
+        """
         return [line.strip() for line in gitignore_content.split('\n') 
                 if line.strip() and not line.startswith('#')]
     
@@ -143,7 +162,12 @@ class TestGitignorePatternChanges:
             "htmlcov directory should still be ignored"
     
     def test_gitignore_properly_formatted(self, gitignore_content: str):
-        """Test that .gitignore file is properly formatted."""
+        """
+        Check that the .gitignore content has no trailing whitespace on non-empty lines.
+        
+        Parameters:
+            gitignore_content (str): Entire contents of the .gitignore file as a single string.
+        """
         # Should not have trailing whitespace on non-empty lines
         for i, line in enumerate(gitignore_content.split('\n'), 1):
             if line.strip():  # non-empty line
@@ -169,18 +193,39 @@ class TestRequirementsDevVersionConstraints:
     
     @pytest.fixture
     def requirements_content(self) -> str:
-        """Load requirements-dev.txt content."""
+        """
+        Retrieve the contents of requirements-dev.txt using UTF-8 encoding.
+        
+        Returns:
+            The file contents as a string.
+        """
         with open('requirements-dev.txt', 'r', encoding='utf-8') as f:
             return f.read()
     
     @pytest.fixture
     def requirements_lines(self, requirements_content: str) -> List[str]:
-        """Get non-comment, non-empty lines."""
+        """
+        Extract meaningful requirement entries from the text of a requirements file.
+        
+        Parameters:
+            requirements_content (str): Entire contents of a requirements file.
+        
+        Returns:
+            List[str]: A list of non-empty, trimmed lines that do not start with `#`.
+        """
         return [line.strip() for line in requirements_content.split('\n')
                 if line.strip() and not line.startswith('#')]
     
     def test_types_pyyaml_has_version_constraint(self, requirements_lines: List[str]):
-        """Test that types-PyYAML now has a version constraint."""
+        """
+        Check that `types-PyYAML` appears in the provided requirements lines and has a `>=` version constraint.
+        
+        Parameters:
+            requirements_lines (List[str]): Lines parsed from `requirements-dev.txt`.
+        
+        Notes:
+            The test asserts that at least one line starts with `types-PyYAML` and that the first matching line contains the substring `>=`, failing the test otherwise.
+        """
         types_lines = [line for line in requirements_lines 
                       if line.startswith('types-PyYAML')]
         
@@ -191,7 +236,14 @@ class TestRequirementsDevVersionConstraints:
             "types-PyYAML should have >= version constraint"
     
     def test_types_pyyaml_version_is_6_0_0(self, requirements_lines: List[str]):
-        """Test that types-PyYAML version constraint is >=6.0.0."""
+        """
+        Assert that the `types-PyYAML` entry in requirements-dev.txt specifies a `>=` version of at least 6.0.0.
+        
+        Checks that there is a `types-PyYAML` requirement line and that it contains a `>=X.Y` or `>=X.Y.Z` specifier where the major/minor version is 6. Accepted formats include `>=6.0` and `>=6.0.0`.
+        
+        Parameters:
+            requirements_lines (List[str]): Lines of the requirements-dev.txt file to inspect.
+        """
         types_lines = [line for line in requirements_lines 
                       if line.startswith('types-PyYAML')]
         
@@ -246,7 +298,14 @@ class TestRequirementsDevVersionConstraints:
             f"All dependencies should have version constraints. Found unversioned: {unversioned}"
     
     def test_version_specifiers_properly_formatted(self, requirements_lines: List[str]):
-        """Test that version specifiers are properly formatted."""
+        """
+        Verify that version specifiers using '>=' in the requirements lines follow the expected formatting.
+        
+        Checks each line containing '>=' matches the pattern 'package>=X.Y' or 'package>=X.Y.Z' where package may include letters, digits, dots, underscores or hyphens.
+        
+        Parameters:
+            requirements_lines (List[str]): Lines from requirements-dev.txt to validate.
+        """
         for line in requirements_lines:
             if '>=' in line:
                 # Should have format: package>=X.Y.Z or package>=X.Y
@@ -254,7 +313,14 @@ class TestRequirementsDevVersionConstraints:
                     f"Version specifier should be properly formatted: {line}"
     
     def test_no_conflicting_version_constraints(self, requirements_lines: List[str]):
-        """Test that there are no conflicting version constraints."""
+        """
+        Assert that no package appears more than once in the provided requirements lines.
+        
+        If a package name (the leading token of a requirement line) is listed multiple times, the test fails indicating a conflicting or duplicate entry.
+        
+        Parameters:
+            requirements_lines (List[str]): Lines from requirements-dev.txt to be checked; each line should represent a single requirement entry.
+        """
         package_versions = {}
         
         for line in requirements_lines:
@@ -325,7 +391,11 @@ class TestBranchChangesImpact:
     """Test that branch changes don't negatively impact CI/CD."""
     
     def test_no_broken_workflow_references(self):
-        """Test that no workflow references the deleted codecov.yaml."""
+        """
+        Ensure no workflow file references a deleted Codecov workflow file.
+        
+        Fails if any workflow (except a file named 'codecov.yml') contains the strings 'codecov.yaml' or 'codecov.yml'.
+        """
         workflows_dir = Path('.github/workflows')
         
         for workflow_file in workflows_dir.glob('*.yml'):
@@ -377,7 +447,11 @@ class TestWorkflowDeletionCleanup:
     """Test that codecov.yaml deletion was clean with no orphaned references."""
     
     def test_no_codecov_secrets_orphaned(self):
-        """Test that no workflows reference CODECOV_TOKEN unnecessarily."""
+        """
+        Check workflows do not contain orphaned references to `CODECOV_TOKEN`.
+        
+        Verifies that no deleted or unintended workflow (in particular `codecov.yaml`) is listed as using `CODECOV_TOKEN`; CI workflows may still legitimately reference the token.
+        """
         workflows_dir = Path('.github/workflows')
         codecov_token_users = []
         
@@ -397,7 +471,11 @@ class TestWorkflowDeletionCleanup:
         # Just verify codecov.yaml is not in the list
     
     def test_workflow_count_reasonable(self):
-        """Test that workflow count is reasonable after deletion."""
+        """
+        Check that the repository contains a reasonable number of workflow files and that the Codecov workflow file has been removed.
+        
+        Asserts there are more than five YAML workflow files in .github/workflows and that 'codecov.yaml' is not present.
+        """
         workflows_dir = Path('.github/workflows')
         workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
         
@@ -444,7 +522,11 @@ class TestGitignoreEdgeCases:
     """Edge case tests for .gitignore pattern modifications."""
     
     def test_gitignore_no_empty_lines_at_end(self):
-        """Test that .gitignore doesn't have excessive empty lines at end."""
+        """
+        Ensure .gitignore does not end with more than two consecutive newline characters.
+        
+        Allows up to two trailing newlines but fails if the file ends with three or more consecutive newline characters.
+        """
         with open('.gitignore', 'r', encoding='utf-8') as f:
             content = f.read()
         
@@ -511,7 +593,11 @@ class TestRequirementsDevEdgeCases:
             f"Found duplicate packages: {set(duplicates)}"
     
     def test_version_constraints_not_impossible(self):
-        """Test that version constraints are logically possible."""
+        """
+        Check that version range specifiers in requirements-dev.txt do not contain impossible constraints.
+        
+        Reads non-comment, non-empty lines from requirements-dev.txt and asserts that whenever a package line contains both a '>=X' and a '<=Y' specifier, the lower bound X is less than or equal to the upper bound Y (for example, flags '>=2.0,<=1.0').
+        """
         with open('requirements-dev.txt', 'r', encoding='utf-8') as f:
             lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
         
@@ -529,7 +615,9 @@ class TestRequirementsDevEdgeCases:
                         f"Impossible constraint in {line}: >={ge_val} and <={le_val}"
     
     def test_types_pyyaml_not_redundantly_specified(self):
-        """Test that types-PyYAML is only specified once with clear version."""
+        """
+        Ensure types-PyYAML appears exactly once in requirements-dev.txt with a clear version specifier.
+        """
         with open('requirements-dev.txt', 'r', encoding='utf-8') as f:
             lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
         
@@ -567,7 +655,11 @@ class TestCodecovWorkflowEdgeCases:
     """Edge case tests for codecov workflow removal."""
     
     def test_ci_workflow_codecov_has_error_handling(self):
-        """Test that Codecov upload has proper error handling."""
+        """
+        Ensure the Codecov upload step in .github/workflows/ci.yml, if present, includes `continue-on-error` so CI does not fail when Codecov is unavailable.
+        
+        If a step that uses Codecov exists in the `test` job, assert that it has a `continue-on-error` key.
+        """
         with open('.github/workflows/ci.yml', 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
         
@@ -586,7 +678,11 @@ class TestCodecovWorkflowEdgeCases:
                 "Codecov step should have continue-on-error"
     
     def test_ci_workflow_matrix_strategy_valid(self):
-        """Test that CI workflow matrix strategy is valid."""
+        """
+        Verify the CI workflow's test job defines a matrix strategy testing multiple Python versions in X.Y format.
+        
+        Checks that jobs.test.strategy.matrix.python-version contains at least two entries and that every entry matches the major.minor numeric format (e.g. "3.10").
+        """
         with open('.github/workflows/ci.yml', 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
         
@@ -682,7 +778,11 @@ class TestRegressionPrevention:
     """Tests to prevent regression of fixed issues."""
     
     def test_no_duplicate_workflow_keys(self):
-        """Test that no workflow has duplicate keys (like the original issue)."""
+        """
+        Ensure no workflow YAML file contains duplicate mapping keys at the same indentation level.
+        
+        Scans all files under .github/workflows with a .yml extension and fails the test if any mapping key (a line containing `:` that is not commented) appears more than once at the same indentation level; the failure message includes the filename and the two line numbers where the duplicate key appears.
+        """
         workflows_dir = Path('.github/workflows')
         
         for workflow_file in workflows_dir.glob('*.yml'):
@@ -752,7 +852,9 @@ class TestConfigurationFileIntegrity:
             ".gitignore should have organizational comments"
     
     def test_requirements_dev_has_header_comment(self):
-        """Test that requirements-dev.txt has a descriptive header."""
+        """
+        Ensure requirements-dev.txt's first line starts with '#' to provide a comment header.
+        """
         with open('requirements-dev.txt', 'r', encoding='utf-8') as f:
             first_line = f.readline()
         
@@ -760,7 +862,11 @@ class TestConfigurationFileIntegrity:
             "requirements-dev.txt should start with a comment header"
     
     def test_all_config_files_utf8_encoded(self):
-        """Test that all configuration files are UTF-8 encoded."""
+        """
+        Verify that key configuration files are encoded in UTF-8.
+        
+        If any of the listed files exists and contains bytes that are not valid UTF-8, the test will fail indicating which file is invalid.
+        """
         config_files = [
             '.gitignore',
             'requirements-dev.txt',

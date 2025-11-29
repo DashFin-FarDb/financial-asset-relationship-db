@@ -16,7 +16,17 @@ REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples."""
+    """
+    Parse a requirements file into package names and their version specifiers.
+    
+    Lines that are empty or commented are ignored. Multiple specifiers on a line (for example "pkg>=1.0,<=2.0") are collected and normalises into a single comma-separated specifier string. If no version specifier is present for a package, the version specifier in the result is an empty string. Raises AssertionError if a package name is malformed.
+    
+    Parameters:
+        file_path (Path): Path to the requirements file to parse.
+    
+    Returns:
+        requirements (List[Tuple[str, str]]): A list of (package, version_spec) tuples where `version_spec` is the comma-joined specifiers or an empty string when none are present.
+    """
     requirements = []
     
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -151,7 +161,15 @@ class TestVersionSpecifications:
     
     @pytest.fixture
     def requirements(self) -> List[Tuple[str, str]]:
-        """Parse and return requirements."""
+        """
+        Provide the parsed development requirements as a list of (package, version_spec) tuples.
+        
+        Returns:
+        	requirements (List[Tuple[str, str]]): List where each tuple contains the package name and its version specifier string (empty string if the package has no specifier).
+        
+        Raises:
+        	AssertionError: If a requirement line contains a malformed package name.
+        """
         return parse_requirements(REQUIREMENTS_FILE)
 
     def test_all_packages_have_versions(self, requirements: List[Tuple[str, str]]):
@@ -165,7 +183,12 @@ class TestVersionSpecifications:
         )
 
     def test_version_format_valid(self, requirements: List[Tuple[str, str]]):
-        """Test that version specifications use valid format."""
+        """
+        Verify each non-empty version specifier is a valid PEP 440-compatible specifier string.
+        
+        Parameters:
+            requirements (List[Tuple[str, str]]): Iterable of (package_name, version_spec) tuples where version_spec may be an empty string for unconstrained packages.
+        """
         for pkg, ver_spec in requirements:
             if ver_spec:
                 try:

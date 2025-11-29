@@ -17,7 +17,12 @@ class TestRequirementsDevFileStructure:
     
     @pytest.fixture
     def req_file_path(self) -> Path:
-        """Return path to requirements-dev.txt."""
+        """
+        Locate the repository's top-level requirements-dev.txt file.
+        
+        Returns:
+            Path: Path to the requirements-dev.txt file.
+        """
         return Path(__file__).parent.parent.parent / "requirements-dev.txt"
     
     def test_file_exists(self, req_file_path: Path):
@@ -36,7 +41,14 @@ class TestTypesPyYAMLVersionConstraint:
     
     @pytest.fixture
     def requirements_dict(self) -> Dict[str, str]:
-        """Parse requirements into a dictionary."""
+        """
+        Return a mapping of package names to their version specification strings from requirements-dev.txt.
+        
+        Reads the repository's top-level requirements-dev.txt, ignores empty lines and comments, and parses each requirement line into a package name and the remainder of the line as its version specification (including operators, version numbers and extras). Package names are taken from the start of the line and may include letters, digits, underscores, hyphens and bracketed extras.
+        
+        Returns:
+            Dict[str, str]: A dictionary where keys are package names and values are the corresponding version specification substring (may be an empty string if no specifier is present).
+        """
         path = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         reqs = {}
         
@@ -63,7 +75,11 @@ class TestTypesPyYAMLVersionConstraint:
             "types-PyYAML should have a version constraint"
     
     def test_types_pyyaml_minimum_version_6(self, requirements_dict: Dict[str, str]):
-        """Test that types-PyYAML requires version 6.0.0 or higher."""
+        """
+        Ensure the requirements entry for `types-PyYAML` specifies a minimum version of 6.0.
+        
+        Asserts that the version specifier for `types-PyYAML` contains the substring '`>=6.0`'.
+        """
         version_spec = requirements_dict['types-PyYAML']
         
         assert '>=6.0' in version_spec, \
@@ -77,7 +93,15 @@ class TestTypesPyYAMLVersionConstraint:
             "types-PyYAML should have a version constraint (not unpinned)"
     
     def test_types_pyyaml_matches_pyyaml_major_version(self, requirements_dict: Dict[str, str]):
-        """Test that types-PyYAML major version matches PyYAML major version."""
+        """
+        Check that when both PyYAML and types-PyYAML specify a minimum major version with '>=' the major versions are equal.
+        
+        Parameters:
+            requirements_dict (Dict[str, str]): Mapping of package names to their version specifier strings as found in requirements-dev.txt.
+        
+        Notes:
+            If both packages include a '>=' specifier for the major version, the test will fail when those major versions differ.
+        """
         pyyaml_spec = requirements_dict.get('PyYAML', '')
         types_spec = requirements_dict.get('types-PyYAML', '')
         
@@ -98,7 +122,14 @@ class TestSpecificDependencies:
     
     @pytest.fixture
     def requirements_dict(self) -> Dict[str, str]:
-        """Parse requirements into a dictionary."""
+        """
+        Return a mapping of package names to their version specification strings from requirements-dev.txt.
+        
+        Reads the repository's top-level requirements-dev.txt, ignores empty lines and comments, and parses each requirement line into a package name and the remainder of the line as its version specification (including operators, version numbers and extras). Package names are taken from the start of the line and may include letters, digits, underscores, hyphens and bracketed extras.
+        
+        Returns:
+            Dict[str, str]: A dictionary where keys are package names and values are the corresponding version specification substring (may be an empty string if no specifier is present).
+        """
         path = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         reqs = {}
         
@@ -149,7 +180,12 @@ class TestVersionConstraintFormat:
     
     @pytest.fixture
     def req_lines(self) -> List[str]:
-        """Get requirement lines."""
+        """
+        Return the non-empty, non-comment lines from the repository's requirements-dev.txt with surrounding whitespace removed.
+        
+        Returns:
+            List[str]: Requirement lines as strings, each stripped of leading and trailing whitespace; excludes empty lines and lines that start with `#`.
+        """
         path = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         with open(path, 'r', encoding='utf-8') as f:
             return [
@@ -165,7 +201,11 @@ class TestVersionConstraintFormat:
                 f"Requirement '{line}' should have a version constraint"
     
     def test_version_constraints_parseable(self, req_lines: List[str]):
-        """Test that all version specifiers are valid."""
+        """
+        Validate that every requirement line contains a parseable version specifier.
+        
+        Each line is split into a package name and a version specification and the version specification is validated using packaging.specifiers.SpecifierSet; the test fails if any specifier is invalid.
+        """
         for line in req_lines:
             match = re.match(r'^([a-zA-Z0-9_\-\[\]]+)(.*)$', line)
             assert match, f"Cannot parse requirement line: {line}"
@@ -221,7 +261,11 @@ class TestRequirementsDevEdgeCases:
             "requirements-dev.txt should end with a newline"
     
     def test_no_trailing_whitespace(self):
-        """Test that lines don't have trailing whitespace."""
+        """
+        Ensure no line in requirements-dev.txt contains trailing whitespace.
+        
+        If any offending lines are found the test fails and reports a list of tuples with the line number and the line's `repr` for each offending line.
+        """
         path = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
