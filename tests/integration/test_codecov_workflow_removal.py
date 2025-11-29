@@ -21,9 +21,13 @@ class TestCodecovWorkflowRemoval:
         Returns:
             Path: Path object pointing to the repository's .github/workflows directory (computed relative to this test file).
         """
-        return Path(__file__).parent.parent.parent / ".github" / "workflows"
-    
     def test_codecov_yaml_file_removed(self, workflows_dir: Path):
+        """Test that codecov.yaml file was removed."""
+        if not workflows_dir.exists():
+            pytest.skip("Workflows directory not found")
+        codecov_file = workflows_dir / "codecov.yaml"
+        assert not codecov_file.exists(), \
+            "codecov.yaml should have been removed from workflows"
         """Test that codecov.yaml file was removed."""
         codecov_file = workflows_dir / "codecov.yaml"
         assert not codecov_file.exists(), \
