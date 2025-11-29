@@ -117,3 +117,4 @@ coverage/
 
 ## Impact on PR #35
 PR #35 will automatically become mergeable once PR #6's conflicts with main are resolved, as it only adds one commit on top of PR #6.
+

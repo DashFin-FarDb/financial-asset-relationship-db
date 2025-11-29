@@ -401,3 +401,4 @@ def visualize_2d_graph(
     )
 
     return fig
+

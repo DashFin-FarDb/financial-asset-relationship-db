@@ -119,3 +119,4 @@ Changes in the `[Unreleased]` section are features and fixes that have been comm
 
 [Unreleased]: https://github.com/mohavro/financial-asset-relationship-db/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/mohavro/financial-asset-relationship-db/releases/tag/v1.0.0
+

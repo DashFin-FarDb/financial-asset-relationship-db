@@ -42,3 +42,4 @@ jobs:
         echo "ℹ️ Labeler was skipped because .github/labeler.yml configuration file is missing."
         echo "To enable automatic PR labeling, create .github/labeler.yml with label rules."
         echo "See: https://github.com/actions/labeler for documentation."
+

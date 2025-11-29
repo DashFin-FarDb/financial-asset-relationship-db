@@ -51,3 +51,4 @@ if __name__ == "__main__":
         logger.info("✅ Supabase connection test passed!")
     else:
         logger.error("❌ Supabase connection test failed!")
+

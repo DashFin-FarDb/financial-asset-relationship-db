@@ -39,3 +39,4 @@ class AssetRelationshipGraph:
         colors = ["#4ECDC4"] * n
         hover = [f"Asset: {aid}" for aid in asset_ids]
         return positions, asset_ids, colors, hover
+

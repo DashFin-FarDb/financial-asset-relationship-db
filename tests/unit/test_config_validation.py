@@ -464,3 +464,4 @@ class TestConfigurationConsistency:
         assert "next dev" in scripts.get("dev", "") or "next" in scripts.get("dev", "")
         assert "next build" in scripts.get("build", "") or "next" in scripts.get("build", "")
         assert "next start" in scripts.get("start", "") or "next" in scripts.get("start", "")
+

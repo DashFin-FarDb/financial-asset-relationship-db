@@ -771,3 +771,4 @@ class TestRealDataFetcherFallback:
 
         assert len(graph.assets) == len(reference_graph.assets)
         assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys())
+

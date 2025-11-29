@@ -357,3 +357,4 @@ def create_sample_database() -> AssetRelationshipGraph:
     except Exception as e:
         logger.error(f"Failed to create sample database: {e}")
         raise
+

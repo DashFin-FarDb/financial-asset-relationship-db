@@ -90,3 +90,4 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     report += "  others are directional\n"
 
     return report
+

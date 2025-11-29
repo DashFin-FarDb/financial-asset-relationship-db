@@ -50,3 +50,4 @@ jobs:
     - name: Test
       if: steps.check-go.outputs.has_go == 'true'
       run: go test -v ./...
+

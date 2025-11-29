@@ -35,3 +35,4 @@
 
 ## Merge Recommendation
 Until the branch is fetched and validated locally, **do not merge**. The discrepancy between the large commit divergence and the small change set warrants double-checking that the branch was created from the correct base and that no required work was dropped. Once the above steps show a clean diff, passing tests, and up-to-date branch base, merging into `main` should be safe.
+

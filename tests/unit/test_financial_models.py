@@ -198,3 +198,4 @@ class TestRegulatoryEvent:
                 description="",
                 impact_score=0.5,
             )
+

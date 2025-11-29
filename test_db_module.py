@@ -52,3 +52,4 @@ if __name__ == "__main__":
         logger.info("✅ Database module test completed!")
     else:
         logger.error("❌ Database module test failed!")
+

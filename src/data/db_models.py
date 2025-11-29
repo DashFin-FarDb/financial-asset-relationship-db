@@ -105,3 +105,4 @@ class RegulatoryEventAssetORM(Base):
 
     event: Mapped[RegulatoryEventORM] = relationship("RegulatoryEventORM", back_populates="related_assets")
     asset: Mapped[AssetORM] = relationship("AssetORM")
+

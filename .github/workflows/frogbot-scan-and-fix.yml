@@ -65,3 +65,4 @@ jobs:
           # dependencies from a virtual repository in Artifactory, set the name of of the repository. There's no
           # need to set this value, if it is set in the frogbot-config.yml file.
           # JF_DEPS_REPO: ""
+

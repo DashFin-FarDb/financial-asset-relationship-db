@@ -51,3 +51,4 @@ export interface VisualizationData {
   nodes: VisualizationNode[];
   edges: VisualizationEdge[];
 }
+

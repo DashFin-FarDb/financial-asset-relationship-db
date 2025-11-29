@@ -216,3 +216,4 @@ def test_create_directional_arrows_bidirectional_no_arrows():
     asset_ids = ["A", "B"]
     arrows = _create_directional_arrows(graph, positions, asset_ids)
     assert arrows == []
+

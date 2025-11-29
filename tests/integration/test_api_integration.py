@@ -244,3 +244,4 @@ class TestErrorRecovery:
         response = client.get("/api/assets?asset_class=INVALID")
         assert response.status_code == 200
         assert len(response.json()) == 0
+

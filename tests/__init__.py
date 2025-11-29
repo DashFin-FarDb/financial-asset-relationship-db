@@ -15,3 +15,4 @@ os.environ.setdefault("ADMIN_PASSWORD", "changeme")
 os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
 os.environ.setdefault("ADMIN_FULL_NAME", "Test Admin")
 os.environ.setdefault("ADMIN_DISABLED", "false")
+

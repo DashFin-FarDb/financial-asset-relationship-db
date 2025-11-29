@@ -54,3 +54,4 @@ The agent will make suggestions and commit changes for:
 ## Workflow Notes
 - All changes committed by this agent must include descriptive commit messages referencing the context (e.g., issue number, PR number, or specific feedback addressed).
 - When creating PRs, follow the repository's PR template if one exists.
+

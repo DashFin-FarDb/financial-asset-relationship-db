@@ -189,3 +189,4 @@ class TestGet3DVisualizationDataEnhanced:
         assert positions.shape[0] == n
         assert len(colors) == n
         assert len(hover_texts) == n
+

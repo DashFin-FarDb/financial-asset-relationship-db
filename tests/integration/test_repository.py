@@ -157,3 +157,4 @@ def test_relationship_and_event_crud_flow(session):
     session.expire_all()
 
     assert repo.list_relationships() == []
+

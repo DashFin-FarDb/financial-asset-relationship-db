@@ -62,3 +62,4 @@ def session_scope(session_factory: Callable[[], Session]) -> Generator[Session, 
         raise
     finally:
         session.close()
+

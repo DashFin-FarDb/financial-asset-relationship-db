@@ -115,3 +115,4 @@ class RegulatoryEvent:
             raise ValueError("Date must be in ISO 8601 format (YYYY-MM-DD...)")
         if not self.description or not isinstance(self.description, str):
             raise ValueError("Description must be a non-empty string")
+

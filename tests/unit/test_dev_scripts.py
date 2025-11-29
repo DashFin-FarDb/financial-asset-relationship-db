@@ -485,3 +485,4 @@ class TestShellScripts:
             if delete_lines:
                 # Should use -d not -D in the xargs command
                 assert any("-d" in line for line in delete_lines)
+

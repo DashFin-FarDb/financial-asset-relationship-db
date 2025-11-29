@@ -332,3 +332,4 @@ For issues or questions:
 ## License
 
 Same as the main project (MIT License)
+

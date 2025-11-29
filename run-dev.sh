@@ -56,3 +56,4 @@ echo ""
 # Wait for Ctrl+C
 trap "echo ''; echo '🛑 Stopping servers...'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit" INT
 wait
+

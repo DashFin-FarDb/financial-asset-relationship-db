@@ -266,3 +266,4 @@ For production deployments with higher traffic:
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [Vercel Documentation](https://vercel.com/docs)
 - [Plotly React Documentation](https://plotly.com/javascript/react/)
+

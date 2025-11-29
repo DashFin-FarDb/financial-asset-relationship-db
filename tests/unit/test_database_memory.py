@@ -578,3 +578,4 @@ class TestUriMemoryDatabaseIntegration:
         
         for fmt in non_memory_formats:
             assert database._is_memory_db(fmt) is False, f"Incorrectly detected {fmt} as memory DB"
+

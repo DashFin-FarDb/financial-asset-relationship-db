@@ -44,3 +44,4 @@ jobs:
           pip install pylint && pip install -r requirements-dev.txt
         test: |
           pylint $(git ls-files '*.py')
+

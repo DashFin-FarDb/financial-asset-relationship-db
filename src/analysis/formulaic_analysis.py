@@ -641,3 +641,4 @@ class FormulaicdAnalyzer:
             valid_correlations = [v for v in correlations.values() if v < 1.0]
             return sum(valid_correlations) / len(valid_correlations) if valid_correlations else 0.5
         return 0.5
+

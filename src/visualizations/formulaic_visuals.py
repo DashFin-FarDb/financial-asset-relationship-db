@@ -410,3 +410,4 @@ class FormulaicVisualizer:
         )
 
         return fig
+

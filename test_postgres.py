@@ -63,3 +63,4 @@ if __name__ == "__main__":
         logger.info("✅ PostgreSQL connection test passed!")
     else:
         logger.error("❌ PostgreSQL connection test failed!")
+

@@ -265,3 +265,4 @@ class AssetGraphRepository:
             impact_score=orm.impact_score,
             related_assets=related_assets,
         )
+

@@ -46,3 +46,4 @@ jobs:
           git for-each-ref --sort=-committerdate refs/remotes/origin/ --format='%(refname:short)|%(committerdate:relative)|%(authorname)' | \
             grep -v 'origin/main\|origin/HEAD' | \
             awk -F'|' '{printf "- **%s** - Last commit: %s by %s\n", $1, $2, $3}' >> $GITHUB_STEP_SUMMARY
+

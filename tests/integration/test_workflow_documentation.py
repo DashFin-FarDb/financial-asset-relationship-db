@@ -343,3 +343,4 @@ class TestDocumentationSections:
         assert len(section_headers) >= 5, \
             f"Document should have at least 5 major sections, found {len(section_headers)}"
 
+

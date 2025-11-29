@@ -92,3 +92,4 @@ except Exception as e:
     print(f"❌ Failed to connect to PostgreSQL: {e}")
 
 print("\nConnection tests completed.")
+

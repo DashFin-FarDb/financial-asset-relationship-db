@@ -25,3 +25,4 @@ cd frontend && npm test
 - 88+ test methods across all new code
 - All 10 API endpoints tested
 - CORS, error handling, edge cases covered
+

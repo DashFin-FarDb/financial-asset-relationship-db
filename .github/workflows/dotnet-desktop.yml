@@ -61,3 +61,4 @@ jobs:
     - name: Execute unit tests
       if: steps.check-dotnet.outputs.has_dotnet == 'true'
       run: dotnet test
+

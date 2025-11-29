@@ -52,3 +52,4 @@ def visualize_metrics(graph: AssetRelationshipGraph) -> Tuple[go.Figure, go.Figu
     fig3.update_layout(title="Regulatory Events Timeline", xaxis_title="Date", yaxis_title="Impact Score")
 
     return fig1, fig2, fig3
+

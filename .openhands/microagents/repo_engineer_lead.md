@@ -14,3 +14,4 @@ Commit any changes needed and leave a post to explain what was done and what iss
 Add documentation where required for code changes and fixes. 
 Resolve and or prevent branch merge conflicts by keeping on top of commits and changes and to ensure efficiency in making code fixes . 
 Maintain branch hygiene, respond to comments within issues and PRs related to code.. Please be noted that the microagent doesn't have any triggers.
+
