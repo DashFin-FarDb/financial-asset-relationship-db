@@ -51,4 +51,4 @@ pytest tests/integration/ --cov --cov-report=term-missing
 ✅ Ready for use
 
 ---
-Generated: 2024-11-24
+Generated: 2025-11-29
