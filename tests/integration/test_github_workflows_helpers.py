@@ -345,6 +345,7 @@ job2:
             and ("yaml" in rec.message.lower() or "parse" in rec.message.lower() or "failed" in rec.message.lower())
             for rec in caplog.records
         )
+
     def test_github_actions_pr_agent_scenario(self, tmp_path):
         """Test the specific PR Agent workflow duplicate key scenario."""
         yaml_content = """
