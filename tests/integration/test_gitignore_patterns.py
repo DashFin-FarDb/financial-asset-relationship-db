@@ -44,7 +44,7 @@ class TestGitignoreFileStructure:
         Extract non-empty, non-comment lines from a .gitignore file's text.
         
         Parameters:
-        	gitignore_content (str): Full text of the .gitignore file.
+            gitignore_content (str): Full text of the .gitignore file.
         
         Returns:
         	lines (List[str]): List of lines with surrounding whitespace removed, excluding empty lines and lines that start with `#`.
