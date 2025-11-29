@@ -85,12 +85,7 @@ class TestRequirementsDevChanges:
         
         lines = [line.strip() for line in content.splitlines() if line.strip() and not line.strip().startswith('#')]
         assert any(line.lower().startswith('pyyaml') for line in lines), \
-            ln for ln in (
-                line.strip() for line in content.splitlines()
-            if ln and not ln.startswith('#') and ln.split()[0].split('==')[0].split('~=')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0].split(';')[0] == 'PyYAML'
-            if ln and not ln.startswith('#') and ln.split()[0].split('==')[0].split('~=')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0].split(';')[0] == 'PyYAML'
-        ), "PyYAML should be in requirements-dev.txt for workflow validation"
-
+            "PyYAML should be in requirements-dev.txt for workflow validation"
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
