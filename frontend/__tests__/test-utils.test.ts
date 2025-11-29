@@ -1196,6 +1196,8 @@ describe('Advanced Mock Data Validation - Additional Coverage', () => {
         expect(node.color).toMatch(hexPattern);
       });
       
+      expect(mockVizData).toBeDefined();
+      expect(Array.isArray(mockVizData.nodes)).toBe(true);
       mockVizData.nodes.forEach(node => {
         expect(node.color).toMatch(hexPattern);
       });
