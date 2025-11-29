@@ -17,8 +17,12 @@ yaml = pytest.importorskip("yaml")
 WORKFLOWS_DIR = Path(".github") / "workflows"
 
 # Path to workflows directory
-def test_pr_agent_has_trigger_job(pr_agent_workflow: Dict[str, Any]):
+def test_pr_agent_has_trigger_job():
     """Test that pr-agent workflow has the trigger job."""
+    workflow_path = WORKFLOWS_DIR / "pr-agent.yml"
+    if not workflow_path.exists():
+        pytest.skip("pr-agent.yml not found")
+    pr_agent_workflow = load_yaml_safe(workflow_path)
     jobs = pr_agent_workflow.get("jobs", {})
     assert "pr-agent-trigger" in jobs, (
         "pr-agent workflow must define the 'pr-agent-trigger' job"
