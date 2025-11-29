@@ -295,16 +295,20 @@ class TestLinkValidation:
         """
         import unicodedata
 
-        def _to_gfm_anchor(text: str) -> str:
-            # Lowercase
-            """
-            Convert a header text into a GitHub‑Flavored Markdown (GFM) anchor string.
-            
-            Parameters:
-            	text (str): Header text to convert into an anchor.
-            
-            Returns:
-            	anchor (str): A GFM-compatible anchor: lowercased, unicode diacritics removed, punctuation removed (except hyphens), whitespace collapsed to single hyphens, multiple hyphens collapsed, and leading/trailing hyphens stripped.
+def _to_gfm_anchor(text: str) -> str:
+    """
+    Convert a header text into a GitHub‑Flavored Markdown (GFM) anchor string.
+    
+    The conversion includes: lowercasing, removing unicode diacritics, removing
+    punctuation (except hyphens), collapsing whitespace to single hyphens,
+    collapsing multiple hyphens, and stripping leading/trailing hyphens.
+    
+    Parameters:
+        text (str): Header text to convert into an anchor.
+    
+    Returns:
+        str: A GFM-compatible anchor string.
+    """
             """
             s = text.strip().lower()
             # Normalize unicode to NFKD and remove diacritics
