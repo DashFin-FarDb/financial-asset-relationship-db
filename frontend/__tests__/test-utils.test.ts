@@ -1270,7 +1270,7 @@ describe('Advanced Mock Data Validation - Additional Coverage', () => {
       
       mockVisualizationData.edges.forEach(edge => {
         const key1 = `${edge.source}-${edge.target}`;
-        const key2 = `${edge.target}-${edge.source}`;
+        
         
         edgeMap.set(key1, (edgeMap.get(key1) || 0) + 1);
         
