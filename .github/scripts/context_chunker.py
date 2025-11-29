@@ -45,6 +45,28 @@ class ContextChunker:
                 self._encoder = None
 
     def process_context(self, payload: Dict[str, Any]) -> tuple[str, bool]:
+        """
+        Processes a PR payload dictionary into a single text string.
+
+        Args:
+            payload (Dict[str, Any]): Dictionary containing PR context. Expected keys:
+                - 'reviews': Optional[List[Dict[str, Any]]] — each dict may have a 'body' key (str).
+                - 'files': Optional[List[Dict[str, Any]]] — each dict may have a 'patch' key (str).
+
+        Returns:
+            Tuple[str, bool]: A tuple containing:
+                - The processed text content (str), concatenated from review bodies and file patches.
+                - A boolean indicating if any content exists (True if non-empty, False otherwise).
+
+        Example:
+            >>> payload = {
+            ...     "reviews": [{"body": "Looks good."}, {"body": "Needs changes."}],
+            ...     "files": [{"patch": "diff --git ..."}]
+            ... }
+            >>> chunker = ContextChunker()
+            >>> text, has_content = chunker.process_context(payload)
+            >>> print(has_content)  # True
+        """
         text_parts: List[str] = []
         reviews = payload.get("reviews") or []
         files = payload.get("files") or []
