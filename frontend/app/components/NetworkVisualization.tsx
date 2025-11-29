@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { VisualizationData } from '../types/api';
+import type { Data } from 'plotly.js';
 
 // Dynamically import Plotly to avoid SSR issues
 const Plot = dynamic(() => import('react-plotly.js'), {
@@ -28,6 +29,29 @@ type EdgeTrace = {
   showlegend: false;
 };
 
+type NodeTrace = {
+  type: 'scatter3d';
+  mode: 'markers+text';
+  x: number[];
+  y: number[];
+  z: number[];
+  text: string[];
+  hovertext: string[];
+  hoverinfo: 'text';
+  marker: {
+    size: number[];
+    color: string[];
+    line: {
+      color: string;
+      width: number;
+    };
+  };
+  textposition: 'top center';
+  textfont: {
+    size: number;
+  };
+};
+
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 
@@ -40,7 +64,7 @@ const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
  * @returns A JSX element rendering the 3D network plot when data is valid, or a centred status message when data is missing, invalid or too large.
  */
 export default function NetworkVisualization({ data }: NetworkVisualizationProps) {
-const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
+const [plotData, setPlotData] = useState<Data[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'empty' | 'tooLarge'>('loading');
   const [message, setMessage] = useState('Loading visualization...');
 
@@ -72,7 +96,7 @@ const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
     }
 
     // Create node trace
-    const nodeTrace = {
+    const nodeTrace: NodeTrace = {
       type: 'scatter3d',
       mode: 'markers+text',
       x: nodes.map(n => n.x),
@@ -124,7 +148,7 @@ const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
       return acc;
     }, []);
 
-    setPlotData([...edgeTraces, nodeTrace]);
+    setPlotData([...edgeTraces, nodeTrace] as Data[]);
     setStatus('ready');
     setMessage('');
   }, [data]);
