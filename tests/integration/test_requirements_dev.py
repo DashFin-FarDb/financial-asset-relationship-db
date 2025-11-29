@@ -448,12 +448,10 @@ class TestPyYAMLIntegration:
         pyyaml_entry = next((ver for pkg, ver in requirements if pkg == 'PyYAML'), None)
         types_entry = next((ver for pkg, ver in requirements if pkg == 'types-PyYAML'), None)
         
-        assert pyyaml_entry and '>=6.0' in pyyaml_entry, (
-            "PyYAML should have version constraint >=6.0"
-        )
-        assert types_entry and '>=6.0' in types_entry, (
-            "types-PyYAML should have version constraint >=6.0"
-        )
+        assert pyyaml_entry, "PyYAML entry not found in requirements"
+        assert '>=6.0' in pyyaml_entry, "PyYAML should have version constraint >=6.0"
+        assert types_entry, "types-PyYAML entry not found in requirements"
+        assert '>=6.0' in types_entry, "types-PyYAML should have version constraint >=6.0"
     
     def test_pyyaml_needed_for_workflow_tests(self):
         """
