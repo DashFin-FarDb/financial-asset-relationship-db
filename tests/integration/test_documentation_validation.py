@@ -335,7 +335,6 @@ class TestLinkValidation:
         import unicodedata
 
         def _to_gfm_anchor(text: str) -> str:
-            # Lowercase
             """
             Convert a header string to a GitHub Flavoured Markdown (GFM) anchor.
             
