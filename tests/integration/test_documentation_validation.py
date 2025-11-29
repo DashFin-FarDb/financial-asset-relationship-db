@@ -83,7 +83,11 @@ class TestMarkdownFormatting:
             assert re.match(r'^#{1,6} .+', line), f"Heading '{line}' should have space after #"
     
     def test_no_trailing_whitespace(self, summary_lines: List[str]):
-        """Test that lines don't have trailing whitespace."""
+        """
+        Verify no non-blank lines have trailing whitespace.
+        
+        Fails the test if any non-blank line ends with trailing whitespace. The assertion message includes the number of offending lines.
+        """
         lines_with_trailing = [
             (i + 1, line) for i, line in enumerate(summary_lines)
             if line.rstrip() != line and line.strip() != ''
@@ -102,7 +106,14 @@ class TestMarkdownFormatting:
         assert open_block is False, "Code blocks not properly closed or mismatched triple backticks detected"
     
     def test_lists_properly_formatted(self, summary_lines: List[str]):
-        """Test that bullet lists use consistent markers."""
+        """
+        Ensure bullet list items use indentation in multiples of two spaces.
+        
+        Checks each line that starts with a bullet marker (`-`, `*`, or `+`) and asserts its leading indentation is divisible by two, failing the test with a descriptive assertion if any item has odd indentation.
+        
+        Parameters:
+            summary_lines (List[str]): The markdown file content split into lines.
+        """
         list_lines = [line for line in summary_lines if re.match(r'^\s*[-*+] ', line)]
         if list_lines:
             # Check that indentation is consistent
@@ -174,7 +185,14 @@ class TestCodeExamples:
             assert 'pytest' in cmd, "pytest command should contain 'pytest'"
     
     def test_file_paths_in_examples_exist(self, summary_content: str):
-        """Test that referenced file paths in examples actually exist."""
+        """
+        Verify that every referenced integration test file path in the provided document content exists in the repository.
+        
+        Searches the given summary content for occurrences of test paths matching the pattern tests/integration/test_<name>.py, resolves each path relative to the repository root (three levels up from this file), and asserts that all referenced files are present. If any are missing, the assertion fails with a consolidated message listing each missing reference and its resolved filesystem path.
+        
+        Parameters:
+        	summary_content (str): The full text of the documentation file to scan for referenced test file paths.
+        """
         # Look for test file references
         test_file_pattern = r'tests/integration/test_\w+\.py'
         mentioned_files = re.findall(test_file_pattern, summary_content)
@@ -265,6 +283,15 @@ class TestLinkValidation:
 
         def _to_gfm_anchor(text: str) -> str:
             # Lowercase
+            """
+            Convert a header string into a GitHub Flavored Markdown (GFM) anchor.
+            
+            Parameters:
+                text (str): Header text to convert into an internal GFM anchor.
+            
+            Returns:
+                str: The anchor string suitable for use in internal GFM links (lowercased, diacritics removed, punctuation omitted, whitespace replaced by single hyphens, with consecutive or edge hyphens collapsed).
+            """
             s = text.strip().lower()
             # Normalize unicode to NFKD and remove diacritics
             s = unicodedata.normalize('NFKD', s)

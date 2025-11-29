@@ -16,7 +16,12 @@ class TestWorkflowYAMLValidation:
     
     @pytest.fixture
     def modified_workflows(self):
-        """List of workflows modified in this branch."""
+        """
+        Names of workflow files that were modified in this branch.
+        
+        Returns:
+            workflows (list[str]): Filenames of the modified GitHub Actions workflow YAML files.
+        """
         return [
             "apisec-scan.yml",
             "greetings.yml",
@@ -38,7 +43,14 @@ class TestWorkflowYAMLValidation:
                     pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
     
     def test_workflows_have_required_top_level_keys(self, modified_workflows):
-        """Validate required GitHub Actions workflow keys."""
+        """
+        Check that each modified GitHub Actions workflow contains the required top-level keys.
+        
+        For every workflow filename provided by the `modified_workflows` fixture, the file is loaded as YAML and the presence of the top-level keys `name`, `on`, and `jobs` is asserted. If a key is missing the test fails with a message identifying the workflow file and the missing key.
+        
+        Parameters:
+            modified_workflows (list[str]): Filenames of workflow files that were modified in the branch.
+        """
         required_keys = ['name', 'on', 'jobs']
         
         for workflow_file in modified_workflows:
@@ -51,7 +63,14 @@ class TestWorkflowYAMLValidation:
                     f"Workflow {workflow_file} missing required key: {key}"
     
     def test_pr_agent_workflow_simplified_correctly(self):
-        """Verify PR agent workflow no longer has chunking code."""
+        """
+        Validate that the pr-agent GitHub Actions workflow has been simplified: it no longer references chunking and still includes essential parsing and Python setup.
+        
+        Asserts that:
+        - the file does not contain case-insensitive references to "context_chunker" or "chunking";
+        - the file contains either "parse-comments" (case-insensitive) or "parse";
+        - the file includes a Python setup step (case-insensitive).
+        """
         path = self.WORKFLOW_DIR / "pr-agent.yml"
         with open(path, 'r') as f:
             content = f.read()
@@ -74,12 +93,18 @@ class TestRequirementsDevChanges:
     """Validate requirements-dev.txt modifications."""
     
     def test_requirements_dev_file_exists(self):
-        """Ensure requirements-dev.txt exists."""
+        """
+        Check that requirements-dev.txt exists at the repository root.
+        """
         path = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         assert path.exists(), "requirements-dev.txt not found"
     
     def test_pyyaml_present_in_requirements_dev(self):
-        """Verify PyYAML is in requirements-dev.txt."""
+        """
+        Check that PyYAML is declared in requirements-dev.txt.
+        
+        Reads the repository's requirements-dev.txt, ignores blank lines and comments, and asserts that a dependency beginning with "PyYAML" (case-insensitive) is present; fails the test if it is not found.
+        """
         path = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         with open(path, 'r') as f:
             content = f.read()

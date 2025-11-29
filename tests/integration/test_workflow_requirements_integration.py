@@ -20,7 +20,18 @@ from packaging.requirements import Requirement
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples."""
+    """
+    Parse a pip-style requirements file and extract package names with their version specifiers.
+    
+    Parameters:
+        file_path (Path): Path to a requirements file (e.g. requirements-dev.txt).
+    
+    Returns:
+        List[Tuple[str, str]]: A list of (package_name, version_specifier) tuples; `version_specifier` is the specifier string (empty string if no specifier).
+    
+    Raises:
+        ValueError: If any non-empty, non-comment line cannot be parsed as a requirement.
+    """
     requirements: List[Tuple[str, str]] = []
 
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -77,7 +88,11 @@ class TestWorkflowCanInstallRequirements:
         )
     
     def test_workflow_installs_before_running_tests(self):
-        """Test that dependency installation happens before test execution in workflows."""
+        """
+        Assert that in pr-agent.yml each job installs dependencies before running tests.
+        
+        Skips the test if pr-agent.yml is not present. For each job, if both a dependency-install step (contains 'pip install' or 'requirements') and a test step (contains 'pytest' in the run or 'test' in the step name) are found, this test asserts the install step appears earlier than the test step.
+        """
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
         
         if not pr_agent_file.exists():
@@ -116,7 +131,11 @@ class TestPyYAMLAvailability:
     """Test that PyYAML is properly configured for use in workflow tests."""
     
     def test_pyyaml_in_requirements_for_workflow_validation(self):
-        """Test that PyYAML is in requirements-dev.txt for workflow validation tests."""
+        """
+        Ensure PyYAML is listed in requirements-dev.txt so workflow YAML files can be parsed for validation.
+        
+        Checks that requirements-dev.txt exists and that a package named 'PyYAML' appears among the declared requirements (case-insensitive).
+        """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         requirements = parse_requirements(REQUIREMENTS_FILE)
