@@ -106,8 +106,12 @@ class ContextChunker:
             >>> print(has_content)  # True
         """
         text_parts: List[str] = []
-        reviews = payload.get("reviews") or []
-        files = payload.get("files") or []
+        reviews = payload.get("reviews")
+        if not isinstance(reviews, list):
+            reviews = []
+        files = payload.get("files")
+        if not isinstance(files, list):
+            files = []
         for r in reviews:
             body = (r or {}).get("body") or ""
             if body:
