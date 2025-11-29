@@ -1374,8 +1374,12 @@ describe('Advanced Mock Data Validation - Additional Coverage', () => {
     it('should have reasonable number of nodes and edges', () => {
       expect(mockVisualizationData.nodes.length).toBeLessThan(1000);
       expect(mockVisualizationData.edges.length).toBeLessThan(5000);
-      expect(mockVizData.nodes.length).toBeLessThan(1000);
-      expect(mockVizData.edges.length).toBeLessThan(5000);
+      if (mockVizData) {
+        expect(mockVizData.nodes.length).toBeLessThan(1000);
+        expect(mockVizData.edges.length).toBeLessThan(5000);
+      } else {
+        throw new Error('mockVizData is undefined');
+      }
     });
 
     it('should have reasonable total metrics', () => {
