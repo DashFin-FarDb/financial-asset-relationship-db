@@ -13,8 +13,6 @@
 - 4 ts files
 - 9 tsx files
 - 8 js files
-- 5 ts files
-- 12 tsx files
 
 ## Key Dependencies by Type
 
@@ -71,4 +69,3 @@ Top dependencies:
 - ../../app/lib/api
 - ./lib/api
 - ./components/NetworkVisualization
-

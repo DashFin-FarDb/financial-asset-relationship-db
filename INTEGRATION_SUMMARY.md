@@ -1,5 +1,7 @@
 # Vercel Next.js Integration - Implementation Summary
 
+Generated: 2025-11-29
+
 ## Overview
 
 This document summarizes the integration of a Next.js frontend with FastAPI backend for deployment on Vercel. The integration provides a modern web interface while maintaining the existing Gradio application.
@@ -8,12 +10,12 @@ This document summarizes the integration of a Next.js frontend with FastAPI back
 
 ### 1. FastAPI Backend (`/api`)
 
-**File: `api/main.py`**
+File: `api/main.py`
 - RESTful API that exposes the asset relationship graph functionality
 - Built with FastAPI for high performance and automatic API documentation
 - CORS-enabled for Next.js frontend communication
 
-**Key Endpoints:**
+Key Endpoints:
 - `GET /api/health` - Health check
 - `GET /api/assets` - List all assets (with filters)
 - `GET /api/assets/{id}` - Get asset details
@@ -24,7 +26,7 @@ This document summarizes the integration of a Next.js frontend with FastAPI back
 - `GET /api/asset-classes` - Get available asset classes
 - `GET /api/sectors` - Get available sectors
 
-**Features:**
+Features:
 - Reuses existing graph logic from `src/logic/asset_graph.py`
 - Uses real data from `src/data/real_data_fetcher.py`
 - Pydantic models for request/response validation
@@ -32,7 +34,7 @@ This document summarizes the integration of a Next.js frontend with FastAPI back
 
 ### 2. Next.js Frontend (`/frontend`)
 
-**Application Structure:**
+Application Structure:
 ```
 frontend/
 ├── app/
@@ -54,7 +56,7 @@ frontend/
 └── postcss.config.js       # PostCSS config
 ```
 
-**Key Components:**
+Key Components:
 
 1. **NetworkVisualization.tsx**
    - 3D interactive graph using Plotly
@@ -71,7 +73,7 @@ frontend/
    - Filter by asset class and sector
    - Displays key asset information
 
-**Technologies:**
+Technologies:
 - Next.js 14 (App Router)
 - React 18
 - TypeScript
@@ -81,29 +83,29 @@ frontend/
 
 ### 3. Deployment Configuration
 
-**File: `vercel.json`**
+File: `vercel.json`
 - Configures Vercel deployment
 - Routes API requests to Python backend
 - Routes frontend requests to Next.js
 
-**File: `.env.example`**
+File: `.env.example`
 - Template for environment variables
 - API URL configuration
 
-**File: `run-dev.sh` / `run-dev.bat`**
+File: `run-dev.sh` / `run-dev.bat`
 - Development scripts for both platforms
 - Starts both backend and frontend together
 
 ### 4. Documentation
 
-**File: `DEPLOYMENT.md`**
+File: `DEPLOYMENT.md`
 - Comprehensive deployment guide
 - Local development setup
 - Vercel deployment instructions
 - API endpoint documentation
 - Troubleshooting guide
 
-**Updated Files:**
+Updated Files:
 - `README.md` - Added Next.js integration section
 - `requirements.txt` - Added FastAPI, Uvicorn, Pydantic
 - `.gitignore` - Added Next.js and build artifacts
@@ -207,7 +209,7 @@ vercel
 
 ### Testing
 
-**Backend:**
+Backend:
 ```bash
 # Run test script
 python test_api.py
@@ -216,7 +218,7 @@ python test_api.py
 # See api/main.py for examples
 ```
 
-**Frontend:**
+Frontend:
 ```bash
 cd frontend
 npm run build  # Test production build
