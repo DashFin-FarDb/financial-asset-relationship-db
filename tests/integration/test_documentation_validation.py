@@ -408,19 +408,11 @@ class TestDocumentationMarkdownQuality:
                 if not target_path:
                     # Pure-fragment or empty target; not a filesystem path to validate here
                     continue
-                # Resolve path relative to the doc file if needed
-                link_path = Path(target_path)
-                if not link_path.exists():
-                    link_path = (doc_file.parent / target_path).resolve()
-                    continue
-                target_path = link_url.split('#', 1)[0]
-                if not target_path:
-                    continue
-                # Should exist
+                # Check if file exists at absolute path first
                 link_path = Path(target_path)
                 if not link_path.exists():
                     # Try relative to doc file
-                    link_path = doc_file.parent / target_path
+                    link_path = (doc_file.parent / target_path).resolve()
 
                 assert link_path.exists(), \
                     f"Broken link in {doc_file}: [{link_text}]({link_url})"
