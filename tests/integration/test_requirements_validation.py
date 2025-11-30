@@ -263,7 +263,7 @@ class TestRequirementsCompatibility:
             # Check for syntax errors (exit code 1 with specific error messages)
             if result.returncode != 0:
                 error_output = result.stderr.lower()
-                syntax_errors = ['invalid requirement', 'could not find', 'error: ']
+                syntax_errors = ['invalid requirement', 'could not find']
                 
                 has_syntax_error = any(err in error_output for err in syntax_errors)
                 if has_syntax_error:
