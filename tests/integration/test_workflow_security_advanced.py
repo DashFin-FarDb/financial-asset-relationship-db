@@ -143,7 +143,7 @@ class TestWorkflowSecretHandling:
             raw_content = workflow['raw']
             
             # Find all references to secrets
-            secret_refs = re.findall(r'secrets\.\w+', raw_content)
+            secret_refs = re.findall(r'secrets\.([A-Za-z0-9_\-]+)', raw_content)
             
             for secret_ref in secret_refs:
                 # Check if this secret is used in echo/print commands
