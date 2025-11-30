@@ -63,7 +63,7 @@ class TestWorkflowYAMLValidation:
             "PR agent workflow still has chunking logic"
         
         # SHOULD contain essential functionality
-        assert 'parse-comments' in content.lower() or 'parse' in content, \
+        assert 'parse-comments' in content.lower() or 'parse' in content.lower(), \
             "PR agent workflow missing comment parsing"
         assert 'python' in content.lower(), \
             "PR agent workflow missing Python setup"
