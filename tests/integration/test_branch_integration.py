@@ -169,7 +169,8 @@ class TestRemovedFilesIntegration:
         
         # Should not require config-path or similar
         with_config = labeler_step.get('with', {})
-        assert 'config-path' not in with_config or with_config.get('config-path') == '.github/labeler.yml'
+        assert 'config-path' not in with_config, \
+            "Label workflow should not depend on a config-path like .github/labeler.yml, which has been removed"
     
     def test_pr_agent_workflow_self_contained(self):
         """Verify PR agent workflow doesn't depend on removed components."""
