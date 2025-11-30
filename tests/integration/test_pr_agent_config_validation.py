@@ -78,7 +78,43 @@ class TestPRAgentConfigSimplification:
 
 class TestPRAgentConfigYAMLValidity:
     """Test YAML validity and format."""
-    
+
+    @staticmethod
+    def _validate_line_indentation(line: str, line_num: int) -> int:
+        """Validate indentation of a line and return the indent level.
+
+        Args:
+            line: The line to validate
+            line_num: Line number for error messages
+
+        Returns:
+            The indentation level (number of spaces)
+
+        Raises:
+            pytest.fail: If line contains tabs or inconsistent indentation
+        """
+        if not line.strip():  # Empty or whitespace-only line
+            return 0
+
+        leading_whitespace = line[:len(line) - len(line.lstrip())]
+
+        # Check for tab characters in indentation
+        if '\t' in leading_whitespace:
+            pytest.fail(
+                f"Line {line_num}: Tab character in indentation. "
+                "YAML requires consistent space-based indentation."
+            )
+
+        # Check for mixed spaces/inconsistent indentation
+        indent = len(leading_whitespace)
+        if indent > 0 and indent % 2 != 0:
+            pytest.fail(
+                f"Line {line_num}: Indentation of {indent} spaces is not "
+                "a multiple of 2. Use consistent 2-space indentation."
+            )
+
+        return indent
+
     def test_valid_yaml_syntax(self):
         """Verify config file has valid YAML syntax."""
         config_path = Path(".github/pr-agent-config.yml")
@@ -106,26 +142,9 @@ class TestPRAgentConfigYAMLValidity:
 
         for line_num, line in enumerate(lines, 1):
             # Validate indentation before processing to ensure correct key paths
-            if line.strip():  # Non-empty line
-                # Check for tab characters in indentation
-                leading_whitespace = line[:len(line) - len(line.lstrip())]
-                if '\t' in leading_whitespace:
-                    pytest.fail(
-                        f"Line {line_num}: Tab character in indentation. "
-                        "YAML requires consistent space-based indentation."
-                    )
-
-                # Check for mixed spaces/inconsistent indentation
-                indent = len(leading_whitespace)
-                if indent > 0 and indent % 2 != 0:
-                    pytest.fail(
-                        f"Line {line_num}: Indentation of {indent} spaces is not "
-                        "a multiple of 2. Use consistent 2-space indentation."
-                    )
+            indent = self._validate_line_indentation(line, line_num)
 
             if ':' in line and not line.strip().startswith('#'):
-                # Get indentation level (already validated above)
-                indent = len(line) - len(line.lstrip())
                 key = line.split(':')[0].strip()
 
                 # Skip list items (lines starting with -)
@@ -151,15 +170,13 @@ class TestPRAgentConfigYAMLValidity:
     def test_consistent_indentation(self):
         """Verify consistent 2-space indentation."""
         config_path = Path(".github/pr-agent-config.yml")
-        
+
         with open(config_path, 'r') as f:
             lines = f.readlines()
-        
-        for i, line in enumerate(lines, 1):
-            if line.strip() and line[0] == ' ':
-                spaces = len(line) - len(line.lstrip(' '))
-                assert spaces % 2 == 0, \
-                    f"Line {i}: Inconsistent indentation (not multiple of 2)"
+
+        for line_num, line in enumerate(lines, 1):
+            # Use the shared validation helper
+            self._validate_line_indentation(line, line_num)
 
 
 class TestPRAgentConfigSecurity:
