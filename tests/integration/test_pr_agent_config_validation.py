@@ -96,39 +96,23 @@ class TestPRAgentConfigYAMLValidity:
         config_path = Path(".github/pr-agent-config.yml")
 
         with open(config_path, 'r') as f:
-            content = f.read()
+            config = yaml.safe_load(f)
 
-        # Check for duplicate keys by tracking full hierarchical paths
-        lines = content.split('\n')
-        # Stack tracks (indent_level, key) tuples to build hierarchical path
-        path_stack = []
-        seen_full_paths = set()
+        def find_duplicates(obj, path=""):
+            duplicates = []
+            if isinstance(obj, dict):
+                keys_seen = set()
+                for key, value in obj.items():
+                    current_path = f"{path}.{key}" if path else key
+                    if key in keys_seen:
+                        duplicates.append(current_path)
+                    keys_seen.add(key)
+                    duplicates.extend(find_duplicates(value, current_path))
+            return duplicates
 
-        for line in lines:
-            if ':' in line and not line.strip().startswith('#'):
-                # Get indentation level
-                indent = len(line) - len(line.lstrip())
-                key = line.split(':')[0].strip()
-
-                # Skip list items (lines starting with -)
-                if key.startswith('-'):
-                    continue
-
-                # Pop stack entries that are at same or deeper indentation
-                # (we've moved back up or sideways in the hierarchy)
-                while path_stack and path_stack[-1][0] >= indent:
-                    path_stack.pop()
-
-                # Build full path from stack + current key
-                parent_path = '.'.join(item[1] for item in path_stack)
-                full_path = f"{parent_path}.{key}" if parent_path else key
-
-                if full_path in seen_full_paths:
-                    pytest.fail(f"Duplicate key at path '{full_path}'")
-                seen_full_paths.add(full_path)
-
-                # Push current key onto stack for potential children
-                path_stack.append((indent, key))
+        duplicates = find_duplicates(config)
+        if duplicates:
+            pytest.fail(f"Duplicate keys found: {', '.join(duplicates)}")
     
     def test_consistent_indentation(self):
         """Verify consistent 2-space indentation."""
