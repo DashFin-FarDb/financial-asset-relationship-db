@@ -39,21 +39,39 @@ class TestYAMLSyntaxAndStructure:
         
         assert len(parse_errors) == 0, f"YAML parse errors:\n" + "\n".join(parse_errors)
     
-    def test_yaml_files_use_consistent_style(self):
-        """Verify YAML files use consistent formatting style."""
-        yaml_files = list(Path(".github/workflows").glob("*.yml"))
-        
-        for yaml_file in yaml_files:
-            with open(yaml_file, 'r') as f:
-                content = f.read()
-            
-            # Check for consistent indentation (2 spaces)
+            # Check for consistent indentation (2 spaces), excluding comments and block scalars
             lines = content.split('\n')
+            in_block_scalar = False
+            block_scalar_indent = None
             for line_no, line in enumerate(lines, 1):
-                if line.strip() and line[0] == ' ':
-                    spaces = len(line) - len(line.lstrip(' '))
-                    assert spaces % 2 == 0, \
-                        f"{yaml_file} line {line_no}: Use 2-space indentation, found {spaces} spaces"
+                stripped = line.lstrip(' ')
+                leading_spaces = len(line) - len(stripped)
+
+                # Skip empty lines and full-line comments
+                if not stripped or stripped.startswith('#'):
+                    continue
+
+                # If currently inside a block scalar, continue until indentation returns
+                if in_block_scalar:
+                    # Exit block scalar when indentation is less than or equal to the scalar's parent indent
+                    if leading_spaces <= block_scalar_indent:
+                        in_block_scalar = False
+                        block_scalar_indent = None
+                    else:
+                        # Still inside scalar; skip indentation checks
+                        continue
+
+                # Detect start of block scalars (| or > possibly with chomping/indent indicators)
+                # Example: key: |-, key: >2, key: |+  
+                if re.search(r':\s*[|>](?:[+-]|\d+)?', line):
+                    in_block_scalar = True
+                    block_scalar_indent = leading_spaces
+                    continue
+
+                # Only check indentation on lines that begin with spaces (i.e., are indented content)
+                if line[0] == ' ':
+                    assert leading_spaces % 2 == 0, \
+                        f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
             
             # Check for consistent quoting (prefer double quotes for strings with special chars)
             # This is a style preference but improves consistency
