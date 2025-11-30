@@ -55,9 +55,13 @@ class TestWorkflowInjectionPrevention:
                             matches = re.findall(pattern, run_command)
                             for match in matches:
                                 # Should be within quotes
-                                assert '"' in run_command or "'" in run_command, \
-                                    f"Unquoted context variable in {workflow['path']} " \
-                                    f"job '{job_name}' step {step_idx}: {match}"
+                                for match in matches:
+                                    # Ensure the specific context variable occurrence is within quotes
+                                    quoted = re.search(r'(["\']).*?' + re.escape(match) + r'.*?\1', run_command, flags=re.DOTALL)
+                                    assert quoted, (
+                                        f"Unquoted context variable in {workflow['path']} "
+                                        f"job '{job_name}' step {step_idx}: {match}"
+                                    )
     
     def test_no_eval_with_user_input(self, all_workflows):
         """Verify workflows don't use eval with user-controllable input."""
