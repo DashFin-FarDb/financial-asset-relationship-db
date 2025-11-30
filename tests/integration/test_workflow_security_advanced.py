@@ -383,7 +383,7 @@ class TestWorkflowIsolationAndSandboxing:
     def test_pull_request_workflows_use_safe_checkout(self, all_workflows):
         """Verify PR workflows use safe checkout strategies."""
         for workflow in all_workflows:
-            triggers = workflow['content'].get('on', {})
+            triggers = workflow['content'].get('on', {}) or workflow['content'].get(True, {})
             
             # If triggered by pull_request_target, must use explicit ref
             if 'pull_request_target' in triggers:
