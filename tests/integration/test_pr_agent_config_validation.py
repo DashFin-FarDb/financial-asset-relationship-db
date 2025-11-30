@@ -106,16 +106,16 @@ class TestPRAgentConfigYAMLValidity:
 
         for line in lines:
             stripped_line = line.strip()
-            if ':' in line and not stripped_line.startswith('#'):
+            if ':' in stripped_line and not stripped_line.startswith('#'):
                 # Skip list items - in YAML, list items start with "- " (dash + space)
                 # Check the stripped line rather than the extracted key to properly
                 # identify list items vs keys that might contain dashes
                 if stripped_line.startswith('- '):
                     continue
 
-                # Get indentation level
+                # Get indentation level (from original line to preserve hierarchy)
                 indent = len(line) - len(line.lstrip())
-                key = line.split(':')[0].strip()
+                key = stripped_line.split(':')[0]
 
                 # Pop stack entries that are at same or deeper indentation
                 # (we've moved back up or sideways in the hierarchy)
