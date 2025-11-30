@@ -408,7 +408,12 @@ class TestPrAgentWorkflow:
 
         step_names = [s.get("name") for s in steps if s.get("name")]
         seen = set()
-        duplicate_names = {name for name in step_names if name in seen or seen.add(name)}
+        duplicate_names = set()
+        for name in step_names:
+            if name in seen:
+                duplicate_names.add(name)
+            else:
+                seen.add(name)
 
         assert not duplicate_names, (
             f"Found duplicate step names: {duplicate_names}. "
