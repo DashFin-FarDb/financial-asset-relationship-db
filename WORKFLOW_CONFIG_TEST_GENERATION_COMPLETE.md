@@ -8,7 +8,7 @@ Successfully generated **comprehensive unit and integration tests** for all GitH
 
 ### Test Files Created: 3
 1. **test_workflow_config_changes.py** (684 lines, 50+ tests)
-2. **test_workflow_security_advanced.py** (608 lines, 40+ tests)
+2. **test_workflow_security_advanced.py** (439 lines, 40+ tests)
 3. **test_yaml_config_validation.py** (457 lines, 30+ tests)
 
 ### Documentation Created: 2
@@ -20,7 +20,7 @@ Successfully generated **comprehensive unit and integration tests** for all GitH
 | Metric | Value |
 |--------|-------|
 | **Test Files Created** | 3 |
-| **Total Lines of Test Code** | 1,749 |
+| **Total Lines of Test Code** | 1,580 |
 | **Test Classes** | 23 |
 | **Individual Test Cases** | 120+ |
 | **Files Under Test** | 8+ |

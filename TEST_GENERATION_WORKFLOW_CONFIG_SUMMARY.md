@@ -57,7 +57,7 @@ Generated comprehensive unit and validation tests for GitHub workflow configurat
   - Version pinning
   - Duplicate prevention
 
-### 2. test_workflow_security_advanced.py (608 lines)
+### 2. test_workflow_security_advanced.py (439 lines)
 **Purpose**: Advanced security testing for workflow configurations
 
 **Test Classes** (5 classes, 40+ tests):
@@ -124,9 +124,9 @@ Generated comprehensive unit and validation tests for GitHub workflow configurat
 | File | Lines | Classes | Tests | Focus Area |
 |------|-------|---------|-------|------------|
 | test_workflow_config_changes.py | 684 | 13 | 50+ | Configuration Changes |
-| test_workflow_security_advanced.py | 608 | 5 | 40+ | Security Best Practices |
+| test_workflow_security_advanced.py | 439 | 5 | 40+ | Security Best Practices |
 | test_yaml_config_validation.py | 457 | 5 | 30+ | Syntax & Validation |
-| **Total** | **1,749** | **23** | **120+** | **Comprehensive** |
+| **Total** | **1,580** | **23** | **120+** | **Comprehensive** |
 
 ## Key Features
 
@@ -307,7 +307,7 @@ These tests integrate seamlessly with existing CI:
 
 ## Conclusion
 
-Successfully generated **1,749 lines** of comprehensive test code covering:
+Successfully generated **1,580 lines** of comprehensive test code covering:
 
 - ✅ **120+ test cases** for workflow configurations
 - ✅ **23 test classes** organized by concern
