@@ -12,7 +12,10 @@ from typing import Dict, Any
 
 
 class DuplicateKeyLoader(yaml.SafeLoader):
-    """Custom YAML loader that detects duplicate keys."""
+    """Custom YAML loader that detects duplicate keys.
+    
+    Extends SafeLoader to maintain security while adding duplicate key detection.
+    """
     pass
 
 
