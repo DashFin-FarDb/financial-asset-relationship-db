@@ -41,7 +41,41 @@ class TestWorkflowInjectionPrevention:
             r'\$\{\{\s*github\.head_ref\s*\}\}',        # ${{ github.head_ref }}
             r'\$\{\{\s*github\.base_ref\s*\}\}',        # ${{ github.base_ref }}
         ]
-        
+
+        def is_variable_quoted(command: str, match: str) -> bool:
+            """Check if a matched variable is within a quoted context."""
+            # Find all occurrences of the match in the command
+            start = 0
+            while True:
+                pos = command.find(match, start)
+                if pos == -1:
+                    break
+
+                # Check the character immediately before and after the match
+                before_pos = pos - 1
+                after_pos = pos + len(match)
+
+                # Look for surrounding quotes by scanning outward
+                # Check if this occurrence is within double quotes
+                text_before = command[:pos]
+                text_after = command[after_pos:]
+
+                # Count unescaped quotes before the match
+                double_quotes_before = len(re.findall(r'(?<!\\)"', text_before))
+                single_quotes_before = len(re.findall(r"(?<!\\)'", text_before))
+
+                # If odd number of double quotes before, we're inside double quotes
+                if double_quotes_before % 2 == 1:
+                    return True
+
+                # If odd number of single quotes before, we're inside single quotes
+                if single_quotes_before % 2 == 1:
+                    return True
+
+                start = pos + 1
+
+            return False
+
         for workflow in all_workflows:
             jobs = workflow['content'].get('jobs', {})
             for job_name, job_config in jobs.items():
@@ -53,8 +87,8 @@ class TestWorkflowInjectionPrevention:
                         for pattern in dangerous_patterns:
                             matches = re.findall(pattern, run_command)
                             for match in matches:
-                                # Should be within quotes
-                                assert '"' in run_command or "'" in run_command, \
+                                # Verify the matched variable is actually within quotes
+                                assert is_variable_quoted(run_command, match), \
                                     f"Unquoted context variable in {workflow['path']} " \
                                     f"job '{job_name}' step {step_idx}: {match}"
     
