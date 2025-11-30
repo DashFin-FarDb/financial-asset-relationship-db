@@ -272,30 +272,13 @@ class TestWorkflowPermissionsHardening:
                 assert permissions != 'write-all', \
                     f"Workflow {workflow['path']} uses dangerous 'write-all' permission"
     
-    def test_third_party_actions_use_commit_sha(self, all_workflows):
-        """Verify third-party actions are pinned to commit SHA."""
-        for workflow in all_workflows:
-            jobs = workflow['content'].get('jobs', {})
-            for job_name, job_config in jobs.items():
-                steps = job_config.get('steps', [])
-                for step_idx, step in enumerate(steps):
-                    if 'uses' in step:
-                        action = step['uses']
-                        
-                        # Skip GitHub official actions
-                        if action.startswith('actions/'):
-                            continue
-                        
-                        # Third-party actions should use full commit SHA
+                        # Third-party actions must use full commit SHA
                         if '@' in action:
                             version = action.split('@')[1]
-                            # Should be 40-character hex string (commit SHA)
-                            if not re.match(r'^[a-f0-9]{40}$', version):
-                                # Only warn for major version tags
-                                assert version.startswith('v'), \
-                                    f"Third-party action {action} in {workflow['path']} " \
-                                    f"job '{job_name}' should use commit SHA for security"
-
+                            # Enforce 40-character hex string (commit SHA)
+                            assert re.match(r'^[a-f0-9]{40}$', version), \
+                                f"Third-party action {action} in {workflow['path']} " \
+                                f"job '{job_name}' must be pinned to a commit SHA for security"
 
 class TestWorkflowSupplyChainSecurity:
     """Tests for supply chain security in workflows."""
