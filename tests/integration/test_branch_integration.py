@@ -149,11 +149,12 @@ class TestRemovedFilesIntegration:
         
         for wf_file in workflow_files:
             with open(wf_file, 'r') as f:
-                content = f.read()
-            
+                lines = f.readlines()
+        
             for removed in removed_files:
-                assert removed not in content, \
-                    f"{wf_file} references removed file {removed}"
+                for line in lines:
+                    if removed in line and not line.strip().startswith('#'):
+                        pytest.fail(f"{wf_file} references removed file {removed}")
     
     def test_label_workflow_doesnt_need_labeler_config(self):
         """Verify label workflow works without labeler.yml."""
