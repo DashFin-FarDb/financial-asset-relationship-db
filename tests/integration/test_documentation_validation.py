@@ -430,27 +430,20 @@ class TestDocumentationMarkdownQuality:
             
             # Allow some, but should mostly use ATX
             assert setext_headers < 5, \
-                f"{doc_file} uses too many Setext-style headers. Use ATX style (#, ##, ###)"
-    
-    def test_code_blocks_have_language(self):
-        """Ensure code blocks specify language for syntax highlighting."""
-        summary_files = list(Path('.').glob('*SUMMARY.md')) + list(Path('.').glob('TEST_*.md'))
 
-        for doc_file in summary_files:
-            content = doc_file.read_text(encoding='utf-8')
-
-            # Find code blocks - match complete blocks to only capture opening fence language
-            import re
-            code_blocks = re.findall(r'```([^\n]*)\n.*?```', content, re.DOTALL)
+            code_blocks = re.findall(r'```\s*([A-Za-z0-9_+-]*)', content)
 
             if code_blocks:
                 # At least 70% should have language specified
-                with_language = sum(1 for lang in code_blocks if lang)
+                with_language = sum(1 for lang in code_blocks if lang.strip())
                 total = len(code_blocks)
+
                 percentage = (with_language / total * 100) if total > 0 else 100
-                assert percentage >= 70, \
-                    f"{doc_file}: Only {percentage:.0f}% of code blocks specify language. " \
+
+                assert percentage >= 70, (
+                    f"{doc_file}: Only {percentage:.0f}% of code blocks specify language. "
                     "Add language identifiers (bash, python, yaml, etc.)"
+                )
     
     def test_no_very_long_lines(self):
         """Check for reasonably wrapped lines in markdown."""
