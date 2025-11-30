@@ -55,7 +55,7 @@ class TestRequirementsFormat:
                 pkg_name = re.split(r'[<>=~!]', line)[0].strip()
                 # PyYAML is a special case with capital letters
                 if pkg_name.lower() not in ['pyyaml']:
-                    assert pkg_name.islower() or '-' in pkg_name, \
+                    assert pkg_name.islower(), \
                         f"Line {i}: Package name should be lowercase: {pkg_name}"
 
 
