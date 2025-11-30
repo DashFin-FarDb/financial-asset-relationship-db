@@ -89,7 +89,7 @@ Generated comprehensive unit and validation tests for GitHub workflow configurat
   - Credential persistence prevention
   - Trusted container images
 
-### 3. test_yaml_config_validation.py (457 lines)
+### 3. test_yaml_config_validation.py (356 lines)
 **Purpose**: YAML syntax and configuration validation
 
 **Test Classes** (5 classes, 30+ tests):
@@ -125,8 +125,8 @@ Generated comprehensive unit and validation tests for GitHub workflow configurat
 |------|-------|---------|-------|------------|
 | test_workflow_config_changes.py | 684 | 13 | 50+ | Configuration Changes |
 | test_workflow_security_advanced.py | 608 | 5 | 40+ | Security Best Practices |
-| test_yaml_config_validation.py | 457 | 5 | 30+ | Syntax & Validation |
-| **Total** | **1,749** | **23** | **120+** | **Comprehensive** |
+| test_yaml_config_validation.py | 356 | 5 | 30+ | Syntax & Validation |
+| **Total** | **1,648** | **23** | **120+** | **Comprehensive** |
 
 ## Key Features
 
@@ -307,7 +307,7 @@ These tests integrate seamlessly with existing CI:
 
 ## Conclusion
 
-Successfully generated **1,749 lines** of comprehensive test code covering:
+Successfully generated **1,648 lines** of comprehensive test code covering:
 
 - ✅ **120+ test cases** for workflow configurations
 - ✅ **23 test classes** organized by concern
