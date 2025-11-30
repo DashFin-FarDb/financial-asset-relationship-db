@@ -44,11 +44,15 @@ class TestWorkflowYAMLValidation:
         for workflow_file in modified_workflows:
             path = self.WORKFLOW_DIR / workflow_file
             with open(path, 'r') as f:
-                workflow = yaml.safe_load(f)
-            
-            for key in required_keys:
-                assert key in workflow, \
-                    f"Workflow {workflow_file} missing required key: {key}"
+                with open(path, 'r') as f:
+                    workflow = yaml.safe_load(f)
+
+                assert isinstance(workflow, dict), \
+                    f"Workflow {workflow_file} does not contain a valid YAML mapping."
+
+                for key in required_keys:
+                    assert key in workflow, \
+                        f"Workflow {workflow_file} missing required key: {key}"
     
     def test_pr_agent_workflow_simplified_correctly(self):
         """Verify PR agent workflow no longer has chunking code."""
