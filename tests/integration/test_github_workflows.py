@@ -298,11 +298,12 @@ class TestPrAgentWorkflow:
         assert "pr-agent-trigger" in jobs, "pr-agent workflow must have a 'pr-agent-trigger' job"
     
     def test_pr_agent_trigger_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that pr-agent-trigger job runs on Ubuntu."""
+        """Test that pr-agent-trigger job runs on standard Ubuntu runners."""
         trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         runs_on = trigger_job.get("runs-on", "")
-        assert "ubuntu" in runs_on.lower(), (
-            "pr-agent-trigger job should run on Ubuntu runner"
+        standard_ubuntu_runners = {"ubuntu-latest", "ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04"}
+        assert runs_on in standard_ubuntu_runners, (
+            f"pr-agent-trigger job should run on one of standard Ubuntu runners: {standard_ubuntu_runners}, got '{runs_on}'"
         )
     
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
@@ -318,21 +319,22 @@ class TestPrAgentWorkflow:
     
     def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure every actions/checkout step in the pr-agent-trigger job provides a `token` in its `with` mapping.
-        
-        Fails the test if any checkout step omits the `token` key.
+        Ensure every actions/checkout step in the pr-agent-trigger job provides a non-empty `token` in its `with` mapping.
+
+        Fails the test if any checkout step omits the `token` key or has an empty token value.
         """
         trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = trigger_job.get("steps", [])
-        
+
         checkout_steps = [
-            s for s in steps 
+            s for s in steps
             if s.get("uses", "").startswith("actions/checkout")
         ]
-        
+
         for step in checkout_steps:
             step_with = step.get("with", {})
             assert "token" in step_with, "Checkout step should specify a token"
+            assert step_with["token"], "Checkout step token should not be empty"
     
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """
@@ -350,16 +352,16 @@ class TestPrAgentWorkflow:
         ]
         assert len(python_steps) > 0, "Review job must set up Python"
     
-    def test_pr_agent_has_node_setup(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that review job sets up Node.js."""
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
-        
+    def test_pr_agent_trigger_has_node_setup(self, pr_agent_workflow: Dict[str, Any]):
+        """Test that pr-agent-trigger job sets up Node.js."""
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
+
         node_steps = [
-            s for s in steps 
+            s for s in steps
             if s.get("uses", "").startswith("actions/setup-node")
         ]
-        assert len(node_steps) > 0, "Review job must set up Node.js"
+        assert len(node_steps) > 0, "pr-agent-trigger job must set up Node.js"
     
     def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
         """
@@ -386,17 +388,17 @@ class TestPrAgentWorkflow:
                 "Python version should be 3.11"
             )
     
-    def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that there are no duplicate setup steps in the workflow."""
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
-        
+    def test_pr_agent_trigger_no_duplicate_step_names(self, pr_agent_workflow: Dict[str, Any]):
+        """Test that there are no duplicate step names in the pr-agent-trigger job steps."""
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
+
         # Check for duplicate step names
         step_names = [s.get("name", "") for s in steps if s.get("name")]
         duplicate_names = [name for name in step_names if step_names.count(name) > 1]
-        
+
         assert not duplicate_names, (
-            f"Found duplicate step names: {set(duplicate_names)}. "
+            f"Found duplicate step names in pr-agent-trigger job: {set(duplicate_names)}. "
             "Each step should have a unique name."
         )
     
