@@ -89,8 +89,7 @@
         print(f"\nProcessed content:\n{processed}")
 
 
-    if __name__ == "__main__":
-        main()
+    # Entry point behavior is already handled elsewhere; avoid duplicating the main invocation.
             chunker = ContextChunker()
     
             # Example PR data
