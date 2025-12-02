@@ -55,35 +55,35 @@
             str: Empty string placeholder; to be implemented.
         """
         return ""
-        """Placeholder for building limited content."""
-        return ""
 
-        def main():
-            """Example usage"""
-            chunker = ContextChunker()
-    
-            # Example PR data
-            example_pr = {
-                'reviews': [
-                    {
-                        'user': {'login': 'reviewer1'},
-                        'state': 'changes_requested',
-                        'body': 'Please fix the bug in the database connection and add tests.'
-                    }
-                ],
-                'files': [
-                    {
-                        'filename': 'src/data/database.py',
-                        'additions': 50,
-                        'deletions': 20,
-                        'patch': '@@ -1,5 +1,10 @@\n-old code\n+new code'
-                    }
-                ]
+
+def main():
+    """Example usage"""
+    chunker = ContextChunker()
+
+    # Example PR data
+    example_pr = {
+        'reviews': [
+            {
+                'user': {'login': 'reviewer1'},
+                'state': 'changes_requested',
+                'body': 'Please fix the bug in the database connection and add tests.'
             }
-    
-            processed, chunked = chunker.process_context(example_pr)
-            print(f"Chunked: {chunked}")
-            print(f"\nProcessed content:\n{processed}")
+        ],
+        'files': [
+            {
+                'filename': 'src/data/database.py',
+                'additions': 50,
+                'deletions': 20,
+                'patch': '@@ -1,5 +1,10 @@\n-old code\n+new code'
+            }
+        ]
+    }
 
-        if __name__ == "__main__":
-            main()
+    processed, chunked = chunker.process_context(example_pr)
+    print(f"Chunked: {chunked}")
+    print(f"\nProcessed content:\n{processed}")
+
+
+if __name__ == "__main__":
+    main()
