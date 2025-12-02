@@ -82,8 +82,9 @@ def _build_limited_content(self, chunks):
             if self._encoder:
                 try:
                     return len(self._encoder.encode(text))
-                except Exception:
-                    pass
+                except Exception as e:
+                    import warnings
+                    warnings.warn(f"Token encoder failed: {e}. Using fallback estimation.", stacklevel=2)
             # Fallback heuristic: ~4 chars per token
             return max(1, len(text) // 4)
 
