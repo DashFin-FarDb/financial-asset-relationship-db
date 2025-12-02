@@ -58,17 +58,7 @@
         return ""
         return ""
 
-    def _build_limited_content(self, chunks):
-        """
-        Build limited content from chunks (placeholder implementation).
-
-        Parameters:
-            chunks: Collection of content chunks to process.
-
-        Returns:
-            str: Empty string placeholder; to be implemented.
-        """
-        return ""
+    # _build_limited_content is already defined above; duplicate definition removed.
 
 
     def main():
