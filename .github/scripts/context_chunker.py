@@ -55,7 +55,7 @@
             str: Empty string placeholder; to be implemented.
         """
         return ""
-        """Placeholder for building limited content."""
+        return ""
         return ""
 
         def main():
