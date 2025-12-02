@@ -104,6 +104,8 @@ class TestPRAgentConfigYAMLValidity:
             mapping = {}
             for key_node, value_node in node.value:
                 key = loader.construct_object(key_node, deep=deep)
+                if key is None:
+                    raise yaml.YAMLError("Null (None) key detected in YAML mapping.")
                 try:
                     hash(key)
                 except TypeError:
