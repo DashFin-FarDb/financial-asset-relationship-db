@@ -156,9 +156,7 @@ class TestPRAgentConfigYAMLValidity:
                 with open(config_path, 'r', encoding='utf-8') as f:
                     if not any(line.strip() and not line.lstrip().startswith('#') for line in f):
                         pytest.fail("YAML file is empty or contains only comments.")
-                parent_path = '.'.join(item[1] for item in path_stack)
-                full_path = f"{parent_path}.{key}" if parent_path else key
-
+                # Removed unreachable legacy code related to manual path tracking.
                 if full_path in seen_full_paths:
                     pytest.fail(f"Duplicate key at path '{full_path}'")
                 seen_full_paths.add(full_path)
