@@ -16,7 +16,27 @@ REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples."""
+    """
+    Parse a requirements file into package/version specification pairs.
+    
+    Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
+    Inline comments (text after `#`) are removed before parsing. Each non-comment line
+    may contain multiple comma-separated version specifiers (for example `pkg>=1.0,<=2.0`);
+    the function extracts the package name (alphanumeric characters, dot, underscore or hyphen)
+    and collects all specifiers into a single comma-separated `version_spec`. If a line has no
+    version specifiers the corresponding `version_spec` is an empty string.
+    
+    Parameters:
+        file_path (Path): Path to the requirements file to parse.
+    
+    Returns:
+        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where `version_spec`
+        is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0") or an empty string when
+        no specifiers are present.
+    
+    Raises:
+        AssertionError: If a requirement line contains a malformed package name.
+    """
     requirements = []
     
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -151,7 +171,14 @@ class TestVersionSpecifications:
     
     @pytest.fixture
     def requirements(self) -> List[Tuple[str, str]]:
-        """Parse and return requirements."""
+        """
+        Return the parsed list of (package_name, version_spec) pairs from the development requirements file.
+        
+        Each tuple contains the package name and a single version specifier string; the version spec is an empty string when no specifier is present.
+        
+        Returns:
+            List[Tuple[str, str]]: Parsed requirements as (package_name, version_spec) pairs.
+        """
         return parse_requirements(REQUIREMENTS_FILE)
 
     def test_all_packages_have_versions(self, requirements: List[Tuple[str, str]]):

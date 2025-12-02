@@ -43,6 +43,85 @@
         processed_content = self._build_limited_content(chunks)
         return processed_content, True
 
+
+    def _build_limited_content(self, chunks):
+        """
+        Build limited content from chunks (placeholder implementation).
+
+        Parameters:
+    # Removed duplicate method signature and docstring; single valid definition remains below
+
+        Parameters:
+def _build_limited_content(self, chunks):
+        """
+        Build a token-limited string from prioritized content chunks.
+
+        Args:
+            chunks: A collection of dictionaries. Each dict should have:
+                - "type": (str) Used for prioritization via `self.priority_map`.
+                - "content": (str) The text content to include.
+
+        Returns:
+            str: A concatenated string of chunk contents, separated by double newlines,
+                 respecting `self.max_tokens` total limit and `self.chunk_size` per-chunk limit.
+                 Chunks are processed in priority order (unknown types last).
+                 Token estimation uses `self._encoder` if available, else a 4-char heuristic.
+        """
+
+        Returns:
+            A prioritized, size-limited string assembled from provided chunks.
+        """
+        # Build limited content by prioritizing chunks and enforcing token limits
+
+        Returns:
+            str: Limited content assembled from the prioritized chunks.
+        """
+        """
+        # Build limited content by prioritizing chunks and enforcing token limits
+        # Expect each chunk to be a dict with keys: "type" and "content"
+        def estimate_tokens(text: str) -> int:
+            if self._encoder:
+                try:
+                    return len(self._encoder.encode(text))
+                except Exception as e:
+                    import warnings
+                    warnings.warn(f"Token encoder failed: {e}. Using fallback estimation.", stacklevel=2)
+            # Fallback heuristic: ~4 chars per token
+            return max(1, len(text) // 4)
+
+        # Sort chunks by configured priority (unknown types come last)
+        def priority_key(ch):
+            if not isinstance(ch, dict):
+        def priority_key(ch, priority_map=self.priority_map):
+            ch_type = (ch or {}).get("type", "")
+            return priority_map.get(ch_type, len(priority_map))
+
+        filtered_chunks = [ch for ch in (chunks or []) if ch is not None]
+        sorted_chunks = sorted(filtered_chunks, key=priority_key)
+
+        pieces = []
+        used_tokens = 0
+        limit = self.max_tokens
+
+        filtered_chunks = [ch for ch in iterable_chunks if isinstance(ch, dict)]
+        sorted_chunks = sorted(filtered_chunks, key=priority_key)
+
+        # Apply per-chunk truncation with overlap computed in token space
+        max_len_tokens = max(1, int(self.chunk_size))
+        overlap_tokens = max(0, int(self.overlap_tokens))
+        truncated_chunks = []
+        for ch in sorted_chunks:
+            content = (ch or {}).get("content") or ""
+            # Estimate total tokens for this content
+            total_tokens = estimate_tokens(content)
+            # Determine slice ratio based on tokens (including overlap), approximate to chars
+            slice_ratio = (max_len_tokens + overlap_tokens) / max(total_tokens, 1)
+            slice_chars = max(1, int(len(content) * slice_ratio))
+            slice_chars = min(len(content), slice_chars)
+            truncated_content = content[:slice_chars]
+            truncated_chunks.append({**ch, "content": truncated_content})
+        sorted_chunks = truncated_chunks
+
         def main():
             """Example usage"""
             chunker = ContextChunker()
