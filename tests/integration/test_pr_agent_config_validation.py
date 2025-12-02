@@ -134,17 +134,10 @@ class TestPRAgentConfigYAMLValidity:
                             raise yaml.YAMLError(f"Duplicate key detected via merge: {mk!r}")
                     mapping.update(merged)
                 else:
-                def construct_mapping_no_dups(loader, node, deep=False):
-                    if not isinstance(node, yaml.MappingNode):
-                        # Delegate to the default object constructor for non-mapping nodes
-                        return loader.construct_object(node, deep=deep)
-                    mapping = {}
-                    for key_node, value_node in node.value:
-                        key = loader.construct_object(key_node, deep=deep)
-                        if key in mapping:
-                            raise yaml.YAMLError(f"Duplicate key detected: {key}")
-                        mapping[key] = loader.construct_object(value_node, deep=deep)
-                    return mapping
+                    raise yaml.YAMLError(
+                        f"Unsupported merge node type: {type(merged).__name__}"
+                    )
+            return mapping
 
         DuplicateKeyLoader.add_constructor(
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
