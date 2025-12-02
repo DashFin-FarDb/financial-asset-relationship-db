@@ -115,7 +115,9 @@ class TestPRAgentConfigYAMLValidity:
                 except TypeError:
                     raise yaml.YAMLError(f"Unhashable mapping key encountered: {key!r}")
                 if key in mapping:
-                    raise yaml.YAMLError(f"Duplicate key detected: {key}")
+                    mark = getattr(key_node, 'start_mark', None)
+                    location = f" at line {mark.line + 1}, column {mark.column + 1}" if mark else ""
+                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}{location}")
                 mapping[key] = loader.construct_object(value_node, deep=deep)
             return mapping
 
