@@ -112,7 +112,7 @@ class ContextChunker:
         # Adjust for whitespace sequences
         whitespace_count = sum(
             1 for i, c in enumerate(text)
-            if c.isspace() and (i == 0 or not text[i-1].isspace())
+            if c.isspace() and (i == 0 or not text[i - 1].isspace())
         )
         base_tokens += whitespace_count * 0.25
 
@@ -319,10 +319,12 @@ class ContextChunker:
                 # Truncate chunk to fit remaining space
                 truncated = self._truncate_to_tokens(content, remaining_tokens - 100)
                 if truncated:
-                    truncated += f"\n\n[{chunk_type} truncated due to token limit]"
-                    result_parts.append(truncated)
-                    remaining_tokens = 0
-                break
+                    truncated_with_note = truncated + f"\n\n[{chunk_type} truncated due to token limit]"
+                    result_parts.append(truncated_with_note)
+                    # Update remaining tokens after truncation
+                    truncated_tokens = self.estimate_tokens(truncated_with_note)
+                    remaining_tokens -= truncated_tokens
+                # Continue to try fitting more chunks instead of breaking
             else:
                 # Not enough space, add summary note
                 result_parts.append(
@@ -338,6 +340,7 @@ class ContextChunker:
         Truncate text to approximately max_tokens.
 
         Attempts to truncate at natural boundaries (newlines, sentences).
+        Re-checks token count after truncation to ensure it doesn't exceed the limit.
 
         Parameters:
             text: The text to truncate.
@@ -369,6 +372,16 @@ class ContextChunker:
         last_newline = truncated.rfind('\n')
         if last_newline > target_chars // 2:
             truncated = truncated[:last_newline]
+
+        # Re-check token count and further trim if necessary
+        while self.estimate_tokens(truncated) > max_tokens and len(truncated) > 0:
+            # Trim by 10% of current length or at least 100 characters
+            trim_amount = max(100, len(truncated) // 10)
+            truncated = truncated[:-trim_amount]
+            # Try to find a natural boundary again
+            last_newline = truncated.rfind('\n')
+            if last_newline > len(truncated) // 2:
+                truncated = truncated[:last_newline]
 
         return truncated
 
