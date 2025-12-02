@@ -42,7 +42,12 @@ class TestDocumentationExists:
 
 @pytest.fixture(scope='session')
 def doc_content() -> str:
-    """Load the documentation content once per test session."""
+    """
+    Load the documentation file into a single string for use by tests.
+    
+    Returns:
+        content (str): The entire contents of the documentation file at DOC_FILE.
+    """
     try:
         with open(DOC_FILE, 'r', encoding='utf-8') as f:
             return f.read()
@@ -54,7 +59,18 @@ def doc_content() -> str:
 
 @pytest.fixture(scope='session')
 def doc_lines(doc_content: str) -> List[str]:
-    """Provide the documentation as a list of lines once per session."""
+    """
+    Return the documentation content as a list of lines preserving original line endings.
+    
+    Parameters:
+        doc_content (str): The full documentation text to split.
+    
+    Returns:
+        List[str]: The documentation split into lines with line ending characters preserved.
+    
+    Raises:
+        pytest.fail: Fails the test session if `doc_content` is empty.
+    """
     if not doc_content:
         pytest.fail("Loaded documentation content is empty.")
     return doc_content.splitlines(keepends=True)
@@ -62,7 +78,18 @@ def doc_lines(doc_content: str) -> List[str]:
 
 @pytest.fixture(scope='session')
 def section_headers(doc_lines: List[str]) -> List[str]:
-    """Extract markdown section headers from the documentation lines."""
+    """
+    Extracts Markdown section header lines from a list of document lines.
+    
+    Ignores lines inside fenced code blocks delimited by lines that start with "```".
+    Returns header lines with surrounding whitespace removed (each line begins with one or more `#` characters).
+    
+    Parameters:
+        doc_lines (List[str]): Lines of the Markdown document.
+    
+    Returns:
+        List[str]: A list of header lines (stripped), e.g. "# Overview", "## Details".
+    """
     headers = []
     in_code_block = False
     for line in doc_lines:
