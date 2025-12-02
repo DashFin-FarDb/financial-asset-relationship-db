@@ -156,7 +156,7 @@ class TestPRAgentConfigYAMLValidity:
                 construct_mapping_no_dups
             )
 
-        with open(config_path, 'r') as f:
+        with open(config_path, 'r', encoding='utf-8') as f:
             try:
                 yaml.load(f, Loader=DuplicateKeyLoader)
             except yaml.YAMLError as e:
