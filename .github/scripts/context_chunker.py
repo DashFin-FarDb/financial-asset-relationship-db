@@ -184,7 +184,11 @@ def main():
         ]
     }
 
-    processed, chunked = chunker.process_context(example_pr)
+    try:
+        processed, chunked = chunker.process_context(example_pr)
+    except Exception as e:
+        print(f"Error: failed to process context: {e}", file=sys.stderr)
+        return
     print(f"Chunked: {chunked}")
     print(f"\nProcessed content:\n{processed}")
 
