@@ -109,7 +109,9 @@ class TestMarkdownFormatting:
                 # Toggle open/close state on a fence line
                 open_block = not open_block
         assert open_block is False, "Code blocks not properly closed or mismatched triple backticks detected"
-    
+            if re.match(r'^```', stripped):
+                # Toggle open/close state on a fence line (supports language specifiers)
+                open_block = not open_block
     def test_lists_properly_formatted(self, summary_lines: List[str]):
         """
         Validate that Markdown bullet list items use even indentation (multiples of two spaces).
