@@ -55,11 +55,27 @@ class ContextChunker:
                 with cfg_file.open("r", encoding="utf-8") as f:
                     self.config = yaml.safe_load(f) or {}
             except Exception as e:
-                print(f"Warning: failed to load config from {config_path}: {e}", file=sys.stderr)
+                msg = f"failed to load config from {config_path}: {e}"
+                if getattr(self, "strict_config", False):
+                    raise RuntimeError(f"ConfigurationError: {msg}") from e
+                print(f"Warning: {msg}", file=sys.stderr)
                 self.config = {}
-        agent_cfg = (self.config.get("agent") or {}).get("context") or {}
-        self.max_tokens: int = int(agent_cfg.get("max_tokens", 32000))
-        self.chunk_size: int = int(agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000)))
+            # Check for required configuration sections and optionally escalate if missing
+            if cfg_file.exists() and self.config:
+                missing_sections = []
+                if "agent" not in self.config or "context" not in (self.config.get("agent") or {}):
+                    print(f"Warning: 'agent.context' section missing in config file {config_path}", file=sys.stderr)
+                    missing_sections.append("agent.context")
+                if "limits" not in self.config or "fallback" not in (self.config.get("limits") or {}):
+                    print(f"Warning: 'limits.fallback' section missing in config file {config_path}", file=sys.stderr)
+                    missing_sections.append("limits.fallback")
+                if getattr(self, "strict_config", False) and missing_sections:
+                    raise RuntimeError(
+                        f"ConfigurationError: missing required sections {missing_sections} in config file {config_path}"
+                    )
+            agent_cfg = (self.config.get("agent") or {}).get("context") or {}
+            self.max_tokens: int = int(agent_cfg.get("max_tokens", 32000))
+            self.chunk_size: int = int(agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000)))
         self.overlap_tokens: int = int(agent_cfg.get("overlap_tokens", 2000))
         self.summarization_threshold: int = int(agent_cfg.get("summarization_threshold", int(self.max_tokens * 0.9)))
         limits_cfg = (self.config.get("limits") or {}).get("fallback") or {}
