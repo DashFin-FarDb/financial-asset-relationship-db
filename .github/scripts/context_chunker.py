@@ -58,8 +58,49 @@
         return ""
         return ""
 
-        def main():
-            """Example usage"""
+    def _build_limited_content(self, chunks):
+        """
+        Build limited content from chunks (placeholder implementation).
+
+        Parameters:
+            chunks: Collection of content chunks to process.
+
+        Returns:
+            str: Empty string placeholder; to be implemented.
+        """
+        return ""
+
+
+    def main():
+        """Example usage"""
+        chunker = ContextChunker()
+
+        # Example PR data
+        example_pr = {
+            'reviews': [
+                {
+                    'user': {'login': 'reviewer1'},
+                    'state': 'changes_requested',
+                    'body': 'Please fix the bug in the database connection and add tests.'
+                }
+            ],
+            'files': [
+                {
+                    'filename': 'src/data/database.py',
+                    'additions': 50,
+                    'deletions': 20,
+                    'patch': '@@ -1,5 +1,10 @@\n-old code\n+new code'
+                }
+            ]
+        }
+
+        processed, chunked = chunker.process_context(example_pr)
+        print(f"Chunked: {chunked}")
+        print(f"\nProcessed content:\n{processed}")
+
+
+    if __name__ == "__main__":
+        main()
             chunker = ContextChunker()
     
             # Example PR data
