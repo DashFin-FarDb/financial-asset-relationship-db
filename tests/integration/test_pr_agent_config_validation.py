@@ -100,80 +100,25 @@ class TestPRAgentConfigYAMLValidity:
 
         def construct_mapping_no_dups(loader, node, deep=False):
             if not isinstance(node, yaml.MappingNode):
-                return loader.construct_mapping(node, deep=deep)
+                return loader.construct_object(node, deep=deep)
             mapping = {}
             for key_node, value_node in node.value:
                 key = loader.construct_object(key_node, deep=deep)
-                # Ensure keys are hashable to safely detect duplicates
-                try:
-                    hash(key)
-                except TypeError:
-                key = loader.construct_object(key_node, deep=deep)
-                # Ensure keys are hashable to safely detect duplicates
-                try:
-                    hash(key)
-                except TypeError:
-            mapping = {}
-            # Handle YAML merge keys '<<' first to seed existing keys
-            merges = []
-            for key_node, value_node in node.value:
-                k = loader.construct_object(key_node, deep=deep)
-                if k == '<<':
-                    merges.append(value_node)
-            for merge_node in merges:
-                merged = loader.construct_object(merge_node, deep=deep)
-                if isinstance(merged, list):
-                    for m in merged:
-                        for mk in m.keys():
-                            if mk in mapping:
-                                raise yaml.YAMLError(f"Duplicate key detected via merge: {mk!r}")
-                        mapping.update(m)
-                elif isinstance(merged, dict):
-                    for mk in merged.keys():
-                        if mk in mapping:
-                            raise yaml.YAMLError(f"Duplicate key detected via merge: {mk!r}")
-                    mapping.update(merged)
-                else:
-                def construct_mapping_no_dups(loader, node, deep=False):
-                    if not isinstance(node, yaml.MappingNode):
-                        # Delegate to the default object constructor for non-mapping nodes
-                        return loader.construct_object(node, deep=deep)
-                    mapping = {}
-                    for key_node, value_node in node.value:
-                        key = loader.construct_object(key_node, deep=deep)
-                        if key in mapping:
-                            raise yaml.YAMLError(f"Duplicate key detected: {key}")
-                        mapping[key] = loader.construct_object(value_node, deep=deep)
-                    return mapping
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key}")
+                mapping[key] = loader.construct_object(value_node, deep=deep)
+            return mapping
 
         DuplicateKeyLoader.add_constructor(
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
             construct_mapping_no_dups
         )
-        # Ensure ordered mappings also use the duplicate key check if present
-        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-            DuplicateKeyLoader.add_constructor(
-                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
-                construct_mapping_no_dups
-            )
 
         with open(config_path, 'r', encoding='utf-8') as f:
             try:
                 yaml.load(f, Loader=DuplicateKeyLoader)
             except yaml.YAMLError as e:
                 pytest.fail(f"Duplicate key detected or YAML error: {e}")
-                    path_stack.pop()
-
-                # Build full path from stack + current key
-                parent_path = '.'.join(item[1] for item in path_stack)
-                full_path = f"{parent_path}.{key}" if parent_path else key
-
-                if full_path in seen_full_paths:
-                    pytest.fail(f"Duplicate key at path '{full_path}'")
-                seen_full_paths.add(full_path)
-
-                # Push current key onto stack for potential children
-                path_stack.append((indent, key))
     
     def test_consistent_indentation(self):
         """Verify consistent 2-space indentation."""
