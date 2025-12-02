@@ -126,7 +126,7 @@ class TestPRAgentConfigYAMLValidity:
             except yaml.YAMLError as e:
                 # Check if this is specifically a duplicate key error
                 error_msg = str(e).lower()
-                if "duplicate" in error_msg or "duplicate key" in error_msg:
+                if "duplicate" in error_msg:
                     pytest.fail(f"Duplicate key detected in YAML config: {e}")
                 else:
                     pytest.fail(f"YAML parsing error in config: {e}")
