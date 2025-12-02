@@ -80,7 +80,8 @@
             ch_type = ch.get("type", "")
             return self.priority_map.get(ch_type, len(self.priority_map))
 
-        sorted_chunks = sorted((chunks or []), key=priority_key)
+        filtered_chunks = [ch for ch in (chunks or []) if ch is not None]
+        sorted_chunks = sorted(filtered_chunks, key=priority_key)
 
         pieces = []
         used_tokens = 0
