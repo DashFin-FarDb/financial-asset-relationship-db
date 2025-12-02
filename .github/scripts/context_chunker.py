@@ -71,12 +71,29 @@
 
                 # Helper to compute token length if encoder is available, else fallback to len()
                 def _length(text: str) -> int:
+                    """
+                    Estimate token length. Uses tiktoken if available; otherwise falls back to a heuristic
+                    that approximates tokenization by splitting on word characters, punctuation, and whitespace.
+                    Note: This is an approximation and may slightly over/under count.
+                    """
                     if getattr(self, "_encoder", None) is not None:
                         try:
                             return len(self._encoder.encode(text))
                         except Exception:
                             pass
-                    return len(text)
+                    # Heuristic fallback: approximate tokens by regex-based segmentation
+                    # This more closely matches token boundaries than len(text), especially for non-ASCII.
+                    import re
+                    # Split into words, punctuation, and whitespace; collapse contiguous whitespace to a single token.
+                    tokens = re.findall(r"\w+|[^\w\s]|(?:\s+)", text, flags=re.UNICODE)
+                    # Count collapsed whitespace as single tokens
+                    approx_count = 0
+                    for tok in tokens:
+                        if tok.isspace():
+                            approx_count += 1
+                        else:
+                            approx_count += 1
+                    return approx_count
 
                 # Normalize chunks into a list of tuples with priority
                 norm_chunks = []
