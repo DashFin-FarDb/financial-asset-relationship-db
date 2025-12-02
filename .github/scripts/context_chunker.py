@@ -93,7 +93,7 @@
 
         if __name__ == "__main__":
             main()
-        Build limited content from chunks (placeholder implementation).
+        # Build limited content from chunks (placeholder implementation).
 
         Parameters:
             chunks: Collection of content chunks to process.
