@@ -103,50 +103,13 @@ def _build_limited_content(self, chunks):
 
         for ch in sorted_chunks:
             content = (ch or {}).get("content") or ""
-        overlap_chars = max(0, int(len(content) * overlap_ratio))
-        # Ensure overlap does not exceed per-chunk budget approximation
-        max_chars_for_chunk = max(1, int(len(content) * (max_len_tokens / max(content_tokens, 1))))
-        slice_end = min(len(content), min(max_chars_for_chunk, take_chars + overlap_chars))
-        content = content[:slice_end]
-            max_len_tokens = self.chunk_size
-            content_tokens = estimate_tokens(content)
-            if content_tokens > max_len_tokens:
-                # approximate slicing by character proportion
-                ratio = max_len_tokens / max(content_tokens, 1)
-                take_chars = max(1, int(len(content) * ratio))
-                # apply overlap at end to help continuity
-                overlap_est = max(0, int(self.overlap_tokens))
-                overlap_ratio = overlap_est / max(content_tokens, 1)
-                overlap_chars = max(0, int(len(content) * overlap_ratio))
-                slice_end = min(len(content), take_chars + overlap_chars)
-                content = content[:slice_end]
-                content_tokens = estimate_tokens(content)
-
-            # Ensure we don't exceed the overall token limit
-            if used_tokens + content_tokens > limit:
-                # take a remaining slice proportionally
-                remaining = max(0, limit - used_tokens)
-                if remaining <= 0:
-                    break
-                ratio = remaining / max(content_tokens, 1)
-                take_chars = max(1, int(len(content) * ratio))
-                content = content[:take_chars]
-                content_tokens = estimate_tokens(content)
-
-                # Final check to ensure we don't exceed the limit due to approximation
-                if content_tokens > remaining:
-                    ratio = (remaining / max(content_tokens, 1)) * 0.95 # 5% safety margin
-                    take_chars = max(1, int(len(content) * ratio))
-                    content = content[:take_chars]
-                    content_tokens = estimate_tokens(content)
-
-            if content:
-                pieces.append(content)
-                used_tokens += content_tokens
-                if used_tokens >= limit:
-                    break
-
-        return "\n\n".join(pieces)
+        # Normalize and validate input: ensure iterable of dicts
+        try:
+            iterable_chunks = list(chunks or [])
+        except TypeError:
+            iterable_chunks = []
+        filtered_chunks = [ch for ch in iterable_chunks if isinstance(ch, dict)]
+        sorted_chunks = sorted(filtered_chunks, key=priority_key)
 
         def main():
             """Example usage"""
