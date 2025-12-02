@@ -52,9 +52,113 @@
             chunks: Collection of content chunks to process.
 
         Returns:
-            str: Empty string placeholder; to be implemented.
-        """
-        return ""
+            def _build_limited_content(self, chunks):
+                """
+                Build limited content from chunks by concatenating their content in priority order
+                while respecting the configured chunk/token size limits.
+
+                Parameters:
+                    chunks: Iterable of dict-like chunk items with at least:
+                            - 'type': str (e.g., 'review_comments', 'test_failures', etc.)
+                            - 'content': str
+                            Optional: 'metadata': dict
+
+                Returns:
+                    str: Concatenated content limited by configured size.
+                """
+                if not chunks:
+                    return ""
+
+                # Helper to compute token length if encoder is available, else fallback to len()
+                def _length(text: str) -> int:
+                    if getattr(self, "_encoder", None) is not None:
+                        try:
+                            return len(self._encoder.encode(text))
+                        except Exception:
+                            pass
+                    return len(text)
+
+                # Normalize chunks into a list of tuples with priority
+                norm_chunks = []
+                for ch in chunks:
+                    ch_type = (ch or {}).get("type", "unknown")
+                    content = (ch or {}).get("content", "")
+                    metadata = (ch or {}).get("metadata", {})
+                    if not isinstance(content, str):
+                        try:
+                            content = str(content)
+                        except Exception:
+                            content = ""
+                    priority = self.priority_map.get(ch_type, len(self.priority_map) + 100)
+                    norm_chunks.append((priority, ch_type, content, metadata))
+
+                # Sort by priority (lower is higher priority)
+                norm_chunks.sort(key=lambda x: x[0])
+
+                # Build output up to the allowed size
+                header = "== Context Chunks ==\n"
+                output_parts = [header]
+                current_len = _length(header)
+
+                limit = max(1, int(self.chunk_size))
+                truncated = False
+
+                for _, ch_type, content, metadata in norm_chunks:
+                    if not content:
+                        continue
+
+                    meta_str = ""
+                    if metadata and isinstance(metadata, dict):
+                        # Include a small subset of metadata keys if available
+                        keys = ["filename", "path", "user", "state", "summary"]
+                        kv = []
+                        for k in keys:
+                            if k in metadata:
+                                v = metadata[k]
+                                # Make sure value is stringifiable and short
+                                v_str = str(v)
+                                if len(v_str) > 200:
+                                    v_str = v_str[:197] + "..."
+                                kv.append(f"{k}={v_str}")
+                        if kv:
+                            meta_str = f" ({', '.join(kv)})"
+
+                    block_header = f"\n## {ch_type}{meta_str}\n"
+                    block_body = content.strip() + "\n"
+                    block_text = block_header + block_body
+
+                    blk_len = _length(block_text)
+                    if current_len + blk_len <= limit:
+                        output_parts.append(block_text)
+                        current_len += blk_len
+                    else:
+                        # Try to add as much of the body as possible after the header
+                        remaining = max(0, limit - current_len - _length(block_header))
+                        if remaining > 0:
+                            # Token-aware truncation if possible
+                            if getattr(self, "_encoder", None) is not None:
+                                try:
+                                    tokens = self._encoder.encode(block_body)
+                                    if remaining < len(tokens):
+                                        tokens = tokens[:remaining]
+                                        truncated_body = self._encoder.decode(tokens)
+                                    else:
+                                        truncated_body = block_body
+                                except Exception:
+                                    truncated_body = block_body[:remaining]
+                            else:
+                                truncated_body = block_body[:remaining]
+
+                            output_parts.append(block_header)
+                            output_parts.append(truncated_body.rstrip() + "\n")
+                            current_len = limit
+                        truncated = True
+                        break
+
+                if truncated:
+                    output_parts.append("\n...[truncated due to size limits]...\n")
+
+                return "".join(output_parts).rstrip() + "\n"
 
 
 def main():
