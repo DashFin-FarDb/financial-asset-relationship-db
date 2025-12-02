@@ -113,11 +113,35 @@ class TestPRAgentConfigYAMLValidity:
                 try:
                     hash(key)
                 except TypeError:
-                    raise yaml.YAMLError(f"Unhashable mapping key encountered: {key!r}")
+            mapping = {}
+            # Handle YAML merge keys '<<' first to seed existing keys
+            merges = []
+            for key_node, value_node in node.value:
+                k = loader.construct_object(key_node, deep=deep)
+                if k == '<<':
+                    merges.append(value_node)
+            for merge_node in merges:
+                merged = loader.construct_object(merge_node, deep=deep)
+                if isinstance(merged, list):
+                    for m in merged:
+                        for mk in m.keys():
+                            if mk in mapping:
+                                raise yaml.YAMLError(f"Duplicate key detected via merge: {mk!r}")
+                        mapping.update(m)
+                elif isinstance(merged, dict):
+                    for mk in merged.keys():
+                        if mk in mapping:
+                            raise yaml.YAMLError(f"Duplicate key detected via merge: {mk!r}")
+                    mapping.update(merged)
+                else:
+                    raise yaml.YAMLError("Invalid merge value type")
+            # Now process regular keys
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                if key == '<<':
+                    continue  # already processed merges
                 if key in mapping:
-                    mark = getattr(key_node, 'start_mark', None)
-                    location = f" at line {mark.line + 1}, column {mark.column + 1}" if mark else ""
-                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}{location}")
+                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
                 mapping[key] = loader.construct_object(value_node, deep=deep)
             return mapping
 
