@@ -50,7 +50,7 @@ class TestPyYAMLDependencyAddition:
         lines = []
         for line in requirements_content.split('\n'):
             line = line.strip()
-            if line and not line.startswith('#'):
+            if line and not line.lstrip().startswith('#'):
                 lines.append(line)
         return lines
     
@@ -180,7 +180,7 @@ class TestRequirementsDevCompleteness:
         packages = []
         for line in requirements_content.split('\n'):
             line = line.strip()
-            if line and not line.startswith('#'):
+            if line and not line.lstrip().startswith('#'):
                 package = re.split(r'[>=<]', line)[0].strip()
                 packages.append(package)
         
@@ -265,7 +265,7 @@ class TestRequirementsDevVersionPinning:
         lines = []
         for line in content.split('\n'):
             line = line.strip()
-            if line and not line.startswith('#'):
+            if line and not line.lstrip().startswith('#'):
                 lines.append(line)
         return lines
     
