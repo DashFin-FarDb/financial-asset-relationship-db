@@ -102,15 +102,24 @@ def _build_limited_content(self, chunks):
         used_tokens = 0
         limit = self.max_tokens
 
-        for ch in sorted_chunks:
-            content = (ch or {}).get("content") or ""
-        # Normalize and validate input: ensure iterable of dicts
-        try:
-            iterable_chunks = list(chunks or [])
-        except TypeError:
-            iterable_chunks = []
         filtered_chunks = [ch for ch in iterable_chunks if isinstance(ch, dict)]
         sorted_chunks = sorted(filtered_chunks, key=priority_key)
+
+        # Apply per-chunk truncation with overlap computed in token space
+        max_len_tokens = max(1, int(self.chunk_size))
+        overlap_tokens = max(0, int(self.overlap_tokens))
+        truncated_chunks = []
+        for ch in sorted_chunks:
+            content = (ch or {}).get("content") or ""
+            # Estimate total tokens for this content
+            total_tokens = estimate_tokens(content)
+            # Determine slice ratio based on tokens (including overlap), approximate to chars
+            slice_ratio = (max_len_tokens + overlap_tokens) / max(total_tokens, 1)
+            slice_chars = max(1, int(len(content) * slice_ratio))
+            slice_chars = min(len(content), slice_chars)
+            truncated_content = content[:slice_chars]
+            truncated_chunks.append({**ch, "content": truncated_content})
+        sorted_chunks = truncated_chunks
 
         def main():
             """Example usage"""
