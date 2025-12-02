@@ -104,12 +104,30 @@ class TestPRAgentConfigYAMLValidity:
             mapping = {}
             for key_node, value_node in node.value:
                 key = loader.construct_object(key_node, deep=deep)
+                # Ensure key is hashable to avoid TypeError and provide a clear YAML error
+                try:
+                    hash(key)
+                except TypeError:
+                    raise yaml.YAMLError(f"Unhashable key detected in YAML mapping: {key!r}")
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
+                mapping[key] = loader.construct_object(value_node, deep=deep)
+                key = loader.construct_object(key_node, deep=deep)
                 if key in mapping:
                     raise yaml.YAMLError(f"Duplicate key detected: {key}")
                 mapping[key] = loader.construct_object(value_node, deep=deep)
             return mapping
 
         DuplicateKeyLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            construct_mapping_no_dups
+        )
+        # Ensure ordered mappings also use the duplicate key check
+        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
+            DuplicateKeyLoader.add_constructor(
+                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
+                construct_mapping_no_dups
+            )
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
             construct_mapping_no_dups
         )
@@ -126,7 +144,7 @@ class TestPRAgentConfigYAMLValidity:
             except yaml.YAMLError as e:
                 # Check if this is specifically a duplicate key error
                 error_msg = str(e).lower()
-                if "duplicate" in error_msg or "duplicate key" in error_msg:
+                if "duplicate" in error_msg:
                     pytest.fail(f"Duplicate key detected in YAML config: {e}")
                 else:
                     pytest.fail(f"YAML parsing error in config: {e}")
