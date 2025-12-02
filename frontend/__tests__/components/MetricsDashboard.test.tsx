@@ -130,7 +130,7 @@ describe('MetricsDashboard Component', () => {
       
       const { container } = render(<MetricsDashboard metrics={noClassesMetrics} />);
       const assetClassCard = container.querySelectorAll('.bg-white')[5];
-      expect(assetClassCard).toBeInTheDocument();
+      expect(screen.getByText('Asset Classes')).toBeInTheDocument();
     });
 
     it('should handle many asset classes', () => {
