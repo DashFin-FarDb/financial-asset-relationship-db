@@ -95,8 +95,6 @@ class TestPRAgentConfigYAMLValidity:
         """Verify no duplicate keys in config."""
         config_path = Path(".github/pr-agent-config.yml")
 
-        with open(config_path, 'r') as f:
-            content = f.read()
         class DuplicateKeyLoader(yaml.Loader):
             pass
 
