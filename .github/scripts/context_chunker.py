@@ -245,7 +245,7 @@ class ContextChunker:
             patch = f.get("patch", "")
             lines.append(f"### {filename} (+{additions}/-{deletions})\n")
             if patch:
-                lines.append(f"```diff\n{patch}\n```")
+                lines.append(f"```diff\n{patch}\n```\n")
         return "\n".join(lines)
 
     def _format_test_failures(self, failures: List[Dict[str, Any]]) -> str:
