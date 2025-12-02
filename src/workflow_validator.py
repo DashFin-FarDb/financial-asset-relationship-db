@@ -33,8 +33,8 @@ def validate_workflow(workflow_path):
         with open(workflow_path, 'rb') as f:
             content_bytes = f.read()
         # Use the fastest available YAML loader
-        if hasattr(yaml, 'CLoader'):
-            data = yaml.load(content_bytes, Loader=yaml.CLoader)
+        if hasattr(yaml, 'CSafeLoader'):
+            data = yaml.load(content_bytes, Loader=yaml.CSafeLoader)
         else:
             data = yaml.safe_load(content_bytes)
         if not isinstance(data, dict):
