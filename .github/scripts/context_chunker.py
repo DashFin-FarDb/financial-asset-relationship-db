@@ -55,8 +55,6 @@
             str: Empty string placeholder; to be implemented.
         """
         return ""
-        return ""
-        return ""
 
     # _build_limited_content is already defined above; duplicate definition removed.
 
