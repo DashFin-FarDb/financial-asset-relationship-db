@@ -32,11 +32,8 @@ def validate_workflow(workflow_path):
     try:
         with open(workflow_path, 'rb') as f:
             content_bytes = f.read()
-        # Use the fastest available YAML loader
-        if hasattr(yaml, 'CSafeLoader'):
-            data = yaml.load(content_bytes, Loader=yaml.CSafeLoader)
-        else:
-            data = yaml.safe_load(content_bytes)
+        # Use safe_load for security; safe_load accepts bytes for performance
+        data = yaml.safe_load(content_bytes)
         if not isinstance(data, dict):
             return ValidationResult(False, ["Workflow must be a dict"], {})
         if 'jobs' not in data:
