@@ -55,7 +55,7 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
             parts = [p.strip() for p in clean.split(',')]
             name_part = parts[0]
             # Extract package name (alphanum, -, _, . allowed) and optional extras before any specifier
-            m_name = re.match(r'^([A-Za-z0-9._-]+)(\[.*\])?', name_part)
+            m_name = re.match(r'^([A-Za-z0-9._-]+)(\[[^\]]+\])?', name_part)
             if not m_name:
                 raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
             pkg = m_name.group(1)
