@@ -114,45 +114,7 @@ export const mockAllRelationships: Relationship[] = [
     target_id: 'ASSET_4',
     relationship_type: 'COMMODITY_EXPOSURE',
     strength: 0.6,
-  },
-];
-
-export const mockMetrics: Metrics = {
-  total_assets: 15,
-  total_relationships: 42,
-  asset_classes: {
-    EQUITY: 6,
-    FIXED_INCOME: 4,
-    COMMODITY: 3,
-    CURRENCY: 2,
-  },
-  avg_degree: 5.6,
-  max_degree: 12,
-  network_density: 0.42,
-};
-
-export const mockVisualizationData: VisualizationData = {
-  nodes: [
-    {
-      id: 'ASSET_1',
-      name: 'Apple Inc.',
-      symbol: 'AAPL',
-      asset_class: 'EQUITY',
-      x: 1.5,
-      y: 2.3,
-      z: 0.8,
-      color: '#1f77b4',
-      size: 10,
-    },
-    {
-      id: 'ASSET_2',
-      name: 'Microsoft Corp.',
-      symbol: 'MSFT',
-      asset_class: 'EQUITY',
-      x: 2.5,
-      y: 3.3,
-      z: 1.2,
-      color: '#ff7f0e',
+// Removed orphaned object literals and array elements causing syntax errors.
       size: 12,
     },
   ],
