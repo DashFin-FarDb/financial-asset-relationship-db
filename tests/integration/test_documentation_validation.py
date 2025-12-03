@@ -109,7 +109,6 @@ class TestMarkdownFormatting:
                 # Toggle open/close state on a fence line
                 open_block = not open_block
         assert open_block is False, "Code blocks not properly closed or mismatched triple backticks detected"
-    
     def test_lists_properly_formatted(self, summary_lines: List[str]):
         """
         Validate that Markdown bullet list items use even indentation (multiples of two spaces).
@@ -202,7 +201,7 @@ class TestCodeExamples:
             summary_content (str): The raw content of the documentation file to scan for referenced paths.
         """
         # Look for test file references
-        test_file_pattern = r'tests/integration/test_\w+\.py'
+        test_file_pattern = r'tests/integration/test_[\w.-]+\.py'
         mentioned_files = re.findall(test_file_pattern, summary_content)
 
         repo_root = Path(__file__).parent.parent.parent
@@ -294,7 +293,7 @@ class TestLinkValidation:
         """
         Validates that every GitHub-style internal link in the Markdown points to an existing header.
         
-        Checks internal links of the form [text](#anchor) in the full document content against the set of GitHub Flavoured Markdown anchors derived from the document headers; the test fails if any anchor does not match an existing header.
+        Checks internal links of the form [text](#anchor) in the full document content against the set of GitHub Flavored Markdown anchors derived from the document headers; the test fails if any anchor does not match an existing header.
         
         Parameters:
             summary_lines (List[str]): The file split into lines; used to extract headers.

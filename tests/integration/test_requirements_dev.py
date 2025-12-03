@@ -39,37 +39,33 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
         requirements file could not be opened.
     """
     requirements = []
-    
+
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
-                
+            
                 if not line or line.startswith('#'):
                     continue
-                
+            
                 # Support multiple specifiers like "pkg>=1.0,<=2.0" and validate format
                 # Split out any inline comments first
                 clean = line.split('#', 1)[0].strip()
                 if not clean:
                     continue
-                # Extract package name including optional extras (e.g., name[extra1,extra2])
-                m_name = re.match(r'^([A-Za-z0-9._-]+(?:\[[A-Za-z0-9_,.-]+\])?)', name_part)
+                # Match "name[extras] op version" segments; we ignore extras for name extraction here
+                parts = [p.strip() for p in clean.split(',')]
+                name_part = parts[0]
+                # Extract package name (alphanum, -, _, . allowed) before any specifier
+                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
                 if not m_name:
                     raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
                 pkg = m_name.group(1)
                 # Find all specifiers across all parts
-                from packaging.requirements import Requirement
-                try:
-                    req = Requirement(clean)
-                except Exception as e:
-                    raise AssertionError(f"Malformed requirement line: {line} ({e})")
-                pkg = req.name.strip()
-                version_spec = ",".join(sorted(set(str(s) for s in req.specifier))) if req.specifier else ''
-                if version_spec:
-                    requirements.append((pkg, version_spec))
-                else:
-                    requirements.append((pkg, ''))
+                spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
+                specs = []
+                for p in parts:
+                    specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
                 if not specs:
                     # No specifiers found; treat as no-version constraint explicitly
                     requirements.append((pkg.strip(), ''))
@@ -78,7 +74,38 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                     version_spec = ','.join(specs)
                     requirements.append((pkg.strip(), version_spec))
     except OSError as e:
-        raise AssertionError(f"Could not open requirements file: {e}")
+        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
+        for line in f:
+            line = line.strip()
+            
+            if not line or line.startswith('#'):
+                continue
+            
+            # Support multiple specifiers like "pkg>=1.0,<=2.0" and validate format
+            # Split out any inline comments first
+            clean = line.split('#', 1)[0].strip()
+            if not clean:
+                continue
+            # Match "name[extras] op version" segments; we capture extras separately
+            parts = [p.strip() for p in clean.split(',')]
+            name_part = parts[0]
+            # Extract package name (alphanum, -, _, . allowed) and optional extras before any specifier
+            m_name = re.match(r'^([A-Za-z0-9._-]+)(\[[^\]]+\])?', name_part)
+            if not m_name:
+                raise ValueError(f"Malformed requirement line (invalid package name): {line}")
+            pkg = m_name.group(1)
+            # Find all specifiers across all parts
+            spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
+            specs = []
+            for p in parts:
+                specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
+            if not specs:
+                # No specifiers found; treat as no-version constraint explicitly
+                requirements.append((pkg.strip(), ''))
+            else:
+                # Normalize by joining with comma
+                version_spec = ','.join(specs)
+                requirements.append((pkg.strip(), version_spec))
     
     return requirements
 class TestRequirementsFileExists:
