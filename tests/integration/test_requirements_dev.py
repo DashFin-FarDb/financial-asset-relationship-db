@@ -37,6 +37,8 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     Raises:
         Raises:
             AssertionError: If a requirement line contains a malformed package name or if the
+                requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
+            AssertionError: If a requirement line contains a malformed package name or if the
             requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
         OSError: If the requirements file cannot be opened or read (e.g., FileNotFoundError, PermissionError).
     """
