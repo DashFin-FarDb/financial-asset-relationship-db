@@ -79,7 +79,8 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
         requirements file could not be opened.
     """
     requirements = []
-
+    except OSError as e:
+        raise OSError(f"Could not open requirements file '{file_path}': {e}") from e
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
