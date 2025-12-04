@@ -39,7 +39,8 @@ def validate_workflow(workflow_path):
             if isinstance(data, Mapping):
                 data = dict(data)
             else:
-        if 'jobs' not in data or not isinstance(data['jobs'], dict):
+        from collections.abc import Mapping
+        if 'jobs' not in data or not isinstance(data['jobs'], Mapping):
             return ValidationResult(False, ["Workflow must have a 'jobs' key with a dictionary value"], data)
         # Additional validations can be added here if needed
         return ValidationResult(True, [], data)
