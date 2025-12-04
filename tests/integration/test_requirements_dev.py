@@ -127,7 +127,7 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                     version_spec = ','.join(specs)
                     requirements.append((pkg.strip(), version_spec))
     except OSError as e:
-        raise ValueError(f"Could not open requirements file '{file_path}': {e}") from e
+        raise AssertionError(f"Could not open requirements file '{file_path}': {e}") from e
         with open(file_path, 'r', encoding='utf-8') as f:
             for raw_line in f:
                 line = raw_line.strip()
