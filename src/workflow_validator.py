@@ -35,7 +35,10 @@ def validate_workflow(workflow_path):
         # Use safe_load for security; safe_load accepts bytes for performance
         data = yaml.safe_load(content_bytes)
         if not isinstance(data, dict):
-            return ValidationResult(False, [f"Workflow must be a dict, got {type(data).__name__}"], {})
+            from collections.abc import Mapping
+            if isinstance(data, Mapping):
+                data = dict(data)
+            else:
         if 'jobs' not in data or not isinstance(data['jobs'], dict):
             return ValidationResult(False, ["Workflow must have a 'jobs' key with a dictionary value"], data)
         # Additional validations can be added here if needed
