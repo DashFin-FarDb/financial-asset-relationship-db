@@ -176,7 +176,20 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
         
                 # Support multiple specifiers like "pkg>=1.0,<=2.0" and validate format
                 # Split out any inline comments first
+                # Remove inline comments
                 clean = line.split('#', 1)[0].strip()
+                if not clean:
+                    continue
+
+                # Support multiple specifiers like "pkg>=1.0,<=2.0"
+                parts = [p.strip() for p in clean.split(',')]
+                name_part = parts[0]
+
+                # Extract package name (alphanum, -, _, . allowed) before any specifier/extras
+                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
+                if not m_name:
+                    raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
+                pkg = m_name.group(1)
                 if not clean:
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """
