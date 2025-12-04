@@ -395,7 +395,8 @@ class TestPrAgentWorkflow:
         """
         Validate that each actions/checkout step in the pr-agent-trigger job specifies a non-empty token in its `with` mapping.
         
-        @param pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for `pr-agent.yml`.
+        Parameters:
+            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for `pr-agent.yml`.
         """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
