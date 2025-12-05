@@ -35,6 +35,8 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 class RequirementsFileError(Exception):
     """Raised when the requirements file cannot be opened or read."""
     pass
+    """Raised when the requirements file cannot be opened or read."""
+    pass
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """
