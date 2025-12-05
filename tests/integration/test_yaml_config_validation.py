@@ -39,7 +39,7 @@ class TestYAMLSyntaxAndStructure:
         
         assert len(parse_errors) == 0, f"YAML parse errors:\n" + "\n".join(parse_errors)
     
-            def test_yaml_files_use_consistent_indentation(self):
+    def test_yaml_files_use_consistent_indentation(self):
                 """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
                 yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
                 indentation_errors = []
