@@ -35,6 +35,65 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 class RequirementsFileError(Exception):
     """Raised when the requirements file cannot be opened or read."""
     pass
+
+
+def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
+    """
+    Parse a requirements file into package/version specification pairs.
+
+    Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
+    Inline comments (text after `#`) are removed before parsing. Each non-comment line
+    may contain multiple comma-separated version specifiers (e.g., "pkg>=1.0,<=2.0").
+    The function extracts the package name and collects all specifiers into a single
+    comma-separated `version_spec`. If a line has no version specifiers the corresponding
+    `version_spec` is an empty string.
+    """
+    from packaging.requirements import Requirement
+    import re as _re
+
+    requirements: List[Tuple[str, str]] = []
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line or line.startswith('#'):
+                    continue
+
+                # Remove inline comments
+                clean = line.split('#', 1)[0].strip()
+                if not clean:
+                    continue
+
+                # Parse and validate requirement using packaging
+                try:
+                    req = Requirement(clean)
+                except Exception as e:
+                    raise AssertionError(f"Malformed requirement line: {line} ({e})")
+
+                # Preserve the package token as written in the requirements file (preserve casing)
+                raw_pkg_token = clean.split(';', 1)[0]  # drop environment markers
+                raw_pkg_token = raw_pkg_token.split('[', 1)[0]  # drop extras
+                pkg_part = _re.split(r'(?=[<>=!~,])', raw_pkg_token, 1)[0].strip()
+                pkg = pkg_part or req.name.strip()
+
+                specifier_str = str(req.specifier).strip()
+                if specifier_str:
+                    specifier_str = ','.join(s.strip() for s in specifier_str.split(',') if s.strip())
+
+                if specifier_str:
+                    try:
+                        SpecifierSet(specifier_str)
+                    except Exception as e:
+                        raise AssertionError(f"Invalid version specifier for {pkg}: {specifier_str} ({e})")
+                    requirements.append((pkg, specifier_str))
+                else:
+                    requirements.append((pkg, ''))
+    except OSError as e:
+        raise RequirementsFileError(f"Could not open requirements file '{file_path}': {e}") from e
+
+    return requirements
+    """Raised when the requirements file cannot be opened or read."""
+    pass
     """Raised when the requirements file cannot be opened or read."""
     pass
 
