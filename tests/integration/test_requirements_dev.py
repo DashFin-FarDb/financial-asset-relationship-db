@@ -39,7 +39,42 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
         List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where
         `version_spec` is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0")
         or an empty string when no specifiers are present.
-
+    Raises:
+        AssertionError: If a requirement line contains a malformed package name or if the
+            requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
+    """
+    requirements: List[Tuple[str, str]] = []
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                # Remove inline comments
+                clean = line.split('#', 1)[0].strip()
+                if not clean:
+                    continue
+                # Split by commas to allow multiple specifiers, first part contains name
+                parts = [p.strip() for p in clean.split(',')]
+                name_part = parts[0]
+                # Extract package name (alphanum, -, _, . allowed) before any specifier/extras
+                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
+                if not m_name:
+                    raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
+                pkg = m_name.group(1)
+                # Collect all version specifiers across parts
+                spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
+                specs: List[str] = []
+                for p in parts:
+                    specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
+                if not specs:
+                    requirements.append((pkg.strip(), ''))
+                else:
+                    version_spec = ','.join(specs)
+                    requirements.append((pkg.strip(), version_spec))
+    except OSError as e:
+        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
+    return requirements
     Raises:
         AssertionError: If a requirement line is malformed or contains an invalid version specifier.
         RequirementsFileError: If the requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
