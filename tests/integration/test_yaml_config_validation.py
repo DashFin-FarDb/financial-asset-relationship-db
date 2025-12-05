@@ -40,59 +40,56 @@ class TestYAMLSyntaxAndStructure:
         assert len(parse_errors) == 0, f"YAML parse errors:\n" + "\n".join(parse_errors)
     
     def test_yaml_files_use_consistent_indentation(self):
-                """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
-                yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
-                indentation_errors = []
+        """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+        indentation_errors = []
 
-                for yaml_file in yaml_files:
-                    try:
-                        content = Path(yaml_file).read_text(encoding="utf-8")
-                    except Exception as e:
-                        indentation_errors.append(f"{yaml_file}: unable to read file: {e}")
+        for yaml_file in yaml_files:
+            try:
+                content = Path(yaml_file).read_text(encoding="utf-8")
+            except Exception as e:
+                indentation_errors.append(f"{yaml_file}: unable to read file: {e}")
+                continue
+
+            lines = content.split('\n')
+            in_block_scalar = False
+            block_scalar_indent = None
+
+            for line_no, line in enumerate(lines, 1):
+                stripped = line.lstrip(' ')
+                leading_spaces = len(line) - len(stripped)
+
+                # Skip empty lines and full-line comments
+                if not stripped or stripped.startswith('#'):
+                    continue
+
+                # If currently inside a block scalar, continue until indentation returns
+                if in_block_scalar:
+                    # Exit block scalar when indentation is less than or equal to the scalar's parent indent
+                    if leading_spaces <= block_scalar_indent:
+                        in_block_scalar = False
+                        block_scalar_indent = None
+                    else:
+                        # Still inside scalar; skip indentation checks
                         continue
 
-                    lines = content.split('\n')
-                    in_block_scalar = False
-                    block_scalar_indent = None
+                # Detect start of block scalars (| or > possibly with chomping/indent indicators)
+                # Example: key: |-, key: >2, key: |+
+                if re.search(r':\s*[|>](?:[+-]|\d+)?', line):
+                    in_block_scalar = True
+                    block_scalar_indent = leading_spaces
+                    continue
 
-                    for line_no, line in enumerate(lines, 1):
-                        stripped = line.lstrip(' ')
-                        leading_spaces = len(line) - len(stripped)
+                # Only check indentation on lines that begin with spaces (i.e., are indented content)
+                if line[0] == ' ' and not line.startswith('  ' * (leading_spaces // 2 + 1) + '- |'):
+                    if leading_spaces % 2 != 0:
+                        indentation_errors.append(
+                            f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
+                        )
 
-                        # Skip empty lines and full-line comments
-                        if not stripped or stripped.startswith('#'):
-                            continue
+            # Reset flags per file (handled by reinitialization each loop)
 
-                        # If currently inside a block scalar, continue until indentation returns
-                        if in_block_scalar:
-                            # Exit block scalar when indentation is less than or equal to the scalar's parent indent
-                            if leading_spaces <= block_scalar_indent:
-                                in_block_scalar = False
-                                block_scalar_indent = None
-                            else:
-                                # Still inside scalar; skip indentation checks
-                                continue
-
-                        # Detect start of block scalars (| or > possibly with chomping/indent indicators)
-                        # Example: key: |-, key: >2, key: |+
-                        if re.search(r':\s*[|>](?:[+-]|\d+)?', line):
-                            in_block_scalar = True
-                            block_scalar_indent = leading_spaces
-                            continue
-
-                        # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                        if line[0] == ' ' and not line.startswith('  ' * (leading_spaces // 2 + 1) + '- |'):
-                            if leading_spaces % 2 != 0:
-                                indentation_errors.append(
-                                    f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
-                                )
-
-                    # Reset flags per file (handled by reinitialization each loop)
-
-                assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
-            
-            # Check for consistent quoting (prefer double quotes for strings with special chars)
-            # This is a style preference but improves consistency
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
     
     def test_no_duplicate_keys_in_yaml(self):
         """Verify no duplicate keys exist in YAML files using a parser that detects duplicates."""
