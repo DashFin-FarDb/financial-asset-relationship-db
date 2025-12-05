@@ -18,84 +18,25 @@ REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """
     Parse a requirements file into package/version specification pairs.
-    
-    Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
-    Inline comments (text after `#`) are removed before parsing. Each non-comment line
-    may contain multiple comma-separated version specifiers (for example `pkg>=1.0,<=2.0`);
-    the function extracts the package name (alphanumeric characters, dot, underscore or hyphen)
-    and collects all specifiers into a single comma-separated `version_spec`. If a line has no
-    version specifiers the corresponding `version_spec` is an empty string.
-    
-    Parameters:
-        file_path (Path): Path to the requirements file to parse.
-    
-    Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where `version_spec`
-        is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0") or an empty string when
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """
-    Parse a requirements file into package/version specification pairs.
 
     Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
     Inline comments (text after `#`) are removed before parsing. Each non-comment line
     may contain multiple comma-separated version specifiers (e.g., "pkg>=1.0,<=2.0").
-    The function extracts the package name (alphanumeric characters, dot, underscore or hyphen)
-    and collects all specifiers into a single comma-separated `version_spec`. If a line has no
-    version specifiers the corresponding `version_spec` is an empty string.
+    The function extracts the package name and collects all specifiers into a single
+    comma-separated `version_spec`. If a line has no version specifiers the corresponding
+    `version_spec` is an empty string.
 
     Parameters:
         file_path (Path): Path to the requirements file to parse.
 
     Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where `version_spec`
-        is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0") or an empty string when
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """
-    Parse a requirements file into package/version specification pairs.
-
-    # Remove inline comments
-    clean = line.split('#', 1)[0].strip()
-    if not clean:
-        continue
-
-    # Support multiple specifiers like "pkg>=1.0,<=2.0"
-    parts = [p.strip() for p in clean.split(',')]
-    name_part = parts[0]
-
-    # Extract package name (alphanum, -, _, . allowed) before any specifier
-    m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
-    if not m_name:
-        raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
-    pkg = m_name.group(1)
-
-    Parameters:
-        file_path (Path): Path to the requirements file to parse.
-
-    Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where `version_spec`
-        is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0") or an empty string when
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """
-    Parse a requirements file into package/version specification pairs.
-
-    Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
-    Inline comments (text after `#`) are removed before parsing. Each non-comment line
-    may contain multiple comma-separated version specifiers (e.g., "pkg>=1.0,<=2.0").
-    The function extracts the package name (alphanumeric characters, dot, underscore or hyphen)
-    and collects all specifiers into a single comma-separated `version_spec`. If a line has no
-    version specifiers the corresponding `version_spec` is an empty string.
-
-    Parameters:
-        file_path (Path): Path to the requirements file to parse.
-
-    Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where `version_spec`
-        is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0") or an empty string when
-        no specifiers are present.
+        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where
+        `version_spec` is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0")
+        or an empty string when no specifiers are present.
 
     Raises:
-        AssertionError: If a requirement line contains a malformed package name or if the
-            requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
+        AssertionError: If a requirement line is malformed or if the requirements file
+            could not be opened or read (e.g., FileNotFoundError, PermissionError).
     """
     from packaging.requirements import Requirement
     from packaging.specifiers import SpecifierSet
@@ -103,8 +44,8 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     requirements: List[Tuple[str, str]] = []
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
+            for raw_line in f:
+                line = raw_line.strip()
                 if not line or line.startswith('#'):
                     continue
 
@@ -113,224 +54,30 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 if not clean:
                     continue
 
-                # Support multiple specifiers like "pkg>=1.0,<=2.0"
-                parts = [p.strip() for p in clean.split(',')]
-                name_part = parts[0]
+                # Parse and validate requirement using packaging
+                try:
+                    req = Requirement(clean)
+                except Exception as e:
+                    raise AssertionError(f"Malformed requirement line: {line} ({e})")
 
-                # Extract package name (alphanum, -, _, . allowed) before any specifier
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """
-    Parse a requirements file into package/version specification pairs.
+                pkg = req.name.strip()
+                specifier_str = str(req.specifier).strip()
 
-    Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
-    Inline comments (text after `#`) are removed before parsing. Each non-comment line
-    may contain multiple comma-separated version specifiers (e.g., "pkg>=1.0,<=2.0").
-    The function extracts the package name (alphanumeric characters, dot, underscore or hyphen)
-    and collects all specifiers into a single comma-separated `version_spec`. If a line has no
-    version specifiers the corresponding `version_spec` is an empty string.
-
-    Parameters:
-        file_path (Path): Path to the requirements file to parse.
-
-    Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where `version_spec`
-        is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0") or an empty string when
-        no specifiers are present.
-
-    Raises:
-        AssertionError: If a requirement line contains a malformed package name or if the
-            requirements file could not be opened or read.
-    """
-    requirements: List[Tuple[str, str]] = []
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
-
-                # Remove inline comments
-                clean = line.split('#', 1)[0].strip()
-                if not clean:
-                    continue
-
-                # Support multiple specifiers like "pkg>=1.0,<=2.0"
-                parts = [p.strip() for p in clean.split(',')]
-                name_part = parts[0]
-
-                # Extract package name (alphanum, -, _, . allowed) before any specifier
-                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
-                if not m_name:
-                    raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
-                pkg = m_name.group(1)
-
-                # Find all specifiers across all parts
-                spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
-                specs: List[str] = []
-                for p in parts:
-                    specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
-
-                if not specs:
-                    requirements.append((pkg.strip(), ''))
+                if specifier_str:
+                    # Validate specifier format
+                    try:
+                        SpecifierSet(specifier_str)
+                    except Exception as e:
+                        raise AssertionError(f"Invalid version specifier for {pkg}: {specifier_str} ({e})")
+                    requirements.append((pkg, specifier_str))
                 else:
-                    version_spec = ','.join(specs)
-                    requirements.append((pkg.strip(), version_spec))
+                    requirements.append((pkg, ''))
     except OSError as e:
         raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
 
     return requirements
-    except OSError as e:
-        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
-    return requirements
-    except OSError as e:
-        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
-                name_part = parts[0]
-                # Extract package name (alphanum, -, _, . allowed) before any specifier
-                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
-                if not m_name:
-                    raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
-                pkg = m_name.group(1)
-                # Find all specifiers across all parts
-                spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
-                specs = []
-                for p in parts:
-                    specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
-                if not specs:
-                    # No specifiers found; treat as no-version constraint explicitly
-                    requirements.append((pkg.strip(), ''))
-                else:
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """
-    Parse a requirements file into package/version specification pairs.
-    
-    Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
-    Inline comments (text after `#`) are removed before parsing. Each non-comment line
-    may contain multiple comma-separated version specifiers (for example `pkg>=1.0,<=2.0`);
-    the function extracts the package name (alphanumeric characters, dot, underscore or hyphen)
-    and collects all specifiers into a single comma-separated `version_spec`. If a line has no
-    version specifiers the corresponding `version_spec` is an empty string.
-    
-    Parameters:
-        file_path (Path): Path to the requirements file to parse.
-    
-    Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where `version_spec`
-        is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0") or an empty string when
-        no specifiers are present.
-    
-    Raises:
-        AssertionError: If a requirement line contains a malformed package name or if the
-            requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
-    """
-    requirements: List[Tuple[str, str]] = []
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
-                # Remove inline comments
-                clean = line.split('#', 1)[0].strip()
-                if not clean:
-                    continue
-                # Split by commas to allow multiple specifiers, first part contains name
-                parts = [p.strip() for p in clean.split(',')]
-                name_part = parts[0]
-                # Extract package name (alphanum, -, _, . allowed) before any specifier/extras
-                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
-                if not m_name:
-                    raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
-                pkg = m_name.group(1)
-                # Collect all version specifiers across parts
-                spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
-                specs: List[str] = []
-                for p in parts:
-                    specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
-                if not specs:
-                    requirements.append((pkg.strip(), ''))
-                else:
-                    version_spec = ','.join(specs)
-                    requirements.append((pkg.strip(), version_spec))
-    except OSError as e:
-        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
-    return requirements
-                    version_spec = ','.join(specs)
-                    requirements.append((pkg.strip(), version_spec))
-    Raises:
-        AssertionError: If a requirement line contains a malformed package name.
-        OSError: If the requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
-    """
-    requirements = []
-    except OSError as e:
-        raise OSError(f"Could not open requirements file '{file_path}': {e}") from e
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-            
-                if not line or line.startswith('#'):
-                    continue
-            
-                # Support multiple specifiers like "pkg>=1.0,<=2.0" and validate format
-                # Split out any inline comments first
-                clean = line.split('#', 1)[0].strip()
-                if not clean:
-                    continue
-                # Match "name[extras] op version" segments; we ignore extras for name extraction here
-                parts = [p.strip() for p in clean.split(',')]
-                name_part = parts[0]
-                # Extract package name (alphanum, -, _, . allowed) before any specifier
-                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
-                if not m_name:
-                    raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
-                pkg = m_name.group(1)
-                # Find all specifiers across all parts
-                spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
-                specs = []
-                for p in parts:
-                    specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
-                if not specs:
-                    # No specifiers found; treat as no-version constraint explicitly
-                    requirements.append((pkg.strip(), ''))
-                else:
-                    # Normalize by joining with comma
-                    version_spec = ','.join(specs)
-                    requirements.append((pkg.strip(), version_spec))
-    except OSError as e:
-        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
-        for line in f:
-            line = line.strip()
-            
-            if not line or line.startswith('#'):
-                continue
-            
-            # Support multiple specifiers like "pkg>=1.0,<=2.0" and validate format
-            # Split out any inline comments first
-            clean = line.split('#', 1)[0].strip()
-            if not clean:
-                continue
-            # Match "name[extras] op version" segments; we capture extras separately
-            parts = [p.strip() for p in clean.split(',')]
-            name_part = parts[0]
-            # Extract package name (alphanum, -, _, . allowed) and optional extras before any specifier
-            m_name = re.match(r'^([A-Za-z0-9._-]+)(\[[^\]]+\])?', name_part)
-            if not m_name:
-                raise ValueError(f"Malformed requirement line (invalid package name): {line}")
-            pkg = m_name.group(1)
-            # Find all specifiers across all parts
-            spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
-            specs = []
-            for p in parts:
-                specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
-            if not specs:
-                # No specifiers found; treat as no-version constraint explicitly
-                requirements.append((pkg.strip(), ''))
-            else:
-                # Normalize by joining with comma
-                version_spec = ','.join(specs)
-                requirements.append((pkg.strip(), version_spec))
-    
-    return requirements
+
+
 class TestRequirementsFileExists:
     """Test that requirements-dev.txt exists and is readable."""
     
@@ -417,67 +164,6 @@ class TestRequiredPackages:
     
     def test_has_black(self, package_names: List[str]):
         """Test that black is included."""
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """
-    Parse a requirements file into package/version specification pairs.
-
-    Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
-    Inline comments (text after `#`) are removed before parsing. Each non-comment line
-    may contain multiple comma-separated version specifiers (e.g., "pkg>=1.0,<=2.0").
-    The function extracts the package name and collects all specifiers into a single
-    comma-separated `version_spec`. If a line has no version specifiers the corresponding
-    `version_spec` is an empty string.
-
-    Parameters:
-        file_path (Path): Path to the requirements file to parse.
-
-    Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where
-        `version_spec` is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0")
-        or an empty string when no specifiers are present.
-
-    Raises:
-        AssertionError: If a requirement line is malformed or if the requirements file
-            could not be opened or read (e.g., FileNotFoundError, PermissionError).
-    """
-    from packaging.requirements import Requirement
-    from packaging.specifiers import SpecifierSet
-
-    requirements: List[Tuple[str, str]] = []
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for raw_line in f:
-                line = raw_line.strip()
-                if not line or line.startswith('#'):
-                    continue
-
-                # Remove inline comments
-                clean = line.split('#', 1)[0].strip()
-                if not clean:
-                    continue
-
-                # Parse and validate requirement using packaging
-                try:
-                    req = Requirement(clean)
-                except Exception as e:
-                    raise AssertionError(f"Malformed requirement line: {line} ({e})")
-
-                pkg = req.name.strip()
-                specifier_str = str(req.specifier).strip()
-
-                if specifier_str:
-                    # Validate specifier format
-                    try:
-                        SpecifierSet(specifier_str)
-                    except Exception as e:
-                        raise AssertionError(f"Invalid version specifier for {pkg}: {specifier_str} ({e})")
-                    requirements.append((pkg, specifier_str))
-                else:
-                    requirements.append((pkg, ''))
-    except OSError as e:
-        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
-
-    return requirements
         assert 'black' in package_names
     
     def test_has_mypy(self, package_names: List[str]):
@@ -487,137 +173,15 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 
 class TestVersionSpecifications:
     """Test that version specifications are valid and reasonable."""
-    
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """
-    Parse a requirements file into package/version specification pairs.
 
-    Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
-    Inline comments (text after `#`) are removed before parsing. Each non-comment line
-    may contain multiple comma-separated version specifiers (e.g., "pkg>=1.0,<=2.0").
-    The function extracts the package name (alphanumeric characters, dot, underscore or hyphen)
-    and collects all specifiers into a single comma-separated `version_spec`. If a line has no
-    version specifiers the corresponding `version_spec` is an empty string.
-
-    Parameters:
-        file_path (Path): Path to the requirements file to parse.
-
-    Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where `version_spec`
-        is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0") or an empty string when
-        no specifiers are present.
-
-    Raises:
-        AssertionError: If a requirement line contains a malformed package name or if the
-            requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
-    """
-    requirements: List[Tuple[str, str]] = []
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
-
-                # Remove inline comments
-                clean = line.split('#', 1)[0].strip()
-                if not clean:
-                    continue
-
-                # Support multiple specifiers like "pkg>=1.0,<=2.0"
-                parts = [p.strip() for p in clean.split(',')]
-                name_part = parts[0]
-
-                # Extract package name (alphanum, -, _, . allowed) before any specifier/extras
-                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
-                if not m_name:
-                    raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
-                pkg = m_name.group(1)
-
-                # Find all specifiers across all parts
-                spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
-                specs: List[str] = []
-                for p in parts:
-                    specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
-
-                if not specs:
-                    requirements.append((pkg.strip(), ''))
-                else:
-                    version_spec = ','.join(specs)
-                    requirements.append((pkg.strip(), version_spec))
-    except OSError as e:
-        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
-
-    return requirements
     @pytest.fixture
     def requirements(self) -> List[Tuple[str, str]]:
         """
         Return the parsed list of (package_name, version_spec) pairs from the development requirements file.
-        
+
         Each tuple contains the package name and a single version specifier string; the version spec is an empty string when no specifier is present.
-        
+
         Returns:
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """
-    Parse a requirements file into package/version specification pairs.
-
-    Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
-    Inline comments (text after `#`) are removed before parsing. Each non-comment line
-    may contain multiple comma-separated version specifiers (e.g., "pkg>=1.0,<=2.0").
-    The function extracts the package name and collects all specifiers into a single
-    comma-separated `version_spec`. If a line has no version specifiers the corresponding
-    `version_spec` is an empty string.
-
-    Parameters:
-        file_path (Path): Path to the requirements file to parse.
-
-    Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where
-        `version_spec` is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0")
-        or an empty string when no specifiers are present.
-
-    Raises:
-        AssertionError: If a requirement line is malformed or if the requirements file
-            could not be opened or read (e.g., FileNotFoundError, PermissionError).
-    """
-    from packaging.requirements import Requirement
-    from packaging.specifiers import SpecifierSet
-
-    requirements: List[Tuple[str, str]] = []
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for raw_line in f:
-                line = raw_line.strip()
-                if not line or line.startswith('#'):
-                    continue
-
-                # Remove inline comments
-                clean = line.split('#', 1)[0].strip()
-                if not clean:
-                    continue
-
-                # Parse and validate requirement using packaging
-                try:
-                    req = Requirement(clean)
-                except Exception as e:
-                    raise AssertionError(f"Malformed requirement line: {line} ({e})")
-
-                pkg = req.name.strip()
-                specifier_str = str(req.specifier).strip()
-
-                if specifier_str:
-                    # Validate specifier format
-                    try:
-                        SpecifierSet(specifier_str)
-                    except Exception as e:
-                        raise AssertionError(f"Invalid version specifier for {pkg}: {specifier_str} ({e})")
-                    requirements.append((pkg, specifier_str))
-                else:
-                    requirements.append((pkg, ''))
-    except OSError as e:
-        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
-
-    return requirements
             List[Tuple[str, str]]: Parsed requirements as (package_name, version_spec) pairs.
         """
         return parse_requirements(REQUIREMENTS_FILE)
