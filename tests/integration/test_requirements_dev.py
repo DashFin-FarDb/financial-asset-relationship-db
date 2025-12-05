@@ -53,7 +53,13 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 # Remove inline comments
                 clean = line.split('#', 1)[0].strip()
                 if not clean:
+                if not clean:
                     continue
+                # Match "name[extras] op version" segments; we ignore extras for name extraction here
+                parts = [p.strip() for p in clean.split(',')]
+                name_part = parts[0]
+                # Extract package name (alphanum, -, _, . allowed) before any specifier
+                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
                 # Split by commas to allow multiple specifiers, first part contains name
                 parts = [p.strip() for p in clean.split(',')]
                 name_part = parts[0]
