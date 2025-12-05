@@ -14,29 +14,40 @@ from typing import List, Tuple
 REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
+import re
+
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """Parse requirements file and return list of (package, version_spec) tuples."""
     requirements = []
-    
-    with open(file_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            
-            if not line or line.startswith('#'):
-                continue
-            
-            if '>=' in line:
-                pkg, version = line.split('>=')
-                requirements.append((pkg.strip(), f'>={version.strip()}'))
-            elif '==' in line:
-                pkg, version = line.split('==')
-                requirements.append((pkg.strip(), f'=={version.strip()}'))
-            elif '<=' in line:
-                pkg, version = line.split('<=')
-                requirements.append((pkg.strip(), f'<={version.strip()}'))
-            else:
-                requirements.append((line, ''))
-    
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+
+                if not line or line.startswith('#'):
+                    continue
+
+                req_match = re.match(r'([a-zA-Z0-9_-]+(?:\[[a-zA-Z0-9_-]+\])?)\s*(>=|==|<=)?\s*([a-zA-Z0-9_.-]+)?\s*(;.*)?', line)
+                if req_match:
+                    pkg = req_match.group(1).strip()
+                    version_op = req_match.group(2) or ''
+                    version = req_match.group(3) or ''
+                    marker = req_match.group(4) or ''
+
+                    if marker:
+                        raise AssertionError(f"Environment markers are not supported: {line}")
+
+                    if version_op:
+                        requirements.append((pkg, f'{version_op}{version}'))
+                    else:
+                        requirements.append((pkg, ''))
+                else:
+                    requirements.append((line, ''))
+
+    except OSError as e:
+        raise OSError(f"Could not open requirements file '{file_path}': {e}") from e
+
     return requirements
 
 
