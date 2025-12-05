@@ -356,7 +356,7 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 # Preserve the package token as written in the requirements file (preserve casing)
                 # by extracting the substring before any specifier/operator/extras/marker characters.
                 raw_pkg_token = clean.split(';', 1)[0]  # drop environment markers
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
+# Duplicate/incomplete definition removed to avoid syntax errors and duplication.
     """
     Parse a requirements file into package/version specification pairs.
     """
