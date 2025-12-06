@@ -168,9 +168,9 @@ def construct_mapping_check_hashable(loader, node, deep=False):
                 key = loader.construct_object(key_node, deep=deep)
                 if key is None:
                     raise yaml.YAMLError("Null (None) key detected in YAML mapping.")
-                try:
-                    hash(key)
-                except TypeError:
+                yaml_content = "? [1, 2, 3]\n: invalid_list_key\nvalid_key: value\n"
+                with pytest.raises(yaml.YAMLError, match="Non-hashable key"):
+                    yaml.load(yaml_content, Loader=NonHashableKeyLoader)
                     raise yaml.YAMLError(
                         f"Non-hashable key detected: {key!r} (type: {type(key).__name__})"
                     )
