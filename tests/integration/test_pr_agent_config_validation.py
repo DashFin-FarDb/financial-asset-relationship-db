@@ -181,6 +181,15 @@ class TestPRAgentConfigYAMLValidity:
                 yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
                 construct_mapping_no_dups
             )
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            construct_mapping_no_dups
+        )
+        # Ensure ordered mappings also use the duplicate key check
+        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
+            DuplicateKeyLoader.add_constructor(
+                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
+                construct_mapping_no_dups
+            )
         if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
             DuplicateKeyLoader.add_constructor(
                 yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
