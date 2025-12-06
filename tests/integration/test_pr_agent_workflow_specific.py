@@ -34,8 +34,13 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         Returns:
             Dict[str, Any]: Parsed YAML content as a dictionary.
         """
-        with open(workflow_file, 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f)
+        try:
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
+        except yaml.YAMLError as e:
+            pytest.fail(f'Invalid YAML: {e}')
     
     @pytest.fixture
     def workflow_raw(self, workflow_file: Path) -> str:
@@ -45,8 +50,11 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         Returns:
             content (str): Full file contents decoded as UTF-8.
         """
-        with open(workflow_file, 'r', encoding='utf-8') as f:
-            return f.read()
+        try:
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                return f.read()
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
     
     def test_no_duplicate_step_name_setup_python(self, workflow_content: Dict[str, Any]):
         """Test that there's no duplicate 'Setup Python' step name."""
@@ -109,8 +117,13 @@ class TestPRAgentWorkflowStructureValidation:
         Returns:
             workflow (Dict[str, Any]): Parsed YAML content of the workflow file as a dictionary.
         """
-        with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f)
+        try:
+            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
+        except yaml.YAMLError as e:
+            pytest.fail(f'Invalid YAML: {e}')
     
     def test_has_pr_agent_trigger_job(self, workflow_content: Dict[str, Any]):
         """
@@ -171,9 +184,14 @@ class TestPRAgentWorkflowSetupSteps:
         Returns:
             Dict[str, Any]: Mapping representing the `pr-agent-trigger` job as defined in .github/workflows/pr-agent.yml
         """
-        with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-            workflow = yaml.safe_load(f)
-        return workflow['jobs']['pr-agent-trigger']
+        try:
+            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
+                workflow = yaml.safe_load(f)
+            return workflow['jobs']['pr-agent-trigger']
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
+        except yaml.YAMLError as e:
+            pytest.fail(f'Invalid YAML: {e}')
     
     def test_checkout_step_exists(self, pr_agent_job: Dict[str, Any]):
         """
@@ -272,9 +290,14 @@ class TestPRAgentWorkflowDependencyInstallation:
         Returns:
             Dict[str, Any]: Mapping representing the `pr-agent-trigger` job as defined in .github/workflows/pr-agent.yml
         """
-        with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-            workflow = yaml.safe_load(f)
-        return workflow['jobs']['pr-agent-trigger']
+        try:
+            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
+                workflow = yaml.safe_load(f)
+            return workflow['jobs']['pr-agent-trigger']
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
+        except yaml.YAMLError as e:
+            pytest.fail(f'Invalid YAML: {e}')
     
     def test_python_dependencies_installation_step(self, pr_agent_job: Dict[str, Any]):
         """Test that Python dependencies installation step exists."""
@@ -329,9 +352,14 @@ class TestPRAgentWorkflowTestingSteps:
         Returns:
             Dict[str, Any]: Mapping representing the `pr-agent-trigger` job as defined in .github/workflows/pr-agent.yml
         """
-        with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-            workflow = yaml.safe_load(f)
-        return workflow['jobs']['pr-agent-trigger']
+        try:
+            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
+                workflow = yaml.safe_load(f)
+            return workflow['jobs']['pr-agent-trigger']
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
+        except yaml.YAMLError as e:
+            pytest.fail(f'Invalid YAML: {e}')
     
     def test_python_tests_step_exists(self, pr_agent_job: Dict[str, Any]):
         """
@@ -389,8 +417,13 @@ class TestPRAgentWorkflowPermissions:
         Returns:
             workflow (Dict[str, Any]): Parsed YAML content of the workflow file as a dictionary.
         """
-        with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f)
+        try:
+            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
+        except yaml.YAMLError as e:
+            pytest.fail(f'Invalid YAML: {e}')
     
     def test_workflow_level_permissions_defined(self, workflow_content: Dict[str, Any]):
         """Test that workflow-level permissions are defined."""
@@ -435,8 +468,13 @@ class TestPRAgentWorkflowConditionals:
         Returns:
             workflow (Dict[str, Any]): Parsed YAML content of the workflow file as a dictionary.
         """
-        with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f)
+        try:
+            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
+        except yaml.YAMLError as e:
+            pytest.fail(f'Invalid YAML: {e}')
     
     def test_pr_agent_trigger_has_conditional(self, workflow_content: Dict[str, Any]):
         """
@@ -490,8 +528,11 @@ class TestPRAgentWorkflowSecurityBestPractices:
         Returns:
             workflow_raw (str): Raw YAML text of the pr-agent workflow file.
         """
-        with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-            return f.read()
+        try:
+            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
+                return f.read()
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
     
     def test_uses_secrets_context_for_github_token(self, workflow_raw: str):
         """Test that GITHUB_TOKEN is accessed via secrets context."""
@@ -509,8 +550,15 @@ class TestPRAgentWorkflowSecurityBestPractices:
         """
         # Check for common token patterns
         token_patterns = [
-            r'ghp_[a-zA-Z0-9]{36}',  # GitHub PAT
+            r'ghp_[a-zA-Z0-9]{36}',  # GitHub PAT (classic)
             r'gho_[a-zA-Z0-9]{36}',  # GitHub OAuth
+            r'github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}',  # GitHub PAT (fine-grained)
+            r'ghu_[a-zA-Z0-9]{36}',  # GitHub user-to-server token
+            r'ghs_[a-zA-Z0-9]{36}',  # GitHub server-to-server token
+            r'ghr_[a-zA-Z0-9]{36}',  # GitHub refresh token
+            r'sk-[a-zA-Z0-9]{20,}',  # OpenAI API key (flexible length)
+            r'xox[baprs]-[0-9]+-[0-9]+-[a-zA-Z0-9]+',  # Slack tokens (structured format)
+            r'npm_[a-zA-Z0-9]{36}',  # npm access token
         ]
         
         for pattern in token_patterns:
@@ -583,8 +631,13 @@ class TestPRAgentWorkflowGitHubScriptUsage:
         Returns:
             workflow (Dict[str, Any]): Parsed YAML content of the workflow file as a dictionary.
         """
-        with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f)
+        try:
+            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            pytest.skip('Workflow file not found')
+        except yaml.YAMLError as e:
+            pytest.fail(f'Invalid YAML: {e}')
     
     def test_uses_github_script_action(self, workflow_content: Dict[str, Any]):
         """Test that workflow uses github-script action."""

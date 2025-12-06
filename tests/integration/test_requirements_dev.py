@@ -9,70 +9,136 @@ import pytest
 import re
 from pathlib import Path
 from typing import List, Tuple
+from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 
 
 REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
+class RequirementsFileError(Exception):
+    """Raised when the requirements file cannot be opened or read."""
+    pass
+
+
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """
     Parse a requirements file into package/version specification pairs.
-    
+
     Reads the file at `file_path`, ignoring blank lines and lines that start with `#`.
     Inline comments (text after `#`) are removed before parsing. Each non-comment line
-    may contain multiple comma-separated version specifiers (for example `pkg>=1.0,<=2.0`);
-    the function extracts the package name (alphanumeric characters, dot, underscore or hyphen)
-    and collects all specifiers into a single comma-separated `version_spec`. If a line has no
-    version specifiers the corresponding `version_spec` is an empty string.
-    
+    may contain multiple comma-separated version specifiers (e.g., "pkg>=1.0,<=2.0").
+    The function extracts the package name and collects all specifiers into a single
+    comma-separated `version_spec`. If a line has no version specifiers the corresponding
+    `version_spec` is an empty string.
+
     Parameters:
         file_path (Path): Path to the requirements file to parse.
-    
+
     Returns:
-        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where `version_spec`
-        is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0") or an empty string when
-        no specifiers are present.
-    
+        List[Tuple[str, str]]: A list of `(package_name, version_spec)` tuples where
+        `version_spec` is a comma-separated string of specifiers (e.g. ">=1.0,<=2.0")
+        or an empty string when no specifiers are present.
     Raises:
-        AssertionError: If a requirement line contains a malformed package name.
+        AssertionError: If a requirement line contains a malformed package name or if the
+            requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
     """
-    requirements = []
-    
-    with open(file_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            
-            if not line or line.startswith('#'):
-                continue
-            
-            # Support multiple specifiers like "pkg>=1.0,<=2.0" and validate format
-            # Split out any inline comments first
-            clean = line.split('#', 1)[0].strip()
-            if not clean:
-                continue
-            # Match "name[extras] op version" segments; we ignore extras for name extraction here
-            parts = [p.strip() for p in clean.split(',')]
-            name_part = parts[0]
-            # Extract package name (alphanum, -, _, . allowed) before any specifier
-            m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
-            if not m_name:
-                raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
-            pkg = m_name.group(1)
-            # Find all specifiers across all parts
-            spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
-            specs = []
-            for p in parts:
-                specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
-            if not specs:
-                # No specifiers found; treat as no-version constraint explicitly
-                requirements.append((pkg.strip(), ''))
-            else:
-                # Normalize by joining with comma
-                version_spec = ','.join(specs)
-                requirements.append((pkg.strip(), version_spec))
-    
+    requirements: List[Tuple[str, str]] = []
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                # Remove inline comments
+                clean = line.split('#', 1)[0].strip()
+                if not clean:
+                if not clean:
+                    continue
+                # Match "name[extras] op version" segments; we ignore extras for name extraction here
+                parts = [p.strip() for p in clean.split(',')]
+                name_part = parts[0]
+                # Extract package name (alphanum, -, _, . allowed) before any specifier
+                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
+                # Split by commas to allow multiple specifiers, first part contains name
+                parts = [p.strip() for p in clean.split(',')]
+                name_part = parts[0]
+                # Extract package name (alphanum, -, _, . allowed) before any specifier/extras
+                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
+                if not m_name:
+                    raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
+                pkg = m_name.group(1)
+                # Collect all version specifiers across parts
+                spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
+                specs: List[str] = []
+                for p in parts:
+                    specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
+                if not specs:
+                    requirements.append((pkg.strip(), ''))
+                else:
+                    version_spec = ','.join(specs)
+                    requirements.append((pkg.strip(), version_spec))
+    except OSError as e:
+        raise AssertionError(f"Could not open requirements file '{file_path}': {e}")
     return requirements
+    Raises:
+        AssertionError: If a requirement line is malformed or contains an invalid version specifier.
+        RequirementsFileError: If the requirements file could not be opened or read (e.g., FileNotFoundError, PermissionError).
+    """
+    requirements: List[Tuple[str, str]] = []
+    seen_packages = set()
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line or line.startswith('#'):
+                    continue
+
+                # Remove inline comments
+                clean = line.split('#', 1)[0].strip()
+                if not clean:
+                    continue
+
+                # Parse and validate requirement using packaging
+                try:
+                    req = Requirement(clean)
+                except Exception as e:
+                    raise AssertionError(f"Malformed requirement line: {line} ({e})")
+
+                # Reject environment markers to avoid conditional/partial parsing
+                if req.marker is not None:
+                    raise AssertionError(f"Environment markers are not supported: {line}")
+
+                # Use packaging library's package name extraction for consistency and reliability
+                pkg = req.name.strip()
+
+                # Check for duplicate package entries
+                pkg_lower = pkg.lower()
+                if pkg_lower in seen_packages:
+                    raise AssertionError(f"Duplicate package entry: {pkg}")
+                seen_packages.add(pkg_lower)
+
+                specifier_str = str(req.specifier).strip()
+                # Normalize specifier string by removing spaces around commas so SpecifierSet accepts it consistently
+                if specifier_str:
+                    specifier_str = ','.join(s.strip() for s in specifier_str.split(',') if s.strip())
+
+                if specifier_str:
+                    # Validate specifier format
+                    try:
+                        SpecifierSet(specifier_str)
+                    except Exception as e:
+                        raise AssertionError(f"Invalid version specifier for {pkg}: {specifier_str} ({e})")
+                    requirements.append((pkg, specifier_str))
+                else:
+                    requirements.append((pkg, ''))
+    except OSError as e:
+        raise RequirementsFileError(f"Could not open requirements file '{file_path}': {e}") from e
+
+    return requirements
+
+
 class TestRequirementsFileExists:
     """Test that requirements-dev.txt exists and is readable."""
     
@@ -171,11 +237,10 @@ class TestVersionSpecifications:
     
     @pytest.fixture
     def requirements(self) -> List[Tuple[str, str]]:
-        """
-        Return the parsed list of (package_name, version_spec) pairs from the development requirements file.
-        
+        """Return the parsed list of (package_name, version_spec) pairs from the development requirements file.
+
         Each tuple contains the package name and a single version specifier string; the version spec is an empty string when no specifier is present.
-        
+
         Returns:
             List[Tuple[str, str]]: Parsed requirements as (package_name, version_spec) pairs.
         """
@@ -249,6 +314,73 @@ class TestPackageConsistency:
     def test_package_names_valid(self, package_names: List[str]):
         """Test that package names follow valid naming conventions."""
         valid_name_pattern = re.compile(r'^[a-zA-Z0-9_-]+$')
+        
+        invalid_names = [
+            pkg for pkg in package_names 
+            if not valid_name_pattern.match(pkg)
+        ]
+        assert len(invalid_names) == 0
+
+
+class TestFileOrganization:
+    """Test that the file is well-organized."""
+    
+    @pytest.fixture
+    def file_lines(self) -> List[str]:
+        """Load requirements file as list of lines."""
+        with open(REQUIREMENTS_FILE, 'r', encoding='utf-8') as f:
+            return f.readlines()
+    
+    def test_reasonable_file_size(self, file_lines: List[str]):
+        """Test that file isn't excessively large."""
+        assert len(file_lines) < 100
+    
+    def test_has_appropriate_number_of_packages(self):
+        """Test that file has a reasonable number of development dependencies."""
+        requirements = parse_requirements(REQUIREMENTS_FILE)
+        assert 5 <= len(requirements) <= 50
+
+
+class TestSpecificChanges:
+    """Test the specific changes made in the diff."""
+    
+    @pytest.fixture
+    def requirements(self) -> List[Tuple[str, str]]:
+        """Parse and return requirements."""
+        return parse_requirements(REQUIREMENTS_FILE)
+    
+    def test_pyyaml_added(self, requirements: List[Tuple[str, str]]):
+        """Test that PyYAML was added as per the diff."""
+        pyyaml_entries = [(pkg, ver) for pkg, ver in requirements if pkg == 'PyYAML']
+        assert len(pyyaml_entries) == 1
+        pkg, ver = pyyaml_entries[0]
+        assert ver == '>=6.0'
+    
+    def test_types_pyyaml_added(self, requirements: List[Tuple[str, str]]):
+        """Test that types-PyYAML was added as per the diff."""
+        types_entries = [(pkg, ver) for pkg, ver in requirements if pkg == 'types-PyYAML']
+        assert len(types_entries) == 1
+    
+    def test_existing_packages_preserved(self, requirements: List[Tuple[str, str]]):
+        """Test that existing packages are still present."""
+        package_names = {pkg for pkg, _ in requirements}
+        expected_packages = {
+            'pytest',
+            'pytest-cov',
+            'pytest-asyncio',
+            'flake8',
+            'pylint',
+            'mypy',
+            'black',
+            'isort',
+            'pre-commit',
+            'PyYAML',
+            'types-PyYAML',
+        }
+
+        missing_packages = expected_packages - package_names
+        assert not missing_packages, \
+            f"The following packages are missing from requirements-dev.txt: {', '.join(sorted(missing_packages))}"
         
         invalid_names = [
             pkg for pkg in package_names 
