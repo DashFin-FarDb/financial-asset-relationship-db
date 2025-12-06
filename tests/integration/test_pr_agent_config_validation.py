@@ -124,7 +124,66 @@ class TestPRAgentConfigYAMLValidity:
         # Ensure ordered mappings also use the duplicate key check
         if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
             DuplicateKeyLoader.add_constructor(
+        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
+            DuplicateKeyLoader.add_constructor(
                 yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
+                construct_mapping_no_dups
+            )
+
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                yaml.load(f, Loader=DuplicateKeyLoader)
+            except yaml.YAMLError as e:
+                error_msg = str(e).lower()
+                if "duplicate" in error_msg or "duplicate key" in error_msg:
+                    pytest.fail(f"Duplicate key detected in YAML config: {e}")
+                else:
+                    pytest.fail(f"YAML parsing error in config: {e}")
+
+        def test_non_hashable_keys_detected(self):
+            """Verify non-hashable keys are detected and raise appropriate errors."""
+
+            class DuplicateKeyLoader(yaml.SafeLoader):
+                pass
+
+            def construct_mapping_no_dups(loader, node, deep=False):
+                if not isinstance(node, yaml.MappingNode):
+                    return loader.construct_object(node, deep=deep)
+                mapping = {}
+                for key_node, value_node in node.value:
+                    key = loader.construct_object(key_node, deep=deep)
+                    if key is None:
+                        raise yaml.YAMLError("Null (None) key detected in YAML mapping.")
+                    try:
+                        hash(key)
+                    except TypeError:
+                        raise yaml.YAMLError(
+                            f"Non-hashable key detected: {key!r} (type: {type(key).__name__})"
+                        )
+                    if key in mapping:
+                        raise yaml.YAMLError(f"Duplicate key detected: {key}")
+                    mapping[key] = loader.construct_object(value_node, deep=deep)
+                return mapping
+
+            DuplicateKeyLoader.add_constructor(
+                yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                construct_mapping_no_dups
+            )
+            if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
+                DuplicateKeyLoader.add_constructor(
+                    yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
+                    construct_mapping_no_dups
+                )
+
+            # Test with a list key (non-hashable)
+            yaml_content_list_key = "? [1, 2, 3]\n: invalid_list_key\nvalid_key: value\n"
+            with pytest.raises(yaml.YAMLError, match="Non-hashable key detected"):
+                yaml.load(yaml_content_list_key, Loader=DuplicateKeyLoader)
+
+            # Test with a dict key (non-hashable)
+            yaml_content_dict_key = "? {nested: dict}\n: invalid_dict_key\n"
+            with pytest.raises(yaml.YAMLError, match="Non-hashable key detected"):
+                yaml.load(yaml_content_dict_key, Loader=DuplicateKeyLoader)
                 construct_mapping_no_dups
             )
 
