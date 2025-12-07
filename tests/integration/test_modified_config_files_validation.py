@@ -59,8 +59,9 @@ class TestPRAgentConfigChanges:
         Parameters:
             config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`; when a `limits` section is present this test asserts it does not contain a `fallback` key.
         """
-        if 'limits' in config_data:
-            assert 'fallback' not in config_data['limits'], \
+        limits = config_data.get('limits')
+        if isinstance(limits, dict):
+            assert 'fallback' not in limits, \
                 "Fallback strategies should be removed"
     
     def test_basic_sections_present(self, config_data: Dict[str, Any]):
