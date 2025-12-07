@@ -103,7 +103,7 @@ def _build_limited_content(self, chunks):
         used_tokens = 0
         limit = self.max_tokens
 
-        filtered_chunks = [ch for ch in iterable_chunks if isinstance(ch, dict)]
+        filtered_chunks = [ch for ch in (chunks or []) if isinstance(ch, dict)]
         sorted_chunks = sorted(filtered_chunks, key=priority_key)
 
         # Apply per-chunk truncation with overlap computed in token space
