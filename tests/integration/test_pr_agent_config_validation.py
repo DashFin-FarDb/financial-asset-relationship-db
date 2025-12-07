@@ -271,6 +271,23 @@ class TestPRAgentConfigYAMLValidity:
                     raise yaml.YAMLError(f"Duplicate key detected: {key}")
                 mapping[key] = loader.construct_object(value_node, deep=deep)
             return mapping
+            if not isinstance(node, yaml.MappingNode):
+                return loader.construct_object(node, deep=deep)
+            mapping = {}
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                if key is None:
+                    raise yaml.YAMLError("Null (None) key detected in YAML mapping.")
+                try:
+                    hash(key)
+                except TypeError:
+                    raise yaml.YAMLError(
+                        f"Non-hashable key detected: {key!r} (type: {type(key).__name__})"
+                    )
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key}")
+                mapping[key] = loader.construct_object(value_node, deep=deep)
+            return mapping
 
         DuplicateKeyLoader.add_constructor(
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
