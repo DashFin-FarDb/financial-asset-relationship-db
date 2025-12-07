@@ -43,11 +43,13 @@ class TestRequirementsDevChanges:
         Searches the given requirements file content for a line mentioning PyYAML and verifies that the line contains one of the recognised version operators: >=, ==, ~=, <=, > or <.
         """
         lines = requirements_dev_content.split('\n')
-        pyyaml_line = next((l for l in lines if 'pyyaml' in l.lower()), None)
-        
-        assert pyyaml_line is not None
-        # Should have version specifier (>=, ==, ~=, etc.)
-        assert any(op in pyyaml_line for op in ['>=', '==', '~=', '<=', '>', '<'])
+    # Ignore commented lines so we don't pick up commented-out examples
+    pyyaml_line = next((l for l in lines if 'pyyaml' in l.lower() and not l.strip().startswith('#')), None)
+
+    assert pyyaml_line is not None
+    # Strip inline comments and whitespace before checking version specifier
+    pyyaml_line_no_comment = pyyaml_line.split('#', 1)[0].strip()
+    assert any(op in pyyaml_line_no_comment for op in ['>=', '==', '~=', '<=', '>', '<'])
     
     def test_no_duplicate_packages(self, requirements_dev_content):
         """
