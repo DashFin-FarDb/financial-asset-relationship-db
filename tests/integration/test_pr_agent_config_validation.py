@@ -112,100 +112,14 @@ class TestPRAgentConfigYAMLValidity:
                 if key in mapping:
                     raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
                 mapping[key] = loader.construct_object(value_node, deep=deep)
-                key = loader.construct_object(key_node, deep=deep)
-                # Ensure key is hashable to avoid TypeError and provide a clear YAML error
-                try:
-                    hash(key)
-                except TypeError:
-                    raise yaml.YAMLError(f"Unhashable key detected in YAML mapping: {key!r}")
-                if key in mapping:
-                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
-                mapping[key] = loader.construct_object(value_node, deep=deep)
-                key = loader.construct_object(key_node, deep=deep)
-                if key in mapping:
-                    raise yaml.YAMLError(f"Duplicate key detected: {key}")
-        def construct_mapping_no_dups(loader, node, deep=False):
-            if not isinstance(node, yaml.MappingNode):
-                return loader.construct_object(node, deep=deep)
-            mapping = {}
-            for key_node, value_node in node.value:
-                key = loader.construct_object(key_node, deep=deep)
-                # Ensure key is hashable to avoid TypeError and provide a clear YAML error
-                try:
-                    hash(key)
-                except TypeError:
-                    raise yaml.YAMLError(f"Unhashable key detected in YAML mapping: {key!r}")
-                if key in mapping:
-                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
-                mapping[key] = loader.construct_object(value_node, deep=deep)
             return mapping
-            construct_mapping_no_dups
-        )
-        # Ensure ordered mappings also use the duplicate key check
-        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-        def construct_mapping_no_dups(loader, node, deep=False):
-            if not isinstance(node, yaml.MappingNode):
-                return loader.construct_object(node, deep=deep)
-            mapping = {}
-            for key_node, value_node in node.value:
-                key = loader.construct_object(key_node, deep=deep)
-                # Ensure key is hashable to avoid TypeError and provide a clear YAML error
-                try:
-                    hash(key)
-                except TypeError:
-                    raise yaml.YAMLError(f"Unhashable key detected in YAML mapping: {key!r}")
-                if key in mapping:
-                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
-                mapping[key] = loader.construct_object(value_node, deep=deep)
-            return mapping
-            construct_mapping_no_dups
-        )
-        # Ensure ordered mappings also use the duplicate key check
-        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-            DuplicateKeyLoader.add_constructor(
-                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
-                construct_mapping_no_dups
-            )
-            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+
+        # Register the constructor for mapping nodes
         DuplicateKeyLoader.add_constructor(
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-        DuplicateKeyLoader.add_constructor(
-            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-DuplicateKeyLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-    construct_mapping_no_dups
-)
-# Ensure ordered mappings also use the duplicate key check
-if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-    DuplicateKeyLoader.add_constructor(
-        yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
-        construct_mapping_no_dups
-    )
-        # Ensure ordered mappings also use the duplicate key check
-        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-            DuplicateKeyLoader.add_constructor(
-                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
-                construct_mapping_no_dups
-            )
-            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
             construct_mapping_no_dups
         )
         # Ensure ordered mappings also use the duplicate key check
-        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-            DuplicateKeyLoader.add_constructor(
-                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
-                construct_mapping_no_dups
-            )
-        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-            DuplicateKeyLoader.add_constructor(
-                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
-                construct_mapping_no_dups
-            )
-        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-            DuplicateKeyLoader.add_constructor(
-                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
-                construct_mapping_no_dups
-            )
         if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
             DuplicateKeyLoader.add_constructor(
                 yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
@@ -222,6 +136,69 @@ if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
                     pytest.fail(f"Duplicate key detected in YAML config: {e}")
                 else:
                     pytest.fail(f"YAML parsing error in config: {e}")
+
+    def test_non_hashable_keys_detected(self):
+        """Verify non-hashable keys are detected and raise appropriate errors."""
+        import tempfile
+        import os
+
+        class NonHashableKeyLoader(yaml.SafeLoader):
+            pass
+
+        def construct_mapping_check_hashable(loader, node, deep=False):
+            if not isinstance(node, yaml.MappingNode):
+                return loader.construct_object(node, deep=deep)
+            mapping = {}
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                if key is None:
+                    raise yaml.YAMLError("Null (None) key detected in YAML mapping.")
+                try:
+                    hash(key)
+                except TypeError:
+                    raise yaml.YAMLError(
+                        f"Non-hashable key detected: {key!r} (type: {type(key).__name__})"
+                    )
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
+                mapping[key] = loader.construct_object(value_node, deep=deep)
+            return mapping
+
+        # Register the constructor for mapping nodes
+        NonHashableKeyLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            construct_mapping_check_hashable
+        )
+
+        # Test with non-hashable keys (lists and dicts)
+        test_cases = [
+            ("list key", "[1, 2, 3]: value"),
+            ("dict key", "{a: 1}: value"),
+            ("null key", "null: value"),
+        ]
+
+        for test_name, yaml_content in test_cases:
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+                f.write(yaml_content)
+                temp_file = f.name
+
+            try:
+                with open(temp_file, 'r', encoding='utf-8') as f:
+                    with pytest.raises(yaml.YAMLError) as exc_info:
+                        yaml.load(f, Loader=NonHashableKeyLoader)
+                
+                # Verify the error message contains expected text
+                error_msg = str(exc_info.value)
+                if test_name == "list key":
+                    assert "Non-hashable key detected" in error_msg
+                    assert "list" in error_msg
+                elif test_name == "dict key":
+                    assert "Non-hashable key detected" in error_msg
+                    assert "dict" in error_msg or "OrderedDict" in error_msg
+                elif test_name == "null key":
+                    assert "Null (None) key detected" in error_msg
+            finally:
+                os.unlink(temp_file)
     
     def test_consistent_indentation(self):
         """Verify consistent 2-space indentation."""
@@ -264,10 +241,8 @@ class TestPRAgentConfigSecurity:
                         parts = line.split(':', 1)
                         if len(parts) > 1:
                             value = parts[1].strip()
-                            # Should not have actual credential values
-                            assert len(value) < 10 or value.startswith('$'), \
-                            import re
                             # Flag if value is not a placeholder (e.g., $, ***, or REDACTED)
+                            import re
                             placeholder_regex = re.compile(r'^\s*(\$\S*|(\*{3,})|REDACTED)\s*$', re.IGNORECASE)
                             assert placeholder_regex.match(value), \
                                 f"Potential hardcoded {pattern} found: {value}"
