@@ -94,7 +94,7 @@ class TestPRAgentConfigYAMLValidity:
                 seen_full_paths = set()
 
             if not isinstance(node, yaml.MappingNode):
-                return loader.construct_mapping(node, deep=deep)
+                return loader.construct_object(node, deep=deep)
 
             mapping = {}
             merges = []
