@@ -181,15 +181,19 @@ class TestVersionSpecifications:
     
     def test_version_format_valid(self, requirements: List[Tuple[str, str]]):
         """
-        Check that each non-empty version specification in the requirements list conforms to PEP 440.
-        
-        For each (package, version_spec) tuple in `requirements`, where `version_spec` is a non-empty string,
-        assert that the version specifier is valid; on failure the assertion message identifies the package
-        and the invalid specifier.
-        
+        Validate that each non-empty version specification conforms to PEP 440 using
+        packaging.specifiers.SpecifierSet.
+
+        For every (package, version_spec) tuple where `version_spec` is non-empty, this test
+        attempts to construct a SpecifierSet from the string. If the specifier is invalid,
+        packaging will raise packaging.specifiers.InvalidSpecifier (or a related packaging
+        exception), and the test will fail with a message identifying the package and the
+        offending specifier.
+
         Parameters:
-            requirements (List[Tuple[str, str]]): Iterable of (package_name, version_spec) tuples as
-                produced by `parse_requirements`, where `version_spec` may be an empty string.
+            requirements (List[Tuple[str, str]]): Iterable of (package_name, version_spec)
+                tuples produced by `parse_requirements`, where `version_spec` may be an empty
+                string.
         """
         for pkg, ver_spec in requirements:
             if ver_spec:
