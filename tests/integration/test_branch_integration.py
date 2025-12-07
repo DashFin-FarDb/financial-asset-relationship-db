@@ -20,7 +20,14 @@ class TestWorkflowConsistency:
     
     @pytest.fixture
     def all_workflows(self) -> Dict[str, Dict]:
-        """Load all workflow files."""
+        """
+        Load a predefined set of GitHub Actions workflow files and parse their YAML content.
+        
+        Only files from the internal list are considered; files that do not exist are omitted from the result.
+        
+        Returns:
+            dict: Mapping from workflow file path (str) to the parsed YAML content (dict) for each existing workflow file.
+        """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
             ".github/workflows/apisec-scan.yml",
@@ -38,7 +45,14 @@ class TestWorkflowConsistency:
         return workflows
     
     def test_all_workflows_use_consistent_action_versions(self, all_workflows):
-        """Verify same actions use consistent versions across workflows."""
+        """
+        Ensure actions referenced across workflows use a single version.
+        
+        Aggregates action usage by action name and version from the provided workflows and prints a warning for any action that appears with more than one version. The check allows a special-case difference for `actions/checkout` (commonly v4 vs v5).
+        
+        Parameters:
+            all_workflows (dict): Mapping of workflow file path to parsed YAML content (each workflow represented as a dict).
+        """
         action_versions = {}
         
         for wf_file, workflow in all_workflows.items():
@@ -65,7 +79,14 @@ class TestWorkflowConsistency:
                 print(f"Warning: {action} uses multiple versions: {list(versions.keys())}")
     
     def test_all_workflows_use_github_token_consistently(self, all_workflows):
-        """Verify GITHUB_TOKEN usage is consistent."""
+        """
+        Check that workflows use the approved GITHUB_TOKEN syntax.
+        
+        Asserts that any occurrence of `GITHUB_TOKEN` or `github.token` in a workflow is expressed as `secrets.GITHUB_TOKEN` or `${{ github.token }}`; failures include the workflow file path in the message.
+        
+        Parameters:
+            all_workflows (dict): Mapping of workflow file path to parsed YAML content.
+        """
         for wf_file, workflow in all_workflows.items():
             workflow_str = yaml.dump(workflow)
             
@@ -76,7 +97,12 @@ class TestWorkflowConsistency:
                     f"{wf_file}: GITHUB_TOKEN should use proper syntax"
     
     def test_simplified_workflows_have_fewer_steps(self, all_workflows):
-        """Verify simplified workflows actually have fewer steps."""
+        """
+        Ensure the simplified workflows (.github/workflows/label.yml and .github/workflows/greetings.yml) have at most three steps per job.
+        
+        Parameters:
+            all_workflows (dict): Mapping from workflow file path to parsed YAML content.
+        """
         # These workflows were simplified in this branch
         simplified = [
             ".github/workflows/label.yml",
@@ -120,7 +146,11 @@ class TestDependencyWorkflowIntegration:
                 pytest.fail(f"PyYAML failed to parse {wf_file}: {e}")
     
     def test_requirements_support_workflow_test_needs(self):
-        """Verify dev requirements support testing workflows."""
+        """
+        Ensure development requirements include packages needed to run the workflow tests.
+        
+        Checks that requirements-dev.txt (case-insensitive) contains both `pytest` and `PyYAML`.
+        """
         with open('requirements-dev.txt', 'r') as f:
             content = f.read().lower()
         
@@ -207,7 +237,11 @@ class TestWorkflowSecurityConsistency:
                     print(f"Potential injection risk in {wf_file}: {matches}")
     
     def test_workflows_use_appropriate_checkout_refs(self):
-        """Verify checkout actions use safe refs."""
+        """
+        Ensure workflows triggered by `pull_request_target` specify a safe checkout reference.
+        
+        For each workflow in `.github/workflows/pr-agent.yml` and `.github/workflows/apisec-scan.yml`, if the workflow is triggered by `pull_request_target` the test asserts every `actions/checkout` step supplies either a `ref` or a `fetch-depth` in its `with` configuration; failure indicates an unsafe checkout configuration.
+        """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
             ".github/workflows/apisec-scan.yml",
@@ -235,7 +269,11 @@ class TestBranchCoherence:
     """Test overall branch changes are coherent."""
     
     def test_simplification_theme_consistent(self):
-        """Verify all changes follow simplification theme."""
+        """
+        Ensure selected workflows adhere to the branch's simplification theme.
+        
+        Checks that each workflow in the predefined list does not exceed its maximum allowed line count and fails the test if any file is longer than its threshold.
+        """
         # This branch should simplify, not add complexity
         
         # Check workflow line counts decreased
@@ -329,7 +367,13 @@ class TestBranchQuality:
                 pytest.fail(f"Failed to parse {wf_file}: {e}")
     
     def test_no_merge_conflict_markers(self):
-        """Verify no merge conflict markers in any files."""
+        """
+        Ensure specified files do not contain Git merge conflict markers.
+        
+        Checks each workflow file and the development requirements file for the markers
+        '<<<<<<<', '=======', and '>>>>>>>' and asserts their absence. On failure the
+        assertion message identifies the file path and the offending marker.
+        """
         conflict_markers = ['<<<<<<<', '=======', '>>>>>>>']
         
         files_to_check = [

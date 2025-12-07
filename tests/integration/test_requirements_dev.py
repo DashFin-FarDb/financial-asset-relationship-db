@@ -16,7 +16,25 @@ REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples."""
+    """
+    Parse a requirements-style file and produce a list of package names with their combined version specifiers.
+    
+    The parser:
+    - ignores empty lines and full-line comments;
+    - strips inline comments after `#`;
+    - splits comma-separated spec segments and extracts the package name from the first segment;
+    - collects all version specifiers (operators such as `>=`, `==`, `<=`, `>`, `<`, `~=`) across segments and joins them with commas;
+    - treats an entry with no specifiers as having an empty version specifier.
+    
+    Parameters:
+        file_path (Path): Path to the requirements file to parse.
+    
+    Returns:
+        List[Tuple[str, str]]: A list of (package, version_spec) tuples. `version_spec` is an empty string if no version constraints were found, otherwise specifiers are joined by commas (e.g. ">=1.0,<=2.0").
+    
+    Raises:
+        AssertionError: If a line contains an invalid package name.
+    """
     requirements = []
     
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -341,7 +359,15 @@ class TestRequirementsPackageIntegrity:
     
     @staticmethod
     def _find_duplicate_packages(requirements: List[Tuple[str, str]]) -> List[str]:
-        """Return list of duplicate package names (case-insensitive)."""
+        """
+        Return the duplicate package names found in a requirements list, compared case-insensitively.
+        
+        Parameters:
+            requirements (List[Tuple[str, str]]): Sequence of (package_name, version_spec) tuples to inspect.
+        
+        Returns:
+            List[str]: Lower-cased package names that appear more than once. Each repeated occurrence after the first is included in the returned list in the order encountered.
+        """
         package_names = [pkg.lower() for pkg, _ in requirements]
         seen = set()
         duplicates = []
@@ -362,7 +388,11 @@ class TestRequirementsPackageIntegrity:
         )
     
     def test_pyyaml_compatible_versions(self):
-        """Test that PyYAML and types-PyYAML have compatible version constraints."""
+        """
+        Verify that PyYAML and types-PyYAML entries in requirements-dev.txt specify the same major version.
+        
+        This asserts both packages have a '>=<version>' constraint present and that the integer before the first dot of each version string is identical.
+        """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         with open(REQUIREMENTS_FILE, 'r') as f:
@@ -392,7 +422,11 @@ class TestRequirementsPackageIntegrity:
         )
     
     def test_all_packages_use_consistent_operators(self):
-        """Test that version constraints use consistent comparison operators (prefer >=)."""
+        """
+        Verify most package version constraints use the '>=' operator.
+        
+        Parses the project requirements and counts comparison operators in each non-empty version specifier (operators considered: '>=', '==', '<=', '~=', '>', '<'). The test fails if fewer than 50% of all detected operators are '>='.
+        """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         requirements = parse_requirements(REQUIREMENTS_FILE)
@@ -427,10 +461,9 @@ class TestPyYAMLIntegration:
     
     def test_pyyaml_addition_has_both_runtime_and_types(self):
         """
-        Test that the PyYAML addition includes both the runtime package and type stubs.
+        Assert that requirements-dev.txt contains both PyYAML and types-PyYAML with version constraints of >=6.0.
         
-        This validates the specific change made in this branch where both PyYAML>=6.0
-        and types-PyYAML>=6.0.0 were added together.
+        Checks that the requirements file exists, that entries for 'PyYAML' and 'types-PyYAML' are present, and that both entries include a version specifier starting with '>=6.0'.
         """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         

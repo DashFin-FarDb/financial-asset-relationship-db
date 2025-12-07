@@ -290,17 +290,22 @@ class TestPrAgentWorkflow:
     
     def test_pr_agent_name(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Check the pr-agent workflow's top-level "name" field.
-        
-        Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow fixture.
+        Verify the pr-agent workflow defines a top-level "name".
         """
         assert "name" in pr_agent_workflow, (
             "pr-agent workflow must have a descriptive 'name' field"
         )
     
     def test_pr_agent_has_trigger_job(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that pr-agent workflow has the trigger job."""
+        """
+        Verify the pr-agent workflow defines a top-level job named 'pr-agent-trigger'.
+        
+        Parameters:
+            pr_agent_workflow (dict): Parsed YAML mapping of the pr-agent workflow.
+        
+        Raises:
+            AssertionError: If the 'pr-agent-trigger' job is missing or is not a mapping.
+        """
         jobs = pr_agent_workflow.get("jobs", {})
         assert "pr-agent-trigger" in jobs, (
             "pr-agent workflow must define the 'pr-agent-trigger' job"
@@ -310,6 +315,12 @@ class TestPrAgentWorkflow:
         )
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
+        """
+        Verify the 'pr-agent-trigger' job executes on a standard Ubuntu runner.
+        
+        Parameters:
+            pr_agent_workflow (dict): Parsed YAML mapping for the pr-agent workflow (contents of pr-agent.yml).
+        """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         runs_on = review_job.get("runs-on", "")
         assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
@@ -329,9 +340,10 @@ class TestPrAgentWorkflow:
     
     def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure every actions/checkout step in the review job provides a `token` in its `with` mapping.
+        Verify each actions/checkout step in the "pr-agent-trigger" job supplies a 'token' key in its 'with' mapping.
         
-        Fails the test if any checkout step omits the `token` key.
+        Parameters:
+        	pr_agent_workflow (Dict[str, Any]): Parsed YAML of the pr-agent workflow; expected to contain a top-level "jobs" mapping with a "pr-agent-trigger" job.
         """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
@@ -385,11 +397,10 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
     
     def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure any actions/setup-python step in the "review" job specifies python-version "3.11".
+        Verify that any actions/setup-python step in the pr-agent-trigger job sets `python-version` to "3.11".
         
         Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow; expected to contain a "jobs" -> "review" -> "steps" sequence.
-        
+            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping expected to contain a "jobs" → "pr-agent-trigger" → "steps" sequence.
         """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
@@ -423,7 +434,14 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         )
     
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
-        """Ensure checkout steps in the trigger job have valid fetch-depth values."""
+        """
+        Ensure checkout steps in the `pr-agent-trigger` job have valid `fetch-depth` values.
+        
+        Checks each `actions/checkout` step in the `pr-agent-trigger` job and asserts that when a `fetch-depth` key is present it is an integer greater than or equal to 0. Omitting `fetch-depth` is allowed.
+        
+        Parameters:
+            pr_agent_workflow (Dict[str, Any]): Parsed YAML content of the pr-agent workflow.
+        """
 
         trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = trigger_job.get("steps", [])
@@ -2321,7 +2339,11 @@ class TestRequirementsDevValidation:
         )
 
     def test_requirements_dev_no_conflicts_with_main(self):
-        """Test that dev requirements don't conflict with main requirements."""
+        """
+        Verify there are no package version conflicts between requirements-dev.txt and requirements.txt.
+        
+        Parses each file by ignoring blank lines and comments, strips extras (e.g. package[extra]) and normalises package names to lowercase. Compares the full requirement spec lines for packages present in both files and fails the test listing any packages whose requirement specifications differ. Skips the test if either requirements file is missing.
+        """
         req_file = Path("requirements-dev.txt")
         main_req_file = Path("requirements.txt")
         
@@ -2467,7 +2489,11 @@ class TestWorkflowSemanticConsistency:
                 )
     
     def test_python_version_matches_project_standard(self):
-        """Test that Python version in workflow matches project standards (not 'latest', >= 3.8)."""
+        """
+        Verify setup-python steps in pr-agent.yml specify a pinned Python version of at least 3.8 and not 'latest'.
+        
+        Skips the test if pr-agent.yml is not present.
+        """
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
@@ -2526,10 +2552,9 @@ class TestWorkflowChangeRegression:
     
     def test_pr_agent_exactly_one_setup_python_per_job(self):
         """
-        Regression test: Ensure each job has at most one Setup Python step.
+        Ensure each job in pr-agent.yml defines at most one Setup Python step.
         
-        This test specifically validates the fix for the duplicate 'Setup Python' step
-        that was removed in this branch. It ensures the issue doesn't regress.
+        Loads .github/workflows/pr-agent.yml (skips the test if the file is absent) and, for each job, asserts there is at most one Setup Python step — counted both by the step name 'Setup Python' and by a 'uses' value containing 'setup-python' — and verifies those two counts match when any are present.
         """
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
         if not pr_agent_file.exists():
@@ -2568,10 +2593,9 @@ class TestWorkflowChangeRegression:
     
     def test_pr_agent_no_duplicate_yaml_keys_in_steps(self):
         """
-        Regression test: Ensure no steps have duplicate YAML keys like duplicate 'with:' blocks.
+        Ensure the pr-agent workflow does not contain duplicate YAML keys within step definitions.
         
-        This validates that the malformed YAML structure (duplicate keys) that was fixed
-        doesn't appear in any step definitions.
+        Checks that .github/workflows/pr-agent.yml (if present) has no duplicated mapping keys (for example duplicate `with:` blocks) that could cause silent overwrites or malformed step structure; skips the test when the file is missing.
         """
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
         if not pr_agent_file.exists():

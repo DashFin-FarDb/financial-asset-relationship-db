@@ -20,7 +20,12 @@ class TestRequirementsFormat:
     
     @pytest.fixture
     def requirements_lines(self) -> List[str]:
-        """Load requirements-dev.txt lines."""
+        """
+        Read requirements-dev.txt and return its non-empty, stripped lines.
+        
+        Returns:
+            list[str]: Lines from requirements-dev.txt with leading and trailing whitespace removed; blank lines are omitted.
+        """
         with open('requirements-dev.txt', 'r') as f:
             return [line.strip() for line in f.readlines() if line.strip()]
     
@@ -41,7 +46,11 @@ class TestRequirementsFormat:
                     f"Line {i}: Use https:// instead of http://"
     
     def test_no_spaces_around_operators(self, requirements_lines):
-        """Verify operators have no surrounding spaces."""
+        """
+        Ensure no non-comment line contains spaces around version comparison operators.
+        
+        If an offending line is found the test fails with an assertion that includes the line number and the line content.
+        """
         for i, line in enumerate(requirements_lines, 1):
             if not line.startswith('#'):
                 # Check for spaces around version operators
@@ -49,7 +58,12 @@ class TestRequirementsFormat:
                     f"Line {i}: Remove spaces around operators: {line}"
     
     def test_lowercase_package_names(self, requirements_lines):
-        """Verify package names use standard casing."""
+        """
+        Ensure each non-comment requirement uses a lowercase package name, allowing hyphenated names and permitting the special-case 'PyYAML'.
+        
+        Raises:
+            AssertionError: if a package name contains uppercase characters (excluding the allowed 'pyyaml') and is not hyphenated; the failure message includes the offending line number and package name.
+        """
         for i, line in enumerate(requirements_lines, 1):
             if line and not line.startswith('#'):
                 pkg_name = re.split(r'[<>=~!]', line)[0].strip()
@@ -70,7 +84,11 @@ class TestPyYAMLAddition:
         assert 'pyyaml' in content, "PyYAML must be present in requirements-dev.txt"
     
     def test_pyyaml_version_appropriate(self):
-        """Verify PyYAML version is recent and secure."""
+        """
+        Ensure requirements-dev.txt contains a PyYAML entry and that any specified version meets the minimum secure version (major >= 5, and if major == 5 then minor >= 4).
+        
+        Reads requirements-dev.txt, locates the first non-comment line mentioning PyYAML, and asserts the entry exists. If a version specifier is present, asserts the major version is at least 5 and that 5.x versions are >= 5.4.
+        """
         with open('requirements-dev.txt', 'r') as f:
             lines = f.readlines()
         
@@ -94,7 +112,11 @@ class TestPyYAMLAddition:
                 assert minor >= 4, f"PyYAML 5.x should be >= 5.4 for security, found 5.{minor}"
     
     def test_pyyaml_compatible_with_yaml_workflows(self):
-        """Verify PyYAML version works with GitHub workflow parsing."""
+        """
+        Verify the installed PyYAML can parse the repository's GitHub workflow and that the parsed object contains job definitions.
+        
+        Checks that `.github/workflows/pr-agent.yml` can be loaded with `yaml.safe_load`, that the result is a dict-like object and that it contains a top-level 'jobs' key. The test is skipped if PyYAML is not installed and fails if parsing or validation of the workflow file fails.
+        """
         try:
             import yaml
             
@@ -186,7 +208,11 @@ class TestRequirementsSecurity:
                         f"Known vulnerable version {package}=={vuln_version} detected"
     
     def test_uses_version_pinning(self):
-        """Verify important packages have version constraints."""
+        """
+        Ensure critical packages in requirements-dev.txt have explicit version constraints.
+        
+        Fails the test if any of the critical packages ('pyyaml', 'pytest') are present in non-comment lines without a version specifier (==, >=, <=, ~=, >, <, !=).
+        """
         with open('requirements-dev.txt', 'r') as f:
             lines = f.readlines()
         
@@ -210,7 +236,11 @@ class TestRequirementsCompatibility:
     """Test compatibility with existing project structure."""
     
     def test_compatible_with_main_requirements(self):
-        """Verify dev requirements don't conflict with main requirements."""
+        """
+        Ensure development requirements do not conflict with main requirements.
+        
+        Reads requirements.txt and requirements-dev.txt (skipping if requirements.txt is absent), compares packages present in both files, and asserts that any package pinned to an exact version with `==` in both files uses the same version. Raises an assertion error describing the package and differing `==` specifiers if a conflict is found.
+        """
         main_req_path = Path('requirements.txt')
         if not main_req_path.exists():
             pytest.skip("requirements.txt not found")
@@ -243,7 +273,11 @@ class TestRequirementsCompatibility:
                                         f"Version conflict for {pkg_name}: main{main_version} vs dev{dev_version}"
     
     def test_can_be_installed(self):
-        """Verify requirements file can be parsed by pip (syntax check)."""
+        """
+        Check that pip can parse requirements-dev.txt without syntax errors.
+        
+        Fails the test if pip reports requirement syntax or lookup errors; skips the test if the pip executable is not available or the subprocess times out.
+        """
         try:
             result = subprocess.run(
                 ['pip', 'install', '--dry-run', '-r', 'requirements-dev.txt'],
@@ -270,7 +304,11 @@ class TestRequirementsDocumentation:
     """Test documentation and comments in requirements file."""
     
     def test_has_header_comment(self):
-        """Verify file has explanatory header."""
+        """
+        Check that the requirements-dev.txt file contains a header comment.
+        
+        This test reads the first three lines of requirements-dev.txt and asserts that at least one of them is a comment line (starts with '#'), ensuring the file includes an explanatory header.
+        """
         with open('requirements-dev.txt', 'r') as f:
             first_lines = [f.readline().strip() for _ in range(3)]
         
@@ -279,7 +317,11 @@ class TestRequirementsDocumentation:
         assert has_comment, "requirements-dev.txt should have header comment explaining purpose"
     
     def test_pyyaml_has_explanation(self):
-        """Verify PyYAML addition has comment explaining its use."""
+        """
+        Check that a PyYAML entry in requirements-dev.txt is accompanied by an explanatory comment.
+        
+        Scans requirements-dev.txt for a non-comment line that mentions "pyyaml" and asserts there is either an inline comment on the same line or a comment on the immediately preceding line.
+        """
         with open('requirements-dev.txt', 'r') as f:
             lines = f.readlines()
         
@@ -314,7 +356,11 @@ class TestRequirementsEdgeCases:
             "requirements-dev.txt should end with newline"
     
     def test_no_trailing_whitespace(self):
-        """Verify no lines have trailing whitespace."""
+        """
+        Fail the test if any non-empty line in requirements-dev.txt contains trailing whitespace.
+        
+        The assertion reports the 1-based line number when trailing whitespace is found.
+        """
         with open('requirements-dev.txt', 'r') as f:
             lines = f.readlines()
         
@@ -326,7 +372,11 @@ class TestRequirementsEdgeCases:
                     f"Line {i} has trailing whitespace"
     
     def test_no_empty_lines_between_related_packages(self):
-        """Verify logical grouping of packages."""
+        """
+        Ensure requirements-dev.txt does not contain more than one consecutive empty line.
+        
+        Reads the file, counts consecutive empty lines and fails the test if more than one empty line appears in a row.
+        """
         with open('requirements-dev.txt', 'r') as f:
             lines = [line.strip() for line in f.readlines()]
         
@@ -345,7 +395,11 @@ class TestRequirementsEdgeCases:
             "Should not have multiple consecutive empty lines"
     
     def test_file_not_too_large(self):
-        """Verify requirements file is reasonably sized."""
+        """
+        Ensure requirements-dev.txt is smaller than 10,000 bytes.
+        
+        Asserts the file size is less than 10,000 bytes and fails showing the actual byte count if it exceeds the limit.
+        """
         import os
         file_size = os.path.getsize('requirements-dev.txt')
         

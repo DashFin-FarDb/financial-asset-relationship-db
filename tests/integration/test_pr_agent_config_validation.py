@@ -16,13 +16,20 @@ class TestPRAgentConfigSimplification:
 
     @pytest.fixture
     def config(self) -> Dict[str, Any]:
-        """Load PR agent configuration."""
+        """
+        Load and return the PR agent configuration from .github/pr-agent-config.yml.
+        
+        Returns:
+            dict: Parsed YAML content of the PR agent configuration as a dictionary.
+        """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, 'r') as f:
             return yaml.safe_load(f)
 
     def test_version_reverted_to_1_0_0(self, config):
-        """Verify version was reverted from 1.1.0 to 1.0.0."""
+        """
+        Check that the agent version in the provided config equals "1.0.0".
+        """
         assert config['agent']['version'] == "1.0.0", \
             "Version should be 1.0.0 after simplification"
 
@@ -62,7 +69,12 @@ class TestPRAgentConfigSimplification:
         assert 'enabled' in config['agent']
 
     def test_monitoring_config_preserved(self, config):
-        """Verify monitoring settings are still present."""
+        """
+        Check that the configuration includes a top-level `monitoring` section and that it is a mapping.
+        
+        Parameters:
+            config (dict): Parsed YAML configuration loaded from .github/pr-agent-config.yml.
+        """
         assert 'monitoring' in config
         assert isinstance(config['monitoring'], dict)
 
@@ -80,7 +92,11 @@ class TestPRAgentConfigYAMLValidity:
     """Test YAML validity and format."""
 
     def test_valid_yaml_syntax(self):
-        """Verify config file has valid YAML syntax."""
+        """
+        Ensure the PR agent configuration file contains valid YAML.
+        
+        Fails the test if parsing raises a YAML error, or if the parsed document is empty or not a mapping.
+        """
         config_path = Path(".github/pr-agent-config.yml")
 
         with open(config_path, 'r') as f:
@@ -92,13 +108,31 @@ class TestPRAgentConfigYAMLValidity:
                 pytest.fail(f"Invalid YAML syntax: {e}")
 
     def test_no_duplicate_keys(self):
-        """Verify no duplicate keys in config."""
+        """
+        Assert that the PR agent YAML configuration contains no duplicate or non-hashable mapping keys.
+        
+        Loads .github/pr-agent-config.yml with a custom YAML loader that raises a YAML error when it encounters duplicate mapping keys or unhashable keys (e.g., lists or dicts used as keys). Any YAML parsing errors or detected duplicates are converted into pytest failures with a descriptive message.
+        """
         config_path = Path(".github/pr-agent-config.yml")
 
         class DuplicateKeyLoader(yaml.SafeLoader):
             pass
 
         def construct_mapping_no_dups(loader, node, deep=False):
+            """
+            Construct a Python mapping from a YAML mapping node while rejecting duplicate or unhashable keys.
+            
+            Parameters:
+            	loader (yaml.Loader): The YAML loader used to construct Python objects from nodes.
+            	node (yaml.Node): The YAML node to construct; if not a MappingNode the node is constructed normally and returned.
+            	deep (bool): If True, construct objects deeply (pass through to loader.construct_object).
+            
+            Returns:
+            	dict or any: A dict built from the mapping node when `node` is a MappingNode; otherwise the result of constructing `node` as provided by the loader.
+            
+            Raises:
+            	yaml.YAMLError: If a mapping contains duplicate keys or a key that is not hashable.
+            """
             if not isinstance(node, yaml.MappingNode):
                 return loader.construct_object(node, deep=deep)
             mapping = {}
@@ -138,7 +172,11 @@ class TestPRAgentConfigYAMLValidity:
                     pytest.fail(f"YAML parsing error in config: {e}")
 
     def test_non_hashable_keys_detected(self):
-        """Verify non-hashable keys are detected and raise appropriate errors."""
+        """
+        Detect non-hashable or null mapping keys in YAML and assert a yaml.YAMLError is raised.
+        
+        Uses a custom SafeLoader that rejects mapping keys which are None, not hashable, or duplicated, then writes small YAML snippets containing a list key, a dict key, and a null key to temporary files and verifies loading each raises yaml.YAMLError with an error message indicating the specific problem (non-hashable key with the offending type, or null key).
+        """
         import tempfile
         import os
 
@@ -146,6 +184,22 @@ class TestPRAgentConfigYAMLValidity:
             pass
 
         def construct_mapping_check_hashable(loader, node, deep=False):
+            """
+            Construct a Python mapping from a YAML mapping node while validating keys.
+            
+            Constructs and returns a dict for the given YAML mapping node, ensuring each key is not None, is hashable, and is unique. If the provided node is not a mapping node the node is constructed normally via the loader.
+            
+            Parameters:
+                loader: The YAML loader instance used to construct objects.
+                node: The YAML node to construct; expected to be a MappingNode for mapping construction.
+                deep (bool): If True, construct objects deeply (pass through to the loader).
+            
+            Returns:
+                dict: A dictionary built from the mapping node's key/value pairs.
+            
+            Raises:
+                yaml.YAMLError: If a mapping key is null, non-hashable or duplicated.
+            """
             if not isinstance(node, yaml.MappingNode):
                 return loader.construct_object(node, deep=deep)
             mapping = {}
@@ -218,7 +272,11 @@ class TestPRAgentConfigSecurity:
     """Security-focused tests for PR agent config."""
 
     def test_no_hardcoded_credentials(self):
-        """Verify no hardcoded credentials in config."""
+        """
+        Ensure the PR agent YAML contains no hardcoded credential values.
+        
+        Reads .github/pr-agent-config.yml, scans for mapping entries whose keys contain any of: "password", "api_key", "secret", or "token", and verifies that any corresponding value is a placeholder (a dollar-prefixed token, three or more asterisks, or "REDACTED", case-insensitive). The test fails if a matching key has a non-placeholder value, reporting the offending value.
+        """
         config_path = Path(".github/pr-agent-config.yml")
 
         with open(config_path, 'r') as f:

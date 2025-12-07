@@ -20,7 +20,20 @@ from packaging.requirements import Requirement
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples."""
+    """
+    Read a pip-style requirements file and produce a list of package name and version-specifier pairs.
+    
+    Parses each non-empty, non-comment line with packaging.Requirement and returns a list of tuples (package_name, version_specifier). Lines that are blank or start with '#' are ignored. The version_specifier is an empty string when no specifier is present.
+    
+    Parameters:
+        file_path (Path): Path to the requirements file to parse.
+    
+    Returns:
+        List[Tuple[str, str]]: Tuples of (package_name, version_specifier).
+    
+    Raises:
+        ValueError: If any requirement line cannot be parsed; the error message includes the offending line.
+    """
     requirements: List[Tuple[str, str]] = []
 
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -190,7 +203,11 @@ class TestRequirementsMatchWorkflowNeeds:
             )
     
     def test_requirements_support_python_version_in_workflow(self):
-        """Test that requirements are compatible with Python version used in workflows."""
+        """
+        Ensure the workflow's declared Python version (from a `setup-python` step) is at least 3.8.
+        
+        If `.github/workflows/pr-agent.yml` is missing the test is skipped. The test parses the workflow, locates the first `setup-python` step's `python-version` value and asserts the major/minor version is 3.8 or greater. If no `python-version` is found the test makes no assertion.
+        """
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
         
         if not pr_agent_file.exists():
