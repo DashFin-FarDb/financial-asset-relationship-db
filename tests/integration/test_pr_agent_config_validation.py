@@ -247,7 +247,50 @@ class TestPRAgentConfigYAMLValidity:
                 yaml.load(yaml_content_dict_key, Loader=DuplicateKeyLoader)
     def test_non_hashable_keys_detected(self):
         """Verify non-hashable keys are detected and raise appropriate errors."""
+    def test_non_hashable_keys_detected(self):
+        """Verify non-hashable keys are detected and raise appropriate errors."""
 
+        class DuplicateKeyLoader(yaml.SafeLoader):
+            pass
+
+        def construct_mapping_no_dups(loader, node, deep=False):
+            if not isinstance(node, yaml.MappingNode):
+                return loader.construct_object(node, deep=deep)
+            mapping = {}
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                if key is None:
+                    raise yaml.YAMLError("Null (None) key detected in YAML mapping.")
+                try:
+                    hash(key)
+                except TypeError:
+                    raise yaml.YAMLError(
+                        f"Non-hashable key detected: {key!r} (type: {type(key).__name__})"
+                    )
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key}")
+                mapping[key] = loader.construct_object(value_node, deep=deep)
+            return mapping
+
+        DuplicateKeyLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            construct_mapping_no_dups
+        )
+        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
+            DuplicateKeyLoader.add_constructor(
+                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
+                construct_mapping_no_dups
+            )
+
+        # Test with a list key (non-hashable) - uses explicit YAML sequence as a key
+        yaml_content_list_key = "? [1, 2, 3]\n: invalid_list_key\nvalid_key: value\n"
+        with pytest.raises(yaml.YAMLError, match="Non-hashable key detected"):
+            yaml.load(yaml_content_list_key, Loader=DuplicateKeyLoader)
+
+        # Test with a dict key (non-hashable) - uses explicit YAML mapping as a key
+        yaml_content_dict_key = "? {nested: dict}\n: invalid_dict_key\n"
+        with pytest.raises(yaml.YAMLError, match="Non-hashable key detected"):
+            yaml.load(yaml_content_dict_key, Loader=DuplicateKeyLoader)
         class NonHashableKeyLoader(yaml.SafeLoader):
             pass
 
