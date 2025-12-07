@@ -245,8 +245,21 @@ class TestWorkflowSecurityConsistency:
         """
         Scan all workflow YAMLs for patterns that may allow PR title or body content to be injected into shell or command contexts.
         
-        Searches files under .github/workflows for uses of pull request or issue title/body in contexts that could enable injection (for example, piping into shell commands or usage within command substitution) and prints any matches with the affected file path.
+        Searches files under .github/workflows for uses of pull request or issue title/body in contexts that could enable injection (for example, piping into shell commands or usage within command substitution) and fails the test on any definite matches.
         """
+        workflow_files = list(Path(".github/workflows").glob("*.yml"))
+        dangerous = [
+            r'\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|',
+            r'\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|',
+            r'\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(',
+        ]
+        for wf_file in workflow_files:
+            content = wf_file.read_text()
+            for pattern in dangerous:
+                matches = re.findall(pattern, content)
+                if matches:
+                    pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
+        return
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
         
         for wf_file in workflow_files:
