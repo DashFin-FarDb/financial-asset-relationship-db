@@ -118,7 +118,10 @@ class TestPRAgentConfigYAMLValidity:
                     raise yaml.YAMLError(f"Unhashable key encountered: {key!r}") from exc
 
                 if key == '<<':
-                    merges.append(value_node)
+            mapping = {}
++            merges = []
+            for key_node, value_node in node.value:
+
                     continue
 
                 # Build full hierarchical path for this key
