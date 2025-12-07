@@ -21,13 +21,23 @@ class TestPRAgentWorkflowChanges:
     
     @pytest.fixture
     def pr_agent_workflow(self) -> Dict[str, Any]:
-        """Load PR Agent workflow file."""
+        """
+        Load and parse the PR Agent GitHub Actions workflow.
+        
+        Returns:
+            workflow (Dict[str, Any]): Parsed YAML mapping of .github/workflows/pr-agent.yml.
+        """
         workflow_path = Path(".github/workflows/pr-agent.yml")
         with open(workflow_path, 'r') as f:
             return yaml.safe_load(f)
     
     def test_no_duplicate_keys(self, pr_agent_workflow):
-        """Verify no duplicate YAML keys exist."""
+        """
+        Assert the pr-agent workflow file contains exactly one "name: Setup Python" step.
+        
+        This test reads .github/workflows/pr-agent.yml as raw text and fails if the exact string
+        "name: Setup Python" appears zero times or more than once.
+        """
         # Check the raw file for duplicate keys
         workflow_path = Path(".github/workflows/pr-agent.yml")
         with open(workflow_path, 'r') as f:
@@ -65,7 +75,11 @@ class TestPRAgentWorkflowChanges:
         assert 'fetch-context' not in workflow_str.lower()
     
     def test_simplified_comment_parsing(self, pr_agent_workflow):
-        """Verify comment parsing step exists and is simplified."""
+        """
+        Assert the PR agent workflow contains a comment-parsing step that uses the GitHub API.
+        
+        Searches the 'pr_agent_response' job steps for a step whose name contains both "parse" and "comment" (case-insensitive) and verifies its run command includes "gh api".
+        """
         steps = pr_agent_workflow['jobs']['pr_agent_response']['steps']
         
         parse_step = None
@@ -78,7 +92,14 @@ class TestPRAgentWorkflowChanges:
         assert 'gh api' in parse_step['run'], "Should use GitHub API to fetch reviews"
     
     def test_required_secrets_documented(self, pr_agent_workflow):
-        """Verify GITHUB_TOKEN is properly used."""
+        """
+        Check that the PR agent workflow references the repository token.
+        
+        Asserts that the parsed workflow YAML contains either the literal `GITHUB_TOKEN` or the `github.token` context.
+        
+        Parameters:
+            pr_agent_workflow (dict): Parsed YAML content of .github/workflows/pr-agent.yml
+        """
         workflow_str = yaml.dump(pr_agent_workflow)
         assert 'GITHUB_TOKEN' in workflow_str or 'github.token' in workflow_str
     
@@ -96,13 +117,23 @@ class TestAPISecWorkflowChanges:
     
     @pytest.fixture
     def apisec_workflow(self) -> Dict[str, Any]:
-        """Load APISec workflow file."""
+        """
+        Load and parse the APIsec GitHub Actions workflow YAML.
+        
+        Returns:
+            workflow (dict): Parsed YAML content of .github/workflows/apisec-scan.yml as a dictionary.
+        """
         workflow_path = Path(".github/workflows/apisec-scan.yml")
         with open(workflow_path, 'r') as f:
             return yaml.safe_load(f)
     
     def test_conditional_execution_removed(self, apisec_workflow):
-        """Verify the conditional execution logic was removed."""
+        """
+        Check that the `Trigger_APIsec_scan` job no longer uses a conditional `if` key.
+        
+        Parameters:
+            apisec_workflow (dict): Parsed YAML mapping of the apisec-scan workflow.
+        """
         job = apisec_workflow['jobs']['Trigger_APIsec_scan']
         
         # The 'if' condition should not be present
@@ -119,7 +150,17 @@ class TestAPISecWorkflowChanges:
             "Credential check step should be removed"
     
     def test_apisec_scan_step_present(self, apisec_workflow):
-        """Verify the actual APIsec scan step is present."""
+        """
+        Ensure the APISec scan step named "APIsec scan" exists and is configured to use an APIsec action.
+        
+        Asserts that:
+        - a step named "APIsec scan" is present in jobs.Trigger_APIsec_scan.steps,
+        - that step includes a `uses` key,
+        - the `uses` value references "apisec" (case-insensitive).
+        
+        Parameters:
+            apisec_workflow (dict): Parsed YAML content of .github/workflows/apisec-scan.yml.
+        """
         steps = apisec_workflow['jobs']['Trigger_APIsec_scan']['steps']
         
         scan_step = None
@@ -133,7 +174,15 @@ class TestAPISecWorkflowChanges:
         assert 'apisec' in scan_step['uses'].lower()
     
     def test_required_secrets_usage(self, apisec_workflow):
-        """Verify secrets are properly referenced."""
+        """
+        Verify that the APIsec workflow references the required credentials.
+        
+        Asserts that the workflow configuration contains both the `apisec_username`
+        and `apisec_password` secret identifiers.
+        
+        Parameters:
+            apisec_workflow (dict): Parsed YAML content of the `.github/workflows/apisec-scan.yml` workflow.
+        """
         workflow_str = yaml.dump(apisec_workflow)
         
         # Should reference the secrets
@@ -141,7 +190,12 @@ class TestAPISecWorkflowChanges:
         assert 'apisec_password' in workflow_str
     
     def test_concurrency_configuration(self, apisec_workflow):
-        """Verify concurrency settings are appropriate."""
+        """
+        Check that the APIsec scan job's concurrency configuration, if present, includes 'group' and 'cancel-in-progress'.
+        
+        Parameters:
+            apisec_workflow (dict): Parsed YAML content of .github/workflows/apisec-scan.yml representing the workflow.
+        """
         job = apisec_workflow['jobs']['Trigger_APIsec_scan']
         
         if 'concurrency' in job:
@@ -155,7 +209,12 @@ class TestLabelWorkflowChanges:
     
     @pytest.fixture
     def label_workflow(self) -> Dict[str, Any]:
-        """Load label workflow file."""
+        """
+        Load and parse the label workflow YAML file at .github/workflows/label.yml.
+        
+        Returns:
+            dict: Parsed YAML content of the label workflow as a mapping.
+        """
         workflow_path = Path(".github/workflows/label.yml")
         with open(workflow_path, 'r') as f:
             return yaml.safe_load(f)
@@ -172,7 +231,14 @@ class TestLabelWorkflowChanges:
         assert 'actions/labeler' in labeler_step['uses']
     
     def test_config_check_removed(self, label_workflow):
-        """Verify configuration checking logic was removed."""
+        """
+        Ensure the label workflow no longer includes configuration-checking or checkout steps.
+        
+        Asserts that no step has an `id` containing `check-config` (case-insensitive) and no step's `uses` contains `checkout` (case-insensitive).
+        
+        Parameters:
+            label_workflow (dict): Parsed YAML content of the label workflow.
+        """
         steps = label_workflow['jobs']['label']['steps']
         
         # Should not have config checking steps
@@ -181,7 +247,11 @@ class TestLabelWorkflowChanges:
             assert 'checkout' not in step.get('uses', '').lower()
     
     def test_required_permissions(self, label_workflow):
-        """Verify appropriate permissions are set."""
+        """
+        Ensure the 'label' job declares pull-requests permissions and that the permission is either 'write' or 'read'.
+        
+        If the job contains a `permissions` mapping, the test asserts that `pull-requests` is present and its value is one of `'write'` or `'read'`.
+        """
         job = label_workflow['jobs']['label']
         
         if 'permissions' in job:
@@ -203,13 +273,25 @@ class TestGreetingsWorkflowChanges:
     
     @pytest.fixture
     def greetings_workflow(self) -> Dict[str, Any]:
-        """Load greetings workflow file."""
+        """
+        Return the parsed YAML content of the greetings workflow.
+        
+        Returns:
+            workflow (dict): Parsed contents of .github/workflows/greetings.yml as a dictionary.
+        """
         workflow_path = Path(".github/workflows/greetings.yml")
         with open(workflow_path, 'r') as f:
             return yaml.safe_load(f)
     
     def test_simplified_messages(self, greetings_workflow):
-        """Verify messages were simplified to placeholders."""
+        """
+        Verify the greetings workflow uses a simplified "first-interaction" message configuration.
+        
+        Checks that the job `greeting` contains a step whose `uses` references `first-interaction`, and that its `with` configuration provides `issue-message` and `pr-message` values under 200 characters and not containing the substring "Resources:".
+        
+        Parameters:
+            greetings_workflow (dict): Parsed YAML content of .github/workflows/greetings.yml
+        """
         steps = greetings_workflow['jobs']['greeting']['steps']
         
         first_interaction_step = None
@@ -234,7 +316,11 @@ class TestGreetingsWorkflowChanges:
         assert 'Resources:' not in pr_msg
     
     def test_repo_token_present(self, greetings_workflow):
-        """Verify repo token is configured."""
+        """
+        Assert the greetings workflow configures a repo token for the 'first-interaction' action.
+        
+        Checks the 'greeting' job's steps for the step that uses an action containing 'first-interaction' and asserts that step has a 'with' block including 'repo-token'.
+        """
         steps = greetings_workflow['jobs']['greeting']['steps']
         
         first_interaction_step = None
@@ -257,7 +343,12 @@ class TestWorkflowYAMLValidity:
         ".github/workflows/greetings.yml",
     ])
     def test_yaml_syntax_valid(self, workflow_file):
-        """Verify YAML syntax is valid."""
+        """
+        Validate that the given GitHub workflow file contains syntactically valid YAML.
+        
+        Parameters:
+            workflow_file (str): Path to the workflow file to validate. The test fails if the file cannot be parsed as a YAML mapping or is empty.
+        """
         workflow_path = Path(workflow_file)
         
         with open(workflow_path, 'r') as f:
@@ -275,7 +366,15 @@ class TestWorkflowYAMLValidity:
         ".github/workflows/greetings.yml",
     ])
     def test_required_workflow_keys(self, workflow_file):
-        """Verify required workflow keys are present."""
+        """
+        Check that a GitHub Actions workflow file defines a `name`, an `on` trigger, and at least one job.
+        
+        Parameters:
+            workflow_file (str or pathlib.Path): Path to the workflow YAML file to validate.
+        
+        Raises:
+            AssertionError: If the workflow is missing the `name` key, the `on` trigger, the `jobs` key, or if `jobs` is empty.
+        """
         workflow_path = Path(workflow_file)
         
         with open(workflow_path, 'r') as f:
@@ -294,7 +393,11 @@ class TestWorkflowYAMLValidity:
         ".github/workflows/greetings.yml",
     ])
     def test_no_tabs_in_yaml(self, workflow_file):
-        """Verify YAML files don't contain tabs."""
+        """
+        Check that a workflow YAML file contains no tab characters.
+        
+        Asserts that the file at `workflow_file` does not include the tab character (`\t`); the test fails if any tab is present because YAML indentation must use spaces.
+        """
         workflow_path = Path(workflow_file)
         
         with open(workflow_path, 'r') as f:
@@ -310,7 +413,12 @@ class TestWorkflowYAMLValidity:
         ".github/workflows/greetings.yml",
     ])
     def test_consistent_indentation(self, workflow_file):
-        """Verify consistent indentation (2 spaces)."""
+        """
+        Assert that non-empty lines in the workflow file use two-space indentation levels.
+        
+        Checks each non-empty line that starts with a space has a number of leading spaces divisible by 2.
+        Raises an assertion error identifying the file and line number if an inconsistent indentation is found.
+        """
         workflow_path = Path(workflow_file)
         
         with open(workflow_path, 'r') as f:
@@ -335,7 +443,11 @@ class TestRequirementsDevChanges:
         assert 'pyyaml' in content.lower() or 'PyYAML' in content
     
     def test_pyyaml_version_pinned(self):
-        """Verify PyYAML has version constraint."""
+        """
+        Check that requirements-dev.txt contains a pinned PyYAML entry.
+        
+        Reads requirements-dev.txt, locates the first line mentioning PyYAML (case-insensitive) and asserts that the line includes a version specifier using one of: `==`, `>=`, `<=`, `~=`, `>`.
+        """
         with open('requirements-dev.txt', 'r') as f:
             lines = f.readlines()
         
@@ -352,7 +464,11 @@ class TestRequirementsDevChanges:
             "PyYAML should have version constraint"
     
     def test_requirements_file_format(self):
-        """Verify requirements file follows proper format."""
+        """
+        Ensure requirements-dev.txt uses version specifiers without spaces around operators.
+        
+        Reads requirements-dev.txt, ignores empty lines and comments, and asserts that package version operators do not include surrounding spaces (for example use `package==1.0.0`, not `package == 1.0.0`). Checks common operators such as `==`, `>=`, `<=`, `~=`, `>`, `<`, and `!=`; on failure raises an AssertionError indicating the offending line number.
+        """
         with open('requirements-dev.txt', 'r') as f:
             lines = f.readlines()
         
@@ -368,7 +484,11 @@ class TestRequirementsDevChanges:
                 f"Line {i}: Use operators without spaces (e.g., 'package==1.0.0')"
     
     def test_no_duplicate_dependencies(self):
-        """Verify no duplicate package specifications."""
+        """
+        Ensure requirements-dev.txt does not contain duplicate package entries.
+        
+        Ignores empty lines and comments, and treats package names case-insensitively by stripping any version specifier (characters like <, >, =, ~, !).
+        """
         with open('requirements-dev.txt', 'r') as f:
             lines = f.readlines()
         
@@ -401,7 +521,9 @@ class TestDeletedFiles:
             "context_chunker.py should be removed"
     
     def test_scripts_readme_removed(self):
-        """Verify scripts README was removed."""
+        """
+        Asserts that the repository no longer contains the .github/scripts/README.md file.
+        """
         readme_path = Path(".github/scripts/README.md")
         assert not readme_path.exists(), \
             "scripts/README.md should be removed"
@@ -430,7 +552,11 @@ class TestWorkflowIntegration:
                         f"{workflow_file}:{job_name} should use ubuntu runner"
     
     def test_workflows_use_appropriate_actions_versions(self):
-        """Verify workflows use pinned or major version tags for actions."""
+        """
+        Assert that each `uses` reference in the selected workflows either specifies a version (contains `@`) or is a local action path (starts with `./`).
+        
+        This test scans the listed workflow files for `uses:` entries and fails if any action reference lacks an explicit version or is not a local action.
+        """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
             ".github/workflows/apisec-scan.yml",
@@ -452,7 +578,12 @@ class TestWorkflowIntegration:
                     f"{workflow_file}: Action {action} should specify version"
     
     def test_no_hardcoded_secrets_in_workflows(self):
-        """Verify no hardcoded secrets exist in workflow files."""
+        """
+        Assert that no hardcoded secrets appear in the repository's workflow files.
+        
+        Checks the listed workflow YAML files for common sensitive assignments (password, token, API key).
+        Matches that appear to reference the GitHub secrets context (contain 'secrets.') are ignored.
+        """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
             ".github/workflows/apisec-scan.yml",
@@ -527,7 +658,11 @@ class TestWorkflowSecurity:
                     f"{workflow_file} should not use write-all permission"
     
     def test_no_script_injection_vulnerabilities(self):
-        """Check for potential script injection in workflow files."""
+        """
+        Scan selected workflow files for string patterns that indicate possible script-injection vulnerabilities and fail if any are found.
+        
+        Searches .github/workflows/pr-agent.yml, .github/workflows/apisec-scan.yml, .github/workflows/label.yml and .github/workflows/greetings.yml for occurrences of known dangerous patterns (for example, piping or command-substitution of event-derived values) and asserts that no matches exist; if matches are found the assertion message includes the offending snippets.
+        """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
             ".github/workflows/apisec-scan.yml",
