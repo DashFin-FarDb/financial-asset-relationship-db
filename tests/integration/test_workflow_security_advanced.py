@@ -295,7 +295,24 @@ class TestWorkflowPermissionsHardening:
                             version = action.split('@')[1]
                             # Enforce 40-character hex string (commit SHA)
                             assert re.match(r'^[a-f0-9]{40}$', version), \
-                                f"Third-party action {action} in {workflow['path']} " \
+                                def test_third_party_actions_pinned_to_sha(self, all_workflows):
+                                    """Verify third-party actions are pinned to a full commit SHA."""
+                                    for workflow in all_workflows:
+                                        jobs = workflow['content'].get('jobs', {})
+                                        for job_name, job_config in jobs.items():
+                                            steps = job_config.get('steps', [])
+                                            for step in steps:
+                                                action = step.get('uses', '')
+                                                if not action:
+                                                    continue
+                                                # Skip local actions
+                                                if action.startswith('./') or action.startswith('.\\'):
+                                                    continue
+                                                # Only validate actions that specify a version with '@'
+                                                if '@' in action:
+                                                    version = action.split('@', 1)[1]
+                                                    assert re.match(r'^[a-f0-9]{40}$', version), \
+                                                        f"Third-party action {action} in {workflow['path']} job '{job_name}' must be pinned to a commit SHA for security"
                                 f"job '{job_name}' must be pinned to a commit SHA for security"
 
 class TestWorkflowSupplyChainSecurity:
