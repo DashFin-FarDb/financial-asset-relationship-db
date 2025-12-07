@@ -113,7 +113,10 @@ class TestPRAgentConfigYAMLValidity:
                         f"Non-hashable key detected: {key!r} (type: {type(key).__name__})"
                     )
                     raise yaml.YAMLError(
-                        f"Non-hashable key detected: {key!r} (type: {type(key).__name__})"
+                    except TypeError:
+                        raise yaml.YAMLError(
+                            f"Non-hashable key detected: {key!r} (type: {type(key).__name__})"
+                        )
                     )
                     except TypeError:
                         raise yaml.YAMLError(
