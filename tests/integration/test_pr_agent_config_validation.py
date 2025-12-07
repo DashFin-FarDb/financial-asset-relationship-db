@@ -90,7 +90,95 @@ class TestPRAgentConfigYAMLValidity:
                 assert isinstance(config, dict)
             except yaml.YAMLError as e:
                 pytest.fail(f"Invalid YAML syntax: {e}")
-    
+    def test_no_duplicate_keys(self):
+        """Verify no duplicate keys in config."""
+        config_path = Path(".github/pr-agent-config.yml")
+
+        class DuplicateKeyLoader(yaml.SafeLoader):
+            pass
+
+        def construct_mapping_no_dups(loader, node, deep=False, path_stack=None, seen_full_paths=None):
+            if not isinstance(node, yaml.MappingNode):
+                return loader.construct_object(node, deep=deep)
+
+            if path_stack is None:
+                path_stack = []
+            if seen_full_paths is None:
+                seen_full_paths = set()
+
+            mapping = {}
+            merges = []
+
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                try:
+                    hash(key)
+                except TypeError as exc:
+                    raise yaml.YAMLError(f"Unhashable key encountered: {key!r}") from exc
+
+                if key == '<<':
+                    merges.append(value_node)
+                    continue
+
+                full_path = tuple(path_stack + [key])
+                if full_path in seen_full_paths:
+                    raise yaml.YAMLError(f"Duplicate key at path '{'.'.join(map(str, full_path))}'")
+                seen_full_paths.add(full_path)
+
+                if isinstance(value_node, yaml.MappingNode):
+                    value = construct_mapping_no_dups(
+                        loader,
+                        value_node,
+                        deep=deep,
+                        path_stack=list(full_path),
+                        seen_full_paths=seen_full_paths,
+                    )
+                else:
+                    value = loader.construct_object(value_node, deep=deep)
+
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
+                mapping[key] = value
+
+            for merge_node in merges:
+                merged = loader.construct_object(merge_node, deep=deep)
+                sources = merged if isinstance(merged, list) else [merged]
+
+                for m in sources:
+                    if not isinstance(m, dict):
+                        raise yaml.YAMLError(f"Unsupported merge node type: {type(m).__name__}")
+                    for mk, mv in m.items():
+                        if mk in mapping:
+                            raise yaml.YAMLError(f"Duplicate key detected via merge: {mk!r}")
+                        merge_full_path = tuple(path_stack + [mk])
+                        if merge_full_path in seen_full_paths:
+                            raise yaml.YAMLError(
+                                f"Duplicate key at path '{'.'.join(map(str, merge_full_path))}' via merge"
+                            )
+                        seen_full_paths.add(merge_full_path)
+                        mapping[mk] = mv
+
+            return mapping
+
+        DuplicateKeyLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            construct_mapping_no_dups
+        )
+        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
+            DuplicateKeyLoader.add_constructor(
+                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
+                construct_mapping_no_dups
+            )
+
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                yaml.load(f, Loader=DuplicateKeyLoader)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Duplicate key detected or YAML error: {e}")
+            else:
+                with open(config_path, 'r', encoding='utf-8') as f2:
+                    if not any(line.strip() and not line.lstrip().startswith('#') for line in f2):
+                        pytest.fail("YAML file is empty or contains only comments.")
     def test_no_duplicate_keys(self):
         """Verify no duplicate keys in config."""
             for key_node, value_node in node.value:
