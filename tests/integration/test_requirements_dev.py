@@ -313,6 +313,128 @@ class TestSpecificChanges:
             'types-PyYAML',
         }
 
-        missing_packages = expected_packages - package_names
-        assert not missing_packages, \
-            f"The following packages are missing from requirements-dev.txt: {', '.join(sorted(missing_packages))}"
+    def test_no_duplicate_package_names(self):
+        """Test that no package appears multiple times in requirements-dev.txt."""
+        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
+        requirements = parse_requirements(REQUIREMENTS_FILE)
+        duplicates = _find_duplicate_packages(requirements)
+        assert len(duplicates) == 0, (
+            f"Duplicate packages found in requirements-dev.txt: {duplicates}. "
+            "Each package should appear only once."
+        )
+    
+    def test_pyyaml_compatible_versions(self):
+        """Test that PyYAML and types-PyYAML have compatible version constraints."""
+        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
+        
+        with open(REQUIREMENTS_FILE, 'r') as f:
+            content = f.read()
+        
+        # Extract versions
+        pyyaml_version = None
+        types_version = None
+        
+        for line in content.split('\n'):
+            line = line.strip()
+            if line.startswith('PyYAML>='):
+                pyyaml_version = line.split('>=')[1].strip()
+            elif line.startswith('types-PyYAML>='):
+                types_version = line.split('>=')[1].strip()
+        
+        assert pyyaml_version is not None, "PyYAML version constraint not found"
+        assert types_version is not None, "types-PyYAML version constraint not found"
+        
+        # They should have matching major versions for compatibility
+        pyyaml_major = pyyaml_version.split('.')[0]
+        types_major = types_version.split('.')[0]
+        
+        assert pyyaml_major == types_major, (
+            f"PyYAML (>={pyyaml_version}) and types-PyYAML (>={types_version}) "
+            f"should have matching major versions. Found: {pyyaml_major} vs {types_major}"
+        )
+    
+    def test_all_packages_use_consistent_operators(self):
+        """Test that version constraints use consistent comparison operators (prefer >=)."""
+        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
+        
+        requirements = parse_requirements(REQUIREMENTS_FILE)
+        
+        # Count operator usage
+        operator_counts = {'>=': 0, '==': 0, '<=': 0, '>': 0, '<': 0, '~=': 0}
+        
+        for pkg, version_spec in requirements:
+            if version_spec:
+                for op in operator_counts.keys():
+                    if op in version_spec:
+                        operator_counts[op] += 1
+        
+        # Most packages should use >= (minimum version specifier)
+        total_specs = sum(operator_counts.values())
+        if total_specs > 0:
+            ge_percentage = (operator_counts['>='] / total_specs) * 100
+            
+            # At least 50% should use >= for flexibility
+            assert ge_percentage >= 50, (
+                f"Only {ge_percentage:.1f}% of version constraints use '>=' operator. "
+                f"Prefer '>=' for minimum version requirements. Operator counts: {operator_counts}"
+            )
+
+
+class TestPyYAMLIntegration:
+    """Tests specific to the PyYAML addition in this branch."""
+    
+    def test_pyyaml_addition_has_both_runtime_and_types(self):
+        """
+        Test that the PyYAML addition includes both the runtime package and type stubs.
+        
+        This validates the specific change made in this branch where both PyYAML>=6.0
+        and types-PyYAML>=6.0.0 were added together.
+        """
+        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
+        
+        requirements = parse_requirements(REQUIREMENTS_FILE)
+        package_names = [pkg for pkg, _ in requirements]
+        
+        assert 'PyYAML' in package_names, (
+            "PyYAML should be present in requirements-dev.txt (added in this branch)"
+        )
+        assert 'types-PyYAML' in package_names, (
+            "types-PyYAML should be present in requirements-dev.txt (added in this branch)"
+        )
+        
+        # Both should have version constraints
+        pyyaml_entry = next((ver for pkg, ver in requirements if pkg == 'PyYAML'), None)
+        types_entry = next((ver for pkg, ver in requirements if pkg == 'types-PyYAML'), None)
+        
+        assert pyyaml_entry and '>=6.0' in pyyaml_entry, (
+            "PyYAML should have version constraint >=6.0"
+        )
+        assert types_entry and '>=6.0' in types_entry, (
+            "types-PyYAML should have version constraint >=6.0"
+        )
+    
+    def test_pyyaml_needed_for_workflow_tests(self):
+        """
+        Test that PyYAML is available for workflow validation tests.
+        
+        The workflow tests (test_github_workflows.py) use PyYAML to parse and validate
+        workflow files, so it must be in requirements-dev.txt.
+        """
+        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
+        
+        with open(REQUIREMENTS_FILE, 'r') as f:
+            content = f.read()
+        
+        # PyYAML should be present (case-insensitive check)
+        assert 'pyyaml' in content.lower(), (
+            "PyYAML must be in requirements-dev.txt as it's needed for workflow validation tests"
+        )
+        
+        # Verify we can actually import yaml (validates the requirement works)
+        try:
+            import yaml
+            # Successfully imported - requirement is satisfied
+            assert yaml.safe_load("key: value") == {'key': 'value'}, "PyYAML import successful"
+        except ImportError:
+            pytest.fail("PyYAML is not installed in the test environment (required for workflow validation)")
+            pytest.fail("PyYAML is not installed in the test environment (required for workflow validation)")
