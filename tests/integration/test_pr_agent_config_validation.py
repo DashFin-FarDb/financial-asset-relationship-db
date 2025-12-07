@@ -173,7 +173,15 @@ class TestPRAgentConfigYAMLValidity:
 
         with open(config_path, 'r', encoding='utf-8') as f:
             try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
                 yaml.load(f, Loader=DuplicateKeyLoader)
+            except yaml.YAMLError as e:
+                error_msg = str(e).lower()
+                if "duplicate" in error_msg or "duplicate key" in error_msg:
+                    pytest.fail(f"Duplicate key detected in YAML config: {e}")
+                else:
+                    pytest.fail(f"YAML parsing error in config: {e}")
             except yaml.YAMLError as e:
                 error_msg = str(e).lower()
                 if "duplicate" in error_msg or "duplicate key" in error_msg:
