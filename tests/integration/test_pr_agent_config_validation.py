@@ -126,7 +126,30 @@ class TestPRAgentConfigYAMLValidity:
         )
         # Ensure ordered mappings also use the duplicate key check
         if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-            DuplicateKeyLoader.add_constructor(
+        def construct_mapping_no_dups(loader, node, deep=False):
+            if not isinstance(node, yaml.MappingNode):
+                return loader.construct_object(node, deep=deep)
+            mapping = {}
+            keys = []
+            # First pass: validate keys only
+            for key_node, _ in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                if key is None:
+                    raise yaml.YAMLError("Null (None) key detected in YAML mapping.")
+                try:
+                    hash(key)
+                except TypeError:
+                    raise yaml.YAMLError(
+                        f"Non-hashable key detected: {key!r} (type: {type(key).__name__})"
+                    )
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key}")
+                mapping[key] = None
+                keys.append(key)
+            # Second pass: construct values after keys are validated
+            for (key_node, value_node), key in zip(node.value, keys):
+                mapping[key] = loader.construct_object(value_node, deep=deep)
+            return mapping
         if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
             DuplicateKeyLoader.add_constructor(
                 yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
