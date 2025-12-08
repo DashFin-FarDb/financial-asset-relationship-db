@@ -164,22 +164,32 @@ class TestPRAgentConfigSecurity:
         
         Returns:
             The parsed YAML content as a Python mapping or sequence (typically a dict), or `None` if the file is empty.
-        """
-        config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, 'r') as f:
-            return yaml.safe_load(f)
-    
     def test_no_hardcoded_credentials(self, pr_agent_config):
         """
-        Perform a coarse scan for sensitive identifiers such as `password`, `secret`, `token`, `api_key`, `apikey`, `access_key`, or `private_key` anywhere in the serialized configuration text.
-
-        The test fails when one of these substrings is present unless the dump also contains placeholder markers like `null` or `webhook`.
+        Traverse the parsed YAML and ensure that any key containing sensitive indicators
+        has a safe placeholder value (None, 'null', or 'webhook').
         """
-        config_str = yaml.dump(pr_agent_config).lower()
-
-        # Check for common credential indicators
         sensitive_patterns = [
             'password', 'secret', 'token', 'api_key', 'apikey',
+            'access_key', 'private_key'
+        ]
+
+        safe_placeholders = {None, 'null', 'webhook'}
+
+        def check_node(node, path=""):
+            if isinstance(node, dict):
+                for k, v in node.items():
+                    key_l = str(k).lower()
+                    new_path = f"{path}.{k}" if path else str(k)
+                    if any(p in key_l for p in sensitive_patterns):
+                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
+                    check_node(v, new_path)
+            elif isinstance(node, list):
+                for idx, item in enumerate(node):
+                    check_node(item, f"{path}[{idx}]")
+            # primitives are ignored unless hit via a sensitive key above
+
+        check_node(pr_agent_config)
             'access_key', 'private_key'
         ]
         
