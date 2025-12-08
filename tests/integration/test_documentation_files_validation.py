@@ -155,8 +155,7 @@ class TestDocumentationFilesValidation:
                     continue
                 
                 # For internal file links, verify the file exists
-                target_path = (doc_root / link_url).resolve()
-                
+                target_path = (md_file.parent / link_url).resolve()
                 # Allow links to common files that might exist
                 if target_path.name in ['LICENSE', 'CONTRIBUTING.md', 'CODE_OF_CONDUCT.md']:
                     continue
