@@ -166,6 +166,82 @@ class TestPRAgentConfigSecurity:
             The parsed YAML content as a Python mapping or sequence (typically a dict), or `None` if the file is empty.
     def test_no_hardcoded_credentials(self, pr_agent_config):
         """
+        Recursively scan configuration values for suspected secrets.
+
+        This inspects values (not just serialized text) and traverses nested dicts/lists.
+        The heuristic flags:
+          - Long high-entropy strings (e.g., tokens)
+          - Obvious secret prefixes/suffixes
+          - Inline credentials in URLs (e.g., scheme://user:pass@host)
+        """
+        import re
+        import math
+
+        # Heuristic to detect inline creds in URLs (user:pass@)
+        inline_creds_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@', re.IGNORECASE)
+
+        # Common secret-like prefixes or markers
+        secret_markers = (
+            'secret', 'token', 'apikey', 'api_key', 'access_key', 'private_key',
+            'pwd', 'password', 'auth', 'bearer '
+        )
+
+        def shannon_entropy(s: str) -> float:
+            if not s:
+                return 0.0
+            # Limit to a reasonable window to avoid skew from extremely long text
+            sample = s[:256]
+            freq = {}
+            for ch in sample:
+                freq[ch] = freq.get(ch, 0) + 1
+            ent = 0.0
+            length = len(sample)
+            for c in freq.values():
+                p = c / length
+                ent -= p * math.log2(p)
+            return ent
+
+        def looks_like_secret(val: str) -> bool:
+            v = val.strip()
+            if not v:
+                return False
+            # Common placeholders considered safe
+            placeholders = {'<token>', '<secret>', 'changeme', 'your-token-here', 'dummy', 'placeholder', 'null', 'none'}
+            if v.lower() in placeholders:
+                return False
+            # Inline credentials in URL
+            if inline_creds_re.search(v):
+                return True
+            # Bearer tokens or obvious markers
+            if any(m in v.lower() for m in secret_markers):
+                # If marker appears and string is not trivially short, treat as suspicious
+                if len(v) >= 12:
+                    return True
+            # Base64-like long strings
+            if re.fullmatch(r'[A-Za-z0-9_\-]{20,}', v):
+                # High entropy threshold suggests secret
+                if shannon_entropy(v) >= 3.5:
+                    return True
+            # Hex-encoded long strings (e.g., keys)
+            if re.fullmatch(r'[A-Fa-f0-9]{32,}', v):
+                return True
+            return False
+
+        def walk(obj, path="root"):
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    key_path = f"{path}.{k}"
+                    walk(v, key_path)
+            elif isinstance(obj, list):
+                for i, item in enumerate(obj):
+                    walk(item, f"{path}[{i}]")
+            elif isinstance(obj, str):
+                if looks_like_secret(obj):
+                    pytest.fail(f"Suspected secret value at '{path}': {obj[:20]}...")
+            # Non-string scalars (int/bool/None/float) are ignored
+
+        walk(pr_agent_config)
+        """
         Traverse the parsed YAML and ensure that any key containing sensitive indicators
         has a safe placeholder value (None, 'null', or 'webhook').
         """
