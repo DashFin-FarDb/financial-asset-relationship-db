@@ -122,7 +122,9 @@ class TestWorkflowSyntax:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_valid_yaml_syntax(self, workflow_file: Path):
         """Test that workflow files contain valid YAML syntax."""
-        duplicates = check_duplicate_keys(workflow_file)
+        try:
+            load_yaml_safe(workflow_file)
+        except yaml.YAMLError as e:
             pytest.fail(
                 f"Workflow {workflow_file.name} contains invalid YAML syntax: {e}"
             )
@@ -641,9 +643,7 @@ class TestWorkflowSecurity:
                 f"Workflow {workflow_file.name} may contain hardcoded secret "
                 f"(found pattern: {pattern}). Use secrets context instead."
             )
-            # Reject negative integers
-            assert fetch_depth >= 0, "fetch-depth cannot be negative"
-    
+
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_uses_secrets_context(self, workflow_file: Path):
         """
@@ -1243,57 +1243,17 @@ class TestWorkflowStepConfiguration:
         
         for job_name, job_config in jobs.items():
             steps = job_config.get("steps", [])
-            step_ids = [s.get("id") for s in steps if "id" in s]
+from collections import Counter
+
+# Inside the for job_name, job_config loop:
+step_ids = [s.get("id") for s in steps if "id" in s]
+id_counts = Counter(step_ids)
+duplicates = [sid for sid, count in id_counts.items() if count > 1]
             
             duplicates = [sid for sid in step_ids if step_ids.count(sid) > 1]
-    def check_env_vars(env_dict):
-        """
-        Identify environment variable names that do not follow the convention of using only upper-case letters, digits and underscores.
-    
-        Parameters:
-            env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided it is treated as absent and no invalid names are returned.
-    
-        Returns:
-            invalid_keys (List[str]): List of keys from `env_dict` that are not composed solely of upper-case letters, digits and underscores.
-        """
-        if not isinstance(env_dict, dict):
-            return []
-        invalid = []
-        for key in env_dict.keys():
-            # Ensure all characters are either alphanumeric or underscore
-            is_valid_chars = all(c.isalnum() or c == '_' for c in key)
-            if not key.isupper() or not is_valid_chars:
-                invalid.append(key)
-        return invalid
-
-    # Check top-level env
-    if "env" in config:
-        invalid = check_env_vars(config["env"])
-        assert not invalid, (
-            f"Workflow {workflow_file.name} has invalid env var names: {invalid}"
-        )
-
-    # Check job-level env
-    jobs = config.get("jobs", {})
-    for job_name, job_config in jobs.items():
-        if "env" in job_config:
-            invalid = check_env_vars(job_config["env"])
-            assert not invalid, (
-                f"Job '{job_name}' in {workflow_file.name} has invalid env var names: {invalid}"
+            assert not duplicates, (
+                f"Job '{job_name}' in {workflow_file.name} has duplicate step IDs: {duplicates}"
             )
-        """Test that continue-on-error is used sparingly and intentionally."""
-        config = load_yaml_safe(workflow_file)
-        jobs = config.get("jobs", {})
-        
-        for job_name, job_config in jobs.items():
-            steps = job_config.get("steps", [])
-            
-            for step in steps:
-                if step.get("continue-on-error") is True:
-                    # Should have a comment or name explaining why
-                    if "name" not in step:
-                        print(f"\nRecommendation: Step in job '{job_name}' of {workflow_file.name} "
-                              "uses continue-on-error but lacks descriptive name")
 
 
 class TestWorkflowEnvAndSecrets:
@@ -1302,73 +1262,26 @@ class TestWorkflowEnvAndSecrets:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_env_vars_naming_convention(self, workflow_file: Path):
         """
-def test_workflow_env_vars_naming_convention(self, workflow_file: Path):
-        """
         Ensure environment variable names in a workflow follow the UPPER_CASE naming convention.
-        
+
         Checks environment mappings at the workflow and job levels and fails the test if any variable name contains characters other than letters, digits or underscores or is not entirely upper-case.
-        
+
         Parameters:
             workflow_file (Path): Path to the workflow YAML file being tested.
         """
-        
-        Checks environment mappings at the workflow and job levels and fails the test if any variable name contains characters other than letters, digits or underscores or is not entirely upper-case.
-        
-        Parameters:
-            workflow_file (Path): Path to the workflow YAML file being tested.
-        """
-        """
-        Identify environment variable names that do not match the UPPER_CASE convention (letters, digits and underscores only).
-        
-        Parameters:
-            env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided, it is treated as absent.
-        
-        Returns:
-            invalid_keys (List[str]): List of keys from `env_dict` that are not entirely upper-case or that contain characters other than letters, digits or underscores.
-        """
-        Identify environment variable names that do not follow the convention of using only upper-case letters, digits and underscores.
-    
-        Parameters:
-            env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided it is treated as absent and no invalid names are returned.
-    
-        Returns:
-            invalid_keys (List[str]): List of keys from `env_dict` that are not composed solely of upper-case letters, digits and underscores.
-        """
-        if not isinstance(env_dict, dict):
-            return []
-        invalid = []
-        for key in env_dict.keys():
-            # Ensure all characters are either alphanumeric or underscore
-            is_valid_chars = all(c.isalnum() or c == '_' for c in key)
-            if not key.isupper() or not is_valid_chars:
-                invalid.append(key)
-        return invalid
+        config = load_yaml_safe(workflow_file)
 
-    # Check top-level env
-    if "env" in config:
-        invalid = check_env_vars(config["env"])
-        assert not invalid, (
-            f"Workflow {workflow_file.name} has invalid env var names: {invalid}"
-        )
-
-    # Check job-level env
-    jobs = config.get("jobs", {})
-    for job_name, job_config in jobs.items():
-        if "env" in job_config:
-            invalid = check_env_vars(job_config["env"])
-            assert not invalid, (
-                f"Job '{job_name}' in {workflow_file.name} has invalid env var names: {invalid}"
-            )
-        def check_env_vars(env_dict):
-            """
-            Identify environment variable names that do not follow the naming convention of upper-case letters, digits and underscores.
-
-            Parameters:
-                env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided, it is treated as absent.
-
-            Returns:
-                invalid_keys (List[str]): List of keys from `env_dict` that are not entirely upper-case or that contain characters other than letters, digits or underscores.
-            """
+def check_env_vars(env_dict):
+    """Identify environment variable names that do not follow UPPER_CASE convention."""
+    if not isinstance(env_dict, dict):
+        return []
+    invalid = []
+    for key in env_dict:
+        # Must be entirely uppercase and contain only letters, digits, or underscores
+        if not key.isupper() or not all(c.isalnum() or c == '_' for c in key):
+            invalid.append(key)
+    return invalid
+            """Identify environment variable names that do not follow UPPER_CASE convention."""
             if not isinstance(env_dict, dict):
                 return []
             invalid = []
