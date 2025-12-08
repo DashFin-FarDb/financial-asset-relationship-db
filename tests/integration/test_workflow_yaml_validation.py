@@ -15,7 +15,12 @@ class TestWorkflowYAMLValidation:
     
     @pytest.fixture
     def modified_workflows(self):
-        """List of workflows modified in this branch."""
+        """
+        Provide the list of workflow filenames considered modified in the current branch.
+        
+        Returns:
+            list[str]: Workflow filenames to validate, e.g. "apisec-scan.yml", "greetings.yml", "label.yml", "pr-agent.yml".
+        """
         return [
             "apisec-scan.yml",
             "greetings.yml",
@@ -37,7 +42,11 @@ class TestWorkflowYAMLValidation:
                     pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
     
     def test_workflows_have_required_top_level_keys(self, modified_workflows):
-        """Validate required GitHub Actions workflow keys."""
+        """
+        Assert that each modified GitHub Actions workflow contains required top-level keys.
+        
+        Checks for the presence of 'name', 'on' and 'jobs' in each workflow file and fails the test if any key is missing.
+        """
         required_keys = ['name', 'on', 'jobs']
         
         for workflow_file in modified_workflows:
@@ -50,7 +59,11 @@ class TestWorkflowYAMLValidation:
                     f"Workflow {workflow_file} missing required key: {key}"
     
     def test_pr_agent_workflow_simplified_correctly(self):
-        """Verify PR agent workflow no longer has chunking code."""
+        """
+        Validate that the pr-agent workflow has been simplified: it no longer contains chunking logic and still includes essential steps.
+        
+        Asserts the workflow file does not reference `context_chunker` or `chunking`, and that it contains either `parse-comments` or `parse` and a Python setup.
+        """
         path = self.WORKFLOW_DIR / "pr-agent.yml"
         with open(path, 'r') as f:
             content = f.read()

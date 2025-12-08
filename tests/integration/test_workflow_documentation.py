@@ -46,7 +46,12 @@ class TestDocumentationStructure:
     @pytest.fixture(scope='session')
     @pytest.fixture(scope='session')
     def doc_content() -> str:
-        """Load the documentation content once per test session."""
+        """
+        Provide the full text of the documentation file for use by tests.
+        
+        Returns:
+        	doc_text (str): The complete contents of the documentation file.
+        """
         with open(DOC_FILE, 'r', encoding='utf-8') as f:
             return f.read()
 
@@ -54,12 +59,30 @@ class TestDocumentationStructure:
     # Move this fixture to module level (outside the class)
     @pytest.fixture(scope='session')
     def doc_lines(doc_content: str) -> List[str]:
-        """Provide the documentation as a list of lines once per session."""
+        """
+        Split the documentation content into a list of lines.
+        
+        The returned lines preserve original line endings.
+        
+        Parameters:
+            doc_content (str): Full documentation text.
+        
+        Returns:
+            List[str]: List of lines from `doc_content`, each retaining its trailing newline where present.
+        """
         return doc_content.splitlines(keepends=True)
     
     @pytest.fixture(scope='session')
     def section_headers(doc_lines: List[str]) -> List[str]:
-        """Extract markdown section headers from the documentation lines."""
+        """
+        Collects Markdown header lines from a list of document lines.
+        
+        Parameters:
+            doc_lines (List[str]): Lines of the document, typically including line endings.
+        
+        Returns:
+            List[str]: Header lines (lines starting with one or more '#') with surrounding whitespace removed.
+        """
         return [line.strip() for line in doc_lines if line.lstrip().startswith('#')]
 
     def test_has_overview(self, section_headers: List[str]):
@@ -68,18 +91,35 @@ class TestDocumentationStructure:
         assert len(overview) > 0, "Should have an Overview section"
 
     def test_has_generated_files_section(self, section_headers: List[str]):
-        """Test that there's a section about generated files."""
+        """
+        Assert the documentation includes a section related to generated files.
+        
+        Parameters:
+            section_headers (List[str]): List of Markdown header lines extracted from the documentation file (each header as a single string).
+        """
         generated = [h for h in section_headers 
                     if 'generated' in h.lower() or 'file' in h.lower()]
         assert len(generated) > 0, "Should have a section about generated files"
 
     def test_has_running_section(self, section_headers: List[str]):
-        """Test that there's a section about running tests."""
+        """
+        Check that the documentation contains a section about running tests.
+        
+        Parameters:
+            section_headers (List[str]): List of markdown header lines extracted from the documentation.
+        """
         running = [h for h in section_headers if 'run' in h.lower()]
         assert len(running) > 0, "Should have a section about running tests"
 
     def test_has_sufficient_sections(self, section_headers: List[str]):
-        """Test that document has sufficient number of sections."""
+        """
+        Assert that the documentation contains at least five major section headers.
+        
+        Parameters:
+            section_headers (List[str]): List of Markdown header lines extracted from the document.
+        
+        Raises:
+            AssertionError: If fewer than five section headers are present; the message includes the actual count.
+        """
         assert len(section_headers) >= 5, \
             f"Document should have at least 5 major sections, found {len(section_headers)}"
-
