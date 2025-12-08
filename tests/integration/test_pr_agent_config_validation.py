@@ -26,7 +26,16 @@ class TestPRAgentConfigSimplification:
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, 'r') as f:
-            return yaml.safe_load(f)
+        if not config_path.exists():
+            pytest.fail(f"Config file not found: {config_path}")
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                cfg = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in config: {e}")
+        if cfg is None or not isinstance(cfg, dict):
+            pytest.fail("Config must be a YAML mapping (dict) and not empty")
+        return cfg
     
     def test_version_reverted_to_1_0_0(self, pr_agent_config):
         """Check that the PR agent's configured version is '1.0.0'."""
