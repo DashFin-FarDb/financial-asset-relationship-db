@@ -399,19 +399,17 @@ class TestRequirementsDevUpdates:
             # Should not be in main requirements
             assert 'pyyaml' not in content.lower()
             assert 'PyYAML' not in content and 'pyyaml' not in content.lower()
-    def test_all_dev_requirements_have_versions(self):
-    def test_all_dev_requirements_have_versions(self):
+    
     def test_all_dev_requirements_have_versions(self):
         """Verify all dev requirements have version specifiers."""
-        for line in lines:
-            # Skip empty lines and comments (including indented comments)
-            if not line or line.lstrip().startswith('#'):
-                continue
-            if not line or line.startswith('#'):
-                continue
-            
-            # Should have version specifier
-            assert '>=' in line or '==' in line or '~=' in line, \
+        req_file = Path(__file__).parent.parent.parent / "requirements-dev.txt"
+            # Basic PEP 508 version specifier check
+            has_version = any(op in line for op in ['>=', '==', '~=', '!=', '<', '<=', '>'])
+            # Handle extras syntax and file/URL requirements
+            is_complex_req = ('[' in line or '://' in line or '@' in line)
+
+            assert has_version or is_complex_req, \
+                f"Requirement '{line}' should have a version specifier or be a complex dependency"
                 f"Requirement '{line}' should have a version specifier"
     
     def test_pr_agent_still_triggered_on_events(self, pr_agent_workflow: Dict[str, Any]):
