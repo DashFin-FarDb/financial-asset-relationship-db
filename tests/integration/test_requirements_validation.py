@@ -43,11 +43,13 @@ class TestRequirementsDevChanges:
         Searches the given requirements file content for a line mentioning PyYAML and verifies that the line contains one of the recognised version operators: >=, ==, ~=, <=, > or <.
         """
         lines = requirements_dev_content.split('\n')
-    # Ignore commented lines so we don't pick up commented-out examples
-    pyyaml_line = next((l for l in lines if 'pyyaml' in l.lower() and not l.strip().startswith('#')), None)
+        # Ignore commented lines so we don't pick up commented-out examples
+        pyyaml_line = next((l for l in lines if 'pyyaml' in l.lower() and not l.strip().startswith('#')), None)
 
-    assert pyyaml_line is not None
-    # Strip inline comments and whitespace before checking version specifier
+        assert pyyaml_line is not None
+        # Strip inline comments and whitespace before checking version specifier
+        pyyaml_line_no_comment = pyyaml_line.split('#', 1)[0].strip()
+        assert any(op in pyyaml_line_no_comment for op in ['>=', '==', '~=', '<=', '>', '<'])
     pyyaml_line_no_comment = pyyaml_line.split('#', 1)[0].strip()
     assert any(op in pyyaml_line_no_comment for op in ['>=', '==', '~=', '<=', '>', '<'])
     
