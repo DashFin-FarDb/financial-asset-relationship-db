@@ -58,7 +58,9 @@ class TestWorkflowConsistency:
             path = Path(wf_file)
             if path.exists():
                 with open(path, 'r') as f:
-                    workflows[wf_file] = yaml.safe_load(f)
+                    loaded = yaml.safe_load(f)
+                    # Ensure we always store a dict to avoid NoneType errors in tests
+                    workflows[wf_file] = loaded if isinstance(loaded, dict) else {}
         
         return workflows
     
