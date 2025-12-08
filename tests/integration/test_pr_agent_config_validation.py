@@ -246,7 +246,33 @@ class TestPRAgentConfigSecurity:
         has a safe placeholder value (None, 'null', or 'webhook').
         """
         sensitive_patterns = [
-            'password', 'secret', 'token', 'api_key', 'apikey',
+            sensitive_patterns = [
+                'password', 'secret', 'token', 'api_key', 'apikey',
+                'access_key', 'private_key'
+            ]
+
+            allowed_placeholders = {'null', 'none', 'placeholder'}
+
+            def value_contains_secret(val: str) -> bool:
+                low = val.lower()
+                # ignore common placeholders and templated variables
+                if low in allowed_placeholders or ('${' in val and '}' in val):
+                    return False
+                return any(pat in low for pat in sensitive_patterns)
+
+            def scan_for_secrets(node, path="root"):
+                if isinstance(node, dict):
+                    for k, v in node.items():
+                        scan_for_secrets(v, f"{path}.{k}")
+                elif isinstance(node, list):
+                    for idx, item in enumerate(node):
+                        scan_for_secrets(item, f"{path}[{idx}]")
+                elif isinstance(node, str):
+                    assert not value_contains_secret(node), \
+                        f"Potential hardcoded credential value at {path}"
+                # Non-string scalars (int, float, bool, None) are safe to ignore
+
+            scan_for_secrets(pr_agent_config)
             'access_key', 'private_key'
         ]
 
