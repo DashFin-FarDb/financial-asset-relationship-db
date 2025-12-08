@@ -14,13 +14,13 @@ test_count=$((test_count + 1))
 
 # If gh is not installed, script should fail with specific error
 if ! command -v gh &> /dev/null; then
-    output=$(bash close_unmergeable_prs.sh 2>&1 || true)
+    output=$(bash close_unmergeable_prs.sh 2>&1)
     exit_code=$?
     if echo "$output" | grep -q "Error: GitHub CLI (gh) is not installed" && [ $exit_code -ne 0 ]; then
         echo "✅ Correctly detects missing gh CLI with exit code 1"
         passed_count=$((passed_count + 1))
     else
-        echo "❌ Failed to properly detect missing gh CLI"
+        echo "❌ Failed to properly detect missing gh CLI (exit code: $exit_code)"
     fi
 else
     echo "✅ gh CLI detected successfully (test skipped)"
