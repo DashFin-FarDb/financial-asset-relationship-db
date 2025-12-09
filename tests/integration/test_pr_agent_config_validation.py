@@ -102,7 +102,18 @@ class TestPRAgentConfigSimplification:
     
     def test_limits_simplified(self, pr_agent_config):
         """Verify limits section simplified."""
-        limits = pr_agent_config['limits']
+        for line in lines:
+            if ':' in line and not line.strip().startswith('#'):
+                key = line.split(':', 1)[0].strip()
+                try:
+                    hash(key)
+                    is_hashable = True
+                except TypeError:
+                    is_hashable = False
+                if is_hashable:
+                    if key in seen_keys:
+                        pytest.fail(f"Duplicate key found: {key}")
+                    seen_keys.add(key)
         
         # Should not have complex chunking limits
         assert 'max_files_per_chunk' not in limits
