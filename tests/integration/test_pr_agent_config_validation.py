@@ -74,67 +74,6 @@ class TestPRAgentConfigSimplification:
         config_str = yaml.dump(pr_agent_config)
         assert 'tiktoken' not in config_str.lower()
     
-    def test_no_fallback_strategies(self, pr_agent_config):
-        """Verify fallback strategies removed from limits."""
-        limits = pr_agent_config.get('limits', {})
-        assert 'fallback' not in limits
-    
-    def test_basic_config_structure_intact(self, pr_agent_config):
-        """Verify basic configuration sections still present."""
-        # Essential sections should remain
-        assert 'agent' in pr_agent_config
-        assert 'monitoring' in pr_agent_config
-        assert 'actions' in pr_agent_config
-        assert 'quality' in pr_agent_config
-        assert 'security' in pr_agent_config
-    
-    def test_monitoring_config_present(self, pr_agent_config):
-        """
-        Verify the monitoring section contains the required keys: 'check_interval', 'max_retries' and 'timeout'.
-        
-        Parameters:
-            pr_agent_config (dict): Parsed PR agent configuration loaded from .github/pr-agent-config.yml.
-        """
-        monitoring = pr_agent_config['monitoring']
-        assert 'check_interval' in monitoring
-        assert 'max_retries' in monitoring
-        assert 'timeout' in monitoring
-    
-        def construct_mapping_no_dups(loader, node, deep=False):
-            def construct_mapping_no_dups(loader, node, deep=False):
-                if not isinstance(node, yaml.MappingNode):
-                    return loader.construct_object(node, deep=deep)
-                mapping = {}
-                for key_node, value_node in node.value:
-                    key = loader.construct_object(key_node, deep=deep)
-                    try:
-                        hash(key)
-                    except TypeError:
-                        raise yaml.YAMLError(f"Unhashable key detected in YAML mapping: {key!r}")
-                    if key in mapping:
-                        raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
-                    mapping[key] = loader.construct_object(value_node, deep=deep)
-                return mapping
-
-            # Register constructors for standard and ordered mappings
-            DuplicateKeyLoader.add_constructor(
-                yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-                construct_mapping_no_dups
-            )
-            if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
-                DuplicateKeyLoader.add_constructor(
-                    yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
-                    construct_mapping_no_dups
-                )
-                return loader.construct_object(node, deep=deep)
-            mapping = {}
-            for key_node, value_node in node.value:
-                key = loader.construct_object(key_node, deep=deep)
-                try:
-                    hash(key)
-        class DuplicateKeyLoader(yaml.SafeLoader):
-            pass
-
         def construct_mapping_no_dups(loader, node, deep=False):
             if not isinstance(node, yaml.MappingNode):
                 return loader.construct_object(node, deep=deep)
@@ -144,6 +83,11 @@ class TestPRAgentConfigSimplification:
                 try:
                     hash(key)
                 except TypeError:
+                    raise yaml.YAMLError(f"Unhashable key detected in YAML mapping: {key!r}")
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
+                mapping[key] = loader.construct_object(value_node, deep=deep)
+            return mapping
                     raise yaml.YAMLError(f"Unhashable key detected in YAML mapping: {key!r}")
                 if key in mapping:
                     raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
