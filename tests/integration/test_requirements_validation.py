@@ -67,8 +67,8 @@ class TestRequirementsDevChanges:
                 if l.strip() and not l.strip().startswith('#')]
 
         # Split on any common version operator to reliably extract the package name
-        package_names = [re.split(r'(?:==|~=|>=|<=|>|<)', l, maxsplit=1)[0].lower()
-                        for l in lines]
+        from packaging.requirements import Requirement
+        package_names = [Requirement(l).name.lower() for l in lines]
         
         assert len(package_names) == len(set(package_names)), \
             "Duplicate packages found in requirements-dev.txt"
