@@ -121,29 +121,174 @@ class TestPRAgentConfigYAMLValidity:
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, 'r') as f:
             try:
-                yaml.safe_load(f)
+                config = yaml.safe_load(f)
+                assert config is not None
+        def construct_mapping_no_dups(loader, node, deep=False, path_stack=None, seen_full_paths=None):
+            if path_stack is None:
+                path_stack = []
+            if seen_full_paths is None:
+                seen_full_paths = set()
+
+            if not isinstance(node, yaml.MappingNode):
+                return loader.construct_object(node, deep=deep)
+
+            mapping = {}
+            merges = []
+
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                try:
+                    hash(key)
+                except TypeError as exc:
+                    raise yaml.YAMLError(f"Unhashable key encountered: {key!r}") from exc
+
+                # Collect YAML merge keys to process after normal keys
+                if key == '<<':
+                    merges.append(value_node)
+                    continue
+
+                # Build and check full hierarchical path for duplicates
+                full_path = tuple(path_stack + [key])
+                if full_path in seen_full_paths:
+                    raise yaml.YAMLError(f"Duplicate key at path '{'.'.join(map(str, full_path))}'")
+                seen_full_paths.add(full_path)
+
+                # Recursively construct child mappings while tracking path
+                if isinstance(value_node, yaml.MappingNode):
+                    value = construct_mapping_no_dups(
+                        loader,
+                        value_node,
+                        deep=deep,
+                        path_stack=list(full_path),
+                        seen_full_paths=seen_full_paths
+                    )
+                else:
+                    value = loader.construct_object(value_node, deep=deep)
+
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
+                mapping[key] = value
+
+            # Handle merges, also respecting hierarchical paths
+            for merge_node in merges:
+                merged = loader.construct_object(merge_node, deep=deep)
+                sources = merged if isinstance(merged, list) else [merged]
+
+                for m in sources:
+                    if not isinstance(m, dict):
+                        raise yaml.YAMLError(f"Unsupported merge node type: {type(m).__name__}")
+                    for mk, mv in m.items():
+                        if mk in mapping:
+                            raise yaml.YAMLError(f"Duplicate key detected via merge: {mk!r}")
+                        full_path = tuple(path_stack + [mk])
+                        if full_path in seen_full_paths:
+                            raise yaml.YAMLError(f"Duplicate key at path '{'.'.join(map(str, full_path))}' via merge")
+                        seen_full_paths.add(full_path)
+                        mapping[mk] = mv
+
+            return mapping
+        DuplicateKeyLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            construct_mapping_no_dups
+        )
+        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
+            DuplicateKeyLoader.add_constructor(
+                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
+                construct_mapping_no_dups
+            )
+
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                yaml.load(f, Loader=DuplicateKeyLoader)
             except yaml.YAMLError as e:
-                pytest.fail(f"PR agent config has invalid YAML: {e}")
-    
+                pytest.fail(f"Duplicate key detected or YAML error: {e}")
+            else:
+                with open(config_path, 'r', encoding='utf-8') as f2:
+                    if not any(line.strip() and not line.lstrip().startswith('#') for line in f2):
+                        pytest.fail("YAML file is empty or contains only comments.")
     def test_no_duplicate_keys(self):
-        """
-        Fail the test if any top-level YAML key appears more than once in the file.
-        
-        Reads .github/pr-agent-config.yml, ignores commented lines, and treats the text before the first ':' on each non-comment line as a key; the test fails when a previously seen key is encountered again.
-        """
-        config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, 'r') as f:
-            content = f.read()
-        
-        # Simple check for obvious duplicates
-        lines = content.split('\n')
-        seen_keys = set()
-        for line in lines:
-            if ':' in line and not line.strip().startswith('#'):
-                key = line.split(':')[0].strip()
-                if key in seen_keys:
-                    pytest.fail(f"Duplicate key found: {key}")
-                seen_keys.add(key)
+        """Verify no duplicate keys in config."""
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                try:
+                    hash(key)
+                class DuplicateKeyLoader(yaml.SafeLoader):
+                    pass
+                    raise yaml.YAMLError(f"Unhashable key encountered: {key!r}") from exc
+
+                # Collect YAML merge keys to process after normal keys
+                if key == '<<':
+                    merges.append(value_node)
+                    continue
+
+                # Build and validate full hierarchical path for this key
+                full_path = tuple(path_stack + [key])
+                if full_path in seen_full_paths:
+                    raise yaml.YAMLError(f"Duplicate key at path '{'.'.join(map(str, full_path))}'")
+                seen_full_paths.add(full_path)
+
+                # Recursively construct child mappings while tracking full path
+                if isinstance(value_node, yaml.MappingNode):
+                    value = construct_mapping_no_dups(
+                        loader,
+                        value_node,
+                        deep=deep,
+                        path_stack=list(full_path),
+                        seen_full_paths=seen_full_paths,
+                    )
+                else:
+                    value = loader.construct_object(value_node, deep=deep)
+
+                # Detect duplicates within the same mapping level
+                if key in mapping:
+                    raise yaml.YAMLError(f"Duplicate key detected: {key!r}")
+                mapping[key] = value
+
+            # Handle merges while respecting hierarchical paths
+            for merge_node in merges:
+                merged = loader.construct_object(merge_node, deep=deep)
+                sources = merged if isinstance(merged, list) else [merged]
+
+                for m in sources:
+                    if not isinstance(m, dict):
+                        raise yaml.YAMLError(f"Unsupported merge node type: {type(m).__name__}")
+                    for mk, mv in m.items():
+                        # Disallow overriding existing mapping keys from merge
+                        if mk in mapping:
+                            raise yaml.YAMLError(f"Duplicate key detected via merge: {mk!r}")
+                        merge_full_path = tuple(path_stack + [mk])
+                        if merge_full_path in seen_full_paths:
+                            raise yaml.YAMLError(f"Duplicate key at path '{'.'.join(map(str, merge_full_path))}' via merge")
+                        seen_full_paths.add(merge_full_path)
+                        mapping[mk] = mv
+        DuplicateKeyLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            construct_mapping_no_dups
+        )
+        # Ensure ordered mappings also use the duplicate key check if present
+        if hasattr(yaml.resolver.BaseResolver, 'DEFAULT_OMAP_TAG'):
+            DuplicateKeyLoader.add_constructor(
+                yaml.resolver.BaseResolver.DEFAULT_OMAP_TAG,
+                construct_mapping_no_dups
+            )
+
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                yaml.load(f, Loader=DuplicateKeyLoader)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Duplicate key detected or YAML error: {e}")
+            else:
+                # Ensure a document exists (avoid passing on empty content)
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    if not any(line.strip() and not line.lstrip().startswith('#') for line in f):
+                        pytest.fail("YAML file is empty or contains only comments.")
+                # Removed unreachable legacy code related to manual path tracking.
+                if full_path in seen_full_paths:
+                    pytest.fail(f"Duplicate key at path '{full_path}'")
+                seen_full_paths.add(full_path)
+
+                # Push current key onto stack for potential children
+                path_stack.append((indent, key))
     
     def test_consistent_indentation(self):
         """
