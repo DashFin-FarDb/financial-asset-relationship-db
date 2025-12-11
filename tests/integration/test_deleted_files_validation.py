@@ -489,7 +489,7 @@ class TestNoOrphanedReferences:
                     f"{doc_file.name} references labeler.yml but doesn't indicate removal"
     
 
-        def test_no_context_chunker_references_anywhere(self):
+test_no_context_chunker_references_anywhere
             """Test that context_chunker is not referenced in any file type."""
             all_files = list(PROJECT_ROOT.rglob("*"))
             for file_path in all_files:
