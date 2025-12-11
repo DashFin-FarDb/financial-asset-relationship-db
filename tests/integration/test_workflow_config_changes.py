@@ -519,7 +519,8 @@ class TestRequirementsDevChanges:
         
         # Check for duplicates
         duplicates = [pkg for pkg in package_names if package_names.count(pkg) > 1]
-        assert len(duplicates) == 0, f"Duplicate dependencies found: {set(duplicates)}"
+        duplicates = {pkg for pkg in package_names if package_names.count(pkg) > 1}
+        assert len(duplicates) == 0, f"Duplicate dependencies found: {duplicates}"
 
 
 if __name__ == "__main__":
