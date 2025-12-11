@@ -52,7 +52,17 @@ def validate_workflow(workflow_path):
     Returns:
         ValidationResult: `is_valid` is `True` if the file parsed as a mapping and contains a 'jobs' key, `False` otherwise; `errors` is a list of diagnostic messages; `workflow_data` is the parsed YAML mapping on success, `{}` when parsing fails or the top-level structure is not a mapping, or the parsed dict when required keys (e.g., 'jobs') are missing.
     """
-    """
+    try:
+        with open(workflow_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+        if not isinstance(data, dict):
+            return ValidationResult(False, ["Workflow must be a dict"], {})
+        if 'jobs' not in data:
+            return ValidationResult(False, ["Workflow must have jobs"], data)
+        # Additional validations can be added here if needed
+        return ValidationResult(True, [], data)
+    except Exception as e:
+        return ValidationResult(False, [str(e)], {})
     try:
         with open(workflow_path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
