@@ -44,7 +44,6 @@ class TestDocumentationStructure:
     """Test the structure and formatting of the documentation."""
     
     @pytest.fixture(scope='session')
-    @pytest.fixture(scope='session')
     def doc_content() -> str:
         """
         Return the documentation file's full text.
