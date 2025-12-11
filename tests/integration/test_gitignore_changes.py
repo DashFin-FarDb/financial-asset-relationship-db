@@ -170,6 +170,9 @@ class TestGitignoreProjectSpecific:
     
     def test_python_egg_info_ignored(self, patterns: Set[str]):
         """Test that Python package metadata is ignored."""
+        egg_patterns = {'*.egg-info/', '*.egg-info', 'dist/', 'build/'}
+        assert any(p in patterns for p in egg_patterns), "Expected Python package metadata patterns to be ignored"
+
     def test_no_duplicate_patterns(self):
         """Test that no equivalent pattern appears multiple times (handles dir/ vs dir and negations)."""
         normalized_patterns = []
