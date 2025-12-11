@@ -25,6 +25,14 @@ WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
         return yaml.safe_load(f)
 
 WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
+from pathlib import Path
+from typing import Dict, Any, List
+import re
+import pytest
+import yaml
+
+WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
+CONFIG_FILE = Path(__file__).parent.parent.parent / "pr-agent-config.yml"
 
 def load_workflow(workflow_name: str) -> Dict[str, Any]:
     """Load a workflow file."""
@@ -32,6 +40,7 @@ def load_workflow(workflow_name: str) -> Dict[str, Any]:
     if not workflow_path.exists():
         pytest.skip(f"{workflow_name} not found")
     with open(workflow_path, 'r', encoding='utf-8') as f:
+        return yaml.safe_load(f)
         return yaml.safe_load(f)
         return yaml.safe_load(f)
         return yaml.safe_load(f)
