@@ -361,7 +361,65 @@ class TestAPISecWorkflowSimplified:
 class TestNoOrphanedReferences:
     """Test that deleted files are not referenced anywhere."""
     
+class TestNoOrphanedReferences:
+    """Test that deleted files are not referenced anywhere."""
+    
     def test_no_labeler_references_in_docs(self):
+        """Test that labeler.yml is not referenced in documentation."""
+        doc_files = list(PROJECT_ROOT.glob("*.md"))
+        
+        for doc_file in doc_files:
+            with open(doc_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # If labeler is mentioned, it should be in past tense or removal context
+            if 'labeler.yml' in content:
+                # Check the context suggests it was removed
+                assert 'removed' in content.lower() or 'deleted' in content.lower(), \
+                    f"{doc_file.name} references labeler.yml but doesn't indicate removal"
+
+    def test_no_context_chunker_imports(self):
+        """Test that context_chunker is not imported anywhere."""
+        python_files = list(PROJECT_ROOT.rglob("*.py"))
+        
+        for py_file in python_files:
+            # Skip test files
+            if 'test' in py_file.name.lower():
+                continue
+            
+            with open(py_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            assert 'context_chunker' not in content, \
+                f"{py_file} should not import context_chunker"
+
+    def test_no_codecov_config_files(self):
+        """Test that codecov config files don't exist."""
+        codecov_configs = [
+            PROJECT_ROOT / ".codecov.yml",
+            PROJECT_ROOT / "codecov.yml",
+            PROJECT_ROOT / ".codecov.yaml",
+        ]
+        
+        for config_file in codecov_configs:
+            if config_file.exists():
+                # If it exists, it should be for a different purpose
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Check it's not the GitHub Actions codecov config
+                assert 'github' not in content.lower() or 'action' not in content.lower()
+
+    def test_no_labeler_references_in_workflows(self):
+        """Ensure workflows don't reference .github/labeler.yml, even in comments."""
+        if not WORKFLOWS_DIR.exists():
+            pytest.skip("Workflows directory not found")
+
+        for workflow_file in WORKFLOWS_DIR.glob("*.yml"):
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            assert '.github/labeler.yml' not in content, \
+                f"{workflow_file.name} should not reference deleted .github/labeler.yml"
         """Test that labeler.yml is not referenced in documentation."""
         doc_files = list(PROJECT_ROOT.glob("*.md"))
         
