@@ -52,31 +52,21 @@ class TestPRAgentWorkflowEdgeCases:
         assert '"on":' in content or "'on':" in content, \
             "'on' key should be quoted in YAML"
     
-    def test_python_dependency_installation_robust(self, workflow: Dict[str, Any]):
-        """Test that Python dependency installation is robust."""
-        jobs = workflow.get('jobs', {})
-        
-        for job_name, job_config in jobs.items():
-            steps = job_config.get('steps', [])
-            
-            install_steps = [
-                step for step in steps 
-                if 'name' in step and 'python' in step['name'].lower() 
-                and 'dependencies' in step['name'].lower()
-            ]
-            
-            for step in install_steps:
-                run_script = step.get('run', '')
-                
-                # Should have proper error handling
-                assert 'pip install --upgrade pip' in run_script, \
-                    "Should upgrade pip first"
-                
-                # Should check for file existence
-                if 'requirements' in run_script:
-                    assert 'if [ -f' in run_script or 'test -f' in run_script, \
-                        "Should check if requirements file exists"
+                for step in install_steps:
+                    run_script = step.get('run', '')
     
+                    # Should have proper error handling
+                    assert 'pip install --upgrade pip' in run_script, \
+                        "Should upgrade pip first"
+    
+                    # Should fail fast if an installation command fails
+                    assert 'set -e' in run_script or '|| exit 1' in run_script, \
+                        "Dependency installation should fail the workflow on error"
+    
+                    # Should check for file existence
+                    if 'requirements' in run_script:
+                        assert 'if [ -f' in run_script or 'test -f' in run_script, \
+                            "Should check if requirements file exists"
     def test_no_duplicate_setup_python_steps(self, workflow: Dict[str, Any]):
         """Test that there are no duplicate 'Setup Python' steps."""
         jobs = workflow.get('jobs', {})
