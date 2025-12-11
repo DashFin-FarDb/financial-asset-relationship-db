@@ -64,7 +64,20 @@ class TestWorkflowConsistency:
                 if action == 'actions/checkout':
                     continue
                 # Record inconsistent versions
-                inconsistencies.append(f"{action} uses multiple versions: {list(versions.keys())}")
+        # Check for inconsistencies (single, consolidated implementation)
+        inconsistencies: List[str] = []
+        for action, versions in action_versions.items():
+            if len(versions) > 1:
+                # Allow mixed versions for actions/checkout (e.g., v4 and v5)
+                if action == 'actions/checkout':
+                    continue
+                # Record detailed inconsistent versions with file mappings
+                version_list = sorted(versions.keys())
+                inconsistencies.append(f"{action} uses multiple versions: {version_list}")
+                for version, files in versions.items():
+                    inconsistencies.append(f"  - {action}@{version} used in: {files}")
+
+        assert not inconsistencies, "Inconsistent action versions found:\n" + "\n".join(inconsistencies)
 
         assert not inconsistencies, \
             f"Inconsistent action versions found:\n" + "\n".join(inconsistencies)
