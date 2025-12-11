@@ -52,7 +52,7 @@ class TestPRAgentWorkflowEdgeCases:
         assert '"on":' in content or "'on':" in content, \
             "'on' key should be quoted in YAML"
     
-                for step in install_steps:
+# Remove this orphaned code block
                     run_script = step.get('run', '')
     
                     # Should have proper error handling
