@@ -226,7 +226,7 @@ class TestPRAgentConfigEdgeCases:
     def test_agent_enabled(self, config: Dict[str, Any]):
         """Test that agent is enabled."""
         agent_config = config.get('agent', {})
-def test_consistent_python_version(self):
+test_consistent_python_version
     """Test that Python version is consistent across workflows."""
     python_versions = {}
     
