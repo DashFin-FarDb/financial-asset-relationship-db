@@ -552,9 +552,12 @@ class TestRegressionPrevention:
                 with open(workflow_file, 'r', encoding='utf-8') as f:
                     workflow = yaml.safe_load(f)
                 
+                if not isinstance(workflow, dict):
+                    pytest.fail(f"{workflow_file.name} is not a mapping at the top level")
+            
                 for field in required_fields:
                     assert field in workflow or f'"{field}"' in str(workflow.keys()), \
                         f"{workflow_file.name} missing required field: {field}"
-            except Exception:
-                # Skip files that can't be parsed
+            except yaml.YAMLError:
+                # Skip files that can't be parsed as YAML
                 continue
