@@ -103,6 +103,8 @@ class TestPRAgentConfigYAMLValidity:
                 yaml_parser.load(f)
             except ruamel.yaml.constructor.DuplicateKeyError as e:
                 pytest.fail(f"Duplicate key: {e}")
+            except ruamel.yaml.YAMLError as e:
+                pytest.fail(f"YAML error: {e}")
     
     def test_consistent_indentation(self):
         """Verify consistent 2-space indentation."""
