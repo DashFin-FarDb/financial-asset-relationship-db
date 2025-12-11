@@ -854,7 +854,18 @@ secret_patterns = [
                 assert len(matches) == 0, \
                     f"{workflow_file.name} may contain hardcoded secrets"
     
-    def test_checkout_actions_use_v4_or_newer(self):
+if 'actions/checkout' in uses:
+    # Handle version tags properly
+    if '@v' in uses:
+        version_part = uses.split('@v')[1]
+        version_match = re.search(r'^(\d+)', version_part)
+        if version_match:
+            version = int(version_match.group(1))
+            assert version >= 4, f"{workflow_file.name} uses outdated checkout action"
+    else:
+        # Handle @main, @latest, or other tags
+        assert '@' not in uses or uses.endswith('@v4') or uses.endswith('@main'), \
+            f"{workflow_file.name} uses non-versioned checkout action"
         """Verify checkout actions use v4 or newer."""
         workflow_dir = Path(".github/workflows")
     
