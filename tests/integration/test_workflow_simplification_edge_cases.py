@@ -374,10 +374,14 @@ class TestPRAgentConfigEdgeCases:
     def test_no_chunking_configuration(self, config: Dict[str, Any]):
         """Test that chunking configuration was removed."""
         config_str = yaml.dump(config)
-        
-        assert 'chunk' not in config_str.lower(), \
+        config_str_lower = config_str.lower()
+    
+        assert 'chunk' not in config_str_lower, \
             "Should not have chunking configuration"
-        assert 'token' not in config_str.lower() or 'GITHUB_TOKEN' in config_str, \
+    
+        # Allow GITHUB_TOKEN but fail if any other token-related configuration exists
+        config_without_github_token = config_str_lower.replace('github_token', '')
+        assert 'token' not in config_without_github_token, \
             "Should not have token management (except GITHUB_TOKEN)"
     
     def test_no_fallback_strategies(self, config: Dict[str, Any]):
