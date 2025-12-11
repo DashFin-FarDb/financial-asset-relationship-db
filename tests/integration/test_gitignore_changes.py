@@ -26,12 +26,17 @@ def parse_gitignore() -> Set[str]:
     if not GITIGNORE_FILE.exists():
         return patterns
     
-    with open(GITIGNORE_FILE, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith('#'):
-                patterns.add(line)
-    
+    try:
+        with open(GITIGNORE_FILE, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    patterns.add(line)
+    except (FileNotFoundError, PermissionError):
+        # If the .gitignore file is missing or not accessible, return empty set
+        # so tests that rely on parse_gitignore can handle gracefully.
+        return set()
+
     return patterns
 
 
