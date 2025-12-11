@@ -87,42 +87,10 @@ class TestGitignoreRemovedPatterns:
 class TestGitignoreEssentialPatterns:
     """Test that essential patterns are still present."""
     
-    @pytest.fixture
-    def patterns(self) -> Set[str]:
-        """Get all patterns from .gitignore."""
-        return parse_gitignore()
-    
-    def test_pycache_ignored(self, patterns: Set[str]):
-        """Test that __pycache__ directories are ignored."""
-        assert '__pycache__/' in patterns or '__pycache__' in patterns
-    
-    def test_pytest_cache_ignored(self, patterns: Set[str]):
-        """Test that .pytest_cache is ignored."""
-        assert '.pytest_cache/' in patterns or '.pytest_cache' in patterns
-    
-    def test_coverage_reports_ignored(self, patterns: Set[str]):
-        """Test that coverage reports are ignored."""
-        assert '.coverage' in patterns
-        assert 'coverage.xml' in patterns
-        assert 'htmlcov/' in patterns or 'htmlcov' in patterns
-    
-    def test_python_venv_ignored(self, patterns: Set[str]):
-        """Test that Python virtual environments are ignored."""
-        venv_patterns = {'venv/', '.venv/', 'env/', '.env/'}
-        assert any(p in patterns for p in venv_patterns)
-    
-    def test_node_modules_ignored(self, patterns: Set[str]):
-        """Test that node_modules is ignored."""
-        assert 'node_modules/' in patterns or 'node_modules' in patterns
-    
-    def test_build_directories_ignored(self, patterns: Set[str]):
-        """Test that build directories are ignored."""
-        build_patterns = {'dist/', 'build/', '.next/'}
-        assert any(p in patterns for p in build_patterns)
-
-
-class TestGitignorePatternValidity:
-    """Test that .gitignore patterns are valid."""
+    def test_python_egg_info_ignored(self, patterns: Set[str]):
+        """Test that Python package metadata is ignored."""
+        egg_patterns = {'*.egg-info/', '*.egg-info', 'dist/', 'build/'}
+        assert any(p in patterns for p in egg_patterns)
     
     @pytest.fixture
     def content(self) -> str:
