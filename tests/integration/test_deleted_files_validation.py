@@ -529,7 +529,16 @@ class TestDependencyCleanup:
         with open(req_file, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # PyYAML should be present with version
+    def test_no_context_chunker_references_anywhere(self):
+        """Test that context_chunker is not referenced in any file type."""
+        all_files = list(PROJECT_ROOT.rglob("*"))
+
+        for file_path in all_files:
+            if file_path.is_file() and file_path.suffix in {'.py', '.yml', '.yaml', '.md', '.sh'}:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                assert 'context_chunker' not in content, \
+                    f"{file_path} should not reference context_chunker"
         assert 'PyYAML>=6.0' in content, \
             "PyYAML should be in requirements-dev.txt"
         
