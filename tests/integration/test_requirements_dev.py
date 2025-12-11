@@ -16,7 +16,20 @@ REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """
+"""
+Parse a requirements file into a list of package names with their version specifiers.
+
+Parameters:
+    file_path (Path): Path to a requirements-style text file encoded in UTF-8.
+
+Returns:
+    List[Tuple[str, str]]: A list of (package, version_spec) tuples where `package` is the canonical 
+    package name (alphanumeric plus . _ -) and `version_spec` is a comma-separated string of 
+    specifiers (e.g. ">=1.0,<=2.0") or empty string if no constraints present.
+
+Raises:
+    AssertionError: If a requirement line contains a malformed package name.
+"""
     Parse a requirements file into a list of package names with their version specifiers.
     
     Parameters:
