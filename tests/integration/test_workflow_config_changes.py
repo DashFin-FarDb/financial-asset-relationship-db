@@ -655,28 +655,8 @@ class TestWorkflowErrorHandling:
                     assert '|| echo' in run_command or 'general_improvements' in run_command, \
                         f"Step '{step.get('name')}' should handle missing reviews"
     
-    def test_workflows_have_timeout_protection(self):
-        """Verify workflows have reasonable timeout limits."""
-        workflow_dir = Path(".github/workflows")
-        
-        for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, 'r') as f:
-                workflow = yaml.safe_load(f)
-            
-            jobs = workflow.get('jobs', {})
-            
-            for job_name, job_config in jobs.items():
-                # Long-running jobs should have timeout
-                if 'scan' in job_name.lower() or 'test' in job_name.lower():
-                    has_timeout = (
-                        'timeout-minutes' in job_config or
-                        'timeout' in str(job_config).lower()
-                    )
-                    
-                    # This is a best practice check, not strictly required
                     if not has_timeout:
-                        print(f"Warning: {workflow_file.name}::{job_name} has no timeout")
-    
+                        assert False, f"{workflow_file.name}::{job_name} has no timeout"
     def test_workflows_handle_missing_secrets_gracefully(self):
         """Verify workflows handle missing secrets appropriately."""
         workflow_dir = Path(".github/workflows")
