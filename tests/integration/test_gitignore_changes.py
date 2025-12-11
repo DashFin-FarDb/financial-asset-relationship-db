@@ -197,7 +197,26 @@ class TestGitignoreProjectSpecific:
     
     def test_python_egg_info_ignored(self, patterns: Set[str]):
         """Test that Python package metadata is ignored."""
-        egg_patterns = {'*.egg-info/', '*.egg-info', 'dist/', 'build/'}
+    def test_no_duplicate_patterns(self):
+        """Test that no equivalent pattern appears multiple times (handles dir/ vs dir and negations)."""
+        patterns = []
+
+        with open(GITIGNORE_FILE, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    is_negated = line.startswith('!')
+                    core = line[1:] if is_negated else line
+                    # Normalize directory patterns by removing trailing slashes
+                    normalized_core = core.rstrip('/') if core.endswith('/') else core
+                    normalized = f'!{normalized_core}' if is_negated else normalized_core
+                    patterns.append(normalized)
+
+        duplicates = [p for p in patterns if patterns.count(p) > 1]
+        unique_duplicates = list(set(duplicates))
+
+        assert len(unique_duplicates) == 0, \
+            f"Found duplicate patterns: {unique_duplicates}"
         assert any(p in patterns for p in egg_patterns)
 
 
