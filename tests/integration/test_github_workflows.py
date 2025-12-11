@@ -1837,23 +1837,26 @@ class TestWorkflowEnvironmentVariables:
     def test_env_vars_use_consistent_naming(self, workflow_file: Path):
         """Test that environment variables follow naming conventions."""
         data = load_yaml_safe(workflow_file)
-        
-        def check_env_names(env_dict):
+
+        def check_env_names(env_dict, location):
             if isinstance(env_dict, dict):
+                invalid_keys = []
                 for key in env_dict.keys():
-                    # Env vars should be UPPER_CASE
-                    assert key.isupper() or '_' in key, \
-                        f"Env var '{key}' should follow UPPER_CASE convention"
-        
+                    # Env vars should be UPPER_CASE with underscores and alphanumeric only
+                    if not key.isupper() or not key.replace("_", "").isalnum():
+                        invalid_keys.append(key)
+                if invalid_keys:
+                    pytest.fail(f"{location} in {workflow_file.name} has invalid env var names: {invalid_keys}")
+
         # Workflow-level env
         if 'env' in data:
-            check_env_names(data['env'])
-        
+            check_env_names(data['env'], "Workflow")
+
         # Job-level env
         jobs = data.get('jobs', {})
         for job_name, job in jobs.items():
             if 'env' in job:
-                check_env_names(job['env'])
+                check_env_names(job['env'], f"Job '{job_name}'")
     
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_env_vars_not_duplicated_across_levels(self, workflow_file: Path):
