@@ -497,7 +497,25 @@ test_no_context_chunker_references_anywhere
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
                     assert 'context_chunker' not in content, \
-                        f"{file_path} should not reference context_chunker"
+class TestDependencyCleanup:
+    """Test that dependencies related to deleted features were cleaned up."""
+    
+    def test_requirements_dev_updated(self):
+        """Test that requirements-dev.txt was updated appropriately."""
+        req_file = PROJECT_ROOT / "requirements-dev.txt"
+        
+        if not req_file.exists():
+            pytest.skip("requirements-dev.txt not found")
+        
+        with open(req_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        assert 'PyYAML>=6.0' in content, \
+            "PyYAML should be in requirements-dev.txt"
+        
+        # tiktoken should NOT be present (it was optional and removed)
+        assert 'tiktoken' not in content.lower(), \
+            "tiktoken should not be in requirements-dev.txt"
         """Test that codecov config files don't exist."""
         codecov_configs = [
             PROJECT_ROOT / ".codecov.yml",
