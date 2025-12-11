@@ -669,12 +669,21 @@ class TestGitignoreChanges:
         """Verify .hypothesis directory is still ignored."""
         assert '.hypothesis' in gitignore_content
     
-    def test_no_duplicate_patterns(self, gitignore_content):
-        """Verify no duplicate ignore patterns."""
-        lines = [line.strip() for line in gitignore_content.split('\n') 
-                 if line.strip() and not line.strip().startswith('#')]
-        
-        duplicates = [line for line in lines if lines.count(line) > 1]
+def test_no_duplicate_patterns(self, gitignore_content):
+    """Verify no duplicate ignore patterns."""
+    lines = [line.strip() for line in gitignore_content.split('\n') 
+             if line.strip() and not line.strip().startswith('#')]
+    
+    # Use set for O(1) lookups
+    seen = set()
+    duplicates = []
+    for line in lines:
+        if line in seen:
+            duplicates.append(line)
+        else:
+            seen.add(line)
+    
+    assert len(duplicates) == 0, f"Duplicate patterns found: {set(duplicates)}"
         assert len(duplicates) == 0, f"Duplicate patterns found: {set(duplicates)}"
     
     def test_frontend_coverage_still_ignored(self, gitignore_content):
