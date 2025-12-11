@@ -47,7 +47,8 @@ def validate_workflow(workflow_path):
         return ValidationResult(True, [], data)
     except Exception as e:
         return ValidationResult(False, [str(e)], {})
-    """
+    except Exception as e:
+        return ValidationResult(False, [str(e)], {})
     Validate a workflow YAML file at the given filesystem path.
     
     Performs YAML parsing and checks that the top-level structure is a mapping and that it contains a 'jobs' key. On success returns the parsed workflow data. On failure, returns error messages and:
