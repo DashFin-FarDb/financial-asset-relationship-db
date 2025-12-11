@@ -523,7 +523,7 @@ class TestRequirementsDevChanges:
 
 
 
-class TestAPISecScanWorkflowChanges:
+class TestAPISecScanWorkflowConfigChanges:
     """Tests for apisec-scan.yml workflow configuration changes."""
     
     @pytest.fixture
