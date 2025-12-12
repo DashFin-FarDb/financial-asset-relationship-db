@@ -6,6 +6,8 @@ workflows, ensuring they are properly formatted and free of common issues like
 duplicate keys, invalid syntax, and missing required fields.
 """
 
+import os
+import re
 import pytest
 import yaml
 from pathlib import Path
@@ -407,7 +409,7 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
             assert step_with["python-version"] == "3.11", (
                 "Python version should be 3.11"
             )
-
+    
     def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
         """Test that there are no duplicate setup steps in the workflow."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
@@ -616,7 +618,7 @@ class TestWorkflowEdgeCases:
         Verify that a workflow file uses the .yml or .yaml extension.
         
         Parameters:
-        	workflow_file (Path): Path to the workflow file being tested.
+            workflow_file (Path): Path to the workflow file being tested.
         """
         assert workflow_file.suffix in [".yml", ".yaml"], (
             f"Workflow file {workflow_file.name} has invalid extension. "
@@ -716,6 +718,7 @@ class TestWorkflowPerformance:
             print(f"\nInfo: {workflow_file.name} doesn't use caching. "
                   "Consider adding caching to improve performance.")
 
+
 class TestPrAgentWorkflowAdvanced:
     """Advanced comprehensive tests for pr-agent.yml workflow specifics."""
     
@@ -795,7 +798,7 @@ class TestPrAgentWorkflowAdvanced:
         Asserts that a step named "Install Python dependencies" exists and its `run` script checks for `requirements.txt` and `requirements-dev.txt`, and that a step named "Install Node dependencies" exists and its `run` script checks for `package-lock.json` and `package.json`.
         
         Parameters:
-        	pr_agent_workflow (Dict[str, Any]): Parsed workflow dictionary for the pr-agent.yml workflow.
+            pr_agent_workflow (Dict[str, Any]): Parsed workflow dictionary for the pr-agent.yml workflow.
         """
         job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = job.get("steps", [])
@@ -1134,29 +1137,25 @@ class TestWorkflowStepConfiguration:
 
 class TestWorkflowEnvAndSecrets:
     """Tests for environment variables and secrets usage."""
-
+    
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_env_vars_naming_convention(self, workflow_file: Path):
         """
-        Validate that environment variables in workflow files follow UPPER_CASE naming convention.
-
-        Parameters:
-            workflow_file (Path): Path to the workflow YAML file being tested.
-
-        Notes:
-            Checks environment variables at both workflow level and job level for proper naming.
+        Ensure environment variable names in a workflow file are uppercase and contain only letters, digits or underscores.
+        
+        Checks environment variables at both the top-level workflow `env` and each job's `env`, and fails the test if any variable names do not match the required naming convention.
         """
         config = load_yaml_safe(workflow_file)
-
+        
         def check_env_vars(env_dict):
             """
-            Identify environment variable names that do not follow the naming convention of upper-case letters, digits and underscores.
-
+            Identify environment variable names that do not follow the convention of using only upper-case letters, digits and underscores.
+            
             Parameters:
-                env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided, it is treated as absent.
-
+                env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided it is treated as absent and no invalid names are returned.
+            
             Returns:
-                invalid_keys (List[str]): List of keys from `env_dict` that are not entirely upper-case or that contain characters other than letters, digits or underscores.
+                invalid_keys (List[str]): List of keys from `env_dict` that are not composed solely of upper-case letters, digits and underscores.
             """
             if not isinstance(env_dict, dict):
                 return []
@@ -1165,14 +1164,14 @@ class TestWorkflowEnvAndSecrets:
                 if not key.isupper() or not key.replace("_", "").isalnum():
                     invalid.append(key)
             return invalid
-
+        
         # Check top-level env
         if "env" in config:
             invalid = check_env_vars(config["env"])
             assert not invalid, (
                 f"Workflow {workflow_file.name} has invalid env var names: {invalid}"
             )
-
+        
         # Check job-level env
         jobs = config.get("jobs", {})
         for job_name, job_config in jobs.items():
@@ -1181,7 +1180,7 @@ class TestWorkflowEnvAndSecrets:
                 assert not invalid, (
                     f"Job '{job_name}' in {workflow_file.name} has invalid env var names: {invalid}"
                 )
-
+    
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_secrets_not_in_env_values(self, workflow_file: Path):
         """Test that secrets are referenced, not hardcoded in env values."""
@@ -1217,7 +1216,7 @@ class TestWorkflowComplexity:
         Prints a warning if the workflow defines more than 10 jobs and causes the test to fail if it defines more than 20 jobs.
         
         Parameters:
-        	workflow_file (Path): Path to the workflow YAML file being validated.
+            workflow_file (Path): Path to the workflow YAML file being validated.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -1395,26 +1394,6 @@ class TestWorkflowBestPractices:
                                   f"of {workflow_file.name} uses multi-line run without "
                                   "explicit shell specification")
 
-class TestWorkflowJobConfiguration:
-    """Test suite for job-level configuration validation."""
-    
-    @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    def test_workflow_jobs_have_timeout(self, workflow_file: Path):
-        """
-        Check if jobs specify timeout-minutes and recommend setting it if missing.
-        
-        For each job in a workflow that does not define a `timeout-minutes` key a recommendation message is printed suggesting adding a timeout to prevent runaway jobs.
-        
-        Parameters:
-            workflow_file (Path): Path to the workflow YAML file being checked.
-        """
-        config = load_yaml_safe(workflow_file)
-        jobs = config.get("jobs", {})
-        
-        for job_name, job_config in jobs.items():
-            if "timeout-minutes" not in job_config:
-                print(f"\nRecommendation: Job '{job_name}' in {workflow_file.name} "
-                      "doesn't specify timeout-minutes")
 
 class TestWorkflowAdvancedSecurity:
     """Advanced security tests for workflow files with bias for action."""
@@ -1759,7 +1738,7 @@ class TestWorkflowConditionalExecution:
             # Not failing, just checking
 
 
-class TestWorkflowOutputsAndArtifacts:
+class TestWorkflowOutputsAndArtifactsAdvanced:
     """Tests for workflow outputs and artifacts."""
     
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
