@@ -10,6 +10,12 @@ echo ""
 # This script just adds comments to document what was generated
 
 # Create a comment in the test file explaining its purpose
+# Verify target file exists and is writable before appending
+if [[ ! -w tests/integration/test_workflow_yaml_validation.py ]]; then
+  echo "Error: Target file does not exist or is not writable: tests/integration/test_workflow_yaml_validation.py" >&2
+  exit 1
+fi
+
 cat >> tests/integration/test_workflow_yaml_validation.py << 'ENDCOMMENT'
 
 # This test file was generated to validate workflow YAML changes
