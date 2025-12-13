@@ -134,8 +134,13 @@ class TestPyYAMLAvailability:
         """
         Ensure PyYAML is listed in requirements-dev.txt so workflow YAML files can be parsed for validation.
         
-        Checks that requirements-dev.txt exists and that a package named 'PyYAML' appears among the declared requirements (case-insensitive).
+        Checks that requirements-dev.txt exists and that a package whose normalized name is 'pyyaml' appears among the declared requirements (comparison is case-insensitive).
         """
+        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
+    
+        requirements = parse_requirements(REQUIREMENTS_FILE)
+        package_names = [pkg.lower() for pkg, _ in requirements]
+        assert 'pyyaml' in package_names, (
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         requirements = parse_requirements(REQUIREMENTS_FILE)

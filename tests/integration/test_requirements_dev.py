@@ -33,10 +33,41 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+            for line in f:
+                line = line.strip()
+            
+                if not line or line.startswith('#'):
+                    continue
+            
+                # Support multiple specifiers like "pkg>=1.0,<=2.0" and validate format
+                # Split out any inline comments first
+                clean = line.split('#', 1)[0].strip()
+                if not clean:
+                    continue
+                # Match "name[extras] op version" segments; we ignore extras for name extraction here
+                parts = [p.strip() for p in clean.split(',')]
+                name_part = parts[0]
+                # Extract package name (alphanum, -, _, . allowed) before any specifier
+                m_name = re.match(r'^([A-Za-z0-9._-]+)', name_part)
+                if not m_name:
+                    raise AssertionError(f"Malformed requirement line (invalid package name): {line}")
+                pkg = m_name.group(1)
+                # Find all specifiers across all parts
+                spec_pattern = re.compile(r'(>=|==|<=|>|<|~=)\s*([0-9A-Za-z.*+-]+(?:\.[0-9A-Za-z*+-]+)*)')
+                specs = []
+                for p in parts:
+                    specs.extend([f"{op}{ver}" for op, ver in spec_pattern.findall(p)])
+                if not specs:
+                    # No specifiers found; treat as no-version constraint explicitly
+                    requirements.append((pkg.strip(), ''))
+                else:
+                    # Normalize by joining with comma
+                    version_spec = ','.join(specs)
+                    requirements.append((pkg.strip(), version_spec))
     except (FileNotFoundError, IOError) as e:
         raise AssertionError(f"Could not read requirements file: {file_path} ({e})")
-        for line in f:
-            line = line.strip()
             
             if not line or line.startswith('#'):
                 continue
