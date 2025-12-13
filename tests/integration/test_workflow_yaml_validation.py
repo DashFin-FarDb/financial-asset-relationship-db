@@ -55,17 +55,17 @@ class TestWorkflowYAMLValidation:
         
         for workflow_file in modified_workflows:
             path = self.WORKFLOW_DIR / workflow_file
-            with open(path, 'r') as f:
-                with open(path, 'r') as f:
-                    try:
-                        workflow = yaml.safe_load(f)
-                        assert workflow is not None, f"Empty YAML in {workflow_file}"
-                    except yaml.YAMLError as e:
-                        pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
-
+            try:
+                    workflow = yaml.safe_load(f)
+                    assert workflow is not None, f"Empty YAML in {workflow_file}"
+        
                 for key in required_keys:
                     assert key in workflow, \
                         f"Workflow {workflow_file} missing required key: {key}"
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
+            except FileNotFoundError:
+                pytest.fail(f"Workflow file not found: {workflow_file}")
     
     def test_pr_agent_workflow_simplified_correctly(self):
         """
@@ -80,16 +80,18 @@ class TestWorkflowYAMLValidation:
         with open(path, 'r') as f:
             content = f.read()
         
+        content_lower = content.lower()
+
         # Should NOT contain chunking references
-        assert 'context_chunker' not in content.lower(), \
+        assert 'context_chunker' not in content_lower, \
             "PR agent workflow still references context chunker"
-        assert 'chunking' not in content.lower(), \
+        assert 'chunking' not in content_lower, \
             "PR agent workflow still has chunking logic"
-        
+
         # SHOULD contain essential functionality
-        assert 'parse-comments' in content.lower() or 'parse' in content, \
+        assert 'parse-comments' in content_lower or 'parse' in content_lower, \
             "PR agent workflow missing comment parsing"
-        assert 'python' in content.lower(), \
+        assert 'python' in content_lower, \
             "PR agent workflow missing Python setup"
 class TestRequirementsDevChanges:
     """Validate requirements-dev.txt modifications."""
