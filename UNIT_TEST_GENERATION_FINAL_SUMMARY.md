@@ -55,8 +55,7 @@ Comprehensive unit tests have been successfully generated for `src/workflow_vali
 ## Running the Tests
 
 ```bash
-# Navigate to repository
-cd /home/jailuser/git
+# From the project root directory:
 
 # Run all tests
 pytest tests/unit/test_workflow_validator.py -v

@@ -149,7 +149,7 @@ Data structure integrity:
 
 ### Run All New Tests
 ```bash
-cd /home/jailuser/git
+# From the project root directory:
 
 # Run the new test file
 pytest tests/unit/test_workflow_validator.py -v
