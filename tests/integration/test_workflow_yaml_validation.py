@@ -56,16 +56,15 @@ class TestWorkflowYAMLValidation:
         for workflow_file in modified_workflows:
             path = self.WORKFLOW_DIR / workflow_file
             with open(path, 'r') as f:
-                with open(path, 'r') as f:
-                    try:
-                        workflow = yaml.safe_load(f)
-                        assert workflow is not None, f"Empty YAML in {workflow_file}"
-                    except yaml.YAMLError as e:
-                        pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
+                try:
+                    workflow = yaml.safe_load(f)
+                    assert workflow is not None, f"Empty YAML in {workflow_file}"
+                except yaml.YAMLError as e:
+                    pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
 
-                for key in required_keys:
-                    assert key in workflow, \
-                        f"Workflow {workflow_file} missing required key: {key}"
+            for key in required_keys:
+                assert key in workflow, \
+                    f"Workflow {workflow_file} missing required key: {key}"
     
     def test_pr_agent_workflow_simplified_correctly(self):
         """
