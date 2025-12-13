@@ -8,6 +8,7 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
+from fastapi import status
 from fastapi.testclient import TestClient
 
 import api.main as api_main
@@ -569,28 +570,42 @@ class TestErrorHandling:
         assert response.status_code == 405
 
 
-class TestCORSConfiguration:
-    """Test CORS middleware configuration."""
+CORS_DEV_ORIGIN = "http://localhost:3000"
 
-    @pytest.fixture
-    def client(self):
-        """Create a test client."""
-        return TestClient(app)
 
-    def test_cors_headers_present(self, client):
-        """Test that CORS headers are present in responses."""
-        # Test with a GET request and valid origin header
-        response = client.get("/api/health", headers={"Origin": "http://localhost:3000"})
-        assert response.status_code == 200
-        # CORS middleware should add these headers when origin is allowed
-        # Note: In test environment, CORS headers might not be added by TestClient
-        # This is more of an integration test - the middleware is configured above
+@pytest.fixture
+def cors_client():
+    """Create a reusable test client for CORS checks."""
+    return TestClient(app)
 
-    @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
-    def test_cors_allows_development_origins(self, client):
-        """Test CORS allows development origins."""
-        response = client.get("/api/health", headers={"Origin": "http://localhost:3000"})
-        assert response.status_code == 200
+
+def test_cors_headers_present(cors_client):
+    """Ensure allowed origins receive the expected CORS headers."""
+    # Localhost with HTTP is intentionally used to mirror the development CORS defaults.
+    response = cors_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
+    assert response.status_code == status.HTTP_200_OK
+
+    # CORS middleware should echo the allowed origin and include credentials header.
+    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN
+    assert response.headers["access-control-allow-credentials"] == "true"
+
+
+def test_cors_rejects_disallowed_origin(cors_client):
+    """Ensure disallowed origins do not receive CORS headers."""
+    disallowed_origin = "https://malicious.example.com"
+    response = cors_client.get("/api/health", headers={"Origin": disallowed_origin})
+
+    # Endpoint still responds, but CORS headers should not be set for disallowed origins.
+    assert response.status_code == status.HTTP_200_OK
+    assert "access-control-allow-origin" not in response.headers
+    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin
+
+
+@patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
+def test_cors_allows_development_origins(cors_client):
+    """Test CORS allows development origins explicitly in development mode."""
+    response = cors_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
+    assert response.status_code == status.HTTP_200_OK
 
 
 class TestAdditionalFields:
