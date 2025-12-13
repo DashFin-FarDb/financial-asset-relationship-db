@@ -55,10 +55,10 @@ const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
     const nodes = Array.isArray(data.nodes) ? data.nodes : [];
     const edges = Array.isArray(data.edges) ? data.edges : [];
 
-    if (nodes.length === 0 || edges.length === 0) {
+    if (nodes.length === 0) {
       setPlotData([]);
       setStatus('empty');
-      setMessage('Visualization data is missing nodes or edges.');
+      setMessage('Visualization data is missing nodes.');
       return;
     }
 
