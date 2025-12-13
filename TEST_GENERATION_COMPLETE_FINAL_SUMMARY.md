@@ -57,7 +57,7 @@ Following the **bias-for-action principle**, additional validation was added:
 
 #### New Test File
 
-**`tests/integration/test_workflow_yaml_validation.py`** (92 lines)
+**`tests/integration/test_workflow_yaml_validation.py`** (121 lines)
 
 **Purpose**: Validate YAML structure and workflow simplification changes
 
@@ -87,7 +87,7 @@ Following the **bias-for-action principle**, additional validation was added:
 
 ## Files Generated This Session
 
-1. **`tests/integration/test_workflow_yaml_validation.py`** (92 lines)
+1. **`tests/integration/test_workflow_yaml_validation.py`** (121 lines)
    - New validation tests for workflow changes
    
 2. **`BRANCH_TEST_GENERATION_SUMMARY.md`** (234 lines)
@@ -236,7 +236,7 @@ npm test -- integration/
 
 **Summary**:
 - Branch has **exceptional existing test coverage** (10,000+ lines)
-- **Additional validation tests** added for workflow changes (92 lines)
+- **Additional validation tests** added for workflow changes (121 lines)
 - **Comprehensive documentation** of test coverage (5 files, ~476 lines)
 - All tests follow **best practices** and are **production-ready**
 - **No new dependencies** introduced
