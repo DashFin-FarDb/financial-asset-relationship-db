@@ -44,8 +44,11 @@ Raises:
         AssertionError: If a requirement line contains a malformed package name.
     """
     requirements = []
-    
-    with open(file_path, 'r', encoding='utf-8') as f:
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+    except (FileNotFoundError, IOError) as e:
+        raise AssertionError(f"Could not read requirements file: {file_path} ({e})")
         for line in f:
             line = line.strip()
             
