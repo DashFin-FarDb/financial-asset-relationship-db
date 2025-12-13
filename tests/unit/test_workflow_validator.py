@@ -115,7 +115,7 @@ on: push
                 result = validate_workflow(f.name)
                 assert result.is_valid is False
                 assert len(result.errors) == 1
-                assert "Workflow must have jobs" in result.errors[0]
+                assert "Workflow must have a 'jobs' key" in result.errors[0]
                 assert 'name' in result.workflow_data
             finally:
                 Path(f.name).unlink()
