@@ -583,8 +583,14 @@ class TestCORSConfiguration:
         response = client.get("/api/health", headers={"Origin": "http://localhost:3000"})
         assert response.status_code == 200
         # CORS middleware should add these headers when origin is allowed
-        # Note: In test environment, CORS headers might not be added by TestClient
-        # This is more of an integration test - the middleware is configured above
+        assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
+        assert response.headers.get("access-control-allow-credentials") == "true"
+
+    def test_cors_disallowed_origin_headers_absent(self, client):
+        """Test that disallowed origins do not receive CORS headers."""
+        response = client.get("/api/health", headers={"Origin": "http://example.com"})
+        assert response.status_code == 200
+        assert "access-control-allow-origin" not in response.headers
 
     @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
     def test_cors_allows_development_origins(self, client):
