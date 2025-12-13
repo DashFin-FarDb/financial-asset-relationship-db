@@ -188,7 +188,7 @@ jobs:
             try:
                 result = validate_workflow(f.name)
                 assert result.is_valid is False
-                assert "Workflow must be a dict" in result.errors[0]
+                assert "Workflow file is empty or contains only nulls." in result.errors[0]
             finally:
                 Path(f.name).unlink()
     
