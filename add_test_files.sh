@@ -16,7 +16,7 @@ if [[ ! -w tests/integration/test_workflow_yaml_validation.py ]]; then
   exit 1
 fi
 
-cat >> tests/integration/test_workflow_yaml_validation.py << 'ENDCOMMENT'
+grep -q "# This test file was generated to validate workflow YAML changes" tests/integration/test_workflow_yaml_validation.py || cat >> tests/integration/test_workflow_yaml_validation.py << 'ENDCOMMENT'
 
 # This test file was generated to validate workflow YAML changes
 # in branch: codex/fix-env-var-naming-test-in-pr-agent-workflow
