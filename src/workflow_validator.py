@@ -1,20 +1,8 @@
 import yaml
 
 
-class ValidationResult:
-    """
-    Represents the result of validating a workflow YAML file.
-
-    Attributes:
-        is_valid (bool): True when the workflow passed validation, False otherwise.
-        errors (list[str]): List of error messages describing validation failures; empty when `is_valid` is True.
-        workflow_data (dict): Parsed YAML workflow data when available, otherwise an empty dict.
-    """
-
-    def __init__(self, is_valid, errors, workflow_data):
-        """
-import yaml
 from typing import List, Dict, Any
+import yaml
 
 
 class ValidationResult:
@@ -26,10 +14,46 @@ class ValidationResult:
         errors (list[str]): List of error messages describing validation failures.
         workflow_data (dict): Parsed YAML workflow data.
     """
+
     def __init__(self, is_valid: bool, errors: List[str], workflow_data: Dict[str, Any]):
         self.is_valid = is_valid
         self.errors = errors
         self.workflow_data = workflow_data
+
+
+def validate_workflow(workflow_path: str) -> ValidationResult:
+    """
+    Validate a workflow YAML file at the given filesystem path.
+
+    Performs YAML parsing and checks that the top-level structure is a mapping
+    and that it contains a 'jobs' key.
+
+    Parameters:
+        workflow_path (str): Filesystem path to the workflow YAML file.
+
+    Returns:
+        ValidationResult: An object containing the validation result.
+    """
+    try:
+        with open(workflow_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+
+        if data is None:
+            return ValidationResult(False, ["Workflow file is empty or contains only nulls."], {})
+
+        if not isinstance(data, dict):
+            return ValidationResult(False, ["Workflow must be a dict"], {})
+
+        if 'jobs' not in data:
+            return ValidationResult(False, ["Workflow must have a 'jobs' key"], data)
+
+        return ValidationResult(True, [], data)
+    except FileNotFoundError:
+        return ValidationResult(False, [f"File not found: {workflow_path}"], {})
+    except yaml.YAMLError as e:
+        return ValidationResult(False, [f"Invalid YAML syntax: {e}"], {})
+    except Exception as e:
+        return ValidationResult(False, [f"An unexpected error occurred: {e}"], {})
 
 
 def validate_workflow(workflow_path: str) -> ValidationResult:
