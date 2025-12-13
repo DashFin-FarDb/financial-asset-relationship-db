@@ -12,5 +12,5 @@ For all open issues and PRs, review all reviewer and contributor / bot, comments
 Where comments are made, review the recommended changes and make them as required. 
 Commit any changes needed and leave a post to explain what was done and what issue it resolves. 
 Add documentation where required for code changes and fixes. 
-Resolve and or prevent branch merge conflicts by keeping on top of commits and changes and to ensure efficiency in making code fixes . 
-Maintain branch hygiene, respond to comments within issues and PRs related to code.. Please be noted that the microagent doesn't have any triggers.
+Resolve and or prevent branch merge conflicts by keeping on top of commits and changes and to ensure efficiency in making code fixes.
+Maintain branch hygiene, respond to comments within issues and PRs related to code. Please be noted that the microagent doesn't have any triggers.
