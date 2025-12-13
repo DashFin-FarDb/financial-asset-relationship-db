@@ -38,7 +38,7 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
         if data is None:
             return ValidationResult(False, ["Workflow file is empty or contains only nulls."], {})
         if not isinstance(data, dict):
-            return ValidationResult(False, ["Workflow must be a dict"], data)
+            return ValidationResult(False, ["Workflow must be a dict"], {})
         if 'jobs' not in data:
             return ValidationResult(False, ["Workflow must have a 'jobs' key"], data)
 

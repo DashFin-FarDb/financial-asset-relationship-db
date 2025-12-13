@@ -11,8 +11,8 @@ echo ""
 
 # Create a comment in the test file explaining its purpose
 # Verify target file exists and is writable before appending
-if [[ ! -w tests/integration/test_workflow_yaml_validation.py ]]; then
-  echo "Error: Target file does not exist or is not writable: tests/integration/test_workflow_yaml_validation.py" >&2
+if [[ ! -f tests/integration/test_workflow_yaml_validation.py || ! -r tests/integration/test_workflow_yaml_validation.py || ! -w tests/integration/test_workflow_yaml_validation.py ]]; then
+  echo "Error: Target file does not exist or is not readable/writable: tests/integration/test_workflow_yaml_validation.py" >&2
   exit 1
 fi
 

@@ -105,13 +105,11 @@ describe('test-utils Mock Data Validation', () => {
   describe('mockVizData', () => {
     it('should be a VisualizationData-like object', () => {
       // Fallback: define mockVizData if undefined
-      const vizData = typeof mockVizData !== 'undefined' && mockVizData !== undefined
-        ? mockVizData
-        : { nodes: [], edges: [] };
-      expect(vizData).toHaveProperty('nodes');
-      expect(vizData).toHaveProperty('edges');
-      expect(Array.isArray(vizData.nodes)).toBe(true);
-      expect(Array.isArray(vizData.edges)).toBe(true);
+      expect(mockVizData).toBeDefined();
+      expect(mockVizData).toHaveProperty('nodes');
+      expect(mockVizData).toHaveProperty('edges');
+      expect(Array.isArray(mockVizData.nodes)).toBe(true);
+      expect(Array.isArray(mockVizData.edges)).toBe(true);
     });
   });
 });
