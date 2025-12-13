@@ -437,9 +437,6 @@ class TestValidationResultDataStructure:
         assert isinstance(result.workflow_data, dict)
 
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short"])
-
 class TestAdvancedValidationScenarios:
     """Additional advanced validation scenarios with bias for action"""
     
