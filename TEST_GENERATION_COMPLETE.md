@@ -34,7 +34,7 @@ Comprehensive unit tests have been successfully generated for the new Python mod
 ## Running Tests
 
 ```bash
-cd /home/jailuser/git
+# From the project root directory:
 
 # Run all tests
 pytest tests/unit/test_workflow_validator.py -v

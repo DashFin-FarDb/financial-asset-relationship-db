@@ -42,14 +42,14 @@ class TestDocumentationExists:
 
 class TestDocumentationStructure:
     """Test the structure and formatting of the documentation."""
-    
-    @pytest.fixture(scope='session')
-    def doc_content() -> str:
+
+    @pytest.fixture(scope='class')
+    def doc_content(self) -> str:
         """
         Return the documentation file's full text.
-        
+
         Returns:
-            content (str): Full contents of DOC_FILE read using UTF-8 encoding.
+            str: Full contents of DOC_FILE read using UTF-8 encoding.
         """
         with open(DOC_FILE, 'r', encoding='utf-8') as f:
             return f.read()
@@ -64,8 +64,8 @@ class TestDocumentationStructure:
         """
         return doc_content.splitlines(keepends=True)
 
-    @pytest.fixture(scope='session')
-    def section_headers(doc_lines: List[str]) -> List[str]:
+    @pytest.fixture(scope='class')
+    def section_headers(self, doc_lines: List[str]) -> List[str]:
         """
         Extract markdown header lines from the given document lines.
 
