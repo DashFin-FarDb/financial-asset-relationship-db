@@ -69,3 +69,15 @@ pytest tests/unit/test_workflow_validator.py::TestValidateWorkflow -v
 ```
 
 ## Expected Output
+
+When running the tests, you should see output similar to:
+
+```
+tests/unit/test_workflow_validator.py::TestValidationResult::test_valid_result PASSED
+tests/unit/test_workflow_validator.py::TestValidationResult::test_invalid_result PASSED
+tests/unit/test_workflow_validator.py::TestValidateWorkflow::test_valid_workflow PASSED
+...
+========================= 27 passed in 0.45s =========================
+```
+
+All 27 tests should pass with no warnings or errors.

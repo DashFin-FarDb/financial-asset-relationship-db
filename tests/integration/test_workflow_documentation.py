@@ -118,14 +118,6 @@ class TestDocumentationStructure:
         return [line.strip() for line in doc_lines if line.lstrip().startswith('#')]
         """
         return [line.strip() for line in doc_lines if line.lstrip().startswith('#')]
-    def doc_lines(doc_content: str) -> List[str]:
-        """
-        Return the documentation content split into lines while preserving original line endings.
-        
-        Returns:
-            List[str]: Lines from `doc_content`; each element retains its original line ending when present.
-        """
-        return doc_content.splitlines(keepends=True)
         """
         Return the documentation content split into lines while preserving original line endings.
         
@@ -138,7 +130,6 @@ class TestDocumentationStructure:
     def section_headers(doc_lines: List[str]) -> List[str]:
         """
         Extract markdown header lines from the given document lines.
-        
         Parameters:
             doc_lines (List[str]): Lines of a markdown document, as returned by splitlines(keepends=False) or similar.
         
