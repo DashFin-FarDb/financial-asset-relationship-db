@@ -78,7 +78,7 @@ cd frontend && npm test -- --coverage
 
 The branch now has:
 - Comprehensive existing test coverage (10,000+ lines)
-- Additional validation tests for workflow changes (92 lines)
+- Additional validation tests for workflow changes (121 lines)
 - Proper documentation of test coverage
 - All tests follow best practices
 

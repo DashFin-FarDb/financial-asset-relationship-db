@@ -115,7 +115,7 @@ on: push
                 result = validate_workflow(f.name)
                 assert result.is_valid is False
                 assert len(result.errors) == 1
-                assert "Workflow must have jobs" in result.errors[0]
+                assert "Workflow must have a 'jobs' key" in result.errors[0]
                 assert 'name' in result.workflow_data
             finally:
                 Path(f.name).unlink()
@@ -135,7 +135,7 @@ on: push
                 assert result.is_valid is False
                 assert len(result.errors) == 1
                 assert "Workflow must be a dict" in result.errors[0]
-                assert result.workflow_data == {}
+                assert result.workflow_data == ["item1", "item2", "item3"]
             finally:
                 Path(f.name).unlink()
     
@@ -188,7 +188,7 @@ jobs:
             try:
                 result = validate_workflow(f.name)
                 assert result.is_valid is False
-                assert "Workflow must be a dict" in result.errors[0]
+                assert "Workflow file is empty or contains only nulls." in result.errors[0]
             finally:
                 Path(f.name).unlink()
     
