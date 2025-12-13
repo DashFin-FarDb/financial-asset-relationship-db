@@ -42,60 +42,20 @@ class TestDocumentationExists:
 
 class TestDocumentationStructure:
     """Test the structure and formatting of the documentation."""
-    
-    @pytest.fixture(scope='session')
-    def doc_content() -> str:
+
+    @pytest.fixture(scope='class')
+    def doc_content(self) -> str:
         """
         Return the documentation file's full text.
-        
+
         Returns:
-            content (str): Full contents of DOC_FILE read using UTF-8 encoding.
+            str: Full contents of DOC_FILE read using UTF-8 encoding.
         """
         with open(DOC_FILE, 'r', encoding='utf-8') as f:
             return f.read()
 
-    @pytest.fixture(scope='session')
-    def doc_lines(doc_content: str) -> List[str]:
-        """
-        Return the documentation content split into lines while preserving original line endings.
-    
-        Returns:
-            List[str]: Lines from `doc_content`; each element retains its original line ending when present.
-        """
-        return doc_content.splitlines(keepends=True)
-@pytest.fixture(scope='session')
-    def section_headers(doc_lines: List[str]) -> List[str]:
-        """
-        Extract markdown header lines from the given document lines.
-        
-        Parameters:
-            doc_lines (List[str]): Lines of a markdown document.
-        
-        Returns:
-            List[str]: Header lines (those starting with one or more `#` after optional leading spaces), with surrounding whitespace removed.
-        """
-        return [line.strip() for line in doc_lines if line.lstrip().startswith('#')]
-    @pytest.fixture(scope='session')
-    def section_headers(doc_lines: List[str]) -> List[str]:
-        """
-        Extract markdown header lines from the given document lines.
-    
-        Parameters:
-            doc_lines (List[str]): Lines of a markdown document, as returned by splitlines(keepends=False) or similar.
-    
-        Returns:
-            List[str]: Header lines (those starting with one or more `#` after optional leading spaces), with surrounding whitespace removed.
-        """
-        return [line.strip() for line in doc_lines if line.lstrip().startswith('#')]
-        """
-        Extract markdown header lines from the given document lines.
-        
-        Parameters:
-            doc_lines (List[str]): Lines of a markdown document, as returned by splitlines(keepends=False) or similar.
-        
-        Returns:
-    @pytest.fixture(scope='session')
-    def doc_lines(doc_content: str) -> List[str]:
+    @pytest.fixture(scope='class')
+    def doc_lines(self, doc_content: str) -> List[str]:
         """
         Return the documentation content split into lines while preserving original line endings.
 
@@ -104,44 +64,14 @@ class TestDocumentationStructure:
         """
         return doc_content.splitlines(keepends=True)
 
-    @pytest.fixture(scope='session')
-    def section_headers(doc_lines: List[str]) -> List[str]:
+    @pytest.fixture(scope='class')
+    def section_headers(self, doc_lines: List[str]) -> List[str]:
         """
         Extract markdown header lines from the given document lines.
 
         Parameters:
             doc_lines (List[str]): Lines of a markdown document.
 
-        Returns:
-            List[str]: Header lines (those starting with one or more `#` after optional leading spaces), with surrounding whitespace removed.
-        """
-        return [line.strip() for line in doc_lines if line.lstrip().startswith('#')]
-        """
-        return [line.strip() for line in doc_lines if line.lstrip().startswith('#')]
-    def doc_lines(doc_content: str) -> List[str]:
-        """
-        Return the documentation content split into lines while preserving original line endings.
-        
-        Returns:
-            List[str]: Lines from `doc_content`; each element retains its original line ending when present.
-        """
-        return doc_content.splitlines(keepends=True)
-        """
-        Return the documentation content split into lines while preserving original line endings.
-        
-        Returns:
-            List[str]: Lines from `doc_content`; each element retains its original line ending when present.
-        """
-        return doc_content.splitlines(keepends=True)
-    
-    @pytest.fixture(scope='session')
-    def section_headers(doc_lines: List[str]) -> List[str]:
-        """
-        Extract markdown header lines from the given document lines.
-        
-        Parameters:
-            doc_lines (List[str]): Lines of a markdown document, as returned by splitlines(keepends=False) or similar.
-        
         Returns:
             List[str]: Header lines (those starting with one or more `#` after optional leading spaces), with surrounding whitespace removed.
         """
