@@ -38,34 +38,34 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     requirements = []
     import re as _re
 
-    with open(file_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
 
-            if not line or line.startswith('#'):
-                continue
+                if not line or line.startswith('#'):
+                    continue
 
-            try:
-                req = Requirement(line)
-            except Exception as e:
-                print(f"Could not parse requirement: {line} due to {e}")
-                continue
+                try:
+                    req = Requirement(line)
+                except Exception as e:
+                    print(f"Could not parse requirement: {line} due to {e}")
+                    continue
 
-            # Preserve the package token as written in the requirements file (preserve casing)
-            # by extracting the substring before any specifier/operator/extras/marker characters.
-            raw_pkg_token = line.split(';', 1)[0]  # drop environment markers
-            raw_pkg_token = raw_pkg_token.split('[', 1)[0]  # drop extras
-            # split at the first occurrence of any operator character (<,>,=,!,~) or comma
-            pkg_part = _re.split(r'(?=[<>=!~,])', raw_pkg_token, 1)[0].strip()
-            pkg = pkg_part or req.name.strip()
+                # Preserve the package token as written in the requirements file (preserve casing)
+                # by extracting the substring before any specifier/operator/extras/marker characters.
+                raw_pkg_token = line.split(';', 1)[0]  # drop environment markers
+                raw_pkg_token = raw_pkg_token.split('[', 1)[0]  # drop extras
+                # split at the first occurrence of any operator character (<,>,=,!,~) or comma
+                pkg_part = _re.split(r'(?=[<>=!~,])', raw_pkg_token, 1)[0].strip()
+                pkg = pkg_part or req.name.strip()
 
-            specifier_str = str(req.specifier).strip()
-            # Normalize specifier string by removing spaces around commas so SpecifierSet accepts it consistently
-            if specifier_str:
-                specifier_str = ','.join(s.strip() for s in specifier_str.split(',') if s.strip())
+                specifier_str = str(req.specifier).strip()
+                # Normalize specifier string by removing spaces around commas so SpecifierSet accepts it consistently
+                if specifier_str:
+                    specifier_str = ','.join(s.strip() for s in specifier_str.split(',') if s.strip())
 
-            requirements.append((pkg, specifier_str))
-
+                requirements.append((pkg, specifier_str))
     except OSError as e:
         raise OSError(f"Could not open requirements file '{file_path}': {e}") from e
 
