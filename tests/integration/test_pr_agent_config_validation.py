@@ -145,7 +145,9 @@ class TestPRAgentConfigYAMLValidity:
             indent = self._validate_line_indentation(line, line_num)
 
             if ':' in line and not line.strip().startswith('#'):
-                key = line.split(':')[0].strip()
+# Skip list items (lines starting with - after removing leading spaces)
+if line.lstrip().startswith('-'):
+    continue
 
                 # Skip list items (lines starting with -)
                 if key.startswith('-'):
