@@ -21,3 +21,4 @@ slowapi>=0.1.4
 # Testing dependencies
 httpx>=0.24.0
 pytest>=7.0.0
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
