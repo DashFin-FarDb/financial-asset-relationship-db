@@ -1,4 +1,4 @@
-"""Unit tests for validating .elastic-copilot documentation files.
+r"""Unit tests for validating .elastic-copilot documentation files.
 
 This module tests markdown documentation files to ensure:
 - Valid markdown structure and formatting
@@ -420,7 +420,7 @@ class TestSystemManifest:
         assert found > 0, "No language-specific dependency sections found"
 
     def test_system_manifest_file_dependency_format(self, system_manifest_content):
-        """
+        r"""
         Validate that file-level dependency headers in the system manifest follow the expected path-and-extension format.
         
         Searches the document for headers of the form "### \path\to\file.ext" and asserts that each matched header contains a path separator (`\` or `/`). Only the first 10 matches are checked for performance.
@@ -630,7 +630,7 @@ class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
 
     def test_documented_files_exist(self):
-        """
+        r"""
         Verify that file paths listed in the system manifest correspond to actual files in the repository.
         
         Searches the manifest for file entries formatted as "### \path\to\file.ext" (common Python, TS/TSX, JSX/JSX patterns), normalises Windows-style backslashes to POSIX paths, strips any leading slash, and checks existence for up to the first 20 discovered paths. Entries that are placeholders or clearly test-related (containing "...", "test_", or "__tests__") are skipped.
@@ -961,7 +961,7 @@ class TestDocumentationRobustness:
         assert has_title or has_content, "Documentation is too minimal"
 
     def test_documentation_handles_special_characters(self):
-        """
+        r"""
         Verify the system manifest contains expected special characters used for structure and paths.
         
         Checks that .elastic-copilot/memory/systemManifest.md (UTF-8) includes at least one of the following characters: the directory emoji (📂), file emoji (📄), backslash (\), forward slash (/), dash (-), underscore (_), or dot (.), and fails if none are present.
@@ -1001,7 +1001,7 @@ class TestDocumentationRobustness:
                     "Dependency section format unclear"
 
     def test_documentation_path_separators_consistent(self):
-        """
+        r"""
         Check that file paths listed as "###" headers in .elastic-copilot/memory/systemManifest.md use a consistent separator style.
         
         Parses file paths from headings matching the pattern `### <path>` and, when more than 10 paths are found, asserts that at least 80% use the same separator (either backslash `\` or forward slash `/`). If no paths are found the test performs no assertion.
@@ -1111,7 +1111,7 @@ class TestDocumentationSchemaValidation:
                     f"Language code length unusual: {lang}"
 
     def test_file_entries_follow_pattern(self):
-        """
+        r"""
         Assert that file entry headers in the System Manifest follow the "### \\path\\to\\file.ext" pattern.
         
         Checks the first 20 occurrences of headers matching the regex `### (\\[\w\\/._-]+\.\w+)` and asserts each has a file extension and contains a path separator (`\` or `/`).
