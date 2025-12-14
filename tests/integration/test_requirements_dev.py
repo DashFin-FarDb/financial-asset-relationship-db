@@ -128,15 +128,13 @@ class TestRequiredPackages:
 
     @pytest.fixture
     def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
-        return parsed_requirements
         """Parse and return requirements."""
         return parsed_requirements
 
     @pytest.fixture
     def package_names(self, parsed_requirements) -> List[str]:
-        return [pkg for pkg, _ in parsed_requirements]
         """Extract just the package names."""
-        return [pkg for pkg, _ in requirements]
+        return [pkg for pkg, _ in parsed_requirements]
 
     def test_has_pytest(self, package_names: List[str]):
         """Test that pytest is included."""
@@ -172,7 +170,6 @@ class TestVersionSpecifications:
 
     @pytest.fixture
     def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
-        return parsed_requirements
         """Parse and return requirements."""
         return parsed_requirements
 
