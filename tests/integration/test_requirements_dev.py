@@ -11,7 +11,6 @@ from typing import List, Tuple
 
 import pytest
 from packaging.requirements import Requirement
-from packaging.specifiers import SpecifierSet
 
 REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
@@ -36,7 +35,6 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
         ...
         """
     requirements = []
-    import re as _re
 
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -48,7 +46,7 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 
                 try:
                     req = Requirement(line)
-                except Exception as e:
+                except (ValueError, TypeError) as e:
                     print(f"Could not parse requirement: {line} due to {e}")
                     continue
 
@@ -57,7 +55,7 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 raw_pkg_token = line.split(';', 1)[0]  # drop environment markers
                 raw_pkg_token = raw_pkg_token.split('[', 1)[0]  # drop extras
                 # split at the first occurrence of any operator character (<,>,=,!,~) or comma
-                pkg_part = _re.split(r'(?=[<>=!~,])', raw_pkg_token, 1)[0].strip()
+                pkg_part = re.split(r'(?=[<>=!~,])', raw_pkg_token, 1)[0].strip()
                 pkg = pkg_part or req.name.strip()
 
                 specifier_str = str(req.specifier).strip()
@@ -182,7 +180,7 @@ class TestVersionSpecifications:
         """Test that version specifications use valid format."""
         version_pattern = re.compile(r'^(>=|==|<=|>|<|~=)\d+(\.\d+)*$')
 
-        for pkg, ver_spec in requirements:
+        for _, ver_spec in requirements:
             if ver_spec:
                 assert version_pattern.match(ver_spec)
 
@@ -274,7 +272,7 @@ class TestSpecificChanges:
         """Test that PyYAML was added as per the diff."""
         pyyaml_entries = [(pkg, ver) for pkg, ver in requirements if pkg == 'PyYAML']
         assert len(pyyaml_entries) == 1
-        pkg, ver = pyyaml_entries[0]
+        _, ver = pyyaml_entries[0]
         assert ver == '>=6.0'
 
     def test_types_pyyaml_added(self, requirements: List[Tuple[str, str]]):

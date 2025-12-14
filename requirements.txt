@@ -12,6 +12,7 @@ h11>=0.16.0
 # Serverless/Database dependencies
 mangum>=0.17.0
 psycopg2-binary>=2.9.9
+sqlalchemy>=2.0.0
 
 # Security dependencies
 PyJWT>=2.8.0
