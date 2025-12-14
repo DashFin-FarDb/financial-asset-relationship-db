@@ -225,6 +225,7 @@ class TestAuthenticationFlow:
         )
         assert invalid_token_response.status_code == 401
 
+
 class TestErrorRecovery:
     """Test error handling and recovery."""
 

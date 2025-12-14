@@ -162,6 +162,10 @@ max-public-methods = 25
 max-returns = 6
 max-statements = 50
 
+[tool.bandit]
+exclude_dirs = []
+skips = ["B101"]  # Skip assert_used warnings in test files - assert is the correct pattern for pytest
+
 [tool.codeflash]
 # All paths are relative to this pyproject.toml's directory.
 module-root = "."

@@ -59,7 +59,7 @@ describe('AssetList Component', () => {
 
   it('should render filters section', async () => {
     render(<AssetList />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Filters')).toBeInTheDocument();
     });
@@ -76,7 +76,7 @@ describe('AssetList Component', () => {
 
   it('should filter by asset class', async () => {
     render(<AssetList />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('AAPL')).toBeInTheDocument();
     });

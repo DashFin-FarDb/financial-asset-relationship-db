@@ -12,7 +12,7 @@ import { mockMetrics } from '../test-utils';
 describe('MetricsDashboard Component', () => {
   it('should render all metric cards', () => {
     render(<MetricsDashboard metrics={mockMetrics} />);
-    
+
     expect(screen.getByText('Total Assets')).toBeInTheDocument();
     expect(screen.getByText('Total Relationships')).toBeInTheDocument();
     expect(screen.getByText('Network Density')).toBeInTheDocument();
@@ -20,7 +20,7 @@ describe('MetricsDashboard Component', () => {
 
   it('should display metrics correctly', () => {
     render(<MetricsDashboard metrics={mockMetrics} />);
-    
+
     expect(screen.getByText('15')).toBeInTheDocument();
     expect(screen.getByText('42')).toBeInTheDocument();
     expect(screen.getByText('42.00%')).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe('MetricsDashboard Component', () => {
 
   it('should display all asset classes', () => {
     render(<MetricsDashboard metrics={mockMetrics} />);
-    
+
     expect(screen.getByText('EQUITY:')).toBeInTheDocument();
     expect(screen.getByText('6')).toBeInTheDocument();
     expect(screen.getByText('COMMODITY:')).toBeInTheDocument();
@@ -53,7 +53,7 @@ describe('MetricsDashboard Component', () => {
       max_degree: 0,
       network_density: 0,
     };
-    
+
     render(<MetricsDashboard metrics={zeroMetrics} />);
     expect(screen.getByText('0.00%')).toBeInTheDocument();
   });

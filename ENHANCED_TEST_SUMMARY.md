@@ -42,7 +42,7 @@ Tests edge cases and boundary conditions:
 
 Tests performance characteristics:
 - Parse time under 1 second
-- File size under 5MB  
+- File size under 5MB
 - Manageable line counts
 
 ### 3. TestDocumentationRobustness (5 tests) ⭐

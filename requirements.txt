@@ -8,9 +8,11 @@ pandas>=1.5.0
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 pydantic>=2.4.0
+h11>=0.16.0
 # Serverless/Database dependencies
 mangum>=0.17.0
 psycopg2-binary>=2.9.9
+sqlalchemy>=2.0.0
 
 # Security dependencies
 PyJWT>=2.8.0

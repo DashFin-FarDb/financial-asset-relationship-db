@@ -8,9 +8,9 @@ This module contains comprehensive unit tests for the asset_graph module includi
 """
 
 import numpy as np
-from src.logic.asset_graph import AssetRelationshipGraph
-
 import pytest
+
+from src.logic.asset_graph import AssetRelationshipGraph
 
 
 @pytest.mark.unit
@@ -28,7 +28,7 @@ class TestAssetRelationshipGraphInit:
         """Test that relationships dictionary has correct type annotation."""
         graph = AssetRelationshipGraph()
 
-        assert hasattr(graph, 'relationships')
+        assert hasattr(graph, "relationships")
         assert isinstance(graph.relationships, dict)
 
 
@@ -78,7 +78,7 @@ class TestGet3DVisualizationDataEnhanced:
         assert np.allclose(positions[:, 2], 0)
 
         # Check that points are on a unit circle (x^2 + y^2 = 1)
-        radii = np.sqrt(positions[:, 0]**2 + positions[:, 1]**2)
+        radii = np.sqrt(positions[:, 0] ** 2 + positions[:, 1] ** 2)
         assert np.allclose(radii, 1.0)
 
     def test_positions_are_numpy_array(self):
@@ -139,7 +139,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph.relationships["hub"] = [
             ("spoke1", "correlation", 0.8),
             ("spoke2", "correlation", 0.7),
-            ("spoke3", "correlation", 0.6)
+            ("spoke3", "correlation", 0.6),
         ]
 
         positions, asset_ids, _, _ = graph.get_3d_visualization_data_enhanced()

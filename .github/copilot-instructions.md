@@ -54,7 +54,7 @@ Examples to reference in code
 This repository includes an automated PR management agent configured in `.github/copilot-pr-agent.md`. The agent:
 
 - **Monitors PRs**: Automatically detects review comments and feedback
-- **Implements Changes**: Makes targeted fixes based on reviewer feedback  
+- **Implements Changes**: Makes targeted fixes based on reviewer feedback
 - **Manages Workflow**: Handles commits, testing, and re-review requests
 - **Maintains Quality**: Ensures all changes meet code standards
 

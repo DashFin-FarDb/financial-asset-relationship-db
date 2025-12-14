@@ -52,14 +52,14 @@ class UserInDB(User):
 def _is_truthy(value: str | None) -> bool:
     """
     Determine whether a string value represents a truthy boolean.
-    
+
     Parameters:
         value (str | None): Input string to evaluate; recognised truthy forms are "true", "1", "yes" and "on" (case-insensitive).
-    
+
     Returns:
         bool: True if `value` matches a recognised truthy form, False otherwise.
     """
-    return False if not value else value.lower() in ('true', '1', 'yes', 'on')
+    return False if not value else value.lower() in ("true", "1", "yes", "on")
 
 
 class UserRepository:
@@ -68,7 +68,7 @@ class UserRepository:
     def get_user(self, username: str) -> Optional[UserInDB]:
         """
         Retrieve a user record by username from the repository.
-        
+
         Returns:
             `UserInDB` for the matching username, `None` if no such user exists.
         """
@@ -94,7 +94,7 @@ class UserRepository:
     def has_users(self) -> bool:
         """
         Check whether any user credential records exist.
-        
+
         Returns:
             `True` if at least one user credential exists, `False` otherwise.
         """
@@ -112,9 +112,9 @@ class UserRepository:
     ) -> None:
         """
         Create or update a user credential record in the repository.
-        
+
         Performs an upsert into the user_credentials table using the provided fields so the record for `username` is inserted or updated.
-        
+
         Parameters:
             username (str): Unique identifier for the user.
             hashed_password (str): Password hash; must already be hashed.
@@ -150,7 +150,7 @@ user_repository = UserRepository()
 def verify_password(plain_password, hashed_password):
     """
     Verify whether a plaintext password matches a stored hashed password.
-    
+
     Returns:
         `True` if the plaintext password matches the hashed password, `False` otherwise.
     """
@@ -161,10 +161,10 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     """
     Hash a plaintext password using the configured password-hashing context.
-    
+
     Parameters:
         password (str): Plaintext password to hash.
-    
+
     Returns:
         str: The hashed password.
     """
@@ -175,7 +175,7 @@ def get_password_hash(password):
 def _seed_credentials_from_env(repository: UserRepository) -> None:
     """
     Seed an administrative user into the repository from environment variables.
-    
+
     If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that user in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME and ADMIN_DISABLED (interpreted as a truthy flag). The provided password is stored hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, no changes are made.
     """
 
@@ -209,10 +209,10 @@ if not user_repository.has_users():
 def get_user(username: str, repository: Optional[UserRepository] = None) -> Optional[UserInDB]:
     """
     Retrieve a user by username.
-    
+
     Parameters:
         repository (Optional[UserRepository]): Repository to query; if omitted the module-level `user_repository` is used.
-    
+
     Returns:
         Optional[UserInDB]: The matching UserInDB instance, or `None` if no user exists with that username.
     """
@@ -224,12 +224,12 @@ def get_user(username: str, repository: Optional[UserRepository] = None) -> Opti
 def authenticate_user(username: str, password: str, repository: Optional[UserRepository] = None):
     """
     Authenticate a username and password and return the corresponding stored user.
-    
+
     Parameters:
         username (str): Username to authenticate.
         password (str): Plaintext password to verify.
         repository (Optional[UserRepository]): Repository to query for the user; if omitted the module-level repository is used.
-    
+
     Returns:
         UserInDB when authentication succeeds, `False` otherwise.
     """
@@ -245,11 +245,11 @@ def authenticate_user(username: str, password: str, repository: Optional[UserRep
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """
     Create a JWT access token that includes an expiry (`exp`) claim.
-    
+
     Parameters:
         data (dict): Claims to include in the token payload. The function will add or overwrite the `exp` claim.
         expires_delta (Optional[timedelta]): Time span after which the token expires; if omitted the token expires in 15 minutes.
-    
+
     Returns:
         str: Encoded JWT as a compact string.
     """
@@ -267,10 +267,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """
     Return the user represented by the provided JWT.
-    
+
     Returns:
         User: The User model corresponding to the token's subject.
-    
+
     Raises:
         HTTPException: 401 with detail "Token has expired" if the token has expired.
         HTTPException: 401 with detail "Could not validate credentials" if the token is invalid, missing the subject, or no matching user is found.
@@ -306,10 +306,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     """
     Get the currently authenticated active user.
-    
+
     Raises:
         HTTPException: 400 with detail "Inactive user" if the user's account is disabled.
-    
+
     Returns:
         The authenticated user's public profile as a `User` instance.
     """

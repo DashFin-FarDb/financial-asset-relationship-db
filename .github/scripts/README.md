@@ -53,12 +53,12 @@ agent:
     chunk_size: 28000              # Size of each chunk
     overlap_tokens: 2000           # Overlap between chunks
     summarization_threshold: 30000 # When to start summarizing
-    
+
     chunking:
       enabled: true
       strategy: "smart"            # smart, sequential, or priority
       preserve_structure: true     # Maintain code structure
-      
+
     summarization:
       enabled: true
       model: "gpt-3.5-turbo"      # Model for summaries

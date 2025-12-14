@@ -48,10 +48,16 @@ class AssetORM(Base):
     central_bank_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     outgoing_relationships: Mapped[List["AssetRelationshipORM"]] = relationship(
-        "AssetRelationshipORM", back_populates="source", cascade="all, delete-orphan", foreign_keys="AssetRelationshipORM.source_asset_id"
+        "AssetRelationshipORM",
+        back_populates="source",
+        cascade="all, delete-orphan",
+        foreign_keys="AssetRelationshipORM.source_asset_id",
     )
     incoming_relationships: Mapped[List["AssetRelationshipORM"]] = relationship(
-        "AssetRelationshipORM", back_populates="target", cascade="all, delete-orphan", foreign_keys="AssetRelationshipORM.target_asset_id"
+        "AssetRelationshipORM",
+        back_populates="target",
+        cascade="all, delete-orphan",
+        foreign_keys="AssetRelationshipORM.target_asset_id",
     )
     regulatory_events: Mapped[List["RegulatoryEventORM"]] = relationship(
         "RegulatoryEventORM", back_populates="asset", cascade="all, delete-orphan"
@@ -62,7 +68,9 @@ class AssetRelationshipORM(Base):
     """Stores directed relationships between assets."""
 
     __tablename__ = "asset_relationships"
-    __table_args__ = (UniqueConstraint("source_asset_id", "target_asset_id", "relationship_type", name="uq_relationship"),)
+    __table_args__ = (
+        UniqueConstraint("source_asset_id", "target_asset_id", "relationship_type", name="uq_relationship"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     source_asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
@@ -71,8 +79,12 @@ class AssetRelationshipORM(Base):
     strength: Mapped[float] = mapped_column(Float, nullable=False)
     bidirectional: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    source: Mapped[AssetORM] = relationship("AssetORM", foreign_keys=[source_asset_id], back_populates="outgoing_relationships")
-    target: Mapped[AssetORM] = relationship("AssetORM", foreign_keys=[target_asset_id], back_populates="incoming_relationships")
+    source: Mapped[AssetORM] = relationship(
+        "AssetORM", foreign_keys=[source_asset_id], back_populates="outgoing_relationships"
+    )
+    target: Mapped[AssetORM] = relationship(
+        "AssetORM", foreign_keys=[target_asset_id], back_populates="incoming_relationships"
+    )
 
 
 class RegulatoryEventORM(Base):

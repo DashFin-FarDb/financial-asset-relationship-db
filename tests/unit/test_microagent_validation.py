@@ -52,7 +52,7 @@ class TestMicroagentValidation:
         """
         # Strip leading whitespace/newlines and match YAML frontmatter
         content = content.lstrip()
-        match = re.match(r'^---\s*\n(.*?)\n---\s*\n(.*)$', content, re.DOTALL)
+        match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", content, re.DOTALL)
         if not match:
             raise ValueError("No valid frontmatter found")
 
@@ -139,7 +139,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         version = repo_engineer_frontmatter["version"]
         assert isinstance(version, str)
         # Should match semantic versioning pattern
-        assert re.match(r'^\d+\.\d+\.\d+$', version), "Version should follow semver format (x.y.z)"
+        assert re.match(r"^\d+\.\d+\.\d+$", version), "Version should follow semver format (x.y.z)"
 
     def test_frontmatter_agent_field(self, repo_engineer_frontmatter: Dict[str, Any]):
         """Test that agent field is valid."""
@@ -157,8 +157,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         # So triggers should either be absent or empty
         if "triggers" in repo_engineer_frontmatter:
             triggers = repo_engineer_frontmatter["triggers"]
-            assert triggers is None or triggers == [] or triggers == "", \
-                "repo_engineer_lead should not have triggers as per documentation"
+            assert (
+                triggers is None or triggers == [] or triggers == ""
+            ), "repo_engineer_lead should not have triggers as per documentation"
 
     def test_body_content_not_empty(self, repo_engineer_body: str):
         """Test that body content is not empty."""
@@ -168,9 +169,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         """Test that body describes the microagent's purpose."""
         body_lower = repo_engineer_body.lower()
         # Should mention key responsibilities
-        assert any(keyword in body_lower for keyword in [
-            "repository engineer", "issues", "prs", "pull requests"
-        ]), "Body should describe repository engineering responsibilities"
+        assert any(
+            keyword in body_lower for keyword in ["repository engineer", "issues", "prs", "pull requests"]
+        ), "Body should describe repository engineering responsibilities"
 
     def test_body_mentions_issue_review(self, repo_engineer_body: str):
         """Test that body mentions issue review functionality."""
@@ -181,14 +182,12 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_mentions_pr_handling(self, repo_engineer_body: str):
         """Test that body mentions PR handling functionality."""
         body_lower = repo_engineer_body.lower()
-        assert any(term in body_lower for term in ["pr", "pull request"]), \
-            "Should mention PR handling"
+        assert any(term in body_lower for term in ["pr", "pull request"]), "Should mention PR handling"
 
     def test_body_mentions_code_changes(self, repo_engineer_body: str):
         """Test that body mentions code change capabilities."""
         body_lower = repo_engineer_body.lower()
-        assert "code changes" in body_lower or "changes" in body_lower, \
-            "Should mention code change capabilities"
+        assert "code changes" in body_lower or "changes" in body_lower, "Should mention code change capabilities"
 
     def test_body_mentions_documentation(self, repo_engineer_body: str):
         """Test that body mentions documentation responsibilities."""
@@ -213,8 +212,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_no_malformed_sentences(self, repo_engineer_body: str):
         """Test that body doesn't have obviously malformed sentences."""
         # Check for multiple spaces in a row (except after periods)
-        assert not re.search(r'[^\.]  +', repo_engineer_body), \
-            "Should not have multiple consecutive spaces (except after periods)"
+        assert not re.search(
+            r"[^\.]  +", repo_engineer_body
+        ), "Should not have multiple consecutive spaces (except after periods)"
 
     def test_content_appropriate_length(self, repo_engineer_body: str):
         """Test that content has appropriate length for a microagent description."""
@@ -225,7 +225,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_yaml_frontmatter_syntax_valid(self, repo_engineer_content: str):
         """Test that YAML frontmatter has valid syntax."""
         content = repo_engineer_content.lstrip()
-        match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+        match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
         assert match is not None, "Frontmatter should be enclosed in --- delimiters"
 
         frontmatter_text = match.group(1)
@@ -238,21 +238,21 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
     def test_no_trailing_whitespace(self, repo_engineer_content: str):
         """Test that file doesn't have excessive trailing whitespace."""
-        lines = repo_engineer_content.split('\n')
+        lines = repo_engineer_content.split("\n")
         for i, line in enumerate(lines[:-1], 1):  # Check all but last line
-            assert not line.endswith('  '), f"Line {i} has trailing spaces"
+            assert not line.endswith("  "), f"Line {i} has trailing spaces"
 
     def test_proper_line_endings(self, repo_engineer_path: Path):
         """Test that file uses Unix line endings."""
-        with open(repo_engineer_path, 'rb') as f:
+        with open(repo_engineer_path, "rb") as f:
             content = f.read()
         # Should not contain Windows line endings
-        assert b'\r\n' not in content, "File should use Unix line endings (LF, not CRLF)"
+        assert b"\r\n" not in content, "File should use Unix line endings (LF, not CRLF)"
 
     def test_encoding_is_utf8(self, repo_engineer_path: Path):
         """Test that file is UTF-8 encoded."""
         try:
-            with open(repo_engineer_path, encoding='utf-8') as f:
+            with open(repo_engineer_path, encoding="utf-8") as f:
                 f.read()
         except UnicodeDecodeError:
             pytest.fail("File should be UTF-8 encoded")
@@ -264,33 +264,33 @@ class TestAllMicroagents(TestMicroagentValidation):
     def test_all_microagents_have_valid_structure(self, microagent_files: List[Path]):
         """Test that all microagent files have valid structure."""
         for file_path in microagent_files:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Should have frontmatter (after stripping leading whitespace)
             content = content.lstrip()
-            assert re.match(r'^---\s*\n.*?\n---\s*\n', content, re.DOTALL), \
-                f"{file_path.name} should have valid frontmatter"
+            assert re.match(
+                r"^---\s*\n.*?\n---\s*\n", content, re.DOTALL
+            ), f"{file_path.name} should have valid frontmatter"
 
     def test_all_microagents_have_required_fields(self, microagent_files: List[Path]):
         """Test that all microagent files have required frontmatter fields."""
         required_fields = ["name", "type", "version", "agent"]
 
         for file_path in microagent_files:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             frontmatter, _ = self.parse_frontmatter(content)
 
             for field in required_fields:
-                assert field in frontmatter, \
-                    f"{file_path.name} is missing required field: {field}"
+                assert field in frontmatter, f"{file_path.name} is missing required field: {field}"
 
     def test_all_microagents_have_unique_names(self, microagent_files: List[Path]):
         """Test that all microagent names are unique."""
         names = []
         for file_path in microagent_files:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             frontmatter, _ = self.parse_frontmatter(content)
@@ -302,47 +302,48 @@ class TestAllMicroagents(TestMicroagentValidation):
     def test_all_microagents_valid_versions(self, microagent_files: List[Path]):
         """Test that all microagents have valid semantic versions."""
         for file_path in microagent_files:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             frontmatter, _ = self.parse_frontmatter(content)
             version = frontmatter["version"]
 
-            assert re.match(r'^\d+\.\d+\.\d+$', version), \
-                f"{file_path.name} should have valid semver version, got: {version}"
+            assert re.match(
+                r"^\d+\.\d+\.\d+$", version
+            ), f"{file_path.name} should have valid semver version, got: {version}"
 
     def test_all_microagents_valid_types(self, microagent_files: List[Path]):
         """Test that all microagents have valid type values."""
         valid_types = ["knowledge", "action", "hybrid"]
 
         for file_path in microagent_files:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             frontmatter, _ = self.parse_frontmatter(content)
             agent_type = frontmatter["type"]
 
-            assert agent_type in valid_types, \
-                f"{file_path.name} has invalid type: {agent_type}, must be one of {valid_types}"
+            assert (
+                agent_type in valid_types
+            ), f"{file_path.name} has invalid type: {agent_type}, must be one of {valid_types}"
 
     def test_all_microagents_valid_agents(self, microagent_files: List[Path]):
         """Test that all microagents have valid agent values."""
         valid_agents = ["CodeActAgent", "PlannerAgent", "BrowsingAgent"]
 
         for file_path in microagent_files:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             frontmatter, _ = self.parse_frontmatter(content)
             agent = frontmatter["agent"]
 
-            assert agent in valid_agents, \
-                f"{file_path.name} has invalid agent: {agent}, must be one of {valid_agents}"
+            assert agent in valid_agents, f"{file_path.name} has invalid agent: {agent}, must be one of {valid_agents}"
 
     def test_triggers_field_is_optional(self, microagent_files: List[Path]):
         """Test that triggers field is optional and properly formatted when present."""
         for file_path in microagent_files:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             frontmatter, _ = self.parse_frontmatter(content)
@@ -352,13 +353,10 @@ class TestAllMicroagents(TestMicroagentValidation):
                 triggers = frontmatter["triggers"]
                 # If present, should be a list of strings or None/empty
                 if triggers:
-                    assert isinstance(triggers, list), \
-                        f"{file_path.name} triggers should be a list"
+                    assert isinstance(triggers, list), f"{file_path.name} triggers should be a list"
                     for trigger in triggers:
-                        assert isinstance(trigger, str), \
-                            f"{file_path.name} each trigger should be a string"
-                        assert len(trigger.strip()) > 0, \
-                            f"{file_path.name} triggers should not be empty strings"
+                        assert isinstance(trigger, str), f"{file_path.name} each trigger should be a string"
+                        assert len(trigger.strip()) > 0, f"{file_path.name} triggers should not be empty strings"
 
 
 class TestMicroagentSemantic:
@@ -378,34 +376,33 @@ class TestMicroagentSemantic:
     def test_autonomous_nature_described(self, repo_engineer_content: str):
         """Test that autonomous nature is described."""
         body_lower = repo_engineer_content.lower()
-        assert "autonomous" in body_lower or "automated" in body_lower, \
-            "Should describe autonomous/automated nature"
+        assert "autonomous" in body_lower or "automated" in body_lower, "Should describe autonomous/automated nature"
 
     def test_describes_summary_and_plan(self, repo_engineer_content: str):
         """Test that summary and planning is described."""
         body_lower = repo_engineer_content.lower()
-        assert "summary" in body_lower and "plan" in body_lower, \
-            "Should mention creating summaries and plans"
+        assert "summary" in body_lower and "plan" in body_lower, "Should mention creating summaries and plans"
 
     def test_describes_reviewer_interaction(self, repo_engineer_content: str):
         """Test that reviewer interaction is described."""
         body_lower = repo_engineer_content.lower()
-        assert any(term in body_lower for term in ["reviewer", "contributor", "comment"]), \
-            "Should describe interaction with reviewers and contributors"
+        assert any(
+            term in body_lower for term in ["reviewer", "contributor", "comment"]
+        ), "Should describe interaction with reviewers and contributors"
 
     def test_describes_commit_process(self, repo_engineer_content: str):
         """Test that commit process is described."""
         body_lower = repo_engineer_content.lower()
         assert "commit" in body_lower, "Should describe commit process"
         # Should explain what is done in commits
-        assert any(term in body_lower for term in ["commit any changes", "commit changes"]), \
-            "Should explain committing changes"
+        assert any(
+            term in body_lower for term in ["commit any changes", "commit changes"]
+        ), "Should explain committing changes"
 
     def test_describes_post_explanation(self, repo_engineer_content: str):
         """Test that posting explanations is described."""
         body_lower = repo_engineer_content.lower()
-        assert "post" in body_lower or "explain" in body_lower, \
-            "Should mention posting explanations"
+        assert "post" in body_lower or "explain" in body_lower, "Should mention posting explanations"
 
     def test_describes_efficiency_focus(self, repo_engineer_content: str):
         """Test that efficiency focus is described."""
@@ -416,12 +413,12 @@ class TestMicroagentSemantic:
         """Test basic grammar and punctuation."""
         # Extract body after frontmatter
         content = repo_engineer_content.lstrip()
-        match = re.match(r'^---\s*\n.*?\n---\s*\n(.*)$', content, re.DOTALL)
+        match = re.match(r"^---\s*\n.*?\n---\s*\n(.*)$", content, re.DOTALL)
         assert match, "Should have valid structure"
         body = match.group(1)
 
         # Sentences should end with punctuation
-        sentences = [s.strip() for s in body.split('.') if s.strip()]
+        sentences = [s.strip() for s in body.split(".") if s.strip()]
         for sentence in sentences[:-1]:  # Check all but last
             # Should have reasonable length (not just a word)
             if len(sentence.split()) >= 3:
@@ -429,8 +426,8 @@ class TestMicroagentSemantic:
                 continue  # Grammar is subjective, just verify basic structure
 
         # Should not have obvious typos like double periods
-        assert '..' not in body, "Should not have double periods"
-        assert '  .' not in body, "Should not have space before period"
+        assert ".." not in body, "Should not have double periods"
+        assert "  ." not in body, "Should not have space before period"
 
     def test_consistent_terminology(self, repo_engineer_content: str):
         """Test that terminology is used consistently."""
@@ -462,18 +459,18 @@ class TestMicroagentEdgeCases:
 
     def test_no_binary_content(self, repo_engineer_path: Path):
         """Test that file contains only text (no binary data)."""
-        with open(repo_engineer_path, 'rb') as f:
+        with open(repo_engineer_path, "rb") as f:
             content = f.read()
 
         # Should be decodable as UTF-8
         try:
-            content.decode('utf-8')
+            content.decode("utf-8")
         except UnicodeDecodeError:
             pytest.fail("File should contain only UTF-8 text")
 
     def test_no_control_characters(self, repo_engineer_path: Path):
         """Test that file doesn't contain unexpected control characters."""
-        with open(repo_engineer_path, encoding='utf-8') as f:
+        with open(repo_engineer_path, encoding="utf-8") as f:
             content = f.read()
 
         # Allow: newline, tab, carriage return
@@ -481,17 +478,16 @@ class TestMicroagentEdgeCases:
         for char in content:
             code = ord(char)
             if code < 32:  # Control character
-                assert char in ['\n', '\t', '\r'], \
-                    f"File should not contain control character: {repr(char)}"
+                assert char in ["\n", "\t", "\r"], f"File should not contain control character: {repr(char)}"
 
     def test_consistent_newlines(self, repo_engineer_path: Path):
         """Test that newlines are used consistently."""
-        with open(repo_engineer_path, 'rb') as f:
+        with open(repo_engineer_path, "rb") as f:
             content = f.read()
 
         # Count different newline types
-        lf_count = content.count(b'\n')
-        crlf_count = content.count(b'\r\n')
+        lf_count = content.count(b"\n")
+        crlf_count = content.count(b"\r\n")
 
         # If any CRLF exist, they should all be CRLF
         # If any LF exist (not part of CRLF), they should all be LF

@@ -62,7 +62,7 @@ describe('Home Page', () => {
 
   it('should load data on mount', async () => {
     render(<Home />);
-    
+
     await waitFor(() => {
       expect(mockedApi.getMetrics).toHaveBeenCalled();
       expect(mockedApi.getVisualizationData).toHaveBeenCalled();
@@ -76,7 +76,7 @@ describe('Home Page', () => {
 
   it('should switch tabs', async () => {
     render(<Home />);
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('network-visualization')).toBeInTheDocument();
     });
@@ -93,7 +93,7 @@ describe('Home Page', () => {
     mockedApi.getMetrics.mockRejectedValue(new Error('API Error'));
 
     render(<Home />);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
     });
@@ -106,7 +106,7 @@ describe('Home Page', () => {
     mockedApi.getMetrics.mockResolvedValueOnce(mockMetrics);
 
     render(<Home />);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
     });

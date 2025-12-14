@@ -126,6 +126,7 @@ class TestShellScripts:
         assert os.path.exists("cleanup-branches.sh")
         # Check if file has execute permissions
         import stat
+
         file_stat = os.stat("cleanup-branches.sh")
         assert os.name == "nt" or file_stat.st_mode & stat.S_IXUSR
 
@@ -211,6 +212,7 @@ class TestShellScripts:
         """Test that run-dev.sh exists and is executable."""
         assert os.path.exists("run-dev.sh")
         import stat
+
         file_stat = os.stat("run-dev.sh")
         assert file_stat.st_mode & stat.S_IXUSR
 
@@ -417,9 +419,7 @@ class TestShellScripts:
                 lines = f.readlines()
 
             # Count comment lines (excluding shebang)
-            comment_lines = [
-                line for line in lines[1:] if line.strip().startswith("#")
-            ]
+            comment_lines = [line for line in lines[1:] if line.strip().startswith("#")]
             # Should have at least a few comments
             assert len(comment_lines) >= 3, f"{script} should have more comments"
 

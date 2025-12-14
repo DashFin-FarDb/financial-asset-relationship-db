@@ -10,13 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.data.repository import AssetGraphRepository
-from src.models.financial_models import (
-    AssetClass,
-    Bond,
-    Equity,
-    RegulatoryActivity,
-    RegulatoryEvent,
-)
+from src.models.financial_models import AssetClass, Bond, Equity, RegulatoryActivity, RegulatoryEvent
 
 
 def _apply_migration(database_path: Path) -> None:

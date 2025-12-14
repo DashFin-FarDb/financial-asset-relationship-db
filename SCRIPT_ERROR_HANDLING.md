@@ -11,11 +11,11 @@ Both PR cleanup scripts now include comprehensive error handling to address code
 - ✅ **GitHub CLI (`gh`) installation check**
   - Verifies `gh` command is available
   - Exits with clear error message if missing
-  
+
 - ✅ **GitHub authentication check**
   - Validates user is logged in via `gh auth status`
   - Prevents API call failures
-  
+
 - ✅ **jq installation check**
   - Ensures JSON parsing tool is available
   - Required for processing PR data
@@ -25,12 +25,12 @@ Both PR cleanup scripts now include comprehensive error handling to address code
   - Catches errors from `gh pr list`
   - Handles JSON parsing errors from `jq`
   - Exits with descriptive error messages
-  
+
 - ✅ **Empty results handling**
   - Checks if conflicting_prs.txt is empty or missing
   - Provides clear "No conflicting PRs found" message
   - Prevents confusion from silent failures
-  
+
 - ✅ **Per-PR error handling**
   - Individual PR view failures don't stop the script
   - Errors logged to stderr for problematic PRs
@@ -50,7 +50,7 @@ Both PR cleanup scripts now include comprehensive error handling to address code
 - ✅ **Missing PR number check**
   - Validates PR argument is provided
   - Shows usage message if missing
-  
+
 - ✅ **PR number format validation**
   - Ensures PR number is numeric (positive integer)
   - Prevents invalid API calls
@@ -61,7 +61,7 @@ Both PR cleanup scripts now include comprehensive error handling to address code
   - Handles invalid PR numbers
   - Handles permission errors
   - Provides clear error messages
-  
+
 - ✅ **Success confirmation**
   - Displays "Successfully closed PR #XXX" on success
   - Clear feedback for successful operations
@@ -145,5 +145,5 @@ bash close_unmergeable_prs_script.sh      # Error: missing PR number
 
 ---
 
-Generated with [Continue](https://continue.dev)  
+Generated with [Continue](https://continue.dev)
 Co-authored by: mohavro & Continue

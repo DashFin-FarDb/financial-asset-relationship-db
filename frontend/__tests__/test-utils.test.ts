@@ -1,6 +1,6 @@
 /**
  * Comprehensive tests for test-utils.ts
- * 
+ *
  * This test suite validates all mock data objects used across the frontend test suite,
  * ensuring they conform to the expected TypeScript interfaces and contain valid data.
  */
@@ -622,12 +622,12 @@ describe('test-utils Mock Data Validation', () => {
           /--/,
           /;.*DROP/i,
         ];
-        
+
         const allStrings = [
           ...mockAssets.flatMap(a => [a.id, a.symbol, a.name, a.asset_class, a.sector]),
           ...mockRelationships.flatMap(r => [r.source_id, r.target_id, r.relationship_type]),
         ];
-        
+
         allStrings.forEach(str => {
           sqlPatterns.forEach(pattern => {
             expect(str).not.toMatch(pattern);
@@ -642,12 +642,12 @@ describe('test-utils Mock Data Validation', () => {
           /onerror=/i,
           /onload=/i,
         ];
-        
+
         const allStrings = [
           ...mockAssets.flatMap(a => [a.name, a.symbol]),
           ...mockVisualizationData.nodes.map(n => n.name),
         ];
-        
+
         allStrings.forEach(str => {
           xssPatterns.forEach(pattern => {
             expect(str).not.toMatch(pattern);
@@ -661,9 +661,9 @@ describe('test-utils Mock Data Validation', () => {
           /\.\.\\/,
           /%2e%2e/i,
         ];
-        
+
         const allStrings = mockAssets.flatMap(a => [a.id, a.symbol, a.name]);
-        
+
         allStrings.forEach(str => {
           pathTraversalPatterns.forEach(pattern => {
             expect(str).not.toMatch(pattern);
@@ -787,7 +787,7 @@ describe('test-utils Mock Data Validation', () => {
           }
           edgeMap.get(edge.source)?.add(edge.target);
         });
-        
+
         // If edge A->B exists with high strength, check for reasonable reciprocity
         mockVisualizationData.edges
           .filter(e => e.strength > 0.8)
@@ -905,7 +905,7 @@ describe('test-utils Mock Data Validation', () => {
         const e = mockVisualizationData.edges.length;
         const maxEdges = (n * (n - 1)) / 2;
         const calculatedDensity = maxEdges > 0 ? e / maxEdges : 0;
-        
+
         // Density should be in reasonable range given the actual edges
         expect(calculatedDensity).toBeGreaterThanOrEqual(0);
         expect(calculatedDensity).toBeLessThanOrEqual(1);
@@ -939,7 +939,7 @@ describe('test-utils Mock Data Validation', () => {
       });
 
       it('should handle nodes at coordinate origin', () => {
-        const originNode = mockVisualizationData.nodes.find(n => 
+        const originNode = mockVisualizationData.nodes.find(n =>
           n.x === 0 && n.y === 0 && n.z === 0
         );
         if (originNode) {
@@ -950,7 +950,7 @@ describe('test-utils Mock Data Validation', () => {
       });
 
       it('should handle empty additional_fields consistently', () => {
-        const emptyFieldsAssets = mockAssets.filter(a => 
+        const emptyFieldsAssets = mockAssets.filter(a =>
           Object.keys(a.additional_fields).length === 0
         );
         emptyFieldsAssets.forEach(asset => {

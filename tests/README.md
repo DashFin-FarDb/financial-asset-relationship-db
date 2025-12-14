@@ -5,7 +5,7 @@ Comprehensive test suite for the Financial Asset Relationship Database Next.js i
 ## Test Files Created
 
 1. **tests/unit/test_api.py** - Backend API tests (50+ test cases)
-2. **tests/unit/test_dev_scripts.py** - Configuration validation tests  
+2. **tests/unit/test_dev_scripts.py** - Configuration validation tests
 3. **tests/integration/test_api_integration.py** - Integration tests
 4. **frontend/app/lib/`__tests__`/api.test.ts** - Frontend API client tests
 
