@@ -3,7 +3,7 @@ name: PR Agent Workflow
 permissions:
   contents: read
 
-on:
+"on":
   pull_request:
     types: [opened, synchronize, reopened]
   pull_request_review:
@@ -39,9 +39,13 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
+- name: Install Python dependencies
+  run: |
+    python -m pip install --upgrade pip
+    # Install PyYAML for context chunker with version pinning
+    pip install "pyyaml>=5.4,<6.0"
+          # Install tiktoken for accurate token estimation (optional but recommended)
+          pip install tiktoken || echo "Warning: tiktoken installation failed, will use heuristic estimation"
           # Validate dependency files exist before installing
           if [ -f requirements.txt ]; then
             echo "Installing requirements.txt..."
@@ -71,20 +75,66 @@ jobs:
             exit 1
           fi
 
-      - name: Parse PR Review Comments
-        id: parse-comments
+      - name: Fetch PR Context with Chunking
+        id: fetch-context
         run: |
-          echo "Parsing review comments and creating action items..."
-          # Extract action items from PR review comments
-          ACTION_ITEMS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.number }}/reviews \
-            --jq '.[] | select(.state == "changes_requested") | .body' \
+          echo "Fetching PR context with smart chunking..."
+          
+          # Fetch PR data
+          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number || github.event.issue.number }} \
+            --jq '{number: .number, title: .title, body: .body, changed_files: .changed_files, additions: .additions, deletions: .deletions}')
+          
+          # Fetch reviews
+          REVIEWS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number || github.event.issue.number }}/reviews \
+            --jq '[.[] | select(.state == "changes_requested") | {user: .user.login, body: .body, state: .state}]')
+          
+          # Fetch changed files (with size limit)
+          # Determine max files per chunk (fallback to 10 if not provided)
+          MAX_FILES_PER_CHUNK="${{ vars.PR_AGENT_MAX_FILES_PER_CHUNK || 10 }}"
+          FILES=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number || github.event.issue.number }}/files \
+            --jq "[.[] | {filename: .filename, additions: .additions, deletions: .deletions, patch: (.patch // \"\")}] | .[0:${MAX_FILES_PER_CHUNK}]")
+          
+          # Fetch check runs
+          CHECKS=$(gh api repos/${{ github.repository }}/commits/${{ github.event.pull_request.head.sha || github.sha }}/check-runs \
+            --jq '[.check_runs[] | select(.conclusion == "failure") | {name: .name, conclusion: .conclusion, output: .output}]')
+          
+          # Create combined JSON
+          echo "${PR_DATA}" | jq --argjson reviews "${REVIEWS}" --argjson files "${FILES}" --argjson checks "${CHECKS}" \
+            '. + {reviews: $reviews, files: $files, check_runs: $checks}' > /tmp/pr_context.json
+          
+          # Check context size and apply chunking if needed
+          CONTEXT_SIZE=$(wc -c < /tmp/pr_context.json)
+          echo "context_size=${CONTEXT_SIZE}" >> $GITHUB_OUTPUT
+          
+          if [ $CONTEXT_SIZE -gt 100000 ]; then
+            echo "⚠️ Large context detected (${CONTEXT_SIZE} bytes), applying chunking..."
+            python .github/scripts/context_chunker.py < /tmp/pr_context.json > /tmp/pr_context_chunked.json
+            echo "chunked=true" >> $GITHUB_OUTPUT
+            CONTEXT_FILE="/tmp/pr_context_chunked.json"
+          else
+            echo "✅ Context size acceptable (${CONTEXT_SIZE} bytes)"
+            echo "chunked=false" >> $GITHUB_OUTPUT
+            CONTEXT_FILE="/tmp/pr_context.json"
+          fi
+          
+          # Extract action items from chunked/full context
+          ACTION_ITEMS=$(jq -r '.reviews[]?.body // ""' "${CONTEXT_FILE}" \
             | grep -oE "(fix|add|update|remove|refactor)[^.]*" \
             | head -5 \
             | tr '\n' ',' \
             | sed 's/,$//' || echo "general_improvements")
+          
           echo "action_items=${ACTION_ITEMS}" >> $GITHUB_OUTPUT
+          echo "context_file=${CONTEXT_FILE}" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse PR Review Comments
+        id: parse-comments
+        run: |
+          echo "Action items from context: ${{ steps.fetch-context.outputs.action_items }}"
+          echo "Context was chunked: ${{ steps.fetch-context.outputs.chunked }}"
+          echo "Context size: ${{ steps.fetch-context.outputs.context_size }} bytes"
 
       - name: Run Python Linting
         run: |
@@ -126,14 +176,16 @@ jobs:
             **Review Analysis Complete**
             - ✅ Code quality checks passed
             - ✅ Tests are running
-            - 📝 Action items identified: ${{ steps.parse-comments.outputs.action_items }}
+            - 📝 Action items identified: ${{ steps.fetch-context.outputs.action_items }}
+            - 📊 Context size: ${{ steps.fetch-context.outputs.context_size }} bytes
+            - ${{ steps.fetch-context.outputs.chunked == 'true' && '🔄 Context chunking applied' || '✅ No chunking needed' }}
             
             **Next Steps:**
             - Implementing requested changes
             - Will update PR when complete
             - Re-review will be requested automatically
             
-            *Automated by PR Agent Workflow*`;
+            *Automated by PR Agent Workflow with Smart Context Management*`;
             
             if (botComment) {
               await github.rest.issues.updateComment({
