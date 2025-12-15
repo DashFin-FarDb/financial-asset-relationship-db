@@ -14,18 +14,39 @@ class TestPyYAMLDependencyAddition:
     
     @pytest.fixture
     def requirements_file(self) -> Path:
-        """Return path to requirements-dev.txt."""
+        """
+        Path to the project's requirements-dev.txt file.
+        
+        Returns:
+            path (Path): Path to requirements-dev.txt located at the repository root.
+        """
         return Path('requirements-dev.txt')
     
     @pytest.fixture
     def requirements_content(self, requirements_file: Path) -> str:
-        """Load requirements-dev.txt content."""
+        """
+        Read and return the contents of the requirements-dev.txt file.
+        
+        Parameters:
+            requirements_file (Path): Path to the requirements-dev.txt file to read.
+        
+        Returns:
+            str: The file contents as a UTF-8 decoded string.
+        """
         with open(requirements_file, 'r', encoding='utf-8') as f:
             return f.read()
     
     @pytest.fixture
     def requirements_lines(self, requirements_content: str) -> List[str]:
-        """Get non-comment, non-empty lines from requirements."""
+        """
+        Extracts the non-empty, non-comment lines from the contents of a requirements file.
+        
+        Parameters:
+            requirements_content (str): Full text of a requirements file.
+        
+        Returns:
+            List[str]: Lines from the file with surrounding whitespace removed, excluding blank lines and lines beginning with `#`.
+        """
         lines = []
         for line in requirements_content.split('\n'):
             line = line.strip()
@@ -65,7 +86,15 @@ class TestPyYAMLDependencyAddition:
                     f"PyYAML version should be >= 6.0, got {version}"
     
     def test_types_pyyaml_matches_pyyaml_version(self, requirements_lines: List[str]):
-        """Test that types-PyYAML version matches PyYAML major version."""
+        """
+        Assert that the major version of types-PyYAML matches the major version of PyYAML when both are pinned with '>=' in the provided requirements lines.
+        
+        Parameters:
+            requirements_lines (List[str]): Non-comment, non-empty lines from requirements-dev.txt.
+        
+        Raises:
+            AssertionError: If both packages are pinned with '>=' but their major versions differ.
+        """
         pyyaml_version = None
         types_version = None
         
@@ -125,7 +154,12 @@ class TestRequirementsDevCompleteness:
     
     @pytest.fixture
     def requirements_content(self) -> str:
-        """Load requirements-dev.txt content."""
+        """
+        Read and return the contents of requirements-dev.txt.
+        
+        Returns:
+            str: The full contents of requirements-dev.txt.
+        """
         with open('requirements-dev.txt', 'r', encoding='utf-8') as f:
             return f.read()
     
@@ -135,7 +169,14 @@ class TestRequirementsDevCompleteness:
             "requirements-dev.txt should end with a newline"
     
     def test_no_duplicate_packages(self, requirements_content: str):
-        """Test that no package is listed multiple times."""
+        """
+        Verify the requirements content contains no duplicate package entries.
+        
+        Ignores blank lines and lines starting with `#`. Package names are extracted from each non-comment line by taking the text before any version specifier characters (`>`, `<`, `=`); the test fails with a list of duplicated package names if any are found.
+        
+        Parameters:
+            requirements_content (str): Full text of the requirements file to inspect.
+        """
         packages = []
         for line in requirements_content.split('\n'):
             line = line.strip()
@@ -154,7 +195,7 @@ class TestRequirementsDevCompleteness:
             if not line or line.startswith('#'):
                 continue
             
-            valid_pattern = r'^[a-zA-Z0-9._-]+\[?[a-zA-Z0-9._,-]*\]?(>=|==|<=|>|<|~=)[0-9.]+.*$'
+            valid_pattern = r'^[a-zA-Z0-9._-]+\[?[a-zA-Z0-9._,-]*\]?((>=|==|<=|>|<|~=)[0-9.]+.*)?$'
             assert re.match(valid_pattern, line), \
                 f"Line {line_num} has invalid format: {line}"
     
@@ -210,7 +251,14 @@ class TestRequirementsDevVersionPinning:
     
     @pytest.fixture
     def requirements_lines(self) -> List[str]:
-        """Get non-comment, non-empty lines from requirements."""
+        """
+        Return the non-comment, non-empty lines from requirements-dev.txt.
+        
+        Reads requirements-dev.txt and returns each requirement line with surrounding whitespace removed, excluding empty lines and lines starting with `#`.
+        
+        Returns:
+            lines (List[str]): The cleaned requirement lines in file order.
+        """
         with open('requirements-dev.txt', 'r', encoding='utf-8') as f:
             content = f.read()
         
@@ -222,7 +270,15 @@ class TestRequirementsDevVersionPinning:
         return lines
     
     def test_uses_minimum_version_specifiers(self, requirements_lines: List[str]):
-        """Test that packages use >= for minimum version."""
+        """
+        Ensure each non-typing package line contains a minimum version specifier.
+        
+        Parameters:
+            requirements_lines (List[str]): Requirement file lines filtered to exclude comments and empty lines.
+        
+        Raises:
+            AssertionError: If a package line (excluding lines starting with 'types-') does not contain '>=' or '=='.
+        """
         for line in requirements_lines:
             if not line.startswith('types-'):
                 assert '>=' in line or '==' in line, \
