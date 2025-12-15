@@ -1300,6 +1300,8 @@ def check_env_vars(env_dict):
                     invalid.append(key)
             return invalid
 
+        invalid_entries = []
+
         # Check top-level env
         if "env" in config:
             invalid = check_env_vars(config["env"])
