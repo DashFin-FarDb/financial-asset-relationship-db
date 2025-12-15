@@ -83,7 +83,11 @@ class TestMarkdownFormatting:
             assert re.match(r'^#{1,6} .+', line), f"Heading '{line}' should have space after #"
     
     def test_no_trailing_whitespace(self, summary_lines: List[str]):
-        """Test that lines don't have trailing whitespace."""
+        """
+        Ensure no non-blank line ends with trailing whitespace.
+        
+        Asserts that there are zero non-empty lines with trailing spaces or tabs; on failure the assertion message reports the number of offending lines.
+        """
         lines_with_trailing = [
             (i + 1, line) for i, line in enumerate(summary_lines)
             if line.rstrip() != line and line.strip() != ''
@@ -92,7 +96,12 @@ class TestMarkdownFormatting:
             f"Found {len(lines_with_trailing)} lines with trailing whitespace"
     
     def test_code_blocks_properly_closed(self, summary_lines: List[str]):
-        """Test that code blocks are properly opened and closed."""
+        """
+        Verify that every fenced code block delimited by triple backticks in the summary is properly closed.
+        
+        Parameters:
+            summary_lines (List[str]): Lines of the Markdown summary file to inspect.
+        """
         open_block = False
         for i, line in enumerate(summary_lines, start=1):
             stripped = line.strip()
@@ -102,7 +111,14 @@ class TestMarkdownFormatting:
         assert open_block is False, "Code blocks not properly closed or mismatched triple backticks detected"
     
     def test_lists_properly_formatted(self, summary_lines: List[str]):
-        """Test that bullet lists use consistent markers."""
+        """
+        Validate that Markdown bullet list items use even indentation (multiples of two spaces).
+        
+        Scans the provided file lines for list items starting with '-', '*' or '+' and asserts each item's leading space count is divisible by two; raises an AssertionError for any list item with odd indentation.
+        
+        Parameters:
+            summary_lines (List[str]): Lines of the Markdown summary file to inspect.
+        """
         list_lines = [line for line in summary_lines if re.match(r'^\s*[-*+] ', line)]
         if list_lines:
             # Check that indentation is consistent
@@ -174,7 +190,17 @@ class TestCodeExamples:
             assert 'pytest' in cmd, "pytest command should contain 'pytest'"
     
     def test_file_paths_in_examples_exist(self, summary_content: str):
-        """Test that referenced file paths in examples actually exist."""
+        """
+        Verify that test file paths referenced in documentation examples exist in the repository.
+        
+        Searches the provided documentation content for occurrences of paths matching the pattern
+        `tests/integration/test_<name>.py`, resolves each match against the repository root (three
+        levels up from this test file) and fails with a single consolidated message listing any
+        missing files.
+        
+        Parameters:
+            summary_content (str): The raw content of the documentation file to scan for referenced paths.
+        """
         # Look for test file references
         test_file_pattern = r'tests/integration/test_\w+\.py'
         mentioned_files = re.findall(test_file_pattern, summary_content)
@@ -201,7 +227,7 @@ class TestDocumentCompleteness:
     def test_has_summary_statistics(self, summary_content: str):
         """Test that document includes statistics about tests."""
         # Should mention numbers of tests, classes, etc.
-        has_numbers = re.search(r'\d+\s+(test|class)', summary_content, re.IGNORECASE)
+        has_numbers = re.search(r'\d+\s+(tests?|class(?:es)?)', summary_content, re.IGNORECASE)
         assert has_numbers is not None, \
             "Document should include statistics about test coverage"
     
@@ -238,7 +264,11 @@ class TestDocumentMaintainability:
             f"Too many long lines ({len(long_lines)}), consider breaking them up"
     
     def test_has_clear_structure(self, summary_content: str):
-        """Test that document has clear hierarchical structure."""
+        """
+        Verify the document contains a clear hierarchical heading structure.
+        
+        Requires at least one level-1 heading (H1) and at least three level-2 headings (H2); the test fails if these counts are not met.
+        """
         h1_count = len(re.findall(r'^# ', summary_content, re.MULTILINE))
         h2_count = len(re.findall(r'^## ', summary_content, re.MULTILINE))
         
@@ -261,10 +291,32 @@ class TestLinkValidation:
     """Test suite for link validation."""
 
     def test_internal_links_valid(self, summary_lines: List[str], summary_content: str):
+        """
+        Validates that every GitHub-style internal link in the Markdown points to an existing header.
+        
+        Checks internal links of the form [text](#anchor) in the full document content against the set of GitHub Flavoured Markdown anchors derived from the document headers; the test fails if any anchor does not match an existing header.
+        
+        Parameters:
+            summary_lines (List[str]): The file split into lines; used to extract headers.
+            summary_content (str): The full file content; used to extract internal link targets.
+        """
         import unicodedata
 
         def _to_gfm_anchor(text: str) -> str:
             # Lowercase
+            """
+            Convert a header string into a GitHub Flavored Markdown (GFM) anchor.
+            
+            The returned string is a lowercase, URL-friendly anchor suitable for internal Markdown links:
+            diacritics are removed, punctuation and special characters are stripped (except hyphens),
+            whitespace is collapsed to single hyphens, and leading/trailing hyphens are removed.
+            
+            Parameters:
+                text (str): Header text to convert into an anchor.
+            
+            Returns:
+                anchor (str): A GFM-compatible anchor string for use in internal links (e.g. "my-section-title").
+            """
             s = text.strip().lower()
             # Normalize unicode to NFKD and remove diacritics
             s = unicodedata.normalize('NFKD', s)

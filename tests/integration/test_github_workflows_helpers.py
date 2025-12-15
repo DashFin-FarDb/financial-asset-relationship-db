@@ -9,10 +9,11 @@ duplicate keys.
 import os
 import pytest
 import tempfile
-import yaml
 from pathlib import Path
 from typing import List
 from unittest.mock import Mock, patch, mock_open
+
+yaml = pytest.importorskip("yaml")
 
 # Import functions from the module we're testing
 from tests.integration.test_github_workflows import (
@@ -49,7 +50,8 @@ class TestGetWorkflowFiles:
         """Test that empty list is returned when workflows directory doesn't exist."""
         nonexistent_dir = tmp_path / "nonexistent" / "workflows"
         
-        result = get_workflow_files(nonexistent_dir)
+        with patch('tests.integration.test_github_workflows.WORKFLOWS_DIR', nonexistent_dir):
+            result = get_workflow_files()
         assert result == []
     
     def test_finds_yml_files(self, tmp_path):

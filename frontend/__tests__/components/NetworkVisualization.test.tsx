@@ -64,6 +64,186 @@ describe('NetworkVisualization Component', () => {
       expect(screen.getByText(/invalid visualization data/i)).toBeInTheDocument();
     });
 
+    // New edge case tests
+    const dataWithMissingCoords2: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY' } as any], // missing x,y,z
+      edges: [{ source: '1', target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithMissingCoords2} />);
+    await waitFor(() => {
+      expect(screen.getByText(/missing coordinates/i)).toBeInTheDocument();
+    });
+
+    const dataWithNullEdge: VisualizationData = {
+      nodes: [
+        { id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY', x: 0, y: 0, z: 0, color: '#000', size: 5 },
+        { id: '2', name: 'N2', symbol: 'S2', asset_class: 'BOND', x: 1, y: 1, z: 1, color: '#111', size: 5 },
+      ],
+      edges: [{ source: null as unknown as string, target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithNullEdge} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid edge/i)).toBeInTheDocument();
+    });
+
+    const dataWithUnknownAssetClass: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'UNKNOWN_CLASS' as any, x: 0, y: 0, z: 0, color: '#000', size: 5 }],
+      edges: [],
+    };
+    render(<NetworkVisualization data={dataWithUnknownAssetClass} />);
+    await waitFor(() => {
+      expect(screen.getByText(/unknown asset class/i)).toBeInTheDocument();
+    });
+
+    render(<NetworkVisualization data={{} as unknown as VisualizationData} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid visualization data/i)).toBeInTheDocument();
+    });
+
+    // New edge case tests
+    const dataWithMissingCoords1: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY' } as any], // missing x,y,z
+      edges: [{ source: '1', target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithMissingCoords1} />);
+    await waitFor(() => {
+      expect(screen.getByText(/missing coordinates/i)).toBeInTheDocument();
+    });
+
+    const dataWithNullEdge2: VisualizationData = {
+      nodes: [
+        { id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY', x: 0, y: 0, z: 0, color: '#000', size: 5 },
+        { id: '2', name: 'N2', symbol: 'S2', asset_class: 'BOND', x: 1, y: 1, z: 1, color: '#111', size: 5 },
+      ],
+      edges: [{ source: null as unknown as string, target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithNullEdge2} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid edge/i)).toBeInTheDocument();
+    });
+
+    const dataWithUnknownAssetClass: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'UNKNOWN_CLASS' as any, x: 0, y: 0, z: 0, color: '#000', size: 5 }],
+      edges: [],
+    };
+    render(<NetworkVisualization data={dataWithUnknownAssetClass} />);
+    await waitFor(() => {
+      expect(screen.getByText(/unknown asset class/i)).toBeInTheDocument();
+    });
+
+    render(<NetworkVisualization data={{} as unknown as VisualizationData} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid visualization data/i)).toBeInTheDocument();
+    });
+
+    // New edge case tests
+    const dataWithMissingCoords: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY' } as any], // missing x,y,z
+      edges: [{ source: '1', target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithMissingCoords} />);
+    await waitFor(() => {
+      expect(screen.getByText(/missing coordinates/i)).toBeInTheDocument();
+    });
+
+    const dataWithNullEdge: VisualizationData = {
+      nodes: [
+        { id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY', x: 0, y: 0, z: 0, color: '#000', size: 5 },
+        { id: '2', name: 'N2', symbol: 'S2', asset_class: 'BOND', x: 1, y: 1, z: 1, color: '#111', size: 5 },
+      ],
+      edges: [{ source: null as unknown as string, target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithNullEdge} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid edge/i)).toBeInTheDocument();
+    });
+
+    const dataWithUnknownAssetClass: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'UNKNOWN_CLASS' as any, x: 0, y: 0, z: 0, color: '#000', size: 5 }],
+      edges: [],
+    };
+    render(<NetworkVisualization data={dataWithUnknownAssetClass} />);
+    await waitFor(() => {
+      expect(screen.getByText(/unknown asset class/i)).toBeInTheDocument();
+    });
+
+    render(<NetworkVisualization data={{} as unknown as VisualizationData} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid visualization data/i)).toBeInTheDocument();
+    });
+
+    // New edge case tests
+    const dataWithMissingCoords: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY' } as any], // missing x,y,z
+      edges: [{ source: '1', target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithMissingCoords} />);
+    await waitFor(() => {
+      expect(screen.getByText(/missing coordinates/i)).toBeInTheDocument();
+    });
+
+    const dataWithNullEdge: VisualizationData = {
+      nodes: [
+        { id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY', x: 0, y: 0, z: 0, color: '#000', size: 5 },
+        { id: '2', name: 'N2', symbol: 'S2', asset_class: 'BOND', x: 1, y: 1, z: 1, color: '#111', size: 5 },
+      ],
+      edges: [{ source: null as unknown as string, target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithNullEdge} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid edge/i)).toBeInTheDocument();
+    });
+
+    const dataWithUnknownAssetClass: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'UNKNOWN_CLASS' as any, x: 0, y: 0, z: 0, color: '#000', size: 5 }],
+      edges: [],
+    };
+    render(<NetworkVisualization data={dataWithUnknownAssetClass} />);
+    await waitFor(() => {
+      expect(screen.getByText(/unknown asset class/i)).toBeInTheDocument();
+    });
+
+    render(<NetworkVisualization data={{} as unknown as VisualizationData} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid visualization data/i)).toBeInTheDocument();
+    });
+
+    // New edge case tests
+    const dataWithMissingCoords2: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY' } as any], // missing x,y,z
+      edges: [{ source: '1', target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithMissingCoords2} />);
+    await waitFor(() => {
+      expect(screen.getByText(/missing coordinates/i)).toBeInTheDocument();
+    });
+
+    const dataWithNullEdge: VisualizationData = {
+      nodes: [
+        { id: '1', name: 'N1', symbol: 'S1', asset_class: 'EQUITY', x: 0, y: 0, z: 0, color: '#000', size: 5 },
+        { id: '2', name: 'N2', symbol: 'S2', asset_class: 'BOND', x: 1, y: 1, z: 1, color: '#111', size: 5 },
+      ],
+      edges: [{ source: null as unknown as string, target: '2', relationship_type: 'TEST', strength: 0.5 } as any],
+    };
+    render(<NetworkVisualization data={dataWithNullEdge} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid edge/i)).toBeInTheDocument();
+    });
+
+    const dataWithUnknownAssetClass: VisualizationData = {
+      nodes: [{ id: '1', name: 'N1', symbol: 'S1', asset_class: 'UNKNOWN_CLASS' as any, x: 0, y: 0, z: 0, color: '#000', size: 5 }],
+      edges: [],
+    };
+    render(<NetworkVisualization data={dataWithUnknownAssetClass} />);
+    await waitFor(() => {
+      expect(screen.getByText(/unknown asset class/i)).toBeInTheDocument();
+    });
+
+    render(<NetworkVisualization data={{} as unknown as VisualizationData} />);
+    await waitFor(() => {
+      expect(screen.getByText(/invalid visualization data/i)).toBeInTheDocument();
+    });
+
     await waitFor(() => {
       expect(screen.getByTestId('mock-plot')).toBeInTheDocument();
     });
