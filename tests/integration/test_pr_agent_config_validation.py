@@ -134,26 +134,44 @@ class TestPRAgentConfigYAMLValidity:
 
         # Check for duplicate keys by tracking full hierarchical paths
         lines = content.split('\n')
-        # Stack tracks (indent_level, key) tuples to build hierarchical path
-        path_stack = []
-        seen_full_paths = set()
+        with open(config_path, 'r') as f:
+            try:
+                config = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML syntax while checking duplicates: {e}")
 
-        for line_num, line in enumerate(lines, 1):
-            # Validate indentation before processing to ensure correct key paths
-            indent = self._validate_line_indentation(line, line_num)
+        def find_duplicates(obj, path=""):
+            duplicates = []
+            if isinstance(obj, dict):
+                keys_seen = set()
+                for key, value in obj.items():
+                    current_path = f"{path}.{key}" if path else key
+                    if key in keys_seen:
+                        duplicates.append(current_path)
+                    else:
+                        keys_seen.add(key)
+                    duplicates.extend(find_duplicates(value, current_path))
+            elif isinstance(obj, list):
+                for idx, item in enumerate(obj):
+                    item_path = f"{path}[{idx}]" if path else f"[{idx}]"
+                    duplicates.extend(find_duplicates(item, item_path))
+            return duplicates
 
-            if ':' in line and not line.strip().startswith('#'):
-# Skip list items (lines starting with - after removing leading spaces)
-if line.lstrip().startswith('-'):
-    continue
+        duplicates = find_duplicates(config)
+        if duplicates:
+            pytest.fail(f"Duplicate keys found at paths: {', '.join(duplicates)}")
+                key = line.split(':')[0].strip()
 
-# Pop stack entries that are at deeper indentation (strictly greater)
-# Only pop when we've moved back up in hierarchy
-while path_stack and path_stack[-1][0] > indent:
-    path_stack.pop()
-                if key.startswith('-'):
+                # Skip list items (only when the first non-space character is '-')
+                if line.lstrip().startswith('-'):
                     continue
 
+                # Normalize indentation: expand tabs to spaces to avoid mixed indent issues
+                expanded = line.expandtabs(2)
+                indent = len(expanded) - len(expanded.lstrip(' '))
+                # Ensure indentation uses only spaces (no stray tabs remain after expand)
+                if '\t' in line:
+                    pytest.fail("Tabs are not allowed for indentation in YAML config")
                 # Pop stack entries that are at same or deeper indentation
                 # (we've moved back up or sideways in the hierarchy)
                 while path_stack and path_stack[-1][0] >= indent:
