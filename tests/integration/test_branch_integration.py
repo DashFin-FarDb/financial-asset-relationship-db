@@ -152,11 +152,12 @@ class TestRemovedFilesIntegration:
         
         for wf_file in workflow_files:
             with open(wf_file, 'r') as f:
-                content = f.read()
-            
+                lines = f.readlines()
+        
             for removed in removed_files:
-                assert removed not in content, \
-                    f"{wf_file} references removed file {removed}"
+                for line in lines:
+                    if removed in line and not line.strip().startswith('#'):
+                        pytest.fail(f"{wf_file} references removed file {removed}")
     
     def test_label_workflow_doesnt_need_labeler_config(self):
         """Verify label workflow works without labeler.yml."""
@@ -171,7 +172,8 @@ class TestRemovedFilesIntegration:
         
         # Should not require config-path or similar
         with_config = labeler_step.get('with', {})
-        assert 'config-path' not in with_config or with_config.get('config-path') == '.github/labeler.yml'
+        assert 'config-path' not in with_config, \
+            "Label workflow should not depend on a config-path like .github/labeler.yml, which has been removed"
     
     def test_pr_agent_workflow_self_contained(self):
         """Verify PR agent workflow doesn't depend on removed components."""
@@ -207,7 +209,7 @@ class TestWorkflowSecurityConsistency:
             for pattern in dangerous:
                 matches = re.findall(pattern, content)
                 if matches:
-                    print(f"Potential injection risk in {wf_file}: {matches}")
+                    pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
     
     def test_workflows_use_appropriate_checkout_refs(self):
         """Verify checkout actions use safe refs."""
