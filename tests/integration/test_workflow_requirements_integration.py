@@ -20,7 +20,20 @@ from packaging.requirements import Requirement
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples."""
+    """
+    Read a pip-style requirements file and produce a list of package name and version-specifier pairs.
+    
+    Parses each non-empty, non-comment line with packaging.Requirement and returns a list of tuples (package_name, version_specifier). Lines that are blank or start with '#' are ignored. The version_specifier is an empty string when no specifier is present.
+    
+    Parameters:
+        file_path (Path): Path to the requirements file to parse.
+    
+    Returns:
+        List[Tuple[str, str]]: Tuples of (package_name, version_specifier).
+    
+    Raises:
+        ValueError: If any requirement line cannot be parsed; the error message includes the offending line.
+    """
     requirements: List[Tuple[str, str]] = []
 
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -164,7 +177,11 @@ class TestRequirementsMatchWorkflowNeeds:
     """Test that requirements-dev.txt contains packages needed by workflows."""
     
     def test_has_pytest_for_testing(self):
-        """Test that pytest is in requirements (needed by workflow test steps)."""
+        """
+        Verify that `pytest` is listed in the development requirements.
+        
+        Asserts that the `requirements-dev.txt` file exists and contains the package name `pytest` (case-insensitive), as workflows rely on pytest to run tests.
+        """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         requirements = parse_requirements(REQUIREMENTS_FILE)
@@ -190,7 +207,11 @@ class TestRequirementsMatchWorkflowNeeds:
             )
     
     def test_requirements_support_python_version_in_workflow(self):
-        """Test that requirements are compatible with Python version used in workflows."""
+        """
+        Check that the pr-agent workflow's declared Python version (from a `setup-python` step) is at least Python 3.8.
+        
+        If the pr-agent workflow file is missing the test is skipped. The test locates the first `setup-python` step, reads its `python-version` value (if present) and asserts the major/minor version is 3.8 or greater; if no `python-version` is found the test makes no assertion.
+        """
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
         
         if not pr_agent_file.exists():
