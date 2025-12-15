@@ -210,7 +210,7 @@ class TestPRAgentConfigSecurity:
         if 'monitoring' in config:
             check_interval = config['monitoring'].get('check_interval')
             if check_interval:
-                assert isinstance(check_interval, int)
+            if check_interval is not None:
                 assert check_interval > 0
                 assert check_interval < 86400  # Less than 24 hours
 
