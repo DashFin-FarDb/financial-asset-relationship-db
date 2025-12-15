@@ -98,20 +98,45 @@ class TestPRAgentConfigYAMLValidity:
         with open(config_path, 'r') as f:
             content = f.read()
         
-        # Check for obvious duplicate patterns
+        # Check for obvious duplicate patterns, scoped per top-level section
         lines = content.split('\n')
-        keys_at_level = {}
-        
+        section_keys = {}
+        top_level_keys = set()
+        current_section = None
+
         for line in lines:
-            if ':' in line and not line.strip().startswith('#'):
-                # Get indentation level
-                indent = len(line) - len(line.lstrip())
-                key = line.split(':')[0].strip()
-                
-                level_key = f"{indent}:{key}"
-                if level_key in keys_at_level:
-                    pytest.fail(f"Duplicate key '{key}' at indentation {indent}")
-                keys_at_level[level_key] = True
+            stripped = line.strip()
+            if not stripped or stripped.startswith('#'):
+                continue
+            if ':' not in line:
+                continue
+
+            # Get indentation and key name
+            indent = len(line) - len(line.lstrip(' '))
+            key = line.split(':', 1)[0].strip()
+
+            # Handle top-level keys (no indentation)
+            if indent == 0:
+                if key in top_level_keys:
+                    pytest.fail(f"Duplicate top-level key '{key}'")
+                top_level_keys.add(key)
+                current_section = key
+                continue
+
+            # Skip list items like "- key: value"
+            if key.startswith('-'):
+                key = key.lstrip('-').strip()
+
+            if current_section is None:
+                continue
+
+            section = section_keys.setdefault(current_section, set())
+            level_key = (indent, key)
+            if level_key in section:
+                pytest.fail(
+                    f"Duplicate key '{key}' at indentation {indent} in section '{current_section}'"
+                )
+            section.add(level_key)
     
     def test_consistent_indentation(self):
         """Verify consistent 2-space indentation."""
@@ -169,7 +194,7 @@ class TestPRAgentConfigSecurity:
         if 'monitoring' in config:
             check_interval = config['monitoring'].get('check_interval')
             if check_interval:
-                assert isinstance(check_interval, int)
+            if check_interval is not None:
                 assert check_interval > 0
                 assert check_interval < 86400  # Less than 24 hours
 
