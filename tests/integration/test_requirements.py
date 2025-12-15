@@ -24,20 +24,20 @@ REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements.txt"
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """Parse requirements file and return list of (package, version_spec) tuples.
-    
+
     Examples:
         Input line: "requests>=2.25.0"
         Output: ("requests", ">=2.25.0")
-        
+
         Input line: "pytest>=6.0,<7.0 # testing framework"
         Output: ("pytest", ">=6.0,<7.0")
-        
+
         Input line: "pandas"
         Output: ("pandas", "")
-        
+
         Input line: "package[extra1,extra2]>=1.0"
         Output: ("package", ">=1.0")
-        
+
     Raises:
         ValueError: If a requirement line is malformed.
         OSError: If the requirements file could not be opened or read.
@@ -225,7 +225,7 @@ class TestVersionSpecifications:
             lines = f.readlines()
 
         exact_pins = [pkg for pkg, ver in requirements if ver.startswith("==")]
-        
+
         for pkg in exact_pins:
             # Find the line with this package
             pkg_lines = [line for line in lines if pkg.lower() in line.lower() and "==" in line]
@@ -270,13 +270,13 @@ class TestPackageConsistency:
         """Test that there are no known conflicting packages."""
         # Check for common conflicts (example: different database drivers)
         lowercase_names = [name.lower() for name in package_names]
-        
+
         # These are examples - adjust based on actual conflicts in the ecosystem
         conflicts = [
             ({"mysql-connector-python", "pymysql"}, "Multiple MySQL connectors"),
             ({"psycopg2", "psycopg2-binary"}, "Conflicting psycopg2 packages"),
         ]
-        
+
         for conflict_set, message in conflicts:
             found = conflict_set.intersection(set(lowercase_names))
             assert len(found) <= 1, f"{message}: {found}"
@@ -330,14 +330,15 @@ class TestSecurityAndCompliance:
         lines = file_content.split("\n")
         zipp_lines = [line for line in lines if "zipp" in line.lower() and not line.strip().startswith("#")]
         assert len(zipp_lines) > 0, "zipp line not found"
-        
+
         zipp_line = zipp_lines[0]
         # Check for security-related keywords in comment
         assert "#" in zipp_line, "zipp line should have a comment"
         comment = zipp_line.split("#", 1)[1].lower()
         security_keywords = ["security", "vulnerability", "snyk", "pinned"]
-        assert any(keyword in comment for keyword in security_keywords), \
-            f"zipp comment should mention security/vulnerability, got: {comment}"
+        assert any(
+            keyword in comment for keyword in security_keywords
+        ), f"zipp comment should mention security/vulnerability, got: {comment}"
 
     def test_no_known_vulnerable_versions(self, requirements: List[Tuple[str, str]]):
         """Test that packages don't use known vulnerable version patterns."""
@@ -401,8 +402,9 @@ class TestComprehensiveValidation:
         """Test that critical packages have version specifications."""
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         # Allow some packages without versions, but production deps should mostly be pinned
-        assert len(packages_without_versions) <= len(requirements) * 0.2, \
-            f"Too many packages without versions: {packages_without_versions}"
+        assert (
+            len(packages_without_versions) <= len(requirements) * 0.2
+        ), f"Too many packages without versions: {packages_without_versions}"
 
     def test_version_consistency(self, requirements: List[Tuple[str, str]]):
         """Test that version specifications are consistent in style."""
@@ -415,22 +417,21 @@ class TestComprehensiveValidation:
                     version_styles.setdefault("exact", []).append(pkg)
                 elif ver.startswith("~="):
                     version_styles.setdefault("compatible", []).append(pkg)
-        
+
         # Should use consistent versioning strategy (mostly one style)
         if version_styles:
             max_style = max(version_styles.values(), key=len)
             total_versioned = sum(len(v) for v in version_styles.values())
-            assert len(max_style) >= total_versioned * 0.6, \
-                "Version specifications should be consistent in style"
+            assert len(max_style) >= total_versioned * 0.6, "Version specifications should be consistent in style"
 
     def test_transitive_dependencies_documented(self, requirements: List[Tuple[str, str]]):
         """Test that transitive dependencies are documented if pinned."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
-        
+
         # Packages that are typically transitive dependencies
         transitive_indicators = ["not directly required", "transitive", "pinned by"]
-        
+
         for line in lines:
             if any(indicator in line.lower() for indicator in transitive_indicators):
                 # If mentioning transitive/indirect, should have a comment

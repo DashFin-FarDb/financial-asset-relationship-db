@@ -335,12 +335,12 @@ class TestEdgeCasesAndErrorHandling:
         """Test that empty lines and comment-only lines are properly ignored."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             all_lines = f.readlines()
-        
+
         requirements = parse_requirements(REQUIREMENTS_FILE)
-        
+
         # Count non-empty, non-comment lines
         content_lines = [line for line in all_lines if line.strip() and not line.strip().startswith("#")]
-        
+
         # Number of requirements should not exceed content lines
         assert len(requirements) <= len(content_lines)
 
@@ -356,7 +356,7 @@ class TestVersionConstraintValidation:
     def test_version_operators_valid(self, requirements: List[Tuple[str, str]]):
         """Test that all version operators are valid."""
         valid_operators = {">=", "==", "<=", ">", "<", "~=", "!="}
-        
+
         for pkg, ver in requirements:
             if ver:
                 # Extract operators from version spec
@@ -364,7 +364,7 @@ class TestVersionConstraintValidation:
                 for op in valid_operators:
                     if op in ver:
                         operators_found.append(op)
-                
+
                 # Should have at least one valid operator
                 assert len(operators_found) > 0, f"No valid operator found in '{ver}' for package '{pkg}'"
 
@@ -375,8 +375,9 @@ class TestVersionConstraintValidation:
                 # Compound spec should not have spaces after comma
                 parts = ver.split(",")
                 for part in parts:
-                    assert part.strip() == part or part == "", \
-                        f"Compound version spec has improper spacing: '{ver}' for package '{pkg}'"
+                    assert (
+                        part.strip() == part or part == ""
+                    ), f"Compound version spec has improper spacing: '{ver}' for package '{pkg}'"
 
     def test_minimum_version_numbers_reasonable(self, requirements: List[Tuple[str, str]]):
         """Test that minimum version numbers are reasonable (not 0.0.0)."""
@@ -405,8 +406,7 @@ class TestVersionConstraintValidation:
                         min_ver = specs[0].replace(">=", "").strip()
                         max_ver = specs[1].replace("<", "").replace("<=", "").strip()
                         # Just ensure they're not obviously wrong
-                        assert min_ver != max_ver or "<=" in specs[1], \
-                            f"Conflicting version spec for {pkg}: {ver}"
+                        assert min_ver != max_ver or "<=" in specs[1], f"Conflicting version spec for {pkg}: {ver}"
 
 
 class TestPackageNamingAndCasing:
@@ -422,7 +422,7 @@ class TestPackageNamingAndCasing:
         # Read raw file to check original casing
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
-        
+
         for pkg, _ in requirements:
             # Find the original line
             matching_lines = [line for line in lines if pkg in line and not line.strip().startswith("#")]
@@ -435,8 +435,9 @@ class TestPackageNamingAndCasing:
             normalized = pkg.lower().replace("-", "_")
             if normalized in normalized_names:
                 original = normalized_names[normalized]
-                assert original.lower().replace("-", "_") == pkg.lower().replace("-", "_"), \
-                    f"Potential conflict between {original} and {pkg}"
+                assert original.lower().replace("-", "_") == pkg.lower().replace(
+                    "-", "_"
+                ), f"Potential conflict between {original} and {pkg}"
             normalized_names[normalized] = pkg
 
     def test_common_package_name_patterns(self, requirements: List[Tuple[str, str]]):
@@ -460,26 +461,22 @@ class TestDevelopmentToolsPresence:
     def test_has_testing_framework(self, package_names: List[str]):
         """Test that a testing framework is present."""
         testing_frameworks = ["pytest", "unittest", "nose"]
-        assert any(fw in package_names for fw in testing_frameworks), \
-            "No testing framework found"
+        assert any(fw in package_names for fw in testing_frameworks), "No testing framework found"
 
     def test_has_code_formatter(self, package_names: List[str]):
         """Test that a code formatter is present."""
         formatters = ["black", "autopep8", "yapf"]
-        assert any(fmt in package_names for fmt in formatters), \
-            "No code formatter found"
+        assert any(fmt in package_names for fmt in formatters), "No code formatter found"
 
     def test_has_linter(self, package_names: List[str]):
         """Test that at least one linter is present."""
         linters = ["flake8", "pylint", "ruff"]
-        assert any(linter in package_names for linter in linters), \
-            "No linter found"
+        assert any(linter in package_names for linter in linters), "No linter found"
 
     def test_has_type_checker(self, package_names: List[str]):
         """Test that a type checker is present."""
         type_checkers = ["mypy", "pytype", "pyre"]
-        assert any(tc in package_names for tc in type_checkers), \
-            "No type checker found"
+        assert any(tc in package_names for tc in type_checkers), "No type checker found"
 
     def test_has_import_sorter(self, package_names: List[str]):
         """Test that an import sorter is present."""
@@ -509,7 +506,7 @@ class TestPytestEcosystem:
         """Test that pytest version is recent enough."""
         pytest_specs = [ver for pkg, ver in requirements if pkg.lower() == "pytest"]
         assert len(pytest_specs) > 0, "pytest should be present"
-        
+
         # Should be at least version 6.0
         ver = pytest_specs[0]
         if ver.startswith(">="):
@@ -520,7 +517,7 @@ class TestPytestEcosystem:
     def test_pytest_plugins_compatible(self, requirements: List[Tuple[str, str]]):
         """Test that pytest plugins have compatible versions."""
         pytest_plugins = [(pkg, ver) for pkg, ver in requirements if pkg.lower().startswith("pytest-")]
-        
+
         # All pytest plugins should have version constraints
         for pkg, ver in pytest_plugins:
             assert ver, f"Pytest plugin {pkg} should have a version constraint"
@@ -545,18 +542,18 @@ class TestTypeStubConsistency:
     def test_type_stubs_have_base_packages(self, requirements: List[Tuple[str, str]]):
         """Test that all type stub packages have corresponding base packages."""
         packages_map = {pkg.lower(): (pkg, ver) for pkg, ver in requirements}
-        
+
         for pkg, ver in requirements:
             if pkg.lower().startswith("types-"):
                 base_name = pkg.lower().replace("types-", "")
-                
+
                 # Check if base package exists (with various naming conventions)
                 base_exists = (
-                    base_name in packages_map or
-                    base_name.replace("-", "_") in packages_map or
-                    base_name.replace("_", "-") in packages_map
+                    base_name in packages_map
+                    or base_name.replace("-", "_") in packages_map
+                    or base_name.replace("_", "-") in packages_map
                 )
-                
+
                 assert base_exists, f"Type stub package {pkg} has no corresponding base package"
 
     def test_type_stub_versions_reasonable(self, requirements: List[Tuple[str, str]]):
@@ -566,8 +563,9 @@ class TestTypeStubConsistency:
                 # Type stubs may or may not have version constraints
                 # but if they do, they should be valid
                 if ver:
-                    assert any(op in ver for op in [">=", "==", "~="]), \
-                        f"Type stub {pkg} has invalid version spec: {ver}"
+                    assert any(
+                        op in ver for op in [">=", "==", "~="]
+                    ), f"Type stub {pkg} has invalid version spec: {ver}"
 
 
 class TestFileStructureAndOrganization:
@@ -577,19 +575,20 @@ class TestFileStructureAndOrganization:
         """Test that comments follow a consistent format."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
-        
+
         for i, line in enumerate(lines, 1):
             if line.strip().startswith("#"):
                 # Comments should have a space after #
                 if len(line.strip()) > 1:
-                    assert line.strip()[1] == " " or line.strip()[1] == "#", \
-                        f"Line {i}: Comment should have space after #: {line.strip()}"
+                    assert (
+                        line.strip()[1] == " " or line.strip()[1] == "#"
+                    ), f"Line {i}: Comment should have space after #: {line.strip()}"
 
     def test_sections_are_organized(self):
         """Test that the file appears to be organized into sections."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         # Should have at least one section comment
         section_indicators = ["#", "Dependencies", "Testing", "Development"]
         has_sections = any(indicator in content for indicator in section_indicators)
@@ -599,17 +598,17 @@ class TestFileStructureAndOrganization:
         """Test that there are no excessive consecutive blank lines."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
-        
+
         consecutive_blanks = 0
         max_consecutive = 0
-        
+
         for line in lines:
             if line.strip() == "":
                 consecutive_blanks += 1
                 max_consecutive = max(max_consecutive, consecutive_blanks)
             else:
                 consecutive_blanks = 0
-        
+
         # Allow at most 1 consecutive blank line
         assert max_consecutive <= 1, f"Found {max_consecutive} consecutive blank lines"
 
@@ -640,7 +639,7 @@ class TestSecurityBestPractices:
     def test_critical_packages_pinned(self, requirements: List[Tuple[str, str]]):
         """Test that critical security-related packages have minimum versions."""
         critical_packages = ["pytest", "pytest-cov"]
-        
+
         for critical in critical_packages:
             matching = [ver for pkg, ver in requirements if pkg.lower() == critical.lower()]
             if matching:
@@ -665,11 +664,11 @@ class TestPyYAMLIntegration:
         """Test that PyYAML version is compatible with types-PyYAML."""
         pyyaml_ver = [ver for pkg, ver in requirements if pkg.lower() == "pyyaml"]
         types_ver = [ver for pkg, ver in requirements if pkg.lower() == "types-pyyaml"]
-        
+
         # Both should exist
         assert len(pyyaml_ver) > 0, "PyYAML should have version constraint"
         # types-PyYAML may or may not have version constraint
-        
+
         # PyYAML should be at least 6.0 (as per the diff)
         assert pyyaml_ver[0].startswith(">=6.0"), f"PyYAML should be >=6.0, got {pyyaml_ver[0]}"
 
@@ -677,6 +676,7 @@ class TestPyYAMLIntegration:
         """Test that PyYAML can be imported and used (if installed)."""
         try:
             import yaml  # noqa: F401
+
             # If import succeeds, the package is available
             assert True
         except ImportError:
@@ -697,19 +697,19 @@ class TestComprehensivePackageValidation:
     def test_all_packages_loadable_by_pip(self, requirements: List[Tuple[str, str]]):
         """Test that all package specifications are valid pip requirements."""
         from packaging.requirements import Requirement
-        
+
         # Re-read file and try to parse each line with pip
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
-                
+
                 try:
                     # Remove inline comment
                     if "#" in line:
                         line = line.split("#")[0].strip()
-                    
+
                     # This should not raise an exception
                     Requirement(line)
                 except Exception as e:
@@ -718,13 +718,12 @@ class TestComprehensivePackageValidation:
     def test_package_count_reasonable(self, requirements: List[Tuple[str, str]]):
         """Test that the number of development packages is reasonable."""
         # Development dependencies should typically be between 5 and 50 packages
-        assert 5 <= len(requirements) <= 50, \
-            f"Development dependencies count seems unusual: {len(requirements)}"
+        assert 5 <= len(requirements) <= 50, f"Development dependencies count seems unusual: {len(requirements)}"
 
     def test_no_missing_pytest_plugins(self, requirements: List[Tuple[str, str]]):
         """Test that common pytest plugins are not missing."""
         packages = [pkg.lower() for pkg, _ in requirements]
-        
+
         # pytest-cov is especially important
         if "pytest" in packages:
             assert "pytest-cov" in packages, "pytest-cov should be present with pytest"
