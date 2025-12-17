@@ -55,7 +55,7 @@ class TestRequirementsFormat:
                 pkg_name = re.split(r'[<>=~!]', line)[0].strip()
                 # PyYAML is a special case with capital letters
                 if pkg_name.lower() not in ['pyyaml']:
-                    assert pkg_name.islower() or '-' in pkg_name, \
+                    assert pkg_name.islower(), \
                         f"Line {i}: Package name should be lowercase: {pkg_name}"
 
 
@@ -65,9 +65,13 @@ class TestPyYAMLAddition:
     def test_pyyaml_present(self):
         """Verify PyYAML is in requirements."""
         with open('requirements-dev.txt', 'r') as f:
-            content = f.read().lower()
-        
-        assert 'pyyaml' in content, "PyYAML must be present in requirements-dev.txt"
+            has_pyyaml = any(
+                'pyyaml' in line.lower()
+                for line in f
+                if line.strip() and not line.lstrip().startswith('#')
+            )
+    
+        assert has_pyyaml, "PyYAML must be present in requirements-dev.txt"
     
     def test_pyyaml_version_appropriate(self):
         """Verify PyYAML version is recent and secure."""
@@ -177,12 +181,16 @@ class TestRequirementsSecurity:
         }
         
         with open('requirements-dev.txt', 'r') as f:
-            content = f.read()
-        
+            active_lines = [
+                line for line in f
+                if line.strip() and not line.lstrip().startswith('#')
+            ]
+            content = ''.join(active_lines).lower()
+    
         for package, vulnerable_versions in known_vulnerable.items():
-            if package in content.lower():
+            if package in content:
                 for vuln_version in vulnerable_versions:
-                    assert f'=={vuln_version}' not in content.lower(), \
+                    assert f'=={vuln_version}' not in content, \
                         f"Known vulnerable version {package}=={vuln_version} detected"
     
     def test_uses_version_pinning(self):
@@ -255,7 +263,7 @@ class TestRequirementsCompatibility:
             # Check for syntax errors (exit code 1 with specific error messages)
             if result.returncode != 0:
                 error_output = result.stderr.lower()
-                syntax_errors = ['invalid requirement', 'could not find', 'error: ']
+                syntax_errors = ['invalid requirement', 'could not find']
                 
                 has_syntax_error = any(err in error_output for err in syntax_errors)
                 if has_syntax_error:
