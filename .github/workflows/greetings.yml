@@ -14,40 +14,40 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         issue-message: |
           👋 **Welcome to the Financial Asset Relationship Database project!**
-          
+
           Thank you for opening your first issue! We appreciate you taking the time to contribute.
-          
+
           **What happens next:**
           - A maintainer will review your issue soon
           - Please provide as much detail as possible to help us understand the problem
           - Feel free to add screenshots, logs, or examples
-          
+
           **Resources:**
           - [Contributing Guide](CONTRIBUTING.md)
           - [Code of Conduct](CODE_OF_CONDUCT.md)
           - [Architecture Overview](ARCHITECTURE.md)
-          
+
           We're excited to have you as part of our community! 🎉
         pr-message: |
           🎉 **Congratulations on your first pull request!**
-          
+
           Thank you for contributing to the Financial Asset Relationship Database project!
-          
+
           **What happens next:**
           - Our CI checks will run automatically
           - A maintainer will review your changes
           - We may request changes or ask questions
           - Once approved, your PR will be merged
-          
+
           **Tips for a successful PR:**
           - ✅ Ensure all CI checks pass (linting, tests)
           - ✅ Write clear commit messages
           - ✅ Update documentation if needed
           - ✅ Respond to review feedback promptly
-          
+
           **Resources:**
           - [Quick Start Guide](QUICK_START.md)
           - [Testing Guide](TESTING_GUIDE.md)
           - [Contributing Guidelines](CONTRIBUTING.md)
-          
+
           Thank you for making this project better! We look forward to working with you. 🚀

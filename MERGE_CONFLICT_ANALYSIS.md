@@ -7,7 +7,7 @@ PR #6 (`coderabbitai/utg/e47c649` → `main`) cannot be merged due to conflicts 
 
 ### 1. `tests/unit/test_api_main.py`
 - **HEAD version (PR #6)**: 693 lines - Well-organized test classes by endpoint type
-- **main version**: 608 lines - Organized by function and integration scenarios  
+- **main version**: 608 lines - Organized by function and integration scenarios
 - **Recommendation**: Use **main version** - Already validated and integrated
 
 ### 2. `frontend/app/lib/__tests__/api.test.ts`

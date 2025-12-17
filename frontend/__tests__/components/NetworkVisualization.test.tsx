@@ -20,9 +20,22 @@ jest.mock('react-plotly.js', () => {
 });
 
 describe('NetworkVisualization Component', () => {
-  it('should show empty data message when nodes or edges are missing', () => {
+  it('should show empty data message when nodes are missing', () => {
     render(<NetworkVisualization data={{ nodes: [], edges: [] }} />);
-    expect(screen.getByText('Visualization data is missing nodes or edges.')).toBeInTheDocument();
+    expect(screen.getByText('Visualization data is missing nodes.')).toBeInTheDocument();
+  });
+
+  it('should render node-only data without showing an empty message', async () => {
+    const nodeOnlyData: VisualizationData = {
+      nodes: mockVisualizationData.nodes,
+      edges: [],
+    };
+
+    render(<NetworkVisualization data={nodeOnlyData} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-plot')).toBeInTheDocument();
+    });
   });
 
   it('should render plot with data', async () => {
@@ -61,7 +74,7 @@ describe('NetworkVisualization Component', () => {
     };
 
     rerender(<NetworkVisualization data={newData} />);
-    expect(screen.getByText('Visualization data is missing nodes or edges.')).toBeInTheDocument();
+    expect(screen.getByText('Visualization data is missing nodes.')).toBeInTheDocument();
   });
 
   it('should show a helpful message when dataset is too large', () => {

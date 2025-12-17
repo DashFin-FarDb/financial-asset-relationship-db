@@ -1,364 +1,149 @@
-#!/usr/bin/env python3
-"""
-Context Chunker for PR Agent
-Handles large context by chunking and summarizing content when approaching token limits.
-"""
-
-import re
-import yaml
-from typing import List, Dict, Tuple, Optional
-from dataclasses import dataclass
+import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
+import yaml
 
-@dataclass
-class ContextChunk:
-    """Represents a chunk of context"""
-    content: str
-    tokens: int
-    priority: int
-    chunk_type: str  # review_comments, code_changes, test_failures, ci_logs, full_diff
+try:
+    import tiktoken  # type: ignore
+
+    TIKTOKEN_AVAILABLE = True
+except Exception:
+    TIKTOKEN_AVAILABLE = False
 
 
 class ContextChunker:
-    """Manages context chunking for PR agent to avoid token limit errors"""
-    
-    def __init__(self, config_path: str = ".github/pr-agent-config.yml"):
-        """Initialize chunker with configuration"""
-        self.config = self._load_config(config_path)
-        self.max_tokens = self.config.get('agent', {}).get('context', {}).get('max_tokens', 32000)
-        self.chunk_size = self.config.get('agent', {}).get('context', {}).get('chunk_size', 28000)
-        self.overlap = self.config.get('agent', {}).get('context', {}).get('overlap_tokens', 2000)
-        self.summarization_threshold = self.config.get('agent', {}).get('context', {}).get('summarization_threshold', 30000)
-        
-        # Priority mapping
-        priority_order = self.config.get('limits', {}).get('fallback', {}).get('priority_order', [])
-        self.priority_map = {item: idx for idx, item in enumerate(priority_order)}
-    
-    def _load_config(self, config_path: str) -> dict:
-        """Load configuration from YAML file"""
-        try:
-            with open(config_path, 'r') as f:
-                return yaml.safe_load(f)
-        except Exception as e:
-            print(f"Warning: Could not load config from {config_path}: {e}")
-            return {}
-    
-    def _get_token_encoder(self):
+    """
+    Manages context chunking for PR (Pull Request) processing.
+
+    Responsibilities:
+        - Loads configuration from a YAML file to set chunking and token limits.
+        - Handles token management using tiktoken if available.
+        - Processes PR content (reviews, files) into text chunks for further analysis.
+        - Maintains priority ordering for different context sources.
+
+    Typical workflow:
+        1. Instantiate ContextChunker (optionally providing a config path).
+        2. Call `process_context(payload)` with a PR payload to extract and chunk relevant text.
+
+    Example:
+        chunker = ContextChunker()
+        context_text, has_content = chunker.process_context(pr_payload)
+    """
+
+    def __init__(self, config_path: str = ".github/pr-agent-config.yml") -> None:
         """
-        Lazily initialize and cache a tiktoken encoder if available.
-        The model can be configured via config['agent']['context']['tokenizer_model'] (default: 'cl100k_base').
+        Initialize a ContextChunker for PR agent context chunking.
+
+        Args:
+            config_path (str): Path to the YAML configuration file. Defaults to ".github/pr-agent-config.yml".
+                The file should contain configuration sections for 'agent.context' (chunking parameters)
+                and 'limits.fallback' (priority order for context elements).
+
+        Loads configuration sections:
+            - agent.context: Controls chunking parameters (max_tokens, chunk_size, overlap_tokens, summarization_threshold).
+            - limits.fallback: Specifies priority_order for context elements.
+
+        Exceptions:
+            - Prints a warning and uses defaults if the config file cannot be loaded or parsed.
+            - Prints a warning if tiktoken encoder initialization fails.
         """
-        if hasattr(self, "_encoder"):
-            return self._encoder
-        self._encoder = None
-        model_name = (
-            self.config.get('agent', {})
-            .get('context', {})
-            .get('tokenizer_model', 'cl100k_base')
+        self.config: Dict[str, Any] = {}
+        cfg_file = Path(config_path)
+        if cfg_file.exists():
+            try:
+                with cfg_file.open("r", encoding="utf-8") as f:
+                    self.config = yaml.safe_load(f) or {}
+            except Exception as e:
+                print(f"Warning: failed to load config from {config_path}: {e}", file=sys.stderr)
+                self.config = {}
+        agent_cfg = (self.config.get("agent") or {}).get("context") or {}
+        self.max_tokens: int = int(agent_cfg.get("max_tokens", 32000))
+        self.chunk_size: int = int(agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000)))
+        self.overlap_tokens: int = int(agent_cfg.get("overlap_tokens", 2000))
+        self.summarization_threshold: int = int(agent_cfg.get("summarization_threshold", int(self.max_tokens * 0.9)))
+        limits_cfg = (self.config.get("limits") or {}).get("fallback") or {}
+        self.priority_order: List[str] = limits_cfg.get(
+            "priority_order",
+            [
+                "review_comments",
+                "test_failures",
+                "changed_files",
+                "ci_logs",
+                "full_diff",
+            ],
         )
-        try:
-            import tiktoken  # type: ignore
-            # Try model encoding first, fall back to explicit base
+        self.priority_map: Dict[str, int] = {name: i for i, name in enumerate(self.priority_order)}
+        self._encoder: Optional[Any] = None
+        if TIKTOKEN_AVAILABLE:
             try:
-                self._encoder = tiktoken.encoding_for_model(model_name)
-            except Exception:
-                self._encoder = tiktoken.get_encoding('cl100k_base')
-        except Exception:
-            self._encoder = None
-        return self._encoder
+                self._encoder = tiktoken.get_encoding("cl100k_base")
+            except Exception as e:
+                print(f"Warning: failed to initialize tiktoken encoder: {e}", file=sys.stderr)
+                self._encoder = None
 
-    def estimate_tokens(self, text: str) -> int:
+    def process_context(self, payload: Dict[str, Any]) -> tuple[str, bool]:
         """
-        Estimate token count for text.
-        Uses tiktoken when available; falls back to a heuristic otherwise.
+        Processes a PR payload dictionary into a single text string.
+
+        Args:
+            payload (Dict[str, Any]): Dictionary containing PR context. Expected keys:
+                - 'reviews': Optional[List[Dict[str, Any]]] — each dict may have a 'body' key (str).
+                - 'files': Optional[List[Dict[str, Any]]] — each dict may have a 'patch' key (str).
+
+        Returns:
+            tuple[str, bool]: A tuple containing:
+                - The processed text content (str), concatenated from review bodies and file patches.
+                - A boolean indicating if any content exists (True if non-empty, False otherwise).
+
+        Example:
+            >>> payload = {
+            ...     "reviews": [{"body": "Looks good."}, {"body": "Needs changes."}],
+            ...     "files": [{"patch": "diff --git ..."}]
+            ... }
+            >>> chunker = ContextChunker()
+            >>> text, has_content = chunker.process_context(payload)
+            >>> print(has_content)  # True
         """
-        encoder = self._get_token_encoder()
-        if encoder is not None:
-            try:
-                return len(encoder.encode(text))
-            except Exception:
-                # Fall back to heuristic if encoding fails unexpectedly
-                pass
-    
-        # Heuristic fallback (~4 chars per token), with minor adjustment for code structure
-        tokens = len(text) / 4
-        code_chars = len(re.findall(r'[{}()\[\];]', text))
-        tokens += code_chars * 0.5
-        return int(tokens)
-    
-    def extract_content_sections(self, pr_data: Dict) -> Dict[str, str]:
-        """Extract different sections from PR data"""
-        sections = {}
-        
-        # Review comments (highest priority)
-        if 'reviews' in pr_data:
-            comments = []
-            for review in pr_data.get('reviews', []):
-                if review.get('state') == 'changes_requested':
-                    comments.append(f"**{review.get('user', {}).get('login', 'Unknown')}:** {review.get('body', '')}")
-            sections['review_comments'] = '\n\n'.join(comments)
-        
-        # Test failures
-        if 'check_runs' in pr_data:
-            failures = []
-            for check in pr_data.get('check_runs', []):
-                if check.get('conclusion') == 'failure':
-                    failures.append(f"**{check.get('name')}:** {check.get('output', {}).get('summary', '')}")
-            sections['test_failures'] = '\n\n'.join(failures)
-        
-        # Changed files
-        if 'files' in pr_data:
-            files_content = []
-            for file in pr_data.get('files', []):
-                files_content.append(f"**{file.get('filename')}** (+{file.get('additions', 0)} -{file.get('deletions', 0)})")
-                if 'patch' in file and file.get('patch'):
-                    files_content.append(f"```diff\n{file['patch']}\n```")
-            sections['changed_files'] = '\n\n'.join(files_content)
-        
-        # CI logs (summarized)
-        if 'ci_logs' in pr_data:
-            sections['ci_logs'] = pr_data['ci_logs']
-        
-        # Full diff
-        if 'diff' in pr_data:
-            sections['full_diff'] = pr_data['diff']
-        
-        return sections
-    
-    def create_chunks(self, sections: Dict[str, str]) -> List[ContextChunk]:
-        """Create prioritized chunks from sections"""
-        chunks = []
-        
-        for section_type, content in sections.items():
-            if not content:
-                continue
-            
-            tokens = self.estimate_tokens(content)
-            priority = self.priority_map.get(section_type, 999)
-            
-            # If section is small enough, keep as single chunk
-            if tokens <= self.chunk_size:
-                chunks.append(ContextChunk(
-                    content=content,
-                    tokens=tokens,
-                    priority=priority,
-                    chunk_type=section_type
-                ))
-            else:
-                # Split large sections into multiple chunks
-                sub_chunks = self._split_content(content, section_type, priority)
-                chunks.extend(sub_chunks)
-        
-        # Sort by priority
-        chunks.sort(key=lambda x: x.priority)
-        return chunks
-    
-    def _split_content(self, content: str, chunk_type: str, priority: int) -> List[ContextChunk]:
-        """Split large content into smaller chunks with overlap"""
-        chunks = []
-        lines = content.split('\n')
-        
-        current_chunk = []
-        current_tokens = 0
-        
-        for line in lines:
-            line_tokens = self.estimate_tokens(line)
-            
-            if current_tokens + line_tokens > self.chunk_size and current_chunk:
-                # Save current chunk
-                chunk_content = '\n'.join(current_chunk)
-                chunks.append(ContextChunk(
-                    content=chunk_content,
-                    tokens=current_tokens,
-                    priority=priority,
-                    chunk_type=chunk_type
-                ))
-                
-                # Start new chunk with overlap
-                overlap_lines = self._get_overlap_lines(current_chunk)
-                current_chunk = overlap_lines + [line]
-                current_tokens = sum(self.estimate_tokens(l) for l in current_chunk)
-            else:
-                current_chunk.append(line)
-                current_tokens += line_tokens
-        
-        # Add final chunk
-        if current_chunk:
-            chunk_content = '\n'.join(current_chunk)
-            chunks.append(ContextChunk(
-                content=chunk_content,
-                tokens=current_tokens,
-                priority=priority,
-                chunk_type=chunk_type
-            ))
-        
-        return chunks
-    
-    def _get_overlap_lines(self, lines: List[str]) -> List[str]:
-        """Get overlap lines for continuity between chunks"""
-        overlap_tokens = 0
-        overlap_lines = []
-        
-        # Take last N lines that fit in overlap budget
-        for line in reversed(lines):
-            line_tokens = self.estimate_tokens(line)
-            if overlap_tokens + line_tokens <= self.overlap:
-                overlap_lines.insert(0, line)
-                overlap_tokens += line_tokens
-            else:
-                break
-        
-        return overlap_lines
-    
-    def summarize_chunk(self, chunk: ContextChunk) -> str:
-        """Create a summary of a chunk"""
-        # Extract key information
-        summary_parts = [f"[{chunk.chunk_type.upper()} SUMMARY]"]
-        
-        if chunk.chunk_type == "review_comments":
-            # Extract action items from comments
-            action_items = re.findall(r'(?:fix|add|update|remove|refactor|change)\s+[^\n.!?]{10,100}', 
-                                     chunk.content, re.IGNORECASE)
-            if action_items:
-                summary_parts.append("Action items:")
-                summary_parts.extend([f"- {item.strip()}" for item in action_items[:5]])
-        
-        elif chunk.chunk_type == "changed_files":
-            # Extract file names and change counts
-            files = re.findall(r'\*\*([^*]+)\*\*\s+\(\+(\d+)\s+-(\d+)\)', chunk.content)
-            if files:
-                summary_parts.append("Modified files:")
-                summary_parts.extend([f"- {f[0]} (+{f[1]} -{f[2]})" for f in files[:10]])
-        
-        elif chunk.chunk_type == "test_failures":
-            # Extract test names and error messages
-            failures = re.findall(r'\*\*([^*]+)\*\*:', chunk.content)
-            if failures:
-                summary_parts.append("Failed tests:")
-                summary_parts.extend([f"- {f}" for f in failures[:5]])
-        
-        summary = '\n'.join(summary_parts)
-        
-        # Ensure summary is within token limit
-        summary_tokens = self.estimate_tokens(summary)
-        max_summary = self.config.get('agent', {}).get('context', {}).get('summarization', {}).get('max_summary_tokens', 2000)
-        
-        if summary_tokens > max_summary:
-            # Truncate summary
-            target_chars = int(max_summary * 4)  # Rough conversion
-            summary = summary[:target_chars] + "\n... (truncated)"
-        
-        return summary
-    
-    def process_context(self, pr_data: Dict) -> Tuple[str, bool]:
+        text_parts: List[str] = []
+        reviews = payload.get("reviews")
+        if not isinstance(reviews, list):
+            reviews = []
+        files = payload.get("files")
+        if not isinstance(files, list):
+            files = []
+        for r in reviews:
+            body = (r or {}).get("body") or ""
+            if body:
+                text_parts.append(str(body))
+        for f in files:
+            patch = (f or {}).get("patch") or ""
+            if patch:
+                text_parts.append(str(patch))
+        result = "\n\n".join(text_parts).strip()
+        return result, bool(result)
+
+    def count_tokens(self, text: str) -> int:
         """
-        Process PR context and return optimized content.
-        Returns: (processed_content, was_chunked)
+        Count the number of tokens in the given text.
+
+        Uses the tiktoken encoder if available, otherwise falls back to a simple
+        word-based approximation (splitting on whitespace).
+
+        Args:
+            text (str): The text to count tokens for.
+
+        Returns:
+            int: The estimated number of tokens in the text.
+
+        Example:
+            >>> chunker = ContextChunker()
+            >>> token_count = chunker.count_tokens("Hello, world!")
+            >>> print(token_count)  # Number of tokens
         """
-        # Extract sections
-        sections = self.extract_content_sections(pr_data)
-        
-        # Calculate total tokens
-        total_tokens = sum(self.estimate_tokens(content) for content in sections.values())
-        
-        # If under threshold, return as is
-        if total_tokens <= self.summarization_threshold:
-            full_content = '\n\n---\n\n'.join([
-                f"## {section_type.replace('_', ' ').title()}\n\n{content}"
-                for section_type, content in sections.items()
-            ])
-            return full_content, False
-        
-        # Create chunks
-        chunks = self.create_chunks(sections)
-        
-        # Build context within token limit
-        result_parts = []
-        current_tokens = 0
-        
-        def _omission_notice(self, chunk: ContextChunk) -> str:
-            """Generate a more informative omission notice for a chunk."""
-            details: List[str] = []
-            ct = chunk.chunk_type
-
-            if ct == "changed_files":
-                files = re.findall(r'\*\*([^*]+)\*\*', chunk.content)
-                if files:
-                    preview = ', '.join(files[:5])
-                    more = f" (+{len(files)-5} more)" if len(files) > 5 else ""
-                    details.append(f"files: {preview}{more}")
-            elif ct == "review_comments":
-                reviewers = re.findall(r'\*\*([^:*]+):\*\*', chunk.content)
-                if reviewers:
-                    preview = ', '.join(list(dict.fromkeys(reviewers))[:5])
-                    more = f" (+{len(set(reviewers))-5} more)" if len(set(reviewers)) > 5 else ""
-                    details.append(f"reviewers: {preview}{more}")
-            elif ct == "test_failures":
-                tests = re.findall(r'\*\*([^*]+)\*\*:', chunk.content)
-                if tests:
-                    preview = ', '.join(tests[:5])
-                    more = f" (+{len(tests)-5} more)" if len(tests) > 5 else ""
-                    details.append(f"tests: {preview}{more}")
-            elif ct == "ci_logs":
-                # Extract first line as a brief hint
-                first_line = chunk.content.strip().splitlines()[0] if chunk.content.strip() else ""
-                if first_line:
-                    details.append(f"log: {first_line[:80]}")
-            elif ct == "full_diff":
-                # Show a short hint about size
-                details.append("diff omitted")
-
-            # Always include token size info
-            details.append(f"~{chunk.tokens} tokens")
-
-            detail_str = " | ".join(details) if details else f"~{chunk.tokens} tokens"
-            return f"[{ct.upper()} - Omitted due to context limit: {detail_str}]"
-
-        for chunk in chunks:
-            if current_tokens + chunk.tokens <= self.max_tokens:
-                # Include full chunk
-                result_parts.append(f"## {chunk.chunk_type.replace('_', ' ').title()}\n\n{chunk.content}")
-                current_tokens += chunk.tokens
-            elif current_tokens + self.estimate_tokens(self.summarize_chunk(chunk)) <= self.max_tokens:
-                # Include summary
-                summary = self.summarize_chunk(chunk)
-                result_parts.append(summary)
-                current_tokens += self.estimate_tokens(summary)
-            else:
-                # Skip this chunk with detailed notice
-                result_parts.append(self._omission_notice(chunk))
-        processed_content = '\n\n---\n\n'.join(result_parts)
-        return processed_content, True
-
-
-def main():
-    """Example usage"""
-    chunker = ContextChunker()
-    
-    # Example PR data
-    example_pr = {
-        'reviews': [
-            {
-                'user': {'login': 'reviewer1'},
-                'state': 'changes_requested',
-                'body': 'Please fix the bug in the database connection and add tests.'
-            }
-        ],
-        'files': [
-            {
-                'filename': 'src/data/database.py',
-                'additions': 50,
-                'deletions': 20,
-                'patch': '@@ -1,5 +1,10 @@\n-old code\n+new code'
-            }
-        ]
-    }
-    
-    processed, chunked = chunker.process_context(example_pr)
-    print(f"Chunked: {chunked}")
-    print(f"\nProcessed content:\n{processed}")
-
-
-if __name__ == "__main__":
-    main()
+        if not text:
+            return 0
+        if self._encoder is not None:
+            return len(self._encoder.encode(text))
+        # Fallback: approximate tokens by splitting on whitespace
+        return len(text.split())

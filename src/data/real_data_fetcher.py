@@ -48,9 +48,10 @@ class RealDataFetcher:
     def create_real_database(self) -> AssetRelationshipGraph:
         """
         Create an AssetRelationshipGraph populated with real financial data.
-        Attempts to load a cached graph when a cache path is configured, uses a provided fallback dataset if network access is disabled or if fetching fails, and persists a freshly built graph to cache when possible.
-
-        Attempts to load a cached graph when a cache path is configured, uses a provided fallback dataset if network access is disabled or if fetching fails, and persists a freshly built graph to cache when possible.
+        Load from cache when available, otherwise fetch live data (if network
+        is enabled), and fall back to the provided factory or sample data on
+        network disablement or fetch failure. Persist the freshly built graph
+        to cache when possible.
 
         Returns:
             graph (AssetRelationshipGraph): The constructed graph containing assets, regulatory events and relationships.

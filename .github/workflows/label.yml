@@ -19,7 +19,7 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Check for labeler config
       id: check-config
       run: |
@@ -29,13 +29,13 @@ jobs:
           exit 0
         fi
         echo "config_exists=true" >> $GITHUB_OUTPUT
-        
+
     - name: Run labeler
       if: steps.check-config.outputs.config_exists == 'true'
       uses: actions/labeler@v4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
-        
+
     - name: Labeler skipped
       if: steps.check-config.outputs.config_exists == 'false'
       run: |

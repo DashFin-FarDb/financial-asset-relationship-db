@@ -10,7 +10,7 @@ executors:
     docker:
       - image: cimg/python:3.11
     working_directory: ~/project
-  
+
   node-executor:
     docker:
       - image: cimg/node:18.19
@@ -185,13 +185,13 @@ workflows:
       - python-security:
           requires:
             - python-test
-      
+
       # Frontend workflow
       - frontend-lint
       - frontend-build:
           requires:
             - frontend-lint
-      
+
       # Docker build (only on main branch)
       - docker-build:
           requires:

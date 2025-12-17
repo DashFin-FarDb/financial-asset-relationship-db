@@ -254,6 +254,7 @@ class AssetGraphRepository:
                 central_bank_rate=orm.central_bank_rate,
             )
         return Asset(**base_kwargs)
+
     def _to_regulatory_event_model(self, orm: RegulatoryEventORM) -> RegulatoryEvent:
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(

@@ -15,7 +15,7 @@ Following the **bias-for-action principle**, extensive additional tests have bee
 - **New test count**: 60+
 - **Total test count**: 143+
 
-### Python Tests Enhanced  
+### Python Tests Enhanced
 **File**: `tests/integration/test_github_workflows.py`
 - **Original lines**: 1,397
 - **New lines added**: ~600

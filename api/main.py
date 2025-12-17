@@ -1,13 +1,13 @@
 # Comprehensive test coverage available in tests/unit/test_api_main.py
 """FastAPI backend for Financial Asset Relationship Database"""
 
-from contextlib import asynccontextmanager
-from typing import Dict, List, Optional, Any, Callable
 import logging
 import os
 import re
 import threading
+from contextlib import asynccontextmanager
 from datetime import timedelta
+from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -181,10 +181,10 @@ ENV = os.getenv("ENV", "development").lower()
 async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     """
     Create a JWT access token for a user authenticated with a username and password.
-    
+
     Parameters:
         form_data (OAuth2PasswordRequestForm): Client-submitted credentials (`username` and `password`).
-    
+
     Returns:
         dict: Mapping with `access_token` (JWT string) and `token_type` set to `'bearer'`.
     """
@@ -208,11 +208,11 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
 async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
     """
     Retrieve the currently authenticated user.
-    
+
     Parameters:
         request (Request): Included for slowapi limiter dependency injection; unused by the function.
         current_user (User): Active user injected by the authentication dependency.
-    
+
     Returns:
         The authenticated user.
     """
@@ -226,18 +226,18 @@ async def read_users_me(request: Request, current_user: User = Depends(get_curre
 def validate_origin(origin: str) -> bool:
     """
     Determine whether an HTTP origin is permitted by the application's CORS rules.
-    
+
     Allows explicitly configured origins, HTTPS origins with a valid domain, Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment, and HTTP localhost/127.0.0.1 when ENV is "development".
-    
+
     Parameters:
         origin (str): Origin URL to validate (for example "https://example.com" or "http://localhost:3000").
-    
+
     Returns:
         True if the origin is allowed, False otherwise.
     """
     # Read environment dynamically to support runtime overrides (e.g., during tests)
     current_env = os.getenv("ENV", "development").lower()
-    
+
     # Get allowed origins from environment variable or use default
     allowed_origins = [origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin]
 
@@ -312,14 +312,15 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
     """
     raise HTTPException(status_code=404, detail=f"{resource_type} {asset_id} not found")
 
+
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     """
     Serialize an Asset object to a dictionary representation.
-    
+
     Args:
         asset: Asset object to serialize
         include_issuer: Whether to include issuer_id field (for detail views)
-        
+
     Returns:
         Dictionary containing asset data with additional_fields
     """
@@ -337,12 +338,22 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
 
     # Define field list
     fields = [
-        "pe_ratio", "dividend_yield", "earnings_per_share", "book_value",
-        "yield_to_maturity", "coupon_rate", "maturity_date", "credit_rating",
-        "contract_size", "delivery_date", "volatility",
-        "exchange_rate", "country", "central_bank_rate",
+        "pe_ratio",
+        "dividend_yield",
+        "earnings_per_share",
+        "book_value",
+        "yield_to_maturity",
+        "coupon_rate",
+        "maturity_date",
+        "credit_rating",
+        "contract_size",
+        "delivery_date",
+        "volatility",
+        "exchange_rate",
+        "country",
+        "central_bank_rate",
     ]
-    
+
     if include_issuer:
         fields.append("issuer_id")
 
@@ -353,7 +364,6 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
             asset_dict["additional_fields"][field] = value
 
     return asset_dict
-
 
 
 # Pydantic models for API responses

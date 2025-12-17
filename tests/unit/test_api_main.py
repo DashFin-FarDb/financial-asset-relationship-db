@@ -8,6 +8,7 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
+from fastapi import status
 from fastapi.testclient import TestClient
 
 import api.main as api_main
@@ -19,8 +20,8 @@ from api.main import (
     app,
     validate_origin,
 )
-from src.data.sample_data import create_sample_database
 from src.data.real_data_fetcher import _save_to_cache
+from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
@@ -124,7 +125,7 @@ class TestGraphInitialization:
         import api.main
 
         cache_path = tmp_path / "graph_snapshot.json"
-         # Write invalid/corrupted data to the cache file
+        # Write invalid/corrupted data to the cache file
         # Write invalid/corrupted data to the cache file
         cache_path.write_text("not a valid json or graph data")
         reference_graph = create_sample_database()
@@ -207,9 +208,9 @@ class TestAPIEndpoints:
     def client(self):
         """
         Pytest fixture that yields a TestClient configured with a sample in-memory graph for endpoint tests.
-        
+
         Sets a sample in-memory graph on the application before yielding the client and resets the graph after the test completes.
-        
+
         Sets the application's graph to a sample database and yields a TestClient for use in tests. On fixture teardown the application's graph is reset.
         Returns:
             TestClient: A test client instance connected to the application populated with the sample graph.
@@ -569,28 +570,48 @@ class TestErrorHandling:
         assert response.status_code == 405
 
 
-class TestCORSConfiguration:
-    """Test CORS middleware configuration."""
+CORS_DEV_ORIGIN = "http://localhost:3000"
+# The development origin intentionally uses HTTP/localhost to mirror the default app
+# configuration; this is acceptable in tests and non-production scenarios.
+#
+# Security note: assertions in this module are test-only expectations. They are
+# intentionally suppressed for Bandit (B101) because they do not ship with
+# production code or optimized bytecode.
 
-    @pytest.fixture
-    def client(self):
-        """Create a test client."""
-        return TestClient(app)
 
-    def test_cors_headers_present(self, client):
-        """Test that CORS headers are present in responses."""
-        # Test with a GET request and valid origin header
-        response = client.get("/api/health", headers={"Origin": "http://localhost:3000"})
-        assert response.status_code == 200
-        # CORS middleware should add these headers when origin is allowed
-        # Note: In test environment, CORS headers might not be added by TestClient
-        # This is more of an integration test - the middleware is configured above
+@pytest.fixture
+def cors_client():
+    """Create a reusable test client for CORS checks."""
+    return TestClient(app)
 
-    @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
-    def test_cors_allows_development_origins(self, client):
-        """Test CORS allows development origins."""
-        response = client.get("/api/health", headers={"Origin": "http://localhost:3000"})
-        assert response.status_code == 200
+
+def test_cors_headers_present(cors_client):
+    """Ensure allowed origins receive the expected CORS headers."""
+    # Localhost with HTTP is intentionally used to mirror the development CORS defaults.
+    response = cors_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
+    assert response.status_code == status.HTTP_200_OK  # nosec B101
+
+    # CORS middleware should echo the allowed origin and include credentials header.
+    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN  # nosec B101
+    assert response.headers["access-control-allow-credentials"] == "true"  # nosec B101
+
+
+def test_cors_rejects_disallowed_origin(cors_client):
+    """Ensure disallowed origins do not receive CORS headers."""
+    disallowed_origin = "https://malicious.example.com"
+    response = cors_client.get("/api/health", headers={"Origin": disallowed_origin})
+
+    # Endpoint still responds, but CORS headers should not be set for disallowed origins.
+    assert response.status_code == status.HTTP_200_OK  # nosec B101
+    assert "access-control-allow-origin" not in response.headers  # nosec B101
+    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin  # nosec B101
+
+
+@patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
+def test_cors_allows_development_origins(cors_client):
+    """Test CORS allows development origins explicitly in development mode."""
+    response = cors_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
+    assert response.status_code == status.HTTP_200_OK  # nosec B101
 
 
 class TestAdditionalFields:

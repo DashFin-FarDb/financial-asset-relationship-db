@@ -67,7 +67,7 @@ class TestFormulaicdAnalyzer:
     def test_analyzer_initialization(self, analyzer):
         """Test FormulaicdAnalyzer initialization."""
         assert isinstance(analyzer, FormulaicdAnalyzer)
-        assert hasattr(analyzer, 'formulas')
+        assert hasattr(analyzer, "formulas")
         assert isinstance(analyzer.formulas, list)
         assert len(analyzer.formulas) == 0
 
@@ -463,9 +463,7 @@ class TestFormulaicdAnalyzer:
             Formula("F1", "f1", "f1", "desc1", {}, "ex1", "Valuation", 0.9),
             Formula("F2", "f2", "f2", "desc2", {}, "ex2", "Income", 0.8),
         ]
-        empirical_relationships = {
-            "correlation_matrix": {"A-B": 0.7, "A-C": 0.5}
-        }
+        empirical_relationships = {"correlation_matrix": {"A-B": 0.7, "A-C": 0.5}}
 
         # Execute
         summary = analyzer._generate_formula_summary(formulas, empirical_relationships)

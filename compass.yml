@@ -1,0 +1,18 @@
+name: financial-asset-relationship-db
+id: ari:cloud:compass:364a7a48-4d59-4e70-aee6-4da40d2ac897:component/b1c1cee1-6fd9-4624-b98f-92e29911f9d6/fe160533-0605-49a5-8443-cf8b366d037f
+description: A comprehensive 3D visualization system for interconnected financial assets across equities, bonds, commodities, currencies, and regulatory events
+configVersion: 1
+typeId: SERVICE
+ownerId: ari:cloud:identity::team/dc34aa73-d409-4d9c-8ef2-cad4b241f9fc
+fields:
+  tier: 4
+links:
+  - name: null
+    type: REPOSITORY
+    url: https://github.com/DashFin/financial-asset-relationship-db
+relationships:
+  DEPENDS_ON: []
+labels:
+  - language:python
+  - source:github
+customFields: null

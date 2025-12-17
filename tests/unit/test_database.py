@@ -13,6 +13,9 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+pytest.importorskip("sqlalchemy")
+
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
