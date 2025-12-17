@@ -51,12 +51,13 @@ class TestDocumentationStructure:
         Returns:
             str: Full contents of DOC_FILE read using UTF-8 encoding.
         """
-        with open(DOC_FILE, 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        pytest.fail(f"Documentation file not found: {DOC_FILE}")
-    except Exception as e:
-        pytest.fail(f"Could not read documentation file {DOC_FILE}: {e}")
+        try:
+            with open(DOC_FILE, 'r', encoding='utf-8') as f:
+                return f.read()
+        except FileNotFoundError:
+            pytest.fail(f"Documentation file not found: {DOC_FILE}")
+        except Exception as e:
+            pytest.fail(f"Could not read documentation file {DOC_FILE}: {e}")
 
     @pytest.fixture(scope='session')
     def doc_lines(doc_content: str) -> List[str]:
