@@ -16,7 +16,25 @@ REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples."""
+    """
+    Parse a requirements-style file and produce a list of package names with their combined version specifiers.
+    
+    The parser:
+    - ignores empty lines and full-line comments;
+    - strips inline comments after `#`;
+    - splits comma-separated spec segments and extracts the package name from the first segment;
+    - collects all version specifiers (operators such as `>=`, `==`, `<=`, `>`, `<`, `~=`) across segments and joins them with commas;
+    - treats an entry with no specifiers as having an empty version specifier.
+    
+    Parameters:
+        file_path (Path): Path to the requirements file to parse.
+    
+    Returns:
+        List[Tuple[str, str]]: A list of (package, version_spec) tuples. `version_spec` is an empty string if no version constraints were found, otherwise specifiers are joined by commas (e.g. ">=1.0,<=2.0").
+    
+    Raises:
+        AssertionError: If a line contains an invalid package name.
+    """
     requirements = []
     
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -53,8 +71,6 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 requirements.append((pkg.strip(), version_spec))
     
     return requirements
-
-
 class TestRequirementsFileExists:
     """Test that requirements-dev.txt exists and is readable."""
     
@@ -153,16 +169,42 @@ class TestVersionSpecifications:
     
     @pytest.fixture
     def requirements(self) -> List[Tuple[str, str]]:
-        """Parse and return requirements."""
+        """
+        Return the parsed list of (package_name, version_spec) pairs from the development requirements file.
+        
+        Each tuple contains the package name and a single version specifier string; the version spec is an empty string when no specifier is present.
+        
+        Returns:
+            List[Tuple[str, str]]: Parsed requirements as (package_name, version_spec) pairs.
+        """
         return parse_requirements(REQUIREMENTS_FILE)
-    
+
     def test_all_packages_have_versions(self, requirements: List[Tuple[str, str]]):
         """Test that all packages specify version constraints."""
-        packages_without_versions = [pkg for pkg, ver in requirements if not ver]
-        assert len(packages_without_versions) == 0
-    
+        packages_without_versions = [
+            pkg for pkg, ver in requirements
+            if not ver
+        ]
+        assert not packages_without_versions, (
+            f"Found unpinned packages: {packages_without_versions}"
+        )
+
     def test_version_format_valid(self, requirements: List[Tuple[str, str]]):
-        """Test that version specifications use valid PEP 440 format."""
+        """
+        Validate that each non-empty version specification conforms to PEP 440 using
+        packaging.specifiers.SpecifierSet.
+
+        For every (package, version_spec) tuple where `version_spec` is non-empty, this test
+        attempts to construct a SpecifierSet from the string. If the specifier is invalid,
+        packaging will raise packaging.specifiers.InvalidSpecifier (or a related packaging
+        exception), and the test will fail with a message identifying the package and the
+        offending specifier.
+
+        Parameters:
+            requirements (List[Tuple[str, str]]): Iterable of (package_name, version_spec)
+                tuples produced by `parse_requirements`, where `version_spec` may be an empty
+                string.
+        """
         for pkg, ver_spec in requirements:
             if ver_spec:
                 try:
@@ -297,7 +339,15 @@ class TestRequirementsFileFormatting:
         )
     
     def test_pyyaml_and_types_on_separate_lines(self):
-        """Test that PyYAML and types-PyYAML are on separate lines (not combined)."""
+        """
+        Ensure PyYAML and types-PyYAML each appear on their own line in the requirements file with >=6.0 version constraints.
+        
+        Reads the requirements file and builds a list of non-empty, non-comment lines after stripping
+        leading and trailing whitespace from each line. Using stripped lines avoids false negatives
+        when comments or package entries contain leading spaces. The test then asserts there are
+        exactly two lines that begin with the stripped prefixes `PyYAML` or `types-PyYAML`, and that
+        one starts with `PyYAML>=` and the other with `types-PyYAML>=`.
+        """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         with open(REQUIREMENTS_FILE, 'r') as f:
@@ -341,7 +391,17 @@ class TestRequirementsPackageIntegrity:
     
     @staticmethod
     def _find_duplicate_packages(requirements: List[Tuple[str, str]]) -> List[str]:
-        """Return list of duplicate package names (case-insensitive)."""
+        """
+        Find duplicate package names in a requirements list by comparing names case-insensitively.
+        
+        Parameters:
+            requirements (List[Tuple[str, str]]): Sequence of (package_name, version_spec) tuples to inspect.
+        
+        Returns:
+            List[str]: A list of lower-cased package names representing each repeated occurrence
+            after the first appearance; duplicates are returned in the order they are encountered
+            in the requirements list to match the implementation behaviour.
+        """
         package_names = [pkg.lower() for pkg, _ in requirements]
         seen = set()
         duplicates = []
@@ -362,7 +422,11 @@ class TestRequirementsPackageIntegrity:
         )
     
     def test_pyyaml_compatible_versions(self):
-        """Test that PyYAML and types-PyYAML have compatible version constraints."""
+        """
+        Ensure PyYAML and types-PyYAML specify the same major version in requirements-dev.txt.
+        
+        Checks that both "PyYAML" and "types-PyYAML" appear with a '>=<version>' constraint and that the integer before the first dot (the major version) is identical for both packages.
+        """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         with open(REQUIREMENTS_FILE, 'r') as f:
@@ -392,7 +456,11 @@ class TestRequirementsPackageIntegrity:
         )
     
     def test_all_packages_use_consistent_operators(self):
-        """Test that version constraints use consistent comparison operators (prefer >=)."""
+        """
+        Ensure the majority of version specifiers in requirements-dev.txt use the '>=' operator.
+        
+        Parses REQUIREMENTS_FILE, counts comparison operators (`>=`, `==`, `<=`, `>`, `<`, `~=`) found in non-empty version specifications, and asserts that at least 50% of all detected operators are `>=`. On failure, raises an assertion that includes the percentage of `>=` usages and the operator counts.
+        """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         requirements = parse_requirements(REQUIREMENTS_FILE)
@@ -427,10 +495,9 @@ class TestPyYAMLIntegration:
     
     def test_pyyaml_addition_has_both_runtime_and_types(self):
         """
-        Test that the PyYAML addition includes both the runtime package and type stubs.
+        Assert that the development requirements file contains both runtime and type-stub entries for PyYAML with minimum version 6.0.
         
-        This validates the specific change made in this branch where both PyYAML>=6.0
-        and types-PyYAML>=6.0.0 were added together.
+        Asserts that the requirements-dev.txt file exists, contains entries named 'PyYAML' and 'types-PyYAML', and that each entry's version specifier includes '>=6.0'.
         """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
@@ -457,10 +524,9 @@ class TestPyYAMLIntegration:
     
     def test_pyyaml_needed_for_workflow_tests(self):
         """
-        Test that PyYAML is available for workflow validation tests.
+        Ensure PyYAML is declared in requirements-dev.txt and is usable for workflow validation.
         
-        The workflow tests (test_github_workflows.py) use PyYAML to parse and validate
-        workflow files, so it must be in requirements-dev.txt.
+        Checks that the requirements-dev.txt file exists and contains a PyYAML entry (case-insensitive). Then attempts to import the yaml module and verifies a basic safe_load operation; if the module is not importable in the current environment the test is skipped.
         """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         

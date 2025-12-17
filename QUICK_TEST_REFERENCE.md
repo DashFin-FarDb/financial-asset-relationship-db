@@ -11,19 +11,19 @@ cd frontend && npm test -- --watch         # Watch mode
 
 ### Run Specific Files
 ```bash
-npm test -- MetricsDashboard.test.tsx      # Metrics component
-npm test -- NetworkVisualization.test.tsx  # Visualization component
-npm test -- page.test.tsx                  # Home page
-npm test -- api.test.ts                    # API client
-npm test -- integration/                   # Integration tests
+cd frontend && npm test -- MetricsDashboard.test.tsx      # Metrics component
+cd frontend && npm test -- NetworkVisualization.test.tsx  # Visualization component
+cd frontend && npm test -- page.test.tsx                  # Home page
+cd frontend && npm test -- api.test.ts                    # API client
+cd frontend && npm test -- integration/                   # Integration tests
 ```
 
 ### Run Specific Test Suites
 ```bash
-npm test -- -t "Accessibility"             # Accessibility tests
-npm test -- -t "Edge Cases"                # Edge case tests
-npm test -- -t "Performance"               # Performance tests
-npm test -- -t "Error Handling"            # Error handling tests
+cd frontend && npm test -- -t "Accessibility"             # Accessibility tests
+cd frontend && npm test -- -t "Edge Cases"                # Edge case tests
+cd frontend && npm test -- -t "Performance"               # Performance tests
+cd frontend && npm test -- -t "Error Handling"            # Error handling tests
 ```
 
 ## Test Files
@@ -50,9 +50,9 @@ npm test -- -t "Error Handling"            # Error handling tests
 
 ## Quick Tips
 
-1. Run before committing: `npm test`
-2. Check coverage: `npm test -- --coverage`
-3. Debug single test: `npm test -- -t "test name"`
-4. Verbose output: `npm test -- --verbose`
+1. Run before committing: `cd frontend && npm test`
+2. Check coverage: `cd frontend && npm test -- --coverage`
+3. Debug single test: `cd frontend && npm test -- -t "test name"`
+4. Verbose output: `cd frontend && npm test -- --verbose`
 
 Happy Testing! 🚀

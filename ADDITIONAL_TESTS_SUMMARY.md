@@ -9,8 +9,8 @@ Following the **bias-for-action principle**, extensive additional tests have bee
 ### Frontend Tests Enhanced
 **File**: `frontend/__tests__/test-utils.test.ts`
 - **Original lines**: 613
-- **New lines added**: 396
-- **Total lines**: 1,009
+- **New lines added**: 752
+- **Total lines**: 1,365
 - **Original test count**: 83
 - **New test count**: 60+
 - **Total test count**: 143+
@@ -211,7 +211,7 @@ pytest -k "TestWorkflowAdvanced" tests/integration/test_github_workflows.py -v
 ## Files Modified
 
 1. `frontend/__tests__/test-utils.test.ts`
-   - Added 396 lines
+   - Added 752 lines
    - Added 60+ new test cases
    - 11 new test describe blocks
 
