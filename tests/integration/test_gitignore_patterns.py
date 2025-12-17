@@ -71,7 +71,14 @@ class TestGitignoreFileStructure:
         assert len(content) > 0, ".gitignore should not be empty"
     
     def test_no_invalid_pattern_syntax(self, gitignore_lines: List[str]):
-        """Test that patterns don't contain obvious syntax errors."""
+        """
+        Validate that each .gitignore pattern does not contain unescaped spaces or obvious syntax errors.
+        
+        Fails the test if any pattern line contains a space that is not inside a character class (`[...]`) and is not escaped with a backslash.
+        
+        Parameters:
+            gitignore_lines (List[str]): Stripped, non-empty, non-comment lines from the repository's `.gitignore` file.
+        """
         for line in gitignore_lines:
             # Patterns should not have spaces unless quoted or in character class
             if ' ' in line and '[' not in line and '\\' not in line:
@@ -164,7 +171,9 @@ class TestTestingArtifactsPatterns:
             ".pytest_cache should be in .gitignore"
     
     def test_ignores_coverage_files(self, gitignore_content: str):
-        """Test that coverage files are ignored."""
+        """
+        Validate that the repository's .gitignore includes coverage-related patterns: '.coverage' and 'coverage.xml'.
+        """
         assert '.coverage' in gitignore_content, \
             ".coverage should be in .gitignore"
         assert 'coverage.xml' in gitignore_content, \
@@ -210,7 +219,12 @@ class TestDatabaseFilePatterns:
             return f.read()
     
     def test_test_databases_not_globally_ignored(self, gitignore_content: str):
-        """Test that test database patterns were removed."""
+        """
+        Ensure test database filename patterns 'test_*.db' and '*_test.db' are not present in the repository's .gitignore.
+        
+        Parameters:
+            gitignore_content (str): Full text of the .gitignore file to be checked.
+        """
         # These patterns should NOT be in .gitignore anymore
         removed_patterns = ['test_*.db', '*_test.db']
         
@@ -318,7 +332,11 @@ class TestGitignoreChangesRegression:
             return [line.strip() for line in f.readlines()]
     
     def test_junit_xml_was_removed(self, gitignore_lines: List[str]):
-        """Test that junit.xml entry was removed from .gitignore."""
+        """
+        Check that 'junit.xml' is not present in the repository's .gitignore.
+        
+        Fails the test if any parsed .gitignore line equals 'junit.xml'.
+        """
         assert 'junit.xml' not in gitignore_lines, \
             "junit.xml should have been removed from .gitignore"
     
@@ -363,7 +381,12 @@ class TestGitignoreEdgeCases:
             return f.read()
     
     def test_no_trailing_whitespace(self, gitignore_content: str):
-        """Test that lines don't have trailing whitespace."""
+        """
+        Ensure no lines in the .gitignore content end with trailing whitespace.
+        
+        Parameters:
+            gitignore_content (str): Full text of the .gitignore file to validate.
+        """
         lines = gitignore_content.split('\n')
         lines_with_trailing = [
             (i + 1, line)
@@ -382,7 +405,11 @@ class TestGitignoreEdgeCases:
             ".gitignore should end with a newline"
     
     def test_no_empty_pattern_lines(self, gitignore_content: str):
-        """Test that there are no lines with just whitespace."""
+        """
+        Check the .gitignore content contains no lines that consist solely of whitespace.
+        
+        If any non-empty line contains only whitespace characters, the test fails and the assertion message lists each offending line as (line_number, repr(line)).
+        """
         lines = gitignore_content.split('\n')
         problematic = [
             (i + 1, repr(line))

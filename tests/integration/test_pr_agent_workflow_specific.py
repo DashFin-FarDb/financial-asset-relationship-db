@@ -15,7 +15,12 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
     
     @pytest.fixture
     def workflow_file(self) -> Path:
-        """Return path to pr-agent.yml workflow file."""
+        """
+        Resolve the path to the pr-agent.yml workflow file.
+        
+        Returns:
+            Path: Path to the .github/workflows/pr-agent.yml workflow file.
+        """
         return Path('.github/workflows/pr-agent.yml')
     
     @pytest.fixture
@@ -271,7 +276,15 @@ class TestPRAgentWorkflowDependencyInstallation:
             "Job should have 'Install Node dependencies' step"
     
     def test_python_install_includes_requirements_dev(self, pr_agent_job: Dict[str, Any]):
-        """Test that Python install step includes requirements-dev.txt."""
+        """
+        Verify the Python dependency installation step references requirements-dev.txt.
+        
+        Asserts that within the provided pr-agent job configuration there exists a step named
+        'Install Python dependencies' whose run script includes 'requirements-dev.txt'.
+        
+        Parameters:
+            pr_agent_job (Dict[str, Any]): Parsed job dictionary for the pr-agent-trigger job from the workflow YAML.
+        """
         steps = pr_agent_job.get('steps', [])
         for step in steps:
             if step.get('name') == 'Install Python dependencies':
@@ -479,7 +492,13 @@ class TestPRAgentWorkflowSecurityBestPractices:
                 f"Found hardcoded token pattern: {pattern}"
     
     def test_uses_pinned_action_versions(self, workflow_raw: str):
-        """Test that GitHub Actions are pinned to specific immutable versions."""
+        """
+        Validate that every external GitHub Action referenced by `uses:` in the workflow is pinned to a specific commit SHA or a semantic version tag.
+        
+        Parameters:
+            workflow_raw (str): Raw YAML text of the workflow file to scan for `uses:` statements.
+        
+        """
         # Capture the action reference after 'uses:' regardless of trailing content
         uses_pattern = r'^\s*uses:\s*([^\s@]+)@([^\s#]+)'
         uses_statements = re.findall(uses_pattern, workflow_raw, re.MULTILINE)

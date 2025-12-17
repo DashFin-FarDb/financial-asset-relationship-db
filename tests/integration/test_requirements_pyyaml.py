@@ -86,7 +86,14 @@ class TestPyYAMLDependencyAddition:
                     f"PyYAML version should be >= 6.0, got {version}"
     
     def test_types_pyyaml_matches_pyyaml_version(self, requirements_lines: List[str]):
-        """Test that types-PyYAML version matches PyYAML major version."""
+        """
+        Assert that types-PyYAML major version matches PyYAML major version when both are pinned.
+        
+        Checks for lines beginning with `PyYAML>=` and `types-PyYAML>=`, extracts the leading major version from each `>=` specifier, and fails the test if both are present and differ.
+        
+        Parameters:
+            requirements_lines (List[str]): Non-empty, non-comment lines from requirements-dev.txt.
+        """
         pyyaml_version = None
         types_version = None
         
@@ -288,7 +295,15 @@ class TestRequirementsDevVersionPinning:
                     f"Package should have version specifier: {line}"
     
     def test_pyyaml_and_types_both_pinned(self, requirements_lines: List[str]):
-        """Test that both PyYAML and types-PyYAML have version pins."""
+        """
+        Ensure both PyYAML and types-PyYAML are pinned with minimum-version specifiers in the provided requirements lines.
+        
+        Parameters:
+            requirements_lines (List[str]): Non-empty, non-comment lines from requirements-dev.txt to inspect.
+        
+        Raises:
+            AssertionError: If a line with `PyYAML>=` or `types-PyYAML>=` is not found.
+        """
         pyyaml_pinned = any(
             'PyYAML>=' in line for line in requirements_lines
         )

@@ -30,7 +30,9 @@ class TestRequirementsDevFileStructure:
         assert req_file_path.exists(), "requirements-dev.txt should exist"
     
     def test_file_readable(self, req_file_path: Path):
-        """Test that requirements-dev.txt is readable."""
+        """
+        Verify requirements-dev.txt can be opened with UTF-8 encoding and contains at least one character.
+        """
         with open(req_file_path, 'r', encoding='utf-8') as f:
             content = f.read()
         assert len(content) > 0, "requirements-dev.txt should not be empty"
@@ -86,7 +88,9 @@ class TestTypesPyYAMLVersionConstraint:
             "types-PyYAML should require version >=6.0.0"
     
     def test_types_pyyaml_not_unpinned(self, requirements_dict: Dict[str, str]):
-        """Test that types-PyYAML is not unpinned."""
+        """
+        Assert that the 'types-PyYAML' requirement includes a non-empty version constraint.
+        """
         version_spec = requirements_dict.get('types-PyYAML', '')
         
         assert version_spec and version_spec.strip(), \
@@ -151,7 +155,12 @@ class TestSpecificDependencies:
         assert 'pytest' in requirements_dict
     
     def test_pytest_cov_present(self, requirements_dict: Dict[str, str]):
-        """Test that pytest-cov is in requirements."""
+        """
+        Verify pytest-cov is declared in the parsed requirements.
+        
+        Parameters:
+            requirements_dict (Dict[str, str]): Mapping of package names to their version specifiers parsed from requirements-dev.txt.
+        """
         assert 'pytest-cov' in requirements_dict
     
     def test_pyyaml_present(self, requirements_dict: Dict[str, str]):
@@ -195,7 +204,12 @@ class TestVersionConstraintFormat:
             ]
     
     def test_all_lines_have_version_constraints(self, req_lines: List[str]):
-        """Test that all requirements specify version constraints."""
+        """
+        Assert every non-comment, non-empty requirement line contains a version specifier.
+        
+        Parameters:
+            req_lines (List[str]): Lines from requirements-dev.txt already stripped of whitespace and filtered to exclude empty lines and comments. The test considers a line to contain a version specifier if it includes one of the operators: '>=', '==', '~=', '>', '<', '!='.
+        """
         for line in req_lines:
             assert any(op in line for op in ['>=', '==', '~=', '>', '<', '!=']), \
                 f"Requirement '{line}' should have a version constraint"
@@ -218,7 +232,12 @@ class TestVersionConstraintFormat:
                 pytest.fail(f"Invalid version specifier in '{line}': {e}")
     
     def test_all_use_minimum_version_operator(self, req_lines: List[str]):
-        """Test that all requirements use >= operator for flexibility."""
+        """
+        Assert every non-comment, non-empty requirement line uses the '>=’ version operator.
+        
+        Parameters:
+            req_lines (List[str]): Requirement lines (stripped, non-comment) from requirements-dev.txt.
+        """
         for line in req_lines:
             assert '>=' in line, \
                 f"Package '{line}' should use >= operator for version constraint"

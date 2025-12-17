@@ -83,7 +83,14 @@ class TestMarkdownFormatting:
             assert re.match(r'^#{1,6} .+', line), f"Heading '{line}' should have space after #"
     
     def test_no_trailing_whitespace(self, summary_lines: List[str]):
-        """Test that lines don't have trailing whitespace."""
+        """
+        Assert that no non-blank line in the provided lines ends with trailing whitespace.
+        
+        Ignores lines that are entirely blank; on failure raises an AssertionError reporting the number of offending lines.
+        
+        Parameters:
+            summary_lines (List[str]): Lines of the document to check.
+        """
         lines_with_trailing = [
             (i + 1, line) for i, line in enumerate(summary_lines)
             if line.rstrip() != line and line.strip() != ''

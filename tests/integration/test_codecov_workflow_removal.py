@@ -25,12 +25,20 @@ class TestCodecovWorkflowRemoval:
     
     def test_codecov_yaml_file_removed(self, workflows_dir: Path):
         """Test that codecov.yaml file was removed."""
+        if not workflows_dir.exists():
+            pytest.skip("Workflows directory not found")
+        codecov_file = workflows_dir / "codecov.yaml"
+        assert not codecov_file.exists(), \
+            "codecov.yaml should have been removed from workflows"
+        """Test that codecov.yaml file was removed."""
         codecov_file = workflows_dir / "codecov.yaml"
         assert not codecov_file.exists(), \
             "codecov.yaml should have been removed from workflows"
     
     def test_codecov_yml_file_removed(self, workflows_dir: Path):
-        """Test that codecov.yml file (alternate name) is also not present."""
+        """
+        Verify that a `codecov.yml` workflow file does not exist in the repository's `.github/workflows` directory.
+        """
         codecov_file = workflows_dir / "codecov.yml"
         assert not codecov_file.exists(), \
             "codecov.yml should not exist in workflows"
@@ -103,7 +111,11 @@ class TestWorkflowCoverageAlternatives:
     """Tests for alternative coverage mechanisms."""
     
     def test_other_workflows_can_run_tests(self):
-        """Test that other workflows can still run tests."""
+        """
+        Checks that at least one GitHub Actions workflow in .github/workflows invokes pytest.
+        
+        Skips the test if the workflows directory is missing. Reads workflow YAML files and asserts that at least one file contains the string "pytest", failing the test if none do.
+        """
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
         
         if not workflows_dir.exists():

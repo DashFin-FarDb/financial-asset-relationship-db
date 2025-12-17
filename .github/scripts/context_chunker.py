@@ -2,7 +2,51 @@ class ContextChunker:
     def __init__(self, config_path: str = ".github/pr-agent-config.yml"):
         self.config: Dict = {}
 
-        # Load configuration if available
+import yaml
+
+try:
+    import tiktoken  # type: ignore
+    TIKTOKEN_AVAILABLE = True
+except Exception:
+    TIKTOKEN_AVAILABLE = False
+
+
+class ContextChunker:
+    """
+    Manages context chunking for PR (Pull Request) processing.
+
+    Responsibilities:
+        - Loads configuration from a YAML file to set chunking and token limits.
+        - Handles token management using tiktoken if available.
+        - Processes PR content (reviews, files) into text chunks for further analysis.
+        - Maintains priority ordering for different context sources.
+
+    Typical workflow:
+        1. Instantiate ContextChunker (optionally providing a config path).
+        2. Call `process_context(payload)` with a PR payload to extract and chunk relevant text.
+
+    Example:
+        chunker = ContextChunker()
+        context_text, has_content = chunker.process_context(pr_payload)
+    """
+    def __init__(self, config_path: str = ".github/pr-agent-config.yml") -> None:
+        """
+        Initialize a ContextChunker for PR agent context chunking.
+
+        Args:
+            config_path (str): Path to the YAML configuration file. Defaults to ".github/pr-agent-config.yml".
+                The file should contain configuration sections for 'agent.context' (chunking parameters)
+                and 'limits.fallback' (priority order for context elements).
+
+        Loads configuration sections:
+            - agent.context: Controls chunking parameters (max_tokens, chunk_size, overlap_tokens, summarization_threshold).
+            - limits.fallback: Specifies priority_order for context elements.
+
+        Exceptions:
+            - Prints a warning and uses defaults if the config file cannot be loaded or parsed.
+            - Prints a warning if tiktoken encoder initialization fails.
+        """
+        self.config: Dict[str, Any] = {}
         cfg_file = Path(config_path)
         if cfg_file.exists():
             try:
@@ -25,8 +69,6 @@ class ContextChunker:
         self.chunk_size: int = int(agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000)))
         self.overlap_tokens: int = int(agent_cfg.get("overlap_tokens", 2000))
         self.summarization_threshold: int = int(agent_cfg.get("summarization_threshold", int(self.max_tokens * 0.9)))
-
-        # Prepare priority order
         limits_cfg = (self.config.get("limits") or {}).get("fallback") or {}
         self.priority_order: List[str] = limits_cfg.get("priority_order", [
             "review_comments",
@@ -35,14 +77,10 @@ class ContextChunker:
             "ci_logs",
             "full_diff",
         ])
-        # Map chunk type to priority index (lower is higher priority)
         self.priority_map: Dict[str, int] = {name: i for i, name in enumerate(self.priority_order)}
-
-        # Setup tokenizer/encoder if tiktoken available
-        self._encoder = None
+        self._encoder: Optional[Any] = None
         if TIKTOKEN_AVAILABLE:
             try:
-                # Use a common 32k context model encoding if available; fallback to cl100k_base
                 self._encoder = tiktoken.get_encoding("cl100k_base")
             except Exception as e:
                 print(f"Warning: failed to initialize tiktoken encoder: {e}", file=sys.stderr)
