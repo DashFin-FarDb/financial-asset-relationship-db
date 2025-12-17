@@ -1,7 +1,16 @@
-self.config: Dict = {}
+class ContextChunker:
+    def __init__(self, config_path: str = ".github/pr-agent-config.yml"):
+        self.config: Dict = {}
 
         # Load configuration if available
         cfg_file = Path(config_path)
+        if cfg_file.exists():
+            try:
+                with cfg_file.open("r", encoding="utf-8") as f:
+                    self.config = yaml.safe_load(f) or {}
+            except Exception as e:
+                print(f"Warning: failed to load config from {config_path}: {e}", file=sys.stderr)
+                self.config = {}
         if cfg_file.exists():
             try:
                 with cfg_file.open("r", encoding="utf-8") as f:
@@ -45,9 +54,9 @@ self.config: Dict = {}
 
         def main():
             """
-            Demonstrates how to instantiate ContextChunker and process a sample pull request payload.
+            Demonstrates creating a ContextChunker and processing a sample pull request structure.
             
-            Creates a ContextChunker, constructs an example PR with reviews and file changes, calls process_context on that example, and prints the chunking status and the processed content to standard output.
+            This example constructs a ContextChunker, builds a simple pull request payload containing one review and one changed file, invokes process_context on that payload, and prints the chunking metadata and resulting processed content.
             """
             chunker = ContextChunker()
     
