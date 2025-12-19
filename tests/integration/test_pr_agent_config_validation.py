@@ -21,7 +21,19 @@ class DuplicateKeyLoader(yaml.SafeLoader):
     pass
 
 
-def _check_duplicate_keys(loader, node, deep=False):
+def _check_duplicate_keys(loader, node):
+    """Check for duplicate keys in YAML mappings."""
+    mapping = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=True)
+        if key in mapping:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping", node.start_mark,
+                f"found duplicate key ({key})", key_node.start_mark
+            )
+        value = loader.construct_object(value_node, deep=True)
+        mapping[key] = value
+    return mapping
     """Check for duplicate keys in YAML mappings."""
     loader.flatten_mapping(node)
     mapping = {}
