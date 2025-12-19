@@ -403,7 +403,7 @@ class TestPrAgentWorkflow:
         assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
             f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
         )
-    
+
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
         """Test that pr-agent-trigger job checks out the code."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
@@ -413,25 +413,21 @@ class TestPrAgentWorkflow:
             s for s in steps 
             if s.get("uses", "").startswith("actions/checkout")
         ]
-        assert len(checkout_steps) > 0, "PR Agent trigger job must check out the repository"
-    
-def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
+        assert len(checkout_steps) > 0, "Review job must check out the repository"
+    def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Assert that every actions/checkout step in the pr-agent-trigger job specifies a non-empty token.
-        
-        Checks the `pr-agent-trigger` job's steps for any step using `actions/checkout` and asserts its `with.token` value is a non-empty string (for example `${{ secrets.GITHUB_TOKEN }}`).
-        
-        Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping expected to contain a "jobs" → "pr-agent-trigger" → "steps" sequence.
+        Ensure every actions/checkout step in the review job provides a `token` in its `with` mapping.
+
+        Fails the test if any checkout step omits the `token` key.
         """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
-        
+
         checkout_steps = [
-            s for s in steps 
+            s for s in steps
             if s.get("uses", "").startswith("actions/checkout")
         ]
-        
+
         for step in checkout_steps:
             step_with = step.get("with", {})
             token = step_with.get("token")
@@ -439,55 +435,10 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
                 "Checkout step must specify a non-empty token for better security. "
                 "Use ${{ secrets.GITHUB_TOKEN }} or similar."
             )
-        """
-        Ensure each `actions/checkout` step in the `pr-agent-trigger` job provides a `token` key in its `with` mapping.
-        
-        Parameters:
-            pr_agent_workflow (dict): Parsed pr-agent workflow YAML as a mapping; expected to include a top-level `jobs` mapping containing a `pr-agent-trigger` job.
-        """
-        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-        steps = review_job.get("steps", [])
-        
-        checkout_steps = [
-            s for s in steps 
-            if s.get("uses", "").startswith("actions/checkout")
-        ]
-        
-        for step in checkout_steps:
-            step_with = step.get("with", {})
-def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
-    """
-    Assert that every actions/checkout step in the pr-agent-trigger job specifies a non-empty token.
-    
-    Checks the `pr-agent-trigger` job's steps for any step using `actions/checkout` and asserts its `with.token` value is a non-empty string (for example `${{ secrets.GITHUB_TOKEN }}`).
-    
-    Parameters:
-        pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping expected to contain a "jobs" → "pr-agent-trigger" → "steps" sequence.
-    """
-    review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-    steps = review_job.get("steps", [])
 
-    checkout_steps = [
-        s for s in steps 
-        if s.get("uses", "").startswith("actions/checkout")
-    ]
-
-    for step in checkout_steps:
-        step_with = step.get("with", {})
-        token = step_with.get("token")
-        assert isinstance(token, str) and token.strip(), (
-            "Checkout step must specify a non-empty token for better security. "
-            "Use ${{ secrets.GITHUB_TOKEN }} or similar."
-        )
-    
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
-        """
-        Verify that the pr-agent trigger job includes an actions/setup-python step.
-        
-        Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping of the pr-agent workflow file.
-        """
-        review_job = pr_agent_workflow["jobs"].get("pr-agent-trigger", {})
+        """Asserts the workflow's trigger job includes a setup-python step."""
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
         python_steps = [
@@ -495,7 +446,7 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
             if s.get("uses", "").startswith("actions/setup-python")
         ]
         assert len(python_steps) > 0, "pr-agent-trigger job must set up Python"
-    
+
     def test_pr_agent_has_node_setup(self, pr_agent_workflow: Dict[str, Any]):
         """
         Ensure the pr-agent trigger job configures Node.js.
@@ -505,28 +456,29 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
-        
+
         node_steps = [
-            s for s in steps 
+            s for s in steps
             if s.get("uses", "").startswith("actions/setup-node")
         ]
-        assert len(node_steps) > 0, "PR Agent trigger job must set up Node.js"
-    
+        assert len(node_steps) > 0, "Review job must set up Node.js"
+
     def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Check that every actions/setup-python step in the pr-agent-trigger job specifies python-version "3.11".
-        
+        Ensure any actions/setup-python step in the "review" job specifies python-version "3.11".
+
         Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping; should contain "jobs" → "pr-agent-trigger" with an optional "steps" sequence.
+            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow; expected to contain a "jobs" -> "review" -> "steps" sequence.
+
         """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
-        
+
         python_steps = [
-            s for s in steps 
+            s for s in steps
             if s.get("uses", "").startswith("actions/setup-python")
         ]
-        
+
         for step in python_steps:
             step_with = step.get("with", {})
             assert "python-version" in step_with, (
@@ -541,15 +493,20 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
+        # Check for duplicate step names efficiently (O(n))
         step_names = [s.get("name") for s in steps if s.get("name")]
         seen = set()
-        duplicate_names = {name for name in step_names if name in seen or seen.add(name)}
+        duplicate_names = set()
+        for name in step_names:
+            if name in seen:
+                duplicate_names.add(name)
+            else:
+                seen.add(name)
 
         assert not duplicate_names, (
             f"Found duplicate step names: {duplicate_names}. "
             "Each step should have a unique name."
         )
-    
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
         """
         Validate that any actions/checkout steps in the pr-agent-trigger job specify a non-negative integer fetch-depth when present.
@@ -569,22 +526,6 @@ def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         ]
 
         for step in checkout_steps:
-            step_with = step.get("with", {})
-            # It's acceptable for fetch-depth to be omitted entirely
-            if "fetch-depth" not in step_with:
-                continue
-            fetch_depth = step_with["fetch-depth"]
-            # Reject non-integer types (including strings)
-            assert isinstance(fetch_depth, int), (
-                f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
-            )
-            # Reject negative integers
-            assert fetch_depth >= 0, "fetch-depth cannot be negative"
-            assert isinstance(fetch_depth, int), (
-                f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
-            )
-            # Reject negative integers
-            assert fetch_depth >= 0, "fetch-depth cannot be negative"
             step_with = step.get("with", {})
             # It's acceptable for fetch-depth to be omitted entirely
             if "fetch-depth" not in step_with:
