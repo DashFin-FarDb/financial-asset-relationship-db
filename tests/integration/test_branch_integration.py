@@ -86,19 +86,50 @@ class TestWorkflowConsistency:
                         if action_name not in action_versions:
                             action_versions[action_name] = {}
                         if action_version not in action_versions[action_name]:
-                            action_versions[action_name][action_version] = []
-                        action_versions[action_name][action_version].append(wf_file)
+        # Check for inconsistencies (single, consolidated implementation)
+        inconsistencies: List[str] = []
+    def test_all_workflows_use_consistent_action_versions(self, all_workflows):
+        """Verify same actions use consistent versions across workflows."""
+        action_versions = {}
         
-        # Check for inconsistencies
+        for wf_file, workflow in all_workflows.items():
+            for job_name, job in workflow.get('jobs', {}).items():
+                for step in job.get('steps', []):
+    def test_all_workflows_use_consistent_action_versions(self, all_workflows):
+        """
+        Assert that actions referenced across workflows use a single version.
+
+        Scans each workflow's jobs and steps to collect action usages and their referenced versions and fails if any
+        action (except actions/checkout) is used with multiple versions across workflows.
+        """
+        action_versions: Dict[str, Dict[str, Set[str]]] = {}
+
+        for wf_file, workflow in all_workflows.items():
+            for job in workflow.get("jobs", {}).values():
+                for step in job.get("steps", []):
+                    uses = step.get("uses", "")
+                    if not uses or "@" not in uses:
+                        continue
+
+                    action_name, action_version = uses.split("@", 1)
+                    action_versions.setdefault(action_name, {}).setdefault(action_version, set()).add(wf_file)
+
+        inconsistencies: List[str] = []
         for action, versions in action_versions.items():
-            if len(versions) > 1:
-                # Allow v4 and v5 for actions/checkout (common upgrade path)
-                if 'actions/checkout' in action:
-                    continue
-                # Fail if same action uses different versions
-                pytest.fail(f"{action} uses multiple versions: {list(versions.keys())}")
-    
-    def test_all_workflows_use_github_token_consistently(self, all_workflows):
+            if len(versions) <= 1:
+                continue
+
+            # Allow mixed versions for actions/checkout (e.g., v4 and v5)
+            if action == "actions/checkout":
+                continue
+
+            version_list = sorted(versions.keys())
+            inconsistencies.append(f"{action} uses multiple versions: {version_list}")
+            for version in version_list:
+                files = sorted(versions[version])
+                inconsistencies.append(f"  - {action}@{version} used in: {files}")
+
+        assert not inconsistencies, "Inconsistent action versions found:\n" + "\n".join(inconsistencies)
         """
         Check that workflows use the approved GITHUB_TOKEN syntax.
         
