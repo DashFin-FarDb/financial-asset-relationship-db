@@ -56,12 +56,14 @@ class TestWorkflowYAMLValidation:
         for workflow_file in modified_workflows:
             path = self.WORKFLOW_DIR / workflow_file
             try:
+                with open(path, "r", encoding="utf-8") as f:
                     workflow = yaml.safe_load(f)
-                    assert workflow is not None, f"Empty YAML in {workflow_file}"
-        
+                assert workflow is not None, f"Empty YAML in {workflow_file}"
+
                 for key in required_keys:
-                    assert key in workflow, \
+                    assert key in workflow, (
                         f"Workflow {workflow_file} missing required key: {key}"
+                    )
             except yaml.YAMLError as e:
                 pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
             except FileNotFoundError:
