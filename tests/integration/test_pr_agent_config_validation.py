@@ -39,13 +39,23 @@ def _check_duplicate_keys(loader, node):
     return mapping
     """Check for duplicate keys in YAML mappings."""
     loader.flatten_mapping(node)
-    mapping = {}
-    for key_node, value_node in node.value:
         key = loader.construct_object(key_node, deep=deep)
+
+        try:
+            hash(key)
+        except TypeError as e:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping", node.start_mark,
+                f"found unhashable key ({key!r})", key_node.start_mark
+            ) from e
+
         if key in mapping:
             raise yaml.constructor.ConstructorError(
                 "while constructing a mapping", node.start_mark,
-                f"found duplicate key ({key})", key_node.start_mark
+                f"found duplicate key ({key!r})", key_node.start_mark
+            )
+
+        value = loader.construct_object(value_node, deep=deep)
             )
         value = loader.construct_object(value_node, deep=deep)
         mapping[key] = value
