@@ -21,18 +21,16 @@ from packaging.requirements import Requirement
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """
-    Read a pip-style requirements file and produce a list of package name and version-specifier pairs.
-    
-    Parses each non-empty, non-comment line with packaging.Requirement and returns a list of tuples (package_name, version_specifier). Lines that are blank or start with '#' are ignored. The version_specifier is an empty string when no specifier is present.
+    Parse a pip-style requirements file and extract package names with their version specifiers.
     
     Parameters:
-        file_path (Path): Path to the requirements file to parse.
+        file_path (Path): Path to a requirements file (e.g. requirements-dev.txt).
     
     Returns:
-        List[Tuple[str, str]]: Tuples of (package_name, version_specifier).
+        List[Tuple[str, str]]: A list of (package_name, version_specifier) tuples; `version_specifier` is the specifier string (empty string if no specifier).
     
     Raises:
-        ValueError: If any requirement line cannot be parsed; the error message includes the offending line.
+        ValueError: If any non-empty, non-comment line cannot be parsed as a requirement.
     """
     requirements: List[Tuple[str, str]] = []
 
@@ -90,7 +88,11 @@ class TestWorkflowCanInstallRequirements:
         )
     
     def test_workflow_installs_before_running_tests(self):
-        """Test that dependency installation happens before test execution in workflows."""
+        """
+        Assert that in pr-agent.yml each job installs dependencies before running tests.
+        
+        Skips the test if pr-agent.yml is not present. For each job, if both a dependency-install step (contains 'pip install' or 'requirements') and a test step (contains 'pytest' in the run or 'test' in the step name) are found, this test asserts the install step appears earlier than the test step.
+        """
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
         
         if not pr_agent_file.exists():
@@ -129,12 +131,21 @@ class TestPyYAMLAvailability:
     """Test that PyYAML is properly configured for use in workflow tests."""
     
     def test_pyyaml_in_requirements_for_workflow_validation(self):
-        """Test that PyYAML is in requirements-dev.txt for workflow validation tests."""
+        """
+        Ensure PyYAML is listed in requirements-dev.txt so workflow YAML files can be parsed for validation.
+        
+        Checks that requirements-dev.txt exists and that a package whose normalized name is 'pyyaml' appears among the declared requirements (comparison is case-insensitive).
+        """
+        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
+    
+        requirements = parse_requirements(REQUIREMENTS_FILE)
+        package_names = [pkg.lower() for pkg, _ in requirements]
+        assert 'pyyaml' in package_names, (
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
         
         requirements = parse_requirements(REQUIREMENTS_FILE)
         package_names = [pkg.lower() for pkg, _ in requirements]
-        assert 'PyYAML' in package_names, (
+        assert 'pyyaml' in package_names, (
             "PyYAML must be in requirements-dev.txt because test_github_workflows.py "
             "uses it to parse and validate workflow YAML files"
         )

@@ -40,71 +40,23 @@ class TestDocumentationExists:
         assert DOC_FILE.suffix == ".md", "Documentation file should have .md extension"
 
 
-@pytest.fixture(scope='session')
-def doc_content() -> str:
-    """
-    Load the documentation file into a single string for use by tests.
-    
-    Returns:
-        content (str): The entire contents of the documentation file at DOC_FILE.
-    """
-    try:
-        with open(DOC_FILE, 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        pytest.fail(f"Documentation file not found: {DOC_FILE}")
-    except Exception as e:
-        pytest.fail(f"Could not read documentation file {DOC_FILE}: {e}")
+class TestDocumentationStructure:
+    """Test the structure and formatting of the documentation."""
 
+    @pytest.fixture(scope='class')
+    def doc_content(self) -> str:
+        """
+        Return the documentation file's full text.
 
-@pytest.fixture(scope='session')
-def doc_lines(doc_content: str) -> List[str]:
-    """
-    Return the documentation content as a list of lines preserving original line endings.
-    
-    Parameters:
-        doc_content (str): The full documentation text to split.
-    
-    Returns:
-        List[str]: The documentation split into lines with line ending characters preserved.
-    
-    Raises:
-        pytest.fail: Fails the test session if `doc_content` is empty.
-    """
-    if not doc_content:
-        pytest.fail("Loaded documentation content is empty.")
-    return doc_content.splitlines(keepends=True)
-
-
-@pytest.fixture(scope='session')
-def section_headers(doc_lines: List[str]) -> List[str]:
-    """
-    Extracts Markdown section header lines from a list of document lines.
-    
-    Ignores lines inside fenced code blocks delimited by lines that start with "```".
-    Returns header lines with surrounding whitespace removed (each line begins with one or more `#` characters).
-    
-    Parameters:
-        doc_lines (List[str]): Lines of the Markdown document.
-    
-    Returns:
-        List[str]: A list of header lines (stripped), e.g. "# Overview", "## Details".
-    """
-    headers = []
-    in_code_block = False
-    for line in doc_lines:
-        stripped = line.lstrip()
-        if stripped.startswith('```'):
-            in_code_block = not in_code_block
-            continue
-        if in_code_block:
-            continue
-        if stripped.startswith('#'):
-            headers.append(stripped.strip())
-    return headers
-
-
-from typing import List, Set
+        Returns:
+            str: Full contents of DOC_FILE read using UTF-8 encoding.
+        """
+        try:
+            with open(DOC_FILE, 'r', encoding='utf-8') as f:
+                return f.read()
+        except FileNotFoundError:
+            pytest.fail(f"Documentation file not found: {DOC_FILE}")
+        return [line.strip() for line in doc_lines if line.lstrip().startswith('#')]
 
     def test_has_overview(self, section_headers: List[str]):
         """Test that there's an Overview section."""
@@ -112,7 +64,12 @@ from typing import List, Set
         assert len(overview) > 0, "Should have an Overview section"
 
     def test_has_generated_files_section(self, section_headers: List[str]):
-        """Test that there's a section about generated files."""
+        """
+        Checks the documentation contains at least one header about generated files.
+        
+        Parameters:
+            section_headers (List[str]): List of markdown header lines extracted from the document; matching is case-insensitive and looks for headers containing "generated" or "file".
+        """
         generated = [h for h in section_headers 
                     if 'generated' in h.lower() or 'file' in h.lower()]
         assert len(generated) > 0, "Should have a section about generated files"
@@ -126,4 +83,3 @@ from typing import List, Set
         """Test that document has sufficient number of sections."""
         assert len(section_headers) >= 5, \
             f"Document should have at least 5 major sections, found {len(section_headers)}"
-

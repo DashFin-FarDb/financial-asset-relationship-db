@@ -84,9 +84,9 @@ class TestMarkdownFormatting:
     
     def test_no_trailing_whitespace(self, summary_lines: List[str]):
         """
-        Ensure no non-blank line ends with trailing whitespace.
+        Verify no non-blank lines have trailing whitespace.
         
-        Asserts that there are zero non-empty lines with trailing spaces or tabs; on failure the assertion message reports the number of offending lines.
+        Fails the test if any non-blank line ends with trailing whitespace. The assertion message includes the number of offending lines.
         """
         lines_with_trailing = [
             (i + 1, line) for i, line in enumerate(summary_lines)
@@ -112,12 +112,12 @@ class TestMarkdownFormatting:
     
     def test_lists_properly_formatted(self, summary_lines: List[str]):
         """
-        Validate that Markdown bullet list items use even indentation (multiples of two spaces).
+        Ensure bullet list items use indentation in multiples of two spaces.
         
-        Scans the provided file lines for list items starting with '-', '*' or '+' and asserts each item's leading space count is divisible by two; raises an AssertionError for any list item with odd indentation.
+        Checks each line that starts with a bullet marker (`-`, `*`, or `+`) and asserts its leading indentation is divisible by two, failing the test with a descriptive assertion if any item has odd indentation.
         
         Parameters:
-            summary_lines (List[str]): Lines of the Markdown summary file to inspect.
+            summary_lines (List[str]): The markdown file content split into lines.
         """
         list_lines = [line for line in summary_lines if re.match(r'^\s*[-*+] ', line)]
         if list_lines:
@@ -191,18 +191,15 @@ class TestCodeExamples:
     
     def test_file_paths_in_examples_exist(self, summary_content: str):
         """
-        Verify that test file paths referenced in documentation examples exist in the repository.
+        Verify that every referenced integration test file path in the provided document content exists in the repository.
         
-        Searches the provided documentation content for occurrences of paths matching the pattern
-        `tests/integration/test_<name>.py`, resolves each match against the repository root (three
-        levels up from this test file) and fails with a single consolidated message listing any
-        missing files.
+        Searches the given summary content for occurrences of test paths matching the pattern tests/integration/test_<name>.py, resolves each path relative to the repository root (three levels up from this file), and asserts that all referenced files are present. If any are missing, the assertion fails with a consolidated message listing each missing reference and its resolved filesystem path.
         
         Parameters:
-            summary_content (str): The raw content of the documentation file to scan for referenced paths.
+        	summary_content (str): The full text of the documentation file to scan for referenced test file paths.
         """
         # Look for test file references
-        test_file_pattern = r'tests/integration/test_\w+\.py'
+        test_file_pattern = r'tests/integration/test_[^\s/]+\.py'
         mentioned_files = re.findall(test_file_pattern, summary_content)
 
         repo_root = Path(__file__).parent.parent.parent
@@ -307,15 +304,11 @@ class TestLinkValidation:
             """
             Convert a header string into a GitHub Flavored Markdown (GFM) anchor.
             
-            The returned string is a lowercase, URL-friendly anchor suitable for internal Markdown links:
-            diacritics are removed, punctuation and special characters are stripped (except hyphens),
-            whitespace is collapsed to single hyphens, and leading/trailing hyphens are removed.
-            
             Parameters:
-                text (str): Header text to convert into an anchor.
+                text (str): Header text to convert into an internal GFM anchor.
             
             Returns:
-                anchor (str): A GFM-compatible anchor string for use in internal links (e.g. "my-section-title").
+                str: The anchor string suitable for use in internal GFM links (lowercased, diacritics removed, punctuation omitted, whitespace replaced by single hyphens, with consecutive or edge hyphens collapsed).
             """
             s = text.strip().lower()
             # Normalize unicode to NFKD and remove diacritics

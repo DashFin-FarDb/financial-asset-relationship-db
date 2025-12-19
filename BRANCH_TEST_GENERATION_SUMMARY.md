@@ -78,20 +78,22 @@ Following the bias-for-action principle, one additional test file was created to
 
 #### New Test File
 
-**`tests/integration/test_workflow_yaml_validation.py`** (NEW - ~97 lines)
+**`tests/integration/test_workflow_yaml_validation.py`** (NEW - 121 lines)
 
 **Purpose**: Validate YAML structure and simplification of modified workflow files
 
 **Test Classes**:
 
-1. **`TestWorkflowYAMLValidation`** (3 tests)
+1. **`TestWorkflowYAMLValidation`** (4 tests)
    - `test_workflows_are_valid_yaml`: Validates YAML parsing
    - `test_workflows_have_required_top_level_keys`: Checks required keys (name, on, jobs)
    - `test_pr_agent_workflow_simplified_correctly`: Verifies chunking code removal
+   - `test_workflows_use_pinned_action_versions`: Security best practice check
 
 2. **`TestRequirementsDevChanges`** (2 tests)
    - `test_requirements_dev_file_exists`: Validates file presence
    - `test_pyyaml_present_in_requirements_dev`: Ensures PyYAML dependency
+
 **Coverage**:
 - ✅ Modified workflow files: apisec-scan.yml, greetings.yml, label.yml, pr-agent.yml
 - ✅ YAML syntax validation
@@ -205,7 +207,7 @@ pytest tests/integration/test_workflow_yaml_validation.py::TestWorkflowYAMLValid
 
 ### Summary
 - **Existing Test Coverage**: Exceptional (10,000+ lines of tests already added)
-- **Additional Tests**: 1 new file (92 lines) for workflow YAML validation
+- **Additional Tests**: 1 new file (121 lines) for workflow YAML validation
 - **Total Test Files**: 15+ comprehensive test files
 - **Test Quality**: Production-ready, comprehensive, maintainable
 
