@@ -16,8 +16,11 @@ from pathlib import Path
 class DuplicateKeyLoader(yaml.SafeLoader):
     """Custom YAML loader that detects duplicate keys.
     
-    Extends SafeLoader to maintain security while adding duplicate key detection.
+    Extends SafeLoader for security. ONLY for use in test environments
+    with trusted configuration files. Not suitable for untrusted input
+    due to recursive construction without depth limits.
     """
+    pass
     pass
 
 
