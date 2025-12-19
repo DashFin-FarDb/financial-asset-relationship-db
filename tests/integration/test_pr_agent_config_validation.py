@@ -13,6 +13,74 @@ import yaml
 from pathlib import Path
 
 
+class DuplicateKeyLoader(yaml.SafeLoader):
+    """Custom YAML loader that detects duplicate keys.
+    
+    Extends SafeLoader for security. ONLY for use in test environments
+    with trusted configuration files. Not suitable for untrusted input
+    due to recursive construction without depth limits.
+    """
+    pass
+    pass
+
+    """Check for duplicate keys in YAML mappings."""
+    loader.flatten_mapping(node)
+
+    mapping = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if key in mapping:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping", node.start_mark,
+                f"found duplicate key ({key!r})", key_node.start_mark
+            )
+                f"found duplicate key ({key})", key_node.start_mark
+            )
+        value = loader.construct_object(value_node, deep=True)
+        mapping[key] = value
+    return mapping
+    """Check for duplicate keys in YAML mappings."""
+    loader.flatten_mapping(node)
+        key = loader.construct_object(key_node, deep=deep)
+
+        try:
+            hash(key)
+        except TypeError as e:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping", node.start_mark,
+                f"found unhashable key ({key!r})", key_node.start_mark
+            ) from e
+
+        if key in mapping:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping", node.start_mark,
+                f"found duplicate key ({key!r})", key_node.start_mark
+            )
+
+        value = loader.construct_object(value_node, deep=deep)
+            )
+        value = loader.construct_object(value_node, deep=deep)
+        mapping[key] = value
+    return mapping
+
+
+def _check_duplicate_keys(loader, node):
+    """YAML mapping constructor that raises if a key is duplicated."""
+    loader.flatten_mapping(node)
+    mapping = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=True)
+        if key in mapping:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping",
+                node.start_mark,
+                f"found duplicate key ({key})",
+                key_node.start_mark,
+            )
+        mapping[key] = loader.construct_object(value_node, deep=True)
+    return mapping
+
+
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
     
@@ -126,24 +194,82 @@ class TestPRAgentConfigYAMLValidity:
                 pytest.fail(f"PR agent config has invalid YAML: {e}")
     
     def test_no_duplicate_keys(self):
-        """
-        Fail the test if any top-level YAML key appears more than once in the file.
-        
-        Reads .github/pr-agent-config.yml, ignores commented lines, and treats the text before the first ':' on each non-comment line as a key; the test fails when a previously seen key is encountered again.
-        """
+        """Verify no duplicate keys in config."""
+    def test_no_duplicate_keys(self):
+        """Verify no duplicate keys in config."""
         config_path = Path(".github/pr-agent-config.yml")
+
+        with open(config_path, "r", encoding="utf-8") as f:
+            try:
+                # DuplicateKeyLoader is expected to raise ConstructorError on duplicates
+                yaml.load(f, Loader=DuplicateKeyLoader)
+            except yaml.constructor.ConstructorError as e:
+                # ConstructorError can be raised for reasons other than duplicate keys;
+                # only fail this test when the error is actually about duplicates.
+                if "duplicate" in str(e).lower():
+                    pytest.fail(f"Duplicate key found: {e}")
+                raise
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML syntax while checking duplicates: {e}")
+
         with open(config_path, 'r') as f:
             content = f.read()
-        
-        # Simple check for obvious duplicates
+
+        # Check for duplicate keys by tracking full hierarchical paths
         lines = content.split('\n')
-        seen_keys = set()
-        for line in lines:
-            if ':' in line and not line.strip().startswith('#'):
+        with open(config_path, 'r') as f:
+            try:
+                config = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML syntax while checking duplicates: {e}")
+
+        def find_duplicates(obj, path=""):
+            duplicates = []
+            if isinstance(obj, dict):
+                keys_seen = set()
+                for key, value in obj.items():
+                    current_path = f"{path}.{key}" if path else key
+                    if key in keys_seen:
+                        duplicates.append(current_path)
+                    else:
+                        keys_seen.add(key)
+                    duplicates.extend(find_duplicates(value, current_path))
+            elif isinstance(obj, list):
+                for idx, item in enumerate(obj):
+                    item_path = f"{path}[{idx}]" if path else f"[{idx}]"
+                    duplicates.extend(find_duplicates(item, item_path))
+            return duplicates
+
+        duplicates = find_duplicates(config)
+        if duplicates:
+            pytest.fail(f"Duplicate keys found at paths: {', '.join(duplicates)}")
                 key = line.split(':')[0].strip()
-                if key in seen_keys:
-                    pytest.fail(f"Duplicate key found: {key}")
-                seen_keys.add(key)
+
+                # Skip list items (only when the first non-space character is '-')
+                if line.lstrip().startswith('-'):
+                    continue
+
+                # Normalize indentation: expand tabs to spaces to avoid mixed indent issues
+                expanded = line.expandtabs(2)
+                indent = len(expanded) - len(expanded.lstrip(' '))
+                # Ensure indentation uses only spaces (no stray tabs remain after expand)
+                if '\t' in line:
+                    pytest.fail("Tabs are not allowed for indentation in YAML config")
+                # Pop stack entries that are at same or deeper indentation
+                # (we've moved back up or sideways in the hierarchy)
+                while path_stack and path_stack[-1][0] >= indent:
+                    path_stack.pop()
+
+                # Build full path from stack + current key
+                parent_path = '.'.join(item[1] for item in path_stack)
+                full_path = f"{parent_path}.{key}" if parent_path else key
+
+                if full_path in seen_full_paths:
+                    pytest.fail(f"Duplicate key at path '{full_path}'")
+                seen_full_paths.add(full_path)
+
+                # Push current key onto stack for potential children
+                path_stack.append((indent, key))
     
     def test_consistent_indentation(self):
         """
