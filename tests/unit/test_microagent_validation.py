@@ -18,7 +18,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
-import yaml
+
+yaml = pytest.importorskip("yaml")
 
 
 class TestMicroagentValidation:
