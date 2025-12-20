@@ -300,22 +300,31 @@ class TestWorkflowSecurityConsistency:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
         return
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
-        
+
+        injection_risks = []
+
         for wf_file in workflow_files:
             with open(wf_file, 'r') as f:
                 content = f.read()
-            
+
             # Look for potentially dangerous patterns
             dangerous = [
                 r'\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|',
                 r'\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|',
                 r'\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(',
             ]
-            
+
             for pattern in dangerous:
                 matches = re.findall(pattern, content)
                 if matches:
-                    pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
+                    injection_risks.append(f"{wf_file}: {matches}")
+
+assert not injection_risks, (
+    f"Potential PR injection risks found in workflow files:\n"
+    f"{chr(10).join(injection_risks)}\n"
+    f"These patterns may allow arbitrary code execution via PR titles/bodies.\n"
+    f"Consider using environment variables or validated inputs instead."
+)
     
     def test_workflows_use_appropriate_checkout_refs(self):
         """
