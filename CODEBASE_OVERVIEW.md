@@ -25,9 +25,9 @@ This document summarizes the repository's architecture, conventions, and recurri
 ## Domain Model & Relationship Patterns
 - **Domain Model** (authoritative definitions live in `src/models/financial_models.py`):
   - Assets are categorized by the `AssetClass` enum (e.g., equity, fixed income, commodity, currency, derivative).
-  - The base `Asset` dataclass includes required identity fields (e.g., symbol/id/name) and is validated according to the rules implemented in the model layer.
+  - The base `Asset` dataclass defines the required identity fields (see the dataclass for the exact names) and is validated according to the rules implemented in the model layer.
   - Specialized classes (e.g., Equity, Bond, Commodity, Currency) extend the base asset with type-specific fields.
-  - Regulatory events include an `impact_score` and date/description fields; constraints and validation behavior should be kept in sync with the model implementation and its tests.
+  - Regulatory events include a scored impact field plus date/description fields (see the model for exact naming); constraints and validation behavior should be kept in sync with the model implementation and its tests.
 - Relationship discovery emphasizes both **bidirectional** (e.g., same sector) and **directional** (e.g., corporate bond → equity) links with deterministic 3D layouts using fixed seeds so visual output remains stable.
 - Visualization inputs are normalized: graph nodes/edges are colored by asset class, node sizes scale by importance, and metrics include relationship density and top relationships.
 - Rate limiting: SlowAPI applies declarative limits (e.g., `/token` is limited to 60 requests/minute by default, configurable via environment variables) and integrates with FastAPI exception handlers.
