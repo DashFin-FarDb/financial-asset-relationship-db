@@ -1514,13 +1514,11 @@ describe('Advanced Mock Data Validation - Additional Coverage', () => {
 
   describe('Asset Class Distribution', () => {
     it('should have at least one asset in each major class', () => {
-      const majorClasses = ['Equity', 'Bond', 'Commodity', 'Currency'];
+      const majorClasses = ['EQUITY', 'FIXED_INCOME', 'COMMODITY', 'CURRENCY'];
       const assetClasses = new Set(mockAssets.map(a => a.asset_class));
       
       majorClasses.forEach(majorClass => {
-        const hasClass = Array.from(assetClasses).some(
-          ac => ac.includes(majorClass)
-        );
+        const hasClass = assetClasses.has(majorClass);
         expect(hasClass).toBe(true);
       });
     });
