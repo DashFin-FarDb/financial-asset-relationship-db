@@ -30,7 +30,7 @@ This document summarizes the repository's architecture, conventions, and recurri
   - Regulatory events carry an `impact_score` in [-1, 1] with ISO-8601 dates and non-empty descriptions.
 - Relationship discovery emphasizes both **bidirectional** (e.g., same sector) and **directional** (e.g., corporate bond → equity) links with deterministic 3D layouts using fixed seeds so visual output remains stable.
 - Visualization inputs are normalized: graph nodes/edges are colored by asset class, node sizes scale by importance, and metrics include relationship density and top relationships.
-
+- Rate limiting: SlowAPI applies declarative limits (e.g., `/token` is limited to 60 requests/minute by default, configurable via environment variables) and integrates with FastAPI exception handlers.
 ## Backend Service Conventions
 - Graph lifecycle: global graph instance is initialized lazily and guarded by a threading lock; `set_graph_factory` enables test overrides. Real-data mode is toggled via environment flags (`USE_REAL_DATA_FETCHER`, cache path variables), falling back to sample data when disabled.
 - Authentication: `/token` issues JWTs using username/password credentials. Access tokens expire after 30 minutes and can be renewed using refresh tokens to maintain user sessions. All protected routes depend on a valid access token.
