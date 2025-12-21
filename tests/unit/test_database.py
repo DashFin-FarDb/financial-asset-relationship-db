@@ -503,14 +503,13 @@ class TestConnectionManagementEnhancements:
     def test_connect_sets_row_factory(self, mock_connect, mock_is_memory):
         """Test that connections have row_factory set."""
         mock_is_memory.return_value = False
-        mock_connection = Mock()
+        mock_connection = Mock(spec=sqlite3.Connection)
         mock_connect.return_value = mock_connection
 
         with patch("api.database.DATABASE_PATH", "/test.db"):
-            conn = _connect()
+            _connect()
 
-        # Verify row_factory was set
-        assert hasattr(mock_connection, "row_factory")
+        assert mock_connection.row_factory is sqlite3.Row
 
     @patch("api.database._is_memory_db")
     @patch("api.database.sqlite3.connect")
