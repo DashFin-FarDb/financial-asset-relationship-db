@@ -52,7 +52,15 @@ This document summarizes the repository's architecture, conventions, and recurri
 - Prioritize readability, minimal complexity, and responsive UI designs. Provide user feedback through UI affordances (e.g., toasts) where applicable.
 
 ## Testing & Quality Checks
-- **Backend**: `pytest` for unit/integration tests; run `pytest --cov=api --cov=src --cov-report=html` for coverage. Targeted API tests live in `tests/unit/test_api_main.py` and validate CORS, graph singleton behavior, pydantic models, endpoints, and error handling.
+- **Backend**:
+  - Run unit/integration tests with `pytest`.
+  - Generate a coverage report with `pytest --cov=api --cov=src --cov-report=html`.
+  - Key API tests are in `tests/unit/test_api_main.py` and validate:
+    - CORS
+    - Graph singleton behavior
+    - Pydantic models
+    - API endpoints
+    - Error handling
 - **Frontend**: From `frontend/`, run `npm test` (or `npm test -- --coverage`) after `npm install`. Jest setup lives in `jest.config.js` and `jest.setup.js`.
 - **Makefile** shortcuts exist for installing dev dependencies, linting, and running checks; pre-commit hooks enforce formatting (black, isort) and linting (flake8, pylint) when enabled.
 
