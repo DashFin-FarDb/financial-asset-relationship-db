@@ -55,7 +55,7 @@ This document summarizes the repository's architecture, conventions, and recurri
 - **Backend**:
   - Run unit/integration tests with `pytest`.
   - Generate a coverage report with `pytest --cov=api --cov=src --cov-report=html`.
-  - Key API tests are in `tests/unit/test_api_main.py` and validate:
+  - Key API tests live under `tests/` (commonly `tests/unit/`) and validate (examples):
     - CORS
     - Graph singleton behavior
     - Pydantic models
