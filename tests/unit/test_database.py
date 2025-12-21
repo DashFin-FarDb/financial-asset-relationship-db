@@ -631,11 +631,9 @@ class TestFetchOperationsEnhancements:
 class TestDatabaseErrorHandling:
     """Test error handling in database operations."""
 
-    @patch("api.database.get_connection")
-    def test_execute_propagates_sqlite_errors(self, mock_get_conn):
-        """Test that SQLite errors are propagated."""
-        mock_conn = Mock()
-        mock_cursor = Mock()
+                mock_conn = Mock()
+                mock_conn.execute.side_effect = sqlite3.Error("SQL error")
+                mock_get_conn.return_value.__enter__.return_value = mock_conn
         mock_cursor.execute.side_effect = sqlite3.Error("SQL error")
         mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
         mock_get_conn.return_value.__enter__.return_value = mock_conn
