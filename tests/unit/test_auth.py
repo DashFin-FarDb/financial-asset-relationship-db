@@ -556,6 +556,8 @@ class TestGetCurrentUser:
 
         # Create an expired token
         token = create_access_token({"sub": "testuser"}, expires_delta=timedelta(seconds=-1))  # Already expired
+
+
 def test_get_current_user_missing_username(self):
     """Test get_current_user with token missing username claim."""
     from fastapi import HTTPException
