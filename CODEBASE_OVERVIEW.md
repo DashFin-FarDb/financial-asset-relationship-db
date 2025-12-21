@@ -23,11 +23,11 @@ This document summarizes the repository's architecture, conventions, and recurri
 - **`tests/`**: Pytest suite covering API behaviors, graph initialization, response models, and integration flows; frontend tests live under `frontend/__tests__`.
 
 ## Domain Model & Relationship Patterns
-- **Domain Model**:
-  - Assets belong to the `AssetClass` enum (equity, fixed income, commodity, currency, derivative).
-  - The base `Asset` dataclass enforces symbol/id/name presence, non-negative pricing and market cap, and ISO currency codes.
-  - Specialized classes (Equity, Bond, Commodity, Currency) add type-specific fields.
-  - Regulatory events carry an `impact_score` in [-1, 1] with ISO-8601 dates and non-empty descriptions.
+- **Domain Model** (authoritative definitions live in `src/models/financial_models.py`):
+  - Assets are categorized by the `AssetClass` enum (e.g., equity, fixed income, commodity, currency, derivative).
+  - The base `Asset` dataclass includes required identity fields (e.g., symbol/id/name) and is validated according to the rules implemented in the model layer.
+  - Specialized classes (e.g., Equity, Bond, Commodity, Currency) extend the base asset with type-specific fields.
+  - Regulatory events include an `impact_score` and date/description fields; constraints and validation behavior should be kept in sync with the model implementation and its tests.
 - Relationship discovery emphasizes both **bidirectional** (e.g., same sector) and **directional** (e.g., corporate bond → equity) links with deterministic 3D layouts using fixed seeds so visual output remains stable.
 - Visualization inputs are normalized: graph nodes/edges are colored by asset class, node sizes scale by importance, and metrics include relationship density and top relationships.
 - Rate limiting: SlowAPI applies declarative limits (e.g., `/token` is limited to 60 requests/minute by default, configurable via environment variables) and integrates with FastAPI exception handlers.
