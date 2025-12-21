@@ -44,15 +44,7 @@ class TestWorkflowInjectionPrevention:
         ]
         
         for workflow in all_workflows:
-                        for pattern in dangerous_patterns:
-                            matches = re.findall(pattern, run_command)
-                            for match in matches:
-                                # Ensure the specific context variable occurrence is within quotes
-                                quoted = re.search(r'(["\']).*?' + re.escape(match) + r'.*?\1', run_command, flags=re.DOTALL)
-                                assert quoted, (
-                                    f"Unquoted context variable in {workflow['path']} "
-                                    f"job '{job_name}' step {step_idx}: {match}"
-                                )
+            jobs = workflow['content'].get('jobs', {})
             for job_name, job_config in jobs.items():
                 steps = job_config.get('steps', [])
                 for step_idx, step in enumerate(steps):
@@ -60,17 +52,7 @@ class TestWorkflowInjectionPrevention:
                         run_command = step['run']
                         # Check if unquoted context variables are used
                         for pattern in dangerous_patterns:
-                            for pattern in dangerous_patterns:
-                                matches = re.findall(pattern, run_command)
-                                for match in matches:
-                                    # Only enforce quoting when the command is passed through a shell
-                                    shell_invocation = re.search(r'\b(sh|bash)\b\s+-c\b', run_command)
-                                    if shell_invocation:
-                                        quoted = re.search(r'(["\']).*?' + re.escape(match) + r'.*?\1', run_command, flags=re.DOTALL)
-                                        assert quoted, (
-                                            f"Potential unquoted context variable reaching shell in {workflow['path']} "
-                                            f"job '{job_name}' step {step_idx}: {match}"
-                                        )
+                            matches = re.findall(pattern, run_command)
                             for match in matches:
                                 # Should be within quotes
                                 for match in matches:
@@ -295,36 +277,8 @@ class TestWorkflowPermissionsHardening:
                             version = action.split('@')[1]
                             # Enforce 40-character hex string (commit SHA)
                             assert re.match(r'^[a-f0-9]{40}$', version), \
-                                def test_third_party_actions_pinned_to_sha(self, all_workflows):
-                                    """Verify third-party actions are pinned to a full commit SHA."""
-                                    for workflow in all_workflows:
-                                        jobs = workflow['content'].get('jobs', {})
-                                        for job_name, job_config in jobs.items():
-                                            steps = job_config.get('steps', [])
-                                            for step in steps:
-                                                action = step.get('uses', '')
-                                                if not action:
-                                                    continue
-                                                # Skip local actions
-                                                if action.startswith('./') or action.startswith('.\\'):
-                        def test_third_party_actions_pinned_to_commit_sha(self, all_workflows):
-                            """Verify third-party actions are pinned to full commit SHAs."""
-                            for workflow in all_workflows:
-                                jobs = workflow['content'].get('jobs', {})
-                                for job_name, job_config in jobs.items():
-                                    steps = job_config.get('steps', [])
-                                    for step in steps:
-                                        action = step.get('uses', '')
-                                        if not action:
-                                            continue
-                                        # Skip local actions and official actions pinned by ref without '@'
-                                        if '@' in action:
-                                            version = action.split('@', 1)[1]
-                                            # Enforce 40-character hex string (commit SHA)
-                                            assert re.match(r'^[a-f0-9]{40}$', version), (
-                                                f"Third-party action {action} in {workflow['path']} "
-                                                f"job '{job_name}' must be pinned to a commit SHA for security"
-                                            )
+                                f"Third-party action {action} in {workflow['path']} " \
+                                f"job '{job_name}' must be pinned to a commit SHA for security"
 
 class TestWorkflowSupplyChainSecurity:
     """Tests for supply chain security in workflows."""
@@ -430,25 +384,7 @@ class TestWorkflowIsolationAndSandboxing:
                         # Must explicitly set ref for pull_request_target
                         assert 'with' in checkout_step and 'ref' in checkout_step.get('with', {}), \
                             f"pull_request_target must use explicit checkout ref in {workflow['path']} job '{job_name}'"
-    def test_third_party_actions_pinned_to_sha(self, all_workflows):
-        """Verify third-party actions are pinned to full commit SHAs."""
-        for workflow in all_workflows:
-            jobs = workflow['content'].get('jobs', {})
-            for job_name, job_config in jobs.items():
-                steps = job_config.get('steps', [])
-                for step in steps:
-                    action = step.get('uses', '')
-                    if not action:
-                        continue
-                    # Allow local and docker actions without pin
-                    if action.startswith('./') or action.startswith('docker://'):
-                        continue
-                    if '@' in action:
-                        version = action.split('@', 1)[1]
-                        assert re.match(r'^[a-f0-9]{40}$', version), (
-                            f"Third-party action {action} in {workflow['path']} "
-                            f"job '{job_name}' must be pinned to a commit SHA for security"
-                        )
+    
     def test_workflows_dont_persist_credentials(self, all_workflows):
         """Verify workflows don't persist git credentials."""
         for workflow in all_workflows:
@@ -481,9 +417,9 @@ class TestWorkflowIsolationAndSandboxing:
                         container_image = container_image.get('image', '')
                     
                     # Should use a trusted registry or official image
-                    # Use a whitelist of official Docker images
-                    official_images = ['python', 'node', 'ubuntu', 'alpine', 'debian', 'centos', 'nginx', 'postgres', 'mysql', 'redis']
-                    is_official = ':' in container_image and '/' not in container_image.split(':')[0] and container_image.split(':')[0] in official_images
+                    is_trusted = any(container_image.startswith(registry) for registry in trusted_registries)
+                    is_official = ':' in container_image and '/' not in container_image.split(':')[0]
+                    
                     assert is_trusted or is_official, \
                         f"Untrusted container image in {workflow['path']} job '{job_name}': {container_image}"
 

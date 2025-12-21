@@ -8,13 +8,8 @@ duplicate keys, invalid syntax, and missing required fields.
 
 import pytest
 from pathlib import Path
-from typing import Any, Dict, List
-
-# Skip this module if PyYAML is not installed
-yaml = pytest.importorskip("yaml")
-
-# Define workflows directory path used across tests
-WORKFLOWS_DIR = Path(".github") / "workflows"
+from typing import Any, Dict, List, Set
+import re
 
 # Path to workflows directory
 def test_pr_agent_has_trigger_job():
@@ -123,11 +118,10 @@ class TestWorkflowSyntax:
     def test_workflow_valid_yaml_syntax(self, workflow_file: Path):
         """Test that workflow files contain valid YAML syntax."""
         try:
-            load_yaml_safe(workflow_file)
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                yaml.safe_load(f)
         except yaml.YAMLError as e:
-            pytest.fail(
-                f"Workflow {workflow_file.name} contains invalid YAML syntax: {e}"
-            )
+            pytest.fail(f"Invalid YAML syntax in {workflow_file.name}: {e}")
     
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_duplicate_keys(self, workflow_file: Path):
