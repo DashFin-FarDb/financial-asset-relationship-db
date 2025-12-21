@@ -14,10 +14,24 @@ from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
-# Add the scripts directory to the path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "scripts"))
+import importlib
+import sys
+from pathlib import Path
+from unittest.mock import Mock, mock_open, patch
 
-from context_chunker import ContextChunker
+import pytest
+
+
+@pytest.fixture()
+def context_chunker_module(monkeypatch):
+    scripts_dir = Path(__file__).parent.parent.parent / ".github" / "scripts"
+    monkeypatch.syspath_prepend(str(scripts_dir))
+    return importlib.import_module("context_chunker")
+
+
+@pytest.fixture()
+def ContextChunker(context_chunker_module):
+    return context_chunker_module.ContextChunker
 
 
 @pytest.mark.unit
