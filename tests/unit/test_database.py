@@ -631,11 +631,10 @@ class TestFetchOperationsEnhancements:
 class TestDatabaseErrorHandling:
     """Test error handling in database operations."""
 
-                mock_conn = Mock()
-                mock_conn.execute.side_effect = sqlite3.Error("SQL error")
-                mock_get_conn.return_value.__enter__.return_value = mock_conn
-        mock_cursor.execute.side_effect = sqlite3.Error("SQL error")
-        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+    @patch("api.database.get_connection")
+    def test_execute_propagates_errors(self, mock_get_conn):
+        mock_conn = Mock()
+        mock_conn.execute.side_effect = sqlite3.Error("SQL error")
         mock_get_conn.return_value.__enter__.return_value = mock_conn
 
         with pytest.raises(sqlite3.Error):
