@@ -86,19 +86,50 @@ class TestWorkflowConsistency:
                         if action_name not in action_versions:
                             action_versions[action_name] = {}
                         if action_version not in action_versions[action_name]:
-                            action_versions[action_name][action_version] = []
-                        action_versions[action_name][action_version].append(wf_file)
+        # Check for inconsistencies (single, consolidated implementation)
+        inconsistencies: List[str] = []
+    def test_all_workflows_use_consistent_action_versions(self, all_workflows):
+        """Verify same actions use consistent versions across workflows."""
+        action_versions = {}
         
-        # Check for inconsistencies
+        for wf_file, workflow in all_workflows.items():
+            for job_name, job in workflow.get('jobs', {}).items():
+                for step in job.get('steps', []):
+    def test_all_workflows_use_consistent_action_versions(self, all_workflows):
+        """
+        Assert that actions referenced across workflows use a single version.
+
+        Scans each workflow's jobs and steps to collect action usages and their referenced versions and fails if any
+        action (except actions/checkout) is used with multiple versions across workflows.
+        """
+        action_versions: Dict[str, Dict[str, Set[str]]] = {}
+
+        for wf_file, workflow in all_workflows.items():
+            for job in workflow.get("jobs", {}).values():
+                for step in job.get("steps", []):
+                    uses = step.get("uses", "")
+                    if not uses or "@" not in uses:
+                        continue
+
+                    action_name, action_version = uses.split("@", 1)
+                    action_versions.setdefault(action_name, {}).setdefault(action_version, set()).add(wf_file)
+
+        inconsistencies: List[str] = []
         for action, versions in action_versions.items():
-            if len(versions) > 1:
-                # Allow v4 and v5 for actions/checkout (common upgrade path)
-                if 'actions/checkout' in action:
-                    continue
-                # Warn if same action uses different versions
-                print(f"Warning: {action} uses multiple versions: {list(versions.keys())}")
-    
-    def test_all_workflows_use_github_token_consistently(self, all_workflows):
+            if len(versions) <= 1:
+                continue
+
+            # Allow mixed versions for actions/checkout (e.g., v4 and v5)
+            if action == "actions/checkout":
+                continue
+
+            version_list = sorted(versions.keys())
+            inconsistencies.append(f"{action} uses multiple versions: {version_list}")
+            for version in version_list:
+                files = sorted(versions[version])
+                inconsistencies.append(f"  - {action}@{version} used in: {files}")
+
+        assert not inconsistencies, "Inconsistent action versions found:\n" + "\n".join(inconsistencies)
         """
         Check that workflows use the approved GITHUB_TOKEN syntax.
         
@@ -206,8 +237,9 @@ class TestRemovedFilesIntegration:
                 content = f.read()
             
             for removed in removed_files:
-                assert removed not in content, \
-                    f"{wf_file} references removed file {removed}"
+                for line in lines:
+                    if removed in line and not line.strip().startswith('#'):
+                        pytest.fail(f"{wf_file} references removed file {removed}")
     
     def test_label_workflow_doesnt_need_labeler_config(self):
         """
@@ -229,7 +261,8 @@ class TestRemovedFilesIntegration:
         
         # Should not require config-path or similar
         with_config = labeler_step.get('with', {})
-        assert 'config-path' not in with_config or with_config.get('config-path') == '.github/labeler.yml'
+        assert 'config-path' not in with_config, \
+            "Label workflow should not depend on a config-path like .github/labeler.yml, which has been removed"
     
     def test_pr_agent_workflow_self_contained(self):
         """Verify PR agent workflow doesn't depend on removed components."""
@@ -282,7 +315,7 @@ class TestWorkflowSecurityConsistency:
             for pattern in dangerous:
                 matches = re.findall(pattern, content)
                 if matches:
-                    print(f"Potential injection risk in {wf_file}: {matches}")
+                    pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
     
     def test_workflows_use_appropriate_checkout_refs(self):
         """
