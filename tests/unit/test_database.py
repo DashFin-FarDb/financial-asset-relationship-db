@@ -535,37 +535,32 @@ class TestExecuteFunctionEnhancements:
     def test_execute_with_empty_parameters(self, mock_get_conn):
         """Test execute with empty parameter tuple."""
         mock_conn = Mock()
-        mock_cursor = Mock()
-        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
         mock_get_conn.return_value.__enter__.return_value = mock_conn
 
         execute("SELECT 1", ())
 
-        mock_cursor.execute.assert_called_once()
+        mock_conn.execute.assert_called_once_with("SELECT 1", ())
 
     @patch("api.database.get_connection")
     def test_execute_handles_commit(self, mock_get_conn):
         """Test that execute commits changes."""
         mock_conn = Mock()
-        mock_cursor = Mock()
-        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
         mock_get_conn.return_value.__enter__.return_value = mock_conn
 
         execute("INSERT INTO test VALUES (?)", (1,))
 
+        mock_conn.execute.assert_called_once_with("INSERT INTO test VALUES (?)", (1,))
         mock_conn.commit.assert_called_once()
 
     @patch("api.database.get_connection")
     def test_execute_with_list_parameters(self, mock_get_conn):
         """Test execute accepts list parameters."""
         mock_conn = Mock()
-        mock_cursor = Mock()
-        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
         mock_get_conn.return_value.__enter__.return_value = mock_conn
 
         execute("INSERT INTO test VALUES (?, ?)", [1, 2])
 
-        mock_cursor.execute.assert_called_once()
+        mock_conn.execute.assert_called_once_with("INSERT INTO test VALUES (?, ?)", [1, 2])
 
 
 @pytest.mark.unit
