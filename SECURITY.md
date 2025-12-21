@@ -202,22 +202,22 @@ class RateLimiter:
         self.requests_per_minute = requests_per_minute
         self.requests = defaultdict(list)
         self.lock = Lock()
-    
+
     def is_allowed(self, client_id: str) -> bool:
         with self.lock:
             now = time.time()
             minute_ago = now - 60
-            
+
             # Clean old requests
             self.requests[client_id] = [
                 req_time for req_time in self.requests[client_id]
                 if req_time > minute_ago
             ]
-            
+
             # Check limit
             if len(self.requests[client_id]) >= self.requests_per_minute:
                 return False
-            
+
             # Add current request
             self.requests[client_id].append(now)
             return True

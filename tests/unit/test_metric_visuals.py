@@ -8,11 +8,11 @@ This module contains comprehensive unit tests for the metric_visuals module incl
 - Edge cases and error handling
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import MagicMock
 
 import plotly.graph_objects as go
+import pytest
 
 from src.visualizations.metric_visuals import visualize_metrics
 
@@ -72,8 +72,8 @@ class TestVisualizeMetrics:
 
         # Verify colors are applied
         bar_trace = fig1.data[0]
-        assert hasattr(bar_trace, 'marker'), "Bar trace should have marker"
-        assert hasattr(bar_trace.marker, 'color'), "Marker should have color"
+        assert hasattr(bar_trace, "marker"), "Bar trace should have marker"
+        assert hasattr(bar_trace.marker, "color"), "Marker should have color"
 
         # Check color consistency with base colors
         base_colors = ["blue", "green", "orange", "red", "purple"]
@@ -99,7 +99,7 @@ class TestVisualizeMetrics:
 
     def test_regulatory_events_timeline_sorting(self, populated_graph):
         """Test that regulatory events are sorted by date."""
-        from src.models.financial_models import RegulatoryEvent, RegulatoryActivity
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
 
         # Add multiple events with different dates
         event1 = RegulatoryEvent(
@@ -109,7 +109,7 @@ class TestVisualizeMetrics:
             date="2024-01-15",
             description="Q4 2023 Earnings",
             impact_score=0.8,
-            related_assets=[]
+            related_assets=[],
         )
         event2 = RegulatoryEvent(
             id="EVENT_002",
@@ -118,7 +118,7 @@ class TestVisualizeMetrics:
             date="2024-02-20",
             description="Annual Filing",
             impact_score=-0.3,
-            related_assets=[]
+            related_assets=[],
         )
         event3 = RegulatoryEvent(
             id="EVENT_003",
@@ -127,7 +127,7 @@ class TestVisualizeMetrics:
             date="2024-01-10",
             description="Compliance Update",
             impact_score=0.5,
-            related_assets=[]
+            related_assets=[],
         )
 
         populated_graph.add_regulatory_event(event1)
@@ -149,7 +149,7 @@ class TestVisualizeMetrics:
 
     def test_regulatory_events_impact_colors(self, populated_graph):
         """Test that regulatory events use correct colors based on impact."""
-        from src.models.financial_models import RegulatoryEvent, RegulatoryActivity
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
 
         # Add events with positive and negative impacts
         positive_event = RegulatoryEvent(
@@ -159,7 +159,7 @@ class TestVisualizeMetrics:
             date="2024-01-15",
             description="Positive Event",
             impact_score=0.8,
-            related_assets=[]
+            related_assets=[],
         )
         negative_event = RegulatoryEvent(
             id="NEG_EVENT",
@@ -168,7 +168,7 @@ class TestVisualizeMetrics:
             date="2024-01-20",
             description="Negative Event",
             impact_score=-0.5,
-            related_assets=[]
+            related_assets=[],
         )
 
         populated_graph.add_regulatory_event(positive_event)
@@ -217,7 +217,7 @@ class TestVisualizeMetrics:
     def test_multiple_asset_classes_distribution(self, populated_graph):
         """Test asset class distribution with multiple classes."""
         # The populated_graph already has multiple asset classes
-        
+
         # Execute
         fig1, _, _ = visualize_metrics(populated_graph)
 
@@ -230,7 +230,7 @@ class TestVisualizeMetrics:
 
     def test_regulatory_events_with_zero_impact(self, empty_graph, sample_equity):
         """Test regulatory events with zero impact score."""
-        from src.models.financial_models import RegulatoryEvent, RegulatoryActivity
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
 
         empty_graph.add_asset(sample_equity)
 
@@ -241,7 +241,7 @@ class TestVisualizeMetrics:
             date="2024-01-15",
             description="Neutral Event",
             impact_score=0.0,
-            related_assets=[]
+            related_assets=[],
         )
 
         empty_graph.add_regulatory_event(zero_event)
@@ -277,8 +277,8 @@ class TestVisualizeMetrics:
 
         # Verify bar chart properties for fig1
         assert fig1.data[0].type == "bar"
-        assert hasattr(fig1.data[0], 'x'), "Bar chart should have x data"
-        assert hasattr(fig1.data[0], 'y'), "Bar chart should have y data"
+        assert hasattr(fig1.data[0], "x"), "Bar chart should have x data"
+        assert hasattr(fig1.data[0], "y"), "Bar chart should have y data"
 
         # Verify bar chart properties for fig2
         assert fig2.data[0].type == "bar"
@@ -287,11 +287,11 @@ class TestVisualizeMetrics:
         # Verify bar chart properties for fig3
         if len(fig3.data) > 0:
             assert fig3.data[0].type == "bar"
-            assert hasattr(fig3.data[0], 'name'), "Bar chart should have a name"
+            assert hasattr(fig3.data[0], "name"), "Bar chart should have a name"
 
     def test_large_number_of_events(self, empty_graph, sample_equity):
         """Test handling of many regulatory events."""
-        from src.models.financial_models import RegulatoryEvent, RegulatoryActivity
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
 
         empty_graph.add_asset(sample_equity)
 
@@ -304,7 +304,7 @@ class TestVisualizeMetrics:
                 date=f"2024-01-{(i % 28) + 1:02d}",
                 description=f"Event {i}",
                 impact_score=(i % 10) / 10.0 - 0.5,
-                related_assets=[]
+                related_assets=[],
             )
             empty_graph.add_regulatory_event(event)
 

@@ -21,7 +21,7 @@ try:
     data = fetch_data()
 except Exception as e:
     logger.error(f"Error: {e}")
-    
+
 # Use specific exceptions:
 try:
     data = fetch_data()
@@ -67,12 +67,12 @@ class Config:
     # Visualization
     RANDOM_SEED = 42
     LINE_LENGTH = 120
-    
+
     # Relationship strengths
     SAME_SECTOR_STRENGTH = 0.7
     CURRENCY_EXPOSURE_STRENGTH = 0.8
     CORPORATE_BOND_STRENGTH = 0.9
-    
+
     # Server
     GRADIO_PORT = 7860
     GRADIO_HOST = "0.0.0.0"
@@ -93,7 +93,7 @@ from datetime import datetime
 class StructuredLogger:
     def __init__(self, name: str):
         self.logger = logging.getLogger(name)
-        
+
     def log_event(self, level: str, event: str, **kwargs):
         log_data = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -289,10 +289,10 @@ API_KEY = os.getenv('API_KEY')
 class AssetRepository:
     def get_by_id(self, asset_id: str) -> Optional[Asset]:
         pass
-    
+
     def get_all(self) -> List[Asset]:
         pass
-    
+
     def save(self, asset: Asset) -> None:
         pass
 ```
@@ -307,7 +307,7 @@ class AssetRepository:
 class AssetService:
     def __init__(self, repository: AssetRepository):
         self.repository = repository
-    
+
     def calculate_portfolio_risk(self, assets: List[Asset]) -> float:
         # Business logic here
         pass

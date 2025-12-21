@@ -11,7 +11,6 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-
 Base = declarative_base()
 
 
@@ -20,7 +19,6 @@ if not DEFAULT_DATABASE_URL:
     # In a serverless environment like Vercel, we must rely on environment variables for external DBs.
     # If running locally and testing SQLite, this needs to be handled differently, but for deployment, we enforce configuration.
     raise EnvironmentError("ASSET_GRAPH_DATABASE_URL environment variable must be set for database connection.")
-
 
 
 def create_engine_from_url(url: Optional[str] = None) -> Engine:

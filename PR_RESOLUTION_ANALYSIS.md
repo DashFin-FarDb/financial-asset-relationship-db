@@ -6,7 +6,7 @@ Total Open PRs: 43
 
 ## Successfully Merged PRs
 - **PR #239**: Align pr-agent workflow tests with trigger job key - ✅ MERGED
-- **PR #254**: Fix pr-agent workflow parsing and dev requirements formatting - ✅ MERGED  
+- **PR #254**: Fix pr-agent workflow parsing and dev requirements formatting - ✅ MERGED
 - **PR #322**: Remove duplicated empty test causing IndentationError - ✅ MERGED
 
 ## PRs with Unrelated Histories (Cannot be merged)

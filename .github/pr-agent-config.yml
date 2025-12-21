@@ -5,20 +5,20 @@ agent:
   name: "Financial DB PR Agent"
   version: "1.1.0"
   enabled: true
-  
+
   # Context length management
   context:
     max_tokens: 32000  # Maximum context length before chunking
     chunk_size: 28000  # Size of each chunk (leave room for system prompts)
     overlap_tokens: 2000  # Overlap between chunks for continuity
     summarization_threshold: 30000  # Start summarizing at this token count
-    
+
     # Chunking strategy
     chunking:
       enabled: true
       strategy: "smart"  # Options: smart, sequential, priority
       preserve_structure: true  # Maintain code structure across chunks
-      
+
     # Summarization settings
     summarization:
       enabled: true
@@ -34,13 +34,13 @@ agent:
         - "function_signatures"
         - "error_messages"
         - "reviewer_names"
-  
+
 # Monitoring settings
 monitoring:
   check_interval: 1800  # 30 minutes in seconds
   max_retries: 3
   timeout: 300  # 5 minutes
-  
+
 # Comment parsing configuration
 comment_parsing:
   triggers:
@@ -50,13 +50,13 @@ comment_parsing:
     - "address review"
     - "update tests"
     - "check ci"
-  
+
   ignore_patterns:
     - "<!-- "
     - "```"
     - "http://"
     - "https://"
-  
+
   priority_keywords:
     high:
       - "breaking"
@@ -81,7 +81,7 @@ actions:
   auto_test: true
   auto_commit: true
   auto_request_review: true
-  
+
   # Safety limits
   max_changes_per_pr: 10
   max_files_per_commit: 5
@@ -103,14 +103,14 @@ quality:
     type_checker: "mypy"
     test_runner: "pytest"
     min_coverage: 80
-    
+
   typescript:
     linter: "eslint"
     formatter: "prettier"
     type_checker: "tsc"
     test_runner: "jest"
     min_coverage: 75
-    
+
   general:
     max_line_length: 88
     require_tests: true
@@ -123,7 +123,7 @@ git:
   commit_style: "conventional"
   squash_commits: false
   auto_rebase: true
-  
+
   commit_templates:
     fix: "fix: {description}"
     feat: "feat: {description}"
@@ -137,14 +137,14 @@ ci:
   wait_for_checks: true
   retry_failed_checks: true
   max_check_retries: 2
-  
+
   required_checks:
     - "frontend-lint"
-    - "frontend-build" 
+    - "frontend-build"
     - "python-lint"
     - "python-test"
     - "ci/circleci"
-  
+
   optional_checks:
     - "netlify"
     - "vercel"
@@ -155,33 +155,33 @@ notifications:
   slack_webhook: null  # Configure if needed
   email_alerts: false
   github_comments: true
-  
+
   templates:
     acknowledgment: |
       👋 Thanks for the review! I'm analyzing the feedback and will implement the requested changes.
-      
+
       **Action Items Identified:**
       {action_items}
-      
+
       I'll update this PR shortly with the changes and request a re-review.
-    
+
     completion: |
       ✅ **Changes Implemented**
-      
+
       I've addressed the review feedback with the following changes:
       {changes_summary}
-      
+
       **Files Modified:**
       {modified_files}
-      
+
       Please re-review when convenient. All CI checks should pass shortly.
-    
+
     error: |
       ⚠️ **Issue Encountered**
-      
+
       I encountered an issue while implementing the requested changes:
       {error_message}
-      
+
       This may require human intervention. Please review and assist.
 
 # Learning and improvement
@@ -189,7 +189,7 @@ learning:
   track_success_rate: true
   save_failed_attempts: true
   analyze_patterns: true
-  
+
   feedback_sources:
     - reviewer_comments
     - ci_results
@@ -210,14 +210,14 @@ security:
     - "**/*.yml"
     - "**/*.yaml"
     - "**/*.json"
-  
+
   forbidden_patterns:
     - "**/*.env"
     - "**/secrets/**"
     - "**/private/**"
     - "**/*.key"
     - "**/*.pem"
-  
+
   require_human_approval:
     - security_related: true
     - breaking_changes: true
@@ -230,18 +230,18 @@ repository:
   primary_language: "python"
   framework: "fastapi"
   frontend_framework: "nextjs"
-  
+
   key_files:
     - "main.py"
     - "api/main.py"
     - "src/logic/asset_graph.py"
     - "src/data/database.py"
     - "frontend/app/page.tsx"
-  
+
   test_directories:
     - "tests/"
     - "frontend/__tests__/"
-  
+
   documentation:
     - "README.md"
     - "ARCHITECTURE.md"
@@ -253,12 +253,12 @@ limits:
   max_memory_usage: "1GB"
   max_concurrent_prs: 5
   rate_limit_requests: 100  # per hour
-  
+
   # Context processing limits
   max_files_per_chunk: 10
   max_diff_lines: 5000  # Maximum diff lines before chunking
   max_comment_length: 10000  # Maximum comment length to process
-  
+
   # Fallback strategies when context exceeds limits
   fallback:
     on_context_overflow: "chunk_and_summarize"  # Options: chunk_and_summarize, summarize_only, prioritize, fail
@@ -268,7 +268,7 @@ limits:
       - "changed_files"    # Include actual code changes
       - "ci_logs"          # Include CI logs (summarized)
       - "full_diff"        # Full diff (lowest priority)
-  
+
 # Debugging and logging
 debug:
   enabled: false

@@ -226,7 +226,7 @@ vercel --prod
 - **Total**: ~$10-50/month
 
 #### Next.js UI
-- **Hosting**: 
+- **Hosting**:
   - Vercel: Free tier available, $20+/month for teams
   - Backend: $0-10/month (serverless)
 - **Scaling**: Automatic, pay per use

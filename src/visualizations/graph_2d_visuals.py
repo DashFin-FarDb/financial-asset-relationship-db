@@ -9,6 +9,7 @@ import math
 from typing import Dict, List, Tuple
 
 import plotly.graph_objects as go
+
 from src.logic.asset_graph import AssetRelationshipGraph
 
 logger = logging.getLogger(__name__)
@@ -74,8 +75,7 @@ def _create_grid_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
 
 
 def _create_spring_layout_2d(
-    positions_3d: Dict[str, Tuple[float, float, float]],
-    asset_ids: List[str]
+    positions_3d: Dict[str, Tuple[float, float, float]], asset_ids: List[str]
 ) -> Dict[str, Tuple[float, float]]:
     """Convert 3D spring layout positions to 2D by dropping z-coordinate.
 
@@ -94,7 +94,7 @@ def _create_spring_layout_2d(
         if asset_id in positions_3d:
             pos_3d = positions_3d[asset_id]
             # Handle both tuple and array-like positions
-            if hasattr(pos_3d, '__getitem__'):
+            if hasattr(pos_3d, "__getitem__"):
                 positions_2d[asset_id] = (float(pos_3d[0]), float(pos_3d[1]))
 
     return positions_2d
@@ -172,11 +172,7 @@ def _create_2d_relationship_traces(
             if rel_type not in relationship_groups:
                 relationship_groups[rel_type] = []
 
-            relationship_groups[rel_type].append({
-                'source_id': source_id,
-                'target_id': target_id,
-                'strength': strength
-            })
+            relationship_groups[rel_type].append({"source_id": source_id, "target_id": target_id, "strength": strength})
 
     # Create traces for each relationship type
     for rel_type, relationships in relationship_groups.items():
@@ -188,15 +184,14 @@ def _create_2d_relationship_traces(
         hover_texts = []
 
         for rel in relationships:
-            source_pos = positions[rel['source_id']]
-            target_pos = positions[rel['target_id']]
+            source_pos = positions[rel["source_id"]]
+            target_pos = positions[rel["target_id"]]
 
             edges_x.extend([source_pos[0], target_pos[0], None])
             edges_y.extend([source_pos[1], target_pos[1], None])
 
             hover_text = (
-                f"{rel['source_id']} → {rel['target_id']}<br>"
-                f"Type: {rel_type}<br>Strength: {rel['strength']:.2f}"
+                f"{rel['source_id']} → {rel['target_id']}<br>" f"Type: {rel_type}<br>Strength: {rel['strength']:.2f}"
             )
             hover_texts.extend([hover_text, hover_text, None])
 
@@ -206,10 +201,10 @@ def _create_2d_relationship_traces(
         trace = go.Scatter(
             x=edges_x,
             y=edges_y,
-            mode='lines',
+            mode="lines",
             line=dict(color=color, width=2),
             hovertext=hover_texts,
-            hoverinfo='text',
+            hoverinfo="text",
             name=trace_name,
             showlegend=True,
         )
@@ -270,13 +265,10 @@ def visualize_2d_graph(
         positions = _create_grid_layout(asset_ids)
     else:  # Default to spring layout
         # Get 3D positions and convert to 2D
-        if hasattr(graph, 'get_3d_visualization_data_enhanced'):
+        if hasattr(graph, "get_3d_visualization_data_enhanced"):
             positions_3d_array, asset_ids_ordered, _, _ = graph.get_3d_visualization_data_enhanced()
             # Convert array to dictionary
-            positions_3d = {
-                asset_ids_ordered[i]: tuple(positions_3d_array[i])
-                for i in range(len(asset_ids_ordered))
-            }
+            positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
             positions = _create_spring_layout_2d(positions_3d, asset_ids)
         else:
             # Fallback to circular if 3D data not available
@@ -311,17 +303,17 @@ def visualize_2d_graph(
     colors = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        asset_class = asset.asset_class.value if hasattr(asset.asset_class, 'value') else str(asset.asset_class)
+        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
 
         # Color mapping by asset class
         color_map = {
-            'equity': '#1f77b4',
-            'fixed_income': '#2ca02c',
-            'commodity': '#ff7f0e',
-            'currency': '#d62728',
-            'derivative': '#9467bd',
+            "equity": "#1f77b4",
+            "fixed_income": "#2ca02c",
+            "commodity": "#ff7f0e",
+            "currency": "#d62728",
+            "derivative": "#9467bd",
         }
-        colors.append(color_map.get(asset_class.lower(), '#7f7f7f'))
+        colors.append(color_map.get(asset_class.lower(), "#7f7f7f"))
 
     # Calculate node sizes based on connections
     node_sizes = []
@@ -340,19 +332,19 @@ def visualize_2d_graph(
     node_trace = go.Scatter(
         x=node_x,
         y=node_y,
-        mode='markers+text',
+        mode="markers+text",
         marker=dict(
             size=node_sizes,
             color=colors,
             opacity=0.9,
-            line=dict(color='rgba(0,0,0,0.8)', width=2),
+            line=dict(color="rgba(0,0,0,0.8)", width=2),
         ),
         text=asset_ids,
         hovertext=hover_texts,
-        hoverinfo='text',
-        textposition='top center',
-        textfont=dict(size=10, color='black'),
-        name='Assets',
+        hoverinfo="text",
+        textposition="top center",
+        textfont=dict(size=10, color="black"),
+        name="Assets",
         showlegend=False,
     )
 
@@ -366,25 +358,25 @@ def visualize_2d_graph(
         paper_bgcolor="#F8F9FA",
         xaxis=dict(
             showgrid=True,
-            gridcolor='rgba(200, 200, 200, 0.3)',
+            gridcolor="rgba(200, 200, 200, 0.3)",
             zeroline=False,
             showticklabels=False,
         ),
         yaxis=dict(
             showgrid=True,
-            gridcolor='rgba(200, 200, 200, 0.3)',
+            gridcolor="rgba(200, 200, 200, 0.3)",
             zeroline=False,
             showticklabels=False,
         ),
         width=1200,
         height=800,
-        hovermode='closest',
+        hovermode="closest",
         showlegend=True,
         legend=dict(
             x=0.02,
             y=0.98,
-            bgcolor='rgba(255, 255, 255, 0.8)',
-            bordercolor='rgba(0, 0, 0, 0.3)',
+            bgcolor="rgba(255, 255, 255, 0.8)",
+            bordercolor="rgba(0, 0, 0, 0.3)",
             borderwidth=1,
         ),
         annotations=[

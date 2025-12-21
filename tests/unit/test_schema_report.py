@@ -111,13 +111,14 @@ class TestReportMetrics:
         """Test that report shows correct asset count."""
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
-        assert str(metrics['total_assets']) in report
+        assert str(metrics["total_assets"]) in report
 
     def test_report_formats_average_strength(self, populated_graph):
         """Test that average strength is formatted correctly."""
         report = generate_schema_report(populated_graph)
         # Should have 3 decimal places
         import re
+
         pattern = r"Average Relationship Strength\*\*: \d+\.\d{3}"
         assert re.search(pattern, report)
 
@@ -126,6 +127,7 @@ class TestReportMetrics:
         report = generate_schema_report(populated_graph)
         # Should have 2 decimal places and %
         import re
+
         pattern = r"Relationship Density\*\*: \d+\.\d{2}%"
         assert re.search(pattern, report)
 
@@ -141,10 +143,10 @@ class TestReportMetrics:
         report = generate_schema_report(populated_graph)
         # Should list relationship types
         metrics = populated_graph.calculate_metrics()
-        if metrics['relationship_distribution']:
-            for rel_type in metrics['relationship_distribution'].keys():
+        if metrics["relationship_distribution"]:
+            for rel_type in metrics["relationship_distribution"].keys():
                 # Type should appear somewhere in report
-                assert rel_type in report or rel_type.replace('_', ' ') in report
+                assert rel_type in report or rel_type.replace("_", " ") in report
 
     def test_report_shows_top_relationships(self, populated_graph):
         """Test that report shows top relationships."""
@@ -197,6 +199,7 @@ class TestDataQualityScore:
         """Test that quality score is formatted as percentage."""
         report = generate_schema_report(populated_graph)
         import re
+
         # Look for quality score pattern
         pattern = r"Data Quality Score: \d+\.\d%"
         assert re.search(pattern, report)
@@ -216,33 +219,33 @@ class TestRecommendations:
         # Create high density graph
         assets = list(populated_graph.assets.keys())
         for i, source in enumerate(assets):
-            for target in assets[i+1:]:
+            for target in assets[i + 1 :]:
                 populated_graph.add_relationship(source, target, "high_density", 0.8)
-        
+
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
-        
-        if metrics['relationship_density'] > 30:
+
+        if metrics["relationship_density"] > 30:
             assert "High connectivity" in report or "normalization" in report
 
     def test_balanced_recommendation(self, populated_graph):
         """Test recommendation for well-balanced graphs."""
         # Add moderate relationships
         populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "rel1", 0.5)
-        
+
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
-        
-        if 10 < metrics['relationship_density'] <= 30:
+
+        if 10 < metrics["relationship_density"] <= 30:
             assert "Well-balanced" in report or "optimal" in report
 
     def test_sparse_recommendation(self, empty_graph, sample_equity):
         """Test recommendation for sparse graphs."""
         empty_graph.add_asset(sample_equity)
         report = generate_schema_report(empty_graph)
-        
+
         metrics = empty_graph.calculate_metrics()
-        if metrics['relationship_density'] <= 10:
+        if metrics["relationship_density"] <= 10:
             assert "Sparse" in report or "adding more relationships" in report
 
 
@@ -340,7 +343,7 @@ class TestEdgeCases:
         # Create all possible relationships
         empty_graph.add_relationship(sample_equity.id, sample_bond.id, "rel1", 1.0)
         empty_graph.add_relationship(sample_bond.id, sample_equity.id, "rel2", 1.0)
-        
+
         report = generate_schema_report(empty_graph)
         assert "Relationship Density" in report
 
@@ -352,28 +355,29 @@ class TestReportConsistency:
         """Test that reported metrics match actual graph state."""
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
-        
+
         # Check that total assets matches
-        assert str(metrics['total_assets']) in report
-        
+        assert str(metrics["total_assets"]) in report
+
         # Check that relationship count matches
-        assert str(metrics['total_relationships']) in report
+        assert str(metrics["total_relationships"]) in report
 
     def test_asset_class_counts_match(self, populated_graph):
         """Test that asset class counts in report match actual counts."""
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
-        
-        for _asset_class, count in metrics['asset_class_distribution'].items():
+
+        for _asset_class, count in metrics["asset_class_distribution"].items():
             # Count should appear somewhere near the asset class name
             assert str(count) in report
 
     def test_quality_score_is_valid(self, populated_graph):
         """Test that quality score is within valid range."""
         report = generate_schema_report(populated_graph)
-        
+
         # Extract quality score from report
         import re
+
         match = re.search(r"Data Quality Score: (\d+\.\d)%", report)
         if match:
             score_str = match.group(1)
@@ -388,17 +392,17 @@ class TestMultipleGenerations:
         """Test that multiple generations produce consistent output."""
         report1 = generate_schema_report(populated_graph)
         report2 = generate_schema_report(populated_graph)
-        
+
         assert report1 == report2
 
     def test_different_output_for_modified_graph(self, populated_graph):
         """Test that output changes when graph is modified."""
         report1 = generate_schema_report(populated_graph)
-        
+
         # Modify graph
         populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "new_rel", 0.8)
-        
+
         report2 = generate_schema_report(populated_graph)
-        
+
         # Reports should be different
         assert report1 != report2

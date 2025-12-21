@@ -1,13 +1,15 @@
-from src.logic.asset_graph import AssetRelationshipGraph
 import numpy as np
 import plotly.graph_objects as go
 import pytest
 
-from src.visualizations.graph_visuals import (REL_TYPE_COLORS,
-                                              _build_asset_id_index,
-                                              _build_relationship_index,
-                                              _create_directional_arrows,
-                                              _create_relationship_traces)
+from src.logic.asset_graph import AssetRelationshipGraph
+from src.visualizations.graph_visuals import (
+    REL_TYPE_COLORS,
+    _build_asset_id_index,
+    _build_relationship_index,
+    _create_directional_arrows,
+    _create_relationship_traces,
+)
 
 
 class DummyGraph(AssetRelationshipGraph):
@@ -37,10 +39,12 @@ def test_build_asset_id_index():
 
 
 def test_build_relationship_index_filters_to_asset_ids():
-    graph = DummyGraph({
-        "A": [("B", "correlation", 0.9), ("X", "correlation", 0.5)],
-        "C": [("A", "same_sector", 1.0)],
-    })
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.9), ("X", "correlation", 0.5)],
+            "C": [("A", "same_sector", 1.0)],
+        }
+    )
     index = _build_relationship_index(graph, ["A", "B", "C"])
     # Should include only pairs where both ends are in the provided list
     assert ("A", "B", "correlation") in index
@@ -49,11 +53,13 @@ def test_build_relationship_index_filters_to_asset_ids():
 
 
 def test_create_relationship_traces_basic():
-    graph = DummyGraph({
-        "A": [("B", "correlation", 0.9)],
-        "B": [("A", "correlation", 0.9)],  # bidirectional
-        "C": [("A", "same_sector", 1.0)],  # unidirectional
-    })
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.9)],
+            "B": [("A", "correlation", 0.9)],  # bidirectional
+            "C": [("A", "same_sector", 1.0)],  # unidirectional
+        }
+    )
     positions, asset_ids, _, _ = graph.get_3d_visualization_data_enhanced()
 
     traces = _create_relationship_traces(graph, positions, asset_ids)
@@ -80,11 +86,13 @@ def test_create_directional_arrows_validation_errors():
 
 
 def test_create_directional_arrows_basic():
-    graph = DummyGraph({
-        "A": [("B", "correlation", 0.9)],  # unidirectional
-        "B": [("A", "correlation", 0.9)],  # and reverse, makes it bidirectional (no arrow)
-        "C": [("A", "same_sector", 1.0)],  # unidirectional
-    })
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.9)],  # unidirectional
+            "B": [("A", "correlation", 0.9)],  # and reverse, makes it bidirectional (no arrow)
+            "C": [("A", "same_sector", 1.0)],  # unidirectional
+        }
+    )
     positions, asset_ids, _, _ = graph.get_3d_visualization_data_enhanced()
 
     # Remove one side to ensure a unidirectional exists
@@ -188,9 +196,11 @@ def test_create_directional_arrows_valid_inputs_no_relationships():
 
 
 def test_create_directional_arrows_valid_inputs_with_unidirectional():
-    graph = DummyGraph({
-        "A": [("B", "correlation", 0.9)],
-    })
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.9)],
+        }
+    )
     positions = np.array([[0, 0, 0], [1, 1, 1]])
     asset_ids = ["A", "B"]
     arrows = _create_directional_arrows(graph, positions, asset_ids)
@@ -208,10 +218,12 @@ def test_create_directional_arrows_type_coercion():
 
 
 def test_create_directional_arrows_bidirectional_no_arrows():
-    graph = DummyGraph({
-        "A": [("B", "correlation", 0.9)],
-        "B": [("A", "correlation", 0.9)],
-    })
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.9)],
+            "B": [("A", "correlation", 0.9)],
+        }
+    )
     positions = np.array([[0, 0, 0], [1, 1, 1]])
     asset_ids = ["A", "B"]
     arrows = _create_directional_arrows(graph, positions, asset_ids)

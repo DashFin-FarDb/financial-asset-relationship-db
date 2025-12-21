@@ -20,8 +20,8 @@ from api.main import (
     app,
     validate_origin,
 )
-from src.data.sample_data import create_sample_database
 from src.data.real_data_fetcher import _save_to_cache
+from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
@@ -125,7 +125,7 @@ class TestGraphInitialization:
         import api.main
 
         cache_path = tmp_path / "graph_snapshot.json"
-         # Write invalid/corrupted data to the cache file
+        # Write invalid/corrupted data to the cache file
         # Write invalid/corrupted data to the cache file
         cache_path.write_text("not a valid json or graph data")
         reference_graph = create_sample_database()
@@ -208,9 +208,9 @@ class TestAPIEndpoints:
     def client(self):
         """
         Pytest fixture that yields a TestClient configured with a sample in-memory graph for endpoint tests.
-        
+
         Sets a sample in-memory graph on the application before yielding the client and resets the graph after the test completes.
-        
+
         Sets the application's graph to a sample database and yields a TestClient for use in tests. On fixture teardown the application's graph is reset.
         Returns:
             TestClient: A test client instance connected to the application populated with the sample graph.

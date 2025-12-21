@@ -317,7 +317,7 @@ Gradio Interface Update
 ### Caching Strategy (Future)
 
 ```
-Request → Cache Check → Cache Hit? 
+Request → Cache Check → Cache Hit?
                           │
                           ├─ Yes → Return cached data
                           │
