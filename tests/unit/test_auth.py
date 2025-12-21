@@ -540,25 +540,22 @@ class TestGetCurrentUser:
 
         from fastapi import HTTPException
 
-        # Create an expired token
-        token = create_access_token({"sub": "testuser"}, expires_delta=timedelta(seconds=-1))  # Already expired
+        token = create_access_token({"sub": "testuser"}, expires_delta=timedelta(seconds=-1))
+
+        with pytest.raises(HTTPException) as exc_info:
+            get_current_user(token)
+
+        assert exc_info.value.status_code == 401
 
 
-def test_get_current_user_missing_username(self):
-    """Test get_current_user with token missing username claim."""
-    from fastapi import HTTPException
+    def test_get_current_user_missing_username(self):
+        """Test get_current_user with token missing username claim."""
+        from fastapi import HTTPException
 
-    # Create token without 'sub' claim
-    token = create_access_token({"role": "admin"})
-
-    with pytest.raises(HTTPException) as exc_info:
-        get_current_user(token)
-
-        # Create token without 'sub' claim
         token = create_access_token({"role": "admin"})
 
         with pytest.raises(HTTPException) as exc_info:
-            await get_current_user(token)
+            get_current_user(token)
 
         assert exc_info.value.status_code == 401
 
