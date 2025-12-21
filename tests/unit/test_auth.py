@@ -554,8 +554,8 @@ class TestGetCurrentUser:
 
         assert exc_info.value.status_code == 401
 
-    @patch("api.auth.get_user")
-    def test_get_current_user_missing_username(self, mock_get_user):
+    @pytest.mark.asyncio
+    async def test_get_current_user_missing_username(self):
         """Test get_current_user with token missing username claim."""
         from fastapi import HTTPException
 
@@ -563,7 +563,7 @@ class TestGetCurrentUser:
         token = create_access_token({"role": "admin"})
 
         with pytest.raises(HTTPException) as exc_info:
-            get_current_user(token)
+            await get_current_user(token)
 
         assert exc_info.value.status_code == 401
 
