@@ -25,14 +25,8 @@ grep -q "# This test file was generated to validate workflow YAML changes" tests
 ENDCOMMENT
 
 echo "✅ Test file annotated"
-echo "✅ Documentation files created"
 echo ""
 echo "Files ready:"
 echo "  - tests/integration/test_workflow_yaml_validation.py"
-echo "  - BRANCH_TEST_GENERATION_SUMMARY.md"
-echo "  - FINAL_TEST_GENERATION_REPORT.md"
-echo "  - TEST_GENERATION_NOTES.md"
-echo "  - TEST_GENERATION_COMPLETE_FINAL_SUMMARY.md"
-echo "  - TEST_GENERATION_README.md"
 echo ""
-echo "Total: 6 files, ~800 lines"
+echo "Total: 1 file annotated"
