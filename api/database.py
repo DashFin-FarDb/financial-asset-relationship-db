@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import os
 import sqlite3
 import threading
@@ -164,9 +165,6 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     finally:
         if not _is_memory_db():
             connection.close()
-
-
-import atexit
 
 
 def _cleanup_memory_connection():

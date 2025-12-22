@@ -9,15 +9,14 @@ This module contains comprehensive unit tests for the database models including:
 """
 
 import pytest
-
-pytest.importorskip("sqlalchemy")
-
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from src.data.database import Base, create_session_factory, init_db
 from src.data.db_models import AssetORM, AssetRelationshipORM, RegulatoryEventAssetORM, RegulatoryEventORM
+
+pytest.importorskip("sqlalchemy")
 
 
 @pytest.fixture
