@@ -15,7 +15,7 @@ pytest.importorskip("sqlalchemy")
 from sqlalchemy import create_engine
 
 from src.data.database import create_session_factory, init_db
-from src.data.db_models import AssetORM, AssetRelationshipORM, RegulatoryEventORM
+from src.data.db_models import RegulatoryEventORM
 from src.data.repository import AssetGraphRepository, RelationshipRecord
 from src.models.financial_models import (
     AssetClass,

@@ -8,8 +8,6 @@ This module contains comprehensive unit tests for the formulaic_visuals module i
 - Edge cases and error handling
 """
 
-from unittest.mock import MagicMock, patch
-
 import plotly.graph_objects as go
 import pytest
 

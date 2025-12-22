@@ -12,7 +12,7 @@ This module contains comprehensive unit tests for the formulaic_analysis module 
 import pytest
 
 from src.analysis.formulaic_analysis import Formula, FormulaicdAnalyzer
-from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
+from src.models.financial_models import AssetClass, Equity
 
 
 @pytest.mark.unit

@@ -10,7 +10,7 @@ This module contains comprehensive unit tests for database configuration includi
 """
 
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 

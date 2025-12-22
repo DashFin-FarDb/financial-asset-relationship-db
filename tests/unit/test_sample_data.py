@@ -8,8 +8,6 @@ This module contains comprehensive unit tests for sample data generation includi
 - Data consistency and completeness
 """
 
-import pytest
-
 from src.data.sample_data import create_sample_database
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 

@@ -5,12 +5,9 @@ This test suite validates the utility functions used for GitHub Actions workflow
 testing, ensuring they correctly identify workflow files, parse YAML, and detect
 duplicate keys.
 """
-
-import os
-import tempfile
 from pathlib import Path
 from typing import List
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import patch
 
 import pytest
 import yaml

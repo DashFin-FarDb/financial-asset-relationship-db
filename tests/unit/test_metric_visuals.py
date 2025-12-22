@@ -9,7 +9,6 @@ This module contains comprehensive unit tests for the metric_visuals module incl
 """
 
 from datetime import datetime
-from unittest.mock import MagicMock
 
 import plotly.graph_objects as go
 import pytest

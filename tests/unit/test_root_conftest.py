@@ -4,11 +4,7 @@ This module tests the pytest configuration helpers that manage coverage-related
 command-line arguments. The root conftest.py strips coverage flags when pytest-cov
 is unavailable, allowing tests to run without the plugin installed.
 """
-
-import importlib.util
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 
 class TestCovPluginAvailable:

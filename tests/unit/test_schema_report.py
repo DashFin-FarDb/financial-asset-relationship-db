@@ -8,8 +8,6 @@ This module contains comprehensive unit tests for schema report generation inclu
 - Edge cases and empty graphs
 """
 
-import pytest
-
 from src.reports.schema_report import generate_schema_report
 
 
