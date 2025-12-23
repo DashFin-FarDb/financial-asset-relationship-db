@@ -10,16 +10,25 @@ This module contains comprehensive unit tests for database configuration includi
 """
 
 import os
-from unittest.mock import MagicMock, patch
+import sqlite3
+from contextlib import contextmanager
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-
-pytest.importorskip("sqlalchemy")
-
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
+from api.database import (
+    _connect,
+    _get_database_url,
+    _is_memory_db,
+    _resolve_sqlite_path,
+    execute,
+    fetch_one,
+    fetch_value,
+    get_connection,
+)
 from src.data.database import (
     DEFAULT_DATABASE_URL,
     Base,
@@ -28,6 +37,8 @@ from src.data.database import (
     init_db,
     session_scope,
 )
+
+pytest.importorskip("sqlalchemy")
 
 
 class TestEngineCreation:
@@ -367,23 +378,6 @@ class TestEdgeCases:
 These tests enhance the existing test coverage with additional edge cases
 and scenarios following the bias-for-action principle.
 """
-
-import sqlite3
-from contextlib import contextmanager
-from unittest.mock import Mock, patch
-
-import pytest
-
-from api.database import (
-    _connect,
-    _get_database_url,
-    _is_memory_db,
-    _resolve_sqlite_path,
-    execute,
-    fetch_one,
-    fetch_value,
-    get_connection,
-)
 
 
 @pytest.mark.unit
