@@ -5,7 +5,6 @@ command-line arguments. The root conftest.py strips coverage flags when pytest-c
 is unavailable, allowing tests to run without the plugin installed.
 """
 
-
 from unittest.mock import MagicMock, patch
 
 

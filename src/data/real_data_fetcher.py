@@ -4,7 +4,6 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-
 import yfinance as yf
 
 from src.logic.asset_graph import AssetRelationshipGraph

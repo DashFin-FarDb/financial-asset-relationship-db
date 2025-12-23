@@ -6,7 +6,6 @@ testing, ensuring they correctly identify workflow files, parse YAML, and detect
 duplicate keys.
 """
 
-
 from pathlib import Path
 from typing import List
 from unittest.mock import patch
