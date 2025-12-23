@@ -539,11 +539,9 @@ class TestGetCurrentUser:
 
     def test_get_current_user_expired_token(self):
         """Test get_current_user with expired token."""
-        from datetime import timedelta
+        from datetime import datetime, timedelta, timezone
 
         from fastapi import HTTPException
-
-        from datetime import datetime, timedelta, timezone
 
         fixed_now = datetime(2030, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
 
