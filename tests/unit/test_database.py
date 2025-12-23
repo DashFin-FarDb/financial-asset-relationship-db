@@ -38,7 +38,13 @@ from src.data.database import (
     session_scope,
 )
 
+import pytest
+
 pytest.importorskip("sqlalchemy")
+
+from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.pool import StaticPool
 
 
 class TestEngineCreation:
