@@ -13,6 +13,9 @@ import os
 from unittest.mock import patch
 
 import pytest
+
+pytest.importorskip("sqlalchemy")
+
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
@@ -25,8 +28,6 @@ from src.data.database import (
     init_db,
     session_scope,
 )
-
-pytest.importorskip("sqlalchemy")
 
 
 class TestEngineCreation:

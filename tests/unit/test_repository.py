@@ -9,6 +9,9 @@ This module contains comprehensive unit tests for the repository layer including
 """
 
 import pytest
+
+pytest.importorskip("sqlalchemy")
+
 from sqlalchemy import create_engine
 
 from src.data.database import create_session_factory, init_db
@@ -23,8 +26,6 @@ from src.models.financial_models import (
     RegulatoryActivity,
     RegulatoryEvent,
 )
-
-pytest.importorskip("sqlalchemy")
 
 
 @pytest.fixture
