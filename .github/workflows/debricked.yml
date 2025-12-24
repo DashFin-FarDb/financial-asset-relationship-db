@@ -42,4 +42,3 @@ jobs:
       - uses: debricked/actions/scan@f0e13bec85cbdbc0e21c9c4c6f5b60a6d89b5c51 # v4.0.0
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
-
