@@ -23,48 +23,23 @@
 # 10. You should now be ready to use the workflow!                                                                                                                  #
 #####################################################################################################################################################################
 
-name: Debricked Scan
+name: Debricked scan
 
 on:
-  push:
-    paths:
-      - 'requirements*.txt'
-      - 'Pipfile'
-      - 'Pipfile.lock'
-      - 'poetry.lock'
-      - 'pyproject.toml'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'pnpm-lock.yaml'
-      - 'yarn.lock'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - 'go.mod'
-      - 'go.sum'
-      - 'Gemfile'
-      - 'Gemfile.lock'
-      - 'pom.xml'
-      - 'build.gradle'
-      - 'build.gradle.kts'
-      - 'composer.json'
-      - 'composer.lock'
-      - '.github/workflows/debricked.yml'
-      - '!**/*.md'
-      - '!docs/**'
-
-permissions:
-  contents: read
+  pull_request:
+    branches:
+      - main
 
 jobs:
   vulnerabilities-scan:
-    concurrency:
-      group: debricked-${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
-    name: Vulnerabilities scan
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: debricked/actions@v3
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: debricked/actions/scan@f0e13bec85cbdbc0e21c9c4c6f5b60a6d89b5c51 # v4.0.0
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+
