@@ -4,7 +4,10 @@ on: [pull_request]
 
 jobs:
   vulnerabilities-scan:
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
