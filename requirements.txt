@@ -1,8 +1,8 @@
 gradio==6.2.0
-plotly>=5.0.0
+plotly>=6.0.0
 numpy==2.2.6
 dataclasses-json>=0.5.7
-yfinance>=0.2.0
+yfinance>=0.2.51
 requests>=2.32.2
 pandas==2.3.3
 fastapi==0.127.0
