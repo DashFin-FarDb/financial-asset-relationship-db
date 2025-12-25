@@ -4,11 +4,11 @@ numpy==2.2.6
 dataclasses-json>=0.5.7
 yfinance>=0.2.51
 requests>=2.32.2
-pandas==2.3.3
+pandas>=1.5.0
 fastapi==0.127.0
-uvicorn==0.40.0
+uvicorn[standard]>=0.24.0
 pydantic==2.12.5
-
+h11>=0.16.0
 # Serverless/Database dependencies
 mangum>=0.17.0
 psycopg2-binary>=2.9.9
