@@ -1,7 +1,7 @@
 import numpy as np
 from mcp.server.fastmcp import FastMCP
 
-from src.models.financial_models import Asset, AssetClass, Equity
+from src.models.financial_models import AssetClass, Equity
 
 # Initialize the MCP server
 mcp = FastMCP("DashFin-Relationship-Manager")
