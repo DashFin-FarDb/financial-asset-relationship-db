@@ -10,7 +10,6 @@ mcp = FastMCP("DashFin-Relationship-Manager")
 graph = AssetRelationshipGraph()
 
 
-
 @mcp.tool()
 def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
     """Adds a new Equity asset to the relationship graph with validation."""
