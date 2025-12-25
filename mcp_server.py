@@ -10,6 +10,8 @@ mcp = FastMCP("DashFin-Relationship-Manager")
 graph = AssetRelationshipGraph()
 
 
+
+@mcp.tool()
 def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
     """Adds a new Equity asset to the relationship graph with validation."""
     try:
@@ -25,6 +27,7 @@ def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: f
         return f"Validation Error: {str(e)}"
 
 
+@mcp.tool()
 def get_3d_layout() -> str:
     """Provides current 3D visualization data for AI spatial reasoning."""
     # Leverages existing logic for deterministic layouts (seed 42)
