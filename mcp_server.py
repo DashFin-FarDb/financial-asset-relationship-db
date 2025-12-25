@@ -13,7 +13,13 @@ graph = AssetRelationshipGraph()
 
 @mcp.tool()
 def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
-    """Adds a new Equity asset to the relationship graph with validation."""
+    """
+    Add an Equity asset to the global relationship graph after validating its fields.
+    
+    Returns:
+    	A success message containing the equity's name and symbol on successful validation, or
+    	"Validation Error: <message>" containing the validation error text if creation fails.
+    """
     try:
         # Uses existing Equity dataclass for post-init validation
         new_equity = Equity(
@@ -26,7 +32,14 @@ def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: f
 
 @mcp.resource("graph://data/3d-layout")
 def get_3d_layout() -> str:
-    """Provides current 3D visualization data for AI spatial reasoning."""
+    """
+    Return a human-readable snapshot of the graph's 3D layout for spatial reasoning.
+    
+    Calls the graph's visualization export and formats asset identifiers and their 3D coordinates into a short string.
+    
+    Returns:
+        A string containing "Assets: [asset_id, ...]" and "Positions: [[x, y, z], ...]" where positions is a list of 3-element coordinate lists corresponding to the asset IDs.
+    """
     # Leverages existing logic for deterministic layouts (seed 42)
     positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
     return f"Assets: {asset_ids}\nPositions: {positions.tolist()}"
