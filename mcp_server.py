@@ -114,18 +114,90 @@ def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: f
         return f"Validation Error: {str(e)}"
 
 
+import json
+import threading
+
+from mcp.server.fastmcp import FastMCP
+
+from src.logic.asset_graph import AssetRelationshipGraph
+
+# Initialize the MCP server
+mcp = FastMCP("DashFin-Relationship-Manager")
+
+_graph_lock = threading.Lock()
+
+
+class _ThreadSafeGraph:
+    """Proxy that serializes all method calls on the underlying graph via the provided lock."""
+
+    def __init__(self, graph_obj: AssetRelationshipGraph, lock: threading.Lock):
+        self._graph = graph_obj
+        self._lock = lock
+
+    def __getattr__(self, name):
+        # Acquire the lock while resolving the attribute to avoid races where the
+        # underlying graph is mutated concurrently during attribute access (e.g.,
+        # properties/descriptors or mutable fields being swapped out).
+        with self._lock:
+            attr = getattr(self._graph, name)
+
+        if callable(attr):
+
+            def _wrapped(*args, **kwargs):
+                with self._lock:
+                    return attr(*args, **kwargs)
+
+            return _wrapped
+
+        # For non-callable attributes, return a defensive copy so callers cannot
+        # mutate shared state without holding the lock.
+        import copy
+
+        with self._lock:
+            return copy.deepcopy(attr)
+
+
+graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
+
+
+@mcp.tool()
+def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+    """
+    Add an Equity asset after validating its fields.
+
+    Returns:
+        A success message containing the equity's name and symbol on successful validation, or
+        "Validation Error: <message>" containing the validation error text if creation fails.
+    """
+    # Local import to prevent NameError if module imports are refactored.
+    from src.models.financial_models import AssetClass, Equity
+
+    try:
+        new_equity = Equity(
+            id=asset_id,
+            symbol=symbol,
+            name=name,
+            asset_class=AssetClass.EQUITY,
+            sector=sector,
+            price=price,
+        )
+        return f"Successfully validated: {new_equity.name} ({new_equity.symbol})"
+    except ValueError as e:
+        return f"Validation Error: {str(e)}"
+
+
+@mcp.resource("graph://data/3d-layout")
 def get_3d_layout() -> str:
     """Provides current 3D visualization data for AI spatial reasoning."""
     positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
-    return json.dumps({
-        "asset_ids": asset_ids,
-        "positions": positions.tolist(),
-@ mcp.resource("graph://data/3d-layout")
-def get_3d_layout() -> str:
-    """Provides current 3D visualization data for AI spatial reasoning."""
-    # Leverages existing logic for deterministic layouts (seed 42)
-    positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
-    return f"Assets: {asset_ids}\nPositions: {positions.tolist()}"
+    return json.dumps(
+        {
+            "asset_ids": asset_ids,
+            "positions": positions.tolist(),
+            "colors": colors,
+            "hover": hover,
+        }
+    )
 
 
 if __name__ == "__main__":
