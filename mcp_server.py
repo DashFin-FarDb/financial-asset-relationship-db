@@ -57,18 +57,17 @@ def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: f
         return f"Validation Error: {str(e)}"
 
 
-
 def get_3d_layout() -> str:
     """Provides current 3D visualization data for AI spatial reasoning."""
     positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
     return json.dumps({
         "asset_ids": asset_ids,
         "positions": positions.tolist(),
-@mcp.resource("graph://data/3d-layout")
+@ mcp.resource("graph://data/3d-layout")
 def get_3d_layout() -> str:
     """Provides current 3D visualization data for AI spatial reasoning."""
     # Leverages existing logic for deterministic layouts (seed 42)
-    positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
+    positions, asset_ids, colors, hover= graph.get_3d_visualization_data_enhanced()
     return f"Assets: {asset_ids}\nPositions: {positions.tolist()}"
 
 
