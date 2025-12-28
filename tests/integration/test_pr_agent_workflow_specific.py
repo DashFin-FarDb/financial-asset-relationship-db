@@ -111,19 +111,34 @@ class TestPRAgentWorkflowStructureValidation:
     
     @pytest.fixture
     def workflow_content(self) -> Dict[str, Any]:
-        """
-        Load and parse the GitHub Actions workflow YAML at .github/workflows/pr-agent.yml.
-        
-        Returns:
-            workflow (Dict[str, Any]): Parsed YAML content of the workflow file as a dictionary.
-        """
-        try:
-            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
-        except FileNotFoundError:
-            pytest.skip('Workflow file not found')
-        except yaml.YAMLError as e:
-            pytest.fail(f'Invalid YAML: {e}')
+        # Module-level fixtures (add at the top of the file after imports)
+        @pytest.fixture(scope='module')
+        def workflow_content() -> Dict[str, Any]:
+            """
+            Load and parse the GitHub Actions workflow YAML at .github/workflows/pr-agent.yml.
+    
+            Returns:
+                workflow (Dict[str, Any]): Parsed YAML content of the workflow file as a dictionary.
+            """
+            try:
+                with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
+                    return yaml.safe_load(f)
+            except FileNotFoundError:
+                pytest.skip('Workflow file not found')
+            except yaml.YAMLError as e:
+                pytest.fail(f'Invalid YAML: {e}')
+
+        @pytest.fixture(scope='module')
+        def pr_agent_job(workflow_content: Dict[str, Any]) -> Dict[str, Any]:
+            """
+            Retrieve the 'pr-agent-trigger' job configuration from the workflow file.
+    
+            Returns:
+                Dict[str, Any]: Mapping representing the `pr-agent-trigger` job as defined in .github/workflows/pr-agent.yml
+            """
+            return workflow_content['jobs']['pr-agent-trigger']
+
+        # Remove all duplicate fixture definitions from individual test classes
     
     def test_has_pr_agent_trigger_job(self, workflow_content: Dict[str, Any]):
         """
