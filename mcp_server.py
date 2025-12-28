@@ -28,7 +28,12 @@ class _ThreadSafeGraph:
                     return attr(*args, **kwargs)
 
             return _wrapped
-        return attr
+
+        # For non-callable attributes, guard access and prevent external code from
+        # mutating shared state without holding the lock.
+        import copy
+        with self._lock:
+            return copy.deepcopy(attr)
 
 
 graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
