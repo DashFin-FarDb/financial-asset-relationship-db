@@ -54,7 +54,7 @@ def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: f
     try:
         # Uses existing Equity dataclass for post-init validation
         new_equity = Equity(
-            id=asset_id,
+        graph.add_asset(new_equity)
             symbol=symbol,
             name=name,
             asset_class=AssetClass.EQUITY,
