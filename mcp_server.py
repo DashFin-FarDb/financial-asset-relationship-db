@@ -43,15 +43,21 @@ def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: f
         A success message containing the equity's name and symbol on successful validation, or
         "Validation Error: <message>" containing the validation error text if creation fails.
     """
+    # Local import to prevent NameError if module imports are refactored.
+    from src.models.financial_models import AssetClass, Equity
+
     try:
         # Uses existing Equity dataclass for post-init validation
         new_equity = Equity(
-            id=asset_id, symbol=symbol, name=name, asset_class=AssetClass.EQUITY, sector=sector, price=price
+            id=asset_id,
+            symbol=symbol,
+            name=name,
+            asset_class=AssetClass.EQUITY,
+            sector=sector,
+            price=price,
         )
 
-        # Add the new node to the graph if it doesn't exist.
-        # Add the new node to the graph using encapsulated method
-
+        graph.add_equity(new_equity)
         return f"Successfully added: {new_equity.name} ({new_equity.symbol})"
     except ValueError as e:
         return f"Validation Error: {str(e)}"
