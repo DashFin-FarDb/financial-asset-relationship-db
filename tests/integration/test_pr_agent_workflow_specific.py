@@ -346,34 +346,12 @@ class TestPRAgentWorkflowTestingSteps:
     
     @pytest.fixture
     def pr_agent_job(self) -> Dict[str, Any]:
-        """
-        Retrieve the 'pr-agent-trigger' job configuration from the workflow file.
-        
-        Returns:
-            Dict[str, Any]: Mapping representing the `pr-agent-trigger` job as defined in .github/workflows/pr-agent.yml
-        """
-        try:
-            with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
-                workflow = yaml.safe_load(f)
-            return workflow['jobs']['pr-agent-trigger']
-        except FileNotFoundError:
-            pytest.skip('Workflow file not found')
-        except yaml.YAMLError as e:
-            pytest.fail(f'Invalid YAML: {e}')
-    
-    def test_python_tests_step_exists(self, pr_agent_job: Dict[str, Any]):
-        """
-        Assert the pr-agent-trigger job includes at least one step whose name indicates it runs Python tests.
-        
-        Parameters:
-            pr_agent_job (Dict[str, Any]): Parsed job configuration from the workflow YAML, typically the `pr-agent-trigger` job.
-        
-        Raises:
-            AssertionError: If no step name contains both "Python" and "Test".
-        """
+
         steps = pr_agent_job.get('steps', [])
         test_steps = [
             step for step in steps
+            if re.match(r'^Python Test(s)?$', step.get('name', ''))
+        ]
             if 'Python' in step.get('name', '') and 'Test' in step.get('name', '')
         ]
         assert len(test_steps) >= 1, "Job should include Python testing step"
