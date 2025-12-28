@@ -57,13 +57,6 @@ def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: f
         return f"Validation Error: {str(e)}"
 
 
-@mcp.tool()
-def get_3d_layout() -> str:
-    """
-    Return a human-readable snapshot of the graph's 3D layout for spatial reasoning.
-
-    Calls the graph's visualization export and formats asset identifiers and their 3D coordinates into a short string.
-import json
 
 def get_3d_layout() -> str:
     """Provides current 3D visualization data for AI spatial reasoning."""
