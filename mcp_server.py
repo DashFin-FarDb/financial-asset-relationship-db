@@ -3,6 +3,7 @@ import threading
 from mcp.server.fastmcp import FastMCP
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.models.financial_models import Asset, AssetClass, Equity
 
 # Initialize the MCP server
 mcp = FastMCP("DashFin-Relationship-Manager")
@@ -47,12 +48,9 @@ def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: f
         new_equity = Equity(
             id=asset_id, symbol=symbol, name=name, asset_class=AssetClass.EQUITY, sector=sector, price=price
         )
+
         # Add the new node to the graph if it doesn't exist.
         # Add the new node to the graph using encapsulated method
-from mcp.server.fastmcp import FastMCP
-
-from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import Asset, AssetClass, Equity
 
         return f"Successfully added: {new_equity.name} ({new_equity.symbol})"
     except ValueError as e:
