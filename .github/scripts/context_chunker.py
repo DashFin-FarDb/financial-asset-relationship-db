@@ -427,6 +427,21 @@ class ContextChunker:
         )
         return omission_note, 0, True
 
+    def _find_natural_boundary(self, text: str) -> str:
+        """
+        Find and truncate text at a natural boundary (newline).
+
+        Parameters:
+            text: The text to process.
+
+        Returns:
+            str: Text truncated at natural boundary if found, otherwise original text.
+        """
+        last_newline = text.rfind('\n')
+        if last_newline > len(text) // 2:
+            return text[:last_newline]
+        return text
+
     def _truncate_to_tokens(self, text: str, max_tokens: int) -> str:
         """
         Truncate text to approximately max_tokens.
@@ -458,22 +473,13 @@ class ContextChunker:
             return text
 
         # Try to truncate at a natural boundary
-        truncated = text[:target_chars]
-
-        # Find last newline for clean break
-        last_newline = truncated.rfind('\n')
-        if last_newline > target_chars // 2:
-            truncated = truncated[:last_newline]
+        truncated = self._find_natural_boundary(text[:target_chars])
 
         # Re-check token count and further trim if necessary
         while self.estimate_tokens(truncated) > max_tokens and len(truncated) > 0:
             # Trim by 10% of current length or at least 100 characters
             trim_amount = max(100, len(truncated) // 10)
-            truncated = truncated[:-trim_amount]
-            # Try to find a natural boundary again
-            last_newline = truncated.rfind('\n')
-            if last_newline > len(truncated) // 2:
-                truncated = truncated[:last_newline]
+            truncated = self._find_natural_boundary(truncated[:-trim_amount])
 
         return truncated
 
