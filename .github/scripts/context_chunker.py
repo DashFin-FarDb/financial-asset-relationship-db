@@ -142,8 +142,6 @@ class ContextChunker:
             return content, False
 
         # Apply chunking
-        processed_content = self._build_limited_content(chunks)
-        return processed_content, True
 
     def _extract_chunks(self, pr_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
