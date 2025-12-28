@@ -389,28 +389,8 @@ class TestSpecificChanges:
         assert len(invalid_names) == 0
 
 
-class TestFileOrganization:
-    """Test that the file is well-organized."""
-    
-    @pytest.fixture
-    def file_lines(self) -> List[str]:
-        """Load requirements file as list of lines."""
-        with open(REQUIREMENTS_FILE, 'r', encoding='utf-8') as f:
-            return f.readlines()
-    
-    def test_reasonable_file_size(self, file_lines: List[str]):
-        """Test that file isn't excessively large."""
-        assert len(file_lines) < 100
-    
-    def test_has_appropriate_number_of_packages(self):
-        """Test that file has a reasonable number of development dependencies."""
-        requirements = parse_requirements(REQUIREMENTS_FILE)
-        assert 5 <= len(requirements) <= 50
-
-
-class TestSpecificChanges:
-    """Test the specific changes made in the diff."""
-    
+# NOTE: Duplicate `TestFileOrganization` / `TestSpecificChanges` definitions removed.
+# These test classes are already defined earlier in this file.
     @pytest.fixture
     def requirements(self) -> List[Tuple[str, str]]:
         """Parse and return requirements."""
