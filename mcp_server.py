@@ -10,9 +10,25 @@ mcp = FastMCP("DashFin-Relationship-Manager")
 # Global instance of the graph logic
 
 _graph_lock = threading.Lock()
-graph = AssetRelationshipGraph()
+class _ThreadSafeGraph:
+    """Proxy that serializes all method calls on the underlying graph via the provided lock."""
+
+    def __init__(self, graph_obj: AssetRelationshipGraph, lock: threading.Lock):
+        self._graph = graph_obj
+        self._lock = lock
+
+    def __getattr__(self, name):
+        attr = getattr(self._graph, name)
+        if callable(attr):
+            def _wrapped(*args, **kwargs):
+                with self._lock:
+                    return attr(*args, **kwargs)
+
+            return _wrapped
+        return attr
 
 
+graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 @mcp.tool()
 def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
     """
