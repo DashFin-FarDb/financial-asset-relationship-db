@@ -3,28 +3,29 @@ Advanced security tests for GitHub workflows.
 
 Focus areas:
 1. Injection vulnerability prevention
-2. Secret exposure prevention  
+2. Secret exposure prevention
 3. Permissions and least privilege
 4. Supply chain security
 5. Workflow isolation and sandboxing
 """
 
 import os
-import pytest
-import yaml
 import re
 from pathlib import Path
-from typing import Dict, Any, List, Set
+from typing import Any, Dict, List, Set
+
+import pytest
+import yaml
 
 
 class TestWorkflowInjectionPrevention:
     """Tests for preventing injection attacks in workflows."""
-    
+
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
         """
         Load and parse all GitHub Actions workflow YAML files from .github/workflows.
-        
+
         Returns:
             workflows (List[Dict[str, Any]]): A list where each item is a dict with keys:
                 - 'path' (Path): filesystem path to the workflow file
@@ -42,11 +43,11 @@ class TestWorkflowInjectionPrevention:
                     'raw': content
                 })
         return workflows
-    
+
     def test_no_unquoted_github_context_in_run_commands(self, all_workflows):
         """
         Ensure GitHub context variables in 'run' steps are enclosed in quotes.
-        
+
         Scans each workflow's job steps for usages of GitHub context variables (for example `github.event.*`, `github.head_ref`, `github.base_ref`) inside `run` commands and fails the test if any occurrence is not wrapped in quotes. When a `run` command invokes a shell (e.g., `sh` or `bash -c`), quoting is enforced to prevent unquoted context values from being interpolated into the shell.
         """
         dangerous_patterns = [
@@ -54,7 +55,7 @@ class TestWorkflowInjectionPrevention:
             r'\$\{\{\s*github\.head_ref\s*\}\}',        # ${{ github.head_ref }}
             r'\$\{\{\s*github\.base_ref\s*\}\}',        # ${{ github.base_ref }}
         ]
-        
+
         for workflow in all_workflows:
                         for pattern in dangerous_patterns:
                             matches = re.findall(pattern, run_command)
