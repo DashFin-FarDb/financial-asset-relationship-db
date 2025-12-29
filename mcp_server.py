@@ -40,6 +40,7 @@ class _ThreadSafeGraph:
         # mutate shared state without holding the lock.
         return copy.deepcopy(attr)
 
+
 graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 
 
