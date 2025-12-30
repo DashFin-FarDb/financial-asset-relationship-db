@@ -52,8 +52,7 @@ QUICK FIX COMMANDS
 # Step 1: Remove duplicate code
 # Manually edit mcp_server.py and delete lines 123-206
 
-# Step 2: Add dependencies
-cd /path/to/repo
+# Step 2: Add dependencies (run from repository root)
 grep -qxF "mcp>=1.0.0" requirements.txt || echo "mcp>=1.0.0" >> requirements.txt
 grep -qxF "fastmcp>=0.1.0" requirements.txt || echo "fastmcp>=0.1.0" >> requirements.txt
 
