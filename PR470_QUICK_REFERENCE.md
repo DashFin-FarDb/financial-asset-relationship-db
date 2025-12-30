@@ -45,8 +45,8 @@
 # Edit mcp_server.py and delete lines 123-206
 
 # 2. Add dependencies
-echo "mcp>=1.0.0" >> requirements.txt
-echo "fastmcp>=0.1.0" >> requirements.txt
+echo 'mcp>=1.0.0' >> requirements.txt
+echo 'fastmcp>=0.1.0' >> requirements.txt
 
 # 3. Run linters
 pre-commit run --all-files
