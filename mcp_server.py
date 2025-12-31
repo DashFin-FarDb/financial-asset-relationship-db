@@ -108,7 +108,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         mcp = _build_mcp_app()
     except ModuleNotFoundError as e:
-        # Provide a clear message for missing optional dependency.
+        # Provide a clear message for missing optional dependency when invoked via the CLI.
+        # NOTE: This friendly handling only applies when `_build_mcp_app()` is called through
+        # `main()`. Callers that use `_build_mcp_app()` directly (e.g., programmatically
+        # importing this module) will see the original `ModuleNotFoundError` and should handle
+        # it themselves if MCP dependencies are not installed.
         missing = getattr(e, "name", None) or str(e)
         raise SystemExit(f"Missing dependency '{missing}'. Install the MCP package to run the server.") from e
 
