@@ -9,7 +9,7 @@ a formatted status report including commits, files changed, reviews, checks, and
 import os
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 try:
     import yaml
