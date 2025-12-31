@@ -24,4 +24,4 @@ Automated Pull Request agent for DashFin/financial-asset-relationship-db
 
 ## Deploy
 
-This bot is ready for use with Probot (https://probot.github.io/docs/deployment/). 
+This bot is ready for use with Probot (https://probot.github.io/docs/deployment/).
