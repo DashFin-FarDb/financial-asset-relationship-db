@@ -22,17 +22,17 @@ class _ThreadSafeGraph:
         with self._lock:
             attr = getattr(self._graph, name)
 
-        if callable(attr):
+            if callable(attr):
 
-            def _wrapped(*args, **kwargs):
-                with self._lock:
-                    return attr(*args, **kwargs)
+                def _wrapped(*args, **kwargs):
+                    with self._lock:
+                        return attr(*args, **kwargs)
 
-            return _wrapped
+                return _wrapped
 
-        # For non-callable attributes, return a defensive copy so callers cannot
-        # mutate shared state without holding the lock.
-        return copy.deepcopy(attr)
+            # For non-callable attributes, return a defensive copy so callers cannot
+            # mutate shared state without holding the lock.
+            return copy.deepcopy(attr)
 
 
 # Global, thread-safe graph instance shared across MCP calls.
