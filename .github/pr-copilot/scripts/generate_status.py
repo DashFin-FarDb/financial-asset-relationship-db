@@ -244,7 +244,7 @@ def main():
         sys.exit(1)
 
     # Load configuration
-    config = load_config()
+    load_config()
 
     # Initialize GitHub client
     g = Github(github_token)
