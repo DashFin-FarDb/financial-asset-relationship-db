@@ -151,7 +151,8 @@ def parse_review_comments(pr: Any, actionable_keywords: List[str]) -> List[Dict[
             'line': line_num,
             'code_suggestions': code_suggestions,
             'url': comment.html_url,
-            'created_at': comment.created_at.isoformat()
+            'created_at': comment.created_at,  # Keep as datetime object for proper sorting
+            'created_at_str': comment.created_at.isoformat()  # For display
         }
         
         actionable_items.append(item)
@@ -185,7 +186,8 @@ def parse_review_comments(pr: Any, actionable_keywords: List[str]) -> List[Dict[
             'line': None,
             'code_suggestions': code_suggestions,
             'url': review.html_url,
-            'created_at': review.submitted_at.isoformat()
+            'created_at': review.submitted_at,  # Keep as datetime object for proper sorting
+            'created_at_str': review.submitted_at.isoformat()  # For display
         }
         
         actionable_items.append(item)

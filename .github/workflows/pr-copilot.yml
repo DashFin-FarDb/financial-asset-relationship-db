@@ -22,6 +22,10 @@ permissions:
   checks: read
   statuses: read
 
+concurrency:
+  group: pr-copilot-${{ github.event.pull_request.number || github.event.issue.number || github.event.check_suite.head_branch || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Job 1: Detect what triggered the agent and set context
   detect-trigger:
@@ -72,7 +76,7 @@ jobs:
               const { data: pulls } = await github.rest.pulls.list({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                head: `${context.repo.owner}:${context.payload.check_suite.head_branch}`,
+                head: context.payload.check_suite.head_branch,
                 state: 'open'
               });
               if (pulls.length > 0) {
@@ -311,7 +315,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install PyGithub pyyaml requests
+          pip install -r .github/pr-copilot/scripts/requirements.txt
       
       - name: Generate status report
         id: status

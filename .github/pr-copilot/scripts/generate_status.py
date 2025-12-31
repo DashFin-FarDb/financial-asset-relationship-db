@@ -51,8 +51,9 @@ def get_pr_info(g: Github, repo_full_name: str, pr_number: int) -> Dict[str, Any
     
     # Get review comments (threads)
     review_comments = list(pr.get_review_comments())
-    # Count unresolved threads (approximate - GitHub API doesn't directly expose this)
-    open_threads = len([c for c in review_comments if not hasattr(c, 'in_reply_to_id')])
+    # Count top-level review comments as thread count (approximate)
+    # Note: GitHub API doesn't expose resolved/unresolved status directly
+    open_threads = len(review_comments)
     
     # Get labels
     labels = [label.name for label in pr.labels]

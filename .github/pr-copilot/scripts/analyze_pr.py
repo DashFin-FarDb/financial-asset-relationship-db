@@ -36,6 +36,14 @@ def load_config() -> Dict[str, Any]:
 
 def categorize_file(filename: str) -> str:
     """Categorize file by type."""
+    # Check for test files by name pattern first
+    if 'test' in filename.lower() or 'spec' in filename.lower():
+        return 'test'
+    
+    # Check for workflow files by path
+    if '.github/workflows' in filename:
+        return 'workflow'
+    
     # Get file extension
     if '.' not in filename:
         return 'other'
@@ -50,23 +58,14 @@ def categorize_file(filename: str) -> str:
         'style': ['css', 'scss', 'sass', 'less'],
         'config': ['json', 'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf'],
         'documentation': ['md', 'rst', 'txt'],
-        'test': ['test.py', 'test.js', 'spec.py', 'spec.js'],
-        'workflow': ['yml', 'yaml'] if '.github/workflows' in filename else [],
         'database': ['sql', 'db', 'sqlite'],
         'shell': ['sh', 'bash', 'zsh', 'fish'],
     }
     
-    # Check for test files by name pattern
-    if 'test' in filename.lower() or 'spec' in filename.lower():
-        return 'test'
-    
-    # Check for workflow files
-    if '.github/workflows' in filename:
-        return 'workflow'
-    
     for category, extensions in categories.items():
         if ext in extensions:
             return category
+
     
     return 'other'
 
