@@ -245,7 +245,7 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
 
             # Show code suggestions if any
             if item["code_suggestions"]:
-                report += f"   - **Suggested Code:**\n"
+                report += "   - **Suggested Code:**\n"
                 for suggestion in item["code_suggestions"]:
                     if suggestion["type"] == "code_suggestion":
                         report += f"     ```\n     {suggestion['content']}\n     ```\n"
