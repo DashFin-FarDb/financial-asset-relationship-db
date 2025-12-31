@@ -28,4 +28,4 @@ jobs:
 
       - name: Verify MCP Server Initialization
         run: |
-          python -c "import mcp_server; print('MCP server imports successfully')"
+          python mcp_server.py --version
