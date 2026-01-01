@@ -258,10 +258,43 @@ def main():
         report = generate_status_report(info)
 
         # Write to file
-        output_file = "/tmp/pr_status_report.md"
-        with open(output_file, "w") as f:
-            f.write(report)
+        import errno
+        import tempfile
 
+        output_file = "/tmp/pr_status_report.md"
+
+        # Avoid silent overwrite (potential data loss) and write atomically.
+        try:
+            if os.path.exists(output_file):
+                print(
+                    f"Error: Output file already exists: {output_file}. Refusing to overwrite.",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+
+            tmp_dir = os.path.dirname(output_file) or "."
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=tmp_dir,
+                delete=False,
+            ) as tmp:
+                tmp.write(report)
+                tmp_path = tmp.name
+
+            os.replace(tmp_path, output_file)
+
+        except OSError as e:
+            if e.errno == errno.EACCES:
+                print(f"Error: Permission denied when writing to {output_file}", file=sys.stderr)
+                sys.exit(1)
+            if e.errno == errno.EEXIST:
+                print(
+                    f"Error: Output file already exists: {output_file}. Refusing to overwrite.",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+            raise
         print(f"Status report generated successfully: {output_file}", file=sys.stderr)
         print(report)  # Also print to stdout
 
