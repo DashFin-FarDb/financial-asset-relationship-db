@@ -292,10 +292,11 @@ def generate_analysis_report(
     risk_level: str,
     scope_issues: List[str],
     related_issues: List[Dict[str, str]],
-from dataclasses import dataclass
+    from dataclasses import dataclass
 
-@dataclass
-class AnalysisData:
+
+    @ dataclass
+    class AnalysisData:
     """Container for PR analysis data."""
     file_analysis: Dict[str, Any]
     complexity_score: int
@@ -304,7 +305,7 @@ class AnalysisData:
     related_issues: List[Dict[str, str]]
     commit_count: int
 
-def generate_analysis_report(pr: Any, analysis_data: AnalysisData) -> str:
+    def generate_analysis_report(pr: Any, analysis_data: AnalysisData) -> str:
     """Generate comprehensive analysis report."""
     # Unpack data for backward compatibility with existing code
     file_analysis = analysis_data.file_analysis
