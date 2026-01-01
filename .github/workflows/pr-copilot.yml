@@ -23,7 +23,7 @@ permissions:
   statuses: read
 
 concurrency:
-  group: pr-copilot-${{ github.event.pull_request.number || github.event.issue.number || github.event.check_suite.head_branch || github.ref }}
+  group: pr-copilot-${{ github.event.pull_request.number || github.event.issue.number || (github.event.check_suite.pull_requests[0].number || github.event.check_suite.head_branch) || github.ref }}
   cancel-in-progress: true
 
 jobs:
