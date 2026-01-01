@@ -104,7 +104,33 @@ def categorize_comment(comment_body: str, actionable_keywords: List[str]) -> Tup
     if any(kw in body_lower for kw in improvement_keywords):
         return "improvement", 2
 
+def categorize_comment(comment_body: str) -> Tuple[str, int]:
+    """
+    Categorize comment by type and priority.
+
+    Returns:
+        Tuple of (category, priority)
+        Categories: critical, bug, improvement, style, question
+        Priority: 1 (high) to 3 (low)
+    """
+    body_lower = comment_body.lower()
+
+    # Define category keywords with their priorities
+    categories = [
+        ("critical", 1, ["security", "vulnerability", "exploit", "critical", "breaking"]),
+        ("bug", 1, ["bug", "error", "fails", "broken", "incorrect", "wrong"]),
+        ("question", 3, ["why", "what", "how", "?", "clarify", "explain"]),
+        ("style", 3, ["style", "format", "lint", "naming", "convention"]),
+        ("improvement", 2, ["refactor", "improve", "optimize", "enhance", "consider"]),
+    ]
+
+    # Check each category in priority order
+    for category, priority, keywords in categories:
+        if any(kw in body_lower for kw in keywords):
+            return category, priority
+
     # Default to improvement with medium priority
+    return "improvement", 2
     return "improvement", 2
 
 
