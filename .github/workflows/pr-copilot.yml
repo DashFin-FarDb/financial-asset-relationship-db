@@ -48,9 +48,6 @@ jobs:
       should_check_conflicts: ${{ steps.detect.outputs.should_check_conflicts }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Detect trigger type and set flags
         id: detect
         uses: actions/github-script@v7
