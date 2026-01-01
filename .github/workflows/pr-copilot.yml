@@ -179,28 +179,31 @@ jobs:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
 
-            const welcomeMessage = `👋 **Welcome to PR Copilot!**
+            const welcomeMessageLines = [
+              '👋 **Welcome to PR Copilot!**',
+              '',
+              "I'm here to help manage this PR. Here's what I can do:",
+              '',
+              '**Commands:**',
+              '- `@pr-copilot status update` - Get detailed PR status',
+              '- `@pr-copilot help` - Show available commands',
+              '',
+              '**Automatic Features:**',
+              '- ✅ Scope validation (warns on large/multi-purpose PRs)',
+              '- ✅ Review comment tracking',
+              '- ✅ Auto-merge when ready',
+              '- ✅ Merge conflict detection',
+              '',
+              '**Status Updates:**',
+              "I'll automatically update you on:",
+              '- Review approvals/changes',
+              '- Check completions',
+              '- Merge readiness',
+              '',
+              'Tag me anytime with `@pr-copilot` for assistance!'
+            ];
 
-            I'm here to help manage this PR. Here's what I can do:
-
-            **Commands:**
-            - \`@pr-copilot status update\` - Get detailed PR status
-            - \`@pr-copilot help\` - Show available commands
-
-            **Automatic Features:**
-            - ✅ Scope validation (warns on large/multi-purpose PRs)
-            - ✅ Review comment tracking
-            - ✅ Auto-merge when ready
-            - ✅ Merge conflict detection
-
-            **Status Updates:**
-            I'll automatically update you on:
-            - Review approvals/changes
-            - Check completions
-            - Merge readiness
-
-            Tag me anytime with \`@pr-copilot\` for assistance!`;
-
+            const welcomeMessage = welcomeMessageLines.join('\n');
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
