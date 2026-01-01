@@ -241,9 +241,7 @@ def _format_large_files(file_analysis: Dict[str, Any]) -> str:
 
     lines = ["\n**Large Files (>500 lines changed):**"]
     for file in large_files:
-        lines.append(
-            f"  - `{file['filename']}`: {file['changes']} lines (+{file['additions']}/-{file['deletions']})"
-        )
+        lines.append(f"  - `{file['filename']}`: {file['changes']} lines (+{file['additions']}/-{file['deletions']})")
     return "\n" + "\n".join(lines) + "\n"
 
 
@@ -622,11 +620,7 @@ def find_related_issues(pr: Any) -> List[Dict[str, str]]:
     return unique_related
 
 
-
-def generate_analysis_report(
-    pr: Any,
-    analysis_data: AnalysisData
-) -> str:
+def generate_analysis_report(pr: Any, analysis_data: AnalysisData) -> str:
     """Generate comprehensive analysis report."""
     # Unpack data for backward compatibility with existing code
     file_analysis = analysis_data.file_analysis
