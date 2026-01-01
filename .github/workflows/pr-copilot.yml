@@ -395,9 +395,6 @@ jobs:
     if: needs.detect-trigger.outputs.should_handle_review == 'true' && needs.detect-trigger.outputs.pr_number != ''
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Analyze review comments
         id: analyze
         uses: actions/github-script@v7
