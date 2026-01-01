@@ -176,7 +176,7 @@ def check_scope_issues(pr: Any, file_analysis: Dict[str, Any], config: Dict[str,
     """Check for potential scope issues."""
     issues: List[str] = []
 
-    title_max_len = int(config.get("title_max_length", 72))
+    title_max_len = int(config.get("scope", {}).get("warn_on_long_title", 72))
     if len(pr.title) > title_max_len:
         issues.append(f"Long PR title ({len(pr.title)} chars, recommended <{title_max_len})")
 
