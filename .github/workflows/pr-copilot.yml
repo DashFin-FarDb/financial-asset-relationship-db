@@ -617,9 +617,6 @@ jobs:
     if: needs.detect-trigger.outputs.should_check_conflicts == 'true' && needs.detect-trigger.outputs.pr_number != ''
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Check for conflicts
         id: check
         uses: actions/github-script@v7
