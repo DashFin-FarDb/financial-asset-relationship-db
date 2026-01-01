@@ -104,6 +104,7 @@ def categorize_comment(comment_body: str, actionable_keywords: List[str]) -> Tup
     if any(kw in body_lower for kw in improvement_keywords):
         return "improvement", 2
 
+
 def categorize_comment(comment_body: str) -> Tuple[str, int]:
     """
     Categorize comment by type and priority.
