@@ -10,7 +10,7 @@ This module validates the debricked.yml workflow file to ensure:
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import pytest
 import yaml
