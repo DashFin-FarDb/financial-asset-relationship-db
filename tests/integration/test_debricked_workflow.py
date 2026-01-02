@@ -95,14 +95,17 @@ class TestWorkflowStructure:
         triggers = debricked_config.get("on", {})
         assert triggers, "Workflow triggers must not be empty"
 
+        # Normalize to a set of keys for consistent checking
         if isinstance(triggers, dict):
-            assert "pull_request" in triggers, "Workflow should trigger on 'pull_request'"
-            assert "workflow_dispatch" in triggers, "Workflow should support 'workflow_dispatch' for manual testing"
+            trigger_keys = set(triggers.keys())
         elif isinstance(triggers, list):
-            assert "pull_request" in triggers, "Workflow should trigger on 'pull_request'"
-            assert "workflow_dispatch" in triggers, "Workflow should support 'workflow_dispatch' for manual testing"
+            trigger_keys = set(triggers)
         else:
             pytest.fail(f"Unexpected type for workflow 'on' triggers: {type(triggers)}")
+
+        # Single set of assertions
+        assert "pull_request" in trigger_keys, "Workflow should trigger on 'pull_request'"
+        assert "workflow_dispatch" in trigger_keys, "Workflow should support 'workflow_dispatch' for manual testing"
 
     def test_job_runner(self, scan_job: Dict[str, Any]):
         """Test that job uses Ubuntu runner."""
