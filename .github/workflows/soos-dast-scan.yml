@@ -35,7 +35,6 @@ jobs:
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     name: SOOS DAST Analysis
     runs-on: ubuntu-latest
-        if: ${{ secrets.SOOS_API_KEY != '' && secrets.SOOS_CLIENT_ID != '' }}
     steps:
       - name: Run SOOS DAST Analysis
         uses: soos-io/soos-dast-github-action@a7eb40b94c1c81eb76b178ba1befdc21823f86fa
