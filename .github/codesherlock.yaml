@@ -1,6 +1,10 @@
+# CodeSherlock PR Review Configuration
+# This configuration enables automated Pull Request reviews with focus on
+# quality characteristics and project-specific guidelines.
+
 # Trigger reviews for PRs targeting these branches
 # target_branches: ["main"]
-# Removal of target_branches: ["main"] triggers reviews for all PRs from all branches
+# Note: Commenting out target_branches enables reviews for all PRs from all branches
 
 # Focus review on these quality characteristics
 preferred_characteristics:
@@ -12,16 +16,39 @@ preferred_characteristics:
   - "Code Injection"
   - "Input Validation"
 
-# Custom rules specific to your project
+# Custom rules specific to this project
 additional_instructions:
-  - No exposed secrets or API keys
-  - No console.log, print, System.out.println left in code
-  - All public methods must have documentation
-  - Include error handling for external API calls
-  - Use dependency injection for database connections
-  - Include unit tests for new features
-  - Validate all user inputs
-  - Use parameterized queries for database operations
+  # Security
+  - No exposed secrets or API keys in code
+  - Use parameterized queries for all database operations to prevent SQL injection
+  - Validate and sanitize all user inputs before processing
+  - Implement proper authentication and authorization checks
+
+  # Code Quality
+  - No console.log, print, or System.out.println statements left in production code
+  - All public methods and functions must have documentation
+  - Use dependency injection for database connections and external services
+  - Follow single responsibility principle for functions and classes
+
+  # Error Handling
+  - Include comprehensive error handling for external API calls
+  - Handle database connection failures gracefully
+  - Provide meaningful error messages without exposing sensitive information
+  - Log errors appropriately for debugging and monitoring
+
+  # Testing
+  - Include unit tests for new features and bug fixes
+  - Ensure test coverage for edge cases and error scenarios
+  - Mock external dependencies in tests
+
+  # Performance
   - Avoid nested loops where possible
-  - Use appropriate data structures
+  - Use appropriate data structures for the use case
   - Include performance tests for critical paths
+  - Consider database query optimization and indexing
+
+  # Database Operations
+  - Always use transactions for multi-step database operations
+  - Implement proper connection pooling
+  - Close database connections and resources properly
+  - Handle database migration scripts with rollback capability
