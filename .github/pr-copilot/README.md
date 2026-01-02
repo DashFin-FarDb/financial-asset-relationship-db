@@ -368,6 +368,7 @@ To improve PR Copilot:
 1. Report issues or suggest features via GitHub Issues
 2. Submit PRs with enhancements
 3. Share usage feedback and best practices
+5. Add or improve test coverage (see [TESTING.md](TESTING.md))
 4. Help improve documentation
 
 ## 📄 License
