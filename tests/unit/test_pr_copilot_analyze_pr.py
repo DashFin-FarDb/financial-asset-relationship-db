@@ -11,13 +11,19 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
+from analyze_pr import (
+    AnalysisData,
+    analyze_pr_files,
+    assess_complexity,
+    calculate_score,
+    categorize_filename,
+    find_related_issues,
+    find_scope_issues,
+    generate_markdown,
+    load_config,
+)
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"))
-
-from analyze_pr import (AnalysisData, analyze_pr_files, assess_complexity,
-                        calculate_score, categorize_filename,
-                        find_related_issues, find_scope_issues,
-                        generate_markdown, load_config)
 
 
 def test_categorize_filename_python():

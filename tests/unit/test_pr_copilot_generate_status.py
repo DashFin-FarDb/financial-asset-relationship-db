@@ -13,9 +13,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"))
-
 from generate_status import (
     CheckRunInfo,
     PRStatus,
@@ -25,6 +22,8 @@ from generate_status import (
     generate_markdown,
     write_output,
 )
+
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"))
 
 
 @pytest.fixture
