@@ -60,4 +60,5 @@ jobs:
       - name: Upload SOOS DAST SARIF Report
         uses: github/codeql-action/upload-sarif@v3
         with:
+        if: ${{ secrets.SOOS_API_KEY != '' && secrets.SOOS_CLIENT_ID != '' }}
           sarif_file: output.sarif.json
