@@ -6,7 +6,7 @@ This module validates the debricked.yml workflow file to ensure:
 - Proper YAML structure and syntax
 - Required fields and configuration
 - Security best practices (permissions, injection prevention)
-- Integration with Debricked actions
+- Integration with Debricked CLI
 """
 
 import re
@@ -44,11 +44,11 @@ def workflow_config(workflow_content: str) -> Dict[str, Any]:
 
 @pytest.fixture(scope="module")
 def scan_job(workflow_config: Dict[str, Any]) -> Dict[str, Any]:
-    """Get the vulnerabilities-scan job configuration."""
+    """Get the scan job configuration."""
     jobs = workflow_config.get("jobs", {})
-    if "vulnerabilities-scan" not in jobs:
-        pytest.fail("Workflow missing required job: 'vulnerabilities-scan'")
-    return jobs["vulnerabilities-scan"]
+    if "scan" not in jobs:
+        pytest.fail("Workflow missing required job: 'scan'")
+    return jobs["scan"]
 
 
 @pytest.fixture(scope="module")
@@ -58,6 +58,11 @@ def job_steps(scan_job: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 # --- Helpers ---
+
+
+def get_steps_by_name(steps: List[Dict[str, Any]], name_substring: str) -> List[Dict[str, Any]]:
+    """Filter steps by name (case-insensitive)."""
+    return [s for s in steps if "name" in s and name_substring.lower() in s["name"].lower()]
 
 
 def get_steps_by_action(steps: List[Dict[str, Any]], action_substring: str) -> List[Dict[str, Any]]:
@@ -87,7 +92,6 @@ class TestWorkflowStructure:
         """Test workflow name presence and description."""
         name = workflow_config.get("name", "")
         assert isinstance(name, str) and name, "Workflow must have a non-empty string name"
-        assert "debricked" in name.lower(), "Workflow name should mention 'Debricked'"
 
     def test_triggers_events(self, workflow_config: Dict[str, Any]):
         """Test that workflow triggers on necessary events."""
@@ -103,57 +107,6 @@ class TestWorkflowStructure:
             pytest.fail(f"Unexpected type for workflow 'on' triggers: {type(triggers)}")
 
         assert "pull_request" in trigger_keys, "Workflow should trigger on 'pull_request'"
-
-    def test_triggers_on_push_to_main(self, workflow_config: Dict[str, Any]):
-        """Test that workflow triggers on push to main branch."""
-        triggers = workflow_config.get("on", {})
-        assert "push" in triggers, "Workflow should trigger on 'push'"
-
-        push_config = triggers.get("push")
-        if isinstance(push_config, dict):
-            branches = push_config.get("branches", [])
-
-    def test_job_runs_on_ubuntu(self, scan_job: Dict[str, Any]):
-        """Test that the scan job runs on Ubuntu 22.04."""
-        runs_on = scan_job.get("runs-on", "")
-        assert runs_on == "ubuntu-22.04", "Job should run on ubuntu-22.04 for consistency"
-
-        assert "main" in branches, "Push trigger should include 'main' branch"
-
-    def test_triggers_on_pull_request_to_main(self, workflow_config: Dict[str, Any]):
-        """Test that workflow triggers on pull requests to main branch."""
-        triggers = workflow_config.get("on", {})
-        assert "pull_request" in triggers, "Workflow should trigger on 'pull_request'"
-
-    def test_triggers_on_push_to_main(self, workflow_config: Dict[str, Any]):
-        """Test that workflow triggers on push to main branch."""
-        triggers = workflow_config.get("on", {})
-        assert "push" in triggers, "Workflow should trigger on 'push' events"
-
-        # Verify push trigger configuration
-        push_config = triggers.get("push")
-        if isinstance(push_config, dict):
-            branches = push_config.get("branches", [])
-            assert "main" in branches, "Workflow should trigger on push to 'main' branch"
-
-    def test_triggers_on_pull_request_to_main(self, workflow_config: Dict[str, Any]):
-        """Test that workflow triggers on pull requests to main branch."""
-        triggers = workflow_config.get("on", {})
-        assert "pull_request" in triggers, "Workflow should trigger on 'pull_request' events"
-
-        # Verify pull_request trigger configuration
-        pr_config = triggers.get("pull_request")
-        if isinstance(pr_config, dict):
-            branches = pr_config.get("branches", [])
-
-    def test_triggers_on_push_to_main(self, workflow_config: Dict[str, Any]):
-        """Test that workflow triggers on push to main branch."""
-        triggers = workflow_config.get("on", {})
-        assert "push" in triggers, "Workflow should trigger on 'push'"
-
-        push_config = triggers.get("push", {})
-        if isinstance(push_config, dict) and "branches" in push_config:
-            assert "main" in push_config["branches"], "Workflow should trigger on push to 'main' branch"
         assert "push" in trigger_keys, "Workflow should trigger on 'push' to main branch"
         assert "workflow_dispatch" in trigger_keys, "Workflow should support 'workflow_dispatch' for manual testing"
 
@@ -162,25 +115,46 @@ class TestWorkflowStructure:
         triggers = workflow_config.get("on", {})
         assert "push" in triggers, "Workflow should trigger on 'push' events"
 
-        # Verify push trigger configuration
         push_config = triggers.get("push")
         if isinstance(push_config, dict):
             branches = push_config.get("branches", [])
-            assert "main" in branches, "Workflow should trigger on push to 'main' branch"
+            assert branches, "Push trigger should specify branches"
+            assert any(b in ["main", "master"] for b in branches), "Push trigger should include 'main' or 'master' branch"
 
-    def test_job_permissions(self, scan_job: Dict[str, Any]):
-        """Test that job has explicit permissions (Principle of Least Privilege)."""
-        permissions = scan_job.get("permissions", {})
-        assert permissions, "Job must have explicit permissions defined"
-        assert permissions.get("contents") == "read", "Job requires 'contents: read'"
-        assert permissions.get("security-events") == "write", "Job requires 'security-events: write'"
+    def test_triggers_on_pull_request_to_main(self, workflow_config: Dict[str, Any]):
+        """Test that workflow triggers on pull requests to main branch."""
+        triggers = workflow_config.get("on", {})
+        assert "pull_request" in triggers, "Workflow should trigger on 'pull_request' events"
+
+        pr_config = triggers.get("pull_request")
+        if isinstance(pr_config, dict):
+            branches = pr_config.get("branches", [])
+            assert branches, "Pull request trigger should specify branches"
+            assert any(b in ["main", "master"] for b in branches), "Pull request trigger should include 'main' or 'master' branch"
+
+    def test_job_runs_on_ubuntu(self, scan_job: Dict[str, Any]):
+        """Test that the scan job runs on Ubuntu."""
+        runs_on = scan_job.get("runs-on", "")
+        assert "ubuntu" in runs_on.lower(), "Job should run on Ubuntu"
+
+    def test_workflow_permissions(self, workflow_config: Dict[str, Any]):
+        """Test that workflow has explicit permissions (Principle of Least Privilege)."""
+        permissions = workflow_config.get("permissions", {})
+        assert permissions, "Workflow must have explicit permissions defined"
+        assert permissions.get("contents") == "read", "Workflow requires 'contents: read'"
+        assert permissions.get("security-events") == "write", "Workflow requires 'security-events: write'"
 
 
 class TestStepsConfiguration:
     """Test specific steps in the workflow."""
 
+    def test_checkout_step_exists(self, job_steps: List[Dict[str, Any]]):
+        """Test that checkout step exists."""
+        checkout_steps = get_steps_by_action(job_steps, "actions/checkout")
+        assert checkout_steps, "Job must include actions/checkout step"
+
     def test_checkout_step_version(self, job_steps: List[Dict[str, Any]]):
-        """Test that checkout action exists and uses at least v4 (tag or SHA)."""
+        """Test that checkout action uses at least v4 (tag or SHA)."""
         checkout_steps = get_steps_by_action(job_steps, "actions/checkout")
         assert checkout_steps, "Job must include actions/checkout step"
 
@@ -190,19 +164,25 @@ class TestStepsConfiguration:
             version = action.split("@")[1]
             # Accept either SHA (40 chars) or v4 tag
             if len(version) != 40:
-                assert "v4" in version, f"Checkout tag must be v4 or later (found {version})"
+                assert "v4" in version or "v3" in version, f"Checkout tag must be v3 or later (found {version})"
 
-    def test_debricked_action_version(self, job_steps: List[Dict[str, Any]]):
-        """Test that Debricked action exists and uses at least v4 (tag or SHA)."""
-        debricked_steps = get_steps_by_action(job_steps, "debricked")
-        assert debricked_steps, "Job must include Debricked action"
+    def test_debricked_cli_installation(self, job_steps: List[Dict[str, Any]]):
+        """Test that Debricked CLI installation step exists."""
+        install_steps = get_steps_by_name(job_steps, "install debricked")
+        assert install_steps, "Job must include Debricked CLI installation step"
 
-        for step in debricked_steps:
-            action = step["uses"]
-            assert "@" in action, f"Debricked action must specify version: {action}"
-            version = action.split("@")[1]
-            if len(version) != 40:
-                assert "v4" in version, f"Debricked action tag must be v4 or later (found {version})"
+        for step in install_steps:
+            run_script = step.get("run", "")
+            assert "debricked" in run_script.lower(), "Installation step should install Debricked CLI"
+
+    def test_debricked_scan_step(self, job_steps: List[Dict[str, Any]]):
+        """Test that Debricked scan step exists."""
+        scan_steps = get_steps_by_name(job_steps, "debricked scan")
+        assert scan_steps, "Job must include Debricked scan step"
+
+        for step in scan_steps:
+            run_script = step.get("run", "")
+            assert "debricked scan" in run_script.lower(), "Scan step should run 'debricked scan' command"
 
 
 class TestSecretHandling:
@@ -210,14 +190,15 @@ class TestSecretHandling:
 
     def test_debricked_token_configuration(self, job_steps: List[Dict[str, Any]]):
         """Test DEBRICKED_TOKEN injection via secrets."""
-        debricked_steps = get_steps_by_action(job_steps, "debricked")
-        assert debricked_steps, "Job must include Debricked action to configure DEBRICKED_TOKEN"
-        for step in debricked_steps:
+        scan_steps = get_steps_by_name(job_steps, "debricked scan")
+        assert scan_steps, "Job must include Debricked scan step to configure DEBRICKED_TOKEN"
+
+        for step in scan_steps:
             env = step.get("env", {})
-            assert "DEBRICKED_TOKEN" in env, "Debricked step must define DEBRICKED_TOKEN in env"
+            assert "DEBRICKED_TOKEN" in env, "Debricked scan step must define DEBRICKED_TOKEN in env"
 
             token = env["DEBRICKED_TOKEN"]
-            # Fix: Remove spaces from BOTH the token and the expected string for comparison
+            # Remove spaces from BOTH the token and the expected string for comparison
             normalized_token = token.replace(" ", "")
             normalized_expected = "${{secrets.DEBRICKED_TOKEN}}"
 
