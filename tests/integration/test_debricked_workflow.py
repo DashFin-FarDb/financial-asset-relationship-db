@@ -102,6 +102,7 @@ class TestWorkflowStructure:
             pytest.fail(f"Unexpected type for workflow 'on' triggers: {type(triggers)}")
 
         assert "pull_request" in trigger_keys, "Workflow should trigger on 'pull_request'"
+        assert "push" in trigger_keys, "Workflow should trigger on 'push' to main branch"
         assert "workflow_dispatch" in trigger_keys, "Workflow should support 'workflow_dispatch' for manual testing"
 
     def test_job_permissions(self, scan_job: Dict[str, Any]):
