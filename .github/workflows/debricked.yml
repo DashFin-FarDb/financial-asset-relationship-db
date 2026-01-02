@@ -29,6 +29,6 @@ jobs:
       - name: Run Debricked Scan
         # Using stable version tag
         # Fixed: Corrected action path from debricked/actions/scan to debricked/scan-action
-        uses: debricked/scan-action@v1
+        uses: debricked/scan-action@v10.0.0
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
