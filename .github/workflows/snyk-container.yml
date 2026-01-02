@@ -65,11 +65,8 @@ jobs:
       with:
         image: your/image-to-test
         args: --file=Dockerfile --sarif-file-output=snyk.sarif
-    - name: Check if SARIF file exists
-      id: check_sarif
-      run: echo "exists=$(test -f snyk.sarif && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
     - name: Upload result to GitHub Code Scanning
-      if: steps.check_sarif.outputs.exists == 'true'
+      if: always() && hashFiles('snyk.sarif') != ''
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: snyk.sarif
