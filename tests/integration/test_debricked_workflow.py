@@ -91,14 +91,18 @@ class TestWorkflowStructure:
 
     def test_triggers_events(self, debricked_config: Dict[str, Any]):
         """Test that workflow triggers on necessary events."""
-        triggers = debricked_config.get("on", [])
+        # Default to empty dict as 'on' is typically a mapping
+        triggers = debricked_config.get("on", {})
+        assert triggers, "Workflow triggers must not be empty"
 
-        # Normalize triggers (can be list or dict)
-        trigger_keys = triggers if isinstance(triggers, dict) else triggers
-
-        assert "pull_request" in trigger_keys, "Workflow should trigger on 'pull_request'"
-        # Recommendation: Manual triggers are useful for debugging
-        assert "workflow_dispatch" in trigger_keys, "Workflow should support 'workflow_dispatch' for manual testing"
+        if isinstance(triggers, dict):
+            assert "pull_request" in triggers, "Workflow should trigger on 'pull_request'"
+            assert "workflow_dispatch" in triggers, "Workflow should support 'workflow_dispatch' for manual testing"
+        elif isinstance(triggers, list):
+            assert "pull_request" in triggers, "Workflow should trigger on 'pull_request'"
+            assert "workflow_dispatch" in triggers, "Workflow should support 'workflow_dispatch' for manual testing"
+        else:
+            pytest.fail(f"Unexpected type for workflow 'on' triggers: {type(triggers)}")
 
     def test_job_runner(self, scan_job: Dict[str, Any]):
         """Test that job uses Ubuntu runner."""
