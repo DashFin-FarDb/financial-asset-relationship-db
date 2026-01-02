@@ -17,35 +17,34 @@ import yaml
 
 # Constants
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-ROOT_DEBRICKED_FILE = REPO_ROOT / "debricked.yml"
-WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
-WORKFLOW_DEBRICKED_FILE = WORKFLOWS_DIR / "debricked.yml"
+# FIX: Reference the actual workflow file in .github/workflows
+DEBRICKED_WORKFLOW_FILE = REPO_ROOT / ".github" / "workflows" / "debricked.yml"
 
 
 # --- Fixtures ---
 
 
 @pytest.fixture(scope="module")
-def root_debricked_content() -> str:
-    """Load raw content of root debricked.yml once for the module."""
-    if not ROOT_DEBRICKED_FILE.exists():
-        pytest.fail(f"{ROOT_DEBRICKED_FILE} does not exist.")
-    return ROOT_DEBRICKED_FILE.read_text(encoding="utf-8")
+def workflow_content() -> str:
+    """Load raw content of the debricked workflow file once for the module."""
+    if not DEBRICKED_WORKFLOW_FILE.exists():
+        pytest.fail(f"{DEBRICKED_WORKFLOW_FILE} does not exist.")
+    return DEBRICKED_WORKFLOW_FILE.read_text(encoding="utf-8")
 
 
 @pytest.fixture(scope="module")
-def debricked_config(root_debricked_content: str) -> Dict[str, Any]:
+def workflow_config(workflow_content: str) -> Dict[str, Any]:
     """Parse YAML content once for the module."""
     try:
-        return yaml.safe_load(root_debricked_content)
+        return yaml.safe_load(workflow_content)
     except yaml.YAMLError as e:
         pytest.fail(f"Invalid YAML syntax in debricked.yml: {e}")
 
 
 @pytest.fixture(scope="module")
-def scan_job(debricked_config: Dict[str, Any]) -> Dict[str, Any]:
+def scan_job(workflow_config: Dict[str, Any]) -> Dict[str, Any]:
     """Get the vulnerabilities-scan job configuration."""
-    jobs = debricked_config.get("jobs", {})
+    jobs = workflow_config.get("jobs", {})
     if "vulnerabilities-scan" not in jobs:
         pytest.fail("Workflow missing required job: 'vulnerabilities-scan'")
     return jobs["vulnerabilities-scan"]
@@ -71,39 +70,38 @@ def get_steps_by_action(steps: List[Dict[str, Any]], action_substring: str) -> L
 class TestFileBasics:
     """Test file existence and basic properties."""
 
-    def test_root_debricked_is_file(self):
-        """Test that debricked.yml is a regular file."""
-        assert ROOT_DEBRICKED_FILE.is_file(), "debricked.yml should be a regular file"
+    def test_workflow_file_exists(self):
+        """Test that .github/workflows/debricked.yml exists."""
+        assert DEBRICKED_WORKFLOW_FILE.is_file(), "debricked.yml should be a regular file in .github/workflows"
 
-    def test_root_debricked_not_empty(self, root_debricked_content: str):
+    def test_workflow_not_empty(self, workflow_content: str):
         """Test that the file is not empty."""
-        assert len(root_debricked_content) > 0, "debricked.yml should not be empty"
+        assert len(workflow_content) > 0, "debricked.yml should not be empty"
 
 
 class TestWorkflowStructure:
     """Test the structure and required fields."""
 
-    def test_has_valid_name(self, debricked_config: Dict[str, Any]):
+    def test_has_valid_name(self, workflow_config: Dict[str, Any]):
         """Test workflow name presence and description."""
-        name = debricked_config.get("name", "")
+        name = workflow_config.get("name", "")
         assert isinstance(name, str) and name, "Workflow must have a non-empty string name"
         assert "debricked" in name.lower(), "Workflow name should mention 'Debricked'"
 
-    def test_triggers_events(self, debricked_config: Dict[str, Any]):
+    def test_triggers_events(self, workflow_config: Dict[str, Any]):
         """Test that workflow triggers on necessary events."""
         # Default to empty dict as 'on' is typically a mapping
-        triggers = debricked_config.get("on", {})
+        triggers = workflow_config.get("on", {})
         assert triggers, "Workflow triggers must not be empty"
 
-        # Normalize to a set of keys for consistent checking
         if isinstance(triggers, dict):
+            # Normalize keys to set for easier checking
             trigger_keys = set(triggers.keys())
         elif isinstance(triggers, list):
             trigger_keys = set(triggers)
         else:
             pytest.fail(f"Unexpected type for workflow 'on' triggers: {type(triggers)}")
 
-        # Single set of assertions
         assert "pull_request" in trigger_keys, "Workflow should trigger on 'pull_request'"
         assert "workflow_dispatch" in trigger_keys, "Workflow should support 'workflow_dispatch' for manual testing"
 
@@ -125,28 +123,37 @@ class TestStepsConfiguration:
     """Test specific steps in the workflow."""
 
     def test_checkout_step_version(self, job_steps: List[Dict[str, Any]]):
-        """Test that checkout action exists and uses at least v4."""
+        """Test that checkout action exists and uses at least v4 (tag or SHA)."""
         checkout_steps = get_steps_by_action(job_steps, "actions/checkout")
         assert checkout_steps, "Job must include actions/checkout step"
 
         for step in checkout_steps:
             action = step["uses"]
             assert "@" in action, f"Checkout must specify version: {action}"
-            # Check for v4 (tag or SHA) or later
+            
+            # FIX: Logic to accept either v4 tag OR full SHA
             version = action.split("@")[1]
-            if not (len(version) == 40):  # Not a SHA
-                major_version = int(version.lstrip("v").split(".")[0])
-                assert major_version >= 4, "Checkout should use v4 or higher, or a full SHA"
+            
+            # Check if it is a SHA (40 chars)
+            if len(version) != 40:
+                # If not a SHA, it must contain 'v4'
+                assert "v4" in version, f"Checkout tag must be v4 or later (found {version})"
+            # Implicitly passes if it is a 40-char SHA (assumed valid for security)
 
     def test_debricked_action_version(self, job_steps: List[Dict[str, Any]]):
-        """Test that Debricked action exists and uses at least v4."""
+        """Test that Debricked action exists and uses at least v4 (tag or SHA)."""
         debricked_steps = get_steps_by_action(job_steps, "debricked")
         assert debricked_steps, "Job must include Debricked action"
 
         for step in debricked_steps:
             action = step["uses"]
             assert "@" in action, f"Debricked action must specify version: {action}"
-            assert "v4" in action or len(action.split("@")[1]) == 40, "Debricked action should use v4 or a full SHA"
+            
+            # FIX: Logic to accept either v4 tag OR full SHA
+            version = action.split("@")[1]
+
+            if len(version) != 40:
+                assert "v4" in version, f"Debricked action tag must be v4 or later (found {version})"
 
 
 class TestSecretHandling:
@@ -166,17 +173,17 @@ class TestSecretHandling:
                 " ", ""
             ), "Token must use secrets context: ${{ secrets.DEBRICKED_TOKEN }}"
 
-    def test_no_hardcoded_secrets(self, root_debricked_content: str):
+    def test_no_hardcoded_secrets(self, workflow_content: str):
         """Test for potential hardcoded secrets in the file content."""
         suspicious_patterns = ["ghp_", "dbr_"]
         for pattern in suspicious_patterns:
-            assert pattern not in root_debricked_content, f"Found potential hardcoded secret pattern '{pattern}'"
+            assert pattern not in workflow_content, f"Found potential hardcoded secret pattern '{pattern}'"
 
 
 class TestSecurityPatterns:
     """Test for specific security vulnerabilities."""
 
-    def test_no_script_injection(self, root_debricked_content: str):
+    def test_no_script_injection(self, workflow_content: str):
         """Check for unsafe interpolation in run scripts."""
         # Detects patterns like: run: echo ${{ github.event.issue.title }}
         # Unsafe context in scripts can lead to command injection
@@ -191,12 +198,12 @@ class TestSecurityPatterns:
 
         for ctx in unsafe_contexts:
             pattern = r"run:.*(\$\{\{\s*" + ctx + r".*\}\})"
-            matches = re.findall(pattern, root_debricked_content, re.IGNORECASE)
+            matches = re.findall(pattern, workflow_content, re.IGNORECASE)
             assert not matches, f"Potential script injection vulnerability found using context: {ctx}"
 
-    def test_no_secret_logging(self, root_debricked_content: str):
+    def test_no_secret_logging(self, workflow_content: str):
         """Check for echoing secrets."""
         # Detects: echo ${{ secrets.TOKEN }}
         logging_pattern = r"(echo|print).*(\$\{\{\s*secrets\..*\}\})"
-        matches = re.findall(logging_pattern, root_debricked_content, re.IGNORECASE)
+        matches = re.findall(logging_pattern, workflow_content, re.IGNORECASE)
         assert not matches, f"Potential secret logging found: {matches}"
