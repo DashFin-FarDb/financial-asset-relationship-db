@@ -118,7 +118,7 @@ class TestWorkflowStructure:
         runs_on = scan_job.get("runs-on", "")
         assert runs_on == "ubuntu-22.04", "Job should run on ubuntu-22.04 for consistency"
 
-            assert "main" in branches, "Push trigger should include 'main' branch"
+        assert "main" in branches, "Push trigger should include 'main' branch"
 
     def test_triggers_on_pull_request_to_main(self, workflow_config: Dict[str, Any]):
         """Test that workflow triggers on pull requests to main branch."""
@@ -145,6 +145,7 @@ class TestWorkflowStructure:
         pr_config = triggers.get("pull_request")
         if isinstance(pr_config, dict):
             branches = pr_config.get("branches", [])
+
     def test_triggers_on_push_to_main(self, workflow_config: Dict[str, Any]):
         """Test that workflow triggers on push to main branch."""
         triggers = workflow_config.get("on", {})
