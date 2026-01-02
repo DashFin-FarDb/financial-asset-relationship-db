@@ -6,12 +6,42 @@ workflows, ensuring they are properly formatted and free of common issues like
 duplicate keys, invalid syntax, and missing required fields.
 """
 
+import copy
 import re
 from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
 import yaml
+
+BOOL_TAG = "tag:yaml.org,2002:bool"
+
+
+class GitHubActionsYamlLoader(yaml.SafeLoader):
+    """
+    YAML loader compatible with GitHub Actions workflow files.
+
+    GitHub parses workflows using YAML 1.2 rules where the `on` key is a string.
+    PyYAML defaults to YAML 1.1 rules and interprets values like "on"/"off"/"yes"/"no"
+    as booleans, which breaks parsing and validations.
+    """
+
+    pass
+
+
+GitHubActionsYamlLoader.yaml_implicit_resolvers = copy.deepcopy(GitHubActionsYamlLoader.yaml_implicit_resolvers)
+
+
+for ch, resolvers in list(GitHubActionsYamlLoader.yaml_implicit_resolvers.items()):
+    GitHubActionsYamlLoader.yaml_implicit_resolvers[ch] = [
+        (tag, regexp) for tag, regexp in resolvers if tag != BOOL_TAG
+    ]
+
+GitHubActionsYamlLoader.add_implicit_resolver(
+    BOOL_TAG,
+    re.compile(r"^(?:true|false)$", re.IGNORECASE),
+    list("tTfF"),
+)
 
 # Path to workflows directory
 WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
@@ -44,7 +74,7 @@ def load_yaml_safe(file_path: Path) -> Dict[str, Any]:
         yaml.YAMLError: If the file contains invalid YAML.
     """
     with open(file_path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        return yaml.load(f, Loader=GitHubActionsYamlLoader)
 
 
 def check_duplicate_keys(file_path: Path) -> List[str]:
@@ -63,7 +93,7 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
         content = f.read()
 
     # Parse with a custom constructor that detects duplicates
-    class DuplicateKeySafeLoader(yaml.SafeLoader):
+    class DuplicateKeySafeLoader(GitHubActionsYamlLoader):
         pass
 
     def constructor_with_dup_check(loader, node):
@@ -106,7 +136,7 @@ class TestWorkflowSyntax:
         """Test that workflow files contain valid YAML syntax."""
         try:
             with open(workflow_file, "r", encoding="utf-8") as f:
-                yaml.safe_load(f)
+                yaml.load(f, Loader=GitHubActionsYamlLoader)
         except yaml.YAMLError as e:
             pytest.fail(f"Invalid YAML syntax in {workflow_file.name}: {e}")
 
