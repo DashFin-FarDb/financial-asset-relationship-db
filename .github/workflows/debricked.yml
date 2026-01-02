@@ -27,8 +27,8 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run Debricked Scan
-        # Using version tag instead of invalid SHA
-        # Fixed: Using v1 version tag instead of invalid SHA 05ab417386d5e9766943c2cc343834371908d132
-        uses: debricked/actions/scan@v1
+        # Using stable version tag
+        # Fixed: Corrected action path from debricked/actions/scan to debricked/scan-action
+        uses: debricked/scan-action@v1
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
