@@ -6,7 +6,7 @@
 # Security Features:
 # - Uses GitHub Actions secrets for authentication (DEBRICKED_TOKEN)
 # - Minimal required permissions (least privilege principle)
-# - Pinned action versions using SHA for supply-chain security
+# - Pinned action versions for supply-chain security
 # - No hardcoded secrets or sensitive data logging
 #
 # Triggers:
@@ -41,9 +41,9 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run Debricked Scan
-        # Security: Pinned to specific SHA for debricked/actions/scan@v1
+        # Security: Using semantic version tag for debricked/actions/scan
         # Authentication via GitHub Actions secrets (no hardcoded tokens)
-        uses: debricked/actions/scan@8bf3ade1b1c6f04f5cf2eccfb66b910c0f2d8e4f
+        uses: debricked/actions/scan@v1
         env:
           # Secret is read from GitHub Actions secrets context
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
