@@ -1,132 +1,143 @@
-"""Tests for PR Copilot status generation script."""
+"""
+Unit tests for PR Copilot generate_status.py script.
 
-from __future__ import annotations
+Tests the status report generation functionality including PR data fetching,
+formatting, and output generation.
+"""
 
 import os
+import sys
+import tempfile
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"))
+
+from generate_status import (CheckRunInfo, PRStatus, fetch_pr_status,
+                             format_checklist, format_checks_section,
+                             format_markdown, generate_markdown, write_output)
+
 
 @pytest.fixture
 def mock_github_client():
-    """Mock GitHub client with PR data."""
-    mock_g = Mock()
-    mock_repo = Mock()
-    mock_pr = Mock()
+    """Create a mock GitHub client."""
+    return MagicMock()
 
-    mock_pr.number = 123
-    mock_pr.title = "Test PR Title"
-    mock_pr.user.login = "testuser"
-    mock_pr.base.ref = "main"
-    mock_pr.head.ref = "feature-branch"
-    mock_pr.head.sha = "abc123"
-    mock_pr.draft = False
-    mock_pr.html_url = "https://github.com/test/repo/pull/123"
-    mock_pr.commits = 5
-    mock_pr.changed_files = 10
-    mock_pr.additions = 100
-    mock_pr.deletions = 50
-    mock_pr.labels = []
-    mock_pr.mergeable = True
-    mock_pr.mergeable_state = "clean"
 
-    mock_repo.get_pull.return_value = mock_pr
-    mock_g.get_repo.return_value = mock_repo
-
-    return mock_g, mock_repo, mock_pr
+@pytest.fixture
+def mock_pr():
+    """Create a mock PR object with typical data."""
+    pr = Mock()
+    pr.number = 123
+    pr.title = "Add new feature"
+    pr.user.login = "testuser"
+    pr.base.ref = "main"
+    pr.head.ref = "feature-branch"
+    pr.head.sha = "abc123"
+    pr.draft = False
+    pr.html_url = "https://github.com/test/repo/pull/123"
+    pr.commits = 5
+    pr.changed_files = 10
+    pr.additions = 100
+    pr.deletions = 50
+    pr.labels = [Mock(name="bug"), Mock(name="enhancement")]
+    pr.mergeable = True
+    pr.mergeable_state = "clean"
+    return pr
 
 
 @pytest.fixture
 def mock_reviews():
-    """Mock review data."""
-    approved_review = Mock()
-    approved_review.state = "APPROVED"
-
-    changes_review = Mock()
-    changes_review.state = "CHANGES_REQUESTED"
-
-    comment_review = Mock()
-    comment_review.state = "COMMENTED"
-
-    return [approved_review, changes_review, comment_review]
+    """Create mock review objects."""
+    approved = Mock(state="APPROVED")
+    changes_requested = Mock(state="CHANGES_REQUESTED")
+    commented = Mock(state="COMMENTED")
+    return [approved, changes_requested, commented]
 
 
 @pytest.fixture
 def mock_check_runs():
-    """Mock check run data."""
-    success_check = Mock()
-    success_check.name = "CI Test"
-    success_check.status = "completed"
-    success_check.conclusion = "success"
-
-    failure_check = Mock()
-    failure_check.name = "Lint Check"
-    failure_check.status = "completed"
-    failure_check.conclusion = "failure"
-
-    pending_check = Mock()
-    pending_check.name = "Build"
-    pending_check.status = "in_progress"
-    pending_check.conclusion = None
-
-    return [success_check, failure_check, pending_check]
+    """Create mock check run objects."""
+    success_run = Mock(name="CI Test", status="completed", conclusion="success")
+    failure_run = Mock(name="Lint", status="completed", conclusion="failure")
+    pending_run = Mock(name="Build", status="in_progress", conclusion=None)
+    return [success_run, failure_run, pending_run]
 
 
-@pytest.fixture
-def env_vars():
-    """Set up required environment variables."""
-    env = {
-        "GITHUB_TOKEN": "test_token",
-        "PR_NUMBER": "123",
-        "REPO_OWNER": "testowner",
-        "REPO_NAME": "testrepo",
-    }
-    with patch.dict(os.environ, env, clear=False):
-        yield env
+def test_check_run_info_creation():
+    """Test CheckRunInfo dataclass creation."""
+    check = CheckRunInfo(name="Test", status="completed", conclusion="success")
+    assert check.name == "Test"
+    assert check.status == "completed"
+    assert check.conclusion == "success"
 
 
-def test_fetch_pr_status_returns_complete_data(mock_github_client, mock_reviews, mock_check_runs):
-    """Test that fetch_pr_status returns all required PR data."""
-    from .github.pr_copilot.scripts.generate_status import fetch_pr_status
+def test_pr_status_creation():
+    """Test PRStatus dataclass creation with all fields."""
+    status = PRStatus(
+        number=1,
+        title="Test PR",
+        author="user",
+        base_ref="main",
+        head_ref="feature",
+        is_draft=False,
+        url="https://github.com/test/repo/pull/1",
+        commit_count=3,
+        file_count=5,
+        additions=50,
+        deletions=20,
+        labels=["bug"],
+        mergeable=True,
+        mergeable_state="clean",
+        review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+        open_thread_count=2,
+        check_runs=[],
+    )
+    assert status.number == 1
+    assert status.title == "Test PR"
+    assert status.commit_count == 3
 
-    mock_g, mock_repo, mock_pr = mock_github_client
+
+def test_fetch_pr_status(mock_github_client, mock_pr, mock_reviews, mock_check_runs):
+    """Test fetching PR status from GitHub API."""
+    repo = Mock()
+    mock_github_client.get_repo.return_value = repo
+    repo.get_pull.return_value = mock_pr
 
     mock_pr.get_reviews.return_value = mock_reviews
-    mock_pr.get_review_comments.return_value.totalCount = 5
+    mock_pr.get_review_comments.return_value = Mock(totalCount=5)
 
-    mock_commit = Mock()
-    mock_commit.get_check_runs.return_value = mock_check_runs
-    mock_repo.get_commit.return_value = mock_commit
+    commit = Mock()
+    commit.get_check_runs.return_value = mock_check_runs
+    repo.get_commit.return_value = commit
 
-    status = fetch_pr_status(mock_g, "testowner/testrepo", 123)
+    status = fetch_pr_status(mock_github_client, "test/repo", 123)
 
     assert status.number == 123
-    assert status.title == "Test PR Title"
+    assert status.title == "Add new feature"
     assert status.author == "testuser"
     assert status.commit_count == 5
     assert status.file_count == 10
     assert status.review_stats["approved"] == 1
     assert status.review_stats["changes_requested"] == 1
     assert status.review_stats["commented"] == 1
+    assert status.open_thread_count == 5
     assert len(status.check_runs) == 3
 
 
 def test_format_checklist_all_complete():
     """Test checklist formatting when all tasks are complete."""
-    from .github.pr_copilot.scripts.generate_status import CheckRunInfo, PRStatus, format_checklist
-
-    success_check = CheckRunInfo(name="Test", status="completed", conclusion="success")
-
     status = PRStatus(
-        number=123,
+        number=1,
         title="Test",
         author="user",
         base_ref="main",
         head_ref="feature",
         is_draft=False,
-        url="http://test",
+        url="url",
         commit_count=1,
         file_count=1,
         additions=10,
@@ -136,7 +147,7 @@ def test_format_checklist_all_complete():
         mergeable_state="clean",
         review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
         open_thread_count=0,
-        check_runs=[success_check],
+        check_runs=[CheckRunInfo("Test", "completed", "success")],
     )
 
     checklist = format_checklist(status)
@@ -148,20 +159,16 @@ def test_format_checklist_all_complete():
     assert "- [x] No pending change requests" in checklist
 
 
-def test_format_checklist_with_blockers():
-    """Test checklist formatting when tasks are incomplete."""
-    from .github.pr_copilot.scripts.generate_status import CheckRunInfo, PRStatus, format_checklist
-
-    failed_check = CheckRunInfo(name="Test", status="completed", conclusion="failure")
-
+def test_format_checklist_incomplete():
+    """Test checklist formatting with incomplete tasks."""
     status = PRStatus(
-        number=123,
+        number=1,
         title="Test",
         author="user",
         base_ref="main",
         head_ref="feature",
         is_draft=True,
-        url="http://test",
+        url="url",
         commit_count=1,
         file_count=1,
         additions=10,
@@ -171,78 +178,191 @@ def test_format_checklist_with_blockers():
         mergeable_state="dirty",
         review_stats={"approved": 0, "changes_requested": 1, "commented": 0, "total": 1},
         open_thread_count=3,
-        check_runs=[failed_check],
+        check_runs=[
+            CheckRunInfo("Test1", "completed", "success"),
+            CheckRunInfo("Test2", "completed", "failure"),
+        ],
     )
 
     checklist = format_checklist(status)
 
     assert "- [ ] Mark PR as ready for review" in checklist
     assert "- [ ] Get approval from reviewer" in checklist
-    assert "- [ ] All CI checks passing" in checklist
+    assert "- [ ] All CI checks passing (1/2 passed)" in checklist
     assert "- [ ] Resolve merge conflicts" in checklist
     assert "- [ ] No pending change requests" in checklist
 
 
-def test_format_checks_section_with_failures():
-    """Test check status formatting with failed checks."""
-    from .github.pr_copilot.scripts.generate_status import CheckRunInfo, format_checks_section
+def test_format_checks_section_no_checks():
+    """Test check section formatting with no checks."""
+    result = format_checks_section([])
+    assert "No checks configured or pending" in result
 
+
+def test_format_checks_section_with_checks():
+    """Test check section formatting with various check states."""
     checks = [
-        CheckRunInfo(name="Test 1", status="completed", conclusion="success"),
-        CheckRunInfo(name="Test 2", status="completed", conclusion="failure"),
-        CheckRunInfo(name="Test 3", status="in_progress", conclusion=None),
+        CheckRunInfo("Test1", "completed", "success"),
+        CheckRunInfo("Test2", "completed", "failure"),
+        CheckRunInfo("Test3", "in_progress", None),
+        CheckRunInfo("Test4", "completed", "skipped"),
     ]
 
     result = format_checks_section(checks)
 
-    assert "✅ **Passed:** 1" in result
-    assert "❌ **Failed:** 1" in result
-    assert "⏳ **Pending:** 1" in result
+    assert "**Passed:** 1" in result
+    assert "**Failed:** 1" in result
+    assert "**Pending:** 1" in result
+    assert "**Total:** 4" in result
     assert "**Failed Checks:**" in result
-    assert "❌ Test 2" in result
+    assert "❌ Test2" in result
 
 
-def test_format_checks_section_no_checks():
-    """Test check status formatting when no checks are configured."""
-    from .github.pr_copilot.scripts.generate_status import format_checks_section
-
-    result = format_checks_section([])
-
-    assert "ℹ️ No checks configured or pending" in result
-
-
-def test_generate_markdown_includes_all_sections():
-    """Test that generated markdown includes all required sections."""
-    from .github.pr_copilot.scripts.generate_status import CheckRunInfo, PRStatus, generate_markdown
-
+def test_generate_markdown():
+    """Test complete markdown report generation."""
     status = PRStatus(
-        number=123,
-        title="Test PR",
-        author="testuser",
+        number=42,
+        title="Fix critical bug",
+        author="developer",
+        base_ref="main",
+        head_ref="bugfix",
+        is_draft=False,
+        url="https://github.com/test/repo/pull/42",
+        commit_count=3,
+        file_count=5,
+        additions=75,
+        deletions=25,
+        labels=["bug", "priority"],
+        mergeable=True,
+        mergeable_state="clean",
+        review_stats={"approved": 2, "changes_requested": 0, "commented": 1, "total": 3},
+        open_thread_count=4,
+        check_runs=[CheckRunInfo("CI", "completed", "success")],
+    )
+
+    report = generate_markdown(status)
+
+    assert "📊 **PR Status Report**" in report
+    assert "Fix critical bug (#42)" in report
+    assert "@developer" in report
+    assert "`main` ← `bugfix`" in report
+    assert "5 files (3 commits)" in report
+    assert "+75 / -25" in report
+    assert "`bug`, `priority`" in report
+    assert "**Approved:** 2" in report
+    assert "**Changes Requested:** 0" in report
+    assert "**Commented:** 1" in report
+    assert "**Comments/Threads:** 4" in report
+    assert "**Mergeable:** ✅ Yes" in report
+    assert "Generated by PR Copilot" in report
+
+
+def test_generate_markdown_draft_pr():
+    """Test markdown generation for draft PR."""
+    status = PRStatus(
+        number=1,
+        title="WIP: New feature",
+        author="dev",
+        base_ref="main",
+        head_ref="wip",
+        is_draft=True,
+        url="url",
+        commit_count=1,
+        file_count=1,
+        additions=10,
+        deletions=0,
+        labels=[],
+        mergeable=None,
+        mergeable_state="unknown",
+        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        open_thread_count=0,
+        check_runs=[],
+    )
+
+    report = generate_markdown(status)
+
+    assert "**Draft:** 📝 Yes" in report
+    assert "**Mergeable:** ⏳ Checking..." in report
+
+
+def test_write_output_to_temp_file():
+    """Test writing output to temporary file."""
+    test_content = "Test report content"
+
+    with patch.dict(os.environ, {}, clear=True):
+        with patch("builtins.print") as mock_print:
+            write_output(test_content)
+
+            mock_print.assert_called()
+            printed_content = str(mock_print.call_args_list[-1])
+            assert "Test report content" in printed_content
+
+
+def test_write_output_with_github_summary():
+    """Test writing output to GitHub step summary."""
+    test_content = "Test report"
+
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
+        tmp_path = tmp.name
+
+    try:
+        with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": tmp_path}):
+            write_output(test_content)
+
+        with open(tmp_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            assert "Test report" in content
+    finally:
+        os.unlink(tmp_path)
+
+
+def test_format_checklist_no_checks():
+    """Test checklist when no CI checks are configured."""
+    status = PRStatus(
+        number=1,
+        title="Test",
+        author="user",
         base_ref="main",
         head_ref="feature",
         is_draft=False,
-        url="http://test",
-        commit_count=5,
-        file_count=10,
-        additions=100,
-        deletions=50,
-        labels=["bug", "enhancement"],
+        url="url",
+        commit_count=1,
+        file_count=1,
+        additions=10,
+        deletions=5,
+        labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 1, "changes_requested": 0, "commented": 1, "total": 2},
-        open_thread_count=2,
-        check_runs=[CheckRunInfo(name="CI", status="completed", conclusion="success")],
+        review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+        open_thread_count=0,
+        check_runs=[],
     )
 
-    markdown = generate_markdown(status)
+    checklist = format_checklist(status)
+    assert "- [ ] CI checks pending/not configured" in checklist
 
-    assert "📊 **PR Status Report**" in markdown
-    assert "**PR Information**" in markdown
-    assert "**Review Status**" in markdown
-    assert "**CI/Check Status**" in markdown
-    assert "**Merge Status**" in markdown
-    assert "**Task Checklist**" in markdown
-    assert "testuser" in markdown
-    assert "`bug`" in markdown
-    assert "`enhancement`" in markdown
+
+def test_format_checklist_unknown_mergeable():
+    """Test checklist when mergeable state is unknown."""
+    status = PRStatus(
+        number=1,
+        title="Test",
+        author="user",
+        base_ref="main",
+        head_ref="feature",
+        is_draft=False,
+        url="url",
+        commit_count=1,
+        file_count=1,
+        additions=10,
+        deletions=5,
+        labels=[],
+        mergeable=None,
+        mergeable_state="unknown",
+        review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+        open_thread_count=0,
+        check_runs=[CheckRunInfo("Test", "completed", "success")],
+    )
+
+    checklist = format_checklist(status)
+    assert "- [ ] Check for merge conflicts" in checklist
