@@ -2,6 +2,7 @@ import argparse
 import copy
 import json
 import threading
+import sys
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
@@ -32,6 +33,7 @@ class _ThreadSafeGraph:
 
             # For non-callable attributes, return a defensive copy so callers cannot
             # mutate shared state without holding the lock.
+            # FIX: Deepcopy must occur INSIDE the lock context.
             return copy.deepcopy(attr)
 
 
@@ -53,7 +55,10 @@ def _build_mcp_app():
     @mcp.tool()
     def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
         """
-        Validate and add an Equity asset to the relationship graph.
+        Validate an Equity asset and add it to the graph.
+
+        If the graph exposes an `add_asset` method, the asset is added.
+        Otherwise, this tool performs validation only (no persistent changes).
 
         Returns:
             Success message or 'Validation Error: <message>'.
@@ -76,7 +81,8 @@ def _build_mcp_app():
                 return f"Successfully added: {new_equity.name} ({new_equity.symbol})"
 
             # Fallback: validation-only behavior if the graph does not expose an add API.
-            return f"Successfully validated: {new_equity.name} ({new_equity.symbol})"
+            # FIX: Explicitly indicate that no mutation occurred.
+            return f"Successfully validated (Graph mutation not supported): {new_equity.name} ({new_equity.symbol})"
         except ValueError as e:
             return f"Validation Error: {str(e)}"
 
@@ -109,10 +115,6 @@ def main(argv: list[str] | None = None) -> int:
         mcp = _build_mcp_app()
     except ModuleNotFoundError as e:
         # Provide a clear message for missing optional dependency when invoked via the CLI.
-        # NOTE: This friendly handling only applies when `_build_mcp_app()` is called through
-        # `main()`. Callers that use `_build_mcp_app()` directly (e.g., programmatically
-        # importing this module) will see the original `ModuleNotFoundError` and should handle
-        # it themselves if MCP dependencies are not installed.
         missing = getattr(e, "name", None) or str(e)
         raise SystemExit(f"Missing dependency '{missing}'. Install the MCP package to run the server.") from e
 
@@ -122,7 +124,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    
