@@ -130,10 +130,10 @@ class TestStepsConfiguration:
         for step in checkout_steps:
             action = step["uses"]
             assert "@" in action, f"Checkout must specify version: {action}"
-            
+
             # FIX: Logic to accept either v4 tag OR full SHA
             version = action.split("@")[1]
-            
+
             # Check if it is a SHA (40 chars)
             if len(version) != 40:
                 # If not a SHA, it must contain 'v4'
@@ -148,7 +148,7 @@ class TestStepsConfiguration:
         for step in debricked_steps:
             action = step["uses"]
             assert "@" in action, f"Debricked action must specify version: {action}"
-            
+
             # FIX: Logic to accept either v4 tag OR full SHA
             version = action.split("@")[1]
 
