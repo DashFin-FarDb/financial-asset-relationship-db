@@ -2,30 +2,27 @@
 # They are provided by a third-party and are governed by
 # separate terms of service, privacy policy, and support
 # documentation.
-#
-# SOOS is the easy-to-integrate and affordable software security solution for your whole team.
-#
-# Learn more at https://soos.io/
-#
-# To use this action, perform the following steps:
-#
-# 1. Create an account on https://app.soos.io. SOOS offers a free 30 day trial for our SCA, DAST, and SBOM products.
-#
-# 2. Navigate to the "Integrate" page in the SOOS app (https://app.soos.io/integrate/dast/). Note the "API Credentials" section of this page; the keys you will need for the next step are here.
-#
-# 3. Set up your SOOS API Key and SOOS Client Id as Github Secrets named SOOS_API_KEY and SOOS_CLIENT_ID.
-#
-# 4. (Optional) If you'd like to upload SARIF results of DAST scans to GitHub, set SOOS_GITHUB_PAT with your Github Personal Access Token.
-#
-#  Check for the latest version here: https://github.com/marketplace/actions/soos-dast
 
-name: "SOOS DAST Scan"
+# SOOS is the easy-to-integrate and affordable code security solution for your whole team.
+# Learn more at https://soos.io/
+
+# To use this workflow, you will need to complete the following set-up steps:
+# 1. Create a SOOS account at https://app.soos.io/register
+# 2. Navigate to the "Integrate" page in the SOOS app (https://app.soos.io/integrate/dast). Note the "API Credentials" section at the top of the page; the keys you will need for the next step are here.
+# 3. Setup your SOOS API Key and SOOS Client Id as Github Secrets named SOOS_API_KEY and SOOS_CLIENT_ID
+# 4. (Optional) If you'd like to upload SARIF results of DAST scans to GitHub, set SOOS_DAST_SARIF_ENABLED=true in the "Environment variables" section below.
+
+name: "SOOS DAST Analysis"
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "main", "Default" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
+
+permissions:
+  contents: read
 
 jobs:
   soos:
@@ -37,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run SOOS DAST Analysis
+        if: ${{ secrets.SOOS_API_KEY != '' && secrets.SOOS_CLIENT_ID != '' }}
         uses: soos-io/soos-dast-github-action@a7eb40b94c1c81eb76b178ba1befdc21823f86fa
         with:
           client_id: ${{ secrets.SOOS_CLIENT_ID }}
@@ -46,8 +44,8 @@ jobs:
           target_url: "https://www.example.com/"
           export_format: "Sarif"
           export_file_type: "Json"
-        if: ${{ secrets.SOOS_API_KEY != '' && secrets.SOOS_CLIENT_ID != '' }}
       - name: Find and rename SARIF file since it is unique
+        if: ${{ secrets.SOOS_API_KEY != '' && secrets.SOOS_CLIENT_ID != '' }}
         run: |
           file=$(find . -name "*.sarif.json" | head -n 1)
           if [ -n "$file" ]; then
@@ -56,9 +54,8 @@ jobs:
           else
             echo "No SARIF file found" && exit 1
           fi
-        if: ${{ secrets.SOOS_API_KEY != '' && secrets.SOOS_CLIENT_ID != '' }}
       - name: Upload SOOS DAST SARIF Report
+        if: ${{ secrets.SOOS_API_KEY != '' && secrets.SOOS_CLIENT_ID != '' }}
         uses: github/codeql-action/upload-sarif@v3
         with:
-        if: ${{ secrets.SOOS_API_KEY != '' && secrets.SOOS_CLIENT_ID != '' }}
           sarif_file: output.sarif.json
