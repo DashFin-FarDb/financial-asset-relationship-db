@@ -19,11 +19,12 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      actions: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
+      
       - name: Run Debricked Scan
         uses: debricked/actions/scan@05ab417386d5e9766943c2cc343834371908d132 # v4
         env:
