@@ -164,7 +164,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Read welcome message from config
         id: config
         run: |
