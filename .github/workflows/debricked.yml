@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run Debricked Scan
-        # Security: Pinned SHA for v4
-        uses: debricked/actions/scan@05ab417386d5e9766943c2cc343834371908d132
+        # Using latest stable version tag
+        uses: debricked/actions/scan@v1
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
