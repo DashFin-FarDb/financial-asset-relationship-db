@@ -4,7 +4,11 @@ This document summarizes the repository's architecture, conventions, and recurri
 
 ## System Purpose & Entry Points
 - **Financial Asset Relationship Database** provides interactive 3D views and analytics over interconnected assets spanning equities, fixed income, commodities, currencies, and regulatory events. The same core logic powers two UIs: the legacy **Gradio** app (`app.py`) and the **Next.js + FastAPI** stack (`frontend` + `api`).
-- Quick development startup: use `./run-dev.sh` (or `run-dev.bat` on Windows) to launch FastAPI on port 8000 and Next.js on port 3000. The legacy Gradio experience still runs via `python app.py` on port 7860.
+- Quick development startup: run the backend and frontend explicitly (examples below). The Gradio legacy UI can be launched directly with `python app.py`.
+  - FastAPI (backend): `uvicorn api.main:app --reload --port 8000`
+  - Next.js (frontend): `npm run dev` (from the `frontend/` directory)
+  - Legacy Gradio UI: `python app.py` (defaults to port 7860)
+- The API exposes typical graph endpoints and metadata, including asset listings and visualization payloads. Notable endpoints include `/api/assets`, `/api/assets/{asset_id}`, `/api/assets/{asset_id}/relationships`, `/api/relationships`, `/api/metrics`, `/api/visualization`, and new convenience endpoints `/api/asset-classes` and `/api/sectors`.
 
 ## High-Level Architecture
 - **Frontends**: Gradio pages (3D visualization, metrics, schema explorer, asset explorer) and Next.js React components. Plotly is the shared visualization layer across both UI experiences.
