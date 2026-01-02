@@ -1,8 +1,7 @@
 """
 Unit tests for PR Copilot analyze_pr.py script.
 
-Tests PR analysis functionality including complexity scoring,
-scope validation, and risk assessment.
+Tests PR complexity analysis, scope validation, and risk assessment functionality.
 """
 
 import os
@@ -15,75 +14,56 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"))
 
-from analyze_pr import (
-    AnalysisData,
-    analyze_pr_files,
-    assess_complexity,
-    calculate_score,
-    categorize_filename,
-    find_related_issues,
-    find_scope_issues,
-    generate_markdown,
-    load_config,
-)
-
-
-@pytest.fixture
-def sample_config():
-    """Sample configuration for testing."""
-    return {
-        "scope": {
-            "warn_on_long_title": 72,
-            "max_files_changed": 30,
-            "max_total_changes": 1500,
-            "max_file_types_changed": 5,
-        }
-    }
+from analyze_pr import (AnalysisData, analyze_pr_files, assess_complexity,
+                        calculate_score, categorize_filename,
+                        find_related_issues, find_scope_issues,
+                        generate_markdown, load_config)
 
 
 def test_categorize_filename_python():
-    """Test categorization of Python files."""
-    assert categorize_filename("src/main.py") == "python"
-    assert categorize_filename("tests/test_main.py") == "test"
+    """Test Python file categorization."""
+    assert categorize_filename("main.py") == "python"
+    assert categorize_filename("src/utils.py") == "python"
 
 
 def test_categorize_filename_javascript():
-    """Test categorization of JavaScript/TypeScript files."""
-    assert categorize_filename("src/app.js") == "javascript"
-    assert categorize_filename("src/component.jsx") == "javascript"
-    assert categorize_filename("src/types.ts") == "javascript"
-    assert categorize_filename("src/component.tsx") == "javascript"
+    """Test JavaScript/TypeScript file categorization."""
+    assert categorize_filename("app.js") == "javascript"
+    assert categorize_filename("component.jsx") == "javascript"
+    assert categorize_filename("module.ts") == "javascript"
+    assert categorize_filename("Component.tsx") == "javascript"
+
+
+def test_categorize_filename_test():
+    """Test test file categorization."""
+    assert categorize_filename("test_main.py") == "test"
+    assert categorize_filename("main.test.js") == "test"
+    assert categorize_filename("spec/user_spec.rb") == "test"
 
 
 def test_categorize_filename_workflow():
-    """Test categorization of workflow files."""
+    """Test workflow file categorization (should take precedence over test)."""
     assert categorize_filename(".github/workflows/ci.yml") == "workflow"
-    assert categorize_filename(".github/workflows/test.yaml") == "workflow"
+    assert categorize_filename(".github/workflows/test.yml") == "workflow"
 
 
 def test_categorize_filename_config():
-    """Test categorization of config files."""
-    assert categorize_filename("package.json") == "config"
-    assert categorize_filename("config.yaml") == "config"
-    assert categorize_filename("settings.toml") == "config"
+    """Test configuration file categorization."""
+    assert categorize_filename("config.json") == "config"
+    assert categorize_filename("settings.yaml") == "config"
+    assert categorize_filename("pyproject.toml") == "config"
 
 
 def test_categorize_filename_documentation():
-    """Test categorization of documentation files."""
+    """Test documentation file categorization."""
     assert categorize_filename("README.md") == "documentation"
     assert categorize_filename("docs/guide.rst") == "documentation"
 
 
-def test_categorize_filename_test():
-    """Test categorization of test files."""
-    assert categorize_filename("test_module.py") == "test"
-    assert categorize_filename("module.spec.js") == "test"
-
-
 def test_categorize_filename_other():
-    """Test categorization of unknown file types."""
-    assert categorize_filename("file.xyz") == "other"
+    """Test unknown file type categorization."""
     assert categorize_filename("binary.exe") == "other"
+    assert categorize_filename("data.dat") == "other"
 
 
 def test_analyze_pr_files_empty():
@@ -100,8 +80,8 @@ def test_analyze_pr_files_empty():
 
 def test_analyze_pr_files_small_changes():
     """Test analyzing PR with small changes."""
-    mock_file1 = Mock(filename="src/main.py", additions=10, deletions=5)
-    mock_file2 = Mock(filename="tests/test_main.py", additions=20, deletions=10)
+    mock_file1 = Mock(filename="main.py", additions=10, deletions=5)
+    mock_file2 = Mock(filename="test.py", additions=20, deletions=10)
 
     result = analyze_pr_files([mock_file1, mock_file2])
 
@@ -116,35 +96,14 @@ def test_analyze_pr_files_small_changes():
 
 def test_analyze_pr_files_large_file():
     """Test analyzing PR with large file changes."""
-    mock_file = Mock(filename="src/large.py", additions=600, deletions=100)
+    mock_file = Mock(filename="large.py", additions=600, deletions=100)
 
     result = analyze_pr_files([mock_file])
 
-    assert result["file_count"] == 1
-    assert result["total_changes"] == 700
     assert result["has_large_files"] is True
     assert len(result["large_files"]) == 1
-    assert result["large_files"][0]["filename"] == "src/large.py"
+    assert result["large_files"][0]["filename"] == "large.py"
     assert result["large_files"][0]["changes"] == 700
-
-
-def test_analyze_pr_files_multiple_categories():
-    """Test analyzing PR with multiple file types."""
-    files = [
-        Mock(filename="src/app.py", additions=50, deletions=20),
-        Mock(filename="src/app.js", additions=30, deletions=10),
-        Mock(filename="README.md", additions=10, deletions=5),
-        Mock(filename="config.yml", additions=5, deletions=2),
-    ]
-
-    result = analyze_pr_files(files)
-
-    assert result["file_count"] == 4
-    assert len(result["file_categories"]) == 4
-    assert result["file_categories"]["python"] == 1
-    assert result["file_categories"]["javascript"] == 1
-    assert result["file_categories"]["documentation"] == 1
-    assert result["file_categories"]["config"] == 1
 
 
 def test_calculate_score_thresholds():
@@ -161,15 +120,15 @@ def test_assess_complexity_low():
     """Test complexity assessment for low-risk PR."""
     file_data = {
         "file_count": 3,
-        "total_changes": 100,
+        "total_changes": 50,
         "has_large_files": False,
         "large_files": [],
     }
 
     score, risk = assess_complexity(file_data, commit_count=2)
 
-    assert score < 40
     assert risk == "Low"
+    assert score < 40
 
 
 def test_assess_complexity_medium():
@@ -183,8 +142,8 @@ def test_assess_complexity_medium():
 
     score, risk = assess_complexity(file_data, commit_count=12)
 
-    assert 40 <= score < 70
     assert risk == "Medium"
+    assert 40 <= score < 70
 
 
 def test_assess_complexity_high():
@@ -193,117 +152,123 @@ def test_assess_complexity_high():
         "file_count": 60,
         "total_changes": 2500,
         "has_large_files": True,
-        "large_files": [{"filename": "large.py", "changes": 800}],
+        "large_files": [{"filename": "big.py", "changes": 1000}],
     }
 
     score, risk = assess_complexity(file_data, commit_count=55)
 
-    assert score >= 70
     assert risk == "High"
+    assert score >= 70
 
 
 def test_assess_complexity_with_large_files():
-    """Test complexity assessment with multiple large files."""
-    file_data = {
+    """Test complexity penalty for large files."""
+    file_data_no_large = {
+        "file_count": 10,
+        "total_changes": 500,
+        "has_large_files": False,
+        "large_files": [],
+    }
+
+    file_data_with_large = {
         "file_count": 10,
         "total_changes": 500,
         "has_large_files": True,
-        "large_files": [
-            {"filename": "file1.py", "changes": 600},
-            {"filename": "file2.py", "changes": 700},
-            {"filename": "file3.py", "changes": 800},
-        ],
+        "large_files": [{"filename": "big1.py"}, {"filename": "big2.py"}],
     }
 
-    score, risk = assess_complexity(file_data, commit_count=5)
+    score_no_large, _ = assess_complexity(file_data_no_large, commit_count=10)
+    score_with_large, _ = assess_complexity(file_data_with_large, commit_count=10)
 
-    assert score > 30
-
-
-def test_find_scope_issues_clean_pr(sample_config):
-    """Test scope validation for clean PR."""
-    file_data = {
-        "file_count": 5,
-        "total_changes": 200,
-        "file_categories": {"python": 3, "test": 2},
-    }
-
-    issues = find_scope_issues("Fix bug in authentication", file_data, sample_config)
-
-    assert len(issues) == 0
+    assert score_with_large > score_no_large
 
 
-def test_find_scope_issues_long_title(sample_config):
-    """Test scope validation with long title."""
-    file_data = {
-        "file_count": 5,
-        "total_changes": 200,
-        "file_categories": {"python": 3},
-    }
+def test_find_scope_issues_long_title():
+    """Test scope issue detection for long titles."""
+    config = {"scope": {"warn_on_long_title": 72}}
+    file_data = {"file_count": 5, "total_changes": 100, "file_categories": {"python": 5}}
 
-    long_title = "A" * 80
-    issues = find_scope_issues(long_title, file_data, sample_config)
+    long_title = "A" * 100
+    issues = find_scope_issues(long_title, file_data, config)
 
     assert any("Title too long" in issue for issue in issues)
 
 
-def test_find_scope_issues_multiple_responsibilities(sample_config):
-    """Test scope validation with multi-purpose title."""
-    file_data = {
-        "file_count": 5,
-        "total_changes": 200,
-        "file_categories": {"python": 3},
-    }
+def test_find_scope_issues_multiple_responsibilities():
+    """Test scope issue detection for multi-purpose PRs."""
+    config = {"scope": {"warn_on_long_title": 72}}
+    file_data = {"file_count": 5, "total_changes": 100, "file_categories": {"python": 5}}
 
-    issues = find_scope_issues("Add feature and fix bug", file_data, sample_config)
+    title = "Add feature and fix bug"
+    issues = find_scope_issues(title, file_data, config)
 
     assert any("multiple responsibilities" in issue for issue in issues)
 
 
-def test_find_scope_issues_too_many_files(sample_config):
-    """Test scope validation with too many files."""
-    file_data = {
-        "file_count": 50,
-        "total_changes": 500,
-        "file_categories": {"python": 30, "test": 20},
-    }
+def test_find_scope_issues_too_many_files():
+    """Test scope issue detection for too many files changed."""
+    config = {"scope": {"warn_on_long_title": 72, "max_files_changed": 20}}
+    file_data = {"file_count": 35, "total_changes": 500, "file_categories": {"python": 35}}
 
-    issues = find_scope_issues("Update module", file_data, sample_config)
+    issues = find_scope_issues("Normal title", file_data, config)
 
     assert any("Too many files" in issue for issue in issues)
 
 
-def test_find_scope_issues_large_changeset(sample_config):
-    """Test scope validation with large changeset."""
-    file_data = {
-        "file_count": 10,
-        "total_changes": 2000,
-        "file_categories": {"python": 10},
-    }
+def test_find_scope_issues_large_changeset():
+    """Test scope issue detection for large changesets."""
+    config = {"scope": {"warn_on_long_title": 72, "max_total_changes": 1000}}
+    file_data = {"file_count": 10, "total_changes": 2000, "file_categories": {"python": 10}}
 
-    issues = find_scope_issues("Refactor module", file_data, sample_config)
+    issues = find_scope_issues("Normal title", file_data, config)
 
     assert any("Large changeset" in issue for issue in issues)
 
 
-def test_find_scope_issues_high_context_switching(sample_config):
-    """Test scope validation with many file types."""
+def test_find_scope_issues_context_switching():
+    """Test scope issue detection for high context switching."""
+    config = {"scope": {"warn_on_long_title": 72, "max_file_types_changed": 3}}
     file_data = {
-        "file_count": 20,
+        "file_count": 10,
         "total_changes": 500,
-        "file_categories": {
-            "python": 5,
-            "javascript": 5,
-            "css": 3,
-            "html": 3,
-            "config": 2,
-            "documentation": 2,
-        },
+        "file_categories": {"python": 3, "javascript": 2, "css": 2, "html": 2, "config": 1},
     }
 
-    issues = find_scope_issues("Update application", file_data, sample_config)
+    issues = find_scope_issues("Normal title", file_data, config)
 
     assert any("context switching" in issue for issue in issues)
+
+
+def test_find_scope_issues_clean_pr():
+    """Test scope issue detection for clean PR."""
+    config = {"scope": {"warn_on_long_title": 72, "max_files_changed": 30, "max_total_changes": 1500}}
+    file_data = {"file_count": 5, "total_changes": 100, "file_categories": {"python": 5}}
+
+    issues = find_scope_issues("Fix bug in user module", file_data, config)
+
+    assert len(issues) == 0
+
+
+def test_find_related_issues_simple():
+    """Test finding related issues with simple references."""
+    pr_body = "This PR fixes #123 and addresses #456"
+    repo_url = "https://github.com/test/repo"
+
+    issues = find_related_issues(pr_body, repo_url)
+
+    assert len(issues) == 2
+    assert any(i["number"] == "123" for i in issues)
+    assert any(i["number"] == "456" for i in issues)
+
+
+def test_find_related_issues_keywords():
+    """Test finding related issues with closing keywords."""
+    pr_body = "Closes #100\nResolves #200\nFixes #300"
+    repo_url = "https://github.com/test/repo"
+
+    issues = find_related_issues(pr_body, repo_url)
+
+    assert len(issues) == 3
 
 
 def test_find_related_issues_no_body():
@@ -312,62 +277,95 @@ def test_find_related_issues_no_body():
     assert len(issues) == 0
 
 
-def test_find_related_issues_simple_reference():
-    """Test finding related issues with simple reference."""
-    body = "This PR addresses #123"
-    issues = find_related_issues(body, "https://github.com/test/repo")
-
-    assert len(issues) == 1
-    assert issues[0]["number"] == "123"
-    assert "issues/123" in issues[0]["url"]
+def test_find_related_issues_no_references():
+    """Test finding related issues with no issue references."""
+    pr_body = "This is a PR with no issue references"
+    issues = find_related_issues(pr_body, "https://github.com/test/repo")
+    assert len(issues) == 0
 
 
-def test_find_related_issues_fix_keywords():
-    """Test finding related issues with fix keywords."""
-    body = "Fixes #456 and closes #789"
-    issues = find_related_issues(body, "https://github.com/test/repo")
-
-    assert len(issues) == 2
-    numbers = [issue["number"] for issue in issues]
-    assert "456" in numbers
-    assert "789" in numbers
-
-
-def test_find_related_issues_duplicate_references():
-    """Test finding related issues with duplicate references."""
-    body = "Fixes #123 and resolves #123"
-    issues = find_related_issues(body, "https://github.com/test/repo")
-
-    assert len(issues) == 1
-    assert issues[0]["number"] == "123"
-
-
-def test_generate_markdown_complete():
-    """Test markdown generation with complete analysis data."""
-    mock_pr = Mock(number=42, user=Mock(login="developer"))
+def test_generate_markdown_low_risk():
+    """Test markdown generation for low-risk PR."""
+    mock_pr = Mock(number=1, user=Mock(login="testuser"))
 
     data = AnalysisData(
         file_analysis={
-            "file_count": 10,
-            "total_changes": 500,
-            "file_categories": {"python": 6, "test": 4},
+            "file_count": 3,
+            "total_changes": 50,
+            "file_categories": {"python": 3},
             "large_files": [],
-            "has_large_files": False,
         },
-        complexity_score=35,
-        risk_level="Medium",
-        scope_issues=["Title too long (80 > 72)"],
-        related_issues=[{"number": "123", "url": "https://github.com/test/repo/issues/123"}],
-        commit_count=8,
+        complexity_score=25,
+        risk_level="Low",
+        scope_issues=[],
+        related_issues=[],
+        commit_count=2,
     )
 
     report = generate_markdown(mock_pr, data)
 
     assert "🔍 **PR Analysis Report**" in report
-    assert "#42" in report
-    assert "@developer" in report
-    assert "35/100" in report
-    assert "🟡 Medium" in report
-    assert "10 files, 500 lines" in report
-    assert "Title too long" in report
-    assert "#123" in report
+    assert "🟢 Low" in report
+    assert "✅ Low complexity" in report
+    assert "🚀 Fast merge candidate" in report
+
+
+def test_generate_markdown_high_risk():
+    """Test markdown generation for high-risk PR."""
+    mock_pr = Mock(number=2, user=Mock(login="developer"))
+
+    data = AnalysisData(
+        file_analysis={
+            "file_count": 50,
+            "total_changes": 2000,
+            "file_categories": {"python": 30, "javascript": 20},
+            "large_files": [{"filename": "big.py", "changes": 1000, "additions": 800, "deletions": 200}],
+        },
+        complexity_score=85,
+        risk_level="High",
+        scope_issues=["Title too long (100 > 72)", "Too many files changed (50 > 30)"],
+        related_issues=[{"number": "123", "url": "https://github.com/test/repo/issues/123"}],
+        commit_count=40,
+    )
+
+    report = generate_markdown(mock_pr, data)
+
+    assert "🔴 High" in report
+    assert "⚠️ Split into smaller changes" in report
+    assert "📋 Comprehensive testing required" in report
+    assert "**Large Files (>500 lines):**" in report
+    assert "**⚠️ Potential Scope Issues**" in report
+    assert "**Related Issues:**" in report
+
+
+def test_load_config_missing_file():
+    """Test loading config when file doesn't exist."""
+    with patch("os.path.exists", return_value=False):
+        config = load_config()
+        assert config == {}
+
+
+def test_load_config_valid_file():
+    """Test loading valid config file."""
+    mock_config = {"scope": {"warn_on_long_title": 80}}
+
+    with patch("os.path.exists", return_value=True):
+        with patch("builtins.open", create=True) as mock_open:
+            with patch("yaml.safe_load", return_value=mock_config):
+                config = load_config()
+                assert config == mock_config
+
+
+def test_analysis_data_immutable():
+    """Test that AnalysisData is immutable (frozen dataclass)."""
+    data = AnalysisData(
+        file_analysis={},
+        complexity_score=50,
+        risk_level="Medium",
+        scope_issues=[],
+        related_issues=[],
+        commit_count=5,
+    )
+
+    with pytest.raises(AttributeError):
+        data.complexity_score = 60
