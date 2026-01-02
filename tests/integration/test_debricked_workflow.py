@@ -102,6 +102,15 @@ class TestWorkflowStructure:
             pytest.fail(f"Unexpected type for workflow 'on' triggers: {type(triggers)}")
 
         assert "pull_request" in trigger_keys, "Workflow should trigger on 'pull_request'"
+
+    def test_triggers_on_push_to_main(self, workflow_config: Dict[str, Any]):
+        """Test that workflow triggers on push to main branch."""
+        triggers = workflow_config.get("on", {})
+        assert "push" in triggers, "Workflow should trigger on 'push'"
+
+        push_config = triggers.get("push", {})
+        if isinstance(push_config, dict) and "branches" in push_config:
+            assert "main" in push_config["branches"], "Workflow should trigger on push to 'main' branch"
         assert "push" in trigger_keys, "Workflow should trigger on 'push' to main branch"
         assert "workflow_dispatch" in trigger_keys, "Workflow should support 'workflow_dispatch' for manual testing"
 
