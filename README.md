@@ -304,4 +304,3 @@ For AI agents: see `.github/copilot-instructions.md` for development guidelines.
 
 ## [![Repography logo](https://images.repography.com/logo.svg)](https://repography.com) / Structure
 [![Structure](https://images.repography.com/101385307/DashFin/financial-asset-relationship-db/structure/arjWaynlR5rCs456RmPMMMqHEGw9SkWddam5SrE3whs/T4MviKoggvFTqpIOb8tlmjs-DCZZlG84-xtfxwZ4i5w_table.svg)](https://github.com/DashFin/financial-asset-relationship-db)
-

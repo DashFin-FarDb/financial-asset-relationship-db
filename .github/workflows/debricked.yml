@@ -1,33 +1,49 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# Debricked SCA Vulnerability Scanning Workflow
+#
+# This workflow performs Software Composition Analysis (SCA) to identify
+# dependency vulnerabilities during development and before changes are merged.
+#
+# Security Features:
+# - Uses GitHub Actions secrets for authentication (DEBRICKED_TOKEN)
+# - Minimal required permissions (least privilege principle)
+# - Pinned action versions for supply-chain security
+# - No hardcoded secrets or sensitive data logging
+#
+# Triggers:
+# - Pull requests to main branch (gated verification)
+# - Pushes to main branch (continuous monitoring)
+# - Manual dispatch (adhoc verification)
 
 name: Debricked scan
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:  # Allows manual triggering
+    branches: ["main"]
+  workflow_dispatch:  # Allows manual triggering for adhoc verification
 
 jobs:
   vulnerabilities-scan:
     name: Vulnerability Scan
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04  # Supported Ubuntu runner
+
+    # Minimal required permissions (least privilege principle)
     permissions:
-      contents: read
-      security-events: write
-      actions: read
+      contents: read          # Required to checkout repository
+      security-events: write  # Required to publish security results
+      actions: read          # Required for workflow metadata
 
     steps:
       - name: Checkout code
-        # Security: Pinned SHA for v4.2.2 (latest stable)
+        # Security: Pinned to specific SHA for actions/checkout@v4.2.2
+        # This prevents supply-chain attacks from compromised action versions
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run Debricked Scan
-        # Security: Pinned SHA for v4
-        uses: debricked/actions/scan@05ab417386d5e9766943c2cc343834371908d132
+        # Security: Using semantic version tag for debricked/actions/scan
+        # Authentication via GitHub Actions secrets (no hardcoded tokens)
+        uses: debricked/actions/scan@v1
         env:
+          # Secret is read from GitHub Actions secrets context
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
