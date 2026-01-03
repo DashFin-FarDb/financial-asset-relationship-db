@@ -26,8 +26,14 @@ jobs:
         # Security: Pinned SHA for v4.2.2 (latest stable)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
+      - name: Install Debricked CLI
+        run: |
+          curl -L https://github.com/debricked/cli/releases/latest/download/cli_linux_x86_64.tar.gz | tar -xz
+          sudo mv debricked /usr/local/bin/
+          debricked --version
+
       - name: Run Debricked Scan
-        # Security: Pinned SHA for v4
-        uses: debricked/actions/scan@05ab417386d5e9766943c2cc343834371908d132
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+        run: |
+          debricked scan .

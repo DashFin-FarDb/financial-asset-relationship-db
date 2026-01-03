@@ -6,6 +6,10 @@ An automated PR management, maintenance, and completion agent for the DashFin/fi
 
 PR Copilot automates common PR management tasks, provides status visibility, tracks review feedback, and helps maintain high-quality pull requests throughout their lifecycle.
 
+> **Quick Start:** New to PR Copilot? Check out the [Quick Reference Guide](QUICK_REFERENCE.md) for common commands and features!
+
+---
+
 ## ✨ Features
 
 ### 1. **Welcome & Introduction**
@@ -368,6 +372,7 @@ To improve PR Copilot:
 1. Report issues or suggest features via GitHub Issues
 2. Submit PRs with enhancements
 3. Share usage feedback and best practices
+5. Add or improve test coverage (see [TESTING.md](TESTING.md))
 4. Help improve documentation
 
 ## 📄 License
