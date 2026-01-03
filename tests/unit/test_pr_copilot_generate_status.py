@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name, unused-argument
 """
 Unit tests for PR Copilot generate_status.py script.
 
@@ -16,16 +17,9 @@ import pytest
 
 # Add the scripts directory to the path before importing
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"))
-from generate_status import (
-    CheckRunInfo,
-    PRStatus,
-    fetch_pr_status,
-    format_checklist,
-    format_checks_section,
-    generate_markdown,
-    write_output,
-)
-
+from generate_status import (CheckRunInfo, PRStatus, fetch_pr_status,
+                             format_checklist, format_checks_section,
+                             generate_markdown, write_output)
 
 
 @pytest.fixture
