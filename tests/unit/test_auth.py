@@ -586,6 +586,7 @@ class TestGetCurrentUser:
 class TestGetCurrentActiveUser:
     """Test suite for get_current_active_user dependency."""
 
+
 @pytest.mark.unit
 class TestGetCurrentUser:
     """Test suite for get_current_user dependency."""
