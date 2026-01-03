@@ -545,6 +545,38 @@ class TestContextChunkingRemovalRegression:
     """Regression tests ensuring context chunking functionality stays removed."""
     
     def test_no_context_chunking_imports_in_workflows(self):
+        """Verify no workflows import or reference context chunking."""
+        workflow_dir = Path(".github/workflows")
+
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                content = f.read().lower()
+
+            # Check for any references to context chunking (expanded variants)
+            forbidden_terms = [
+                'context_chunker',
+                'context-chunker',
+                'contextchunker',
+                'context chunker',
+                'chunking',
+                'chunker',
+                'tiktoken',
+                'max_tokens',
+                'max-tokens',
+                'chunk_size',
+                'chunk-size',
+                'overlap_tokens',
+                'overlap-tokens',
+                'context_file',
+                'context-file',
+                '/tmp/pr_context',
+                'pr_context',
+            ]
+
+            for term in forbidden_terms:
+                assert term not in content, (
+                    f"{workflow_file.name} contains reference to removed chunking: '{term}'"
+                )
         """Verify no workflows import or reference context_chunker."""
         workflow_dir = Path(".github/workflows")
         
