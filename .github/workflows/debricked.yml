@@ -1,33 +1,34 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# This workflow uses Debricked (OpenText Core SCA) for vulnerability scanning
+# Debricked documentation: https://docs.debricked.com/
 
-name: Debricked scan
+name: Vulnerability Scan
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:  # Allows manual triggering
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
-  vulnerabilities-scan:
-    name: Vulnerability Scan
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
-
+  scan:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        # Security: Pinned SHA for v4.2.2 (latest stable)
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@v4
+
+      - name: Install Debricked CLI
+        run: |
+          curl -L https://github.com/debricked/cli/releases/latest/download/cli_linux_x86_64.tar.gz | tar -xz
+          sudo mv debricked /usr/local/bin/
+          debricked --version
 
       - name: Run Debricked Scan
-        # Security: Pinned SHA for v4
-        uses: debricked/actions/scan@05ab417386d5e9766943c2cc343834371908d132
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+        run: |
+          debricked scan -t $DEBRICKED_TOKEN -r ${{ github.repository }} -c ${{ github.sha }}
