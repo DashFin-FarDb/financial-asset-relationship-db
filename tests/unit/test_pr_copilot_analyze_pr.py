@@ -25,6 +25,34 @@ import pytest
 @pytest.fixture
 def mock_config():
     """Provide a mock configuration for tests."""
+
+
+@pytest.fixture
+def mock_config_missing():
+    """Mock configuration file that doesn't exist."""
+    with patch("os.path.exists", return_value=False):
+        yield
+
+
+@pytest.fixture
+def mock_config_valid():
+    """Mock valid configuration file."""
+    mock_config = {"scope": {"warn_on_long_title": 80}}
+    with patch("os.path.exists", return_value=True):
+        with patch("builtins.open", create=True):
+            with patch("yaml.safe_load", return_value=mock_config):
+                yield mock_config
+
+
+@pytest.fixture
+def mock_pr_low_risk():
+    """Create a mock PR object for low-risk scenarios."""
+    pr = Mock()
+    pr.number = 1
+    pr.user = Mock(login="testuser")
+    return pr
+
+
     return {
         "thresholds": {
             "title_length": 80,
