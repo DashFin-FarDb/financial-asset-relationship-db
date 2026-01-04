@@ -12,20 +12,17 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
+
 # Add the scripts directory to the path before importing
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"))
 
 
+from generate_status import (CheckRunInfo, PRStatus,  # noqa: E402
+                             fetch_pr_status, format_checklist,
+                             format_checks_section, generate_markdown,
+                             write_output)
+
 import pytest  # noqa: E402
-from generate_status import (  # noqa: E402
-    CheckRunInfo,
-    PRStatus,
-    fetch_pr_status,
-    format_checklist,
-    format_checks_section,
-    generate_markdown,
-    write_output,
-)
 
 
 @pytest.fixture
@@ -50,7 +47,13 @@ def mock_pr():
     pr.changed_files = 10
     pr.additions = 100
     pr.deletions = 50
-    pr.labels = [Mock(name="bug"), Mock(name="enhancement")]
+
+    label1 = Mock()
+    label1.name = "bug"
+    label2 = Mock()
+    label2.name = "enhancement"
+    pr.labels = [label1, label2]
+
     pr.mergeable = True
     pr.mergeable_state = "clean"
     return pr
