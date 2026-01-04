@@ -360,6 +360,7 @@ def test_format_checklist_unknown_mergeable():
     checklist = format_checklist(status)
     assert "- [ ] Check for merge conflicts" in checklist
 
+
 def test_format_checklist_mergeable_false_but_not_dirty():
     """Test checklist when mergeable is False but state is not dirty (e.g., blocked)."""
     status = PRStatus(
