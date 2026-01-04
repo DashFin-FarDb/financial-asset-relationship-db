@@ -336,6 +336,7 @@ def test_format_checklist_unknown_mergeable():
 
     When mergeable is None and state is 'unknown', the checklist should prompt
     the user to check for merge conflicts rather than asserting a definitive state.
+    """
     status = PRStatus(
         number=1,
         title="Test",
@@ -356,7 +357,8 @@ def test_format_checklist_unknown_mergeable():
         check_runs=[CheckRunInfo("Test", "completed", "success")],
     )
 
-
+    checklist = format_checklist(status)
+    assert "- [ ] Check for merge conflicts" in checklist
 
 def test_format_checklist_mergeable_false_but_not_dirty():
     """Test checklist when mergeable is False but state is not dirty (e.g., blocked)."""
