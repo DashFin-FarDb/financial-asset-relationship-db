@@ -580,6 +580,9 @@ def test_fetch_pr_status_with_null_mergeable_state(mock_github_client, mock_pr):
     status = fetch_pr_status(mock_github_client, "test/repo", 123)
     assert status.mergeable_state == "unknown"
 
+    assert status.mergeable == mock_pr.mergeable
+    assert status.number == 123
+
 
 def test_generate_markdown_with_null_mergeable_state():
     """Test markdown generation when mergeable_state is None/unknown."""
