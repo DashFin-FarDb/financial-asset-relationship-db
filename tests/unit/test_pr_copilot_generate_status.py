@@ -321,9 +321,11 @@ def test_write_output_with_github_summary():
         with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": tmp_path}):
             write_output(test_content)
 
-        with open(tmp_path, "r", encoding="utf-8") as f:
-            content = f.read()
-            assert "Test report" in content
+        with open(tmp_path, "r", encoding="utf-8") as summary_file:
+            content = summary_file.read()
+
+        assert "Test report" in content
+        assert content == test_content
     finally:
         os.unlink(tmp_path)
 
