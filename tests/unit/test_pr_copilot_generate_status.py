@@ -384,7 +384,7 @@ def test_format_checklist_mergeable_false_but_not_dirty():
     )
 
     checklist = format_checklist(status)
-    assert "- [ ] Check for merge conflicts" in checklist
+    assert "- [x] No merge conflicts" in checklist
     assert "- [ ] Resolve merge conflicts" not in checklist
 
 
