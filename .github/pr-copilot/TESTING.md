@@ -1,102 +1,31 @@
 # PR Copilot Testing Guide
 
-Comprehensive testing documentation for the PR Copilot automated PR lifecycle management system.
-
-## 📋 Overview
-
-The PR Copilot system includes comprehensive test coverage for all Python scripts and integration testing for the complete workflow. Tests are organized into unit tests and integration tests following repository best practices.
-
-## 🧪 Test Structure
-
-```
-tests/
-├── unit/
-│   ├── test_pr_copilot_generate_status.py    # Status report generation tests
-│   ├── test_pr_copilot_analyze_pr.py         # PR analysis tests
-│   └── test_pr_copilot_suggest_fixes.py      # Fix suggestion tests
-└── integration/
-    └── test_pr_copilot_workflow.py            # End-to-end workflow tests
-```
+This document provides comprehensive testing instructions for the PR Copilot GitHub Actions workflow and associated scripts.
 
 ## 🎯 Test Coverage
 
-### Unit Tests
+The PR Copilot test suite includes:
 
-#### 1. **generate_status.py Tests** (`test_pr_copilot_generate_status.py`)
+- **Unit Tests**: Test individual functions and components in isolation
+- **Integration Tests**: Test complete workflows and script interactions
+- **Configuration Tests**: Validate YAML configuration files
+- **Documentation Tests**: Ensure documentation exists and is complete
 
-Tests for PR status report generation:
+## 🚀 Quick Start
 
-- ✅ CheckRunInfo dataclass creation
-- ✅ PRStatus dataclass creation and immutability
-- ✅ Fetching PR status from GitHub API
-- ✅ Formatting task checklist (complete/incomplete)
-- ✅ Formatting CI check sections
-- ✅ Generating complete markdown reports
-- ✅ Handling draft PRs
-- ✅ Writing output to files and GitHub summaries
-- ✅ Edge cases (no checks, unknown mergeable state)
+### Prerequisites
 
-**Coverage:** ~95% of generate_status.py
+```bash
+# Install Python 3.8 or higher
+python3 --version
 
-#### 2. **analyze_pr.py Tests** (`test_pr_copilot_analyze_pr.py`)
+# Install pip
+pip3 --version
+```
 
-Tests for PR complexity analysis:
+### Automated Test Runner (Recommended)
 
-- ✅ File categorization (Python, JavaScript, tests, workflows, etc.)
-- ✅ PR file analysis (empty, small, large changes)
-- ✅ Complexity scoring and risk assessment
-- ✅ Scope issue detection (long titles, multiple changes, too many files)
-- ✅ Related issue parsing from PR body
-- ✅ Markdown report generation
-- ✅ Configuration loading
-- ✅ AnalysisData immutability
-
-**Coverage:** ~90% of analyze_pr.py
-
-#### 3. **suggest_fixes.py Tests** (`test_pr_copilot_suggest_fixes.py`)
-
-Tests for review comment parsing and fix suggestions:
-
-- ✅ Code suggestion extraction (blocks and inline)
-- ✅ Comment categorization (critical, bug, question, style, improvement)
-- ✅ Actionable comment detection
-- ✅ Review comment parsing
-- ✅ Priority sorting
-- ✅ Fix proposal generation
-- ✅ Long body truncation
-- ✅ Configuration loading with defaults
-
-**Coverage:** ~90% of suggest_fixes.py
-
-### Integration Tests
-
-#### **Workflow Integration** (`test_pr_copilot_workflow.py`)
-
-End-to-end tests for the complete PR Copilot system:
-
-- ✅ Configuration file existence and validity
-- ✅ Workflow file existence and validity
-- ✅ Script file existence
-- ✅ Requirements file validity
-- ✅ Complete status generation workflow
-- ✅ Complete PR analysis workflow
-- ✅ Complete fix suggestion workflow
-- ✅ Workflow trigger configuration
-- ✅ Workflow job configuration
-- ✅ Workflow permissions
-- ✅ Agent settings validation
-- ✅ Trigger settings validation
-- ✅ Scope settings validation
-- ✅ Auto-merge settings validation
-- ✅ Documentation existence and content
-
-**Coverage:** Complete workflow validation
-
-## 🚀 Running Tests
-
-### Automated Test Script (Recommended)
-
-The easiest way to run all PR Copilot tests is using the provided test runner script, which automatically sets up a virtual environment and installs dependencies:
+The easiest way to run all tests is using the provided test runner script:
 
 ```bash
 # Run all tests with automatic virtual environment setup
@@ -111,6 +40,7 @@ The easiest way to run all PR Copilot tests is using the provided test runner sc
 - ✅ Isolated dependency installation
 - ✅ Consistent test environment across runs
 - ✅ Automatic cleanup on exit
+- ✅ Color-coded output for better readability
 
 **What the script does:**
 1. Creates a dedicated virtual environment (`.venv-pr-copilot/`) if it doesn't exist
@@ -120,18 +50,33 @@ The easiest way to run all PR Copilot tests is using the provided test runner sc
 5. Installs PR Copilot dependencies from requirements.txt
 6. Runs all unit and integration tests
 7. Automatically deactivates the virtual environment on exit
-**Benefits of using the test runner:**
-- ✅ Automatic virtual environment creation and management
-- ✅ Isolated dependency installation
-- ✅ Consistent test execution across environments
-- ✅ Automatic cleanup on exit
-- ✅ Color-coded output for better readability
 
 The script creates a virtual environment at `.venv-pr-copilot/` in the repository root, which is automatically excluded from version control.
 
 ### Manual Test Execution
 
-### Run All PR Copilot Tests
+If you prefer to run tests manually or need more control:
+
+#### 1. Set Up Virtual Environment
+
+```bash
+# Create virtual environment
+python3 -m venv .venv-pr-copilot
+
+# Activate virtual environment
+source .venv-pr-copilot/bin/activate  # On Linux/macOS
+# OR
+.venv-pr-copilot\Scripts\activate  # On Windows
+
+# Upgrade pip
+pip install --upgrade pip
+
+# Install dependencies
+pip install pytest pytest-cov
+pip install -r .github/pr-copilot/scripts/requirements.txt
+```
+
+#### 2. Run Tests
 
 ```bash
 # Run all PR Copilot unit tests
@@ -142,6 +87,12 @@ pytest tests/integration/test_pr_copilot_workflow.py -v
 
 # Run all PR Copilot tests
 pytest tests/unit/test_pr_copilot_*.py tests/integration/test_pr_copilot_workflow.py -v
+```
+
+#### 3. Deactivate Virtual Environment
+
+```bash
+deactivate
 ```
 
 ### Run Specific Test Files
@@ -199,100 +150,107 @@ Validates:
 Validates:
 - Complexity scoring for large PRs
 - Risk level assessment
-- Large file detection
-- Scope issue identification
+- File categorization
+- Change impact analysis
 
-### Scenario 3: Critical Review Feedback
+### Scenario 3: Review Comment Processing
 
-**Test:** `test_categorize_comment_critical`
+**Test:** `test_parse_review_comments_with_actionable`
 
 Validates:
-- Security issue detection
-- Priority assignment
-- Actionable item extraction
-- Fix proposal generation
+- Comment extraction from reviews
+- Actionable item identification
+- Priority categorization
+- Code suggestion parsing
 
-### Scenario 4: Workflow Configuration
+### Scenario 4: Configuration Loading
+
+**Test:** `test_config_file_exists`
+
+Validates:
+- YAML configuration file existence
+- Configuration structure
+- Required fields presence
+- Default value handling
+
+### Scenario 5: Workflow Trigger Detection
 
 **Test:** `test_workflow_triggers_configuration`
 
 Validates:
-- All required triggers present
-- Correct event types
-- Proper job dependencies
+- Workflow file structure
+- Event trigger configuration
+- Job definitions
 - Permission settings
+
+## 🧪 Test Structure
+
+### Unit Tests
+
+Located in `tests/unit/`:
+
+- `test_pr_copilot_analyze_pr.py`: Tests for PR analysis functionality
+  - File categorization
+  - Complexity assessment
+  - Scope validation
+  - Issue linking
+
+- `test_pr_copilot_generate_status.py`: Tests for status report generation
+  - PR data fetching
+  - Review aggregation
+  - Check run processing
+  - Markdown formatting
+
+- `test_pr_copilot_suggest_fixes.py`: Tests for fix suggestion generation
+  - Comment categorization
+  - Code suggestion extraction
+  - Priority assignment
+  - Actionable item detection
+
+### Integration Tests
+
+Located in `tests/integration/`:
+
+- `test_pr_copilot_workflow.py`: End-to-end workflow tests
+  - Configuration validation
+  - Script execution
+  - File existence checks
+  - Documentation completeness
 
 ## 🔍 Test Data
 
-### Mock PR Data
+Tests use mock objects and fixtures to simulate:
 
-Tests use realistic mock data:
+- GitHub API responses
+- PR metadata
+- Review comments
+- Check run results
+- Configuration files
 
-```python
-mock_pr = {
-    "number": 42,
-    "title": "Add new feature for user authentication",
-    "author": "contributor",
-    "commits": 8,
-    "files_changed": 12,
-    "additions": 250,
-    "deletions": 75,
-    "labels": ["enhancement", "security"],
-    "mergeable": True,
-    "reviews": [{"state": "APPROVED"}],
-    "checks": [{"name": "CI", "conclusion": "success"}]
-}
-```
-
-### Mock Review Comments
+Example mock PR:
 
 ```python
-mock_comment = {
-    "author": "reviewer",
-    "body": "Please fix this security vulnerability",
-    "category": "critical",
-    "priority": 1,
-    "file": "auth.py",
-    "line": 42
-}
+mock_pr = Mock()
+mock_pr.number = 42
+mock_pr.title = "Add new feature"
+mock_pr.commits = 5
+mock_pr.changed_files = 10
+mock_pr.additions = 100
+mock_pr.deletions = 50
 ```
 
-## 🛠️ Test Utilities
+## 📈 Coverage Goals
 
-### Fixtures
+Target coverage metrics:
 
-Common fixtures used across tests:
-
-- `mock_github_client`: Mock GitHub API client
-- `mock_pr`: Complete PR object with all data
-- `mock_reviews`: Review objects with various states
-- `mock_check_runs`: CI check run objects
-- `mock_env_vars`: Environment variables for scripts
-
-### Mocking Strategy
-
-Tests use `unittest.mock` for:
-- GitHub API calls
-- File system operations
-- Environment variables
-- External dependencies
-
-## ✅ Test Checklist
-
-Before deploying PR Copilot changes:
-
-- [ ] All unit tests pass
-- [ ] All integration tests pass
-- [ ] Coverage > 85% for all scripts
-- [ ] No test warnings or errors
-- [ ] Configuration files validated
-- [ ] Workflow file validated
-- [ ] Documentation updated
-- [ ] Edge cases covered
+- **Overall**: ≥ 80%
+- **Critical paths**: ≥ 90%
+- **Error handling**: ≥ 85%
+- **Configuration loading**: 100%
 
 ## 🐛 Debugging Tests
 
-### Enable Verbose Output
+### Verbose Output
 
 ```bash
 pytest tests/unit/test_pr_copilot_*.py -vv
@@ -307,104 +265,141 @@ pytest tests/unit/test_pr_copilot_*.py -s
 ### Run Failed Tests Only
 
 ```bash
-pytest tests/unit/test_pr_copilot_*.py --lf
+pytest --lf
 ```
 
-### Debug with PDB
+### Stop on First Failure
 
 ```bash
-pytest tests/unit/test_pr_copilot_*.py --pdb
+pytest -x
 ```
 
-## 📈 Continuous Integration
+### Run Specific Test with Debug Output
 
-Tests run automatically in CI/CD:
-
-```yaml
-# .github/workflows/ci.yml
-- name: Run PR Copilot Tests
-  run: |
-    pytest tests/unit/test_pr_copilot_*.py -v
-    pytest tests/integration/test_pr_copilot_workflow.py -v
+```bash
+pytest tests/unit/test_pr_copilot_generate_status.py::test_fetch_pr_status -vv -s
 ```
 
-## 🔄 Test Maintenance
+## 🔧 Troubleshooting
 
-### Adding New Tests
+### Import Errors
 
-When adding new functionality:
+If you encounter import errors:
 
-1. Create test file in appropriate directory
-2. Follow naming convention: `test_pr_copilot_<module>.py`
-3. Include docstrings for all test functions
-4. Use fixtures for common setup
-5. Test both success and failure cases
-6. Update this documentation
+```bash
+# Ensure you're in the repository root
+cd /path/to/repository
 
-### Updating Existing Tests
+# Verify Python path
+python3 -c "import sys; print(sys.path)"
 
-When modifying functionality:
+# Run tests from repository root
+pytest tests/unit/test_pr_copilot_*.py
+```
 
-1. Update affected test cases
-2. Ensure backward compatibility
-3. Add tests for new edge cases
-4. Verify coverage remains high
-5. Update test documentation
+### Missing Dependencies
 
-## 📚 Best Practices
+```bash
+# Reinstall dependencies
+pip install -r .github/pr-copilot/scripts/requirements.txt
 
-### Test Organization
+# Verify installation
+pip list | grep -E "PyGithub|pyyaml|requests|pytest"
+```
 
-- **One test per function**: Each test validates one specific behavior
-- **Clear naming**: Test names describe what they validate
-- **Arrange-Act-Assert**: Follow AAA pattern
-- **Minimal mocking**: Mock only external dependencies
-- **Realistic data**: Use data similar to production
+### Virtual Environment Issues
 
-### Test Quality
+```bash
+# Remove existing virtual environment
+rm -rf .venv-pr-copilot
 
-- **Fast execution**: Tests should run quickly
-- **Isolated**: Tests don't depend on each other
-- **Deterministic**: Same input always produces same output
-- **Comprehensive**: Cover happy path and edge cases
-- **Maintainable**: Easy to understand and update
+# Recreate virtual environment
+python3 -m venv .venv-pr-copilot
+source .venv-pr-copilot/bin/activate
+pip install --upgrade pip
+pip install pytest pytest-cov
+pip install -r .github/pr-copilot/scripts/requirements.txt
+```
 
-## 🔗 Related Documentation
+### Permission Errors
 
-- [PR Copilot README](README.md) - User guide and features
-- [Setup Guide](SETUP.md) - Installation and configuration
-- [Configuration Reference](../.github/pr-copilot-config.yml) - All settings
-- [Workflow File](../.github/workflows/pr-copilot.yml) - GitHub Actions workflow
+```bash
+# Make test runner executable
+chmod +x .github/pr-copilot/scripts/run_tests.sh
 
-## 💡 Tips
+# Run with explicit bash
+bash .github/pr-copilot/scripts/run_tests.sh
+```
 
-- Run tests before committing changes
-- Use coverage reports to find untested code
-- Add tests for bug fixes to prevent regression
-- Keep tests simple and focused
-- Update tests when requirements change
+## 📝 Writing New Tests
+
+### Test Naming Convention
+
+- Test files: `test_pr_copilot_<module>.py`
+- Test functions: `test_<functionality>_<scenario>`
+- Fixtures: `mock_<object>` or `<object>_fixture`
+
+### Example Test
+
+```python
+def test_categorize_filename():
+    """Test file categorization logic."""
+    assert categorize_filename("src/main.py") == "source"
+    assert categorize_filename("tests/test_main.py") == "test"
+    assert categorize_filename("README.md") == "docs"
+```
+
+### Using Fixtures
+
+```python
+@pytest.fixture
+def mock_pr():
+    """Create a mock PR object."""
+    pr = Mock()
+    pr.number = 123
+    pr.title = "Test PR"
+    return pr
+
+def test_with_fixture(mock_pr):
+    """Test using fixture."""
+    assert mock_pr.number == 123
+```
+
+## 🎯 Continuous Integration
+
+Tests run automatically on:
+
+- Pull request creation
+- Pull request updates
+- Push to main branch
+
+CI configuration in `.github/workflows/pr-copilot.yml`
+
+## 📚 Additional Resources
+
+- [pytest Documentation](https://docs.pytest.org/)
+- [unittest.mock Documentation](https://docs.python.org/3/library/unittest.mock.html)
+- [PyGithub Documentation](https://pygithub.readthedocs.io/)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+
+## ✅ Pre-commit Checklist
+
+Before committing changes:
+
+- [ ] All tests pass locally
+- [ ] New functionality has tests
+- [ ] Coverage remains above 80%
+- [ ] No linting errors
+- [ ] Documentation updated
+- [ ] CHANGELOG updated (if applicable)
 
 ## 🤝 Contributing
 
-To contribute test improvements:
+When adding new tests:
 
-1. Write tests for new features
-2. Ensure all tests pass
-3. Maintain or improve coverage
-4. Follow existing patterns
-5. Document test scenarios
-6. Submit PR with test changes
-
-## 📞 Support
-
-For test-related issues:
-
-- Check test output for specific errors
-- Review mock data and fixtures
-- Verify environment setup
-- Consult existing test examples
-- Open issue with test failure details
-
----
-
-**Questions about testing?** Open an issue or refer to the main [TESTING.md](../../TESTING.md) guide!
+1. Follow existing test structure
+2. Use descriptive test names
+3. Add docstrings to test functions
+4. Mock external dependencies
+5. Test both success and failure cases
+6. Update this documentation if needed
