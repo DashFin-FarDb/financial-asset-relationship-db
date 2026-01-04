@@ -322,9 +322,12 @@ def test_write_output_with_github_summary():
 
         with open(tmp_path, "r", encoding="utf-8") as f:
             content = f.read()
-            assert "Test report" in content
+            assert content == "Test report"
     finally:
-        os.unlink(tmp_path)
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
 
 
 def test_format_checklist_unknown_mergeable():
