@@ -9,20 +9,16 @@ formatting, and output generation.
 import os
 import sys
 import tempfile
-from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
-# Add the scripts directory to the path before importing
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"))
 
-
-from generate_status import (CheckRunInfo, PRStatus,  # noqa: E402
-                             fetch_pr_status, format_checklist,
-                             format_checks_section, generate_markdown,
-                             write_output)
-
-import pytest  # noqa: E402
+from generate_status import (CheckRunInfo, PRStatus, fetch_pr_status,
+                             format_checklist, format_checks_section,
+                             generate_markdown, write_output)
 
 
 @pytest.fixture
@@ -109,6 +105,9 @@ def test_pr_status_creation():
     assert status.number == 1
     assert status.title == "Test PR"
     assert status.commit_count == 3
+    assert status.file_count == 5
+    assert status.additions == 50
+    assert status.deletions == 20
 
 
 def test_fetch_pr_status(mock_github_client, mock_pr, mock_reviews, mock_check_runs):
@@ -374,3 +373,119 @@ def test_format_checklist_unknown_mergeable():
 
     checklist = format_checklist(status)
     assert "- [ ] Check for merge conflicts" in checklist
+
+
+def test_generate_markdown_no_labels():
+    """Test markdown generation when PR has no labels."""
+    status = PRStatus(
+        number=1,
+        title="Test PR",
+        author="user",
+        base_ref="main",
+        head_ref="feature",
+        is_draft=False,
+        url="url",
+        commit_count=1,
+        file_count=1,
+        additions=10,
+        deletions=5,
+        labels=[],
+        mergeable=True,
+        mergeable_state="clean",
+        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        open_thread_count=0,
+        check_runs=[],
+    )
+
+    report = generate_markdown(status)
+    assert "**Labels:** None" in report
+
+
+def test_format_checks_section_with_skipped_checks():
+    """Test check section formatting with skipped checks."""
+    checks = [
+        CheckRunInfo("Test1", "completed", "success"),
+        CheckRunInfo("Test2", "completed", "skipped"),
+        CheckRunInfo("Test3", "completed", "skipped"),
+    ]
+
+    result = format_checks_section(checks)
+
+    assert "**Passed:** 1" in result
+    assert "**Skipped:** 2" in result
+    assert "**Total:** 3" in result
+
+
+def test_format_checklist_with_multiple_approvals():
+    """Test checklist when PR has multiple approvals."""
+    status = PRStatus(
+        number=1,
+        title="Test",
+        author="user",
+        base_ref="main",
+        head_ref="feature",
+        is_draft=False,
+        url="url",
+        commit_count=1,
+        file_count=1,
+        additions=10,
+        deletions=5,
+        labels=[],
+        mergeable=True,
+        mergeable_state="clean",
+        review_stats={"approved": 3, "changes_requested": 0, "commented": 0, "total": 3},
+        open_thread_count=0,
+        check_runs=[CheckRunInfo("Test", "completed", "success")],
+    )
+
+    checklist = format_checklist(status)
+    assert "- [x] Get approval from reviewer" in checklist
+
+
+def test_fetch_pr_status_with_no_reviews(mock_github_client, mock_pr):
+    """Test fetching PR status when there are no reviews."""
+    repo = Mock()
+    mock_github_client.get_repo.return_value = repo
+    repo.get_pull.return_value = mock_pr
+
+    mock_pr.get_reviews.return_value = []
+    mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+    commit = Mock()
+    commit.get_check_runs.return_value = []
+    repo.get_commit.return_value = commit
+
+    status = fetch_pr_status(mock_github_client, "test/repo", 123)
+
+    assert status.review_stats["approved"] == 0
+    assert status.review_stats["changes_requested"] == 0
+    assert status.review_stats["commented"] == 0
+    assert status.review_stats["total"] == 0
+    assert status.open_thread_count == 0
+
+
+def test_generate_markdown_with_unmergeable_pr():
+    """Test markdown generation for unmergeable PR."""
+    status = PRStatus(
+        number=1,
+        title="Test PR",
+        author="user",
+        base_ref="main",
+        head_ref="feature",
+        is_draft=False,
+        url="url",
+        commit_count=1,
+        file_count=1,
+        additions=10,
+        deletions=5,
+        labels=[],
+        mergeable=False,
+        mergeable_state="dirty",
+        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        open_thread_count=0,
+        check_runs=[],
+    )
+
+    report = generate_markdown(status)
+    assert "**Mergeable:** ❌ No" in report
+    assert "**State:** `dirty`" in report
