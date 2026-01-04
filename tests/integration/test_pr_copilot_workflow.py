@@ -161,18 +161,12 @@ def test_generate_status_integration(mock_env_vars, mock_pr_complete):
 
 def test_analyze_pr_integration(mock_env_vars, mock_pr_complete):
     """Test analyze_pr.py script integration."""
-    from analyze_pr import (=,
-        _,
-        analyze_pr,
-        analyze_pr_files,
-        assess_complexity,
-        file_data,
-        from ,
-        import ,
-        mock_pr_complete,
-        pr,
-        pr.get_files,
-    )
+    from analyze_pr import analyze_pr_files, assess_complexity
+
+    pr, _ = mock_pr_complete
+
+    file_data = analyze_pr_files(pr.get_files())
+
 
     assert file_data["file_count"] == 3
     assert file_data["total_additions"] == 250
