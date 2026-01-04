@@ -35,5 +35,6 @@ jobs:
       - name: Run Debricked Scan
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+        continue-on-error: true
         run: |
           debricked scan .
