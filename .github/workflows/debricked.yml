@@ -37,4 +37,5 @@ jobs:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
         continue-on-error: true
         run: |
+          debricked scan . --output=sarif --output-file=debricked-results.sarif || true
           debricked scan .
