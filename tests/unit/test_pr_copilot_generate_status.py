@@ -576,11 +576,8 @@ def test_fetch_pr_status_with_null_mergeable_state(mock_github_client, mock_pr):
     commit = Mock()
     commit.get_check_runs.return_value = []
     repo.get_commit.return_value = commit
-    status = fetch_pr_status(mock_github_client, "test/repo", 123)
-    status = fetch_pr_status(mock_github_client, "test/repo", 123)
 
-    assert status.mergeable_state == "unknown"
-
+    status = fetch_pr_status(mock_github_client, "test/repo", 123)
     assert status.mergeable_state == "unknown"
 
 
