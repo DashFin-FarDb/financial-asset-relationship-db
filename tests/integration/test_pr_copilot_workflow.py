@@ -162,7 +162,7 @@ def test_generate_status_integration(mock_env_vars, mock_pr_complete):
 def test_analyze_pr_integration(mock_env_vars, mock_pr_complete):
     """Test analyze_pr.py script integration."""
     from analyze_pr import (analyze_pr_files, assess_complexity,
-                            generate_markdown)
+    from analyze_pr import analyze_pr_files, assess_complexity
 
     pr, _ = mock_pr_complete
 
