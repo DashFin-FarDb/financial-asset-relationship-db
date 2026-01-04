@@ -584,6 +584,31 @@ def test_fetch_pr_status_with_null_mergeable_state(mock_github_client, mock_pr):
     assert status.number == 123
 
 
+def test_fetch_pr_status_with_empty_mergeable_state(mock_github_client, mock_pr):
+    """Test fetching PR status when mergeable_state is empty string."""
+    repo = Mock()
+    mock_github_client.get_repo.return_value = repo
+    repo.get_pull.return_value = mock_pr
+
+    mock_pr.mergeable_state = ""
+    mock_pr.get_reviews.return_value = []
+    mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+    commit = Mock()
+    commit.get_check_runs.return_value = []
+    repo.get_commit.return_value = commit
+
+    status = fetch_pr_status(mock_github_client, "test/repo", 123)
+
+    assert status.mergeable_state == "unknown"
+    assert status.mergeable is True
+    assert status.number == 123
+
+
+def test_generate_markdown_with_null_mergeable_state():
+    """Test markdown generation when mergeable_state is None/unknown."""
+    status = PRStatus(
+
 def test_generate_markdown_with_null_mergeable_state():
     """Test markdown generation when mergeable_state is None/unknown."""
     status = PRStatus(
