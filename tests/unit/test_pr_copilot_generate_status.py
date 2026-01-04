@@ -13,12 +13,17 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from generate_status import (
+    CheckRunInfo,
+    PRStatus,
+    fetch_pr_status,
+    format_checklist,
+    format_checks_section,
+    generate_markdown,
+    write_output,
+)
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"))
-
-from generate_status import (CheckRunInfo, PRStatus, fetch_pr_status,
-                             format_checklist, format_checks_section,
-                             generate_markdown, write_output)
 
 
 @pytest.fixture
@@ -321,8 +326,6 @@ def test_write_output_with_github_summary():
             assert "Test report" in content
     finally:
         os.unlink(tmp_path)
-
-
 
 
 def test_format_checklist_unknown_mergeable():
