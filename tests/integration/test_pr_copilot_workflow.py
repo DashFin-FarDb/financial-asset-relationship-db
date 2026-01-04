@@ -167,7 +167,6 @@ def test_analyze_pr_integration(mock_env_vars, mock_pr_complete):
 
     file_data = analyze_pr_files(pr.get_files())
 
-
     assert file_data["file_count"] == 3
     assert file_data["total_additions"] == 250
     assert file_data["total_deletions"] == 75
