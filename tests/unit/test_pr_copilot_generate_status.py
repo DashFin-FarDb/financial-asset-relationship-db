@@ -603,9 +603,8 @@ def test_generate_markdown_with_null_mergeable_state():
         check_runs=[],
     )
 
-    status = fetch_pr_status(mock_github_client, "test/repo", 123)
-
-    assert status.mergeable_state == "unknown"
+    report = generate_markdown(status)
+    assert "**Mergeable:** ⏳ Checking..." in report
 
 
 def test_generate_markdown_with_multiple_labels():
