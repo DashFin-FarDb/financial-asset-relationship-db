@@ -38,7 +38,6 @@ jobs:
         continue-on-error: true
         run: |
           debricked scan . --output=sarif --output-file=debricked-results.sarif || true
-          debricked scan .
 
       - name: Upload Debricked results to GitHub Security
         if: always() && hashFiles('debricked-results.sarif') != ''
