@@ -300,9 +300,7 @@ def test_write_output_to_temp_file():
         with patch("builtins.print") as mock_print:
             write_output(test_content)
 
-            mock_print.assert_called()
-            printed_content = str(mock_print.call_args_list[-1])
-            assert "Test report content" in printed_content
+            mock_print.assert_any_call(test_content)
 
 
 def test_write_output_with_github_summary():
