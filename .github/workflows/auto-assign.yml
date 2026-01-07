@@ -1,19 +1,15 @@
-name: Auto Assign
+# Workflow for automatically assigning issues
+name: Issue auto-assign
 on:
   issues:
     types: [opened]
-  pull_request:
-    types: [opened]
 jobs:
-  run:
+  auto-assign:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
     steps:
-    - name: 'Auto-assign issue'
-      uses: pozil/auto-assign-issue@v1
-      with:
+      - name: Auto-assign new issues
+        uses: pozil/auto-assign-issue@6594700 # v1.14.0
+        with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          assignees: mohavro
+          assignees: 'mohavro'
           numOfAssignee: 1
