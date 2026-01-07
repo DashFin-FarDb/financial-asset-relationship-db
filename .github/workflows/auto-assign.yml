@@ -12,8 +12,8 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - name: Auto-assign new issues
-        uses: pozil/auto-assign-issue@6594700 # v1.14.0
+      - name: Auto-assign new issues and pull requests
+          uses: pozil/auto-assign-issue@6594700 # v1.14.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           assignees: 'mohavro'
