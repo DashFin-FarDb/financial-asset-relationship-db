@@ -3,14 +3,14 @@ name: Pull request and issue auto-assign
 on:
   issues:
     types: [opened]
-  pull_requests:
+  pull_request:
     types: [opened]
 jobs:
   auto-assign:
     runs-on: ubuntu-latest
     permissions:
       issues: write
-      pull-requests: write
+      pull-request: write
     steps:
       - name: Auto-assign new issues and pull requests
           uses: pozil/auto-assign-issue@6594700 # v1.14.0
