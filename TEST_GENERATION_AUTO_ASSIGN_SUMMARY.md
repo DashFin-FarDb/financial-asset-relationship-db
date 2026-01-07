@@ -112,8 +112,7 @@ pytest tests/integration/test_github_workflows.py::TestAutoAssignWorkflow -v
 pytest tests/integration/test_github_workflows.py::TestAutoAssignWorkflow::test_auto_assign_name -v
 
 # Run with coverage
-pytest tests/integration/test_github_workflows.py::TestAutoAssignWorkflow --cov=.github/workflows --cov-report=term-missing
-```
+pytest tests/integration/test_github_workflows.py::TestAutoAssignWorkflow -v
 
 ### Expected Results
 All 28 tests should pass when run against the current auto-assign.yml workflow file.
