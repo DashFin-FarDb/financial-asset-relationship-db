@@ -877,6 +877,332 @@ class TestPrAgentWorkflowAdvanced:
         assert "APPROVE" in script
 
 
+
+class TestAutoAssignWorkflow:
+    """Comprehensive tests for the auto-assign.yml workflow."""
+
+    @pytest.fixture
+    def auto_assign_workflow(self) -> Dict[str, Any]:
+        """
+        Load the 'auto-assign' workflow YAML and provide its parsed mapping for tests.
+
+        If the file .github/workflows/auto-assign.yml is missing, the invoking test is skipped.
+
+        Returns:
+            Dict[str, Any]: Parsed YAML mapping of the auto-assign workflow.
+        """
+        workflow_path = WORKFLOWS_DIR / "auto-assign.yml"
+        if not workflow_path.exists():
+            pytest.skip("auto-assign.yml not found")
+        return load_yaml_safe(workflow_path)
+
+    def test_auto_assign_name(self, auto_assign_workflow: Dict[str, Any]):
+        """
+        Assert the auto-assign workflow's top-level name equals "Auto Assign".
+
+        Parameters:
+            auto_assign_workflow (Dict[str, Any]): Parsed YAML mapping for the auto-assign workflow fixture.
+        """
+        assert auto_assign_workflow["name"] == "Auto Assign"
+
+    def test_auto_assign_triggers_on_issues(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that auto-assign workflow triggers on issue events."""
+        triggers = auto_assign_workflow.get("on", {})
+        assert "issues" in triggers, "auto-assign workflow should trigger on issue events"
+        
+        issues_config = triggers["issues"]
+        assert isinstance(issues_config, dict), "issues trigger should be a dictionary"
+        assert "types" in issues_config, "issues trigger should specify types"
+        assert "opened" in issues_config["types"], "issues trigger should include 'opened' type"
+
+    def test_auto_assign_triggers_on_pull_requests(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that auto-assign workflow triggers on pull request events."""
+        triggers = auto_assign_workflow.get("on", {})
+        assert "pull_request" in triggers, "auto-assign workflow should trigger on pull_request events"
+        
+        pr_config = triggers["pull_request"]
+        assert isinstance(pr_config, dict), "pull_request trigger should be a dictionary"
+        assert "types" in pr_config, "pull_request trigger should specify types"
+        assert "opened" in pr_config["types"], "pull_request trigger should include 'opened' type"
+
+    def test_auto_assign_has_run_job(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that auto-assign workflow has a 'run' job."""
+        jobs = auto_assign_workflow.get("jobs", {})
+        assert "run" in jobs, "auto-assign workflow must have a 'run' job"
+
+    def test_auto_assign_runs_on_ubuntu(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the run job executes on Ubuntu."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        runs_on = run_job.get("runs-on", "")
+        assert "ubuntu" in runs_on.lower(), "Run job should execute on Ubuntu runner"
+
+    def test_auto_assign_permissions_defined(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow defines appropriate permissions."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        assert "permissions" in run_job, "Run job should define permissions"
+        
+        permissions = run_job["permissions"]
+        assert isinstance(permissions, dict), "Permissions should be a dictionary"
+
+    def test_auto_assign_has_issues_write_permission(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow has issues write permission."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        permissions = run_job.get("permissions", {})
+        
+        assert "issues" in permissions, "Run job should have 'issues' permission"
+        assert permissions["issues"] == "write", "Issues permission should be 'write'"
+
+    def test_auto_assign_has_pull_requests_write_permission(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow has pull-requests write permission."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        permissions = run_job.get("permissions", {})
+        
+        assert "pull-requests" in permissions, "Run job should have 'pull-requests' permission"
+        assert permissions["pull-requests"] == "write", "Pull-requests permission should be 'write'"
+
+    def test_auto_assign_permissions_minimal(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow uses minimal permissions (least privilege principle)."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        permissions = run_job.get("permissions", {})
+        
+        # Should only have the two required permissions
+        assert len(permissions) == 2, "Should only have minimal required permissions (issues and pull-requests)"
+        assert set(permissions.keys()) == {"issues", "pull-requests"}, (
+            "Should only have 'issues' and 'pull-requests' permissions"
+        )
+
+    def test_auto_assign_has_single_step(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the run job has exactly one step."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        
+        assert len(steps) == 1, "Run job should have exactly one step"
+
+    def test_auto_assign_step_has_descriptive_name(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the step has a descriptive name."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        assert "name" in step, "Step should have a name"
+        assert step["name"], "Step name should not be empty"
+        assert "auto-assign" in step["name"].lower(), "Step name should indicate auto-assignment functionality"
+
+    def test_auto_assign_uses_pozil_action(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow uses the pozil/auto-assign-issue action."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        assert "uses" in step, "Step should use an action"
+        assert step["uses"].startswith("pozil/auto-assign-issue"), (
+            "Step should use the pozil/auto-assign-issue action"
+        )
+
+    def test_auto_assign_action_has_version(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the pozil action specifies a version tag."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        action = step["uses"]
+        assert "@" in action, "Action should specify a version tag (e.g., @v1)"
+        
+        # Extract version
+        version = action.split("@")[1]
+        assert version, "Version tag should not be empty"
+        assert version.startswith("v") or len(version) == 40, (
+            "Version should be a tag (e.g., v1) or a full commit SHA"
+        )
+
+    def test_auto_assign_step_has_with_config(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the step has a 'with' configuration block."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        assert "with" in step, "Step should have a 'with' configuration block"
+        assert isinstance(step["with"], dict), "'with' should be a dictionary"
+
+    def test_auto_assign_uses_github_token(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the step uses GITHUB_TOKEN from secrets."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        with_config = step.get("with", {})
+        assert "repo-token" in with_config, "Step should have 'repo-token' configuration"
+        
+        token = with_config["repo-token"]
+        assert "${{ secrets.GITHUB_TOKEN }}" in token, (
+            "Should use secrets.GITHUB_TOKEN for authentication"
+        )
+
+    def test_auto_assign_specifies_assignees(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow specifies assignees."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        with_config = step.get("with", {})
+        assert "assignees" in with_config, "Step should specify assignees"
+        
+        assignees = with_config["assignees"]
+        assert assignees, "Assignees should not be empty"
+        assert isinstance(assignees, str), "Assignees should be a string"
+
+    def test_auto_assign_assignees_valid_username(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that assignees contain valid GitHub usernames."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        with_config = step.get("with", {})
+        assignees = with_config.get("assignees", "")
+        
+        # GitHub usernames can contain alphanumeric characters and hyphens
+        # and must not start or end with a hyphen
+        username_pattern = r"^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$"
+        
+        for assignee in assignees.split(","):
+            assignee = assignee.strip()
+            assert re.match(username_pattern, assignee), (
+                f"Assignee '{assignee}' is not a valid GitHub username"
+            )
+
+    def test_auto_assign_specifies_num_assignees(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow specifies the number of assignees."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        with_config = step.get("with", {})
+        assert "numOfAssignee" in with_config, "Step should specify numOfAssignee"
+
+    def test_auto_assign_num_assignees_valid(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that numOfAssignee is a valid positive integer."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        with_config = step.get("with", {})
+        num_assignees = with_config.get("numOfAssignee")
+        
+        assert isinstance(num_assignees, int), "numOfAssignee should be an integer"
+        assert num_assignees > 0, "numOfAssignee should be positive"
+        assert num_assignees <= 10, "numOfAssignee should be reasonable (≤ 10)"
+
+    def test_auto_assign_num_assignees_matches_list(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that numOfAssignee doesn't exceed the number of specified assignees."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        with_config = step.get("with", {})
+        assignees = with_config.get("assignees", "")
+        num_assignees = with_config.get("numOfAssignee", 0)
+        
+        # Count comma-separated assignees
+        assignee_list = [a.strip() for a in assignees.split(",") if a.strip()]
+        
+        assert num_assignees <= len(assignee_list), (
+            f"numOfAssignee ({num_assignees}) should not exceed number of specified assignees ({len(assignee_list)})"
+        )
+
+    def test_auto_assign_config_complete(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that all required configuration fields are present."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        with_config = step.get("with", {})
+        required_fields = ["repo-token", "assignees", "numOfAssignee"]
+        
+        for field in required_fields:
+            assert field in with_config, f"Required field '{field}' missing from configuration"
+
+    def test_auto_assign_no_extra_config(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that no unexpected configuration fields are present."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        with_config = step.get("with", {})
+        expected_fields = {"repo-token", "assignees", "numOfAssignee"}
+        actual_fields = set(with_config.keys())
+        
+        unexpected = actual_fields - expected_fields
+        if unexpected:
+            print(f"\nInfo: auto-assign.yml has additional config fields: {unexpected}")
+
+    def test_auto_assign_triggers_only_on_opened(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow only triggers on 'opened' events to avoid duplicate assignments."""
+        triggers = auto_assign_workflow.get("on", {})
+        
+        # Check issues trigger
+        issues_config = triggers.get("issues", {})
+        if isinstance(issues_config, dict) and "types" in issues_config:
+            types = issues_config["types"]
+            assert types == ["opened"], (
+                "Issues should only trigger on 'opened' to avoid duplicate assignments"
+            )
+        
+        # Check pull_request trigger
+        pr_config = triggers.get("pull_request", {})
+        if isinstance(pr_config, dict) and "types" in pr_config:
+            types = pr_config["types"]
+            assert types == ["opened"], (
+                "Pull requests should only trigger on 'opened' to avoid duplicate assignments"
+            )
+
+    def test_auto_assign_no_job_dependencies(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the run job has no dependencies on other jobs."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        
+        assert "needs" not in run_job, "Run job should not depend on other jobs (simple workflow)"
+
+    def test_auto_assign_no_job_conditions(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the run job has no conditional execution (runs for all matching triggers)."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        
+        assert "if" not in run_job, (
+            "Run job should not have conditions (should run for all matching triggers)"
+        )
+
+    def test_auto_assign_workflow_efficient(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow is efficient (single job, single step)."""
+        jobs = auto_assign_workflow.get("jobs", {})
+        assert len(jobs) == 1, "Workflow should have exactly one job (efficient design)"
+        
+        run_job = jobs["run"]
+        steps = run_job.get("steps", [])
+        assert len(steps) == 1, "Job should have exactly one step (efficient design)"
+
+    def test_auto_assign_uses_stable_action_version(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that the workflow uses a stable version of the action."""
+        run_job = auto_assign_workflow["jobs"]["run"]
+        steps = run_job.get("steps", [])
+        step = steps[0]
+        
+        action = step["uses"]
+        version = action.split("@")[1]
+        
+        # Should use a version tag, not 'main' or 'master' for stability
+        assert version not in ["main", "master"], (
+            "Should use a version tag (e.g., @v1) rather than branch name for stability"
+        )
+
+    def test_auto_assign_security_permissions_scoped(self, auto_assign_workflow: Dict[str, Any]):
+        """Test that permissions are scoped to the job level (security best practice)."""
+        # Check that permissions are at job level, not workflow level
+        assert "permissions" not in auto_assign_workflow or auto_assign_workflow.get("permissions") is None, (
+            "Permissions should be defined at job level for better security scoping"
+        )
+        
+        run_job = auto_assign_workflow["jobs"]["run"]
+        assert "permissions" in run_job, "Job should define its own permissions"
+
+
 class TestWorkflowTriggers:
     """Comprehensive tests for workflow trigger configurations."""
 
