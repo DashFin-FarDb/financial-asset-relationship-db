@@ -42,7 +42,7 @@ class TestEnhancedTestSummary:
         Load the text content of the summary file at the given path.
 
         Parameters:
-                summary_path (Path): Path to the summary markdown file to read.
+                summary_path(Path): Path to the summary markdown file to read.
 
         Returns:
                 str: The file content.
@@ -68,7 +68,7 @@ class TestEnhancedTestSummary:
         Verify the summary contains the main title "Enhanced Test Suite Summary".
 
         Parameters:
-            summary_content (str): Full text content of the summary markdown file being tested.
+            summary_content(str): Full text content of the summary markdown file being tested.
         """
         assert "# Enhanced Test Suite Summary" in summary_content
 
@@ -101,13 +101,13 @@ class TestEnhancedTestSummary:
 
     def test_summary_valid_markdown_headings(self, summary_content):
         """
-        Assert that every Markdown heading in the provided content has a space after the leading `#` characters.
+        Assert that every Markdown heading in the provided content has a space after the leading `  # ` characters.
 
         Parameters:
-            summary_content (str): Full text of the summary Markdown file to validate.
+            summary_content(str): Full text of the summary Markdown file to validate.
 
         Raises:
-            AssertionError: If any heading line does not have a space after its `#` markers; the error message includes the failing line number.
+            AssertionError: If any heading line does not have a space after its `  # ` markers; the error message includes the failing line number.
         """
         lines = summary_content.split("\n")
         for i, line in enumerate(lines, 1):
@@ -117,10 +117,10 @@ class TestEnhancedTestSummary:
 
     def test_summary_no_broken_formatting(self, summary_content):
         """
-        Verify the summary contains no malformed Markdown heading markers (for example, consecutive `#` characters without the required space).
+        Verify the summary contains no malformed Markdown heading markers(for example, consecutive `  # ` characters without the required space).
 
         Parameters:
-            summary_content (str): The full text content of the summary markdown file to validate.
+            summary_content(str): The full text content of the summary markdown file to validate.
         """
         # Check for common markdown issues
         assert "##" not in summary_content.replace("##", "# #")  # No triple hashes without space
@@ -143,10 +143,10 @@ class TestFinalTestSummary:
     @pytest.fixture
     def summary_content(self, summary_path):
         """
-        Read the UTF-8 text content of the specified summary file.
+        Read the UTF - 8 text content of the specified summary file.
 
         Parameters:
-            summary_path (Path): Path to the summary markdown file.
+            summary_path(Path): Path to the summary markdown file.
 
         Returns:
             str: The file content as a Unicode string.
@@ -212,12 +212,12 @@ class TestFinalTestSummary:
 
     def test_summary_valid_markdown_structure(self, summary_content):
         """
-        Validate that a Markdown document's top-level heading is H1 when headings are present.
+        Validate that a Markdown document's top - level heading is H1 when headings are present.
 
-        Parses the content for lines starting with '#' followed by a space and, if any headings are found, asserts the first heading's level is 1.
+        Parses the content for lines starting with '#' followed by a space and , if any headings are found, asserts the first heading's level is 1.
 
         Parameters:
-            summary_content (str): The Markdown document content to check.
+            summary_content(str): The Markdown document content to check.
         """
         lines = summary_content.split("\n")
         # Check heading hierarchy

@@ -13,7 +13,6 @@ import pytest
 from src.logic.asset_graph import AssetRelationshipGraph
 
 
-
 @pytest.mark.unit
 class TestAssetRelationshipGraphInit:
     """Test suite for AssetRelationshipGraph initialization."""

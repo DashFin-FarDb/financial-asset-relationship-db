@@ -366,6 +366,7 @@ class TestFormulaicdAnalyzer:
         assert "key_insights" in summary
         assert isinstance(summary["key_insights"], list)
 
+
 @pytest.mark.unit
 class TestExampleCalculationMethods:
     """Test suite for example calculation methods."""

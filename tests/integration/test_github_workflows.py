@@ -268,7 +268,6 @@ class TestWorkflowActions:
                 has_uses = "uses" in step
                 has_run = "run" in step
 
-
                 assert has_name or has_uses or has_run, (
                     f"Step {idx} in job '{job_name}' of {workflow_file.name} "
                     "must have at least a 'name', 'uses', or 'run' field"
@@ -563,7 +562,7 @@ class TestWorkflowEdgeCases:
             )
             )
 
-    @pytest.mark.parametrize("workflow_file", get_workflow_files())
+    @ pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_tabs(self, workflow_file: Path):
         """
         Ensure the workflow YAML file contains no tab characters.
@@ -578,7 +577,7 @@ class TestWorkflowEdgeCases:
             "YAML files should use spaces for indentation, not tabs."
         )
 
-    @pytest.mark.parametrize("workflow_file", get_workflow_files())
+    @ pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_consistent_indentation(self, workflow_file: Path):
         """
         Ensure all non-empty, non-comment lines in the workflow file use indentation in multiples of two spaces.
