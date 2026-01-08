@@ -1697,7 +1697,8 @@ class TestAutoAssignDocumentation:
 
             # Check for balanced brackets in links
             assert content.count("[") == content.count("]"), f"{doc_path.name} has unbalanced square brackets"
-       
+
+
 class TestWorkflowJobConfiguration:
     """Tests for job-level configuration in workflows."""
 
