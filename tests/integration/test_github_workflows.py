@@ -1182,7 +1182,6 @@ class TestWorkflowTriggers:
     """Comprehensive tests for workflow trigger configurations."""
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_triggers_are_valid_types(self, workflow_file: Path):
         """
         Validate that the workflow's triggers are recognised GitHub event types.
