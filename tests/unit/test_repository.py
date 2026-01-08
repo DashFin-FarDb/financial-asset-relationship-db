@@ -336,7 +336,8 @@ class TestRelationshipOperations:
         repository.delete_relationship("NONE1", "NONE2", "nonexistent")
         repository.session.commit()
 
-    def test_relationship_record_dataclass(self):
+    @staticmethod
+    def test_relationship_record_dataclass():
         """Test RelationshipRecord dataclass."""
         record = RelationshipRecord(
             source_id="SOURCE",

@@ -87,13 +87,8 @@ class TestAsset:
 class TestEquity:
     """Test cases for the Equity class."""
 
-    def test_equity_creation(self, sample_equity):
-        """Test creating a valid equity asset."""
-        assert sample_equity.asset_class == AssetClass.EQUITY
-        assert sample_equity.pe_ratio == 25.5
-        assert sample_equity.dividend_yield == 0.005
-
-    def test_equity_optional_fields(self):
+    @staticmethod
+    def test_equity_optional_fields():
         """Test equity with optional fields as None."""
         equity = Equity(
             id="TEST_002",
@@ -107,6 +102,12 @@ class TestEquity:
         assert equity.dividend_yield is None
         assert equity.earnings_per_share is None
 
+    def test_equity_creation(self, sample_equity):
+        """Test creating a valid equity asset."""
+        assert sample_equity.asset_class == AssetClass.EQUITY
+        assert sample_equity.pe_ratio == 25.5
+        assert sample_equity.dividend_yield == 0.005
+
 
 class TestBond:
     """Test cases for the Bond class."""
@@ -118,7 +119,8 @@ class TestBond:
         assert sample_bond.credit_rating == "AAA"
         assert sample_bond.issuer_id == "TEST_AAPL"
 
-    def test_bond_optional_fields(self):
+    @staticmethod
+    def test_bond_optional_fields():
         """Test bond with optional fields as None."""
         bond = Bond(
             id="TEST_BOND_002",
@@ -136,7 +138,8 @@ class TestBond:
 class TestCommodity:
     """Test cases for the Commodity class."""
 
-    def test_commodity_creation(self, sample_commodity):
+    @staticmethod
+    def test_commodity_creation(sample_commodity):
         """Test creating a valid commodity asset."""
         assert sample_commodity.asset_class == AssetClass.COMMODITY
         assert sample_commodity.contract_size == 100.0
@@ -146,7 +149,8 @@ class TestCommodity:
 class TestCurrency:
     """Test cases for the Currency class."""
 
-    def test_currency_creation(self, sample_currency):
+    @staticmethod
+    def test_currency_creation(sample_currency):
         """Test creating a valid currency asset."""
         assert sample_currency.asset_class == AssetClass.CURRENCY
         assert sample_currency.exchange_rate == 1.10
@@ -156,14 +160,16 @@ class TestCurrency:
 class TestRegulatoryEvent:
     """Test cases for the RegulatoryEvent class."""
 
-    def test_event_creation(self, sample_regulatory_event):
+    @staticmethod
+    def test_event_creation(sample_regulatory_event):
         """Test creating a valid regulatory event."""
         assert sample_regulatory_event.id == "EVENT_001"
         assert sample_regulatory_event.asset_id == "TEST_AAPL"
         assert sample_regulatory_event.event_type == RegulatoryActivity.EARNINGS_REPORT
         assert sample_regulatory_event.impact_score == 0.8
 
-    def test_event_invalid_impact_score(self):
+    @staticmethod
+    def test_event_invalid_impact_score():
         """Test that impact score outside [-1, 1] raises ValueError."""
         with pytest.raises(ValueError, match="Impact score must be a float between -1 and 1"):
             RegulatoryEvent(
@@ -175,7 +181,8 @@ class TestRegulatoryEvent:
                 impact_score=2.0,
             )
 
-    def test_event_invalid_date(self):
+    @staticmethod
+    def test_event_invalid_date():
         """Test that invalid date format raises ValueError."""
         with pytest.raises(ValueError, match="Date must be in ISO 8601 format"):
             RegulatoryEvent(
@@ -187,7 +194,8 @@ class TestRegulatoryEvent:
                 impact_score=0.5,
             )
 
-    def test_event_empty_description(self):
+    @staticmethod
+    def test_event_empty_description():
         """Test that empty description raises ValueError."""
         with pytest.raises(ValueError, match="Description must be a non-empty string"):
             RegulatoryEvent(

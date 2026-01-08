@@ -85,15 +85,18 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 class TestRequirementsFileExists:
     """Test that requirements-dev.txt exists and is readable."""
 
-    def test_file_exists(self):
+    @staticmethod
+    def test_file_exists():
         """Test that requirements-dev.txt file exists."""
         assert REQUIREMENTS_FILE.exists()
 
-    def test_file_is_file(self):
+    @staticmethod
+    def test_file_is_file():
         """Test that the path is a file, not a directory."""
         assert REQUIREMENTS_FILE.is_file()
 
-    def test_file_is_readable(self):
+    @staticmethod
+    def test_file_is_readable():
         """Test that the file can be read."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             content = f.read()
@@ -115,7 +118,8 @@ class TestRequirementsFileFormat:
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.readlines()
 
-    def test_file_encoding(self):
+    @staticmethod
+    def test_file_encoding():
         """Test that file uses UTF-8 encoding."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             f.read()
@@ -136,12 +140,14 @@ class TestRequiredPackages:
     """Test that required development packages are present."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Parse and return requirements."""
         return parsed_requirements
 
     @pytest.fixture
-    def package_names(self, parsed_requirements) -> List[str]:
+    @staticmethod
+    def package_names(parsed_requirements) -> List[str]:
         """Extract just the package names."""
         return [pkg for pkg, _ in parsed_requirements]
 
@@ -182,12 +188,14 @@ class TestVersionSpecifications:
         """Parse and return requirements."""
         return parsed_requirements
 
-    def test_all_packages_have_versions(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_all_packages_have_versions(requirements: List[Tuple[str, str]]):
         """Test that all packages specify version constraints."""
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         assert len(packages_without_versions) == 0
 
-    def test_version_format_valid(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_version_format_valid(requirements: List[Tuple[str, str]]):
         """Test that version specifications use valid format."""
         version_pattern = re.compile(r"^(>=|==|<=|>|<|~=)\d+(\.\d+)*$")
 
@@ -195,13 +203,15 @@ class TestVersionSpecifications:
             if ver_spec:
                 assert version_pattern.match(ver_spec)
 
-    def test_pyyaml_version(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_pyyaml_version(requirements: List[Tuple[str, str]]):
         """Test that PyYAML has appropriate version constraint."""
         pyyaml_specs = [ver for pkg, ver in requirements if pkg == "pyyaml"]
         assert len(pyyaml_specs) > 0
         assert pyyaml_specs[0].startswith(">=6.0")
 
-    def test_uses_minimum_versions(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_uses_minimum_versions(requirements: List[Tuple[str, str]]):
         """Test that packages use >= for version specifications."""
         specs_using_gte = [ver for pkg, ver in requirements if ver.startswith(">=")]
         all_with_versions = [ver for pkg, ver in requirements if ver]
@@ -217,7 +227,8 @@ class TestPackageConsistency:
         requirements = parse_requirements(REQUIREMENTS_FILE)
         return [pkg for pkg, _ in requirements]
 
-    def test_types_packages_match_base_packages(self, package_names: List[str]):
+    @staticmethod
+    def test_types_packages_match_base_packages(package_names: List[str]):
         """Test that type stub packages have corresponding base packages."""
         types_packages = [pkg for pkg in package_names if pkg.startswith("types-")]
 
@@ -226,7 +237,8 @@ class TestPackageConsistency:
             base_exists = any(pkg.lower() == base_pkg.lower() for pkg in package_names)
             assert base_exists
 
-    def test_no_duplicate_packages(self, package_names: List[str]):
+    @staticmethod
+    def test_no_duplicate_packages(package_names: List[str]):
         """Test that no package is listed multiple times."""
         seen = set()
         duplicates = []
@@ -238,7 +250,8 @@ class TestPackageConsistency:
 
         assert len(duplicates) == 0
 
-    def test_package_names_valid(self, package_names: List[str]):
+    @staticmethod
+    def test_package_names_valid(package_names: List[str]):
         """Test that package names follow valid naming conventions."""
         valid_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
 
@@ -259,7 +272,8 @@ class TestFileOrganization:
         """Test that file isn't excessively large."""
         assert len(file_lines) < 100
 
-    def test_has_appropriate_number_of_packages(self):
+    @staticmethod
+    def test_has_appropriate_number_of_packages():
         """Test that file has a reasonable number of development dependencies."""
         requirements = parse_requirements(REQUIREMENTS_FILE)
         assert 5 <= len(requirements) <= 50
@@ -268,8 +282,9 @@ class TestFileOrganization:
 class TestSpecificChanges:
     """Test the specific changes made in the diff."""
 
+    @staticmethod
     @pytest.fixture
-    def requirements(self) -> List[Tuple[str, str]]:
+    def requirements() -> List[Tuple[str, str]]:
         """Parse and return requirements."""
         return parse_requirements(REQUIREMENTS_FILE)
 
@@ -357,7 +372,8 @@ class TestVersionConstraintValidation:
     """Test detailed version constraint validation."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
@@ -421,7 +437,8 @@ class TestPackageNamingAndCasing:
     """Test package naming conventions and casing consistency."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
@@ -462,31 +479,37 @@ class TestDevelopmentToolsPresence:
     """Test that essential development tools are present and properly configured."""
 
     @pytest.fixture
-    def package_names(self, parsed_requirements) -> List[str]:
+    @staticmethod
+    def package_names(parsed_requirements) -> List[str]:
         """Extract package names."""
         return [pkg.lower() for pkg, _ in parsed_requirements]
 
-    def test_has_testing_framework(self, package_names: List[str]):
+    @staticmethod
+    def test_has_testing_framework(package_names: List[str]):
         """Test that a testing framework is present."""
         testing_frameworks = ["pytest", "unittest", "nose"]
         assert any(fw in package_names for fw in testing_frameworks), "No testing framework found"
 
-    def test_has_code_formatter(self, package_names: List[str]):
+    @staticmethod
+    def test_has_code_formatter(package_names: List[str]):
         """Test that a code formatter is present."""
         formatters = ["black", "autopep8", "yapf"]
         assert any(fmt in package_names for fmt in formatters), "No code formatter found"
 
-    def test_has_linter(self, package_names: List[str]):
+    @staticmethod
+    def test_has_linter(package_names: List[str]):
         """Test that at least one linter is present."""
         linters = ["flake8", "pylint", "ruff"]
         assert any(linter in package_names for linter in linters), "No linter found"
 
-    def test_has_type_checker(self, package_names: List[str]):
+    @staticmethod
+    def test_has_type_checker(package_names: List[str]):
         """Test that a type checker is present."""
         type_checkers = ["mypy", "pytype", "pyre"]
         assert any(tc in package_names for tc in type_checkers), "No type checker found"
 
-    def test_has_import_sorter(self, package_names: List[str]):
+    @staticmethod
+    def test_has_import_sorter(package_names: List[str]):
         """Test that an import sorter is present."""
         import_sorters = ["isort", "reorder-python-imports"]
         # This is optional but good to have
@@ -501,16 +524,19 @@ class TestPytestEcosystem:
     """Test pytest and related plugins."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
     @pytest.fixture
-    def package_names(self, parsed_requirements) -> List[str]:
+    @staticmethod
+    def package_names(parsed_requirements) -> List[str]:
         """Extract package names."""
         return [pkg.lower() for pkg, _ in parsed_requirements]
 
-    def test_pytest_version_sufficient(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_pytest_version_sufficient(requirements: List[Tuple[str, str]]):
         """Test that pytest version is recent enough."""
         pytest_specs = [ver for pkg, ver in requirements if pkg.lower() == "pytest"]
         assert len(pytest_specs) > 0, "pytest should be present"
@@ -522,7 +548,8 @@ class TestPytestEcosystem:
             major = int(version_num.split(".")[0])
             assert major >= 6, f"pytest version should be >= 6.0, got {ver}"
 
-    def test_pytest_plugins_compatible(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_pytest_plugins_compatible(requirements: List[Tuple[str, str]]):
         """Test that pytest plugins have compatible versions."""
         pytest_plugins = [(pkg, ver) for pkg, ver in requirements if pkg.lower().startswith("pytest-")]
 
@@ -530,7 +557,8 @@ class TestPytestEcosystem:
         for pkg, ver in pytest_plugins:
             assert ver, f"Pytest plugin {pkg} should have a version constraint"
 
-    def test_pytest_cov_present_for_coverage(self, package_names: List[str]):
+    @staticmethod
+    def test_pytest_cov_present_for_coverage(package_names: List[str]):
         """Test that pytest-cov is present for coverage reporting."""
         if "pytest-cov" in package_names:
             assert True
@@ -543,7 +571,8 @@ class TestTypeStubConsistency:
     """Test consistency between type stub packages and their base packages."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
@@ -579,7 +608,8 @@ class TestTypeStubConsistency:
 class TestFileStructureAndOrganization:
     """Test file structure and organizational aspects."""
 
-    def test_comments_have_proper_format(self):
+    @staticmethod
+    def test_comments_have_proper_format():
         """Test that comments follow a consistent format."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
@@ -592,7 +622,8 @@ class TestFileStructureAndOrganization:
                         line.strip()[1] == " " or line.strip()[1] == "#"
                     ), f"Line {i}: Comment should have space after #: {line.strip()}"
 
-    def test_sections_are_organized(self):
+    @staticmethod
+    def test_sections_are_organized():
         """Test that the file appears to be organized into sections."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             content = f.read()
@@ -602,7 +633,8 @@ class TestFileStructureAndOrganization:
         has_sections = any(indicator in content for indicator in section_indicators)
         assert has_sections, "File should have organizational comments"
 
-    def test_no_excessive_blank_lines(self):
+    @staticmethod
+    def test_no_excessive_blank_lines():
         """Test that there are no excessive consecutive blank lines."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
@@ -629,7 +661,8 @@ class TestSecurityBestPractices:
         """Get parsed requirements."""
         return parsed_requirements
 
-    def test_no_very_old_package_versions(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_no_very_old_package_versions(requirements: List[Tuple[str, str]]):
         """Test that packages don't use very old major versions."""
         for pkg, ver in requirements:
             if ver.startswith(">="):
@@ -644,7 +677,8 @@ class TestSecurityBestPractices:
                         if major == 0:
                             pass  # Could add warning
 
-    def test_critical_packages_pinned(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_critical_packages_pinned(requirements: List[Tuple[str, str]]):
         """Test that critical security-related packages have minimum versions."""
         critical_packages = ["pytest", "pytest-cov"]
 
@@ -658,7 +692,8 @@ class TestPyYAMLIntegration:
     """Test PyYAML-specific integration based on the diff changes."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
@@ -698,7 +733,8 @@ class TestComprehensivePackageValidation:
     """Comprehensive validation of all aspects of package specifications."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 

@@ -67,7 +67,8 @@ class TestEngineCreation:
         assert engine is not None
         assert "postgresql" in str(engine.url).lower()
 
-    def test_sqlite_memory_has_check_same_thread_false(self):
+    @staticmethod
+    def test_sqlite_memory_has_check_same_thread_false():
         """Test that SQLite memory database has check_same_thread disabled."""
         memory_url = "sqlite:///:memory:"
         engine = create_engine_from_url(memory_url)
@@ -299,7 +300,8 @@ class TestDefaultDatabaseURL:
         """Test that default database URL points to a file."""
         assert "asset_graph.db" in DEFAULT_DATABASE_URL
 
-    def test_env_override_of_default_url(self):
+    @staticmethod
+    def test_env_override_of_default_url():
         """Test that environment variable can override default URL."""
         custom_url = "postgresql://test:test@localhost/test"
         with patch.dict(os.environ, {"ASSET_GRAPH_DATABASE_URL": custom_url}):
@@ -312,7 +314,8 @@ class TestDefaultDatabaseURL:
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
-    def test_session_scope_with_empty_operations(self):
+    @staticmethod
+    def test_session_scope_with_empty_operations():
         """Test session scope with no operations."""
         engine = create_engine("sqlite:///:memory:")
         factory = create_session_factory(engine)

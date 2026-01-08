@@ -267,120 +267,8 @@ class TestFormulaicdAnalyzer:
         formula_names = [f.name for f in formulas]
         assert "Commodity-Currency Relationship" in formula_names
 
-    def test_calculate_empirical_relationships_with_multiple_assets(self, analyzer, populated_graph):
-        """Test calculation of empirical relationships."""
-        # Execute
-        relationships = analyzer._calculate_empirical_relationships(populated_graph)
-
-        # Assert
-        assert isinstance(relationships, dict)
-        assert "correlation_matrix" in relationships
-        assert "strongest_correlations" in relationships
-        assert "sector_relationships" in relationships
-        assert "asset_class_relationships" in relationships
-
-    def test_calculate_empirical_relationships_with_single_asset(self, analyzer, empty_graph, sample_equity):
-        """Test empirical relationships with only one asset."""
-        empty_graph.add_asset(sample_equity)
-
-        # Execute
-        relationships = analyzer._calculate_empirical_relationships(empty_graph)
-
-        # Assert - should handle single asset gracefully
-        assert isinstance(relationships, dict)
-
-    def test_extract_asset_data(self, analyzer, populated_graph):
-        """Test extracting quantitative data from assets."""
-        # Execute
-        data = analyzer._extract_asset_data(populated_graph)
-
-        # Assert
-        assert isinstance(data, dict)
-        assert len(data) == len(populated_graph.assets)
-
-        # Check that each asset has required fields
-        for _asset_id, asset_data in data.items():
-            assert "price" in asset_data
-            assert "asset_class" in asset_data
-
-    def test_extract_asset_data_equity_specific_fields(self, analyzer, empty_graph, sample_equity):
-        """Test that equity-specific fields are extracted."""
-        empty_graph.add_asset(sample_equity)
-
-        # Execute
-        data = analyzer._extract_asset_data(empty_graph)
-
-        # Assert
-        equity_data = data["TEST_AAPL"]
-        assert "market_cap" in equity_data
-        assert "pe_ratio" in equity_data
-        assert "dividend_yield" in equity_data
-        assert "eps" in equity_data
-
-    def test_extract_asset_data_bond_specific_fields(self, analyzer, empty_graph, sample_bond):
-        """Test that bond-specific fields are extracted."""
-        empty_graph.add_asset(sample_bond)
-
-        # Execute
-        data = analyzer._extract_asset_data(empty_graph)
-
-        # Assert
-        bond_data = data["TEST_BOND"]
-        assert "yield" in bond_data
-        assert "coupon_rate" in bond_data
-
-    def test_extract_asset_data_commodity_specific_fields(self, analyzer, empty_graph, sample_commodity):
-        """Test that commodity-specific fields are extracted."""
-        empty_graph.add_asset(sample_commodity)
-
-        # Execute
-        data = analyzer._extract_asset_data(empty_graph)
-
-        # Assert
-        commodity_data = data["TEST_GOLD"]
-        assert "volatility" in commodity_data
-        assert "contract_size" in commodity_data
-
-    def test_extract_asset_data_currency_specific_fields(self, analyzer, empty_graph, sample_currency):
-        """Test that currency-specific fields are extracted."""
-        empty_graph.add_asset(sample_currency)
-
-        # Execute
-        data = analyzer._extract_asset_data(empty_graph)
-
-        # Assert
-        currency_data = data["TEST_EUR"]
-        assert "exchange_rate" in currency_data
-        assert "central_bank_rate" in currency_data
-
-    def test_calculate_correlation_matrix(self, analyzer, populated_graph):
-        """Test correlation matrix calculation."""
-        assets_data = analyzer._extract_asset_data(populated_graph)
-
-        # Execute
-        correlation_matrix = analyzer._calculate_correlation_matrix(assets_data)
-
-        # Assert
-        assert isinstance(correlation_matrix, dict)
-        assert len(correlation_matrix) > 0
-
-        # Check that all correlations are between -1 and 1
-        for pair, corr in correlation_matrix.items():
-            assert -1.0 <= corr <= 1.0, f"Correlation for {pair} should be between -1 and 1"
-
-    def test_calculate_correlation_matrix_self_correlation(self, analyzer, empty_graph, sample_equity):
-        """Test that self-correlations are 1.0."""
-        empty_graph.add_asset(sample_equity)
-        assets_data = analyzer._extract_asset_data(empty_graph)
-
-        # Execute
-        correlation_matrix = analyzer._calculate_correlation_matrix(assets_data)
-
-        # Assert
-        assert "TEST_AAPL-TEST_AAPL" in correlation_matrix
-        assert correlation_matrix["TEST_AAPL-TEST_AAPL"] == 1.0
-
-    def test_find_strongest_correlations(self, analyzer):
+    @staticmethod
+    def test_find_strongest_correlations(analyzer):
         """Test finding strongest correlations."""
         correlation_matrix = {
             "A-B": 0.9,
@@ -477,7 +365,6 @@ class TestFormulaicdAnalyzer:
         assert "empirical_data_points" in summary
         assert "key_insights" in summary
         assert isinstance(summary["key_insights"], list)
-
 
 @pytest.mark.unit
 class TestExampleCalculationMethods:

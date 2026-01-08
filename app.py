@@ -144,7 +144,8 @@ class FinancialAssetApp:
             self._initialize_graph()
         return self.graph
 
-    def _update_metrics_text(self, graph: AssetRelationshipGraph) -> str:
+    @staticmethod
+    def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
         """Generates the formatted text for network statistics."""
         metrics = graph.calculate_metrics()
         text = AppConstants.NETWORK_STATISTICS_TEXT.format(
@@ -349,7 +350,8 @@ class FinancialAssetApp:
             logger.error(f"Error showing formula details: {e}")
             return go.Figure(), gr.update(value=f"Error: {str(e)}", visible=True)
 
-    def _format_formula_summary(self, summary: Dict, analysis_results: Dict) -> str:
+    @staticmethod
+    def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
         """Format the formula analysis summary for display."""
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})

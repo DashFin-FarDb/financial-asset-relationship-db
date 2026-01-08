@@ -1,5 +1,5 @@
 """Integration tests for the complete API flow.
-
+"""
 This module tests the full API integration including:
 - End-to-end request/response cycles
 - Data consistency across endpoints
@@ -24,7 +24,8 @@ def client():
 class TestCompleteAPIFlow:
     """Test complete API workflows."""
 
-    def test_full_data_retrieval_flow(self, client):
+    @staticmethod
+    def test_full_data_retrieval_flow(client):
         """Test complete flow: health -> assets -> detail -> relationships."""
         # Step 1: Check health
         health_response = client.get("/api/health")
@@ -49,7 +50,8 @@ class TestCompleteAPIFlow:
         relationships = rel_response.json()
         assert isinstance(relationships, list)
 
-    def test_metrics_consistency(self, client):
+    @staticmethod
+    def test_metrics_consistency(client):
         """Test that metrics are consistent with actual data."""
         # Get metrics
         metrics_response = client.get("/api/metrics")
@@ -71,7 +73,8 @@ class TestCompleteAPIFlow:
 
         assert metrics["asset_classes"] == asset_class_counts
 
-    def test_visualization_data_consistency(self, client):
+    @staticmethod
+    def test_visualization_data_consistency(client):
         """Test visualization data consistency with assets."""
         # Get assets
         assets_response = client.get("/api/assets")
@@ -91,7 +94,8 @@ class TestCompleteAPIFlow:
             assert edge["source"] in node_ids
             assert edge["target"] in node_ids
 
-    def test_filter_combinations(self, client):
+    @staticmethod
+    def test_filter_combinations(client):
         """Test various filter combinations return consistent results."""
         # Get all assets
         all_assets = client.get("/api/assets").json()
@@ -116,7 +120,8 @@ class TestCompleteAPIFlow:
 class TestDataIntegrity:
     """Test data integrity across endpoints."""
 
-    def test_asset_detail_matches_list(self, client):
+    @staticmethod
+    def test_asset_detail_matches_list(client):
         """Test that asset details match what's in the list."""
         assets = client.get("/api/assets").json()
 
@@ -130,7 +135,8 @@ class TestDataIntegrity:
             assert detail["asset_class"] == asset["asset_class"]
             assert detail["price"] == asset["price"]
 
-    def test_relationship_bidirectionality(self, client):
+    @staticmethod
+    def test_relationship_bidirectionality(client):
         """Test that relationships are properly represented."""
         relationships = client.get("/api/relationships").json()
 
@@ -152,7 +158,8 @@ class TestDataIntegrity:
 class TestPerformance:
     """Basic performance tests."""
 
-    def test_response_times(self, client):
+    @staticmethod
+    def test_response_times(client):
         """Test that endpoints respond within reasonable time."""
         import time
 
@@ -171,7 +178,8 @@ class TestPerformance:
             assert response.status_code == 200
             assert duration < 5.0, f"{endpoint} took {duration:.2f}s"
 
-    def test_concurrent_requests(self, client):
+    @staticmethod
+    def test_concurrent_requests(client):
         """Test handling of multiple concurrent requests."""
         from concurrent.futures import ThreadPoolExecutor
 
@@ -189,7 +197,8 @@ class TestPerformance:
 class TestAuthenticationFlow:
     """Test authentication and token validation against the backing store."""
 
-    def test_token_issuance_and_validation(self, client):
+    @staticmethod
+    def test_token_issuance_and_validation(client):
         """A valid credential should yield a token that authorizes protected endpoints."""
 
         credentials = {
@@ -229,17 +238,20 @@ class TestAuthenticationFlow:
 class TestErrorRecovery:
     """Test error handling and recovery."""
 
-    def test_invalid_endpoints_return_404(self, client):
+    @staticmethod
+    def test_invalid_endpoints_return_404(client):
         """Test that invalid endpoints return 404."""
         response = client.get("/api/nonexistent")
         assert response.status_code == 404
 
-    def test_invalid_asset_id_returns_404(self, client):
+    @staticmethod
+    def test_invalid_asset_id_returns_404(client):
         """Test that invalid asset IDs return 404."""
         response = client.get("/api/assets/NONEXISTENT_ID_12345")
         assert response.status_code == 404
 
-    def test_malformed_requests(self, client):
+    @staticmethod
+    def test_malformed_requests(client):
         """Test handling of malformed requests."""
         # Test with invalid query parameters
         response = client.get("/api/assets?asset_class=INVALID")

@@ -1,6 +1,6 @@
 """
 Unit tests for helper functions in test_github_workflows.py module.
-
+"""
 This test suite validates the utility functions used for GitHub Actions workflow
 testing, ensuring they correctly identify workflow files, parse YAML, and detect
 duplicate keys.
@@ -25,7 +25,8 @@ from tests.integration.test_github_workflows import (
 class TestGetWorkflowFiles:
     """Test suite for get_workflow_files() function."""
 
-    def test_returns_list(self):
+    @staticmethod
+    def test_returns_list():
         """Test that get_workflow_files returns a list."""
         result = get_workflow_files()
         assert isinstance(result, list)
@@ -471,6 +472,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+"""
+        )
           fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5

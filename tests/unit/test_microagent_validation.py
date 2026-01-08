@@ -37,7 +37,8 @@ class TestMicroagentValidation:
         assert len(files) > 0, "No microagent files found"
         return files
 
-    def parse_frontmatter(self, content: str) -> tuple[Dict[str, Any], str]:
+    @staticmethod
+    def parse_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
         """
         Parse YAML frontmatter from markdown content.
 
@@ -95,7 +96,8 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         _, body = self.parse_frontmatter(repo_engineer_content)
         return body
 
-    def test_file_exists(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_file_exists(repo_engineer_path: Path):
         """Test that repo_engineer_lead.md exists."""
         assert repo_engineer_path.exists()
         assert repo_engineer_path.is_file()
@@ -363,7 +365,8 @@ class TestMicroagentSemantic:
     """Semantic validation tests for microagent content."""
 
     @pytest.fixture
-    def repo_engineer_path(self) -> Path:
+    @staticmethod
+    def repo_engineer_path() -> Path:
         """Return the path to repo_engineer_lead.md."""
         return Path(".openhands/microagents/repo_engineer_lead.md")
 
@@ -447,7 +450,8 @@ class TestMicroagentEdgeCases:
     """Test edge cases and error conditions."""
 
     @pytest.fixture
-    def repo_engineer_path(self) -> Path:
+    @staticmethod
+    def repo_engineer_path() -> Path:
         """Return the path to repo_engineer_lead.md."""
         return Path(".openhands/microagents/repo_engineer_lead.md")
 

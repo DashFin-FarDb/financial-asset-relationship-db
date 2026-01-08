@@ -634,7 +634,8 @@ class FormulaicdAnalyzer:
             ],
         }
 
-    def _calculate_avg_correlation_strength_from_empirical(self, empirical_relationships: Dict) -> float:
+    @staticmethod
+    def _calculate_avg_correlation_strength_from_empirical(empirical_relationships: Dict) -> float:
         """Calculate average correlation from empirical data"""
         correlations = empirical_relationships.get("correlation_matrix", {})
         if correlations:
