@@ -129,10 +129,10 @@ class FinancialAssetApp:
         try:
             logger.info("Initializing with real financial data from Yahoo Finance")
             self.graph = create_real_database()
-            logger.info(f"Database initialized with {len(self.graph.assets)} real assets")
-            logger.info(f"Initialized sample database with {len(self.graph.assets)} assets")
+            logger.info("Database initialized with %s real assets", len(self.graph.assets))
+            logger.info("Initialized sample database with %s assets", len(self.graph.assets))
         except Exception as e:
-            logger.error(f"{AppConstants.INITIAL_GRAPH_ERROR}: {e}")
+            logger.error("%s: %s", AppConstants.INITIAL_GRAPH_ERROR, e)
             # Depending on desired behavior, could set self.graph to an empty graph
             # or re-raise the exception to prevent the app from starting.
             raise
@@ -193,7 +193,7 @@ class FinancialAssetApp:
             f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
             schema_rpt = generate_schema_report(graph)
             asset_choices = list(graph.assets.keys())
-            logger.info(f"Successfully refreshed outputs for {len(asset_choices)} assets")
+            logger.info("Successfully refreshed outputs for %s assets", len(asset_choices))
             return (
                 viz_3d,
                 f1,
@@ -205,7 +205,7 @@ class FinancialAssetApp:
                 gr.update(value="", visible=False),
             )
         except Exception as e:
-            logger.error(f"{AppConstants.REFRESH_OUTPUTS_ERROR}: {e}")
+            logger.error("%s: %s", AppConstants.REFRESH_OUTPUTS_ERROR, e)
             return (
                 gr.update(),
                 gr.update(),
@@ -266,7 +266,7 @@ class FinancialAssetApp:
             return graph_viz, gr.update(visible=False)
 
         except Exception as e:
-            logger.error(f"Error refreshing visualization: {e}")
+            logger.error("Error refreshing visualization: %s", e)
             empty_fig = go.Figure()
             error_msg = f"Error refreshing visualization: {str(e)}"
             return empty_fig, gr.update(value=error_msg, visible=True)
@@ -299,7 +299,7 @@ class FinancialAssetApp:
             summary = analysis_results.get("summary", {})
             summary_text = self._format_formula_summary(summary, analysis_results)
 
-            logger.info(f"Generated formulaic analysis with {len(formulas)} formulas")
+            logger.info("Generated formulaic analysis with %d formulas", len(formulas))
             return (
                 dashboard_fig,
                 correlation_network_fig,
@@ -310,7 +310,7 @@ class FinancialAssetApp:
             )
 
         except Exception as e:
-            logger.error(f"Error generating formulaic analysis: {e}")
+            logger.error("Error generating formulaic analysis: %s", e)
             empty_fig = go.Figure()
             error_msg = f"Error generating formulaic analysis: {str(e)}"
             return (
@@ -346,7 +346,7 @@ class FinancialAssetApp:
                 return go.Figure(), gr.update(value=f"Formula '{formula_name}' not found", visible=True)
 
         except Exception as e:
-            logger.error(f"Error showing formula details: {e}")
+            logger.error("Error showing formula details: %s", e)
             return go.Figure(), gr.update(value=f"Error: {str(e)}", visible=True)
 
     def _format_formula_summary(self, summary: Dict, analysis_results: Dict) -> str:
@@ -631,5 +631,5 @@ if __name__ == "__main__":
         logger.info(AppConstants.APP_LAUNCH_INFO)
         demo.launch()
     except Exception as e:
-        logger.error(f"{AppConstants.APP_START_ERROR}: {e}")
+        logger.error("%s: %s", AppConstants.APP_START_ERROR, e)
         raise
