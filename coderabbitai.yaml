@@ -14,8 +14,8 @@ reviews:
 knowledge_base:
   code_guidelines:
     filePatterns:
-      - C:\Users\Mohamed\Downloads\tech_spec (1)\tech_spec
-      - C:\Users\Mohamed\Downloads\DashFin-financial-asset-relationship-db-wiki-v2.md
+      - docs/tech_spec.md
+      - docs/coding-guidelines.md
   mcp:
     usage: enabled
 issue_enrichment:
