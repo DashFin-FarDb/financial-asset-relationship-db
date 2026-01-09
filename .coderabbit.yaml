@@ -8,6 +8,10 @@ reviews:
   high_level_summary_in_walkthrough: true
   auto_apply_labels: true
   auto_assign_reviewers: true
+  labeling_instructions:
+    - bug
+    - documentation
+    - security
   auto_review:
     drafts: true
     base_branches:
