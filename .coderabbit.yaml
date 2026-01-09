@@ -15,8 +15,8 @@ reviews:
 knowledge_base:
   code_guidelines:
     filePatterns:
-      - docs/tech_spec.md
-      - docs/coding-guidelines.md
+      - tech_spec.md
+      - DashFin-financial-asset-relationship-db-wiki-v2.md
   mcp:
     usage: enabled
     # MCP server selection:
