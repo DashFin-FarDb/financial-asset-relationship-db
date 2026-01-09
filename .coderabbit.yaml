@@ -17,8 +17,8 @@ reviews:
     base_branches:
       - .*
 knowledge_base:
-  code_guidelines:
-    filePatterns:
+    mcp:
+      usage: enabled
       - tech_spec.md
       - DashFin-financial-asset-relationship-db-wiki-v2.md
   knowledge_base:
