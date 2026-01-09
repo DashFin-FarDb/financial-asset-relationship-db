@@ -964,7 +964,9 @@ class TestAutoAssignWorkflow:
         workflow_perms = auto_assign_workflow.get("permissions")
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
         job_perms = run_job.get("permissions")
-        assert workflow_perms is not None or job_perms is not None, "Workflow should define permissions at workflow or job level"
+        assert (
+            workflow_perms is not None or job_perms is not None
+        ), "Workflow should define permissions at workflow or job level"
 
     def test_auto_assign_permissions_issues_write(self, auto_assign_workflow: Dict[str, Any]):
         """Test that the workflow has issues write permission."""
@@ -1009,7 +1011,9 @@ class TestAutoAssignWorkflow:
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
         job_perms = run_job.get("permissions")
         # Either workflow-level or job-level permissions are acceptable
-        assert workflow_perms is not None or job_perms is not None, "Permissions should be defined at workflow or job level"
+        assert (
+            workflow_perms is not None or job_perms is not None
+        ), "Permissions should be defined at workflow or job level"
 
     # Security tests
     def test_auto_assign_security_uses_github_token(self, auto_assign_workflow: Dict[str, Any]):
@@ -1022,8 +1026,9 @@ class TestAutoAssignWorkflow:
         assert "repo-token" in with_config, "Step should have 'repo-token' configuration"
         token = str(with_config["repo-token"])
         # Accept both secrets.GITHUB_TOKEN and github.token
-        assert "${{ secrets.GITHUB_TOKEN }}" in token or "${{ github.token }}" in token, \
-            "Should use secrets.GITHUB_TOKEN or github.token for authentication"
+        assert (
+            "${{ secrets.GITHUB_TOKEN }}" in token or "${{ github.token }}" in token
+        ), "Should use secrets.GITHUB_TOKEN or github.token for authentication"
 
     def test_auto_assign_security_no_hardcoded_secrets(self, auto_assign_workflow: Dict[str, Any]):
         """Test that no secrets are hardcoded in the workflow."""
@@ -1168,7 +1173,7 @@ class TestAutoAssignWorkflow:
             num_assignees = int(num_assignees_raw.strip())
         else:
             num_assignees = num_assignees_raw
-        
+
         assert isinstance(num_assignees, int), "numOfAssignee should be an integer or numeric string"
         assert num_assignees > 0, "numOfAssignee should be positive"
         assert num_assignees <= 10, "numOfAssignee should be reasonable (≤ 10)"
