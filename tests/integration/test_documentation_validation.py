@@ -172,12 +172,6 @@ class TestContentAccuracy:
         ), "Document should mention dependencies"
 
 
-```(?:bash | shell)?\n(.*?)
-
-
-code_blocks = summary_content.count("
-
-
 class TestDocumentMaintainability:
     """Test suite for document maintainability."""
 
