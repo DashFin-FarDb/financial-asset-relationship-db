@@ -153,7 +153,7 @@ class RealDataFetcher:
                 hist = ticker.history(period="1d")
 
                 if hist.empty:
-                    logger.warning("No price data for %s", symbol)
+                    logger.warning(NO_PRICE_DATA_LOG_MSG, symbol)
                     continue
 
                 current_price = float(hist["Close"].iloc[-1])
