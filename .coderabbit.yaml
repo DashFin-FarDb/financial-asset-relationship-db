@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# IMPORTANT: CodeRabbit only loads this config when the file is named ".coderabbit.yaml" and is located at the repository root.
+language: en-GB
+early_access: true
+inheritance: true
+reviews:
+  request_changes_workflow: true
+  high_level_summary_in_walkthrough: true
+  auto_apply_labels: true
+  auto_assign_reviewers: true
+  labeling_instructions:
+    - bug
+    - documentation
+    - security
+  auto_review:
+    drafts: true
+    base_branches:
+      - .*
+knowledge_base:
+    mcp:
+      usage: enabled
+      - tech_spec.md
+      - DashFin-financial-asset-relationship-db-wiki-v2.md
+  knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - tech_spec.md
+      - DashFin-financial-asset-relationship-db-wiki-v2.md
+  mcp:
+  usage: enabled
+  # MCP server selection:
+  # - This repository currently uses the CodeRabbit built-in MCP integration.
+  # - Additional options (e.g., self-hosted MCP server URL(s)) can be added in a follow-up PR.
+  #
+  # Allowed tools / capabilities:
+  # - Tool allow-listing is configured per MCP server in the CodeRabbit UI (Integrations → MCP Server).
+  # - Current intent: enable all tools exposed by the selected MCP server.
+  #
+  # Data handling / authorization:
+  # - MCP calls may send PR context (diffs, file paths, metadata) required to execute the enabled tools.
+  # - Consider requiring explicit user approval for tool execution if your security posture demands it.
+issue_enrichment:
+  auto_enrich:
+    enabled: true
+  labeling:
+    auto_apply_labels: true
