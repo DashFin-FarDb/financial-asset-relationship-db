@@ -9,6 +9,11 @@ statements are the standard and required pattern in pytest test files.
 
 # nosec B101  # Suppress Bandit assert warnings - assert is correct in pytest tests
 
+import re
+from pathlib import Path
+from typing import List, Tuple
+
+import pytest
 from packaging.requirements import Requirement
 
 REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
