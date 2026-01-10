@@ -172,7 +172,7 @@ class RealDataFetcher:
                     book_value=info.get("bookValue"),
                 )
                 equities.append(equity)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+                logger.info(FETCHED_PRICE_LOG_MSG, symbol, name, current_price)
 
             except Exception as e:
                 logger.error("Failed to fetch data for %s: %s", symbol, e)
