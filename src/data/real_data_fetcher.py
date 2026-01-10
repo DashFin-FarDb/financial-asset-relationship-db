@@ -154,7 +154,7 @@ class RealDataFetcher:
                 hist = ticker.history(period="1d")
 
                 if hist.empty:
-                    logger.warning(f"No price data for {symbol}")
+                    logger.warning(NO_PRICE_DATA_LOG_MSG, symbol)
                     continue
 
                 current_price = float(hist["Close"].iloc[-1])
@@ -173,10 +173,10 @@ class RealDataFetcher:
                     book_value=info.get("bookValue"),
                 )
                 equities.append(equity)
-                logger.info(f"Fetched {symbol}: {name} at ${current_price:.2f}")
+                logger.info(FETCHED_PRICE_LOG_MSG, symbol, name, current_price)
 
             except Exception as e:
-                logger.error(f"Failed to fetch data for {symbol}: {e}")
+                logger.error("Failed to fetch data for %s: %s", symbol, e)
                 continue
 
         return equities
@@ -199,7 +199,7 @@ class RealDataFetcher:
                 hist = ticker.history(period="1d")
 
                 if hist.empty:
-                    logger.warning(f"No price data for {symbol}")
+                    logger.warning("No price data for %s", symbol)
                     continue
 
                 current_price = float(hist["Close"].iloc[-1])
@@ -218,10 +218,10 @@ class RealDataFetcher:
                     issuer_id=issuer_id,
                 )
                 bonds.append(bond)
-                logger.info(f"Fetched {symbol}: {name} at ${current_price:.2f}")
+                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
 
             except Exception as e:
-                logger.error(f"Failed to fetch bond data for {symbol}: {e}")
+                logger.error("Failed to fetch bond data for %s: %s", symbol, e)
                 continue
 
         return bonds
@@ -242,7 +242,7 @@ class RealDataFetcher:
                 hist = ticker.history(period="1d")
 
                 if hist.empty:
-                    logger.warning(f"No price data for {symbol}")
+                    logger.warning("No price data for %s", symbol)
                     continue
 
                 current_price = float(hist["Close"].iloc[-1])
@@ -263,10 +263,10 @@ class RealDataFetcher:
                     volatility=volatility,
                 )
                 commodities.append(commodity)
-                logger.info(f"Fetched {symbol}: {name} at ${current_price:.2f}")
+                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
 
             except Exception as e:
-                logger.error(f"Failed to fetch commodity data for {symbol}: {e}")
+                logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
                 continue
 
         return commodities
@@ -287,7 +287,7 @@ class RealDataFetcher:
                 hist = ticker.history(period="1d")
 
                 if hist.empty:
-                    logger.warning(f"No price data for {symbol}")
+                    logger.warning("No price data for %s", symbol)
                     continue
 
                 current_rate = float(hist["Close"].iloc[-1])
@@ -304,10 +304,10 @@ class RealDataFetcher:
                     central_bank_rate=0.02,  # Approximate - would need separate API for real rates
                 )
                 currencies.append(currency)
-                logger.info(f"Fetched {symbol}: {name} at {current_rate:.4f}")
+                logger.info("Fetched %s: %s at %.4f", symbol, name, current_rate)
 
             except Exception as e:
-                logger.error(f"Failed to fetch currency data for {symbol}: {e}")
+                logger.error("Failed to fetch currency data for %s: %s", symbol, e)
                 continue
 
         return currencies

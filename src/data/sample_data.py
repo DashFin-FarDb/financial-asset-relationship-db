@@ -344,16 +344,17 @@ def create_sample_database() -> AssetRelationshipGraph:
         asset_count = len(graph.assets)
         relationship_count = sum(len(rels) for rels in graph.relationships.values())
         logger.info(
-            f"Expanded sample database created with {asset_count} assets and {relationship_count} relationships"
+            "Expanded sample database created with %s assets and %s relationships", asset_count, relationship_count
         )
         logger.info(
-            f"Asset classes covered: Equity ({len([a for a in all_assets if a.asset_class == AssetClass.EQUITY])}), "
-            f"Fixed Income ({len([a for a in all_assets if a.asset_class == AssetClass.FIXED_INCOME])}), "
-            f"Commodity ({len([a for a in all_assets if a.asset_class == AssetClass.COMMODITY])}), "
-            f"Currency ({len([a for a in all_assets if a.asset_class == AssetClass.CURRENCY])})"
+            "Asset classes covered: Equity (%s), Fixed Income (%s), Commodity (%s), Currency (%s)",
+            len([a for a in all_assets if a.asset_class == AssetClass.EQUITY]),
+            len([a for a in all_assets if a.asset_class == AssetClass.FIXED_INCOME]),
+            len([a for a in all_assets if a.asset_class == AssetClass.COMMODITY]),
+            len([a for a in all_assets if a.asset_class == AssetClass.CURRENCY]),
         )
 
         return graph
     except Exception as e:
-        logger.error(f"Failed to create sample database: {e}")
+        logger.error("Failed to create sample database: %s", e)
         raise

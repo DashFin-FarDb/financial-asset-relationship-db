@@ -291,7 +291,7 @@ if os.getenv("ALLOWED_ORIGINS"):
         if validate_origin(stripped_origin):
             allowed_origins.append(stripped_origin)
         else:
-            logger.warning(f"Skipping invalid CORS origin: {stripped_origin}")
+            logger.warning("Skipping invalid CORS origin: %s", stripped_origin)
 
 app.add_middleware(
     CORSMiddleware,
