@@ -16,6 +16,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app, validate_origin
+from src.logic.asset_graph import AssetRelationshipGraph
+from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 
 # Test fixture URLs for CORS origin validation tests.
 # These localhost URLs are intentional test inputs for verifying the validate_origin
@@ -25,9 +27,6 @@ TEST_ORIGIN_HTTP_LOOPBACK = "http://127.0.0.1:8000"  # nosec B104
 TEST_ORIGIN_HTTPS_LOCALHOST = "https://localhost:3000"
 TEST_ORIGIN_HTTPS_LOOPBACK = "https://127.0.0.1:8000"
 TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
-
-from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 
 
 @pytest.fixture
