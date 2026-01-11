@@ -8,11 +8,11 @@ Tests the simplified PR agent configuration, ensuring:
 - Simplified configuration structure
 """
 
+import re
 from pathlib import Path
 
 import pytest
 import yaml
-import re
 
 
 class TestPRAgentConfigSimplification:
