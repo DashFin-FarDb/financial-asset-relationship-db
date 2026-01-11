@@ -1,0 +1,23 @@
+# CodeQL configuration file
+# See: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning
+
+name: "Custom CodeQL Config"
+
+# Exclude test files from certain queries that produce false positives
+paths-ignore:
+  - "**/tests/**"
+  - "**/test_*.py"
+  - "**/*_test.py"
+  - "**/conftest.py"
+
+# Query filters to exclude specific rules that are not applicable for this project
+query-filters:
+  # Exclude "assert used" warnings in test files - pytest uses assert statements
+  # and rewrites them at import time for better error messages.
+  # This is the standard and recommended pattern for pytest.
+  - exclude:
+      id: py/assert-removed-in-optimized-code
+      path:
+        - "**/tests/**"
+        - "**/test_*.py"
+        - "**/*_test.py"
