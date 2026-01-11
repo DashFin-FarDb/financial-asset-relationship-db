@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+import re
 
 
 class TestPRAgentConfigSimplification:
@@ -190,20 +191,55 @@ class TestPRAgentConfigSecurity:
         """
         Recursively scan configuration values for suspected secrets.
 
-        This inspects values(not just serialized text) and traverses nested dicts / lists.
+        This inspects values (not just serialized text) and traverses nested dicts/lists.
         The heuristic flags:
-          """
-        Load and parse the PR agent YAML configuration from .github / pr - agent - config.yml.
-
-        If the file is missing, contains invalid YAML, or the top - level content is not a mapping, this fixture fails test collection. Empty files return None.
-
-        Returns:
-            The parsed YAML content(typically a dict) or `None` if the file is empty.
+          - Long high-entropy strings (e.g., tokens)
+          - Obvious secret prefixes/suffixes
+          - Inline credentials in URLs (e.g., scheme://user:pass@host)
         """
-        - Long high - entropy strings(e.g., tokens)
-          - Obvious secret prefixes / suffixes
-          - Inline credentials in URLs(e.g., scheme: // user:pass @ host)
-        """
+
+        def _iter_string_values(obj):
+            if isinstance(obj, dict):
+                for v in obj.values():
+                    yield from _iter_string_values(v)
+            elif isinstance(obj, list):
+                for v in obj:
+                    yield from _iter_string_values(v)
+            elif isinstance(obj, str):
+                yield obj
+
+        suspected = []
+
+        secret_prefixes = (
+            "sk-",
+            "AKIA",
+            "SECRET_",
+            "TOKEN_",
+        )
+        inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
+
+        for value in _iter_string_values(pr_agent_config):
+            stripped = value.strip()
+            if not stripped:
+                continue
+
+            # Long string heuristic (possible API keys or tokens)
+            if len(stripped) >= 40:
+                suspected.append(("long_string", stripped))
+                continue
+
+            # Obvious secret-like prefixes
+            if any(stripped.startswith(p) for p in secret_prefixes):
+                suspected.append(("prefix", stripped))
+                continue
+
+            # Inline credentials in URLs
+            if inline_cred_pattern.search(stripped):
+                suspected.append(("inline_creds", stripped))
+
+        if suspected:
+            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
         import math
         import re
 
