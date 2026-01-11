@@ -111,8 +111,8 @@ pytest tests/integration/test_github_workflows.py::TestAutoAssignWorkflow -v
 # Run specific test
 pytest tests/integration/test_github_workflows.py::TestAutoAssignWorkflow::test_auto_assign_name -v
 
-# Note: pytest-cov cannot measure coverage for workflow YAML files; coverage is only valid for Python files.
-```
+# Run with coverage
+pytest tests/integration/test_github_workflows.py::TestAutoAssignWorkflow --cov -v
 
 ### Expected Results
 All 28 tests should pass when run against the current auto-assign.yml workflow file.
@@ -132,7 +132,7 @@ All 28 tests should pass when run against the current auto-assign.yml workflow f
 
 ### Step Configuration
 - ✅ Step count and naming
-- ✅ Action usage (pozil/auto-assign-issue@6594700)
+- ✅ Action usage (pozil/auto-assign-issue@v1)
 - ✅ Version pinning
 - ✅ Configuration block structure
 
