@@ -15,19 +15,22 @@ from src.models.financial_models import AssetClass, Bond, Commodity, Currency, E
 class TestSampleDatabaseCreation:
     """Test cases for sample database creation."""
 
-    def test_create_sample_database_returns_graph(self):
+    @staticmethod
+    def test_create_sample_database_returns_graph():
         """Test that create_sample_database returns an AssetRelationshipGraph."""
         graph = create_sample_database()
         assert graph is not None
         assert hasattr(graph, "assets")
         assert hasattr(graph, "relationships")
 
-    def test_sample_database_has_multiple_assets(self):
+    @staticmethod
+    def test_sample_database_has_multiple_assets():
         """Test that sample database contains multiple assets."""
         graph = create_sample_database()
         assert len(graph.assets) >= 15, "Sample database should have 15+ assets"
 
-    def test_sample_database_has_all_asset_classes(self):
+    @staticmethod
+    def test_sample_database_has_all_asset_classes():
         """Test that sample database includes all asset classes."""
         graph = create_sample_database()
 
@@ -40,7 +43,8 @@ class TestSampleDatabaseCreation:
         assert AssetClass.COMMODITY in asset_classes
         assert AssetClass.CURRENCY in asset_classes
 
-    def test_sample_database_has_technology_equities(self):
+    @staticmethod
+    def test_sample_database_has_technology_equities():
         """Test that sample database includes technology equities."""
         graph = create_sample_database()
 
@@ -50,21 +54,24 @@ class TestSampleDatabaseCreation:
 
         assert len(tech_equities) >= 3, "Should have multiple technology companies"
 
-    def test_sample_database_has_bonds(self):
+    @staticmethod
+    def test_sample_database_has_bonds():
         """Test that sample database includes bond assets."""
         graph = create_sample_database()
 
         bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
         assert len(bonds) > 0, "Sample database should include bonds"
 
-    def test_sample_database_has_commodities(self):
+    @staticmethod
+    def test_sample_database_has_commodities():
         """Test that sample database includes commodity assets."""
         graph = create_sample_database()
 
         commodities = [asset for asset in graph.assets.values() if isinstance(asset, Commodity)]
         assert len(commodities) > 0, "Sample database should include commodities"
 
-    def test_sample_database_has_currencies(self):
+    @staticmethod
+    def test_sample_database_has_currencies():
         """Test that sample database includes currency assets."""
         graph = create_sample_database()
 
@@ -75,7 +82,8 @@ class TestSampleDatabaseCreation:
 class TestSampleAssetProperties:
     """Test cases for sample asset properties."""
 
-    def test_equity_assets_have_valid_prices(self):
+    @staticmethod
+    def test_equity_assets_have_valid_prices():
         """Test that equity assets have positive prices."""
         graph = create_sample_database()
 
@@ -84,7 +92,8 @@ class TestSampleAssetProperties:
         for equity in equities:
             assert equity.price > 0, f"Equity {equity.id} should have positive price"
 
-    def test_equity_assets_have_valid_market_cap(self):
+    @staticmethod
+    def test_equity_assets_have_valid_market_cap():
         """Test that equity assets have valid market capitalization."""
         graph = create_sample_database()
 
@@ -94,7 +103,8 @@ class TestSampleAssetProperties:
             if equity.market_cap is not None:
                 assert equity.market_cap > 0, f"Equity {equity.id} should have positive market cap"
 
-    def test_equity_assets_have_sectors(self):
+    @staticmethod
+    def test_equity_assets_have_sectors():
         """Test that equity assets have sector assignments."""
         graph = create_sample_database()
 
@@ -104,7 +114,8 @@ class TestSampleAssetProperties:
             assert equity.sector, f"Equity {equity.id} should have a sector"
             assert len(equity.sector) > 0
 
-    def test_bond_assets_have_yield(self):
+    @staticmethod
+    def test_bond_assets_have_yield():
         """Test that bond assets have yield information."""
         graph = create_sample_database()
 
@@ -114,7 +125,8 @@ class TestSampleAssetProperties:
             assert bond.yield_to_maturity is not None, f"Bond {bond.id} should have YTM"
             assert bond.yield_to_maturity >= 0
 
-    def test_bond_assets_have_credit_ratings(self):
+    @staticmethod
+    def test_bond_assets_have_credit_ratings():
         """Test that bond assets have credit ratings."""
         graph = create_sample_database()
 
@@ -131,7 +143,8 @@ class TestSampleAssetProperties:
                     "B",
                 ], f"Bond {bond.id} should have valid credit rating"
 
-    def test_commodity_assets_have_contract_info(self):
+    @staticmethod
+    def test_commodity_assets_have_contract_info():
         """Test that commodity assets have contract information."""
         graph = create_sample_database()
 
@@ -142,7 +155,8 @@ class TestSampleAssetProperties:
                 commodity.contract_size is not None or commodity.delivery_date is not None
             ), f"Commodity {commodity.id} should have contract information"
 
-    def test_currency_assets_have_exchange_rates(self):
+    @staticmethod
+    def test_currency_assets_have_exchange_rates():
         """Test that currency assets have exchange rate information."""
         graph = create_sample_database()
 
@@ -156,12 +170,14 @@ class TestSampleAssetProperties:
 class TestSampleRelationships:
     """Test cases for sample database relationships."""
 
-    def test_sample_database_has_relationships(self):
+    @staticmethod
+    def test_sample_database_has_relationships():
         """Test that sample database includes relationships."""
         graph = create_sample_database()
         assert len(graph.relationships) > 0, "Sample database should have relationships"
 
-    def test_relationships_have_valid_strength(self):
+    @staticmethod
+    def test_relationships_have_valid_strength():
         """Test that all relationships have valid strength values."""
         graph = create_sample_database()
 
@@ -169,7 +185,8 @@ class TestSampleRelationships:
             for _target_id, _rel_type, strength in rels:
                 assert 0 <= strength <= 1, f"Relationship {_source_id} -> {_target_id} has invalid strength {strength}"
 
-    def test_same_sector_relationships_exist(self):
+    @staticmethod
+    def test_same_sector_relationships_exist():
         """Test that same-sector relationships are established."""
         graph = create_sample_database()
 
@@ -185,7 +202,8 @@ class TestSampleRelationships:
 
         assert same_sector_found, "Sample database should have same_sector relationships"
 
-    def test_corporate_bond_relationships_exist(self):
+    @staticmethod
+    def test_corporate_bond_relationships_exist():
         """Test that corporate bond relationships are established."""
         graph = create_sample_database()
 
@@ -209,13 +227,15 @@ class TestSampleRelationships:
 class TestSampleRegulatoryEvents:
     """Test cases for sample regulatory events."""
 
-    def test_sample_database_may_have_regulatory_events(self):
+    @staticmethod
+    def test_sample_database_may_have_regulatory_events():
         """Test that sample database can contain regulatory events."""
         graph = create_sample_database()
         # Events are optional in sample data, just verify the structure
         assert hasattr(graph, "regulatory_events")
 
-    def test_regulatory_events_have_valid_impact_scores(self):
+    @staticmethod
+    def test_regulatory_events_have_valid_impact_scores():
         """Test that regulatory events have valid impact scores."""
         graph = create_sample_database()
 
@@ -223,7 +243,8 @@ class TestSampleRegulatoryEvents:
             for event in graph.regulatory_events:
                 assert -1 <= event.impact_score <= 1, f"Event {event.id} has invalid impact score {event.impact_score}"
 
-    def test_regulatory_events_linked_to_assets(self):
+    @staticmethod
+    def test_regulatory_events_linked_to_assets():
         """Test that regulatory events are linked to existing assets."""
         graph = create_sample_database()
 
@@ -237,14 +258,16 @@ class TestSampleRegulatoryEvents:
 class TestSampleDataConsistency:
     """Test cases for data consistency in sample database."""
 
-    def test_all_assets_have_unique_ids(self):
+    @staticmethod
+    def test_all_assets_have_unique_ids():
         """Test that all assets have unique IDs."""
         graph = create_sample_database()
 
         ids = [asset.id for asset in graph.assets.values()]
         assert len(ids) == len(set(ids)), "All asset IDs should be unique"
 
-    def test_all_assets_have_symbols(self):
+    @staticmethod
+    def test_all_assets_have_symbols():
         """Test that all assets have symbols."""
         graph = create_sample_database()
 
@@ -252,7 +275,8 @@ class TestSampleDataConsistency:
             assert asset.symbol, f"Asset {asset.id} should have a symbol"
             assert len(asset.symbol) > 0
 
-    def test_all_assets_have_names(self):
+    @staticmethod
+    def test_all_assets_have_names():
         """Test that all assets have names."""
         graph = create_sample_database()
 
@@ -260,7 +284,8 @@ class TestSampleDataConsistency:
             assert asset.name, f"Asset {asset.id} should have a name"
             assert len(asset.name) > 0
 
-    def test_relationship_targets_exist(self):
+    @staticmethod
+    def test_relationship_targets_exist():
         """Test that all relationship targets reference existing assets."""
         graph = create_sample_database()
 
@@ -269,7 +294,8 @@ class TestSampleDataConsistency:
             for target_id, _rel_type, _strength in rels:
                 assert target_id in graph.assets, f"Target {target_id} in relationship should exist in assets"
 
-    def test_bond_issuer_references_valid_asset(self):
+    @staticmethod
+    def test_bond_issuer_references_valid_asset():
         """Test that bond issuers reference valid assets when specified."""
         graph = create_sample_database()
 
@@ -283,7 +309,8 @@ class TestSampleDataConsistency:
 class TestSampleDatabaseMetrics:
     """Test cases for sample database metrics."""
 
-    def test_sample_database_has_sufficient_density(self):
+    @staticmethod
+    def test_sample_database_has_sufficient_density():
         """Test that sample database has reasonable relationship density."""
         graph = create_sample_database()
 
@@ -293,7 +320,8 @@ class TestSampleDatabaseMetrics:
         assert metrics["total_relationships"] > 0
         assert metrics["relationship_density"] > 0
 
-    def test_sample_database_metrics_structure(self):
+    @staticmethod
+    def test_sample_database_metrics_structure():
         """Test that metrics have expected structure."""
         graph = create_sample_database()
 
@@ -305,7 +333,8 @@ class TestSampleDatabaseMetrics:
         assert "asset_class_distribution" in metrics
         assert "relationship_distribution" in metrics
 
-    def test_asset_class_distribution_matches_assets(self):
+    @staticmethod
+    def test_asset_class_distribution_matches_assets():
         """Test that asset class distribution matches actual assets."""
         graph = create_sample_database()
 
@@ -325,14 +354,16 @@ class TestSampleDatabaseMetrics:
 class TestSampleDataReproducibility:
     """Test cases for sample data reproducibility."""
 
-    def test_multiple_calls_produce_consistent_asset_count(self):
+    @staticmethod
+    def test_multiple_calls_produce_consistent_asset_count():
         """Test that multiple calls produce same number of assets."""
         graph1 = create_sample_database()
         graph2 = create_sample_database()
 
         assert len(graph1.assets) == len(graph2.assets)
 
-    def test_multiple_calls_produce_same_asset_ids(self):
+    @staticmethod
+    def test_multiple_calls_produce_same_asset_ids():
         """Test that multiple calls produce same asset IDs."""
         graph1 = create_sample_database()
         graph2 = create_sample_database()
@@ -346,7 +377,8 @@ class TestSampleDataReproducibility:
 class TestEdgeCases:
     """Test edge cases in sample data generation."""
 
-    def test_sample_database_handles_metrics_calculation(self):
+    @staticmethod
+    def test_sample_database_handles_metrics_calculation():
         """Test that sample database can calculate metrics without error."""
         graph = create_sample_database()
 
@@ -354,7 +386,8 @@ class TestEdgeCases:
         metrics = graph.calculate_metrics()
         assert metrics is not None
 
-    def test_sample_database_can_be_serialized(self):
+    @staticmethod
+    def test_sample_database_can_be_serialized():
         """Test that sample database structure supports serialization."""
         graph = create_sample_database()
 

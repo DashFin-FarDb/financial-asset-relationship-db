@@ -205,7 +205,8 @@ class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
     @pytest.fixture
-    def client(self):
+    @staticmethod
+    def client():
         """
         Pytest fixture that yields a TestClient configured with a sample in-memory graph for endpoint tests.
 
@@ -526,7 +527,8 @@ class TestErrorHandling:
     """Test error handling and edge cases."""
 
     @pytest.fixture
-    def client(self):
+    @staticmethod
+    def client():
         """Create a test client."""
         return TestClient(app)
 
@@ -622,7 +624,8 @@ class TestAdditionalFields:
         """Create a test client."""
         return TestClient(app)
 
-    def test_equity_additional_fields(self, client):
+    @staticmethod
+    def test_equity_additional_fields(client):
         """Test that equity-specific fields are included."""
         response = client.get("/api/assets?asset_class=EQUITY")
         assets = response.json()
@@ -636,7 +639,8 @@ class TestAdditionalFields:
             has_equity_field = any(field in additional for field in possible_fields)
             assert has_equity_field or len(additional) == 0  # Either has fields or empty
 
-    def test_bond_additional_fields(self, client):
+    @staticmethod
+    def test_bond_additional_fields(client):
         """Test that bond-specific fields are included."""
         response = client.get("/api/assets?asset_class=BOND")
         assets = response.json()
@@ -655,7 +659,8 @@ class TestVisualizationDataProcessing:
     """Test the processing of visualization data."""
 
     @pytest.fixture
-    def client(self):
+    @staticmethod
+    def client():
         """Create a test client."""
         return TestClient(app)
 
@@ -698,7 +703,8 @@ class TestIntegrationScenarios:
     """Test realistic integration scenarios."""
 
     @pytest.fixture
-    def client(self):
+    @staticmethod
+    def client():
         """Create a test client."""
         return TestClient(app)
 

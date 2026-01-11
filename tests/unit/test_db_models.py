@@ -34,11 +34,13 @@ def db_session(tmp_path):
 class TestAssetORM:
     """Test cases for AssetORM model."""
 
-    def test_asset_orm_table_name(self):
+    @staticmethod
+    def test_asset_orm_table_name():
         """Test that AssetORM uses correct table name."""
         assert AssetORM.__tablename__ == "assets"
 
-    def test_asset_orm_primary_key(self):
+    @staticmethod
+    def test_asset_orm_primary_key():
         """Test AssetORM primary key configuration."""
         inspector = inspect(AssetORM)
         pk_columns = [col.name for col in inspector.primary_key]
@@ -216,7 +218,8 @@ class TestAssetORM:
 class TestAssetRelationshipORM:
     """Test cases for AssetRelationshipORM model."""
 
-    def test_relationship_table_name(self):
+    @staticmethod
+    def test_relationship_table_name():
         """Test that AssetRelationshipORM uses correct table name."""
         assert AssetRelationshipORM.__tablename__ == "asset_relationships"
 
@@ -385,7 +388,8 @@ class TestAssetRelationshipORM:
 class TestRegulatoryEventORM:
     """Test cases for RegulatoryEventORM model."""
 
-    def test_regulatory_event_table_name(self):
+    @staticmethod
+    def test_regulatory_event_table_name():
         """Test that RegulatoryEventORM uses correct table name."""
         assert RegulatoryEventORM.__tablename__ == "regulatory_events"
 
@@ -479,20 +483,24 @@ class TestRegulatoryEventORM:
             name="Related 2",
             asset_class="equity",
             sector="Tech",
-            price=75.0,
+            price=50.0,
             currency="USD",
+        )
+            sector = "Tech",
+            price = 75.0,
+            currency = "USD",
         )
         db_session.add_all([main_asset, related1, related2])
         db_session.commit()
 
         # Create event
         event = RegulatoryEventORM(
-            id="EVENT_003",
-            asset_id="MAIN_ASSET",
-            event_type="MERGER",
-            date="2024-03-01",
-            description="Merger announcement",
-            impact_score=0.9,
+            id = "EVENT_003",
+            asset_id = "MAIN_ASSET",
+            event_type = "MERGER",
+            date = "2024-03-01",
+            description = "Merger announcement",
+            impact_score = 0.9,
         )
         db_session.add(event)
         db_session.commit()
@@ -511,40 +519,41 @@ class TestRegulatoryEventORM:
 class TestRegulatoryEventAssetORM:
     """Test cases for RegulatoryEventAssetORM join table."""
 
-    def test_event_asset_table_name(self):
+    @ staticmethod
+    def test_event_asset_table_name():
         """Test that RegulatoryEventAssetORM uses correct table name."""
         assert RegulatoryEventAssetORM.__tablename__ == "regulatory_event_assets"
 
     def test_event_asset_unique_constraint(self, db_session):
         """Test that duplicate event-asset links are prevented."""
         asset = AssetORM(
-            id="UNIQUE_ASSET",
-            symbol="UA",
-            name="Unique Asset",
-            asset_class="equity",
-            sector="Tech",
-            price=100.0,
-            currency="USD",
+            id = "UNIQUE_ASSET",
+            symbol = "UA",
+            name = "Unique Asset",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 100.0,
+            currency = "USD",
         )
         related = AssetORM(
-            id="UNIQUE_RELATED",
-            symbol="UR",
-            name="Unique Related",
-            asset_class="equity",
-            sector="Tech",
-            price=50.0,
-            currency="USD",
+            id = "UNIQUE_RELATED",
+            symbol = "UR",
+            name = "Unique Related",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 50.0,
+            currency = "USD",
         )
         db_session.add_all([asset, related])
         db_session.commit()
 
         event = RegulatoryEventORM(
-            id="UNIQUE_EVENT",
-            asset_id="UNIQUE_ASSET",
-            event_type="TEST",
-            date="2024-01-01",
-            description="Test",
-            impact_score=0.5,
+            id = "UNIQUE_EVENT",
+            asset_id = "UNIQUE_ASSET",
+            event_type = "TEST",
+            date = "2024-01-01",
+            description = "Test",
+            impact_score = 0.5,
         )
         db_session.add(event)
         db_session.commit()
@@ -564,33 +573,33 @@ class TestRegulatoryEventAssetORM:
     def test_event_asset_cascade_delete_on_event(self, db_session):
         """Test cascade delete when event is removed."""
         asset = AssetORM(
-            id="CASCADE_ASSET",
-            symbol="CA",
-            name="Cascade Asset",
-            asset_class="equity",
-            sector="Tech",
-            price=100.0,
-            currency="USD",
+            id = "CASCADE_ASSET",
+            symbol = "CA",
+            name = "Cascade Asset",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 100.0,
+            currency = "USD",
         )
         related = AssetORM(
-            id="CASCADE_RELATED",
-            symbol="CR",
-            name="Cascade Related",
-            asset_class="equity",
-            sector="Tech",
-            price=50.0,
-            currency="USD",
+            id = "CASCADE_RELATED",
+            symbol = "CR",
+            name = "Cascade Related",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 50.0,
+            currency = "USD",
         )
         db_session.add_all([asset, related])
         db_session.commit()
 
         event = RegulatoryEventORM(
-            id="CASCADE_EVENT",
-            asset_id="CASCADE_ASSET",
-            event_type="TEST",
-            date="2024-01-01",
-            description="Test",
-            impact_score=0.5,
+            id = "CASCADE_EVENT",
+            asset_id = "CASCADE_ASSET",
+            event_type = "TEST",
+            date = "2024-01-01",
+            description = "Test",
+            impact_score = 0.5,
         )
         db_session.add(event)
         db_session.commit()

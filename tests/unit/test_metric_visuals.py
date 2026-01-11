@@ -20,7 +20,8 @@ from src.visualizations.metric_visuals import visualize_metrics
 class TestVisualizeMetrics:
     """Test suite for the visualize_metrics function."""
 
-    def test_visualize_metrics_with_populated_graph(self, populated_graph):
+    @staticmethod
+    def test_visualize_metrics_with_populated_graph(populated_graph):
         """Test metric visualization with a populated graph."""
         # Execute
         fig1, fig2, fig3 = visualize_metrics(populated_graph)
@@ -49,7 +50,8 @@ class TestVisualizeMetrics:
         assert fig3.layout.xaxis.title.text == "Date"
         assert fig3.layout.yaxis.title.text == "Impact Score"
 
-    def test_visualize_metrics_with_empty_graph(self, empty_graph):
+    @staticmethod
+    def test_visualize_metrics_with_empty_graph(empty_graph):
         """Test metric visualization with an empty graph."""
         # Execute
         fig1, fig2, fig3 = visualize_metrics(empty_graph)
@@ -64,7 +66,8 @@ class TestVisualizeMetrics:
         assert fig2.layout.title.text == "Relationship Types Distribution"
         assert fig3.layout.title.text == "Regulatory Events Timeline"
 
-    def test_asset_class_distribution_colors(self, populated_graph):
+    @staticmethod
+    def test_asset_class_distribution_colors(populated_graph):
         """Test that asset class distribution uses consistent colors."""
         # Execute
         fig1, _, _ = visualize_metrics(populated_graph)
@@ -81,7 +84,8 @@ class TestVisualizeMetrics:
             for color in colors:
                 assert color in base_colors, f"Color {color} should be from base colors"
 
-    def test_relationship_distribution_data(self, populated_graph):
+    @staticmethod
+    def test_relationship_distribution_data(populated_graph):
         """Test that relationship distribution contains correct data."""
         # Add some relationships
         populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8)
@@ -96,7 +100,8 @@ class TestVisualizeMetrics:
         assert len(bar_trace.y) > 0, "Should have counts"
         assert all(count >= 0 for count in bar_trace.y), "Counts should be non-negative"
 
-    def test_regulatory_events_timeline_sorting(self, populated_graph):
+    @staticmethod
+    def test_regulatory_events_timeline_sorting(populated_graph):
         """Test that regulatory events are sorted by date."""
         from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
 
@@ -146,7 +151,8 @@ class TestVisualizeMetrics:
 
         assert datetime_dates == sorted_dates, "Events should be sorted by date"
 
-    def test_regulatory_events_impact_colors(self, populated_graph):
+    @staticmethod
+    def test_regulatory_events_impact_colors(populated_graph):
         """Test that regulatory events use correct colors based on impact."""
         from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
 
@@ -184,7 +190,8 @@ class TestVisualizeMetrics:
         assert "green" in colors, "Should have green for positive impact"
         assert "red" in colors, "Should have red for negative impact"
 
-    def test_visualize_metrics_with_single_asset(self, empty_graph, sample_equity):
+    @staticmethod
+    def test_visualize_metrics_with_single_asset(empty_graph, sample_equity):
         """Test visualization with only one asset."""
         empty_graph.add_asset(sample_equity)
 
@@ -201,7 +208,8 @@ class TestVisualizeMetrics:
         bar_trace = fig1.data[0]
         assert len(bar_trace.x) >= 1, "Should have at least one asset class"
 
-    def test_visualize_metrics_preserves_graph_state(self, populated_graph):
+    @staticmethod
+    def test_visualize_metrics_preserves_graph_state(populated_graph):
         """Test that visualization doesn't modify the graph."""
         initial_asset_count = len(populated_graph.assets)
         initial_relationship_count = sum(len(rels) for rels in populated_graph.relationships.values())
@@ -213,7 +221,8 @@ class TestVisualizeMetrics:
         assert len(populated_graph.assets) == initial_asset_count
         assert sum(len(rels) for rels in populated_graph.relationships.values()) == initial_relationship_count
 
-    def test_multiple_asset_classes_distribution(self, populated_graph):
+    @staticmethod
+    def test_multiple_asset_classes_distribution(populated_graph):
         """Test asset class distribution with multiple classes."""
         # The populated_graph already has multiple asset classes
 
@@ -227,7 +236,8 @@ class TestVisualizeMetrics:
         assert num_classes >= 2, "Should have at least 2 asset classes in populated graph"
         assert len(bar_trace.y) == num_classes, "Should have count for each class"
 
-    def test_regulatory_events_with_zero_impact(self, empty_graph, sample_equity):
+    @staticmethod
+    def test_regulatory_events_with_zero_impact(empty_graph, sample_equity):
         """Test regulatory events with zero impact score."""
         from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
 
@@ -253,7 +263,8 @@ class TestVisualizeMetrics:
         assert len(bar_trace.y) > 0, "Should have impact scores"
         assert 0.0 in bar_trace.y or any(abs(score) < 0.01 for score in bar_trace.y), "Should include zero impact"
 
-    def test_figure_return_types(self, empty_graph):
+    @staticmethod
+    def test_figure_return_types(empty_graph):
         """Test that all three figures are returned in correct order."""
         # Execute
         result = visualize_metrics(empty_graph)
@@ -269,7 +280,8 @@ class TestVisualizeMetrics:
         assert isinstance(fig2, go.Figure)
         assert isinstance(fig3, go.Figure)
 
-    def test_bar_chart_properties(self, populated_graph):
+    @staticmethod
+    def test_bar_chart_properties(populated_graph):
         """Test that bar charts have correct properties."""
         # Execute
         fig1, fig2, fig3 = visualize_metrics(populated_graph)
@@ -288,7 +300,8 @@ class TestVisualizeMetrics:
             assert fig3.data[0].type == "bar"
             assert hasattr(fig3.data[0], "name"), "Bar chart should have a name"
 
-    def test_large_number_of_events(self, empty_graph, sample_equity):
+    @staticmethod
+    def test_large_number_of_events(empty_graph, sample_equity):
         """Test handling of many regulatory events."""
         from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
 

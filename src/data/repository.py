@@ -180,7 +180,8 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     # Conversion helpers
     # ------------------------------------------------------------------
-    def _update_asset_orm(self, orm: AssetORM, asset: Asset) -> None:
+    @staticmethod
+    def _update_asset_orm(orm: AssetORM, asset: Asset) -> None:
         orm.symbol = asset.symbol
         orm.name = asset.name
         orm.asset_class = asset.asset_class.value
@@ -209,7 +210,8 @@ class AssetGraphRepository:
         orm.country = getattr(asset, "country", None)
         orm.central_bank_rate = getattr(asset, "central_bank_rate", None)
 
-    def _to_asset_model(self, orm: AssetORM) -> Asset:
+    @staticmethod
+    def _to_asset_model(orm: AssetORM) -> Asset:
         asset_class = AssetClass(orm.asset_class)
         base_kwargs = {
             "id": orm.id,
@@ -255,7 +257,8 @@ class AssetGraphRepository:
             )
         return Asset(**base_kwargs)
 
-    def _to_regulatory_event_model(self, orm: RegulatoryEventORM) -> RegulatoryEvent:
+    @staticmethod
+    def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(
             id=orm.id,
