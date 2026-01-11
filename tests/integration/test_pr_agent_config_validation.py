@@ -38,15 +38,6 @@ class TestPRAgentConfigSimplification:
         if cfg is None or not isinstance(cfg, dict):
             pytest.fail("Config must be a YAML mapping (dict) and not empty")
         return cfg
-            pytest.fail(f"Config file not found: {config_path}")
-        with open(config_path, 'r', encoding='utf-8') as f:
-            try:
-                cfg = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in config: {e}")
-        if cfg is None or not isinstance(cfg, dict):
-            pytest.fail("Config must be a YAML mapping (dict) and not empty")
-        return cfg
 
     def test_version_reverted_to_1_0_0(self, pr_agent_config):
         """Check that the PR agent's configured version is '1.0.0'."""
@@ -181,7 +172,20 @@ class TestPRAgentConfigSecurity:
         Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
         Returns:
-            The parsed YAML content as a Python mapping or sequence (typically a dict), or `None` if the file is empty.
+            dict: The parsed YAML content as a Python mapping.
+        """
+        config_path = Path(".github/pr-agent-config.yml")
+        if not config_path.exists():
+            pytest.fail(f"Config file not found: {config_path}")
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                cfg = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in config: {e}")
+        if cfg is None or not isinstance(cfg, dict):
+            pytest.fail("Config must be a YAML mapping (dict) and not empty")
+        return cfg
+
     def test_no_hardcoded_credentials(self, pr_agent_config):
         """
         Recursively scan configuration values for suspected secrets.
