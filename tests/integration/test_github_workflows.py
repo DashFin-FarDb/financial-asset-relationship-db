@@ -2335,9 +2335,6 @@ class TestWorkflowPermissionsBestPractices:
                     if value == "write":
                         # Common justified write permissions
                         justified = ["contents", "pull-requests", "issues", "packages"]
-                        if key not in justified:
-                            # Advisory: review write permission usage
-                            pass
 
         # Check workflow-level permissions
         if "permissions" in data:
@@ -2529,9 +2526,6 @@ class TestWorkflowEnvironmentVariables:
             job_env = set(job.get("env", {}).keys())
             # Check for duplication (informational)
             duplicates = workflow_env & job_env
-            if duplicates:
-                # Advisory: consider consolidating env vars
-                pass
 
 
 class TestWorkflowScheduledExecutionBestPractices:
@@ -2568,10 +2562,6 @@ class TestWorkflowScheduledExecutionBestPractices:
             schedules = triggers["schedule"]
             for schedule in schedules:
                 cron = schedule.get("cron", "")
-                # Check if runs every minute (potentially wasteful)
-                if cron.startswith("* *"):
-                    # Advisory: running every minute may be excessive
-                    pass
 
 
 # Additional test to verify all new test classes are properly structured

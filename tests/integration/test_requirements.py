@@ -349,9 +349,6 @@ class TestSecurityAndCompliance:
                 version_match = re.search(r"==(\d+)\.(\d+)", ver)
                 if version_match:
                     major = int(version_match.group(1))
-                    # Basic sanity check - no 0.x versions for production dependencies
-                    if pkg.lower() not in ["zipp"]:  # Exclude transitive dependencies
-                        pass  # Add specific checks as needed
 
 
 class TestEdgeCases:
