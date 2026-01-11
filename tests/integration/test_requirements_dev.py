@@ -71,7 +71,24 @@ def _parse_single_requirement(line: str) -> tuple:
         req = Requirement(line)
     except (ValueError, TypeError) as parse_error:
         print(f"Could not parse requirement: {line} due to {parse_error}")
+def _parse_single_requirement(line: str) -> Optional[Tuple[str, str]]:
+    """Parse a single requirement line into (package, version_spec) tuple.
+
+    Args:
+        line: A stripped, non-empty, non-comment line from the requirements file.
+
+    Returns:
+        A tuple of (package_name, version_specifier) or None if parsing fails.
+    """
+    try:
+        req = Requirement(line)
+    except (ValueError, TypeError) as parse_error:
+        print(f"Could not parse requirement: {line} due to {parse_error}")
         return None
+
+    pkg = _extract_package_name(line, req)
+    specifier_str = _normalize_specifier(str(req.specifier).strip())
+    return (pkg, specifier_str)
 
     pkg = _extract_package_name(line, req)
     specifier_str = _normalize_specifier(str(req.specifier).strip())
