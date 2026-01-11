@@ -171,11 +171,12 @@ class TestContentAccuracy:
             "requirements" in summary_content.lower() or "pyyaml" in summary_content.lower()
         ), "Document should mention dependencies"
 
-
-```(?:bash | shell)?\n(.*?)
-
-
-code_blocks = summary_content.count("
+    @staticmethod
+    def test_counts_code_blocks(summary_content: str):
+        """Test that document includes at least one fenced code block."""
+        code_block_pattern = re.compile(r"```(?:bash|shell)?\n(.*?)(?:\n```)", re.DOTALL)
+        code_blocks = code_block_pattern.findall(summary_content)
+        assert len(code_blocks) > 0, "Document should include at least one fenced code block"
 
 
 class TestDocumentMaintainability:
