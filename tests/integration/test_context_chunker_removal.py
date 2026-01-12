@@ -93,24 +93,24 @@ class TestConfigurationCleanup:
             "PR agent config still references context_chunker script"
     
     def test_pr_agent_config_version_updated(self):
-        """PR agent config version should be updated."""
+        """PR agent config version should match the expected agent version."""
         config_file = REPO_ROOT / ".github" / "pr-agent-config.yml"
-        
+    
         if not config_file.exists():
             pytest.skip("PR agent config not found")
-        
+    
         with open(config_file, 'r') as f:
             content = f.read()
-        
-        # Version should be 1.0.0 (rolled back from 1.1.0)
+    
+        # Version should match the configured agent version (currently 1.1.0)
         import yaml
         config = yaml.safe_load(content)
-        
-        if 'agent' in config and 'version' in config['agent']:
-            version = config['agent']['version']
-            # Should be 1.0.0 or earlier, not 1.1.0
-            assert version == "1.0.0", \
-                f"Version should be 1.0.0 after rollback, found {version}"
+    
+        assert 'agent' in config and 'version' in config['agent'], \
+            "PR agent config must define agent.version"
+        version = config['agent']['version']
+        assert version == "1.1.0", \
+            f"PR agent config version should be 1.1.0, found {version}"
 
 
 class TestWorkflowSimplification:
