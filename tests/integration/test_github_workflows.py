@@ -2872,7 +2872,28 @@ class TestWorkflowDocumentationConsistency:
     def test_documentation_files_valid_markdown(self):
         """Verify all new markdown documentation files are valid."""
         doc_files = [
-            'TEST_GENERATION_WORKFLOW_SUMMARY.md',
+                workflow = load_yaml_safe(pr_agent_file)
+                jobs = workflow.get("jobs", {})
+        
+                for job_name, job in jobs.items():
+                    steps = job.get("steps", [])
+                    name_count = sum(1 for s in steps if s.get("name") == "Setup Python")
+                    uses_count = sum(
+                        1 for s in steps
+                        if isinstance(s.get("uses"), str) and "setup-python" in s["uses"]
+                    )
+            
+                    assert name_count <= 1, (
+                        f"Job '{job_name}' has {name_count} 'Setup Python' steps (should be 0 or 1)"
+                    )
+                    assert uses_count <= 1, (
+                        f"Job '{job_name}' uses setup-python action {uses_count} times (should be 0 or 1)"
+                    )
+                    if name_count or uses_count:
+                        assert name_count == uses_count, (
+                            f"Job '{job_name}' 'Setup Python' name/uses mismatch: "
+                            f"name_count={name_count}, uses_count={uses_count}"
+                        )
             'ADDITIONAL_TESTS_SUMMARY.md',
             'COMPREHENSIVE_ADDITIONAL_TESTS_SUMMARY.md',
         ]
