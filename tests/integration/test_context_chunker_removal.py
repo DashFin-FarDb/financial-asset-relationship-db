@@ -8,6 +8,7 @@ This ensures that the removal was complete and no dangling references remain.
 import pytest
 from pathlib import Path
 import re
+yaml = pytest.importorskip("yaml")
 
 
 REPO_ROOT = Path(__file__).parent.parent.parent
