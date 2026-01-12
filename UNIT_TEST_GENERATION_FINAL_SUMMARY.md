@@ -76,7 +76,6 @@ tests/unit/test_workflow_validator.py::TestValidationResult::test_valid_result P
 tests/unit/test_workflow_validator.py::TestValidationResult::test_invalid_result PASSED
 tests/unit/test_workflow_validator.py::TestValidateWorkflow::test_valid_workflow PASSED
 ...
-========================= 27 passed in 0.45s =========================
 ```
 
 All 27 tests should pass with no warnings or errors.

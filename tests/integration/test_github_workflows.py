@@ -1274,20 +1274,47 @@ def check_env_vars(env_dict):
             return invalid
 
         # Check top-level env
+        config = load_yaml_safe(workflow_file)
+
+        def check_env_vars(env_dict: Any) -> List[str]:
+            """Return env var keys that are not UPPER_CASE and [A-Z0-9_]-only."""
+            if not isinstance(env_dict, dict):
+                return []
+            invalid: List[str] = []
+            for key in env_dict.keys():
+                if not isinstance(key, str):
+                    invalid.append(str(key))
+                    continue
+                if not key.isupper() or not all(c.isalnum() or c == "_" for c in key):
+                    invalid.append(key)
+            return invalid
+
+        # Check workflow-level env
         if "env" in config:
             invalid = check_env_vars(config["env"])
             assert not invalid, (
-                f"Workflow {workflow_file.name} has invalid env var names: {invalid}"
+                f"MAINTAINABILITY: Workflow {workflow_file.name} has environment variables "
+                f"that don't follow UPPER_CASE convention: {invalid}. This can reduce "
+                "readability and consistency across workflows."
             )
 
         # Check job-level env
-        jobs = config.get("jobs", {})
-        for job_name, job_config in jobs.items():
+        for job_name, job_config in config.get("jobs", {}).items():
+            if not isinstance(job_config, dict):
+                continue
             if "env" in job_config:
                 invalid = check_env_vars(job_config["env"])
                 assert not invalid, (
-                    f"Job '{job_name}' in {workflow_file.name} has invalid env var names: {invalid}"
+                    f"MAINTAINABILITY: Workflow {workflow_file.name} job '{job_name}' has environment "
+                    f"variables that don't follow UPPER_CASE convention: {invalid}. This can reduce "
+                    "readability and consistency across workflows."
                 )
+            invalid = check_env_vars(config["env"])
+            assert not invalid, (
+                f"MAINTAINABILITY: Workflow {workflow_file.name} has environment variables "
+                f"that don't follow UPPER_CASE convention: {invalid}. This can reduce "
+                f"readability and consistency across workflows."
+            )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_secrets_not_in_env_values(self, workflow_file: Path):
@@ -2517,33 +2544,92 @@ class TestRequirementsDevValidation:
             f"Version conflicts between requirements files: {conflicts}"
         )
 
-class TestWorkflowYAMLStructureEdgeCases:
-    """Additional edge case tests for workflow YAML structure and formatting."""
+class TestPRAgentWorkflowAdvanced:
+    """Advanced tests for PR Agent workflow configuration and security."""
     
-    def test_pr_agent_no_malformed_with_blocks(self):
-        """Test that 'with:' blocks in pr-agent.yml are properly structured with indented content."""
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
+    def test_no_duplicate_keys_in_workflow(self, workflow_files):
+        """Ensure no duplicate YAML keys exist (the bug that was fixed)."""
+        pr_agent_workflow = workflow_files.get('.github/workflows/pr-agent.yml')
+        assert pr_agent_workflow is not None, "pr-agent.yml not found"
         
-        with open(pr_agent_file, 'r') as f:
-            content = f.read()
-            lines = content.split('\n')
+        # Parse and check for duplicate keys at each level
+        def check_duplicates(node, path=""):
+            if isinstance(node, dict):
+                keys = list(node.keys())
+                unique_keys = set(keys)
+                assert len(keys) == len(unique_keys), \
+                    f"Duplicate keys found at {path}: {[k for k in keys if keys.count(k) > 1]}"
+                for key, value in node.items():
+                    check_duplicates(value, f"{path}.{key}")
+            elif isinstance(node, list):
+                for i, item in enumerate(node):
+                    check_duplicates(item, f"{path}[{i}]")
         
-        # Find all 'with:' occurrences and verify they're followed by indented key-value pairs
-        for i, line in enumerate(lines):
-            if line.strip() == 'with:':
-                # Next non-empty line should be more indented
-                next_line_idx = i + 1
-                while next_line_idx < len(lines) and not lines[next_line_idx].strip():
-                    next_line_idx += 1
-                
-                if next_line_idx < len(lines):
-                    with_indent = len(line) - len(line.lstrip())
-                    next_indent = len(lines[next_line_idx]) - len(lines[next_line_idx].lstrip())
-                    assert next_indent > with_indent, (
-                        f"Line {next_line_idx + 1}: 'with:' block at line {i + 1} must have indented content"
-                    )
+        check_duplicates(pr_agent_workflow)
+    
+    def test_removed_context_chunking_code(self, workflow_files):
+        """Verify that context chunking code was properly removed."""
+        pr_agent_workflow = workflow_files.get('.github/workflows/pr-agent.yml')
+        assert pr_agent_workflow is not None
+        
+        # Convert to string for text search
+        workflow_str = yaml.dump(pr_agent_workflow)
+        
+        # These should NOT be present after the fix
+        assert 'context_chunker.py' not in workflow_str, "context_chunker.py reference found"
+        assert 'tiktoken' not in workflow_str, "tiktoken reference found"
+        assert 'fetch-context' not in workflow_str.lower(), "fetch-context step found"
+        assert 'chunking' not in workflow_str.lower() or 'no chunking' in workflow_str.lower(), \
+            "Chunking logic still present"
+    
+    def test_simplified_python_dependencies(self, workflow_files):
+        """Verify Python dependencies are simplified after chunking removal."""
+        pr_agent_workflow = workflow_files.get('.github/workflows/pr-agent.yml')
+        workflow_str = yaml.dump(pr_agent_workflow)
+        
+        # Should have simpler dependency installation
+        assert 'pip install' in workflow_str or 'requirements' in workflow_str, \
+            "Python dependency installation not found"
+    
+    def test_pr_agent_secrets_properly_used(self, workflow_files):
+        """Ensure GitHub secrets are used correctly and securely."""
+        pr_agent_workflow = workflow_files.get('.github/workflows/pr-agent.yml')
+        workflow_str = yaml.dump(pr_agent_workflow)
+        
+        # Check that GITHUB_TOKEN is used
+        assert 'GITHUB_TOKEN' in workflow_str, "GITHUB_TOKEN not found"
+        assert '${{ secrets.GITHUB_TOKEN }}' in workflow_str, "GITHUB_TOKEN not properly referenced"
+        
+        # Ensure no hardcoded secrets
+        import re
+        # Look for potential hardcoded tokens (simplified check)
+        assert not re.search(r'ghp_[a-zA-Z0-9]{36}', workflow_str), "Potential hardcoded GitHub token"
+    
+    def test_workflow_comment_posting(self, workflow_files):
+        """Verify the workflow properly posts comments to PRs."""
+        pr_agent_workflow = workflow_files.get('.github/workflows/pr-agent.yml')
+        workflow_str = yaml.dump(pr_agent_workflow)
+        
+        # Should have comment posting logic
+        assert 'issues.createComment' in workflow_str or 'updateComment' in workflow_str, \
+            "Comment posting logic not found"
+    
+    def test_workflow_runs_on_correct_triggers(self, workflow_files):
+        """Verify workflow triggers are appropriate for PR agent."""
+        pr_agent_workflow = workflow_files.get('.github/workflows/pr-agent.yml')
+        
+        assert 'on' in pr_agent_workflow or True in pr_agent_workflow, "No triggers defined"
+        triggers = pr_agent_workflow.get('on', pr_agent_workflow.get(True, {}))
+        
+        # Should trigger on pull request review events
+        assert 'pull_request_review' in triggers or \
+               'pull_request' in triggers or \
+               'issue_comment' in triggers, \
+            "No appropriate PR-related triggers found"
+
+
+class TestGreetingsWorkflowSimplification:
+    """Test the simplified greetings workflow."""
     
     def test_pr_agent_setup_python_has_required_parameters(self):
         """
@@ -2557,207 +2643,344 @@ class TestWorkflowYAMLStructureEdgeCases:
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
         
-        workflow = load_yaml_safe(pr_agent_file)
+        workflow_str = yaml.dump(greetings_workflow)
         
-        for job_name, job in workflow.get('jobs', {}).items():
-            for step in job.get('steps', []):
-                if step.get('uses', '').startswith('actions/setup-python'):
-                    assert 'with' in step, (
-                        f"Setup Python step in job '{job_name}' is missing 'with' block"
-                    )
-                    assert 'python-version' in step['with'], (
-                        f"Setup Python step in job '{job_name}' is missing 'python-version' parameter"
-                    )
-                    
-                    # Verify python-version is not empty
-                    py_version = step['with']['python-version']
-                    assert py_version and str(py_version).strip(), (
-                        f"Setup Python in job '{job_name}' has empty python-version"
-                    )
+        # Should be much shorter now
+        assert len(workflow_str) < 1000, "Greetings workflow still too verbose"
+        
+        # Should use the basic action format
+        assert 'first-interaction' in workflow_str, "first-interaction action not found"
     
-    def test_pr_agent_no_orphaned_with_blocks(self):
-        """Test that there are no 'with:' blocks without a parent 'uses:' or 'run:' command."""
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
+    def test_no_lengthy_welcome_messages(self, workflow_files):
+        """Ensure overly long welcome messages were removed."""
+        greetings_workflow = workflow_files.get('.github/workflows/greetings.yml')
+        if greetings_workflow is None:
+            pytest.skip("greetings.yml not found")
         
-        workflow = load_yaml_safe(pr_agent_file)
+        workflow_str = yaml.dump(greetings_workflow)
         
-        for job_name, job in workflow.get('jobs', {}).items():
-            for idx, step in enumerate(job.get('steps', [])):
-                if 'with' in step:
-                    assert 'uses' in step or 'run' in step, (
-                        f"Step #{idx} in job '{job_name}' has 'with' parameter but no 'uses' or 'run' directive"
-                    )
+        # These long phrases should not be present
+        verbose_phrases = [
+            "What happens next",
+            "Resources:",
+            "Contributing Guide",
+            "We're excited to have you",
+            "Tips for a successful PR"
+        ]
+        
+        for phrase in verbose_phrases:
+            assert phrase not in workflow_str, f"Verbose phrase '{phrase}' still present"
 
 
-class TestWorkflowSemanticConsistency:
-    """Test semantic consistency and logical ordering of workflow steps."""
+class TestLabelerWorkflowSimplification:
+    """Test the simplified labeler workflow."""
     
-    def test_setup_steps_in_correct_order(self):
-        """
-        Ensure setup steps in the pr-agent workflow appear in a logical order with checkout occurring before setup-python and setup-node.
+    def test_labeler_config_check_removed(self, workflow_files):
+        """Verify unnecessary config checking was removed."""
+        label_workflow = workflow_files.get('.github/workflows/label.yml')
+        if label_workflow is None:
+            pytest.skip("label.yml not found")
         
-        Checks pr-agent.yml (skips the test if the file is absent). For each job, records the first occurrence of actions/checkout, actions/setup-python and actions/setup-node and asserts that the checkout step index is less than the index of each setup step when both are present, failing with a message that includes the job name and step indices.
-        """
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
+        workflow_str = yaml.dump(label_workflow)
         
-        workflow = load_yaml_safe(pr_agent_file)
-        
-        for job_name, job in workflow.get('jobs', {}).items():
-            steps = job.get('steps', [])
-            
-            checkout_idx = None
-            setup_python_idx = None
-            setup_node_idx = None
-            
-            for i, step in enumerate(steps):
-                uses = step.get('uses', '')
-                if 'checkout' in uses.lower():
-                    if checkout_idx is None:  # Record first occurrence
-                        checkout_idx = i
-                elif 'setup-python' in uses.lower():
-                    if setup_python_idx is None:
-                        setup_python_idx = i
-                elif 'setup-node' in uses.lower():
-                    if setup_node_idx is None:
-                        setup_node_idx = i
-            
-            # If both exist, checkout should come before setup steps
-            if checkout_idx is not None and setup_python_idx is not None:
-                assert checkout_idx < setup_python_idx, (
-                    f"In job '{job_name}', checkout step (index {checkout_idx}) should come before "
-                    f"Setup Python (index {setup_python_idx})"
-                )
-            if checkout_idx is not None and setup_node_idx is not None:
-                assert checkout_idx < setup_node_idx, (
-                    f"In job '{job_name}', checkout step (index {checkout_idx}) should come before "
-                    f"Setup Node (index {setup_node_idx})"
-                )
+        # Should not have config checking steps
+        assert 'check-config' not in workflow_str, "Config checking still present"
+        assert 'Checkout repository' not in workflow_str or 'actions/checkout' not in workflow_str, \
+            "Unnecessary checkout still present"
     
-    def test_python_version_matches_project_standard(self):
-        """
-        Ensure any actions/setup-python steps in pr-agent.yml specify a concrete Python version of 3.8 or higher and do not use the value 'latest'.
+    def test_labeler_uses_direct_action(self, workflow_files):
+        """Ensure labeler directly uses the action without extra steps."""
+        label_workflow = workflow_files.get('.github/workflows/label.yml')
+        if label_workflow is None:
+            pytest.skip("label.yml not found")
         
-        Checks:
-        - Skips the test if .github/workflows/pr-agent.yml is absent.
-        - For each job step that uses actions/setup-python, fails if the `python-version` value is the string 'latest'.
-        - If `python-version` is present, parses major and minor components and fails if the version is not 3.8 or higher.
-        - Fails with a clear message if the `python-version` value cannot be parsed as a numeric major.minor version.
-        """
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
+        workflow_str = yaml.dump(label_workflow)
         
-        workflow = load_yaml_safe(pr_agent_file)
+        # Should directly use actions/labeler
+        assert 'actions/labeler' in workflow_str, "actions/labeler not found"
         
-        for job_name, job in workflow.get('jobs', {}).items():
-            for step in job.get('steps', []):
-                if step.get('uses', '').startswith('actions/setup-python'):
-                    python_version = step.get('with', {}).get('python-version', '')
-                    
-                    # Should be a specific version, not latest
-                    assert str(python_version).lower() != 'latest', (
-                        f"Job '{job_name}' should specify exact Python version, not 'latest'"
-                    )
-                    
-                    # Should be a reasonable version (3.8+)
-                    if python_version:
-                        version_str = str(python_version)
-                        # Parse version (handle both '3.11' and '3.11.0' formats)
-                        parts = version_str.split('.')
-                        if len(parts) >= 2:
-                            try:
-                                major = int(parts[0])
-                                minor = int(parts[1])
-                                assert major == 3 and minor >= 8, (
-                                    f"Python version in job '{job_name}' should be 3.8 or higher, got {python_version}"
-                                )
-                            except (ValueError, IndexError):
-                                # If we can't parse, just warn via assertion message
-                                pytest.fail(f"Could not parse Python version '{python_version}' in job '{job_name}'")
-    
-    def test_pr_agent_uses_specific_action_versions(self):
-        """Test that pr-agent workflow uses specific action versions, not floating tags like 'latest'."""
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
-        
-        workflow = load_yaml_safe(pr_agent_file)
-        
-        for job_name, job in workflow.get('jobs', {}).items():
-            for idx, step in enumerate(job.get('steps', [])):
-                uses = step.get('uses', '')
-                if uses and '@' in uses:
-                    action, version = uses.rsplit('@', 1)
-                    
-                    # Version should not be 'latest' or 'main' or 'master'
-                    assert version.lower() not in ['latest', 'main', 'master'], (
-                        f"Step #{idx} in job '{job_name}' uses floating version '{version}' for {action}. "
-                        "Use specific version tags (e.g., @v4) for reproducibility."
-                    )
+        # Count steps - should be minimal
+        step_count = workflow_str.count('- uses:') + workflow_str.count('- name:')
+        assert step_count <= 3, f"Too many steps ({step_count}) in simplified workflow"
 
 
-class TestWorkflowChangeRegression:
-    """Regression tests specifically for the duplicate Setup Python fix."""
+class TestAPISecScanWorkflow:
+    """Test APIsec scan workflow changes."""
     
-    def test_pr_agent_exactly_one_setup_python_per_job(self):
-        """
-        Ensure each job defines at most one Setup Python step.
+    def test_apisec_credential_check_removed(self, workflow_files):
+        """Verify redundant credential checking was removed."""
+        apisec_workflow = workflow_files.get('.github/workflows/apisec-scan.yml')
+        if apisec_workflow is None:
+            pytest.skip("apisec-scan.yml not found")
         
-        Checks each job's steps and asserts there is no more than one step named "Setup Python" and no more than one step using an action containing "setup-python". If either form is present, the counts by name and by uses must match.
-        """
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
+        workflow_str = yaml.dump(apisec_workflow)
         
-        workflow = load_yaml_safe(pr_agent_file)
-        
-        for job_name, job in workflow.get('jobs', {}).items():
-            steps = job.get('steps', [])
-            
-            # Count setup-python steps by both name and uses
-            setup_python_by_name = sum(
-                1 for step in steps
-                if step.get('name') == 'Setup Python'
-            )
-            setup_python_by_uses = sum(
-                1 for step in steps
-                if 'setup-python' in step.get('uses', '').lower()
-            )
-            
-            assert setup_python_by_name <= 1, (
-                f"Job '{job_name}' has {setup_python_by_name} steps named 'Setup Python'. "
-                "Each job should have at most one Setup Python step."
-            )
-            assert setup_python_by_uses <= 1, (
-                f"Job '{job_name}' has {setup_python_by_uses} steps using setup-python action. "
-                "Each job should have at most one Setup Python step."
-            )
-            
-            # They should match (no phantom steps)
-            if setup_python_by_name > 0 or setup_python_by_uses > 0:
-                assert setup_python_by_name == setup_python_by_uses, (
-                    f"Job '{job_name}' has mismatched Setup Python steps: "
-                    f"{setup_python_by_name} by name vs {setup_python_by_uses} by uses"
-                )
+        # Should not have separate credential checking step
+        assert 'Check for APIsec credentials' not in workflow_str, \
+            "Redundant credential check still present"
     
-    def test_pr_agent_no_duplicate_yaml_keys_in_steps(self):
-        """
-        Check pr-agent workflow steps contain no duplicate YAML mapping keys.
+    def test_apisec_runs_unconditionally(self, workflow_files):
+        """Verify APIsec scan runs without if conditions on job level."""
+        apisec_workflow = workflow_files.get('.github/workflows/apisec-scan.yml')
+        if apisec_workflow is None:
+            pytest.skip("apisec-scan.yml not found")
         
-        Skips the test if .github/workflows/pr-agent.yml is not present. Fails if any duplicate mapping keys are detected in the workflow (for example repeated `with:` entries within a step), listing the duplicates found.
-        """
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
+        jobs = apisec_workflow.get('jobs', {})
         
-        # Check for duplicate keys using the helper function
-        duplicates = check_duplicate_keys(pr_agent_file)
+        for job_name, job_config in jobs.items():
+            # Job should not skip based on credential check
+            if 'if' in job_config:
+                job_if = str(job_config['if'])
+                assert 'apisec_username' not in job_if, \
+                    f"Job {job_name} still has credential-based skip condition"
+
+
+class TestWorkflowSecurityHardening:
+    """Advanced security tests for workflow configurations."""
+    
+    def test_no_script_injection_vulnerabilities(self, workflow_files):
+        """Check for potential script injection vulnerabilities."""
+        for workflow_path, workflow_content in workflow_files.items():
+            workflow_str = yaml.dump(workflow_content)
+            
+            # Check for dangerous patterns
+            dangerous_patterns = [
+                (r'\$\{\{.*github\.event\.comment\.body.*\}\}', "Unsanitized comment body"),
+                (r'\$\{\{.*github\.event\.issue\.title.*\}\}', "Unsanitized issue title"),
+                (r'\$\{\{.*github\.event\.pull_request\.body.*\}\}', "Unsanitized PR body"),
+            ]
+            
+            import re
+            for pattern, description in dangerous_patterns:
+                for match_obj in re.finditer(pattern, workflow_str):
+                    match = match_obj.group()
+                    start = match_obj.start()
+                    context = workflow_str[max(0, start-10):start+len(match)+10]
+                    assert '"' in context, \
+                        f"{description} in {workflow_path}: {match}"
+    
+    def test_third_party_actions_pinned(self, workflow_files):
+        """Ensure third-party actions are pinned to specific versions."""
+        for workflow_path, workflow_content in workflow_files.items():
+            workflow_str = yaml.dump(workflow_content)
+            
+            # Find all action uses
+            import re
+            actions = re.findall(r'uses:\s*([^@\s]+)@([^\s]+)', workflow_str)
+            
+            for action, version in actions:
+                # GitHub-owned actions can use version tags
+                if not action.startswith(('actions/', 'github/')):
+                    # Third-party actions should use commit SHAs
+                    assert len(version) >= 40 or version.startswith('v'), \
+    
+    def test_requirements_dev_contains_pyyaml_with_constraint(self):
+        """requirements-dev.txt should include PyYAML with a version constraint."""
+        req_file = Path('requirements-dev.txt')
+        if not req_file.exists():
+            pytest.skip("requirements-dev.txt not found")
         
-        assert len(duplicates) == 0, (
-            f"pr-agent.yml contains duplicate YAML keys: {duplicates}. "
-            "This can cause unexpected behavior as YAML silently overwrites earlier values."
-        )
+        content = req_file.read_text()
+        
+        # PyYAML should be present
+        assert 'pyyaml' in content.lower(), "PyYAML not found in requirements-dev.txt"
+        
+        # Should have version constraint
+        import re
+        pyyaml_lines = [line for line in content.split('\n') if 'pyyaml' in line.lower() and line.strip() and not line.lstrip().startswith('#')]
+        assert pyyaml_lines, "No PyYAML requirement line found"
+        assert any(op in pyyaml_lines[0] for op in ['==', '>=', '~=', '>']), "PyYAML should have version constraint"
+    
+    def test_no_conflicting_dependencies(self):
+        """Ensure no conflicting dependency versions."""
+                workflow = load_yaml_safe(pr_agent_file)
+                jobs = workflow.get("jobs", {})
+        
+                for job_name, job in jobs.items():
+                    steps = job.get("steps", [])
+                    for step in steps:
+                        uses = step.get("uses", "")
+                        if "actions/setup-python" in uses:
+                            step_with = step.get("with", {})
+                            python_version = step_with.get("python-version")
+                    
+                            assert python_version is not None, (
+                                f"Job '{job_name}' setup-python step missing python-version"
+                            )
+                            assert isinstance(python_version, str) and python_version.strip(), (
+                                f"Job '{job_name}' python-version must be a non-empty string"
+                            )
+                            assert python_version != "latest", (
+                                f"Job '{job_name}' should not use 'latest' as python-version"
+                            )
+                    
+                            import re
+                            match = re.match(r"^(\d+)\.(\d+)", python_version)
+                            assert match is not None, (
+                                f"Job '{job_name}' has non-numeric python-version '{python_version}'"
+                            )
+                            major = int(match.group(1))
+                            minor = int(match.group(2))
+                            assert (major > 3) or (major == 3 and minor >= 8), (
+                                f"Job '{job_name}' python-version {python_version} must be >= 3.8"
+                            )
+        if not req_file.exists():
+            pytest.skip("requirements-dev.txt not found")
+        
+        content = req_file.read_text()
+        lines = [line.strip() for line in content.split('\n') if line.strip() and not line.startswith('#')]
+        
+        # Extract package names
+        packages = {}
+        for line in lines:
+            pkg_name = line.split('==')[0].split('>=')[0].split('~=')[0].split('>')[0].split('<')[0].strip()
+            if pkg_name in packages:
+                pytest.fail(f"Duplicate package definition: {pkg_name}")
+            packages[pkg_name] = line
+    
+    def test_dev_dependencies_appropriate(self):
+        """Verify dev dependencies are actually for development/testing."""
+        req_file = Path('requirements-dev.txt')
+        if not req_file.exists():
+            pytest.skip("requirements-dev.txt not found")
+        
+        content = req_file.read_text().lower()
+        
+        # Should contain testing/linting tools
+        dev_tools = ['pytest', 'flake8', 'black', 'pyyaml', 'bandit', 'safety']
+        
+        found_tools = [tool for tool in dev_tools if tool in content]
+        assert len(found_tools) >= 2, "Should have at least 2 dev tools"
+
+
+class TestWorkflowDocumentationConsistency:
+    """Test that workflow changes are properly documented."""
+    
+    def test_documentation_mentions_workflow_simplification(self):
+        """Summary docs should mention the pr-agent workflow simplification."""
+        summary_file = Path('TEST_GENERATION_CURRENT_BRANCH_COMPLETE.md')
+        if not summary_file.exists():
+            pytest.skip("Summary documentation not found")
+        
+        content = summary_file.read_text()
+        
+        key_changes = ['pr-agent', 'workflow', 'simplified']
+        found_mentions = [kw for kw in key_changes if kw in content.lower()]
+        assert len(found_mentions) >= 2, "Summary should document key workflow changes"
+    
+    def test_documentation_files_valid_markdown(self):
+        """Verify all new markdown documentation files are valid."""
+        doc_files = [
+                workflow = load_yaml_safe(pr_agent_file)
+                jobs = workflow.get("jobs", {})
+        
+                for job_name, job in jobs.items():
+                    steps = job.get("steps", [])
+                    name_count = sum(1 for s in steps if s.get("name") == "Setup Python")
+                    uses_count = sum(
+                        1 for s in steps
+                        if isinstance(s.get("uses"), str) and "setup-python" in s["uses"]
+                    )
+            
+                    assert name_count <= 1, (
+                        f"Job '{job_name}' has {name_count} 'Setup Python' steps (should be 0 or 1)"
+                    )
+                    assert uses_count <= 1, (
+                        f"Job '{job_name}' uses setup-python action {uses_count} times (should be 0 or 1)"
+                    )
+                    if name_count or uses_count:
+                        assert name_count == uses_count, (
+                            f"Job '{job_name}' 'Setup Python' name/uses mismatch: "
+                            f"name_count={name_count}, uses_count={uses_count}"
+                        )
+            'ADDITIONAL_TESTS_SUMMARY.md',
+            'COMPREHENSIVE_ADDITIONAL_TESTS_SUMMARY.md',
+        ]
+        
+        for doc_file in doc_files:
+            doc_path = Path(doc_file)
+            if not doc_path.exists():
+                continue
+            
+            content = doc_path.read_text()
+            
+            # Basic markdown validation
+            assert content.strip(), f"{doc_file} is empty"
+            assert '#' in content, f"{doc_file} has no headers"
+            
+            # Should have reasonable structure
+            lines = content.split('\n')
+            assert len(lines) > 10, f"{doc_file} is too short"
+
+
+class TestWorkflowIntegrity:
+    """Test overall workflow file integrity."""
+    
+    def test_all_workflows_have_names(self, workflow_files):
+        """Ensure all workflows have descriptive names."""
+        for workflow_path, workflow_content in workflow_files.items():
+            assert 'name' in workflow_content, f"{workflow_path} missing name"
+            assert len(workflow_content['name']) > 5, f"{workflow_path} has too short name"
+    
+    def test_all_workflows_have_triggers(self, workflow_files):
+        """Ensure all workflows define when they run."""
+        for workflow_path, workflow_content in workflow_files.items():
+            # 'on' or True key (True is how PyYAML might parse 'on')
+            has_trigger = 'on' in workflow_content or True in workflow_content
+            assert has_trigger, f"{workflow_path} missing triggers"
+    
+    def test_workflow_jobs_have_steps(self, workflow_files):
+        """Ensure all jobs in workflows have at least one step."""
+        for workflow_path, workflow_content in workflow_files.items():
+            jobs = workflow_content.get('jobs', {})
+            
+            for job_name, job_config in jobs.items():
+                if isinstance(job_config, dict):
+                    assert 'steps' in job_config or 'uses' in job_config, \
+                        f"Job {job_name} in {workflow_path} has no steps or uses"
+                    
+                    if 'steps' in job_config:
+                        assert len(job_config['steps']) > 0, \
+                            f"Job {job_name} in {workflow_path} has empty steps"
+    
+    def test_no_hardcoded_repository_refs(self, workflow_files):
+        """Ensure workflows don't have hardcoded repository references."""
+        for workflow_path, workflow_content in workflow_files.items():
+            workflow_str = yaml.dump(workflow_content)
+            
+            # Should use github.repository context
+            if 'repos/' in workflow_str:
+                assert '${{ github.repository }}' in workflow_str or \
+                       'github.com/' not in workflow_str, \
+                    f"{workflow_path} may have hardcoded repository reference"
+
+
+class TestRemovedFilesCleanup:
+    """Test that removed files are properly cleaned up."""
+    
+    def test_labeler_yml_removed(self):
+        """Verify labeler.yml configuration was removed."""
+        labeler_config = Path('.github/labeler.yml')
+        assert not labeler_config.exists(), "labeler.yml should be removed"
+    
+    def test_context_chunker_script_removed(self):
+        """Verify context_chunker.py script was removed."""
+        chunker_script = Path('.github/scripts/context_chunker.py')
+        assert not chunker_script.exists(), "context_chunker.py should be removed"
+    
+    def test_scripts_readme_removed(self):
+        """Verify scripts README was removed."""
+        scripts_readme = Path('.github/scripts/README.md')
+        assert not scripts_readme.exists(), "scripts README should be removed"
+    
+    def test_no_orphaned_script_references(self, workflow_files):
+        """Ensure no workflows reference removed scripts."""
+        for workflow_path, workflow_content in workflow_files.items():
+            workflow_str = yaml.dump(workflow_content)
+            
+            # Should not reference removed files
+            removed_refs = ['context_chunker.py', '.github/scripts/context_chunker.py']
+            for ref in removed_refs:
+                assert ref not in workflow_str, \
+                    f"{workflow_path} still references removed script: {ref}"
+

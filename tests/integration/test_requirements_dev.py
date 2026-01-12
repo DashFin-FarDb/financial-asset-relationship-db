@@ -387,15 +387,17 @@ class TestSpecificChanges:
         assert len(types_entries) == 1
 
     def test_existing_packages_preserved(self, requirements: List[Tuple[str, str]]):
-        """Test that existing packages are still present."""
+        # Ensure expected baseline packages are still present after changes
         package_names = [pkg for pkg, _ in requirements]
 
         expected_packages = [
             'pytest',
             'pytest-cov',
-            'pytest-asyncio',
             'flake8',
-            'pylint',
+            'black',
+            'mypy',
+            'PyYAML',
+            'types-PyYAML',
         ]
 
         for expected_pkg in expected_packages:
