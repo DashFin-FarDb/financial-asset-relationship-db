@@ -52,7 +52,6 @@ class TestContextChunkerRemoval:
             except Exception as e:
                 pytest.fail(f"Unexpected error reading {py_file}: {e}")
                 # Skip files that can't be read
-                pass
     
     def test_no_references_in_workflows(self):
         """Workflow files should not reference context_chunker.py."""
