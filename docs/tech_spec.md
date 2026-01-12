@@ -163,9 +163,9 @@ GET  /api/health              - Health check endpoint
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Python | 3.10+ | Runtime environment |
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Python | 3.10+ | Runtime environment |
+| FastAPI | 0.109+ | REST API framework |
+| Uvicorn | 0.27+ | ASGI server |
+| Pydantic | v2 | Data validation |
 | FastAPI | 0.109+ | REST API framework |
 | Uvicorn | 0.27+ | ASGI server |
 | Pydantic | v2 | Data validation |
