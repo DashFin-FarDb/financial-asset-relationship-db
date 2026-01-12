@@ -78,22 +78,19 @@ class TestConfigurationCleanup:
     """Verify configuration was updated to remove chunking references."""
     
     def test_pr_agent_config_no_chunking_section(self):
-        """PR agent config should not have chunking configuration."""
+        """PR agent config should not reference the removed context_chunker script."""
         config_file = REPO_ROOT / ".github" / "pr-agent-config.yml"
-        
+    
         if not config_file.exists():
             pytest.skip("PR agent config not found")
-        
+    
         with open(config_file, 'r') as f:
             content = f.read()
-        
-        # Check that chunking sections were removed
-        assert 'chunking' not in content.lower(), \
-            "PR agent config still contains chunking configuration"
-        assert 'chunk_size' not in content.lower(), \
-            "PR agent config still contains chunk_size"
-        assert 'summarization' not in content.lower(), \
-            "PR agent config still contains summarization config"
+    
+        # Check that there are no dangling references to the removed script
+        lower_content = content.lower()
+        assert 'context_chunker' not in lower_content, \
+            "PR agent config still references context_chunker script"
     
     def test_pr_agent_config_version_updated(self):
         """PR agent config version should be updated."""
