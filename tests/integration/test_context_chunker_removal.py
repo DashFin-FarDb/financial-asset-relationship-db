@@ -73,7 +73,6 @@ class TestContextChunkerRemoval:
                 f"{workflow_file.name} may reference context chunking functionality"
 
 class TestConfigurationCleanup:
-class TestConfigurationCleanup:
     """Verify configuration was updated to remove chunking references."""
     
     def test_pr_agent_config_no_chunking_section(self):
