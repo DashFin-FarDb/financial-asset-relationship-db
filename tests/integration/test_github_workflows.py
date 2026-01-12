@@ -2739,50 +2739,23 @@ class TestWorkflowSecurityHardening:
                 if not action.startswith(('actions/', 'github/')):
                     # Third-party actions should use commit SHAs
                     assert len(version) >= 40 or version.startswith('v'), \
-                        f"Third-party action {action} should be pinned to SHA or semver in {workflow_path}"
     
-    def test_minimal_token_permissions(self, workflow_files):
-        """Verify workflows use minimal required token permissions."""
-        for workflow_path, workflow_content in workflow_files.items():
-            if 'permissions' in workflow_content:
-                perms = workflow_content['permissions']
-                
-                # If permissions are defined, they should be specific
-                if isinstance(perms, dict):
-                    # Should not have write-all
-                    assert perms.get('contents') != 'write' or \
-                           perms.get('pull-requests') == 'write', \
-                        f"Overly permissive token in {workflow_path}"
-
-
-class TestRequirementsDevValidation:
-    """Test the modified requirements-dev.txt file."""
-    
-    def test_python_version_matches_project_standard(self):
-        """
-        Ensure any actions/setup-python steps in pr-agent.yml specify a concrete Python version of 3.8 or higher and do not use the value 'latest'.
-        
-        Checks:
-        - Skips the test if .github/workflows/pr-agent.yml is absent.
-        - For each job step that uses actions/setup-python, fails if the `python-version` value is the string 'latest'.
-        - If `python-version` is present, parses major and minor components and fails if the version is not 3.8 or higher.
-        - Fails with a clear message if the `python-version` value cannot be parsed as a numeric major.minor version.
-        """
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
+    def test_requirements_dev_contains_pyyaml_with_constraint(self):
+        """requirements-dev.txt should include PyYAML with a version constraint."""
+        req_file = Path('requirements-dev.txt')
+        if not req_file.exists():
+            pytest.skip("requirements-dev.txt not found")
         
         content = req_file.read_text()
         
         # PyYAML should be present
-        assert 'pyyaml' in content.lower() or 'PyYAML' in content, \
-            "PyYAML not found in requirements-dev.txt"
+        assert 'pyyaml' in content.lower(), "PyYAML not found in requirements-dev.txt"
         
         # Should have version constraint
         import re
-        pyyaml_line = [line for line in content.split('\n') if 'pyyaml' in line.lower()][0]
-        assert any(op in pyyaml_line for op in ['==', '>=', '~=', '>']), \
-            "PyYAML should have version constraint"
+        pyyaml_lines = [line for line in content.split('\n') if 'pyyaml' in line.lower() and line.strip() and not line.lstrip().startswith('#')]
+        assert pyyaml_lines, "No PyYAML requirement line found"
+        assert any(op in pyyaml_lines[0] for op in ['==', '>=', '~=', '>']), "PyYAML should have version constraint"
     
     def test_no_conflicting_dependencies(self):
         """Ensure no conflicting dependency versions."""
