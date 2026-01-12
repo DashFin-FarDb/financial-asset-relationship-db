@@ -135,6 +135,10 @@
         filtered_chunks = [ch for ch in (chunks or []) if isinstance(ch, dict)]
         sorted_chunks = sorted(filtered_chunks, key=priority_key)
 
+        pieces = []
+        used_tokens = 0
+        limit = self.max_tokens
+
         # Apply per-chunk truncation with overlap computed in token space
         max_len_tokens = max(1, int(self.chunk_size))
         overlap_tokens = max(0, int(self.overlap_tokens))
@@ -151,13 +155,31 @@
             truncated_chunks.append({**ch, "content": truncated_content})
         sorted_chunks = truncated_chunks
 
+        # Build the final content string while respecting the total token limit
+        for ch in sorted_chunks:
+            content = (ch or {}).get("content") or ""
+            if not content:
+                continue
+            chunk_tokens = estimate_tokens(content)
+            if used_tokens + chunk_tokens > limit:
+                break
+            pieces.append(content)
+            used_tokens += chunk_tokens
+
+        return "\n\n".join(pieces)
+
         def main():
             """
             Demonstrates example use of ContextChunker by processing a sample pull-request payload.
             
             Creates a ContextChunker, processes a sample PR dictionary containing reviews and files, and prints the returned chunked indicator and the processed content.
             """
-            chunker = ContextChunker()
+            chunker_cls = globals().get("ContextChunker")
+            if chunker_cls is None:
+                print("ContextChunker is not defined; skipping demo run.")
+                return
+
+            chunker = chunker_cls()
     
             # Example PR data
             example_pr = {
