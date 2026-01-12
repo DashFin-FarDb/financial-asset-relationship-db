@@ -69,11 +69,10 @@ class TestContextChunkerRemoval:
                 f"{workflow_file.name} references context_chunker.py"
             assert 'context_chunker' not in content.lower() and 'context chunker' not in content.lower(), \
                 f"{workflow_file.name} may reference context chunking functionality"
-import pytest
-from pathlib import Path
-import re
-import yaml
+            assert 'context_chunker' not in content.lower() and 'context chunker' not in content.lower(), \
+                f"{workflow_file.name} may reference context chunking functionality"
 
+class TestConfigurationCleanup:
 class TestConfigurationCleanup:
     """Verify configuration was updated to remove chunking references."""
     

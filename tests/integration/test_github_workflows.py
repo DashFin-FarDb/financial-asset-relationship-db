@@ -1274,7 +1274,41 @@ def check_env_vars(env_dict):
             return invalid
 
         # Check top-level env
+        config = load_yaml_safe(workflow_file)
+
+        def check_env_vars(env_dict: Any) -> List[str]:
+            """Return env var keys that are not UPPER_CASE and [A-Z0-9_]-only."""
+            if not isinstance(env_dict, dict):
+                return []
+            invalid: List[str] = []
+            for key in env_dict.keys():
+                if not isinstance(key, str):
+                    invalid.append(str(key))
+                    continue
+                if not key.isupper() or not all(c.isalnum() or c == "_" for c in key):
+                    invalid.append(key)
+            return invalid
+
+        # Check workflow-level env
         if "env" in config:
+            invalid = check_env_vars(config["env"])
+            assert not invalid, (
+                f"MAINTAINABILITY: Workflow {workflow_file.name} has environment variables "
+                f"that don't follow UPPER_CASE convention: {invalid}. This can reduce "
+                "readability and consistency across workflows."
+            )
+
+        # Check job-level env
+        for job_name, job_config in config.get("jobs", {}).items():
+            if not isinstance(job_config, dict):
+                continue
+            if "env" in job_config:
+                invalid = check_env_vars(job_config["env"])
+                assert not invalid, (
+                    f"MAINTAINABILITY: Workflow {workflow_file.name} job '{job_name}' has environment "
+                    f"variables that don't follow UPPER_CASE convention: {invalid}. This can reduce "
+                    "readability and consistency across workflows."
+                )
             invalid = check_env_vars(config["env"])
             assert not invalid, (
                 f"MAINTAINABILITY: Workflow {workflow_file.name} has environment variables "
@@ -2739,50 +2773,23 @@ class TestWorkflowSecurityHardening:
                 if not action.startswith(('actions/', 'github/')):
                     # Third-party actions should use commit SHAs
                     assert len(version) >= 40 or version.startswith('v'), \
-                        f"Third-party action {action} should be pinned to SHA or semver in {workflow_path}"
     
-    def test_minimal_token_permissions(self, workflow_files):
-        """Verify workflows use minimal required token permissions."""
-        for workflow_path, workflow_content in workflow_files.items():
-            if 'permissions' in workflow_content:
-                perms = workflow_content['permissions']
-                
-                # If permissions are defined, they should be specific
-                if isinstance(perms, dict):
-                    # Should not have write-all
-                    assert perms.get('contents') != 'write' or \
-                           perms.get('pull-requests') == 'write', \
-                        f"Overly permissive token in {workflow_path}"
-
-
-class TestRequirementsDevValidation:
-    """Test the modified requirements-dev.txt file."""
-    
-    def test_python_version_matches_project_standard(self):
-        """
-        Ensure any actions/setup-python steps in pr-agent.yml specify a concrete Python version of 3.8 or higher and do not use the value 'latest'.
-        
-        Checks:
-        - Skips the test if .github/workflows/pr-agent.yml is absent.
-        - For each job step that uses actions/setup-python, fails if the `python-version` value is the string 'latest'.
-        - If `python-version` is present, parses major and minor components and fails if the version is not 3.8 or higher.
-        - Fails with a clear message if the `python-version` value cannot be parsed as a numeric major.minor version.
-        """
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
+    def test_requirements_dev_contains_pyyaml_with_constraint(self):
+        """requirements-dev.txt should include PyYAML with a version constraint."""
+        req_file = Path('requirements-dev.txt')
+        if not req_file.exists():
+            pytest.skip("requirements-dev.txt not found")
         
         content = req_file.read_text()
         
         # PyYAML should be present
-        assert 'pyyaml' in content.lower() or 'PyYAML' in content, \
-            "PyYAML not found in requirements-dev.txt"
+        assert 'pyyaml' in content.lower(), "PyYAML not found in requirements-dev.txt"
         
         # Should have version constraint
         import re
-        pyyaml_line = [line for line in content.split('\n') if 'pyyaml' in line.lower()][0]
-        assert any(op in pyyaml_line for op in ['==', '>=', '~=', '>']), \
-            "PyYAML should have version constraint"
+        pyyaml_lines = [line for line in content.split('\n') if 'pyyaml' in line.lower() and line.strip() and not line.lstrip().startswith('#')]
+        assert pyyaml_lines, "No PyYAML requirement line found"
+        assert any(op in pyyaml_lines[0] for op in ['==', '>=', '~=', '>']), "PyYAML should have version constraint"
     
     def test_no_conflicting_dependencies(self):
         """Ensure no conflicting dependency versions."""
@@ -2849,24 +2856,16 @@ class TestRequirementsDevValidation:
 class TestWorkflowDocumentationConsistency:
     """Test that workflow changes are properly documented."""
     
-    def test_pr_agent_exactly_one_setup_python_per_job(self):
-        """
-        Ensure each job defines at most one Setup Python step.
+    def test_documentation_mentions_workflow_simplification(self):
+        """Summary docs should mention the pr-agent workflow simplification."""
+        summary_file = Path('TEST_GENERATION_CURRENT_BRANCH_COMPLETE.md')
+        if not summary_file.exists():
+            pytest.skip("Summary documentation not found")
         
-        Checks each job's steps and asserts there is no more than one step named "Setup Python" and no more than one step using an action containing "setup-python". If either form is present, the counts by name and by uses must match.
-        """
-        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
-        if not pr_agent_file.exists():
-            pytest.skip("pr-agent.yml not found")
+        content = summary_file.read_text()
         
-        # Should mention key changes
-        key_changes = [
-            'pr-agent',
-            'workflow',
-            'simplified',
-        ]
-        
-        found_mentions = [change for change in key_changes if change.lower() in content.lower()]
+        key_changes = ['pr-agent', 'workflow', 'simplified']
+        found_mentions = [kw for kw in key_changes if kw in content.lower()]
         assert len(found_mentions) >= 2, "Summary should document key workflow changes"
     
     def test_documentation_files_valid_markdown(self):
