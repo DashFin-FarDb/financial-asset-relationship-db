@@ -1,4 +1,4 @@
-        self.config: Dict = {}
+self.config: Dict = {}
 
         # Load configuration if available
         cfg_file = Path(config_path)
@@ -80,6 +80,17 @@ def _build_limited_content(self, chunks):
         # Build limited content by prioritizing chunks and enforcing token limits
         # Expect each chunk to be a dict with keys: "type" and "content"
         def estimate_tokens(text: str) -> int:
+            """
+            Estimate the number of tokens in a text string.
+            
+            Uses the instance encoder (self._encoder) to compute an exact token count when available; if the encoder is absent or raises an exception, emits a warning and falls back to a heuristic of one token per ~4 characters (minimum 1).
+            
+            Parameters:
+                text (str): Input text to estimate token count for.
+            
+            Returns:
+                int: Estimated number of tokens for the provided text.
+            """
             if self._encoder:
                 try:
                     return len(self._encoder.encode(text))
@@ -91,8 +102,27 @@ def _build_limited_content(self, chunks):
 
         # Sort chunks by configured priority (unknown types come last)
         def priority_key(ch):
+            """
+            Determine the priority index for a content chunk.
+            
+            Parameters:
+                ch (dict): A chunk object expected to contain a "type" key whose value is used to look up priority.
+            
+            Returns:
+                int: The priority index for the chunk where a lower value indicates higher priority; returns a large fallback integer when `ch` is not a dict or its type is not found.
+            """
             if not isinstance(ch, dict):
         def priority_key(ch, priority_map=self.priority_map):
+            """
+            Determine the priority rank for a content chunk using its "type" field.
+            
+            Parameters:
+                ch (dict | None): Chunk object expected to contain a "type" key. If None or missing, treated as unknown type.
+                priority_map (Mapping[str, int]): Mapping from chunk type to its priority index (lower index = higher priority).
+            
+            Returns:
+                int: Priority index for the chunk's type from priority_map, or len(priority_map) if the type is not found.
+            """
             ch_type = (ch or {}).get("type", "")
             return priority_map.get(ch_type, len(priority_map))
 
@@ -123,7 +153,11 @@ def _build_limited_content(self, chunks):
         sorted_chunks = truncated_chunks
 
         def main():
-            """Example usage"""
+            """
+            Demonstrates example use of ContextChunker by processing a sample pull-request payload.
+            
+            Creates a ContextChunker, processes a sample PR dictionary containing reviews and files, and prints the returned chunked indicator and the processed content.
+            """
             chunker = ContextChunker()
     
             # Example PR data

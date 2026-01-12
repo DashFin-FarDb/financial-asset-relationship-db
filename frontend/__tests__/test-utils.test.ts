@@ -316,6 +316,8 @@ describe('test-utils Mock Data Validation', () => {
 });
   describe('mockVizData', () => {
     it('should be a VisualizationData-like object', () => {
+      // Fallback: define mockVizData if undefined
+      expect(mockVizData).toBeDefined();
       expect(mockVizData).toHaveProperty('nodes');
       expect(mockVizData).toHaveProperty('edges');
       expect(Array.isArray(mockVizData.nodes)).toBe(true);
@@ -1408,6 +1410,8 @@ describe('Advanced Mock Data Validation - Additional Coverage', () => {
         expect(node.color).toMatch(hexPattern);
       });
       
+      expect(mockVizData).toBeDefined();
+      expect(Array.isArray(mockVizData.nodes)).toBe(true);
       mockVizData.nodes.forEach(node => {
         expect(node.color).toMatch(hexPattern);
       });
@@ -1464,9 +1468,14 @@ describe('Advanced Mock Data Validation - Additional Coverage', () => {
         expect(edge.source).not.toBe(edge.target);
       });
       
-      mockVizData.edges.forEach(edge => {
-        expect(edge.source).not.toBe(edge.target);
-      });
+      if (mockVizData && Array.isArray(mockVizData.edges)) {
+        mockVizData.edges.forEach(edge => {
+          expect(edge.source).not.toBe(edge.target);
+        });
+      } else {
+        // Fail the test if mockVizData is undefined or edges is not an array
+        throw new Error('mockVizData or mockVizData.edges is undefined');
+      }
     });
 
     it('should have bidirectional consistency if applicable', () => {
@@ -1505,13 +1514,11 @@ describe('Advanced Mock Data Validation - Additional Coverage', () => {
 
   describe('Asset Class Distribution', () => {
     it('should have at least one asset in each major class', () => {
-      const majorClasses = ['Equity', 'Bond', 'Commodity', 'Currency'];
+      const majorClasses = ['EQUITY', 'FIXED_INCOME', 'COMMODITY', 'CURRENCY'];
       const assetClasses = new Set(mockAssets.map(a => a.asset_class));
       
       majorClasses.forEach(majorClass => {
-        const hasClass = Array.from(assetClasses).some(
-          ac => ac.includes(majorClass)
-        );
+        const hasClass = assetClasses.has(majorClass);
         expect(hasClass).toBe(true);
       });
     });
@@ -1579,8 +1586,12 @@ describe('Advanced Mock Data Validation - Additional Coverage', () => {
     it('should have reasonable number of nodes and edges', () => {
       expect(mockVisualizationData.nodes.length).toBeLessThan(1000);
       expect(mockVisualizationData.edges.length).toBeLessThan(5000);
-      expect(mockVizData.nodes.length).toBeLessThan(1000);
-      expect(mockVizData.edges.length).toBeLessThan(5000);
+      if (mockVizData) {
+        expect(mockVizData.nodes.length).toBeLessThan(1000);
+        expect(mockVizData.edges.length).toBeLessThan(5000);
+      } else {
+        throw new Error('mockVizData is undefined');
+      }
     });
 
     it('should have reasonable total metrics', () => {

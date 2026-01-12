@@ -3,26 +3,35 @@ Advanced security tests for GitHub workflows.
 
 Focus areas:
 1. Injection vulnerability prevention
-2. Secret exposure prevention  
+2. Secret exposure prevention
 3. Permissions and least privilege
 4. Supply chain security
 5. Workflow isolation and sandboxing
 """
 
 import os
-import pytest
-import yaml
 import re
 from pathlib import Path
-from typing import Dict, Any, List, Set
+from typing import Any, Dict, List, Set
+
+import pytest
+import yaml
 
 
 class TestWorkflowInjectionPrevention:
     """Tests for preventing injection attacks in workflows."""
-    
+
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
-        """Load all workflow files."""
+        """
+        Load and parse all GitHub Actions workflow YAML files from .github/workflows.
+
+        Returns:
+            workflows (List[Dict[str, Any]]): A list where each item is a dict with keys:
+                - 'path' (Path): filesystem path to the workflow file
+                - 'content' (Any): YAML-parsed content of the workflow
+                - 'raw' (str): raw file contents as a string
+        """
         workflow_dir = Path(".github/workflows")
         workflows = []
         for workflow_file in workflow_dir.glob("*.yml"):
@@ -34,15 +43,19 @@ class TestWorkflowInjectionPrevention:
                     'raw': content
                 })
         return workflows
-    
+
     def test_no_unquoted_github_context_in_run_commands(self, all_workflows):
-        """Verify github context variables are properly quoted in run commands."""
+        """
+        Ensure GitHub context variables in 'run' steps are enclosed in quotes.
+
+        Scans each workflow's job steps for usages of GitHub context variables (for example `github.event.*`, `github.head_ref`, `github.base_ref`) inside `run` commands and fails the test if any occurrence is not wrapped in quotes. When a `run` command invokes a shell (e.g., `sh` or `bash -c`), quoting is enforced to prevent unquoted context values from being interpolated into the shell.
+        """
         dangerous_patterns = [
             r'\$\{\{\s*github\.event\.[\w.]+\s*\}\}',  # ${{ github.event.* }}
             r'\$\{\{\s*github\.head_ref\s*\}\}',        # ${{ github.head_ref }}
             r'\$\{\{\s*github\.base_ref\s*\}\}',        # ${{ github.base_ref }}
         ]
-        
+
         for workflow in all_workflows:
                         for pattern in dangerous_patterns:
                             matches = re.findall(pattern, run_command)
@@ -100,7 +113,11 @@ class TestWorkflowInjectionPrevention:
                                     f"{workflow['path']} job '{job_name}' step {step_idx}"
     
     def test_script_injection_prevention_in_pr_title_body(self, all_workflows):
-        """Verify PR title/body are not directly interpolated in scripts."""
+        """
+        Ensure workflow run steps do not directly interpolate pull request, issue, or comment title/body into script content.
+        
+        Checks for occurrences of these GitHub context paths in a step's `run` text: `github.event.pull_request.title`, `github.event.pull_request.body`, `github.event.issue.title`, `github.event.issue.body`, and `github.event.comment.body`. If any are present the test requires the value be supplied via environment variables (e.g., `env:` or `ENV`) and fails if direct interpolation is detected.
+        """
         dangerous_refs = [
             'github.event.pull_request.title',
             'github.event.pull_request.body',
@@ -146,7 +163,15 @@ class TestWorkflowSecretHandling:
     
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
-        """Load all workflow files."""
+        """
+        Load and parse all GitHub Actions workflow YAML files from .github/workflows.
+        
+        Returns:
+            workflows (List[Dict[str, Any]]): A list where each item is a dict with keys:
+                - 'path' (Path): filesystem path to the workflow file
+                - 'content' (Any): YAML-parsed content of the workflow
+                - 'raw' (str): raw file contents as a string
+        """
         workflow_dir = Path(".github/workflows")
         workflows = []
         for workflow_file in workflow_dir.glob("*.yml"):
@@ -160,7 +185,9 @@ class TestWorkflowSecretHandling:
         return workflows
     
     def test_secrets_not_echoed_in_logs(self, all_workflows):
-        """Verify secrets are not echoed or printed in logs."""
+        """
+        Scan each workflow's raw YAML for `secrets.NAME` references and assert that no line containing a secret reference invokes `echo`, `print`, or `printf`, which would expose the secret in logs.
+        """
         for workflow in all_workflows:
             raw_content = workflow['raw']
             
@@ -205,7 +232,13 @@ class TestWorkflowSecretHandling:
                                 f"job '{job_name}' step {step_idx}"
     
     def test_sensitive_env_vars_marked_as_secrets(self, all_workflows):
-        """Verify sensitive environment variable names use secrets."""
+        """
+        Ensure environment variables with sensitive names reference repository secrets.
+        
+        Scans job-level and step-level environment variable names for sensitive keywords
+        such as PASSWORD, TOKEN, API_KEY, SECRET, PRIVATE_KEY, CREDENTIALS, and AUTH,
+        and asserts that their values reference `secrets.` to avoid hard-coded secrets.
+        """
         sensitive_patterns = [
             'PASSWORD', 'TOKEN', 'API_KEY', 'SECRET', 
             'PRIVATE_KEY', 'CREDENTIALS', 'AUTH'
@@ -239,7 +272,14 @@ class TestWorkflowPermissionsHardening:
     
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
-        """Load all workflow files."""
+        """
+        Load and parse all GitHub Actions workflow YAML files from .github/workflows.
+        
+        Returns:
+            workflows (List[Dict[str, Any]]): A list where each item is a dictionary with:
+                - 'path' (Path): Path to the workflow file.
+                - 'content' (Any): The parsed YAML content of the workflow.
+        """
         workflow_dir = Path(".github/workflows")
         workflows = []
         for workflow_file in workflow_dir.glob("*.yml"):
@@ -308,7 +348,11 @@ class TestWorkflowPermissionsHardening:
                                                 # Skip local actions
                                                 if action.startswith('./') or action.startswith('.\\'):
                         def test_third_party_actions_pinned_to_commit_sha(self, all_workflows):
-                            """Verify third-party actions are pinned to full commit SHAs."""
+                            """
+                            Ensure third-party actions referenced with '@' are pinned to a 40-character lowercase hex commit SHA.
+                            
+                            Asserts that any step `uses` value containing an `@` refers to a full commit SHA (40 lowercase hexadecimal characters) rather than a branch or tag.
+                            """
                             for workflow in all_workflows:
                                 jobs = workflow['content'].get('jobs', {})
                                 for job_name, job_config in jobs.items():
@@ -331,7 +375,17 @@ class TestWorkflowSupplyChainSecurity:
     
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
-        """Load all workflow files."""
+        """
+        Collects GitHub Actions workflow files from .github/workflows.
+        
+        Parses each *.yml file found in that directory and returns a list of descriptors for each workflow. Each descriptor is a dict with:
+        - 'path': Path object pointing to the workflow file,
+        - 'content': the YAML-parsed content (via yaml.safe_load),
+        - 'raw': the file contents as a raw string.
+        
+        Returns:
+            workflows (List[Dict[str, Any]]): List of workflow descriptors as described above.
+        """
         workflow_dir = Path(".github/workflows")
         workflows = []
         for workflow_file in workflow_dir.glob("*.yml"):
@@ -380,7 +434,11 @@ class TestWorkflowSupplyChainSecurity:
                 f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
     
     def test_pip_installs_use_hash_verification(self, all_workflows):
-        """Verify pip installations can use hash verification for critical packages."""
+        """
+        Ensure pip installs that reference requirements files do not use insecure HTTP package indexes.
+        
+        Checks run steps containing both "pip install" and "requirements" and fails if the command uses an insecure --extra-index-url with an http:// URL.
+        """
         for workflow in all_workflows:
             jobs = workflow['content'].get('jobs', {})
             for job_name, job_config in jobs.items():
@@ -403,7 +461,14 @@ class TestWorkflowIsolationAndSandboxing:
     
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
-        """Load all workflow files."""
+        """
+        Load and parse all GitHub Actions workflow YAML files from .github/workflows.
+        
+        Returns:
+            workflows (List[Dict[str, Any]]): A list where each item is a dictionary with:
+                - 'path' (Path): Path to the workflow file.
+                - 'content' (Any): The parsed YAML content of the workflow.
+        """
         workflow_dir = Path(".github/workflows")
         workflows = []
         for workflow_file in workflow_dir.glob("*.yml"):
@@ -415,7 +480,11 @@ class TestWorkflowIsolationAndSandboxing:
         return workflows
     
     def test_pull_request_workflows_use_safe_checkout(self, all_workflows):
-        """Verify PR workflows use safe checkout strategies."""
+        """
+        Ensure workflows triggered by pull_request_target explicitly specify the checkout ref.
+        
+        When a workflow is triggered by `pull_request_target`, every `actions/checkout` step in each job must include a `with: ref` setting to avoid checking out an unintended ref.
+        """
         for workflow in all_workflows:
             triggers = workflow['content'].get('on', {}) or workflow['content'].get(True, {})
             
@@ -450,7 +519,11 @@ class TestWorkflowIsolationAndSandboxing:
                             f"job '{job_name}' must be pinned to a commit SHA for security"
                         )
     def test_workflows_dont_persist_credentials(self, all_workflows):
-        """Verify workflows don't persist git credentials."""
+        """
+        Ensure workflow checkout steps do not persist Git credentials.
+        
+        Asserts that when a step uses `actions/checkout` and specifies `persist-credentials` it is set to `False`. If not, the test fails and reports the workflow path, job name, and step index.
+        """
         for workflow in all_workflows:
             jobs = workflow['content'].get('jobs', {})
             for job_name, job_config in jobs.items():
@@ -465,7 +538,11 @@ class TestWorkflowIsolationAndSandboxing:
                                 f"job '{job_name}' step {step_idx}"
     
     def test_container_jobs_use_trusted_images(self, all_workflows):
-        """Verify container jobs use trusted/official images."""
+        """
+        Ensure workflow jobs that declare a container use images from trusted registries or a small whitelist of official images.
+        
+        Checks each workflow's jobs for a `container` field and validates that the image string is either hosted on a trusted registry (e.g., Docker Hub official namespace, GHCR, MCR) or matches a known official image name. Raises AssertionError when an untrusted container image is encountered, including the workflow path, job name, and offending image.
+        """
         trusted_registries = [
             'docker.io/library/',  # Docker official images
             'ghcr.io/',            # GitHub Container Registry
