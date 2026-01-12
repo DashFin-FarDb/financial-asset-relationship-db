@@ -46,7 +46,11 @@ class TestContextChunkerRemoval:
                 # Check for imports
                 import_pattern = re.compile(r'^\s*(?:from\s+context_chunker\b|import\s+context_chunker\b)', re.MULTILINE)
                 assert not import_pattern.search(content), f"{py_file} imports context_chunker"
-            except Exception:
+            except (IOError, OSError):
+                # Skip files that can't be read due to I/O issues
+                pass
+            except Exception as e:
+                pytest.fail(f"Unexpected error reading {py_file}: {e}")
                 # Skip files that can't be read
                 pass
     
