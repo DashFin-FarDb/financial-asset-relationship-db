@@ -1,4 +1,3 @@
-self.config: Dict = {}
 
         # Load configuration if available
         cfg_file = Path(config_path)
