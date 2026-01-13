@@ -8,7 +8,6 @@ Tests specific changes made to workflow files, including:
 - APISec scan workflow modifications
 """
 
-import os
 from pathlib import Path
 
 import pytest

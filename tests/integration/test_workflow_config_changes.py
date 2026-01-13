@@ -10,7 +10,6 @@ Tests focus on:
 6. Security best practices in workflows
 """
 
-import os
 from pathlib import Path
 from typing import Any, Dict, List
 

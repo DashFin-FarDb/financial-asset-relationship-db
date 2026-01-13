@@ -46,7 +46,7 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
         if data is None:
             return ValidationResult(False, ["Workflow file is empty or contains only nulls."], {})
         if not isinstance(data, dict):
-            return ValidationResult(False, ["Workflow must be a dict"], {})
+            return ValidationResult(False, ["Workflow must be a dict"], data)
         if "jobs" not in data:
             return ValidationResult(False, ["Workflow must have a 'jobs' key"], data)
 
@@ -61,6 +61,5 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
         return ValidationResult(False, [f"Expected a file but found a directory: {e}"], {})
     except NotADirectoryError as e:
         return ValidationResult(False, [f"Invalid path component (not a directory): {e}"], {})
-    except Exception:
-        # Re-raise unexpected exceptions to avoid masking programming errors
-        raise
+    except UnicodeDecodeError as e:
+        return ValidationResult(False, [f"Invalid file encoding: {e}"], {})

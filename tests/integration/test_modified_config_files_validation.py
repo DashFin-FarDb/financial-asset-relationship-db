@@ -376,9 +376,8 @@ class TestCodacyInstructionsChanges:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
-        assert (
-            "git remote -v" not in content or "unless really necessary" not in content
-        ), "Codacy instructions should be simplified"
+        assert "git remote -v" not in content, "Codacy instructions should be simplified"
+        assert "unless really necessary" not in content, "Codacy instructions should be simplified"
 
     def test_codacy_critical_rules_present(self, codacy_instructions_path: Path):
         """
