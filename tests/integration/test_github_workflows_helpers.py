@@ -1,6 +1,6 @@
 """
 Unit tests for helper functions in test_github_workflows.py module.
-"""
+
 This test suite validates the utility functions used for GitHub Actions workflow
 testing, ensuring they correctly identify workflow files, parse YAML, and detect
 duplicate keys.
@@ -474,7 +474,7 @@ jobs:
         with:
 """
         )
-          fetch-depth: 0
+            fetch - depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
