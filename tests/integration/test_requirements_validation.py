@@ -72,8 +72,6 @@ class TestRequirementsDevChanges:
         Parameters:
             requirements_dev_content (str): Contents of requirements-dev.txt.
         """
-        import re
-
         lines = [l.strip() for l in requirements_dev_content.split("\n") if l.strip() and not l.strip().startswith("#")]
 
         # Split on any common version operator to reliably extract the package name

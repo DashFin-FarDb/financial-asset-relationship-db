@@ -8,7 +8,6 @@ Tests cover:
 - Deletion validation for removed files
 """
 
-import os
 from pathlib import Path
 from typing import Any, Dict
 
