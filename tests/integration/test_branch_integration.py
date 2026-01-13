@@ -161,7 +161,7 @@ class TestDependencyWorkflowIntegration:
         """
         Ensure development requirements include packages needed to run the workflow tests.
 
-        Checks that requirements-dev.txt (case-insensitive) contains both 'pytest' and 'PyYAML'.
+        Checks that requirements - dev.txt(case-insensitive) contains both 'pytest' and 'PyYAML'.
         """
         with open("requirements-dev.txt", "r") as f:
             content = f.read().lower()
