@@ -246,8 +246,6 @@ class TestConnectWithMemoryDb:
             conn2.close()
         finally:
             # Clean up temp file
-            import os
-
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
@@ -344,7 +342,6 @@ class TestGetConnectionWithMemoryDb:
             with reloaded_database.get_connection() as conn2:
                 assert conn2 is not conn_ref
         finally:
-            import os
 
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)

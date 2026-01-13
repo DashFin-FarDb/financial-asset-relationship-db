@@ -33,18 +33,14 @@ class TestValidateOrigin:
     def test_validate_origin_http_localhost_development():
         """Test HTTP localhost is allowed in development."""
         with patch.dict(os.environ, {"ENV": "development"}):
-            from api.main import validate_origin as vo
-
-            assert vo("http://localhost:3000")
-            assert vo("http://127.0.0.1:8000")
-            assert vo("http://localhost")
+            assert validate_origin("http://localhost:3000")
+            assert validate_origin("http://127.0.0.1:8000")
+            assert validate_origin("http://localhost")
 
     @staticmethod
     def test_validate_origin_http_localhost_production():
         """Test HTTP localhost is rejected in production."""
         with patch.dict(os.environ, {"ENV": "production"}):
-            from api.main import validate_origin as vo
-
             assert not vo("http://localhost:3000")
             assert not vo("http://127.0.0.1:8000")
 
@@ -90,8 +86,6 @@ class TestGraphInitialization:
 
     def test_graph_initialization(self):
         """Test graph is initialized via get_graph()."""
-        import api.main
-
         api.main.reset_graph()
         graph = api.main.get_graph()
         assert graph is not None
@@ -100,8 +94,6 @@ class TestGraphInitialization:
 
     def test_graph_singleton(self):
         """Test graph is a singleton instance via get_graph()."""
-        import api.main
-
         api.main.reset_graph()
         graph1 = api.main.get_graph()
         graph2 = api.main.get_graph()
@@ -110,8 +102,6 @@ class TestGraphInitialization:
 
     def test_graph_uses_cache_when_configured(self, tmp_path, monkeypatch):
         """Graph initialization should load from cached dataset when provided."""
-        import api.main
-
         cache_path = tmp_path / "graph_snapshot.json"
         reference_graph = create_sample_database()
         _save_to_cache(reference_graph, cache_path)
@@ -129,8 +119,6 @@ class TestGraphInitialization:
 
     def test_graph_fallback_on_corrupted_cache(self, tmp_path, monkeypatch):
         """Graph initialization should fallback when cache is corrupted or invalid."""
-        import api.main
-
         cache_path = tmp_path / "graph_snapshot.json"
         # Write invalid/corrupted data to the cache file
         # Write invalid/corrupted data to the cache file

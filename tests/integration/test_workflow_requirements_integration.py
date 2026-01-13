@@ -149,11 +149,6 @@ class TestPyYAMLAvailability:
     @staticmethod
     def test_pyyaml_can_parse_workflow_files():
         """Test that installed PyYAML can successfully parse workflow files."""
-        try:
-            import yaml
-        except ImportError:
-            pytest.skip("PyYAML not installed in test environment")
-
         workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
 
         assert len(workflow_files) > 0, "No workflow files found to test"
