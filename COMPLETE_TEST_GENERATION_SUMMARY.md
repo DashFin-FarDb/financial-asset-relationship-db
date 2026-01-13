@@ -66,7 +66,7 @@ All comprehensive unit tests for GitHub workflow configuration files have been s
 
 ✅ **PR Agent Workflow (pr-agent.yml)**
 - Duplicate "Setup Python" step removal
-- Duplicate "with:" block elimination  
+- Duplicate "with:" block elimination
 - Python dependency installation validation
 - Context chunking removal
 - Simplified PR comment parsing
@@ -230,16 +230,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           pip install -r requirements-dev.txt
-      
+
       - name: Run workflow configuration tests
         run: |
           pytest tests/integration/test_workflow_*.py \

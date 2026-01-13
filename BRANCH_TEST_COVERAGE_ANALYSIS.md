@@ -9,7 +9,7 @@ This branch contains extensive test coverage across all modified files:
 ## Modified Files & Their Test Coverage
 
 ### Configuration Files (All Tested ✓)
-1. `.github/pr-agent-config.yml` 
+1. `.github/pr-agent-config.yml`
    - **Tested by**: `test_pr_agent_config_validation.py` (267 lines, 13 tests)
    - Validates version changes, config simplification, removed features
 
@@ -38,7 +38,7 @@ This branch contains extensive test coverage across all modified files:
 - **Coverage**: Workflows, configs, requirements, documentation
 - **Framework**: pytest + PyYAML
 
-### Frontend Tests  
+### Frontend Tests
 - **Files**: 8 test files
 - **Lines**: ~3,100
 - **Coverage**: Components, API, utilities, integration

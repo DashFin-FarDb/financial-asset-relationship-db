@@ -16,7 +16,7 @@ Following the **bias-for-action principle**, one additional validation test file
 - **Purpose**: Validate YAML structure and simplification of modified workflow files
 - **Lines**: 92
 - **Tests**: 5 test methods across 2 test classes
-- **Coverage**: 
+- **Coverage**:
   - YAML syntax validation
   - GitHub Actions structure validation
   - Workflow simplification verification

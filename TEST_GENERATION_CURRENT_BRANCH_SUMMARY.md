@@ -202,7 +202,7 @@ cd frontend && npm test
 
 ### Edge Cases
 - ✅ Missing directories and files handled gracefully
-- ✅ Invalid YAML syntax caught appropriately  
+- ✅ Invalid YAML syntax caught appropriately
 - ✅ Empty and malformed data rejected
 - ✅ UTF-8 encoding issues detected
 - ✅ Boundary values validated
@@ -231,7 +231,7 @@ These tests integrate seamlessly with the existing CI/CD pipeline:
   run: pytest tests/ -v --cov
 
 # Frontend tests run via
-- name: Run Frontend Tests  
+- name: Run Frontend Tests
   run: cd frontend && npm test
 ```
 

@@ -108,7 +108,7 @@ Following a **bias-for-action approach**, comprehensive unit tests have been gen
 # Run all new pr-agent workflow tests
 pytest tests/integration/test_pr_agent_workflow_specific.py -v
 
-# Run all PyYAML dependency tests  
+# Run all PyYAML dependency tests
 pytest tests/integration/test_requirements_pyyaml.py -v
 
 # Run both test files together

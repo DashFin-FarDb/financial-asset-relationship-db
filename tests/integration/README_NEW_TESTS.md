@@ -137,11 +137,11 @@ These tests run automatically in the CI/CD pipeline:
 @pytest.fixture
 def doc_root(self) -> Path:
     """Get the repository root directory."""
-    
+
 @pytest.fixture
 def markdown_files(self, doc_root: Path) -> List[Path]:
     """Get all markdown files in repository root."""
-    
+
 @pytest.fixture
 def config_path(self) -> Path:
     """Get path to PR agent config."""

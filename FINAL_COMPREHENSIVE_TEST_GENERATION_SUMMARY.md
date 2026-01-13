@@ -280,7 +280,7 @@ def test_pr_agent_no_duplicate_step_names(self):
         if name in seen:
             duplicates.append(name)
         seen.add(name)
-    
+
     assert len(duplicates) == 0
 ```
 
@@ -301,7 +301,7 @@ def test_workflows_no_code_execution_in_untrusted_context(self):
 it('should have all visualization node IDs present in assets', () => {
   const assetIds = new Set(mockAssets.map(a => a.id));
   const vizNodeIds = mockVisualizationData.nodes.map(n => n.id);
-  
+
   vizNodeIds.forEach(nodeId => {
     expect(assetIds.has(nodeId)).toBe(true);
   });
