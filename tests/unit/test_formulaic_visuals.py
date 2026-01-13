@@ -75,8 +75,6 @@ class TestFormulaicVisualizer:
                 "Technology": {"asset_count": 3, "avg_price": 150.0, "price_range": "$100.00 - $200.00"}
             },
         }
-            },
-        }
 
     @ staticmethod
     def test_visualizer_initialization(visualizer):

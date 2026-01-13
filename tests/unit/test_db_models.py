@@ -463,8 +463,6 @@ class TestRegulatoryEventORM:
         # Create main asset and related assets
         main_asset = AssetORM(
             id="MAIN_ASSET",
-        main_asset=AssetORM(
-            id="MAIN_ASSET",
             symbol="MA",
             name="Main Asset",
             asset_class="equity",

@@ -175,7 +175,6 @@ class TestRequirementsInstallability:
         # Use pip to check syntax without installing
         result = subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"], capture_output=True, text=True
-        )
         # Should not have syntax errors
         assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
 
