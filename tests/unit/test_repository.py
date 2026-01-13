@@ -44,7 +44,8 @@ def repository(tmp_path):
 class TestAssetOperations:
     """Test cases for asset CRUD operations."""
 
-    def test_upsert_new_equity_asset(self, repository):
+    @staticmethod
+    def test_upsert_new_equity_asset(repository):
         """Test inserting a new equity asset."""
         equity = Equity(
             id="TEST_EQUITY",
@@ -67,7 +68,8 @@ class TestAssetOperations:
         assert assets[0].id == "TEST_EQUITY"
         assert assets[0].symbol == "TEST"
 
-    def test_upsert_update_existing_asset(self, repository):
+    @staticmethod
+    def test_upsert_update_existing_asset(repository):
         """Test updating an existing asset."""
         equity = Equity(
             id="UPDATE_TEST",
@@ -92,7 +94,8 @@ class TestAssetOperations:
         assert assets[0].price == 150.0
         assert assets[0].sector == "Technology"
 
-    def test_upsert_bond_asset(self, repository):
+    @staticmethod
+    def test_upsert_bond_asset(repository):
         """Test inserting a bond asset."""
         bond = Bond(
             id="TEST_BOND",
@@ -115,7 +118,8 @@ class TestAssetOperations:
         assert isinstance(assets[0], Bond)
         assert assets[0].yield_to_maturity == 0.03
 
-    def test_upsert_commodity_asset(self, repository):
+    @staticmethod
+    def test_upsert_commodity_asset(repository):
         """Test inserting a commodity asset."""
         commodity = Commodity(
             id="TEST_COMMODITY",
@@ -137,7 +141,8 @@ class TestAssetOperations:
         assert isinstance(assets[0], Commodity)
         assert assets[0].contract_size == 100.0
 
-    def test_upsert_currency_asset(self, repository):
+    @staticmethod
+    def test_upsert_currency_asset(repository):
         """Test inserting a currency asset."""
         currency = Currency(
             id="TEST_CURRENCY",
@@ -159,7 +164,8 @@ class TestAssetOperations:
         assert isinstance(assets[0], Currency)
         assert assets[0].exchange_rate == 1.10
 
-    def test_list_assets_ordered_by_id(self, repository):
+    @staticmethod
+    def test_list_assets_ordered_by_id(repository):
         """Test that list_assets returns assets ordered by id."""
         assets_to_add = [
             Equity(id="C_ASSET", symbol="C", name="C", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0),
@@ -177,7 +183,8 @@ class TestAssetOperations:
         assert assets[1].id == "B_ASSET"
         assert assets[2].id == "C_ASSET"
 
-    def test_get_assets_map(self, repository):
+    @staticmethod
+    def test_get_assets_map(repository):
         """Test retrieving assets as a dictionary."""
         equity1 = Equity(
             id="EQUITY1", symbol="E1", name="Equity 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
@@ -196,7 +203,8 @@ class TestAssetOperations:
         assert "EQUITY2" in assets_map
         assert assets_map["EQUITY1"].symbol == "E1"
 
-    def test_delete_asset(self, repository):
+    @staticmethod
+    def test_delete_asset(repository):
         """Test deleting an asset."""
         equity = Equity(
             id="DELETE_ME", symbol="DEL", name="Delete", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
@@ -211,7 +219,8 @@ class TestAssetOperations:
         assets = repository.list_assets()
         assert len(assets) == 0
 
-    def test_delete_nonexistent_asset(self, repository):
+    @staticmethod
+    def test_delete_nonexistent_asset(repository):
         """Test deleting an asset that doesn't exist."""
         # Should not raise an error
         repository.delete_asset("NONEXISTENT")
@@ -221,7 +230,8 @@ class TestAssetOperations:
 class TestRelationshipOperations:
     """Test cases for relationship management."""
 
-    def test_add_new_relationship(self, repository):
+    @staticmethod
+    def test_add_new_relationship(repository):
         """Test adding a new relationship."""
         # Create assets
         asset1 = Equity(
@@ -244,7 +254,8 @@ class TestRelationshipOperations:
         assert relationships[0].target_id == "ASSET2"
         assert relationships[0].strength == 0.7
 
-    def test_update_existing_relationship(self, repository):
+    @staticmethod
+    def test_update_existing_relationship(repository):
         """Test updating an existing relationship."""
         asset1 = Equity(
             id="UPDATE1", symbol="U1", name="Update 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
@@ -269,7 +280,8 @@ class TestRelationshipOperations:
         assert relationships[0].strength == 0.9
         assert relationships[0].bidirectional is True
 
-    def test_list_all_relationships(self, repository):
+    @staticmethod
+    def test_list_all_relationships(repository):
         """Test listing all relationships."""
         # Create assets
         for i in range(3):
@@ -292,7 +304,8 @@ class TestRelationshipOperations:
         relationships = repository.list_relationships()
         assert len(relationships) == 2
 
-    def test_get_specific_relationship(self, repository):
+    @staticmethod
+    def test_get_specific_relationship(repository):
         """Test retrieving a specific relationship."""
         asset1 = Equity(id="GET1", symbol="G1", name="Get 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
         asset2 = Equity(id="GET2", symbol="G2", name="Get 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0)
@@ -308,12 +321,14 @@ class TestRelationshipOperations:
         assert rel.strength == 0.8
         assert rel.bidirectional is True
 
-    def test_get_nonexistent_relationship(self, repository):
+    @staticmethod
+    def test_get_nonexistent_relationship(repository):
         """Test getting a relationship that doesn't exist."""
         rel = repository.get_relationship("NONE1", "NONE2", "nonexistent")
         assert rel is None
 
-    def test_delete_relationship(self, repository):
+    @staticmethod
+    def test_delete_relationship(repository):
         """Test deleting a relationship."""
         asset1 = Equity(id="DEL1", symbol="D1", name="Del 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
         asset2 = Equity(id="DEL2", symbol="D2", name="Del 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0)
@@ -330,13 +345,15 @@ class TestRelationshipOperations:
         relationships = repository.list_relationships()
         assert len(relationships) == 0
 
-    def test_delete_nonexistent_relationship(self, repository):
+    @staticmethod
+    def test_delete_nonexistent_relationship(repository):
         """Test deleting a relationship that doesn't exist."""
         # Should not raise an error
         repository.delete_relationship("NONE1", "NONE2", "nonexistent")
         repository.session.commit()
 
-    def test_relationship_record_dataclass(self):
+    @staticmethod
+    def test_relationship_record_dataclass():
         """Test RelationshipRecord dataclass."""
         record = RelationshipRecord(
             source_id="SOURCE",
@@ -356,7 +373,8 @@ class TestRelationshipOperations:
 class TestRegulatoryEventOperations:
     """Test cases for regulatory event handling."""
 
-    def test_upsert_new_regulatory_event(self, repository):
+    @staticmethod
+    def test_upsert_new_regulatory_event(repository):
         """Test inserting a new regulatory event."""
         asset = Equity(
             id="EVENT_ASSET", symbol="EA", name="Event Asset", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
@@ -382,7 +400,8 @@ class TestRegulatoryEventOperations:
         assert len(events) == 1
         assert events[0].id == "EVENT001"
 
-    def test_upsert_update_regulatory_event(self, repository):
+    @staticmethod
+    def test_upsert_update_regulatory_event(repository):
         """Test updating an existing regulatory event."""
         asset = Equity(
             id="UPDATE_EVENT",
@@ -419,7 +438,8 @@ class TestRegulatoryEventOperations:
         assert events[0].impact_score == 0.9
         assert events[0].description == "Updated filing"
 
-    def test_upsert_event_with_related_assets(self, repository):
+    @staticmethod
+    def test_upsert_event_with_related_assets(repository):
         """Test upserting event with related assets."""
         # Create assets
         main = Equity(id="MAIN", symbol="M", name="Main", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
@@ -456,7 +476,8 @@ class TestRegulatoryEventOperations:
 class TestDataTransformation:
     """Test cases for data transformation between models and ORM."""
 
-    def test_equity_to_orm_conversion(self, repository):
+    @staticmethod
+    def test_equity_to_orm_conversion(repository):
         """Test converting Equity to ORM and back."""
         equity = Equity(
             id="TRANSFORM1",
@@ -481,7 +502,8 @@ class TestDataTransformation:
         assert retrieved.pe_ratio == equity.pe_ratio
         assert retrieved.dividend_yield == equity.dividend_yield
 
-    def test_bond_to_orm_conversion(self, repository):
+    @staticmethod
+    def test_bond_to_orm_conversion(repository):
         """Test converting Bond to ORM and back."""
         bond = Bond(
             id="TRANSFORM2",
@@ -506,7 +528,8 @@ class TestDataTransformation:
         assert retrieved.credit_rating == bond.credit_rating
         assert retrieved.issuer_id == bond.issuer_id
 
-    def test_multiple_asset_types(self, repository):
+    @staticmethod
+    def test_multiple_asset_types(repository):
         """Test handling multiple asset types simultaneously."""
         equity = Equity(
             id="MULTI1", symbol="M1", name="Multi 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
@@ -550,7 +573,8 @@ class TestDataTransformation:
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
-    def test_empty_repository(self, repository):
+    @staticmethod
+    def test_empty_repository(repository):
         """Test operations on empty repository."""
         assets = repository.list_assets()
         assert len(assets) == 0
@@ -561,7 +585,8 @@ class TestEdgeCases:
         relationships = repository.list_relationships()
         assert len(relationships) == 0
 
-    def test_asset_with_minimal_fields(self, repository):
+    @staticmethod
+    def test_asset_with_minimal_fields(repository):
         """Test asset with only required fields."""
         equity = Equity(
             id="MINIMAL",
@@ -579,7 +604,8 @@ class TestEdgeCases:
         assert retrieved.id == "MINIMAL"
         assert retrieved.price == 1.0
 
-    def test_relationship_with_zero_strength(self, repository):
+    @staticmethod
+    def test_relationship_with_zero_strength(repository):
         """Test relationship with zero strength."""
         asset1 = Equity(
             id="ZERO1", symbol="Z1", name="Zero 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
@@ -598,7 +624,8 @@ class TestEdgeCases:
         assert rel is not None
         assert rel.strength == 0.0
 
-    def test_relationship_with_max_strength(self, repository):
+    @staticmethod
+    def test_relationship_with_max_strength(repository):
         """Test relationship with maximum strength."""
         asset1 = Equity(id="MAX1", symbol="M1", name="Max 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
         asset2 = Equity(id="MAX2", symbol="M2", name="Max 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0)

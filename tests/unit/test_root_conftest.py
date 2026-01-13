@@ -11,7 +11,8 @@ from unittest.mock import MagicMock, patch
 class TestCovPluginAvailable:
     """Test cases for the _cov_plugin_available helper function."""
 
-    def test_cov_plugin_available_when_installed(self):
+    @staticmethod
+    def test_cov_plugin_available_when_installed():
         """Test that _cov_plugin_available returns True when pytest-cov is installed."""
         # Import the function from root conftest
         import conftest
@@ -23,7 +24,8 @@ class TestCovPluginAvailable:
             assert result is True
             mock_find_spec.assert_called_once_with("pytest_cov")
 
-    def test_cov_plugin_not_available_when_not_installed(self):
+    @staticmethod
+    def test_cov_plugin_not_available_when_not_installed():
         """Test that _cov_plugin_available returns False when pytest-cov is not installed."""
         import conftest
 
@@ -34,7 +36,8 @@ class TestCovPluginAvailable:
             assert result is False
             mock_find_spec.assert_called_once_with("pytest_cov")
 
-    def test_cov_plugin_available_uses_importlib(self):
+    @staticmethod
+    def test_cov_plugin_available_uses_importlib():
         """Test that _cov_plugin_available uses importlib.util.find_spec."""
         import conftest
 
@@ -51,7 +54,8 @@ class TestCovPluginAvailable:
 class TestPytestLoadInitialConftests:
     """Test cases for pytest_load_initial_conftests hook."""
 
-    def test_does_nothing_when_cov_plugin_available(self):
+    @staticmethod
+    def test_does_nothing_when_cov_plugin_available():
         """Test that no filtering occurs when pytest-cov is available."""
         import conftest
 
@@ -64,7 +68,8 @@ class TestPytestLoadInitialConftests:
             # Args should be unchanged
             assert args == original_args
 
-    def test_removes_cov_flag_with_value(self):
+    @staticmethod
+    def test_removes_cov_flag_with_value():
         """Test that --cov with separate value is removed."""
         import conftest
 
@@ -76,7 +81,8 @@ class TestPytestLoadInitialConftests:
             # Both --cov and its value should be removed
             assert args == ["--verbose", "--strict-markers", "tests/"]
 
-    def test_removes_cov_report_flag_with_value(self):
+    @staticmethod
+    def test_removes_cov_report_flag_with_value():
         """Test that --cov-report with separate value is removed."""
         import conftest
 
@@ -88,7 +94,8 @@ class TestPytestLoadInitialConftests:
             # Both --cov-report and its value should be removed
             assert args == ["--verbose", "--strict-markers", "tests/"]
 
-    def test_removes_cov_flag_with_equals_syntax(self):
+    @staticmethod
+    def test_removes_cov_flag_with_equals_syntax():
         """Test that --cov=value is removed."""
         import conftest
 
@@ -99,7 +106,8 @@ class TestPytestLoadInitialConftests:
 
             assert args == ["--verbose", "--strict-markers", "tests/"]
 
-    def test_removes_cov_report_flag_with_equals_syntax(self):
+    @staticmethod
+    def test_removes_cov_report_flag_with_equals_syntax():
         """Test that --cov-report=type is removed."""
         import conftest
 
@@ -110,7 +118,8 @@ class TestPytestLoadInitialConftests:
 
             assert args == ["--verbose", "--strict-markers", "tests/"]
 
-    def test_removes_multiple_coverage_flags(self):
+    @staticmethod
+    def test_removes_multiple_coverage_flags():
         """Test that multiple coverage flags are all removed."""
         import conftest
 
@@ -131,7 +140,8 @@ class TestPytestLoadInitialConftests:
             # All coverage flags should be removed
             assert args == ["--verbose", "--strict-markers"]
 
-    def test_preserves_other_flags(self):
+    @staticmethod
+    def test_preserves_other_flags():
         """Test that non-coverage flags are preserved."""
         import conftest
 
@@ -144,7 +154,8 @@ class TestPytestLoadInitialConftests:
             # All flags should be preserved
             assert args == original
 
-    def test_handles_empty_args_list(self):
+    @staticmethod
+    def test_handles_empty_args_list():
         """Test that empty args list is handled correctly."""
         import conftest
 
@@ -155,7 +166,8 @@ class TestPytestLoadInitialConftests:
 
             assert args == []
 
-    def test_handles_args_with_only_coverage_flags(self):
+    @staticmethod
+    def test_handles_args_with_only_coverage_flags():
         """Test that args with only coverage flags become empty."""
         import conftest
 
@@ -166,7 +178,8 @@ class TestPytestLoadInitialConftests:
 
             assert args == []
 
-    def test_modifies_args_in_place(self):
+    @staticmethod
+    def test_modifies_args_in_place():
         """Test that the function modifies the args list in place."""
         import conftest
 
@@ -184,7 +197,8 @@ class TestPytestLoadInitialConftests:
 class TestCoverageFilteringEdgeCases:
     """Test edge cases and boundary conditions for coverage flag filtering."""
 
-    def test_handles_cov_flag_at_end_with_no_value(self):
+    @staticmethod
+    def test_handles_cov_flag_at_end_with_no_value():
         """Test that --cov at the end without value doesn't cause index error."""
         import conftest
 
@@ -196,7 +210,8 @@ class TestCoverageFilteringEdgeCases:
             # --cov should be removed
             assert args == ["--verbose"]
 
-    def test_handles_cov_report_at_end_with_no_value(self):
+    @staticmethod
+    def test_handles_cov_report_at_end_with_no_value():
         """Test that --cov-report at the end without value doesn't cause index error."""
         import conftest
 
@@ -208,7 +223,8 @@ class TestCoverageFilteringEdgeCases:
             # --cov-report should be removed
             assert args == ["--verbose"]
 
-    def test_handles_consecutive_coverage_flags(self):
+    @staticmethod
+    def test_handles_consecutive_coverage_flags():
         """Test handling of consecutive coverage flags."""
         import conftest
 
@@ -219,7 +235,8 @@ class TestCoverageFilteringEdgeCases:
 
             assert args == []
 
-    def test_preserves_similar_but_different_flags(self):
+    @staticmethod
+    def test_preserves_similar_but_different_flags():
         """Test that flags similar to coverage flags are not removed."""
         import conftest
 
@@ -232,7 +249,8 @@ class TestCoverageFilteringEdgeCases:
             # These should all be preserved
             assert args == original
 
-    def test_handles_cov_in_test_path(self):
+    @staticmethod
+    def test_handles_cov_in_test_path():
         """Test that 'cov' in test paths doesn't cause issues."""
         import conftest
 
@@ -245,7 +263,8 @@ class TestCoverageFilteringEdgeCases:
             # Path should be preserved
             assert args == original
 
-    def test_handles_mixed_equals_and_space_syntax(self):
+    @staticmethod
+    def test_handles_mixed_equals_and_space_syntax():
         """Test handling of mixed --flag=value and --flag value syntax."""
         import conftest
 
@@ -256,7 +275,8 @@ class TestCoverageFilteringEdgeCases:
 
             assert args == ["--verbose"]
 
-    def test_handles_cov_flags_with_complex_values(self):
+    @staticmethod
+    def test_handles_cov_flags_with_complex_values():
         """Test handling of coverage flags with complex path values."""
         import conftest
 
@@ -267,7 +287,8 @@ class TestCoverageFilteringEdgeCases:
 
             assert args == ["--verbose"]
 
-    def test_skip_next_flag_resets_correctly(self):
+    @staticmethod
+    def test_skip_next_flag_resets_correctly():
         """Test that skip_next flag resets after skipping one value."""
         import conftest
 
@@ -283,14 +304,16 @@ class TestCoverageFilteringEdgeCases:
 class TestDocumentationAndCodeQuality:
     """Test documentation and code quality aspects of conftest.py."""
 
-    def test_module_has_docstring(self):
+    @staticmethod
+    def test_module_has_docstring():
         """Test that the conftest module has a docstring."""
         import conftest
 
         assert conftest.__doc__ is not None
         assert len(conftest.__doc__.strip()) > 0
 
-    def test_module_docstring_explains_purpose(self):
+    @staticmethod
+    def test_module_docstring_explains_purpose():
         """Test that the module docstring explains the purpose."""
         import conftest
 
@@ -298,21 +321,24 @@ class TestDocumentationAndCodeQuality:
         # Should mention coverage and pytest-cov
         assert "coverage" in docstring or "pytest-cov" in docstring or "cov" in docstring
 
-    def test_cov_plugin_available_has_docstring(self):
+    @staticmethod
+    def test_cov_plugin_available_has_docstring():
         """Test that _cov_plugin_available has a docstring."""
         import conftest
 
         assert conftest._cov_plugin_available.__doc__ is not None
         assert len(conftest._cov_plugin_available.__doc__.strip()) > 0
 
-    def test_pytest_load_initial_conftests_has_docstring(self):
+    @staticmethod
+    def test_pytest_load_initial_conftests_has_docstring():
         """Test that pytest_load_initial_conftests has a docstring."""
         import conftest
 
         assert conftest.pytest_load_initial_conftests.__doc__ is not None
         assert len(conftest.pytest_load_initial_conftests.__doc__.strip()) > 0
 
-    def test_uses_type_hints(self):
+    @staticmethod
+    def test_uses_type_hints():
         """Test that the module uses type hints appropriately."""
         import inspect
 
@@ -322,14 +348,16 @@ class TestDocumentationAndCodeQuality:
         sig = inspect.signature(conftest._cov_plugin_available)
         assert sig.return_annotation is bool
 
-    def test_imports_are_minimal(self):
+    @staticmethod
+    def test_imports_are_minimal():
         """Test that the module only imports what it needs."""
         import conftest
 
         # Check that required imports are present
         assert hasattr(conftest, "importlib")
 
-    def test_pragma_no_cover_on_hook(self):
+    @staticmethod
+    def test_pragma_no_cover_on_hook():
         """Test that pytest hook has pragma no cover comment."""
         import inspect
 
@@ -343,7 +371,8 @@ class TestDocumentationAndCodeQuality:
 class TestRealWorldScenarios:
     """Test real-world usage scenarios."""
 
-    def test_typical_ci_environment_args(self):
+    @staticmethod
+    def test_typical_ci_environment_args():
         """Test typical CI environment PYTEST_ADDOPTS scenario."""
         import conftest
 
@@ -364,7 +393,8 @@ class TestRealWorldScenarios:
             # Coverage flags removed, others preserved
             assert args == ["-v", "--strict-markers", "tests/"]
 
-    def test_local_development_without_cov(self):
+    @staticmethod
+    def test_local_development_without_cov():
         """Test local development scenario without coverage."""
         import conftest
 
@@ -377,7 +407,8 @@ class TestRealWorldScenarios:
             # Nothing should change
             assert args == original
 
-    def test_multiple_coverage_sources(self):
+    @staticmethod
+    def test_multiple_coverage_sources():
         """Test scenario with multiple --cov flags for different sources."""
         import conftest
 
@@ -388,7 +419,8 @@ class TestRealWorldScenarios:
 
             assert args == ["tests/"]
 
-    def test_mixed_short_and_long_flags(self):
+    @staticmethod
+    def test_mixed_short_and_long_flags():
         """Test scenario with mixed short and long flags."""
         import conftest
 

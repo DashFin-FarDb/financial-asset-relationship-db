@@ -247,7 +247,8 @@ class FormulaicVisualizer:
 
         return fig
 
-    def create_correlation_network(self, empirical_relationships: Dict[str, Any]) -> go.Figure:
+    @staticmethod
+    def create_correlation_network(empirical_relationships: Dict[str, Any]) -> go.Figure:
         """Create a network graph showing asset correlations"""
         strongest_correlations = empirical_relationships.get("strongest_correlations", [])
 
@@ -350,7 +351,8 @@ class FormulaicVisualizer:
 
         return fig
 
-    def create_metric_comparison_chart(self, analysis_results: Dict[str, Any]) -> go.Figure:
+    @staticmethod
+    def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
         """Create a comparison chart of different financial metrics"""
         formulas = analysis_results.get("formulas", [])
 

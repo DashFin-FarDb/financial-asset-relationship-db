@@ -148,7 +148,8 @@ class TestVisualize2DGraph:
 class TestLayoutAlgorithms:
     """Test suite for layout algorithms."""
 
-    def test_create_circular_layout_empty_list(self):
+    @staticmethod
+    def test_create_circular_layout_empty_list():
         """Test circular layout with empty asset list."""
         # Execute
         positions = _create_circular_layout([])

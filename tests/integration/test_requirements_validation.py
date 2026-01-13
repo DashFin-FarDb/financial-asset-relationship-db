@@ -104,7 +104,8 @@ class TestRequirementsDevChanges:
 class TestRequirementsDependencyCompatibility:
     """Test dependency compatibility."""
 
-    def test_pyyaml_compatible_with_python_version(self):
+    @staticmethod
+    def test_pyyaml_compatible_with_python_version():
         """
         Assert that if PyYAML is listed in requirements-dev.txt the current Python interpreter is at least 3.6.
 
@@ -181,7 +182,8 @@ class TestRequirementsInstallability:
 class TestRequirementsDocumentation:
     """Test requirements documentation and comments."""
 
-    def test_requirements_has_helpful_comments(self):
+    @staticmethod
+    def test_requirements_has_helpful_comments():
         """
         Verify that requirements-dev.txt contains at least one comment line.
 
@@ -195,7 +197,8 @@ class TestRequirementsDocumentation:
         comment_lines = [l for l in lines if l.strip().startswith("#")]
         assert len(comment_lines) >= 1, "requirements-dev.txt should have explanatory comments"
 
-    def test_pyyaml_purpose_documented(self):
+    @staticmethod
+    def test_pyyaml_purpose_documented():
         """Verify PyYAML addition has comment explaining purpose."""
         req_dev_path = Path("requirements-dev.txt")
         with open(req_dev_path, "r") as f:

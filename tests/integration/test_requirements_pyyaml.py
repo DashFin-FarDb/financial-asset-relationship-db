@@ -31,6 +31,7 @@ class TestPyYAMLDependencyAddition:
         Parameters:
             requirements_file (Path): Path to the requirements-dev.txt file to read.
 
+
         Returns:
             str: File contents decoded as UTF-8.
         """
@@ -38,7 +39,8 @@ class TestPyYAMLDependencyAddition:
             return f.read()
 
     @pytest.fixture
-    def requirements_lines(self, requirements_content: str) -> List[str]:
+    @staticmethod
+    def requirements_lines(requirements_content: str) -> List[str]:
         """
         Extracts the non-empty, non-comment lines from the contents of a requirements file.
 
@@ -135,7 +137,8 @@ class TestRequirementsDevYAMLUsage:
 
         assert pyyaml_used, "PyYAML should be imported in workflow test files"
 
-    def test_yaml_files_exist_in_repo(self):
+    @staticmethod
+    def test_yaml_files_exist_in_repo():
         """
         Check that at least one YAML workflow file exists under .github/workflows.
 
@@ -250,7 +253,8 @@ class TestRequirementsDevVersionPinning:
     """Test version pinning strategy in requirements-dev.txt."""
 
     @pytest.fixture
-    def requirements_lines(self) -> List[str]:
+    @staticmethod
+    def requirements_lines() -> List[str]:
         """
         Get the non-comment, non-empty lines from requirements-dev.txt.
 
@@ -267,7 +271,8 @@ class TestRequirementsDevVersionPinning:
                 lines.append(line)
         return lines
 
-    def test_uses_minimum_version_specifiers(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_uses_minimum_version_specifiers(requirements_lines: List[str]):
         """
         Ensure non-typing packages in the provided requirement lines include a minimum version specifier ('>=' or '==').
 
@@ -278,7 +283,8 @@ class TestRequirementsDevVersionPinning:
             if not line.startswith("types-"):
                 assert ">=" in line or "==" in line, f"Package should have version specifier: {line}"
 
-    def test_pyyaml_and_types_both_pinned(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_pyyaml_and_types_both_pinned(requirements_lines: List[str]):
         """Test that both PyYAML and types-PyYAML have version pins."""
         pyyaml_pinned = any("PyYAML>=" in line for line in requirements_lines)
         types_pinned = any("types-PyYAML>=" in line for line in requirements_lines)

@@ -131,7 +131,8 @@ class RealDataFetcher:
 
         return create_sample_database()
 
-    def _fetch_equity_data(self) -> List[Equity]:
+    @staticmethod
+    def _fetch_equity_data() -> List[Equity]:
         """
         Fetches current market data for a predefined set of major equities and returns them as Equity objects.
 

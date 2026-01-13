@@ -18,7 +18,8 @@ class TestVercelConfig:
     """Test cases for vercel.json configuration."""
 
     @pytest.fixture
-    def vercel_config(self):
+    @staticmethod
+    def vercel_config():
         """Load vercel.json configuration."""
         config_path = Path("vercel.json")
         assert config_path.exists(), "vercel.json not found"
@@ -249,7 +250,8 @@ class TestTailwindConfig:
     """Test cases for Tailwind CSS configuration."""
 
     @pytest.fixture
-    def tailwind_config_content(self):
+    @staticmethod
+    def tailwind_config_content():
         """Load Tailwind configuration content."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists(), "tailwind.config.js not found"
@@ -279,7 +281,8 @@ class TestEnvExample:
     """Test cases for .env.example file."""
 
     @pytest.fixture
-    def env_example_content(self):
+    @staticmethod
+    def env_example_content():
         """Load .env.example content."""
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
@@ -320,8 +323,9 @@ class TestEnvExample:
 class TestGitignore:
     """Test cases for .gitignore configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def gitignore_content(self):
+    def gitignore_content():
         """Load .gitignore content."""
         config_path = Path(".gitignore")
         assert config_path.exists(), ".gitignore not found"
@@ -371,7 +375,8 @@ class TestRequirementsTxt:
         with open(config_path) as f:
             return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    def test_requirements_exists(self):
+    @staticmethod
+    def test_requirements_exists():
         """Test that requirements.txt exists."""
         config_path = Path("requirements.txt")
         assert config_path.exists()
@@ -414,11 +419,13 @@ class TestPostCSSConfig:
         with open(config_path) as f:
             return f.read()
 
-    def test_postcss_config_has_tailwindcss(self, postcss_config_content):
+    @staticmethod
+    def test_postcss_config_has_tailwindcss(postcss_config_content):
         """Test that Tailwind CSS plugin is configured."""
         assert "tailwindcss" in postcss_config_content
 
-    def test_postcss_config_has_autoprefixer(self, postcss_config_content):
+    @staticmethod
+    def test_postcss_config_has_autoprefixer(postcss_config_content):
         """Test that autoprefixer plugin is configured."""
         assert "autoprefixer" in postcss_config_content
 
@@ -426,7 +433,8 @@ class TestPostCSSConfig:
 class TestConfigurationConsistency:
     """Test consistency across configuration files."""
 
-    def test_api_url_consistency(self):
+    @staticmethod
+    def test_api_url_consistency():
         """Test that API URL is consistent across configurations."""
         # Check .env.example
         with open(".env.example") as f:
@@ -440,7 +448,8 @@ class TestConfigurationConsistency:
         assert "NEXT_PUBLIC_API_URL" in env_content
         assert "NEXT_PUBLIC_API_URL" in next_config
 
-    def test_package_json_and_tsconfig_consistency(self):
+    @staticmethod
+    def test_package_json_and_tsconfig_consistency():
         """Test that package.json and tsconfig are consistent."""
         with open("frontend/package.json") as f:
             package = json.load(f)
@@ -452,7 +461,8 @@ class TestConfigurationConsistency:
         if "typescript" in package.get("devDependencies", {}):
             assert "compilerOptions" in tsconfig
 
-    def test_frontend_build_configuration_matches(self):
+    @staticmethod
+    def test_frontend_build_configuration_matches():
         """Test that frontend configurations are aligned."""
         # Verify package.json scripts match expected Next.js commands
         with open("frontend/package.json") as f:
