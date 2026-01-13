@@ -534,6 +534,7 @@ class TestExampleCalculationMethods:
             assert isinstance(examples, str)
             assert "Gold" in examples or "commodity" in examples.lower()
 
+
 @pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error handling."""
@@ -648,6 +649,7 @@ class TestEdgeCases:
 
         # Assert
         assert strength == 0.5, "Should return 0.5 when no relationships exist"
+
     def test_generate_formula_summary_with_empty_formulas(self, analyzer):
         """Test generating summary with no formulas."""
         # Execute

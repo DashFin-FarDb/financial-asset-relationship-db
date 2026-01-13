@@ -531,7 +531,7 @@ class TestVersionConstraintValidation:
                         min_ver = specs[0].replace(">=", "").strip()
                         max_ver = specs[1].replace("<", "").replace("<=", "").strip()
                         # Just ensure they're not obviously wrong
-                        assert min_ver != max_ver or "<=" in specs[1], f"Conflicting version spec for {pkg}: {ver}"  
+                        assert min_ver != max_ver or "<=" in specs[1], f"Conflicting version spec for {pkg}: {ver}"
 
 
 class TestPackageNamingAndCasing:

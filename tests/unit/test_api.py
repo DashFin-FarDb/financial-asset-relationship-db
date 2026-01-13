@@ -742,7 +742,6 @@ class TestRealDataFetcherFallback:
         fetcher = RealDataFetcher()
         graph = fetcher.create_real_database()
 
-
         # Should create empty graph (individual failures don't trigger fallback)
         assert graph is not None
         assert isinstance(graph, AssetRelationshipGraph)
