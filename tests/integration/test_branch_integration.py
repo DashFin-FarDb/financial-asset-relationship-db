@@ -83,9 +83,7 @@ class TestWorkflowConsistency:
         for action, versions in action_versions.items():
             if len(versions) > 1:
                 # Allow v4 and v5 for actions/checkout (common upgrade path)
-                if "actions/checkout" in action: pass
-                    continue
-                    pass
+                if "actions/checkout" in action:
                     continue
                 # Warn if same action uses different versions
                 print(f"Warning: {action} uses multiple versions: {list(versions.keys())}")
@@ -148,14 +146,13 @@ class TestDependencyWorkflowIntegration:
 
         for wf_file in workflow_files:
             try:
-                try:
-                    with open(wf_file, "r") as f:
-                        workflow = yaml.safe_load(f)
+                with open(wf_file, "r") as f:
+                    workflow = yaml.safe_load(f)
 
-                    assert workflow is not None, f"Failed to parse {wf_file}"
-                    assert isinstance(workflow, dict), f"{wf_file} should parse to dict"
-                except yaml.YAMLError as e:
-                    pytest.fail(f"PyYAML failed to parse {wf_file}: {e}")
+                assert workflow is not None, f"Failed to parse {wf_file}"
+                assert isinstance(workflow, dict), f"{wf_file} should parse to dict"
+            except yaml.YAMLError as e:
+                pytest.fail(f"PyYAML failed to parse {wf_file}: {e}")
 
     def test_requirements_support_workflow_test_needs(self):
         """
@@ -174,10 +171,10 @@ class TestDependencyWorkflowIntegration:
 
 
 class TestRemovedFilesIntegration:
-    """Test that removed files don't break functionality."""
+    """Test that removed files do not break functionality."""
 
     def test_workflows_dont_reference_removed_scripts(self):
-        """Verify workflows don't reference deleted files."""
+        """Verify workflows do not reference deleted files."""
         removed_files = [
             "context_chunker.py",
             ".github/scripts/README.md",
@@ -201,10 +198,11 @@ class TestRemovedFilesIntegration:
                 assert removed not in content, f"{wf_file} references removed file {removed}"
 
     def test_label_workflow_doesnt_need_labeler_config(self):
-        """
-        Verify the label workflow does not require an external labeler configuration file.
+        """Verify the label workflow does not require an external labeler configuration file.
 
-        Checks that .github / workflows / label.yml(if present) defines the `label` job's first step using `actions / labeler`, and that the step either omits `config - path` or sets it to `.github / labeler.yml`. Skips the test if label.yml is missing.
+        Checks that .github / workflows / label.yml(if present) defines the 'label' job's first
+        step using 'actions/labeler', and that the step either omits 'config-path' or sets it to
+        '.github/labeler.yml'. Skips the test if label.yml is missing.
         """
         label_path = Path(".github/workflows/label.yml")
         if not label_path.exists():
