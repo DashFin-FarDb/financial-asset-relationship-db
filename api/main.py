@@ -227,10 +227,13 @@ def validate_origin(origin_url: str) -> bool:
     """
     Determine whether an HTTP origin is permitted by the application's CORS rules.
 
-    Allows explicitly configured origins, HTTPS origins with a valid domain, Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment, and HTTP localhost/127.0.0.1 when ENV is "development".
+    Allows explicitly configured origins, HTTPS origins with a valid domain,
+    Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment,
+    and HTTP localhost/127.0.0.1 when ENV is "development".
 
     Parameters:
-        origin_url (str): Origin URL to validate (for example "https://example.com" or "http://localhost:3000").
+        origin_url (str): Origin URL to validate (for example
+            "https://example.com" or "http://localhost:3000").
 
     Returns:
         True if the origin is allowed, False otherwise.
@@ -246,17 +249,19 @@ def validate_origin(origin_url: str) -> bool:
         return True
 
     # Allow HTTP localhost only in development
-    if current_env == "development" and re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url):
+    if current_env == "development" and re.match(r"^http://(localhost|127\\.0\\.0\\.1)(:\\d+)?$", origin_url):
         return True
     # Allow HTTPS localhost in any environment
-    if re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url):
+    if re.match(r"^https://(localhost|127\\.0\\.0\\.1)(:\\d+)?$", origin_url):
         return True
     # Allow Vercel preview deployment URLs (e.g., https://project-git-branch-user.vercel.app)
-    if re.match(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$", origin_url):
+    if re.match(r"^https://[a-zA-Z0-9\\-\\.]+\\.vercel\\.app$", origin_url):
         return True
     # Allow valid HTTPS URLs with proper domains
     if re.match(
-        r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$",
+        r"^https://[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?"
+        r"(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*"
+        r"\\.[a-zA-Z]{2,}$",
         origin_url,
     ):
         return True
