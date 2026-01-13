@@ -477,13 +477,15 @@ class TestValidationResultDataStructure:
         assert hasattr(result, "errors")
         assert hasattr(result, "workflow_data")
 
-    def test_validation_result_errors_is_list(self):
+    @staticmethod
+    def test_validation_result_errors_is_list():
         """Test that errors attribute is a list"""
         result = ValidationResult(False, ["Error 1", "Error 2"], {})
         assert isinstance(result.errors, list)
         assert len(result.errors) == 2
 
-    def test_validation_result_workflow_data_is_dict(self):
+    @staticmethod
+    def test_validation_result_workflow_data_is_dict():
         """Test that workflow_data is typically a dict"""
         data = {"key": "value"}
         result = ValidationResult(True, [], data)

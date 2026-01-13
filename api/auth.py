@@ -65,7 +65,8 @@ def _is_truthy(value: str | None) -> bool:
 class UserRepository:
     """Repository for accessing user credential records."""
 
-    def get_user(self, username: str) -> Optional[UserInDB]:
+    @staticmethod
+    def get_user(username: str) -> Optional[UserInDB]:
         """
         Retrieve a user record by username from the repository.
 

@@ -32,35 +32,40 @@ pytest.importorskip("sqlalchemy")
 class TestEngineCreation:
     """Test cases for database engine creation."""
 
-    def test_create_engine_with_default_url(self):
+    @staticmethod
+    def test_create_engine_with_default_url():
         """Test engine creation using default database URL."""
         with patch.dict(os.environ, {}, clear=True):
             engine = create_engine_from_url()
             assert engine is not None
             assert "sqlite" in str(engine.url).lower()
 
-    def test_create_engine_with_custom_url(self):
+    @staticmethod
+    def test_create_engine_with_custom_url():
         """Test engine creation with a custom URL."""
         custom_url = "sqlite:///test_custom.db"
         engine = create_engine_from_url(custom_url)
         assert engine is not None
         assert "test_custom.db" in str(engine.url)
 
-    def test_create_engine_with_in_memory_sqlite(self):
+    @staticmethod
+    def test_create_engine_with_in_memory_sqlite():
         """Test engine creation for in-memory SQLite database."""
         memory_url = "sqlite:///:memory:"
         engine = create_engine_from_url(memory_url)
         assert engine is not None
         assert isinstance(engine.pool, StaticPool)
 
-    def test_create_engine_with_env_variable(self):
+    @staticmethod
+    def test_create_engine_with_env_variable():
         """Test engine creation using environment variable."""
         test_url = "sqlite:///env_test.db"
         with patch.dict(os.environ, {"ASSET_GRAPH_DATABASE_URL": test_url}):
             engine = create_engine_from_url()
             assert "env_test.db" in str(engine.url)
 
-    def test_create_engine_with_postgres_url(self):
+    @staticmethod
+    def test_create_engine_with_postgres_url():
         """Test engine creation with PostgreSQL URL."""
         postgres_url = "postgresql://user:pass@localhost/testdb"
         engine = create_engine_from_url(postgres_url)
@@ -292,11 +297,13 @@ class TestSessionScope:
 class TestDefaultDatabaseURL:
     """Test cases for default database URL configuration."""
 
-    def test_default_database_url_is_sqlite(self):
+    @staticmethod
+    def test_default_database_url_is_sqlite():
         """Test that default database URL uses SQLite."""
         assert "sqlite" in DEFAULT_DATABASE_URL.lower()
 
-    def test_default_database_url_file_path(self):
+    @staticmethod
+    def test_default_database_url_file_path():
         """Test that default database URL points to a file."""
         assert "asset_graph.db" in DEFAULT_DATABASE_URL
 

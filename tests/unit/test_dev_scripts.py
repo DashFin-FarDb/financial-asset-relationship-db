@@ -366,7 +366,8 @@ class TestShellScripts:
         "script_file",
         ["cleanup-branches.sh", "run-dev.sh"],
     )
-    def test_bash_scripts_no_syntax_errors(self, script_file):
+    @staticmethod
+    def test_bash_scripts_no_syntax_errors(script_file):
         """Test that bash scripts have no obvious syntax errors."""
         with open(script_file) as f:
             content = f.read()

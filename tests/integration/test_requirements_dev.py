@@ -233,31 +233,38 @@ class TestRequiredPackages:
         """Extract just the package names."""
         return [pkg for pkg, _ in parsed_requirements]
 
-    def test_has_pytest(self, package_names: List[str]):
+    @staticmethod
+    def test_has_pytest(package_names: List[str]):
         """Test that pytest is included."""
         assert "pytest" in package_names
 
-    def test_has_pytest_cov(self, package_names: List[str]):
+    @staticmethod
+    def test_has_pytest_cov(package_names: List[str]):
         """Test that pytest-cov is included."""
         assert "pytest-cov" in package_names
 
-    def test_has_pyyaml(self, package_names: List[str]):
+    @staticmethod
+    def test_has_pyyaml(package_names: List[str]):
         """Test that PyYAML is included (added in the diff)."""
         assert "pyyaml" in package_names
 
-    def test_has_types_pyyaml(self, package_names: List[str]):
+    @staticmethod
+    def test_has_types_pyyaml(package_names: List[str]):
         """Test that types-PyYAML is included (added in the diff)."""
         assert "types-PyYAML" in package_names
 
-    def test_has_flake8(self, package_names: List[str]):
+    @staticmethod
+    def test_has_flake8(package_names: List[str]):
         """Test that flake8 is included."""
         assert "flake8" in package_names
 
-    def test_has_black(self, package_names: List[str]):
+    @staticmethod
+    def test_has_black(package_names: List[str]):
         """Test that black is included."""
         assert "black" in package_names
 
-    def test_has_mypy(self, package_names: List[str]):
+    @staticmethod
+    def test_has_mypy(package_names: List[str]):
         """Test that mypy is included."""
         assert "mypy" in package_names
 
@@ -265,8 +272,9 @@ class TestRequiredPackages:
 class TestVersionSpecifications:
     """Test that version specifications are valid and reasonable."""
 
+    @staticmethod
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Parse and return requirements."""
         return parsed_requirements
 
@@ -371,19 +379,22 @@ class TestSpecificChanges:
         """Parse and return requirements."""
         return parse_requirements(REQUIREMENTS_FILE)
 
-    def test_pyyaml_added(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_pyyaml_added(requirements: List[Tuple[str, str]]):
         """Test that PyYAML was added as per the diff."""
         pyyaml_entries = [(pkg, ver) for pkg, ver in requirements if pkg == "PyYAML"]
         assert len(pyyaml_entries) == 1
         _, ver = pyyaml_entries[0]
         assert ver == ">=6.0"
 
-    def test_types_pyyaml_added(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_types_pyyaml_added(requirements: List[Tuple[str, str]]):
         """Test that types-PyYAML was added as per the diff."""
         types_entries = [(pkg, ver) for pkg, ver in requirements if pkg == "types-PyYAML"]
         assert len(types_entries) == 1
 
-    def test_existing_packages_preserved(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_existing_packages_preserved(requirements: List[Tuple[str, str]]):
         """Test that existing packages are still present."""
         package_names = [pkg for pkg, _ in requirements]
 
@@ -407,13 +418,14 @@ class TestEdgeCasesAndErrorHandling:
     """Test edge cases and error handling in requirements parsing and validation."""
 
     @staticmethod
+    @staticmethod
     def test_parse_packages_with_extras():
-        """Test that packages with extras are parsed correctly."""
+        \"\"\"Test that packages with extras are parsed correctly.\"\"\"
         requirements = parse_requirements(REQUIREMENTS_FILE)
         # Ensure extras are stripped from package names
         for pkg, _ in requirements:
-            assert "[" not in pkg, f"Package name should not contain '[': {pkg}"
-            assert "]" not in pkg, f"Package name should not contain ']': {pkg}"
+            assert \"[\" not in pkg, f\"Package name should not contain '[': {pkg}\"
+            assert \"\]\" not in pkg, f\"Package name should not contain ']': {pkg}\"
 
     @staticmethod
     def test_parse_packages_with_environment_markers():
@@ -491,7 +503,8 @@ class TestVersionConstraintValidation:
                         part.strip() == part or part == ""
                     ), f"Compound version spec has improper spacing: '{ver}' for package '{pkg}'"
 
-    def test_minimum_version_numbers_reasonable(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_minimum_version_numbers_reasonable(requirements: List[Tuple[str, str]]):
         """Test that minimum version numbers are reasonable (not 0.0.0)."""
         for pkg, ver in requirements:
             if ver.startswith(">="):
@@ -518,7 +531,7 @@ class TestVersionConstraintValidation:
                         min_ver = specs[0].replace(">=", "").strip()
                         max_ver = specs[1].replace("<", "").replace("<=", "").strip()
                         # Just ensure they're not obviously wrong
-                        assert min_ver != max_ver or "<=" in specs[1], f"Conflicting version spec for {pkg}: {ver}"
+                        assert min_ver != max_ver or "<=" in specs[1], f"Conflicting version spec for {pkg}: {ver}"  
 
 
 class TestPackageNamingAndCasing:

@@ -142,7 +142,8 @@ class TestWorkflowStructure:
 class TestStepsConfiguration:
     """Test specific steps in the workflow."""
 
-    def test_checkout_step_exists(self, job_steps: List[Dict[str, Any]]):
+    @staticmethod
+    def test_checkout_step_exists(job_steps: List[Dict[str, Any]]):
         """Test that checkout action exists."""
         checkout_steps = get_steps_by_action(job_steps, "actions/checkout")
         assert checkout_steps, "Job must include actions/checkout step"
@@ -238,25 +239,27 @@ class TestSecretHandling:
 class TestSecurityPatterns:
     """Test for specific security vulnerabilities."""
 
-    def test_no_script_injection(self, workflow_content: str):
+    @staticmethod
+    def test_no_script_injection(workflow_content: str):
         """Check for unsafe interpolation in run scripts."""
         unsafe_contexts = [
-            r"github\.event\.issue\.title",
-            r"github\.event\.issue\.body",
-            r"github\.event\.pull_request\.title",
-            r"github\.event\.pull_request\.body",
+            r"github\\.event\\.issue\\.title",
+            r"github\\.event\\.issue\\.body",
+            r"github\\.event\\.pull_request\\.title",
+            r"github\\.event\\.pull_request\\.body",
         ]
         for ctx in unsafe_contexts:
             pattern = r"run:.*(\$\{\{\s*" + ctx + r".*\}\})"
             matches = re.findall(pattern, workflow_content, re.IGNORECASE)
             assert not matches, f"Potential script injection vulnerability found using context: {ctx}"
 
-    def test_no_secret_logging(self, workflow_content: str):
+    @staticmethod
+    def test_no_secret_logging(workflow_content: str):
         """Test that secrets are not echoed or printed to logs."""
         secret_logging_patterns = [
-            r"echo.*\$\{\{.*secrets\.",
-            r"print.*\$\{\{.*secrets\.",
-            r"console\.log.*\$\{\{.*secrets\.",
+            r"echo.*\$\{\{.*secrets\\.",
+            r"print.*\$\{\{.*secrets\\.",
+            r"console\\.log.*\$\{\{.*secrets\\.",
         ]
 
         for pattern in secret_logging_patterns:
@@ -267,13 +270,15 @@ class TestSecurityPatterns:
 class TestWorkflowDocumentation:
     """Test that workflow has proper documentation."""
 
-    def test_has_comments(self, workflow_content: str):
+    @staticmethod
+    def test_has_comments(workflow_content: str):
         """Test that workflow file contains explanatory comments."""
         # Should have at least some comment lines
         comment_lines = [line for line in workflow_content.split("\n") if line.strip().startswith("#")]
         assert len(comment_lines) > 0, "Workflow should have explanatory comments"
 
-    def test_documents_security_features(self, workflow_content: str):
+    @staticmethod
+    def test_documents_security_features(workflow_content: str):
         """Test that security features are documented."""
         content_lower = workflow_content.lower()
 
@@ -287,7 +292,8 @@ class TestWorkflowDocumentation:
 class TestVersionConsistency:
     """Test version consistency and supply-chain security."""
 
-    def test_actions_use_consistent_versioning(self, job_steps: List[Dict[str, Any]]):
+    @staticmethod
+    def test_actions_use_consistent_versioning(job_steps: List[Dict[str, Any]]):
         """Test that all actions use consistent versioning approach."""
         for step in job_steps:
             if "uses" in step:
@@ -303,7 +309,8 @@ class TestVersionConsistency:
 
                 assert is_sha or is_semver, f"Action version should be SHA or semantic version tag: {action}"
 
-    def test_no_mutable_tags(self, job_steps: List[Dict[str, Any]]):
+    @staticmethod
+    def test_no_mutable_tags(job_steps: List[Dict[str, Any]]):
         """Test that actions don't use mutable tags like 'latest', 'main', 'master'."""
         mutable_tags = ["latest", "main", "master", "develop"]
 
@@ -318,12 +325,14 @@ class TestVersionConsistency:
 class TestComplianceWithIssue492:
     """Test compliance with specific requirements from issue #492."""
 
-    def test_workflow_location(self):
+    @staticmethod
+    def test_workflow_location():
         """Test that workflow is at the correct location."""
         expected_path = REPO_ROOT / ".github" / "workflows" / "debricked.yml"
         assert expected_path.exists(), "Workflow must be at .github/workflows/debricked.yml"
 
-    def test_supports_all_required_triggers(self, workflow_config: Dict[str, Any]):
+    @staticmethod
+    def test_supports_all_required_triggers(workflow_config: Dict[str, Any]):
         """Test that workflow supports all required trigger events."""
         triggers = workflow_config.get("on", {})
 
@@ -339,7 +348,8 @@ class TestComplianceWithIssue492:
 
         assert not missing_triggers, f"Workflow missing required triggers: {missing_triggers}"
 
-    def test_uses_github_secrets(self, job_steps: List[Dict[str, Any]]):
+    @staticmethod
+    def test_uses_github_secrets(job_steps: List[Dict[str, Any]]):
         """Test that workflow uses GitHub Actions secrets for authentication."""
         debricked_steps = get_steps_by_action(job_steps, "debricked")
 
@@ -349,7 +359,8 @@ class TestComplianceWithIssue492:
                 token_value = env["DEBRICKED_TOKEN"]
                 assert "secrets.DEBRICKED_TOKEN" in token_value, "Must use GitHub Actions secrets for DEBRICKED_TOKEN"
 
-    def test_minimal_permissions(self, scan_job: Dict[str, Any]):
+    @staticmethod
+    def test_minimal_permissions(scan_job: Dict[str, Any]):
         """Test that workflow uses minimal required permissions."""
         permissions = scan_job.get("permissions", {})
 
@@ -367,7 +378,8 @@ class TestComplianceWithIssue492:
             if perm != "security-events" and value == "write":
                 pytest.fail(f"Unnecessary write permission granted: {perm}")
 
-    def test_ubuntu_runner(self, scan_job: Dict[str, Any]):
+    @staticmethod
+    def test_ubuntu_runner(scan_job: Dict[str, Any]):
         """Test that workflow uses a supported Ubuntu runner."""
         runs_on = scan_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), "Workflow must use a supported Ubuntu runner"

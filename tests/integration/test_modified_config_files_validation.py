@@ -30,7 +30,8 @@ class TestPRAgentConfigChanges:
         return Path(__file__).parent.parent.parent / ".github" / "pr-agent-config.yml"
 
     @pytest.fixture
-    def config_data(self, config_path: Path) -> Dict[str, Any]:
+    @staticmethod
+    def config_data(config_path: Path) -> Dict[str, Any]:
         """
         Load and parse the PR Agent YAML configuration file.
 
@@ -364,7 +365,8 @@ class TestCodacyInstructionsChanges:
         """
         return Path(__file__).parent.parent.parent / ".github" / "instructions" / "codacy.instructions.md"
 
-    def test_codacy_instructions_simplified(self, codacy_instructions_path: Path):
+    @staticmethod
+    def test_codacy_instructions_simplified(codacy_instructions_path: Path):
         """
         Check that the Codacy instructions have been simplified and do not include repository-specific or prescriptive phrases.
 
@@ -384,7 +386,8 @@ class TestCodacyInstructionsChanges:
             "git remote -v" not in content or "unless really necessary" not in content
         ), "Codacy instructions should be simplified"
 
-    def test_codacy_critical_rules_present(self, codacy_instructions_path: Path):
+    @staticmethod
+    def test_codacy_critical_rules_present(codacy_instructions_path: Path):
         """
         Check that the Codacy instructions file contains required critical rules.
 

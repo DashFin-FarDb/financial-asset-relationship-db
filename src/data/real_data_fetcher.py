@@ -156,6 +156,9 @@ class RealDataFetcher:
                 if hist.empty:
                     logger.warning(NO_PRICE_DATA_LOG_MSG, symbol)
                     continue
+    @staticmethod
+    def _fetch_equity_data() -> List[Equity]:
+        """Fetch real equity data"""
 
                 current_price = float(hist["Close"].iloc[-1])
 
@@ -271,6 +274,7 @@ class RealDataFetcher:
 
         return commodities
 
+    @staticmethod
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""

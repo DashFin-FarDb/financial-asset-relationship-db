@@ -492,7 +492,8 @@ class FormulaicdAnalyzer:
                 examples.append(f"{asset.symbol}: P/B = ${asset.price:.2f} / ${asset.book_value:.2f} = {pb_ratio:.2f}")
         return "\n".join(examples[:3]) if examples else "P/B calculation requires book value data"
 
-    def _calculate_sharpe_examples(self, _graph: AssetRelationshipGraph) -> str:
+    @staticmethod
+    def _calculate_sharpe_examples(_graph: AssetRelationshipGraph) -> str:
         return "Sharpe ratio calculation requires return history and risk-free rate (estimated range: 0.5-1.5)"
 
     def _calculate_volatility_examples(self, graph: AssetRelationshipGraph) -> str:

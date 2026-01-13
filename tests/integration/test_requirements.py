@@ -183,6 +183,8 @@ class TestRequiredPackages:
 
     @staticmethod
     def test_has_httpx(package_names: List[str]):
+    @staticmethod
+    def test_has_httpx(package_names: List[str]):
         """Test that httpx is included for HTTP client."""
         assert "httpx" in package_names
 
@@ -315,12 +317,14 @@ class TestFileOrganization:
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.readlines()
 
-    def test_reasonable_file_size(self, file_lines: List[str]):
+    @staticmethod
+    def test_reasonable_file_size(file_lines: List[str]):
         """Test that file size is reasonable (not too large)."""
         # Production requirements should typically be under 100 lines
         assert len(file_lines) < 200, f"Requirements file is too large: {len(file_lines)} lines"
 
-    def test_has_comments_for_sections(self, file_lines: List[str]):
+    @staticmethod
+    def test_has_comments_for_sections(file_lines: List[str]):
         """Test that file has organizational comments."""
         comment_lines = [line for line in file_lines if line.strip().startswith("#")]
         # Should have at least some comments for organization
@@ -343,14 +347,16 @@ class TestSecurityAndCompliance:
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.read()
 
-    def test_zipp_security_fix_present(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_zipp_security_fix_present(requirements: List[Tuple[str, str]]):
         """Test that zipp security fix is present."""
         zipp_entries = [(pkg, ver) for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_entries) == 1, "zipp security pin should be present exactly once"
         pkg, ver = zipp_entries[0]
         assert ver == ">=3.19.1", f"zipp version should be >=3.19.1, got {ver}"
 
-    def test_zipp_has_security_comment(self, file_content: str):
+    @staticmethod
+    def test_zipp_has_security_comment(file_content: str):
         """Test that zipp entry has a comment explaining it's for security."""
         # Find the zipp line
         lines = file_content.split("\n")
@@ -427,7 +433,8 @@ class TestComprehensiveValidation:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
-    def test_all_packages_have_versions_or_pins(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_all_packages_have_versions_or_pins(requirements: List[Tuple[str, str]]):
         """Test that critical packages have version specifications."""
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         # Allow some packages without versions, but production deps should mostly be pinned
@@ -435,7 +442,8 @@ class TestComprehensiveValidation:
             len(packages_without_versions) <= len(requirements) * 0.2
         ), f"Too many packages without versions: {packages_without_versions}"
 
-    def test_version_consistency(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_version_consistency(requirements: List[Tuple[str, str]]):
         """Test that version specifications are consistent in style."""
         version_styles = {}
         for pkg, ver in requirements:
@@ -453,7 +461,8 @@ class TestComprehensiveValidation:
             total_versioned = sum(len(v) for v in version_styles.values())
             assert len(max_style) >= total_versioned * 0.6, "Version specifications should be consistent in style"
 
-    def test_transitive_dependencies_documented(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_transitive_dependencies_documented(requirements: List[Tuple[str, str]]):
         """Test that transitive dependencies are documented if pinned."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()

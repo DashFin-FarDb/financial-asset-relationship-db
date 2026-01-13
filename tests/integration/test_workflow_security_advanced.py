@@ -18,14 +18,15 @@ import pytest
 class TestWorkflowInjectionPrevention:
     """Tests for preventing injection attacks in workflows."""
 
-    def test_no_unquoted_github_context_in_run_commands(self, all_workflows):
+    @staticmethod
+    def test_no_unquoted_github_context_in_run_commands(all_workflows):
         """
         Ensure GitHub context variables in 'run' steps are enclosed in quotes.
         """
         dangerous_patterns = [
-            r"\$\{\{\s*github\.event\.[\w.]+\s*\}\}",  # ${{ github.event.* }}
-            r"\$\{\{\s*github\.head_ref\s*\}\}",  # ${{ github.head_ref }}
-            r"\$\{\{\s*github\.base_ref\s*\}\}",  # ${{ github.base_ref }}
+            r"\${{\s*github\.event\.[\w.]+\s*}}",  # ${{ github.event.* }}
+            r"\${{\s*github\.head_ref\s*}}",  # ${{ github.head_ref }}
+            r"\${{\s*github\.base_ref\s*}}",  # ${{ github.base_ref }}
         ]
 
         for workflow in all_workflows:
@@ -48,7 +49,8 @@ class TestWorkflowInjectionPrevention:
                                     f"job '{job_name}' step {step_idx}: {match}"
                                 )
 
-    def test_no_eval_with_user_input(self, all_workflows):
+    @staticmethod
+    def test_no_eval_with_user_input(all_workflows):
         """Verify workflows don't use eval with user-controllable input."""
         dangerous_commands = ["eval", "exec", "source"]
 
@@ -71,7 +73,8 @@ class TestWorkflowInjectionPrevention:
 class TestWorkflowSecretHandling:
     """Tests for proper secret handling in workflows."""
 
-    def test_secrets_not_echoed_in_logs(self, all_workflows):
+    @staticmethod
+    def test_secrets_not_echoed_in_logs(all_workflows):
         """
         Scan each workflow's raw YAML for secret references and assert they're not echoed.
         """
@@ -90,7 +93,8 @@ class TestWorkflowSecretHandling:
                             r"(echo|print|printf)\s+.*" + re.escape(secret_ref), line, re.IGNORECASE
                         ), f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
 
-    def test_secrets_not_in_artifact_uploads(self, all_workflows):
+    @staticmethod
+    def test_secrets_not_in_artifact_uploads(all_workflows):
         """Verify secrets are not uploaded as artifacts."""
         for workflow in all_workflows:
             jobs = workflow["content"].get("jobs", {})
@@ -108,12 +112,14 @@ class TestWorkflowSecretHandling:
 class TestWorkflowPermissionsHardening:
     """Tests for workflow permissions and least privilege."""
 
-    def test_workflows_define_explicit_permissions(self, all_workflows):
+    @staticmethod
+    def test_workflows_define_explicit_permissions(all_workflows):
         """Verify workflows explicitly define permissions."""
         for workflow in all_workflows:
             assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
 
-    def test_default_permissions_are_restrictive(self, all_workflows):
+    @staticmethod
+    def test_default_permissions_are_restrictive(all_workflows):
         """Verify default permissions follow least privilege."""
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})
@@ -131,7 +137,8 @@ class TestWorkflowPermissionsHardening:
                     len(unexpected_write) == 0
                 ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
 
-    def test_no_workflows_with_write_all_permission(self, all_workflows):
+    @staticmethod
+    def test_no_workflows_with_write_all_permission(all_workflows):
         """Verify no workflow uses 'write-all' permission."""
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})
@@ -142,7 +149,8 @@ class TestWorkflowPermissionsHardening:
 class TestWorkflowSupplyChainSecurity:
     """Tests for supply chain security in workflows."""
 
-    def test_third_party_actions_pinned_to_commit_sha(self, all_workflows):
+    @staticmethod
+    def test_third_party_actions_pinned_to_commit_sha(all_workflows):
         """Verify third-party actions are pinned to a full commit SHA."""
         for workflow in all_workflows:
             jobs = workflow["content"].get("jobs", {})
@@ -159,7 +167,8 @@ class TestWorkflowSupplyChainSecurity:
                             f"step {step_idx} must be pinned to a SHA"
                         )
 
-    def test_no_insecure_downloads(self, all_workflows):
+    @staticmethod
+    def test_no_insecure_downloads(all_workflows):
         """Verify no insecure HTTP downloads in workflows."""
         for workflow in all_workflows:
             raw_content = workflow["raw"]

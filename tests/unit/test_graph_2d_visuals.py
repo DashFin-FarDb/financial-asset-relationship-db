@@ -158,7 +158,8 @@ class TestLayoutAlgorithms:
         assert isinstance(positions, dict)
         assert len(positions) == 0
 
-    def test_create_circular_layout_single_asset(self):
+    @staticmethod
+    def test_create_circular_layout_single_asset():
         """Test circular layout with one asset."""
         # Execute
         positions = _create_circular_layout(["ASSET_1"])
@@ -262,7 +263,6 @@ class TestLayoutAlgorithms:
         # Assert
         assert len(positions_2d) == 2
 
-
 @pytest.mark.unit
 class TestRelationshipTraces:
     """Test suite for relationship trace creation."""
@@ -347,7 +347,6 @@ class TestRelationshipTraces:
         # Assert
         assert isinstance(traces, list)
         assert len(traces) == 0
-
 
 @pytest.mark.unit
 class TestEdgeCases:

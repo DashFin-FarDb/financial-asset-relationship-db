@@ -3,6 +3,7 @@ Validation tests for requirements changes.
 
 Tests that requirements-dev.txt changes are valid:
 - PyYAML added with correct version
+"""
 - No conflicting dependencies
 - All dependencies installable
 """
@@ -125,7 +126,8 @@ class TestRequirementsDependencyCompatibility:
             # Basic compatibility check passed
             assert python_version >= (3, 6), "PyYAML requires Python 3.6 or higher"
 
-    def test_no_conflicting_versions(self):
+    @staticmethod
+    def test_no_conflicting_versions():
         """
         Ensure at most two package name overlaps exist between requirements.txt and requirements-dev.txt.
 
