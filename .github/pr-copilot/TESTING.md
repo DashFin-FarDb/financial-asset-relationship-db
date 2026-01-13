@@ -36,6 +36,7 @@ The easiest way to run all tests is using the provided test runner script:
 ```
 
 **Benefits:**
+
 - ✅ Automatic virtual environment creation and management
 - ✅ Isolated dependency installation
 - ✅ Consistent test environment across runs
@@ -43,6 +44,7 @@ The easiest way to run all tests is using the provided test runner script:
 - ✅ Color-coded output for better readability
 
 **What the script does:**
+
 1. Creates a dedicated virtual environment (`.venv-pr-copilot/`) if it doesn't exist
 2. Activates the virtual environment
 3. Upgrades pip to the latest version
@@ -137,6 +139,7 @@ open htmlcov/index.html
 **Test:** `test_generate_status_integration`
 
 Validates:
+
 - PR metadata extraction
 - Review status aggregation
 - CI check status
@@ -148,6 +151,7 @@ Validates:
 **Test:** `test_assess_complexity_high`
 
 Validates:
+
 - Complexity scoring for large PRs
 - Risk level assessment
 - File categorization
@@ -158,6 +162,7 @@ Validates:
 **Test:** `test_parse_review_comments_with_actionable`
 
 Validates:
+
 - Comment extraction from reviews
 - Actionable item identification
 - Priority categorization
@@ -168,6 +173,7 @@ Validates:
 **Test:** `test_config_file_exists`
 
 Validates:
+
 - YAML configuration file existence
 - Configuration structure
 - Required fields presence
@@ -178,6 +184,7 @@ Validates:
 **Test:** `test_workflow_triggers_configuration`
 
 Validates:
+
 - Workflow file structure
 - Event trigger configuration
 - Job definitions

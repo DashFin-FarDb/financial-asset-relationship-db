@@ -9,21 +9,27 @@ Just open a PR or comment with `@pr-copilot` to get started!
 ## 💬 Commands
 
 ### Get Status Update
+
 ```
 @pr-copilot status update
 ```
+
 Shows detailed PR status including commits, reviews, checks, and merge readiness.
 
 ### Get Help
+
 ```
 @pr-copilot help
 ```
+
 Displays available commands and features.
 
 ### Conflict Resolution Help
+
 ```
 @pr-copilot help conflicts
 ```
+
 Shows guidance for resolving merge conflicts.
 
 ## 🤖 Automatic Features
@@ -48,6 +54,7 @@ PR Copilot automatically:
 ## ⚠️ Scope Warnings
 
 PR Copilot warns if:
+
 - Title is too long (>72 characters)
 - Title suggests multiple changes ("and", "or", "&")
 - Too many files changed
@@ -56,6 +63,7 @@ PR Copilot warns if:
 ## ✅ Merge Eligibility
 
 PR is merge-ready when:
+
 - ✅ Not a draft
 - ✅ Has required approvals
 - ✅ All checks passed
@@ -65,6 +73,7 @@ PR is merge-ready when:
 ## 🔔 Notifications
 
 You'll get notified about:
+
 - Welcome message (first interaction)
 - Scope issues (PR opened)
 - Review acknowledgment (review submitted)
@@ -82,6 +91,7 @@ You'll get notified about:
 ## 🛠️ Configuration
 
 Maintainers can customize:
+
 - Trigger events
 - Title length threshold
 - Auto-merge criteria
@@ -107,16 +117,19 @@ See [SETUP.md](SETUP.md) for configuration details.
 ## 🐛 Troubleshooting
 
 **Agent not responding?**
+
 - Wait 1-2 minutes for workflow to run
 - Check if GitHub Actions are enabled
 - Verify you mentioned `@pr-copilot` correctly
 
 **Status update not showing?**
+
 - Ensure PR has commits and changes
 - Check if checks are still running
 - Try again after a few minutes
 
 **Unexpected warnings?**
+
 - Review scope validation rules in config
 - Check if title matches warning criteria
 - Warnings are suggestions, not blockers
