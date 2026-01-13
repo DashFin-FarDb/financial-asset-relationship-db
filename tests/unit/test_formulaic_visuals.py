@@ -68,15 +68,13 @@ class TestFormulaicVisualizer:
                     {"asset1": "MSFT", "asset2": "GOOGL", "correlation": 0.75, "strength": "Strong"},
                 ],
             },
-            "asset_class_relationships": {
-                "Equity": {"asset_count": 3, "avg_price": 150.0, "total_value": 450.0}
-            },
+            "asset_class_relationships": {"Equity": {"asset_count": 3, "avg_price": 150.0, "total_value": 450.0}},
             "sector_relationships": {
                 "Technology": {"asset_count": 3, "avg_price": 150.0, "price_range": "$100.00 - $200.00"}
             },
         }
 
-    @ staticmethod
+    @staticmethod
     def test_visualizer_initialization(visualizer):
         """Test FormulaicVisualizer initialization."""
         assert isinstance(visualizer, FormulaicVisualizer)
@@ -85,7 +83,7 @@ class TestFormulaicVisualizer:
         assert "Valuation" in visualizer.color_scheme
         assert "Income" in visualizer.color_scheme
 
-    @ staticmethod
+    @staticmethod
     def test_color_scheme_completeness(visualizer):
         """Test that color scheme includes all expected categories."""
         expected_categories = [
@@ -103,7 +101,7 @@ class TestFormulaicVisualizer:
             assert category in visualizer.color_scheme, f"Color scheme should include {category}"
             assert isinstance(visualizer.color_scheme[category], str), f"Color for {category} should be a string"
 
-    @ staticmethod
+    @staticmethod
     def test_create_formula_dashboard_with_full_data(visualizer, sample_analysis_results):
         """Test creating a formula dashboard with comprehensive data."""
         # Execute
@@ -117,8 +115,8 @@ class TestFormulaicVisualizer:
         assert fig.layout.plot_bgcolor == "white"
         assert fig.layout.paper_bgcolor == "#F8F9FA"
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_create_formula_dashboard_with_empty_data(visualizer):
         """Test creating a formula dashboard with empty data."""
         empty_results = {
@@ -134,8 +132,8 @@ class TestFormulaicVisualizer:
         assert isinstance(fig, go.Figure)
         assert fig.layout.title.text == "📊 Financial Formulaic Analysis Dashboard"
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_create_formula_dashboard_categories_pie_chart(visualizer, sample_analysis_results):
         """Test that formula categories pie chart is created correctly."""
         # Execute
@@ -149,8 +147,9 @@ class TestFormulaicVisualizer:
         assert pie_trace.hole == 0.4, "Should be a donut chart"
         assert len(pie_trace.labels) > 0, "Should have category labels"
         assert len(pie_trace.values) > 0, "Should have category values"
-    @ staticmethod
-    @ staticmethod
+
+    @staticmethod
+    @staticmethod
     def test_create_formula_dashboard_reliability_bar_chart(visualizer, sample_analysis_results):
         """Test that formula reliability bar chart is created correctly."""
         # Execute
@@ -160,8 +159,8 @@ class TestFormulaicVisualizer:
         bar_traces = [trace for trace in fig.data if trace.type == "bar"]
         assert len(bar_traces) > 0, "Should have at least one bar chart"
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_create_formula_dashboard_correlation_heatmap(visualizer, sample_analysis_results):
         """Test that correlation heatmap is created correctly."""
         # Execute
@@ -176,8 +175,8 @@ class TestFormulaicVisualizer:
         assert heatmap.zmin == -1
         assert heatmap.zmax == 1
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_create_formula_dashboard_with_table(visualizer, sample_analysis_results):
         """Test that formula examples table is created."""
         # Execute
@@ -191,8 +190,8 @@ class TestFormulaicVisualizer:
         assert hasattr(table, "header")
         assert hasattr(table, "cells")
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_create_formula_detail_view(visualizer, sample_formula):
         """Test creating a detailed formula view."""
         # Execute
@@ -212,8 +211,8 @@ class TestFormulaicVisualizer:
         assert sample_formula.formula in annotation.text
         assert sample_formula.description in annotation.text
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_create_formula_detail_view_includes_all_fields(visualizer, sample_formula):
         """Test that detail view includes all formula fields."""
         # Execute
@@ -234,7 +233,7 @@ class TestFormulaicVisualizer:
         for var, desc in sample_formula.variables.items():
             assert var in annotation_text or desc in annotation_text
 
-    @ staticmethod
+    @staticmethod
     def test_create_correlation_network_with_data(visualizer, sample_analysis_results):
         """Test creating a correlation network with data."""
         # Execute
@@ -245,7 +244,7 @@ class TestFormulaicVisualizer:
         assert "Asset Correlation Network" in fig.layout.title.text
         assert len(fig.data) > 0, "Should have traces for nodes and edges"
 
-    @ staticmethod
+    @staticmethod
     def test_create_correlation_network_without_data(visualizer):
         """Test creating a correlation network without correlation data."""
         empty_relationships = {"strongest_correlations": []}
@@ -258,7 +257,7 @@ class TestFormulaicVisualizer:
         assert len(fig.layout.annotations) > 0
         assert "No correlation data available" in fig.layout.annotations[0].text
 
-    @ staticmethod
+    @staticmethod
     def test_create_correlation_network_node_positioning(visualizer, sample_analysis_results):
         """Test that correlation network positions nodes in a circle."""
         # Execute
@@ -273,8 +272,8 @@ class TestFormulaicVisualizer:
         assert len(node_trace.y) > 0, "Should have node y coordinates"
         assert len(node_trace.x) == len(node_trace.y), "Should have matching x and y coordinates"
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_create_correlation_network_edge_colors(visualizer):
         """Test that correlation network uses correct edge colors based on strength."""
         # Modify correlations to test different strengths
@@ -293,8 +292,8 @@ class TestFormulaicVisualizer:
         edge_traces = [trace for trace in fig.data if trace.mode == "lines"]
         assert len(edge_traces) > 0, "Should have edge traces"
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_create_metric_comparison_chart(visualizer, sample_analysis_results):
         """Test creating a metric comparison chart."""
         # Execute
@@ -306,7 +305,7 @@ class TestFormulaicVisualizer:
         assert fig.layout.barmode == "group"
         assert fig.layout.plot_bgcolor == "white"
 
-    @ staticmethod
+    @staticmethod
     def test_create_metric_comparison_chart_with_empty_formulas(visualizer):
         """Test metric comparison chart with no formulas."""
         empty_results = {"formulas": []}
@@ -317,8 +316,8 @@ class TestFormulaicVisualizer:
         # Assert - should create valid figure even with no data
         assert isinstance(fig, go.Figure)
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_create_metric_comparison_chart_multiple_categories(visualizer):
         """Test metric comparison chart with multiple categories."""
         results = {
@@ -369,8 +368,8 @@ class TestFormulaicVisualizer:
         assert r_squared_trace is not None, "Should have R-squared trace"
         assert count_trace is not None, "Should have count trace"
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_formula_dashboard_handles_large_correlation_matrix(visualizer):
         """Test dashboard with a large correlation matrix."""
         # Create a large correlation matrix (more than 8x8)
@@ -399,8 +398,8 @@ class TestFormulaicVisualizer:
             heatmap = heatmap_traces[0]
             assert len(heatmap.z) <= 8, "Should limit heatmap to 8x8"
 
-    @ staticmethod
-    @ staticmethod
+    @staticmethod
+    @staticmethod
     def test_formula_detail_view_with_special_characters(visualizer):
         """Test detail view with formulas containing special characters."""
         special_formula = Formula(
@@ -422,7 +421,7 @@ class TestFormulaicVisualizer:
         annotation_text = fig.layout.annotations[0].text
         assert "sigma" in annotation_text or "rho" in annotation_text
 
-    @ staticmethod
+    @staticmethod
     def test_correlation_network_with_many_correlations(visualizer):
         """Test correlation network limits to top 10 correlations."""
         # Create many correlations
@@ -441,7 +440,7 @@ class TestFormulaicVisualizer:
         edge_traces = [trace for trace in fig.data if trace.mode == "lines"]
         assert len(edge_traces) <= 10, "Should limit to top 10 correlations"
 
-    @ staticmethod
+    @staticmethod
     def test_metric_comparison_calculates_averages_correctly(visualizer):
         """Test that metric comparison correctly calculates category averages."""
         results = {
