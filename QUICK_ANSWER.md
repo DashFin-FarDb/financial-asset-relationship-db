@@ -11,7 +11,7 @@
 ## Why Not?
 
 1. **This merge is self-contained** - Used `--allow-unrelated-histories` to overcome conflicts
-2. **Only additive changes** - 66 new files (tests/docs), 0 deletions, 0 core code changes  
+2. **Only additive changes** - 66 new files (tests/docs), 0 deletions, 0 core code changes
 3. **All conflicts resolved** - Including the bandit-report.json conflict
 4. **Already validated** - Code tested, imports working, JSON validated
 
@@ -44,7 +44,7 @@ Those PRs are **superseded by this merge** (not blockers):
 
 **NOW** - Ready immediately:
 - ✅ No blockers
-- ✅ No dependencies  
+- ✅ No dependencies
 - ✅ All validation complete
 - ✅ Clean working tree
 - ✅ Documentation complete

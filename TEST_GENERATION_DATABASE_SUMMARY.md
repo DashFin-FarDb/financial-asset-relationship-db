@@ -100,7 +100,7 @@ Integration tests for URI-style memory databases:
 
 ### Testing Framework & Patterns
 - **Framework**: pytest
-- **Fixtures Used**: 
+- **Fixtures Used**:
   - `monkeypatch` (for environment variable manipulation)
   - `restore_database_module` (custom fixture for state restoration)
 - **Patterns**:

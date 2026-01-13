@@ -80,7 +80,7 @@ The grammar test correctly identified a typo in the source file:
 
 ## Testing Framework
 - **Framework**: pytest
-- **Dependencies**: 
+- **Dependencies**:
   - pytest >= 7.0.0
   - PyYAML (already in project dependencies)
 - **Language**: Python 3.10+
