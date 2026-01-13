@@ -181,7 +181,10 @@ describe("Package-lock.json Validation", () => {
 
     it("all packages should have resolved URLs or be local", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { link?: boolean; dev?: boolean; resolved?: string }]) => {
+        ([path, pkg]: [
+          string,
+          { link?: boolean; dev?: boolean; resolved?: string },
+        ]) => {
           if (
             path !== "" &&
             !pkg.link &&
@@ -199,7 +202,10 @@ describe("Package-lock.json Validation", () => {
 
     it("all non-local packages should have integrity hashes", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { link?: boolean; resolved?: string; integrity?: string }]) => {
+        ([path, pkg]: [
+          string,
+          { link?: boolean; resolved?: string; integrity?: string },
+        ]) => {
           if (
             path !== "" &&
             !pkg.link &&
@@ -322,7 +328,13 @@ describe("Package-lock.json Validation", () => {
   describe("Peer Dependencies", () => {
     it("should not have unresolved peer dependencies", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { peerDependencies?: Record<string, string>; peerDependenciesMeta?: Record<string, { optional?: boolean }> }]) => {
+        ([path, pkg]: [
+          string,
+          {
+            peerDependencies?: Record<string, string>;
+            peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+          },
+        ]) => {
           if (pkg.peerDependencies) {
             // Peer dependencies should either be satisfied or marked as optional
             Object.keys(pkg.peerDependencies).forEach((peerDep) => {
@@ -350,7 +362,13 @@ describe("Package-lock.json Validation", () => {
 
       // Check packages that have React as peer dependency
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { peerDependencies?: { react?: string }; peerDependenciesMeta?: { react?: { optional?: boolean } } }]) => {
+        ([path, pkg]: [
+          string,
+          {
+            peerDependencies?: { react?: string };
+            peerDependenciesMeta?: { react?: { optional?: boolean } };
+          },
+        ]) => {
           if (pkg.peerDependencies?.react) {
             const isOptional = pkg.peerDependenciesMeta?.react?.optional;
             if (!isOptional) {
@@ -378,7 +396,7 @@ describe("Package-lock.json Validation", () => {
 
     it("should not have version ranges in lockfile", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, {version?: string}]) => {
+        ([path, pkg]: [string, { version?: string }]) => {
           if (pkg.version) {
             expect(pkg.version).not.toContain("||");
             expect(pkg.version).not.toContain("*");
@@ -593,7 +611,10 @@ describe("Package-lock.json Validation", () => {
       let axiosPeerDepFound = false;
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { peerDependencies?: Record<string, string> }]) => {
+        ([path, pkg]: [
+          string,
+          { peerDependencies?: Record<string, string> },
+        ]) => {
           if (pkg.peerDependencies?.axios) {
             axiosPeerDepFound = true;
             const peerVersion = pkg.peerDependencies.axios;

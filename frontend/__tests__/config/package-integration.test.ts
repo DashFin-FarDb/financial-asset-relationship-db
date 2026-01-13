@@ -15,8 +15,22 @@ import { join } from "path";
 describe("Package Configuration Integration", () => {
   const packageJsonPath = join(process.cwd(), "package.json");
   const packageLockPath = join(process.cwd(), "package-lock.json");
-  let packageJson: { name: string; version: string; dependencies?: Record<string, string>; devDependencies?: Record<string, string>; };
-  let packageLock: { name: string; version: string; packages?: { "": { dependencies?: Record<string, string>; devDependencies?: Record<string, string>; }; }; };
+  let packageJson: {
+    name: string;
+    version: string;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
+  let packageLock: {
+    name: string;
+    version: string;
+    packages?: {
+      "": {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
+    };
+  };
 
   beforeAll(() => {
     packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
@@ -215,7 +229,10 @@ describe("Package Configuration Integration", () => {
       let packagesWithoutIntegrity = 0;
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { resolved: string; link?: boolean; integrity?: string }]) => {
+        ([path, pkg]: [
+          string,
+          { resolved: string; link?: boolean; integrity?: string },
+        ]) => {
           if (
             path !== "" &&
             pkg.resolved &&
