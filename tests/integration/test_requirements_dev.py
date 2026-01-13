@@ -68,7 +68,7 @@ def _parse_single_requirement(line: str) -> tuple:
         A tuple of (package_name, version_specifier) or None if parsing fails.
     """
     try:
-        req = Requirement(line)
+        Requirement(line)
     except (ValueError, TypeError) as parse_error:
         print(f"Could not parse requirement: {line} due to {parse_error}")
 
