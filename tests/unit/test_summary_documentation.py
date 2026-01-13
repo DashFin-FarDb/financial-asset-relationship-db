@@ -186,7 +186,6 @@ class TestFinalTestSummary:
     def test_summary_mentions_test_file_location(self, summary_content):
         """Test that summary mentions the test file location."""
         assert "test_documentation_validation.py" in summary_content
-
     def test_summary_has_test_statistics(self, summary_content):
         """Test that summary includes test statistics."""
         assert "Statistics:" in summary_content or "statistics" in summary_content.lower()
@@ -235,8 +234,6 @@ class TestFinalTestSummary:
 
 class TestDocumentationSummary:
     """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
-
-    @pytest.fixture
     def summary_path(self):
         pass
         pass

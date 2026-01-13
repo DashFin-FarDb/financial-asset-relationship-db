@@ -2338,6 +2338,8 @@ class TestWorkflowPermissionsBestPractices:
                         # Common justified write permissions
 
                         # Check workflow-level permissions
+                        pass
+
         if "permissions" in data:
             check_perms(data["permissions"])
 
