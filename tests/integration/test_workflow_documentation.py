@@ -15,9 +15,6 @@ import pytest
 DOC_FILE = Path(__file__).parent.parent.parent / "TEST_GENERATION_WORKFLOW_SUMMARY.md"
 
 
-```[\s\S]*?
-
-
 class TestDocumentationSections:
     """Test that all expected sections are present."""
 
@@ -46,6 +43,6 @@ class TestDocumentationSections:
 
     def test_has_sufficient_sections(self, section_headers: List[str]):
         """Test that document has sufficient number of sections."""
-        assert (
-            len(section_headers) >= 5
-        ), f"Document should have at least 5 major sections, found {len(section_headers)}"
+        assert len(section_headers) >= 5, "Document should have at least 5 major sections, found {}".format(
+            len(section_headers)
+        )

@@ -97,32 +97,31 @@ class TestCompleteAPIFlow:
     @staticmethod
     def test_filter_combinations(client):
         """Test various filter combinations return consistent results."""
-        # Get all assets
-        all_assets = client.get("/api/assets").json()
+# Get all assets
+all_assets = client.get("/api/assets").json()
 
-        # Get unique asset classes and sectors
-        asset_classes = set(a["asset_class"] for a in all_assets)
-        sectors = set(a["sector"] for a in all_assets)
+# Get unique asset classes and sectors
+asset_classes = set(a["asset_class"] for a in all_assets)
+sectors = set(a["sector"] for a in all_assets)
 
-        # Test each asset class filter
-        for ac in asset_classes:
-            filtered = client.get(f"/api/assets?asset_class={ac}").json()
-            assert all(a["asset_class"] == ac for a in filtered)
-            assert len(filtered) <= len(all_assets)
+# Test each asset class filter
+for ac in asset_classes:
+    filtered = client.get(f"/api/assets?asset_class={ac}").json()
+    assert all(a["asset_class"] == ac for a in filtered)
+    assert len(filtered) <= len(all_assets)
 
-        # Test each sector filter
-        for sector in sectors:
-            filtered = client.get(f"/api/assets?sector={sector}").json()
-            assert all(a["sector"] == sector for a in filtered)
-            assert len(filtered) <= len(all_assets)
-
+# Test each sector filter
+for sector in sectors:
+    filtered = client.get(f"/api/assets?sector={sector}").json()
+    assert all(a["sector"] == sector for a in filtered)
+    assert len(filtered) <= len(all_assets)
 
 class TestDataIntegrity:
     """Test data integrity across endpoints."""
 
     @staticmethod
     def test_asset_detail_matches_list(client):
-        """Test that asset details match what's in the list."""
+        """Test that asset details match what is in the list."""
         assets = client.get("/api/assets").json()
 
         for asset in assets[:3]:  # Test first 3 assets

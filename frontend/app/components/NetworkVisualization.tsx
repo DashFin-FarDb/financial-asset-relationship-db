@@ -1,13 +1,15 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
-import type { VisualizationData } from '../types/api';
+import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import type { VisualizationData } from "../types/api";
 
 // Dynamically import Plotly to avoid SSR issues
-const Plot = dynamic(() => import('react-plotly.js'), {
+const Plot = dynamic(() => import("react-plotly.js"), {
   ssr: false,
-  loading: () => <div className="text-center p-8">Loading visualization...</div>
+  loading: () => (
+    <div className="text-center p-8">Loading visualization...</div>
+  ),
 });
 
 interface NetworkVisualizationProps {
@@ -15,8 +17,8 @@ interface NetworkVisualizationProps {
 }
 
 type EdgeTrace = {
-  type: 'scatter3d';
-  mode: 'lines';
+  type: "scatter3d";
+  mode: "lines";
   x: number[];
   y: number[];
   z: number[];
@@ -24,7 +26,7 @@ type EdgeTrace = {
     color: string;
     width: number;
   };
-  hoverinfo: 'none';
+  hoverinfo: "none";
   showlegend: false;
 };
 
@@ -39,16 +41,20 @@ const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
  *   Edges are objects with at least: `source`, `target`, `relationship_type`, `strength`.
  * @returns A JSX element rendering the 3D network plot when data is valid, or a centred status message when data is missing, invalid or too large.
  */
-export default function NetworkVisualization({ data }: NetworkVisualizationProps) {
-const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'empty' | 'tooLarge'>('loading');
-  const [message, setMessage] = useState('Loading visualization...');
+export default function NetworkVisualization({
+  data,
+}: NetworkVisualizationProps) {
+  const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
+  const [status, setStatus] = useState<
+    "loading" | "ready" | "empty" | "tooLarge"
+  >("loading");
+  const [message, setMessage] = useState("Loading visualization...");
 
   useEffect(() => {
     if (!data) {
       setPlotData([]);
-      setStatus('empty');
-      setMessage('No visualization data available.');
+      setStatus("empty");
+      setMessage("No visualization data available.");
       return;
     }
 
@@ -57,46 +63,48 @@ const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
 
     if (nodes.length === 0) {
       setPlotData([]);
-      setStatus('empty');
-      setMessage('Visualization data is missing nodes.');
+      setStatus("empty");
+      setMessage("Visualization data is missing nodes.");
       return;
     }
 
     if (nodes.length > MAX_NODES || edges.length > MAX_EDGES) {
       setPlotData([]);
-      setStatus('tooLarge');
+      setStatus("tooLarge");
       setMessage(
-        `Visualization is unavailable because the dataset is too large (${nodes.length} nodes, ${edges.length} edges). Maximum: ${MAX_NODES} nodes, ${MAX_EDGES} edges.`
+        `Visualization is unavailable because the dataset is too large (${nodes.length} nodes, ${edges.length} edges). Maximum: ${MAX_NODES} nodes, ${MAX_EDGES} edges.`,
       );
       return;
     }
 
     // Create node trace
     const nodeTrace = {
-      type: 'scatter3d',
-      mode: 'markers+text',
-      x: nodes.map(n => n.x),
-      y: nodes.map(n => n.y),
-      z: nodes.map(n => n.z),
-      text: nodes.map(n => n.symbol),
-      hovertext: nodes.map(n => `${n.name} (${n.symbol})<br>Class: ${n.asset_class}`),
-      hoverinfo: 'text',
+      type: "scatter3d",
+      mode: "markers+text",
+      x: nodes.map((n) => n.x),
+      y: nodes.map((n) => n.y),
+      z: nodes.map((n) => n.z),
+      text: nodes.map((n) => n.symbol),
+      hovertext: nodes.map(
+        (n) => `${n.name} (${n.symbol})<br>Class: ${n.asset_class}`,
+      ),
+      hoverinfo: "text",
       marker: {
-        size: nodes.map(n => n.size),
-        color: nodes.map(n => n.color),
+        size: nodes.map((n) => n.size),
+        color: nodes.map((n) => n.color),
         line: {
-          color: 'white',
-          width: 0.5
-        }
+          color: "white",
+          width: 0.5,
+        },
       },
-      textposition: 'top center',
+      textposition: "top center",
       textfont: {
         size: 8,
-      }
+      },
     };
 
     // Create node lookup map for O(1) access
-    const nodeMap = new Map(nodes.map(node => [node.id, node]));
+    const nodeMap = new Map(nodes.map((node) => [node.id, node]));
 
     // Create edge traces with type predicate to filter nulls
     const edgeTraces = edges.reduce<EdgeTrace[]>((acc, edge) => {
@@ -108,30 +116,33 @@ const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
       }
 
       acc.push({
-        type: 'scatter3d',
-        mode: 'lines',
+        type: "scatter3d",
+        mode: "lines",
         x: [sourceNode.x, targetNode.x],
         y: [sourceNode.y, targetNode.y],
         z: [sourceNode.z, targetNode.z],
         line: {
           color: `rgba(125, 125, 125, ${edge.strength})`,
-          width: edge.strength * 3
+          width: edge.strength * 3,
         },
-        hoverinfo: 'none',
-        showlegend: false
+        hoverinfo: "none",
+        showlegend: false,
       });
 
       return acc;
     }, []);
 
     setPlotData([...edgeTraces, nodeTrace]);
-    setStatus('ready');
-    setMessage('');
+    setStatus("ready");
+    setMessage("");
   }, [data]);
 
-  if (status !== 'ready') {
+  if (status !== "ready") {
     return (
-      <div className="text-center p-8 text-gray-600" role={status === 'tooLarge' ? 'alert' : 'status'}>
+      <div
+        className="text-center p-8 text-gray-600"
+        role={status === "tooLarge" ? "alert" : "status"}
+      >
         {message}
       </div>
     );
@@ -142,27 +153,27 @@ const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
       <Plot
         data={plotData}
         layout={{
-          title: '3D Asset Relationship Network',
+          title: "3D Asset Relationship Network",
           showlegend: false,
           scene: {
             xaxis: { showgrid: false, zeroline: false, showticklabels: false },
             yaxis: { showgrid: false, zeroline: false, showticklabels: false },
             zaxis: { showgrid: false, zeroline: false, showticklabels: false },
             camera: {
-              eye: { x: 1.5, y: 1.5, z: 1.5 }
-            }
+              eye: { x: 1.5, y: 1.5, z: 1.5 },
+            },
           },
-          hovermode: 'closest',
+          hovermode: "closest",
           margin: { l: 0, r: 0, b: 0, t: 40 },
-          paper_bgcolor: 'rgba(0,0,0,0)',
-          plot_bgcolor: 'rgba(0,0,0,0)'
+          paper_bgcolor: "rgba(0,0,0,0)",
+          plot_bgcolor: "rgba(0,0,0,0)",
         }}
         config={{
           displayModeBar: true,
           displaylogo: false,
-          responsive: true
+          responsive: true,
         }}
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: "100%", height: "100%" }}
       />
     </div>
   );

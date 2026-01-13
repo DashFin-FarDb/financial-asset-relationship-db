@@ -183,9 +183,6 @@ class TestRequiredPackages:
 
     @staticmethod
     def test_has_httpx(package_names: List[str]):
-
-    @staticmethod
-    def test_has_httpx(package_names: List[str]):
         """Test that httpx is included for HTTP client."""
         assert "httpx" in package_names
 
@@ -377,12 +374,12 @@ class TestSecurityAndCompliance:
     def test_no_known_vulnerable_versions(requirements: List[Tuple[str, str]]):
         """Test that packages don't use known vulnerable version patterns."""
         # This is a basic check - in production, integrate with safety or snyk
-        for pkg, ver in requirements:
+        for _, ver in requirements:
             # Example: check that we're not using very old versions
             if ver.startswith("=="):
                 version_match = re.search(r"==(\d+)\.(\d+)", ver)
                 if version_match:
-                    major = int(version_match.group(1))
+                    _ = int(version_match.group(1))
 
 
 class TestEdgeCases:

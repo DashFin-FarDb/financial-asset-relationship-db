@@ -148,7 +148,8 @@ class TestStepsConfiguration:
         checkout_steps = get_steps_by_action(job_steps, "actions/checkout")
         assert checkout_steps, "Job must include actions/checkout step"
 
-    def test_checkout_step_version_pinned(self, job_steps: List[Dict[str, Any]]):
+    @staticmethod
+    def test_checkout_step_version_pinned(job_steps: List[Dict[str, Any]]):
         """Test that checkout action uses pinned version (SHA or tag)."""
         checkout_steps = get_steps_by_action(job_steps, "actions/checkout")
         assert checkout_steps, "Job must include actions/checkout step"
@@ -167,12 +168,14 @@ class TestStepsConfiguration:
                 # Tag format - should be v4 or later
                 assert "v4" in version or "v5" in version, f"Checkout tag must be v4 or later (found {version})"
 
-    def test_debricked_action_exists(self, job_steps: List[Dict[str, Any]]):
+    @staticmethod
+    def test_debricked_action_exists(job_steps: List[Dict[str, Any]]):
         """Test that Debricked action exists."""
         debricked_steps = get_steps_by_action(job_steps, "debricked")
         assert debricked_steps, "Job must include Debricked action"
 
-    def test_debricked_action_version_pinned(self, job_steps: List[Dict[str, Any]]):
+    @staticmethod
+    def test_debricked_action_version_pinned(job_steps: List[Dict[str, Any]]):
         """Test that Debricked action uses pinned version (SHA or tag)."""
         debricked_steps = get_steps_by_action(job_steps, "debricked")
         assert debricked_steps, "Job must include Debricked action"
@@ -197,7 +200,8 @@ class TestStepsConfiguration:
 class TestSecretHandling:
     """Test proper handling of secrets."""
 
-    def test_debricked_token_configuration(self, job_steps: List[Dict[str, Any]]):
+    @staticmethod
+    def test_debricked_token_configuration(job_steps: List[Dict[str, Any]]):
         """Test DEBRICKED_TOKEN injection via secrets."""
         debricked_steps = get_steps_by_action(job_steps, "debricked")
         assert debricked_steps, "Job must include Debricked action to configure DEBRICKED_TOKEN"
@@ -211,9 +215,10 @@ class TestSecretHandling:
             # Allows optional whitespace around 'secrets.DEBRICKED_TOKEN' but nothing else
             assert re.fullmatch(
                 r"\$\{\{\s*secrets\.DEBRICKED_TOKEN\s*\}\}", token.strip()
-            ), f"DEBRICKED_TOKEN must be exactly '${{{{ secrets.DEBRICKED_TOKEN }}}}', found '{token}'"
+            ), f"DEBRICKED_TOKEN must be exactly '${{ secrets.DEBRICKED_TOKEN }}', found '{token}'"
 
-    def test_no_hardcoded_secrets(self, workflow_content: str):
+    @staticmethod
+    def test_no_hardcoded_secrets(workflow_content: str):
         """Test for potential hardcoded secrets in the file content."""
         suspicious_patterns = [
             "ghp_",  # GitHub personal access token

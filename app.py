@@ -326,9 +326,11 @@ class FinancialAssetApp:
 
     def show_formula_details(self, formula_name: str, graph_state: AssetRelationshipGraph):
         """Show detailed view of a specific formula."""
+        try:
+            pass
         except Exception as e:
             logger.error("Error showing formula details: %s", e)
-            return go.Figure(), gr.update(value=f"Error: {str(e)}", visible=True)
+            return go.Figure(), gr.update(value="Error: {}".format(e), visible=True)
 
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:

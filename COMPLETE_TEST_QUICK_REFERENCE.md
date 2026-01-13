@@ -3,6 +3,7 @@
 ## All Tests in Current Branch
 
 ### Python Integration Tests (tests/integration/)
+
 ```bash
 # Run ALL integration tests
 pytest tests/integration/ -v
@@ -27,7 +28,8 @@ pytest -k "config" tests/integration/ -v
 pytest -k "documentation" tests/integration/ -v
 ```
 
-### Frontend Tests (frontend/__tests__/)
+### Frontend Tests (frontend/**tests**/)
+
 ```bash
 cd frontend
 
@@ -71,10 +73,13 @@ pytest tests/ --cov && cd frontend && npm test -- --coverage
 ## Test Coverage by Category
 
 ### Documentation Tests (15 tests)
+
 ```bash
 pytest tests/integration/test_documentation_files_validation.py -v
 ```
+
 Validates:
+
 - Markdown file structure
 - Code block formatting
 - Table consistency
@@ -82,10 +87,13 @@ Validates:
 - Content quality
 
 ### Configuration Tests (26 tests)
+
 ```bash
 pytest tests/integration/test_modified_config_files_validation.py -v
 ```
+
 Validates:
+
 - PR Agent config changes
 - Workflow simplifications
 - Deleted files impact
@@ -93,29 +101,38 @@ Validates:
 - .gitignore changes
 
 ### Workflow Tests (50+ tests)
+
 ```bash
 pytest tests/integration/test_github_workflows.py -v
 ```
+
 Validates:
+
 - All GitHub Actions workflows
 - YAML syntax and structure
 - Security best practices
 - Action versions
 
 ### Integration Tests (16 tests)
+
 ```bash
 pytest tests/integration/test_branch_integration.py -v
 ```
+
 Validates:
+
 - Cross-workflow consistency
 - Dependency-workflow integration
 - Branch coherence
 
 ### Frontend Component Tests (100+ tests)
+
 ```bash
 cd frontend && npm test
 ```
+
 Validates:
+
 - React components
 - API client
 - Test utilities
@@ -124,14 +141,18 @@ Validates:
 ## CI/CD Commands
 
 ### GitHub Actions (Automated)
+
 These run automatically on push/PR:
+
 ```yaml
 - pytest tests/ -v --cov
 - cd frontend && npm test -- --coverage
 ```
 
 ### Pre-commit Validation
+
 Before committing:
+
 ```bash
 # Python
 python -m pytest tests/ --cov
@@ -148,6 +169,7 @@ npm test -- --coverage
 ## Useful Test Flags
 
 ### pytest flags
+
 ```bash
 -v              # Verbose output
 --cov           # Coverage report
@@ -161,6 +183,7 @@ npm test -- --coverage
 ```
 
 ### Jest/npm test flags
+
 ```bash
 --coverage      # Coverage report
 --watch         # Watch mode

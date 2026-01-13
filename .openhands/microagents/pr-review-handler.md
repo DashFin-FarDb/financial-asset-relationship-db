@@ -3,7 +3,28 @@ name: PR Review Handler
 type: knowledge
 version: 1.0.0
 agent: CodeActAgent
-triggers: ["review PR", "review comment", "review comments", "review all unresolved comments", "review commit", "review all commits", "fix", "make changes", "recommend change", "recommend changes", "recommend fix", "recommend fixes", "review merge conflict", "fix merge conflict", "request review from @mohavro", "request review by me", "request review from me", "request review MM", "request review mm"]
+triggers:
+  [
+    "review PR",
+    "review comment",
+    "review comments",
+    "review all unresolved comments",
+    "review commit",
+    "review all commits",
+    "fix",
+    "make changes",
+    "recommend change",
+    "recommend changes",
+    "recommend fix",
+    "recommend fixes",
+    "review merge conflict",
+    "fix merge conflict",
+    "request review from @mohavro",
+    "request review by me",
+    "request review from me",
+    "request review MM",
+    "request review mm",
+  ]
 ---
 
 # PR Review Handler Microagent
@@ -13,10 +34,13 @@ This microagent is designed to handle pull request reviews and implement reviewe
 ## Activation
 
 ### Manual Activation
+
 To manually activate this microagent, use the reference: **@openhands-agent-prrh**
 
 ### Automatic Triggers
+
 This microagent automatically activates when any of these keywords/phrases are mentioned:
+
 - `review PR`
 - `review comment` / `review comments`
 - `review all unresolved comments`
@@ -37,12 +61,14 @@ Review open pull requests, analyze review comments, and fix any uncommitted chan
 ## Capabilities
 
 ### Pull Request Review Analysis
+
 - Fetch and analyze open pull requests in the repository
 - Parse review comments and feedback from reviewers
 - Identify specific issues, suggestions, and requested changes
 - Prioritize critical issues and security concerns
 
 ### Code Review Implementation
+
 - Implement requested changes from reviewer feedback
 - Fix code quality issues, bugs, and security vulnerabilities
 - Update documentation when requested
@@ -50,12 +76,14 @@ Review open pull requests, analyze review comments, and fix any uncommitted chan
 - Handle merge conflicts if they arise
 
 ### Change Management
+
 - Stage and commit all implemented changes with descriptive commit messages
 - Follow conventional commit message format when applicable
 - Ensure all changes are properly tested before committing
 - Handle multiple commits if changes are logically separate
 
 ### Review Request Process
+
 - After implementing all requested changes, request review from @mohavro
 - Provide clear summary of changes made in response to feedback
 - Tag appropriate reviewers based on the nature of changes

@@ -7,9 +7,11 @@ This directory contains comprehensive validation tests for configuration and doc
 ## New Test Files
 
 ### 1. test_documentation_files_validation.py (292 lines)
+
 **Purpose**: Validates all markdown documentation files in the repository
 
 **Test Classes**:
+
 - `TestDocumentationFilesValidation` (10 tests)
   - File existence and readability
   - Non-empty file validation
@@ -33,9 +35,11 @@ This directory contains comprehensive validation tests for configuration and doc
 **Coverage**: 32 markdown documentation files
 
 ### 2. test_modified_config_files_validation.py (297 lines)
+
 **Purpose**: Validates configuration file modifications in the branch
 
 **Test Classes**:
+
 - `TestPRAgentConfigChanges` (8 tests)
   - Version validation (1.0.0)
   - Context chunking removal
@@ -77,6 +81,7 @@ This directory contains comprehensive validation tests for configuration and doc
 ## Running the Tests
 
 ### Quick Start
+
 ```bash
 # Run both new test files
 pytest test_documentation_files_validation.py test_modified_config_files_validation.py -v
@@ -92,6 +97,7 @@ pytest test_documentation_files_validation.py test_modified_config_files_validat
 ```
 
 ### Run Specific Test Classes
+
 ```bash
 # Documentation validation
 pytest test_documentation_files_validation.py::TestDocumentationFilesValidation -v
@@ -104,6 +110,7 @@ pytest test_modified_config_files_validation.py::TestDeletedFilesImpact -v
 ```
 
 ### Run Specific Tests
+
 ```bash
 # Check markdown structure
 pytest test_documentation_files_validation.py::TestDocumentationFilesValidation::test_markdown_has_proper_headings -v
@@ -115,15 +122,18 @@ pytest test_modified_config_files_validation.py::TestPRAgentConfigChanges::test_
 ## Test Dependencies
 
 ### Required
+
 - pytest (already in requirements.txt)
 - PyYAML (already in requirements-dev.txt)
 
 ### Optional
+
 - pytest-cov (for coverage reports)
 
 ## CI/CD Integration
 
 These tests run automatically in the CI/CD pipeline:
+
 ```yaml
 # .github/workflows/ci.yml
 - name: Run Python Tests
@@ -133,6 +143,7 @@ These tests run automatically in the CI/CD pipeline:
 ## Test Fixtures
 
 ### Common Fixtures
+
 ```python
 @pytest.fixture
 def doc_root(self) -> Path:
@@ -150,6 +161,7 @@ def config_path(self) -> Path:
 ## Writing New Tests
 
 ### Add Documentation Test
+
 ```python
 def test_new_markdown_validation(self, markdown_files: List[Path]):
     """Test for new markdown requirement."""
@@ -160,6 +172,7 @@ def test_new_markdown_validation(self, markdown_files: List[Path]):
 ```
 
 ### Add Configuration Test
+
 ```python
 def test_new_config_validation(self, config_path: Path):
     """Test for new config requirement."""

@@ -26,6 +26,7 @@ This conflict marker was left unresolved during the automated conflict resolutio
 ## Root Cause
 
 The conflict occurred because:
+
 1. Both `main` and `patch` branches had the same `bandit-report.json` file
 2. Both versions had identical closing braces `}`
 3. The automated conflict resolution script (`git checkout --ours`) didn't fully resolve this file
@@ -36,13 +37,16 @@ The conflict occurred because:
 ## Resolution
 
 ### Step 1: Identified the Conflict
+
 ```bash
 git status  # Showed clean working tree
 # Manual inspection of bandit-report.json found the markers
 ```
 
 ### Step 2: Fixed the File
+
 Removed the merge conflict markers, keeping a single closing brace:
+
 ```json
   },
   "results": []
@@ -50,12 +54,14 @@ Removed the merge conflict markers, keeping a single closing brace:
 ```
 
 ### Step 3: Validated JSON
+
 ```bash
 python -c "import json; json.load(open('bandit-report.json')); print('✓ Valid JSON')"
 # Result: ✓ Valid JSON
 ```
 
 ### Step 4: Committed the Fix
+
 ```bash
 git add bandit-report.json
 git commit -m "Fix merge conflict in bandit-report.json"
@@ -76,11 +82,13 @@ git commit -m "Fix merge conflict in bandit-report.json"
 ## Impact
 
 ### Before Fix
+
 - ❌ `bandit-report.json` had merge conflict markers
 - ❌ File was technically invalid JSON (would fail strict parsers)
 - ❌ CI/CD might fail on JSON validation
 
 ### After Fix
+
 - ✅ Valid JSON structure
 - ✅ No merge conflict markers
 - ✅ Ready for CI/CD
@@ -98,6 +106,7 @@ git commit -m "Fix merge conflict in bandit-report.json"
    - Run validators (JSON, YAML, Python syntax)
 
 2. **Check for merge markers**
+
    ```bash
    # Search for conflict markers
    git diff --check
@@ -106,6 +115,7 @@ git commit -m "Fix merge conflict in bandit-report.json"
    ```
 
 3. **Validate all file types**
+
    ```bash
    # JSON files
    find . -name "*.json" -exec python -c "import json; json.load(open('{}'))" \;
@@ -177,6 +187,7 @@ echo "✅ All validations passed"
 ## Current Branch Status
 
 ### Commit History
+
 ```
 d6cc8d90 - Fix merge conflict in bandit-report.json
 6d912f73 - Add task completion report for PR #181 resolution
@@ -186,12 +197,14 @@ d6cc8d90 - Fix merge conflict in bandit-report.json
 ```
 
 ### Files Changed (Total)
+
 - 68 files changed
 - 18,900+ insertions
 - All conflicts resolved
 - All files validated
 
 ### Status Checks
+
 - ✅ Git status: Clean
 - ✅ JSON validation: All pass
 - ✅ Python syntax: All pass

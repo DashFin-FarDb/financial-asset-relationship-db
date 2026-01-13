@@ -1,39 +1,44 @@
-import type { Asset, Relationship, Metrics, VisualizationData } from '../../app/types/api';
+import type {
+  Asset,
+  Relationship,
+  Metrics,
+  VisualizationData,
+} from "../../app/types/api";
 
 export const mockAssets: Asset[] = [
   {
-    id: 'ASSET_1',
-    symbol: 'AAPL',
-    name: 'Apple Inc.',
-    asset_class: 'EQUITY',
-    sector: 'Technology',
+    id: "ASSET_1",
+    symbol: "AAPL",
+    name: "Apple Inc.",
+    asset_class: "EQUITY",
+    sector: "Technology",
     price: 150.0,
     market_cap: 2400000000000,
-    currency: 'USD',
+    currency: "USD",
     additional_fields: {},
   },
   {
-    id: 'ASSET_2',
-    symbol: 'GOOGL',
-    name: 'Alphabet Inc.',
-    asset_class: 'EQUITY',
-    sector: 'Technology',
+    id: "ASSET_2",
+    symbol: "GOOGL",
+    name: "Alphabet Inc.",
+    asset_class: "EQUITY",
+    sector: "Technology",
     price: 140.0,
     market_cap: 1800000000000,
-    currency: 'USD',
+    currency: "USD",
     additional_fields: {},
   },
 ];
 
 export const mockAsset: Asset = {
-  id: 'ASSET_1',
-  symbol: 'AAPL',
-  name: 'Apple Inc.',
-  asset_class: 'EQUITY',
-  sector: 'Technology',
+  id: "ASSET_1",
+  symbol: "AAPL",
+  name: "Apple Inc.",
+  asset_class: "EQUITY",
+  sector: "Technology",
   price: 150.0,
   market_cap: 2400000000000,
-  currency: 'USD',
+  currency: "USD",
   additional_fields: {
     pe_ratio: 25.5,
     dividend_yield: 0.005,
@@ -41,39 +46,39 @@ export const mockAsset: Asset = {
 };
 
 export const mockAssetClasses = {
-  asset_classes: ['EQUITY', 'FIXED_INCOME', 'COMMODITY', 'CURRENCY'],
+  asset_classes: ["EQUITY", "FIXED_INCOME", "COMMODITY", "CURRENCY"],
 };
 
 export const mockSectors = {
-  sectors: ['Energy', 'Financials', 'Technology'],
+  sectors: ["Energy", "Financials", "Technology"],
 };
 
 export const mockRelationships: Relationship[] = [
   {
-    source_id: 'ASSET_1',
-    target_id: 'ASSET_2',
-    relationship_type: 'SAME_SECTOR',
+    source_id: "ASSET_1",
+    target_id: "ASSET_2",
+    relationship_type: "SAME_SECTOR",
     strength: 0.8,
   },
   {
-    source_id: 'ASSET_1',
-    target_id: 'ASSET_3',
-    relationship_type: 'ISSUER',
+    source_id: "ASSET_1",
+    target_id: "ASSET_3",
+    relationship_type: "ISSUER",
     strength: 0.95,
   },
 ];
 
 export const mockAllRelationships: Relationship[] = [
   {
-    source_id: 'ASSET_1',
-    target_id: 'ASSET_2',
-    relationship_type: 'SAME_SECTOR',
+    source_id: "ASSET_1",
+    target_id: "ASSET_2",
+    relationship_type: "SAME_SECTOR",
     strength: 0.8,
   },
   {
-    source_id: 'ASSET_3',
-    target_id: 'ASSET_4',
-    relationship_type: 'COMMODITY_EXPOSURE',
+    source_id: "ASSET_3",
+    target_id: "ASSET_4",
+    relationship_type: "COMMODITY_EXPOSURE",
     strength: 0.6,
   },
 ];
@@ -95,33 +100,33 @@ export const mockMetrics: Metrics = {
 export const mockVisualizationData: VisualizationData = {
   nodes: [
     {
-      id: 'ASSET_1',
-      name: 'Apple Inc.',
-      symbol: 'AAPL',
-      asset_class: 'EQUITY',
+      id: "ASSET_1",
+      name: "Apple Inc.",
+      symbol: "AAPL",
+      asset_class: "EQUITY",
       x: 1.5,
       y: 2.3,
       z: 0.8,
-      color: '#1f77b4',
+      color: "#1f77b4",
       size: 10,
     },
     {
-      id: 'ASSET_2',
-      name: 'Microsoft Corp.',
-      symbol: 'MSFT',
-      asset_class: 'EQUITY',
+      id: "ASSET_2",
+      name: "Microsoft Corp.",
+      symbol: "MSFT",
+      asset_class: "EQUITY",
       x: 2.5,
       y: 3.3,
       z: 1.2,
-      color: '#ff7f0e',
+      color: "#ff7f0e",
       size: 12,
     },
   ],
   edges: [
     {
-      source: 'ASSET_1',
-      target: 'ASSET_2',
-      relationship_type: 'TEST',
+      source: "ASSET_1",
+      target: "ASSET_2",
+      relationship_type: "TEST",
       strength: 0.7,
     },
   ],
@@ -130,33 +135,33 @@ export const mockVisualizationData: VisualizationData = {
 export const mockVizData: VisualizationData = {
   nodes: [
     {
-      id: 'ASSET_1',
-      name: 'Apple Inc.',
-      symbol: 'AAPL',
-      asset_class: 'EQUITY',
+      id: "ASSET_1",
+      name: "Apple Inc.",
+      symbol: "AAPL",
+      asset_class: "EQUITY",
       x: 1.5,
       y: 2.3,
       z: 0.8,
-      color: '#1f77b4',
+      color: "#1f77b4",
       size: 10,
     },
     {
-      id: 'ASSET_2',
-      name: 'Gold',
-      symbol: 'GOLD',
-      asset_class: 'COMMODITY',
+      id: "ASSET_2",
+      name: "Gold",
+      symbol: "GOLD",
+      asset_class: "COMMODITY",
       x: -1.2,
       y: 0.5,
       z: 1.9,
-      color: '#ff7f0e',
+      color: "#ff7f0e",
       size: 8,
     },
   ],
   edges: [
     {
-      source: 'ASSET_1',
-      target: 'ASSET_2',
-      relationship_type: 'COMMODITY_EXPOSURE',
+      source: "ASSET_1",
+      target: "ASSET_2",
+      relationship_type: "COMMODITY_EXPOSURE",
       strength: 0.7,
     },
   ],

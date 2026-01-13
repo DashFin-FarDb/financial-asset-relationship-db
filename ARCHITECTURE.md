@@ -339,16 +339,19 @@ High Traffic
 ### Adding New Features
 
 1. **New Asset Type**
+
    ```
    financial_models.py → asset_graph.py → API endpoint → Frontend
    ```
 
 2. **New Relationship Type**
+
    ```
    _find_relationships() → build_relationships() → Visualization
    ```
 
 3. **New Visualization**
+
    ```
    Create component → Add to page.tsx → Connect to API
    ```
@@ -361,6 +364,7 @@ High Traffic
 ---
 
 For more details, see:
+
 - [INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md) - Technical implementation
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment procedures
 - [QUICK_START.md](QUICK_START.md) - Getting started guide

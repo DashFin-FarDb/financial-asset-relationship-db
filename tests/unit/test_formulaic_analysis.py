@@ -294,7 +294,8 @@ class TestFormulaicdAnalyzer:
         correlations = [c["correlation"] for c in strongest]
         assert correlations == sorted(correlations, reverse=True)
 
-    def test_calculate_sector_relationships(self, analyzer, populated_graph):
+    @staticmethod
+    def test_calculate_sector_relationships(analyzer, populated_graph):
         """Test calculation of sector-based relationships."""
         # Execute
         sector_stats = analyzer._calculate_sector_relationships(populated_graph)
@@ -432,7 +433,8 @@ class TestExampleCalculationMethods:
         assert isinstance(examples, str)
         assert "Market Cap" in examples or "market cap data" in examples.lower()
 
-    def test_calculate_beta_examples(self, analyzer, populated_graph):
+    @staticmethod
+    def test_calculate_beta_examples(analyzer, populated_graph):
         """Test beta example calculations."""
         # Execute
         examples = analyzer._calculate_beta_examples(populated_graph)
@@ -475,7 +477,8 @@ class TestExampleCalculationMethods:
         assert isinstance(examples, str)
         assert "P/B" in examples or "book value" in examples.lower()
 
-    def test_calculate_sharpe_examples(self, analyzer, populated_graph):
+    @staticmethod
+    def test_calculate_sharpe_examples(analyzer, populated_graph):
         """Test Sharpe ratio example calculations."""
         # Execute
         examples = analyzer._calculate_sharpe_examples(populated_graph)
@@ -484,7 +487,8 @@ class TestExampleCalculationMethods:
         assert isinstance(examples, str)
         assert "Sharpe" in examples or "return history" in examples
 
-    def test_calculate_volatility_examples(self, analyzer, empty_graph, sample_commodity):
+    @staticmethod
+    def test_calculate_volatility_examples(analyzer, empty_graph, sample_commodity):
         """Test volatility example calculations."""
         empty_graph.add_asset(sample_commodity)
 
@@ -504,7 +508,8 @@ class TestExampleCalculationMethods:
         assert isinstance(examples, str)
         assert "Portfolio" in examples
 
-    def test_calculate_portfolio_variance_examples(self, analyzer, populated_graph):
+    @staticmethod
+    def test_calculate_portfolio_variance_examples(analyzer, populated_graph):
         """Test portfolio variance example calculations."""
         # Execute
         examples = analyzer._calculate_portfolio_variance_examples(populated_graph)
@@ -650,7 +655,8 @@ class TestEdgeCases:
         # Assert
         assert strength == 0.5, "Should return 0.5 when no relationships exist"
 
-    def test_generate_formula_summary_with_empty_formulas(self, analyzer):
+    @staticmethod
+    def test_generate_formula_summary_with_empty_formulas(analyzer):
         """Test generating summary with no formulas."""
         # Execute
         summary = analyzer._generate_formula_summary([], {})

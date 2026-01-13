@@ -67,6 +67,7 @@ This document outlines security considerations and best practices for the Financ
 ### 1. Authentication & Authorization
 
 #### JWT Implementation (for APIs)
+
 ```python
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer
@@ -90,6 +91,7 @@ def verify_token(credentials: HTTPBearer = Depends(security)):
 ```
 
 #### Role-Based Access Control (RBAC)
+
 ```python
 from enum import Enum
 
@@ -116,6 +118,7 @@ def delete_asset(asset_id: str):
 ### 2. Input Sanitization
 
 #### For User-Generated Content
+
 ```python
 import bleach
 from html import escape
@@ -137,6 +140,7 @@ def sanitize_text(text: str, max_length: int = 1000) -> str:
 ```
 
 #### For SQL Queries (when adding database)
+
 ```python
 from sqlalchemy import text
 
@@ -151,6 +155,7 @@ result = session.execute(query, {"asset_id": asset_id})
 ### 3. Secrets Management
 
 #### Environment Variables
+
 ```python
 import os
 from pathlib import Path
@@ -168,6 +173,7 @@ if not all([DATABASE_URL, SECRET_KEY, API_KEY]):
 ```
 
 #### Using Secret Managers (Production)
+
 ```python
 # AWS Secrets Manager
 import boto3
@@ -190,6 +196,7 @@ secret = client.get_secret("database-url").value
 ### 4. Rate Limiting
 
 #### Simple Rate Limiter
+
 ```python
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -237,6 +244,7 @@ async def rate_limit_middleware(request: Request, call_next):
 ### 5. HTTPS/TLS Configuration
 
 #### For Production Deployment
+
 ```python
 # Use SSL certificates
 import ssl
@@ -254,6 +262,7 @@ interface.launch(
 ```
 
 #### Let's Encrypt with Certbot
+
 ```bash
 # Install certbot
 sudo apt-get install certbot
@@ -267,6 +276,7 @@ sudo certbot certonly --standalone -d yourdomain.com
 ### 6. CORS Configuration
 
 #### Secure CORS Setup
+
 ```python
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -286,6 +296,7 @@ app.add_middleware(
 ### 7. Logging Security Events
 
 #### Security Event Logger
+
 ```python
 import logging
 import json
@@ -312,6 +323,7 @@ log_security_event("unauthorized_access", ip="192.168.1.1", path="/admin")
 ### 8. Error Handling
 
 #### Secure Error Messages
+
 ```python
 # BAD - Exposes internal details
 @app.exception_handler(Exception)
@@ -334,6 +346,7 @@ async def exception_handler(request: Request, exc: Exception):
 ### 9. Docker Security
 
 #### Security Best Practices
+
 ```dockerfile
 # Use specific version, not latest
 FROM python:3.11-slim
@@ -355,6 +368,7 @@ LABEL security.no-new-privileges=true
 ```
 
 #### Docker Compose Security
+
 ```yaml
 services:
   app:
@@ -372,6 +386,7 @@ services:
 ### 10. Regular Security Audits
 
 #### Automated Scanning
+
 ```bash
 # Python dependencies
 pip install safety
@@ -390,6 +405,7 @@ detect-secrets scan
 ```
 
 #### Manual Reviews
+
 - Review access logs regularly
 - Check for suspicious patterns
 - Update dependencies monthly

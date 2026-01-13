@@ -117,7 +117,7 @@ class TestDependencyMatrix:
         Asserts the presence of a "- File types: ..." entry in the provided document and that it lists at least one file type. Also ensures every listed type is within the allowed set(py, js, ts, tsx) or permitted extras(jsx, json, md).
 
         Parameters:
-                dependency_matrix_content(str): Full text content of .elastic - copilot / memory / dependencyMatrix.md to inspect.
+            dependency_matrix_content(str): Full text content of .elastic - copilot / memory / dependencyMatrix.md to inspect.
         """
         pattern = r"- File types: (.+)"
         match = re.search(pattern, dependency_matrix_content)
@@ -204,7 +204,8 @@ class TestDependencyMatrix:
         Ensure each "Top dependencies:" section in the dependency matrix contains non - empty content.
 
         Parameters:
-            dependency_matrix_content(str): Full Markdown content of the dependency matrix file; the test splits this by the "Top dependencies:" marker and asserts that the text preceding the next "###" heading is not empty for each section.
+            dependency_matrix_content(str): Full Markdown content of the dependency matrix file
+            the test splits this by the "Top dependencies:" marker and asserts that the text preceding the next "###" heading is not empty for each section.
         """
         # After "Top dependencies:" should be either dependencies or explicit message
         sections = dependency_matrix_content.split("Top dependencies:")
@@ -222,7 +223,8 @@ class TestDependencyMatrix:
             dependency_matrix_lines(list[str]): Lines of the dependency matrix markdown file to validate.
 
         Raises:
-            AssertionError: If a heading line(one or more '#' characters followed by content) does not have a space after the hashes; message includes the offending line number and content.
+            AssertionError: If a heading line(one or more '#' characters followed by content) does not have a space after the hashes
+            message includes the offending line number and content.
         """
         for i, line in enumerate(dependency_matrix_lines):
             # Check heading formatting
@@ -291,7 +293,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top - level title "# System Manifest".
+        Assert that the system manifest's first line is the top - level title '  # System Manifest'.
         """
         assert system_manifest_lines[0] == "# System Manifest"
 
@@ -315,15 +317,15 @@ class TestSystemManifest:
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a "- Description: ..." entry documenting the project's description.
+        Verify the system manifest contains a '- Description: ...' entry documenting the project's description.
         """
+        assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
         match = re.search(pattern, system_manifest_content)
 
         assert match is not None, "Project description not found"
-
-    def test_system_manifest_has_created_timestamp(self, system_manifest_content):
-        """Test that systemManifest.md has valid created timestamp."""
+        description = match.group(1).strip()
+        assert len(description) > 0, "Project description should not be empty"
         pattern = r"- Created: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)"
         match = re.search(pattern, system_manifest_content)
 
@@ -341,7 +343,11 @@ class TestSystemManifest:
         assert "## Current Status" in system_manifest_content
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """
+        """Test that systemManifest.md has Current Phase section."""
+        assert "## Current Phase" in system_manifest_content
+        pass
+        pass
+        pass
         Assert that the System Manifest declares a current project phase.
 
         Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.

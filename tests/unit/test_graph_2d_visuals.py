@@ -171,8 +171,10 @@ class TestLayoutAlgorithms:
         assert isinstance(x, float)
         assert isinstance(y, float)
 
-    def test_create_circular_layout_multiple_assets(self):
+    @staticmethod
+    def test_create_circular_layout_multiple_assets():
         """Test circular layout with multiple assets."""
+        # Execute
         asset_ids = ["AAPL", "MSFT", "GOOGL", "AMZN"]
 
         # Execute

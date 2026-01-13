@@ -29,48 +29,51 @@ from src.models.financial_models import AssetClass, Equity
 class TestValidateOrigin:
     """Test the validate_origin function for CORS configuration."""
 
-    def test_validate_origin_http_localhost_development(self):
+    @staticmethod
+    def test_validate_origin_http_localhost_development():
         """Test HTTP localhost is allowed in development."""
         with patch.dict(os.environ, {"ENV": "development"}):
-            from api.main import validate_origin as vo
+            assert validate_origin("http://localhost:3000")
+            assert validate_origin("http://127.0.0.1:8000")
+            assert validate_origin("http://localhost")
 
-            assert vo("http://localhost:3000")
-            assert vo("http://127.0.0.1:8000")
-            assert vo("http://localhost")
-
-    def test_validate_origin_http_localhost_production(self):
+    @staticmethod
+    def test_validate_origin_http_localhost_production():
         """Test HTTP localhost is rejected in production."""
         with patch.dict(os.environ, {"ENV": "production"}):
-            from api.main import validate_origin as vo
+            assert not validate_origin("http://localhost:3000")
+            assert not validate_origin("http://127.0.0.1:8000")
 
-            assert not vo("http://localhost:3000")
-            assert not vo("http://127.0.0.1:8000")
-
-    def test_validate_origin_https_localhost(self):
+    @staticmethod
+    def test_validate_origin_https_localhost():
         """Test HTTPS localhost is always allowed."""
         assert validate_origin("https://localhost:3000")
         assert validate_origin("https://127.0.0.1:8000")
 
-    def test_validate_origin_vercel_urls(self):
+    @staticmethod
+    def test_validate_origin_vercel_urls():
         """Test Vercel deployment URLs are validated correctly."""
         assert validate_origin("https://my-app.vercel.app")
         assert validate_origin("https://my-app-git-main-user.vercel.app")
         assert validate_origin("https://subdomain.vercel.app")
         assert not validate_origin("http://my-app.vercel.app")  # HTTP rejected
 
-    def test_validate_origin_https_valid_domains(self):
+    @staticmethod
+    def test_validate_origin_https_valid_domains():
         """Test valid HTTPS URLs with proper domains."""
         assert validate_origin("https://example.com")
         assert validate_origin("https://subdomain.example.com")
         assert validate_origin("https://api.example.co.uk")
 
-    def test_validate_origin_invalid_schemes(self):
+    @staticmethod
+    def test_validate_origin_invalid_schemes():
         """Test invalid URL schemes are rejected."""
         assert not validate_origin("ftp://example.com")
         assert not validate_origin("ws://example.com")
         assert not validate_origin("file://localhost")
 
-    def test_validate_origin_malformed_urls(self):
+    @staticmethod
+    def test_validate_origin_malformed_urls():
         """Test malformed URLs are rejected."""
         assert not validate_origin("not-a-url")
         assert not validate_origin("https://")
@@ -83,47 +86,39 @@ class TestGraphInitialization:
 
     def test_graph_initialization(self):
         """Test graph is initialized via get_graph()."""
-        import api.main
-
-        api.main.reset_graph()
-        graph = api.main.get_graph()
+        api_main.reset_graph()
+        graph = api_main.get_graph()
         assert graph is not None
         assert hasattr(graph, "assets")
         assert hasattr(graph, "relationships")
 
     def test_graph_singleton(self):
         """Test graph is a singleton instance via get_graph()."""
-        import api.main
-
-        api.main.reset_graph()
-        graph1 = api.main.get_graph()
-        graph2 = api.main.get_graph()
+        api_main.reset_graph()
+        graph1 = api_main.get_graph()
+        graph2 = api_main.get_graph()
         # Multiple calls should return the same instance
         assert graph1 is graph2
 
     def test_graph_uses_cache_when_configured(self, tmp_path, monkeypatch):
         """Graph initialization should load from cached dataset when provided."""
-        import api.main
-
         cache_path = tmp_path / "graph_snapshot.json"
         reference_graph = create_sample_database()
         _save_to_cache(reference_graph, cache_path)
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
-        api.main.reset_graph()
+        api_main.reset_graph()
 
-        graph = api.main.get_graph()
+        graph = api_main.get_graph()
         assert graph is not None
         assert len(graph.assets) == len(reference_graph.assets)
         assert len(graph.relationships) == len(reference_graph.relationships)
 
-        api.main.reset_graph()
+        api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
     def test_graph_fallback_on_corrupted_cache(self, tmp_path, monkeypatch):
         """Graph initialization should fallback when cache is corrupted or invalid."""
-        import api.main
-
         cache_path = tmp_path / "graph_snapshot.json"
         # Write invalid/corrupted data to the cache file
         # Write invalid/corrupted data to the cache file
@@ -131,16 +126,16 @@ class TestGraphInitialization:
         reference_graph = create_sample_database()
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
-        api.main.reset_graph()
+        api_main.reset_graph()
 
         # Should not raise, and should return a valid graph object
-        graph = api.main.get_graph()
+        graph = api_main.get_graph()
         assert graph is not None
         assert hasattr(graph, "assets")
         assert len(graph.assets) == len(reference_graph.assets)
         assert len(graph.relationships) == len(reference_graph.relationships)
 
-        api.main.reset_graph()
+        api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
 

@@ -460,8 +460,7 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
     except Exception as e:
         logger.exception("Error getting assets:")
         raise HTTPException(status_code=500, detail=str(e)) from e
-    else:
-        return assets
+    return assets
 
 
 @app.get("/api/assets/{asset_id}", response_model=AssetResponse)
@@ -530,8 +529,7 @@ async def get_asset_relationships(asset_id: str):
             raise
         logger.exception("Error getting asset relationships:")
         raise HTTPException(status_code=500, detail=str(e)) from e
-    else:
-        return relationships
+    return relationships
 
 
 @app.get("/api/relationships", response_model=List[RelationshipResponse])
@@ -556,8 +554,8 @@ async def get_all_relationships():
     except Exception as e:
         logger.exception("Error getting relationships:")
         raise HTTPException(status_code=500, detail=str(e)) from e
-    else:
-        return relationships
+
+    return relationships
 
 
 @app.get("/api/metrics", response_model=MetricsResponse)

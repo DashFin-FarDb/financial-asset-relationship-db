@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import type { Metrics } from '../types/api';
+import React from "react";
+import type { Metrics } from "../types/api";
 
 interface MetricsDashboardProps {
   metrics: Metrics;
@@ -26,25 +26,39 @@ export default function MetricsDashboard({ metrics }: MetricsDashboardProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Assets</h3>
-        <p className="text-3xl font-bold text-blue-600">{metrics.total_assets}</p>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          Total Assets
+        </h3>
+        <p className="text-3xl font-bold text-blue-600">
+          {metrics.total_assets}
+        </p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Relationships</h3>
-        <p className="text-3xl font-bold text-green-600">{metrics.total_relationships}</p>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          Total Relationships
+        </h3>
+        <p className="text-3xl font-bold text-green-600">
+          {metrics.total_relationships}
+        </p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Network Density</h3>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          Network Density
+        </h3>
         <p className="text-3xl font-bold text-purple-600">
           {(metrics.network_density * 100).toFixed(2)}%
         </p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Average Degree</h3>
-        <p className="text-3xl font-bold text-orange-600">{metrics.avg_degree.toFixed(2)}</p>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          Average Degree
+        </h3>
+        <p className="text-3xl font-bold text-orange-600">
+          {metrics.avg_degree.toFixed(2)}
+        </p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -53,7 +67,9 @@ export default function MetricsDashboard({ metrics }: MetricsDashboardProps) {
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Asset Classes</h3>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          Asset Classes
+        </h3>
         <div className="space-y-1">
           {Object.entries(metrics.asset_classes).map(([className, count]) => (
             <div key={className} className="flex justify-between text-sm">

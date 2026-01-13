@@ -5,7 +5,9 @@ This directory contains comprehensive tests for the frontend API client library.
 ## Test Files
 
 ### api.test.ts (431 lines)
+
 Original comprehensive tests for the API client covering:
+
 - Client configuration
 - All API methods (health, assets, relationships, metrics, visualization)
 - Request parameter handling
@@ -13,7 +15,9 @@ Original comprehensive tests for the API client covering:
 - Error handling
 
 ### api-axios-compatibility.test.ts (697 lines) ✨ NEW
+
 Axios 1.13.2 compatibility and behavioral tests:
+
 - Axios instance creation and configuration
 - Request configuration (query params, URL encoding)
 - Response handling (data extraction, headers)
@@ -29,7 +33,9 @@ Axios 1.13.2 compatibility and behavioral tests:
 **60+ tests across 13 test suites**
 
 ### api-upgrade-integration.test.ts (397 lines) ✨ NEW
+
 Integration tests for axios 1.13.2 upgrade:
+
 - Production usage patterns
 - Error recovery patterns
 - Security improvements
@@ -44,11 +50,13 @@ Integration tests for axios 1.13.2 upgrade:
 ## Running Tests
 
 ### Run all API tests
+
 ```bash
 npm test -- __tests__/lib
 ```
 
 ### Run specific test files
+
 ```bash
 # Original API tests
 npm test -- api.test
@@ -61,6 +69,7 @@ npm test -- api-upgrade-integration
 ```
 
 ### Run with coverage
+
 ```bash
 npm run test:coverage -- __tests__/lib
 ```
@@ -68,6 +77,7 @@ npm run test:coverage -- __tests__/lib
 ## Test Coverage
 
 These tests provide comprehensive coverage of:
+
 - ✅ All API endpoints
 - ✅ Request/response handling
 - ✅ Error scenarios
@@ -81,6 +91,7 @@ These tests provide comprehensive coverage of:
 ## Documentation
 
 For detailed information about the axios upgrade tests:
+
 - Quick Reference: `../../AXIOS_TESTS_QUICK_REFERENCE.md`
 - Detailed Report: `../../AXIOS_UPGRADE_TEST_REPORT.md`
 - Complete Summary: `../../TEST_GENERATION_SUMMARY_FINAL.md`
@@ -88,6 +99,7 @@ For detailed information about the axios upgrade tests:
 ## Maintenance
 
 When updating tests:
+
 1. Keep tests synchronized with API changes
 2. Update axios version assertions when upgrading
 3. Add tests for new API methods

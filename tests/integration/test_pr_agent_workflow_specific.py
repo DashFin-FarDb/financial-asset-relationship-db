@@ -26,6 +26,7 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
 
     @pytest.fixture
     @staticmethod
+    @staticmethod
     def workflow_content(workflow_file: Path) -> Dict[str, Any]:
         """
         Parse the GitHub Actions workflow YAML file into a Python mapping.

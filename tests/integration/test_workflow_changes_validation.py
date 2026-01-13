@@ -18,7 +18,8 @@ class TestPRAgentWorkflowChanges:
     """Test PR agent workflow simplification changes."""
 
     @pytest.fixture
-    def pr_agent_workflow(self):
+    @staticmethod
+    def pr_agent_workflow():
         """
         Load and parse the PR Agent GitHub Actions workflow file.
 
@@ -269,7 +270,7 @@ class TestWorkflowSecurityBestPractices:
                 workflow = yaml.safe_load(f)
 
             # Check all jobs and steps
-            for job_name, job in workflow.get("jobs", {}).items():
+            for _, job in workflow.get("jobs", {}).items():
                 for step in job.get("steps", []):
                     if "uses" in step:
                         action = step["uses"]

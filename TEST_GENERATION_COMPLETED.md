@@ -23,6 +23,7 @@ Based on `git diff main..HEAD`, the following files were modified or added:
 **Purpose:** Comprehensive unit tests for the root `conftest.py` module that handles pytest coverage flag filtering.
 
 **Statistics:**
+
 - **290+ lines** of test code
 - **43 test functions** across **6 test classes**
 - **100% coverage** of the conftest.py module's core functionality
@@ -34,6 +35,7 @@ Based on `git diff main..HEAD`, the following files were modified or added:
 **Purpose:** Validate the structure and content of markdown summary documentation files.
 
 **Statistics:**
+
 - **410+ lines** of test code
 - **52 test functions** across **6 test classes**
 - Validates 3 markdown documentation files
@@ -42,16 +44,16 @@ Based on `git diff main..HEAD`, the following files were modified or added:
 
 ## Summary Statistics
 
-| Metric | Value |
-|--------|-------|
-| **New Test Files Created** | 2 |
-| **Total Test Functions** | 95 |
-| **Total Test Classes** | 12 |
-| **Lines of Test Code** | ~700 |
-| **Files Under Test** | 4 (conftest.py + 3 markdown files) |
-| **Dependencies Added** | 0 |
-| **Estimated Execution Time** | <1 second |
-| **Expected Pass Rate** | 100% |
+| Metric                       | Value                              |
+| ---------------------------- | ---------------------------------- |
+| **New Test Files Created**   | 2                                  |
+| **Total Test Functions**     | 95                                 |
+| **Total Test Classes**       | 12                                 |
+| **Lines of Test Code**       | ~700                               |
+| **Files Under Test**         | 4 (conftest.py + 3 markdown files) |
+| **Dependencies Added**       | 0                                  |
+| **Estimated Execution Time** | <1 second                          |
+| **Expected Pass Rate**       | 100%                               |
 
 ## How to Run the Tests
 

@@ -29,6 +29,7 @@ This project adheres to a code of conduct that fosters an open and welcoming env
 
 1. Fork the repository on GitHub
 2. Clone your fork locally:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/financial-asset-relationship-db.git
    cd financial-asset-relationship-db
@@ -50,16 +51,19 @@ python -m venv .venv
 ### 2. Activate the Virtual Environment
 
 **Windows (PowerShell):**
+
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
 **Windows (Command Prompt):**
+
 ```cmd
 .venv\Scripts\activate.bat
 ```
 
 **macOS/Linux:**
+
 ```bash
 source .venv/bin/activate
 ```
@@ -75,6 +79,7 @@ pip install -r requirements-dev.txt
 ```
 
 Or use the Makefile:
+
 ```bash
 make install-dev
 ```
@@ -86,6 +91,7 @@ pre-commit install
 ```
 
 Or use the Makefile:
+
 ```bash
 make pre-commit
 ```
@@ -103,6 +109,7 @@ git checkout -b bugfix/issue-number
 ```
 
 Branch naming conventions:
+
 - `feature/description` - New features
 - `bugfix/description` - Bug fixes
 - `docs/description` - Documentation updates
@@ -150,6 +157,7 @@ Reference any related issues: #123"
 ```
 
 Commit message guidelines:
+
 - Use present tense ("Add feature" not "Added feature")
 - First line should be concise (50 chars or less)
 - Separate subject from body with blank line
@@ -162,6 +170,7 @@ git push origin your-branch-name
 ```
 
 Then create a pull request on GitHub with:
+
 - Clear description of changes
 - Reference to related issues
 - Screenshots (if UI changes)
@@ -237,12 +246,14 @@ tests/
 ### Writing Tests
 
 1. **Use descriptive test names:**
+
    ```python
    def test_asset_creation_with_valid_data():
        """Test that a valid asset can be created."""
    ```
 
 2. **Use fixtures from conftest.py:**
+
    ```python
    def test_add_asset(empty_graph, sample_equity):
        empty_graph.add_asset(sample_equity)
@@ -256,6 +267,7 @@ tests/
    - Invalid data
 
 4. **Use pytest markers:**
+
    ```python
    @pytest.mark.unit
    def test_something():
@@ -286,6 +298,7 @@ pytest -v
 ```
 
 Or use the Makefile:
+
 ```bash
 make test        # With coverage
 make test-fast   # Without coverage
@@ -409,6 +422,7 @@ financial-asset-relationship-db/
 ## Recognition
 
 Contributors will be recognized in:
+
 - GitHub contributors list
 - Release notes
 - Project documentation (if significant contribution)

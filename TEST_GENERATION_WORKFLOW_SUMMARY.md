@@ -7,36 +7,46 @@ Comprehensive unit tests have been generated for the GitHub Actions workflow fil
 ## Generated Files
 
 ### 1. tests/integration/test_github_workflows.py (NEW)
+
 - **Lines of code**: ~450+
 - **Test classes**: 8
 - **Test methods**: 32+
 - **Coverage**: All workflow files in `.github/workflows/`
 
 ### 2. requirements-dev.txt (MODIFIED)
+
 - **Added dependency**: `PyYAML>=6.0` for YAML parsing and validation
 
 ## Test Suite Structure
 
 ### TestWorkflowSyntax (3 tests)
+
 Validates YAML syntax and structure:
+
 - `test_workflow_valid_yaml_syntax` - Ensures valid YAML syntax
 - `test_workflow_no_duplicate_keys` - **Detects duplicate keys (the bug that was fixed!)**
 - `test_workflow_readable` - Verifies files are readable and non-empty
 
 ### TestWorkflowStructure (4 tests)
+
 Validates GitHub Actions workflow structure:
+
 - `test_workflow_has_name` - Ensures workflow has a name field
 - `test_workflow_has_triggers` - Validates trigger configuration
 - `test_workflow_has_jobs` - Ensures at least one job is defined
 - `test_workflow_jobs_have_steps` - Validates job step configuration
 
 ### TestWorkflowActions (2 tests)
+
 Validates GitHub Actions usage:
+
 - `test_workflow_actions_have_versions` - Ensures all actions specify versions
 - `test_workflow_steps_have_names_or_uses` - Validates step configuration
 
 ### TestPrAgentWorkflow (12 tests)
+
 Specific tests for the pr-agent.yml workflow:
+
 - `test_pr_agent_name` - Validates workflow name
 - `test_pr_agent_triggers_on_pull_request` - Checks PR triggers
 - `test_pr_agent_has_review_job` - Ensures review job exists
@@ -51,17 +61,23 @@ Specific tests for the pr-agent.yml workflow:
 - `test_pr_agent_fetch_depth_configured` - Validates fetch depth
 
 ### TestWorkflowSecurity (2 tests)
+
 Security best practices:
+
 - `test_workflow_no_hardcoded_secrets` - Detects hardcoded tokens
 - `test_workflow_uses_secrets_context` - Validates secrets usage
 
 ### TestWorkflowMaintainability (2 tests)
+
 Code quality and maintainability:
+
 - `test_workflow_steps_have_descriptive_names` - Encourages clear naming
 - `test_workflow_reasonable_size` - Prevents overly large workflows
 
 ### TestWorkflowEdgeCases (6 tests)
+
 Edge cases and error conditions:
+
 - `test_workflow_directory_exists` - Validates directory structure
 - `test_at_least_one_workflow_exists` - Ensures workflows exist
 - `test_workflow_file_extension` - Validates .yml/.yaml extensions
@@ -70,12 +86,15 @@ Edge cases and error conditions:
 - `test_workflow_consistent_indentation` - Validates 2-space indentation
 
 ### TestWorkflowPerformance (1 test)
+
 Performance considerations:
+
 - `test_workflow_uses_caching` - Recommends dependency caching
 
 ## Key Features
 
 ### 1. Duplicate Key Detection
+
 The test suite includes a custom YAML loader that detects duplicate keys at any level of the YAML structure. This directly tests and prevents the bug that was fixed in the pr-agent.yml file where "Setup Python" was duplicated.
 
 ```python
@@ -85,7 +104,9 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
 ```
 
 ### 2. Parameterized Testing
+
 All workflow files in `.github/workflows/` are automatically tested:
+
 ```python
 @pytest.mark.parametrize("workflow_file", get_workflow_files())
 def test_workflow_valid_yaml_syntax(self, workflow_file: Path):
@@ -93,12 +114,15 @@ def test_workflow_valid_yaml_syntax(self, workflow_file: Path):
 ```
 
 ### 3. Security Validation
+
 Tests check for:
-- Hardcoded GitHub tokens (ghp_, gho_, ghu_, ghs_, ghr_)
+
+- Hardcoded GitHub tokens (ghp*, gho*, ghu*, ghs*, ghr\_)
 - Proper use of secrets context for sensitive data
 - Token authentication in checkout steps
 
 ### 4. Comprehensive Coverage
+
 - ✅ Syntax validation
 - ✅ Structure validation
 - ✅ Security checks
@@ -136,6 +160,7 @@ pytest tests/integration/test_github_workflows.py --cov=.github/workflows -v
 ## Integration with CI
 
 These tests will run automatically as part of the existing pytest suite:
+
 ```yaml
 - name: Run Python Tests
   run: python -m pytest tests/ -v --cov=src --cov-report=term-missing

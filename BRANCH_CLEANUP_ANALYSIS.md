@@ -19,6 +19,7 @@ This document provides a comprehensive analysis of all open branches in the repo
 ### Protected Branches
 
 #### `main` (Primary Branch)
+
 - **Status**: Active and protected
 - **Purpose**: Production-ready code
 - **Action**: **KEEP** - This is the primary branch
@@ -29,30 +30,35 @@ This document provides a comprehensive analysis of all open branches in the repo
 Based on the repository analysis and documentation review, the following branch patterns have been identified:
 
 #### Feature Branches (`feature/*`)
+
 - **Naming Convention**: `feature/description`
 - **Purpose**: New feature development
 - **Lifecycle**: Should be deleted after merge to main
 - **Current Status**: To be identified via GitHub API
 
 #### Bugfix Branches (`bugfix/*`)
+
 - **Naming Convention**: `bugfix/description` or `bugfix/issue-number`
 - **Purpose**: Bug fixes
 - **Lifecycle**: Should be deleted after merge to main
 - **Current Status**: To be identified via GitHub API
 
 #### Documentation Branches (`docs/*`)
+
 - **Naming Convention**: `docs/description`
 - **Purpose**: Documentation updates
 - **Lifecycle**: Should be deleted after merge to main
 - **Current Status**: To be identified via GitHub API
 
 #### Refactor Branches (`refactor/*`)
+
 - **Naming Convention**: `refactor/description`
 - **Purpose**: Code refactoring
 - **Lifecycle**: Should be deleted after merge to main
 - **Current Status**: To be identified via GitHub API
 
 #### Test Branches (`test/*`)
+
 - **Naming Convention**: `test/description`
 - **Purpose**: Test additions/improvements
 - **Lifecycle**: Should be deleted after merge to main
@@ -61,6 +67,7 @@ Based on the repository analysis and documentation review, the following branch 
 #### Automated Branches
 
 ##### GitAuto Branches (`gitauto/*`)
+
 - **Pattern**: `gitauto/issue-{number}-{date}-{hash}`
 - **Purpose**: Automated issue resolution
 - **Example**: `gitauto/issue-136-20251112-143841-JdxF` (current branch)
@@ -68,6 +75,7 @@ Based on the repository analysis and documentation review, the following branch 
 - **Action**: Delete after PR completion
 
 ##### CodeRabbit Branches (`coderabbitai/*`)
+
 - **Pattern**: `coderabbitai/utg/{hash}`
 - **Purpose**: Automated test generation
 - **Known Branches**:
@@ -78,6 +86,7 @@ Based on the repository analysis and documentation review, the following branch 
 ### Special Consideration Branches
 
 #### `develop` Branch
+
 - **Status**: Referenced in CircleCI config (line 204)
 - **Purpose**: Integration branch for ongoing development
 - **Current Existence**: To be verified
@@ -89,7 +98,9 @@ Based on the repository analysis and documentation review, the following branch 
 ## Branch Cleanup Criteria
 
 ### Delete Immediately
+
 Branches that meet ANY of these criteria:
+
 - ✅ Fully merged to main with no unique commits
 - ✅ Stale (no commits in 90+ days) with no open PR
 - ✅ Abandoned feature branches with closed/rejected PRs
@@ -97,14 +108,18 @@ Branches that meet ANY of these criteria:
 - ✅ Automated tool branches after PR completion
 
 ### Requires Review Before Deletion
+
 Branches that meet ANY of these criteria:
+
 - ⚠️ Has open PR with pending review
 - ⚠️ Contains commits not in main (verify importance)
 - ⚠️ Active development in last 30 days
 - ⚠️ Has unresolved merge conflicts
 
 ### Keep Open
+
 Branches that meet ANY of these criteria:
+
 - 🔒 Protected branch (main)
 - 🔒 Active development branch with recent commits
 - 🔒 Integration branch (develop) if actively used
@@ -113,6 +128,7 @@ Branches that meet ANY of these criteria:
 ## Identified Issues from Documentation
 
 ### PR #6 Merge Conflicts
+
 - **Branch**: `coderabbitai/utg/e47c649`
 - **Issue**: Cannot merge due to conflicts in 5 test files
 - **Impact**: Blocks PR #35 which depends on it
@@ -131,6 +147,7 @@ Branches that meet ANY of these criteria:
 ## Cleanup Process
 
 ### Phase 1: Information Gathering
+
 ```bash
 # List all branches
 git branch -a
@@ -149,7 +166,9 @@ git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short) %(
 ```
 
 ### Phase 2: Verification
+
 For each branch identified for deletion:
+
 ```bash
 # Compare with main
 git log main..branch-name --oneline
@@ -159,6 +178,7 @@ git cherry main branch-name
 ```
 
 ### Phase 3: Cleanup Execution
+
 ```bash
 # Delete local branch
 git branch -d branch-name  # Safe delete (only if merged)
@@ -169,6 +189,7 @@ git push origin --delete branch-name
 ```
 
 ### Phase 4: Verification
+
 ```bash
 # Verify deletion
 git branch -a
@@ -180,22 +201,26 @@ git remote prune origin
 ## Post-Cleanup Actions
 
 ### 1. Update Branch Protection Rules
+
 - Ensure `main` branch has appropriate protection
 - Require PR reviews before merge
 - Require status checks to pass
 - Require branches to be up to date before merging
 
 ### 2. Update Documentation
+
 - ✅ CONTRIBUTING.md already documents branch naming conventions
 - ✅ CircleCI config already set up for main and develop branches
 - Consider adding branch lifecycle documentation
 
 ### 3. Team Communication
+
 - Notify team of branch cleanup
 - Remind about branch naming conventions
 - Emphasize importance of deleting branches after merge
 
 ### 4. Establish Ongoing Maintenance
+
 - Set up automated stale branch detection
 - Regular monthly review of open branches
 - Encourage developers to delete branches after PR merge

@@ -105,16 +105,19 @@ done
 Before deleting any branch:
 
 1. **Verify it's merged**:
+
    ```bash
    git branch --merged main | grep branch-name
    ```
 
 2. **Check for unique commits**:
+
    ```bash
    git log main..branch-name
    ```
 
 3. **Ensure no active work**:
+
    ```bash
    git log -1 branch-name
    ```

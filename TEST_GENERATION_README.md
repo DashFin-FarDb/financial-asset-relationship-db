@@ -28,11 +28,13 @@ This test generation session created the following files:
 ## Quick Commands
 
 ### Run New Tests
+
 ```bash
 pytest tests/integration/test_workflow_yaml_validation.py -v
 ```
 
 ### Run All Tests
+
 ```bash
 # Python integration tests
 pytest tests/integration/ -v --cov
@@ -52,4 +54,5 @@ cd frontend && npm test -- --coverage
 ✅ **All tests validated and ready for use**
 
 ---
+
 For detailed information, see `TEST_GENERATION_COMPLETE_FINAL_SUMMARY.md`

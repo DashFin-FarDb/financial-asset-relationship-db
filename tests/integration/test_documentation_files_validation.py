@@ -9,15 +9,8 @@ Tests ensure that:
 - Headings follow a logical hierarchy
 """
 
-import os
-import re
-from pathlib import Path
 from typing import List, Tuple
-
-import pytest
 
 
 class TestDocumentationFilesValidation:
-
-
-```), fail if 50 % or more of those blocks lack a language specifier(for example,
+    pass

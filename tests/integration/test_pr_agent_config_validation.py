@@ -41,11 +41,13 @@ class TestPRAgentConfigSimplification:
             pytest.fail("Config must be a YAML mapping (dict) and not empty")
         return cfg
 
-    def test_version_reverted_to_1_0_0(self, pr_agent_config):
+    @staticmethod
+    def test_version_reverted_to_1_0_0(pr_agent_config):
         """Check that the PR agent's configured version is '1.0.0'."""
         assert pr_agent_config["agent"]["version"] == "1.0.0"
 
-    def test_no_context_configuration(self, pr_agent_config):
+    @staticmethod
+    def test_no_context_configuration(pr_agent_config):
         """
         Assert that the 'agent' section does not contain a 'context' key.
 
@@ -54,7 +56,8 @@ class TestPRAgentConfigSimplification:
         agent_config = pr_agent_config["agent"]
         assert "context" not in agent_config
 
-    def test_no_chunking_settings(self, pr_agent_config):
+    @staticmethod
+    def test_no_chunking_settings(pr_agent_config):
         """
         Assert the configuration contains no chunking-related settings.
 
@@ -65,19 +68,22 @@ class TestPRAgentConfigSimplification:
         assert "chunk_size" not in config_str.lower()
         assert "overlap_tokens" not in config_str.lower()
 
-    def test_no_tiktoken_references(self, pr_agent_config):
+    @staticmethod
+    def test_no_tiktoken_references(pr_agent_config):
         """Verify tiktoken references removed."""
         config_str = yaml.dump(pr_agent_config)
         assert "tiktoken" not in config_str.lower()
 
-    def test_no_fallback_strategies(self, pr_agent_config):
+    @staticmethod
+    def test_no_fallback_strategies(pr_agent_config):
         """
         Ensure the top-level `limits` section does not contain a `fallback` key.
         """
         limits = pr_agent_config.get("limits", {})
         assert "fallback" not in limits
 
-    def test_basic_config_structure_intact(self, pr_agent_config):
+    @staticmethod
+    def test_basic_config_structure_intact(pr_agent_config):
         """Verify basic configuration sections still present."""
         # Essential sections should remain
         assert "agent" in pr_agent_config
@@ -86,7 +92,8 @@ class TestPRAgentConfigSimplification:
         assert "quality" in pr_agent_config
         assert "security" in pr_agent_config
 
-    def test_monitoring_config_present(self, pr_agent_config):
+    @staticmethod
+    def test_monitoring_config_present(pr_agent_config):
         """
         Ensure the top-level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
 
@@ -98,7 +105,8 @@ class TestPRAgentConfigSimplification:
         assert "max_retries" in monitoring
         assert "timeout" in monitoring
 
-    def test_limits_simplified(self, pr_agent_config):
+    @staticmethod
+    def test_limits_simplified(pr_agent_config):
         """Verify limits section simplified."""
         limits = pr_agent_config["limits"]
 
@@ -191,7 +199,8 @@ class TestPRAgentConfigSecurity:
             pytest.fail("Config must be a YAML mapping (dict) and not empty")
         return cfg
 
-    def test_config_values_have_no_hardcoded_credentials(self, pr_agent_config):
+    @staticmethod
+    def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
         """
         Recursively scan configuration values for suspected secrets.
 
@@ -245,24 +254,9 @@ class TestPRAgentConfigSecurity:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
             pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
         import math
-        import re
 
         # Heuristic to detect inline creds in URLs (user:pass@)
         re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\\s]+:[^/@\\s]+@", re.IGNORECASE)
-
-        # Common secret-like prefixes or markers
-        secret_markers = (
-            "secret",
-            "token",
-            "apikey",
-            "api_key",
-            "access_key",
-            "private_key",
-            "pwd",
-            "password",
-            "auth",
-            "bearer ",
-        )
 
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
@@ -272,9 +266,6 @@ class TestPRAgentConfigSecurity:
         - Ensures sensitive keys only use safe placeholders.
         """
         import math
-        import re
-
-        import yaml
 
         # Heuristic to detect inline creds in URLs (user:pass@)
         inline_creds_re = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)

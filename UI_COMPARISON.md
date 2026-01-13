@@ -4,19 +4,20 @@ This document compares the two available user interfaces for the Financial Asset
 
 ## Overview
 
-| Feature | Gradio UI | Next.js UI |
-|---------|-----------|------------|
-| **Launch Command** | `python app.py` | `./run-dev.sh` |
-| **Port** | 7860 | 3000 |
-| **Technology** | Python + Gradio | TypeScript + React + Next.js |
-| **API** | Direct function calls | REST API (FastAPI) |
-| **Deployment** | Docker, HuggingFace Spaces | Vercel, Netlify, any Node host |
+| Feature            | Gradio UI                  | Next.js UI                     |
+| ------------------ | -------------------------- | ------------------------------ |
+| **Launch Command** | `python app.py`            | `./run-dev.sh`                 |
+| **Port**           | 7860                       | 3000                           |
+| **Technology**     | Python + Gradio            | TypeScript + React + Next.js   |
+| **API**            | Direct function calls      | REST API (FastAPI)             |
+| **Deployment**     | Docker, HuggingFace Spaces | Vercel, Netlify, any Node host |
 
 ## Detailed Comparison
 
 ### 1. User Interface
 
 #### Gradio UI
+
 - **Pros:**
   - Native Python UI framework
   - Rapid prototyping
@@ -31,6 +32,7 @@ This document compares the two available user interfaces for the Financial Asset
   - Limited mobile responsiveness
 
 #### Next.js UI
+
 - **Pros:**
   - Modern, responsive design
   - Fully customizable with Tailwind CSS
@@ -45,20 +47,20 @@ This document compares the two available user interfaces for the Financial Asset
 
 ### 2. Features Comparison
 
-| Feature | Gradio | Next.js | Notes |
-|---------|---------|---------|-------|
-| **3D Network Visualization** | ✅ | ✅ | Both use Plotly |
-| **Metrics Dashboard** | ✅ | ✅ | Similar functionality |
-| **Asset Explorer** | ✅ | ✅ | Next.js has better filters |
-| **Schema Report** | ✅ | ❌ | Gradio-only feature |
-| **Documentation Tab** | ✅ | ❌ | Gradio-only feature |
-| **2D Visualization** | ✅ | ❌ | Can be added to Next.js |
-| **Formulaic Analysis** | ✅ | ❌ | Can be added to Next.js |
-| **Real-time Updates** | ✅ | ⚠️ | Next.js needs WebSocket |
-| **Export Features** | ✅ | ⚠️ | Can be added to Next.js |
-| **Responsive Mobile** | ⚠️ | ✅ | Next.js is mobile-first |
-| **Custom Branding** | ⚠️ | ✅ | Next.js fully customizable |
-| **API Access** | ❌ | ✅ | Next.js exposes REST API |
+| Feature                      | Gradio | Next.js | Notes                      |
+| ---------------------------- | ------ | ------- | -------------------------- |
+| **3D Network Visualization** | ✅     | ✅      | Both use Plotly            |
+| **Metrics Dashboard**        | ✅     | ✅      | Similar functionality      |
+| **Asset Explorer**           | ✅     | ✅      | Next.js has better filters |
+| **Schema Report**            | ✅     | ❌      | Gradio-only feature        |
+| **Documentation Tab**        | ✅     | ❌      | Gradio-only feature        |
+| **2D Visualization**         | ✅     | ❌      | Can be added to Next.js    |
+| **Formulaic Analysis**       | ✅     | ❌      | Can be added to Next.js    |
+| **Real-time Updates**        | ✅     | ⚠️      | Next.js needs WebSocket    |
+| **Export Features**          | ✅     | ⚠️      | Can be added to Next.js    |
+| **Responsive Mobile**        | ⚠️     | ✅      | Next.js is mobile-first    |
+| **Custom Branding**          | ⚠️     | ✅      | Next.js fully customizable |
+| **API Access**               | ❌     | ✅      | Next.js exposes REST API   |
 
 Legend: ✅ Fully supported | ⚠️ Partially supported | ❌ Not available
 
@@ -67,6 +69,7 @@ Legend: ✅ Fully supported | ⚠️ Partially supported | ❌ Not available
 #### Gradio UI
 
 **Setup Time**: ~5 minutes
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
@@ -75,6 +78,7 @@ python app.py
 ```
 
 **Pros:**
+
 - Single-language development (Python)
 - Quick to prototype new features
 - No build step required
@@ -82,11 +86,13 @@ python app.py
 - Easy to debug
 
 **Cons:**
+
 - Limited to Gradio's component library
 - Harder to implement custom UI logic
 - Less control over layout
 
 **Best For:**
+
 - Python developers
 - Data scientists
 - Quick demonstrations
@@ -96,6 +102,7 @@ python app.py
 #### Next.js UI
 
 **Setup Time**: ~10 minutes
+
 ```bash
 # Terminal 1: Backend
 python -m uvicorn api.main:app --reload
@@ -107,6 +114,7 @@ npm run dev
 ```
 
 **Pros:**
+
 - Full control over UI/UX
 - Industry-standard tooling
 - TypeScript for type safety
@@ -114,12 +122,14 @@ npm run dev
 - Better testing tools
 
 **Cons:**
+
 - Requires JavaScript/TypeScript knowledge
 - More complex architecture
 - Longer build times
 - Two processes to manage
 
 **Best For:**
+
 - Web developers
 - Production deployments
 - Public-facing applications
@@ -128,20 +138,21 @@ npm run dev
 
 ### 4. Performance
 
-| Aspect | Gradio | Next.js | Winner |
-|--------|---------|---------|---------|
-| **Initial Load Time** | ~2-3s | ~1-2s | Next.js |
-| **Visualization Render** | Similar | Similar | Tie |
-| **Memory Usage** | ~500MB | ~300MB | Next.js |
-| **API Response Time** | N/A | ~100-500ms | N/A |
-| **Scalability** | Moderate | High | Next.js |
-| **Cold Start** | Fast | Slow (serverless) | Gradio |
+| Aspect                   | Gradio   | Next.js           | Winner  |
+| ------------------------ | -------- | ----------------- | ------- |
+| **Initial Load Time**    | ~2-3s    | ~1-2s             | Next.js |
+| **Visualization Render** | Similar  | Similar           | Tie     |
+| **Memory Usage**         | ~500MB   | ~300MB            | Next.js |
+| **API Response Time**    | N/A      | ~100-500ms        | N/A     |
+| **Scalability**          | Moderate | High              | Next.js |
+| **Cold Start**           | Fast     | Slow (serverless) | Gradio  |
 
 ### 5. Deployment Options
 
 #### Gradio UI
 
 **Supported Platforms:**
+
 - Docker containers
 - Hugging Face Spaces
 - Railway
@@ -149,17 +160,20 @@ npm run dev
 - Any Python hosting
 
 **Pros:**
+
 - Simple deployment
 - Single container
 - Works on any Python host
 - Easy to containerize
 
 **Cons:**
+
 - Limited scalability
 - Requires Python runtime
 - Less serverless-friendly
 
 **Example Deployment:**
+
 ```bash
 docker-compose up --build
 ```
@@ -167,6 +181,7 @@ docker-compose up --build
 #### Next.js UI
 
 **Supported Platforms:**
+
 - Vercel (recommended)
 - Netlify
 - AWS Amplify
@@ -174,6 +189,7 @@ docker-compose up --build
 - Any Node.js hosting
 
 **Pros:**
+
 - Serverless-friendly
 - Auto-scaling
 - Global CDN
@@ -181,11 +197,13 @@ docker-compose up --build
 - GitHub integration
 
 **Cons:**
+
 - Requires two services (frontend + backend)
 - More complex configuration
 - Potential cold starts
 
 **Example Deployment:**
+
 ```bash
 vercel --prod
 ```
@@ -210,22 +228,24 @@ vercel --prod
 
 ### 7. Maintenance
 
-| Task | Gradio | Next.js | Notes |
-|------|---------|---------|-------|
-| **Update Dependencies** | `pip install -U` | `npm update` | Similar effort |
-| **Add New Feature** | Single file | Multiple files | Gradio simpler |
-| **Bug Fixes** | Quick | Moderate | Gradio advantage |
-| **UI Customization** | Limited | Extensive | Next.js advantage |
-| **Security Updates** | Python packages | npm packages + Python | Similar |
+| Task                    | Gradio           | Next.js               | Notes             |
+| ----------------------- | ---------------- | --------------------- | ----------------- |
+| **Update Dependencies** | `pip install -U` | `npm update`          | Similar effort    |
+| **Add New Feature**     | Single file      | Multiple files        | Gradio simpler    |
+| **Bug Fixes**           | Quick            | Moderate              | Gradio advantage  |
+| **UI Customization**    | Limited          | Extensive             | Next.js advantage |
+| **Security Updates**    | Python packages  | npm packages + Python | Similar           |
 
 ### 8. Cost Analysis
 
 #### Gradio UI
+
 - **Hosting**: $10-30/month (basic VM)
 - **Scaling**: Manual, requires bigger VM
 - **Total**: ~$10-50/month
 
 #### Next.js UI
+
 - **Hosting**:
   - Vercel: Free tier available, $20+/month for teams
   - Backend: $0-10/month (serverless)
@@ -253,12 +273,14 @@ Gradio UI (JavaScript developers)
 ### 10. Future Roadmap
 
 #### Gradio UI
+
 - ✅ Stable and feature-complete
 - ✅ Maintained for backward compatibility
 - ⚠️ Limited new features planned
 - ✅ Recommended for existing users
 
 #### Next.js UI
+
 - 🚀 Active development
 - 🚀 New features being added
 - 🚀 Modern architecture
@@ -276,6 +298,7 @@ Gradio UI (JavaScript developers)
 ### Feature Parity Roadmap
 
 To achieve feature parity with Gradio:
+
 - [ ] Add Schema Report endpoint and UI
 - [ ] Add Documentation tab
 - [ ] Add 2D Visualization support
@@ -286,6 +309,7 @@ To achieve feature parity with Gradio:
 ## Recommendation
 
 ### Choose Gradio UI if:
+
 - ✅ You're primarily a Python developer
 - ✅ You need quick prototyping
 - ✅ It's an internal tool
@@ -293,6 +317,7 @@ To achieve feature parity with Gradio:
 - ✅ You prefer single-language development
 
 ### Choose Next.js UI if:
+
 - ✅ You need a production-ready application
 - ✅ You want modern UI/UX
 - ✅ You need mobile support
@@ -329,6 +354,7 @@ Choose based on your specific needs, or use both!
 ---
 
 For more information:
+
 - [QUICK_START.md](QUICK_START.md) - Getting started
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment guide
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Technical architecture

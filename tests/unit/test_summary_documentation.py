@@ -185,60 +185,52 @@ class TestFinalTestSummary:
 
     def test_summary_mentions_test_file_location(self, summary_content):
         """Test that summary mentions the test file location."""
-        assert "test_documentation_validation.py" in summary_content
+assert "test_documentation_validation.py" in summary_content
 
-    def test_summary_has_test_statistics(self, summary_content):
-        """Test that summary includes test statistics."""
-        assert "Statistics:" in summary_content or "statistics" in summary_content.lower()
-        # Should mention line count
-        assert "lines" in summary_content.lower()
 
-    def test_summary_describes_test_classes(self, summary_content):
-        """
-        Verify the summary includes the expected test class names.
+def test_summary_has_test_statistics(self, summary_content):
+    """Test that summary includes test statistics."""
+    assert "Statistics:" in summary_content or "statistics" in summary_content.lower()
+    # Should mention line count
+    assert "lines" in summary_content.lower()
 
-        Asserts that the provided summary content mentions the test classes TestDependencyMatrix, TestSystemManifest and TestDocumentationConsistency.
-        """
-        assert "TestDependencyMatrix" in summary_content
-        assert "TestSystemManifest" in summary_content
-        assert "TestDocumentationConsistency" in summary_content
+def test_summary_describes_test_classes(self, summary_content):
+    """
+    Verify the summary includes the expected test class names.
 
-    def test_summary_includes_tables(self, summary_content):
-        """Test that summary includes markdown tables."""
-        # Should have at least one table
-        assert "|" in summary_content
-        # Table separator line
-        assert re.search(r"\|[-\s|]+\|", summary_content)
+    Asserts that the provided summary content mentions the test classes TestDependencyMatrix, TestSystemManifest and TestDocumentationConsistency.
+    """
+    assert "TestDependencyMatrix" in summary_content
+    assert "TestSystemManifest" in summary_content
+    assert "TestDocumentationConsistency" in summary_content
 
-    def test_summary_valid_markdown_structure(self, summary_content):
-        """
-        Validate that a Markdown document's top - level heading is H1 when headings are present.
+def test_summary_includes_tables(self, summary_content):
+    """Test that summary includes markdown tables."""
+    # Should have at least one table
+    assert "|" in summary_content
+    # Table separator line
+    assert re.search(r"\|[-\s|]+\|", summary_content)
 
-        Parses the content for lines starting with '#' followed by a space and , if any headings are found, asserts the first heading's level is 1.
+def test_summary_valid_markdown_structure(self, summary_content):
+    """
+    Validate that a Markdown document's top - level heading is H1 when headings are present.
+    """
+    lines = summary_content.split("\n")
+    # Check heading hierarchy
+    heading_levels = []
+    for line in lines:
+        if line.startswith("#"):
+            match = re.match(r"^(#+)\s", line)
+            if match:
+                heading_levels.append(len(match.group(1)))
 
-        Parameters:
-            summary_content(str): The Markdown document content to check.
-        """
-        lines = summary_content.split("\n")
-        # Check heading hierarchy
-        heading_levels = []
-        for line in lines:
-            if line.startswith("#"):
-                match = re.match(r"^(#+)\s", line)
-                if match:
-                    heading_levels.append(len(match.group(1)))
-
-        # Should start with h1
-        if heading_levels:
-            assert heading_levels[0] == 1, "Document should start with h1"
+    # Should start with h1
+    if heading_levels:
+        assert heading_levels[0] == 1, "Document should start with h1"
 
 
 class TestDocumentationSummary:
     """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
-
-    @pytest.fixture
     def summary_path(self):
-        """
-"""
-# Should have at least one code block
-assert "
+        pass
+        pass

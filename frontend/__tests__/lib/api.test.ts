@@ -9,8 +9,13 @@
  * - Axios configuration
  */
 
-import axios from 'axios';
-import type { Asset, Relationship, Metrics, VisualizationData } from '../../app/types/api';
+import axios from "axios";
+import type {
+  Asset,
+  Relationship,
+  Metrics,
+  VisualizationData,
+} from "../../app/types/api";
 import {
   mockAssets,
   mockAsset,
@@ -20,20 +25,22 @@ import {
   mockVizData,
   mockAssetClasses,
   mockSectors,
-} from '../test-utils';
+} from "../test-utils";
 
 // Mock axios
-jest.mock('axios');
+jest.mock("axios");
 let mockedAxios: jest.Mocked<typeof axios>;
 
-let api: typeof import('../../app/lib/api')['api'];
+let api: (typeof import("../../app/lib/api"))["api"];
 
-describe('API Client', () => {
-  let mockAxiosInstance: jest.Mocked<Pick<typeof axios, 'get' | 'post' | 'put' | 'delete'>>;
+describe("API Client", () => {
+  let mockAxiosInstance: jest.Mocked<
+    Pick<typeof axios, "get" | "post" | "put" | "delete">
+  >;
 
   beforeEach(async () => {
     jest.resetModules();
-    mockedAxios = (await import('axios')) as jest.Mocked<typeof axios>;
+    mockedAxios = (await import("axios")) as jest.Mocked<typeof axios>;
     // Create a mock axios instance
     mockAxiosInstance = {
       get: jest.fn(),
@@ -44,7 +51,7 @@ describe('API Client', () => {
 
     // Mock axios.create to return our mock instance
     mockedAxios.create.mockReturnValue(mockAxiosInstance);
-    const apiModule = await import('../../app/lib/api');
+    const apiModule = await import("../../app/lib/api");
     api = apiModule.api;
   });
 
@@ -52,85 +59,90 @@ describe('API Client', () => {
     jest.clearAllMocks();
   });
 
-  describe('Client Configuration', () => {
-    it('should create axios instance with correct baseURL', () => {
+  describe("Client Configuration", () => {
+    it("should create axios instance with correct baseURL", () => {
       expect(mockedAxios.create).toHaveBeenCalledWith({
         baseURL: expect.any(String),
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
     });
 
-    it('should fall back to localhost:8000 if no environment variable', () => {
+    it("should fall back to localhost:8000 if no environment variable", () => {
       const call = mockedAxios.create.mock.calls.at(-1)?.[0];
       expect(call?.baseURL).toMatch(/localhost:8000/);
     });
   });
 
-  describe('healthCheck', () => {
-    it('should call health check endpoint', async () => {
-      const mockResponse = { data: { status: 'healthy' } };
+  describe("healthCheck", () => {
+    it("should call health check endpoint", async () => {
+      const mockResponse = { data: { status: "healthy" } };
       mockAxiosInstance.get.mockResolvedValue(mockResponse);
 
       const result = await api.healthCheck();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/health');
-      expect(result).toEqual({ status: 'healthy' });
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health");
+      expect(result).toEqual({ status: "healthy" });
     });
 
-    it('should handle health check errors', async () => {
-      mockAxiosInstance.get.mockRejectedValue(new Error('Network error'));
+    it("should handle health check errors", async () => {
+      mockAxiosInstance.get.mockRejectedValue(new Error("Network error"));
 
-      await expect(api.healthCheck()).rejects.toThrow('Network error');
+      await expect(api.healthCheck()).rejects.toThrow("Network error");
     });
   });
 
-  describe('getAssets', () => {
-    it('should fetch all assets without filters', async () => {
+  describe("getAssets", () => {
+    it("should fetch all assets without filters", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
 
       const result = await api.getAssets();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets', { params: undefined });
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
+        params: undefined,
+      });
       expect(result).toEqual(mockAssets);
       expect(result).toHaveLength(2);
     });
 
-    it('should fetch assets with asset_class filter', async () => {
+    it("should fetch assets with asset_class filter", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
 
-      const result = await api.getAssets({ asset_class: 'EQUITY' });
+      const result = await api.getAssets({ asset_class: "EQUITY" });
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets', {
-        params: { asset_class: 'EQUITY' },
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
+        params: { asset_class: "EQUITY" },
       });
       expect(result).toEqual(mockAssets);
     });
 
-    it('should fetch assets with sector filter', async () => {
+    it("should fetch assets with sector filter", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
 
-      const result = await api.getAssets({ sector: 'Technology' });
+      const result = await api.getAssets({ sector: "Technology" });
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets', {
-        params: { sector: 'Technology' },
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
+        params: { sector: "Technology" },
       });
       expect(result).toEqual(mockAssets);
     });
 
-    it('should fetch assets with both filters', async () => {
+    it("should fetch assets with both filters", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
 
-      const result = await api.getAssets({ asset_class: 'EQUITY', sector: 'Technology' });
+      const result = await api.getAssets({
+        asset_class: "EQUITY",
+        sector: "Technology",
+      });
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets', {
-        params: { asset_class: 'EQUITY', sector: 'Technology' },
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
+        params: { asset_class: "EQUITY", sector: "Technology" },
       });
       expect(result).toEqual(mockAssets);
     });
 
-    it('should handle empty asset list', async () => {
+    it("should handle empty asset list", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: [] });
 
       const result = await api.getAssets();
@@ -139,90 +151,94 @@ describe('API Client', () => {
       expect(result).toHaveLength(0);
     });
 
-    it('should handle API errors when fetching assets', async () => {
-      mockAxiosInstance.get.mockRejectedValue(new Error('API Error'));
+    it("should handle API errors when fetching assets", async () => {
+      mockAxiosInstance.get.mockRejectedValue(new Error("API Error"));
 
-      await expect(api.getAssets()).rejects.toThrow('API Error');
+      await expect(api.getAssets()).rejects.toThrow("API Error");
     });
   });
 
-  describe('getAssetDetail', () => {
-    it('should fetch asset details by ID', async () => {
+  describe("getAssetDetail", () => {
+    it("should fetch asset details by ID", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockAsset });
 
-      const result = await api.getAssetDetail('ASSET_1');
+      const result = await api.getAssetDetail("ASSET_1");
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets/ASSET_1');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1");
       expect(result).toEqual(mockAsset);
       expect(result.additional_fields).toBeDefined();
     });
 
-    it('should handle non-existent asset ID', async () => {
+    it("should handle non-existent asset ID", async () => {
       mockAxiosInstance.get.mockRejectedValue({
-        response: { status: 404, data: { detail: 'Asset not found' } },
+        response: { status: 404, data: { detail: "Asset not found" } },
       });
 
-      await expect(api.getAssetDetail('NONEXISTENT')).rejects.toMatchObject({
+      await expect(api.getAssetDetail("NONEXISTENT")).rejects.toMatchObject({
         response: { status: 404 },
       });
     });
 
-    it('should handle special characters in asset ID', async () => {
+    it("should handle special characters in asset ID", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockAsset });
 
-      await api.getAssetDetail('ASSET_1-2.3');
+      await api.getAssetDetail("ASSET_1-2.3");
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets/ASSET_1-2.3');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/assets/ASSET_1-2.3",
+      );
     });
   });
 
-  describe('getAssetRelationships', () => {
-    it('should fetch relationships for an asset', async () => {
+  describe("getAssetRelationships", () => {
+    it("should fetch relationships for an asset", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockRelationships });
 
-      const result = await api.getAssetRelationships('ASSET_1');
+      const result = await api.getAssetRelationships("ASSET_1");
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets/ASSET_1/relationships');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/assets/ASSET_1/relationships",
+      );
       expect(result).toEqual(mockRelationships);
       expect(result).toHaveLength(2);
     });
 
-    it('should handle asset with no relationships', async () => {
+    it("should handle asset with no relationships", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: [] });
 
-      const result = await api.getAssetRelationships('ASSET_ISOLATED');
+      const result = await api.getAssetRelationships("ASSET_ISOLATED");
 
       expect(result).toEqual([]);
       expect(result).toHaveLength(0);
     });
 
-    it('should validate relationship structure', async () => {
+    it("should validate relationship structure", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockRelationships });
 
-      const result = await api.getAssetRelationships('ASSET_1');
+      const result = await api.getAssetRelationships("ASSET_1");
 
       result.forEach((rel) => {
-        expect(rel).toHaveProperty('source_id');
-        expect(rel).toHaveProperty('target_id');
-        expect(rel).toHaveProperty('relationship_type');
-        expect(rel).toHaveProperty('strength');
-        expect(typeof rel.strength).toBe('number');
+        expect(rel).toHaveProperty("source_id");
+        expect(rel).toHaveProperty("target_id");
+        expect(rel).toHaveProperty("relationship_type");
+        expect(rel).toHaveProperty("strength");
+        expect(typeof rel.strength).toBe("number");
       });
     });
   });
 
-  describe('getAllRelationships', () => {
-    it('should fetch all relationships', async () => {
+  describe("getAllRelationships", () => {
+    it("should fetch all relationships", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockAllRelationships });
 
       const result = await api.getAllRelationships();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/relationships');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/relationships");
       expect(result).toEqual(mockAllRelationships);
       expect(result).toHaveLength(2);
     });
 
-    it('should handle empty relationships', async () => {
+    it("should handle empty relationships", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: [] });
 
       const result = await api.getAllRelationships();
@@ -231,32 +247,32 @@ describe('API Client', () => {
     });
   });
 
-  describe('getMetrics', () => {
-    it('should fetch network metrics', async () => {
+  describe("getMetrics", () => {
+    it("should fetch network metrics", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockMetrics });
 
       const result = await api.getMetrics();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/metrics');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/metrics");
       expect(result).toEqual(mockMetrics);
     });
 
-    it('should validate metrics structure', async () => {
+    it("should validate metrics structure", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockMetrics });
 
       const result = await api.getMetrics();
 
-      expect(result).toHaveProperty('total_assets');
-      expect(result).toHaveProperty('total_relationships');
-      expect(result).toHaveProperty('asset_classes');
-      expect(result).toHaveProperty('avg_degree');
-      expect(result).toHaveProperty('max_degree');
-      expect(result).toHaveProperty('network_density');
-      expect(typeof result.total_assets).toBe('number');
-      expect(typeof result.asset_classes).toBe('object');
+      expect(result).toHaveProperty("total_assets");
+      expect(result).toHaveProperty("total_relationships");
+      expect(result).toHaveProperty("asset_classes");
+      expect(result).toHaveProperty("avg_degree");
+      expect(result).toHaveProperty("max_degree");
+      expect(result).toHaveProperty("network_density");
+      expect(typeof result.total_assets).toBe("number");
+      expect(typeof result.asset_classes).toBe("object");
     });
 
-    it('should handle metrics with zero values', async () => {
+    it("should handle metrics with zero values", async () => {
       const emptyMetrics: Metrics = {
         total_assets: 0,
         total_relationships: 0,
@@ -274,54 +290,54 @@ describe('API Client', () => {
     });
   });
 
-  describe('getVisualizationData', () => {
-    it('should fetch visualization data', async () => {
+  describe("getVisualizationData", () => {
+    it("should fetch visualization data", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockVizData });
 
       const result = await api.getVisualizationData();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/visualization');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/visualization");
       expect(result).toEqual(mockVizData);
     });
 
-    it('should validate visualization node structure', async () => {
+    it("should validate visualization node structure", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockVizData });
 
       const result = await api.getVisualizationData();
 
       expect(result.nodes).toHaveLength(2);
       result.nodes.forEach((node) => {
-        expect(node).toHaveProperty('id');
-        expect(node).toHaveProperty('name');
-        expect(node).toHaveProperty('symbol');
-        expect(node).toHaveProperty('asset_class');
-        expect(node).toHaveProperty('x');
-        expect(node).toHaveProperty('y');
-        expect(node).toHaveProperty('z');
-        expect(node).toHaveProperty('color');
-        expect(node).toHaveProperty('size');
-        expect(typeof node.x).toBe('number');
-        expect(typeof node.y).toBe('number');
-        expect(typeof node.z).toBe('number');
+        expect(node).toHaveProperty("id");
+        expect(node).toHaveProperty("name");
+        expect(node).toHaveProperty("symbol");
+        expect(node).toHaveProperty("asset_class");
+        expect(node).toHaveProperty("x");
+        expect(node).toHaveProperty("y");
+        expect(node).toHaveProperty("z");
+        expect(node).toHaveProperty("color");
+        expect(node).toHaveProperty("size");
+        expect(typeof node.x).toBe("number");
+        expect(typeof node.y).toBe("number");
+        expect(typeof node.z).toBe("number");
       });
     });
 
-    it('should validate visualization edge structure', async () => {
+    it("should validate visualization edge structure", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockVizData });
 
       const result = await api.getVisualizationData();
 
       expect(result.edges).toHaveLength(1);
       result.edges.forEach((edge) => {
-        expect(edge).toHaveProperty('source');
-        expect(edge).toHaveProperty('target');
-        expect(edge).toHaveProperty('relationship_type');
-        expect(edge).toHaveProperty('strength');
-        expect(typeof edge.strength).toBe('number');
+        expect(edge).toHaveProperty("source");
+        expect(edge).toHaveProperty("target");
+        expect(edge).toHaveProperty("relationship_type");
+        expect(edge).toHaveProperty("strength");
+        expect(typeof edge.strength).toBe("number");
       });
     });
 
-    it('should handle empty visualization data', async () => {
+    it("should handle empty visualization data", async () => {
       const emptyVizData: VisualizationData = { nodes: [], edges: [] };
       mockAxiosInstance.get.mockResolvedValue({ data: emptyVizData });
 
@@ -332,28 +348,28 @@ describe('API Client', () => {
     });
   });
 
-  describe('getAssetClasses', () => {
-    it('should fetch asset classes', async () => {
+  describe("getAssetClasses", () => {
+    it("should fetch asset classes", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockAssetClasses });
 
       const result = await api.getAssetClasses();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/asset-classes');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/asset-classes");
       expect(result).toEqual(mockAssetClasses);
       expect(result.asset_classes).toHaveLength(4);
     });
 
-    it('should validate asset classes are strings', async () => {
+    it("should validate asset classes are strings", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockAssetClasses });
 
       const result = await api.getAssetClasses();
 
       result.asset_classes.forEach((ac) => {
-        expect(typeof ac).toBe('string');
+        expect(typeof ac).toBe("string");
       });
     });
 
-    it('should handle empty asset classes', async () => {
+    it("should handle empty asset classes", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: { asset_classes: [] } });
 
       const result = await api.getAssetClasses();
@@ -362,18 +378,18 @@ describe('API Client', () => {
     });
   });
 
-  describe('getSectors', () => {
-    it('should fetch sectors', async () => {
+  describe("getSectors", () => {
+    it("should fetch sectors", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockSectors });
 
       const result = await api.getSectors();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/sectors');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/sectors");
       expect(result).toEqual(mockSectors);
       expect(result.sectors).toHaveLength(3);
     });
 
-    it('should validate sectors are sorted', async () => {
+    it("should validate sectors are sorted", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: mockSectors });
 
       const result = await api.getSectors();
@@ -382,7 +398,7 @@ describe('API Client', () => {
       expect(result.sectors).toEqual(sortedSectors);
     });
 
-    it('should handle empty sectors', async () => {
+    it("should handle empty sectors", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: { sectors: [] } });
 
       const result = await api.getSectors();
@@ -391,19 +407,19 @@ describe('API Client', () => {
     });
   });
 
-  describe('Error Handling', () => {
-    it('should propagate network errors', async () => {
-      const networkError = new Error('Network Error');
+  describe("Error Handling", () => {
+    it("should propagate network errors", async () => {
+      const networkError = new Error("Network Error");
       mockAxiosInstance.get.mockRejectedValue(networkError);
 
-      await expect(api.getAssets()).rejects.toThrow('Network Error');
+      await expect(api.getAssets()).rejects.toThrow("Network Error");
     });
 
-    it('should propagate HTTP error responses', async () => {
+    it("should propagate HTTP error responses", async () => {
       const httpError = {
         response: {
           status: 500,
-          data: { detail: 'Internal Server Error' },
+          data: { detail: "Internal Server Error" },
         },
       };
       mockAxiosInstance.get.mockRejectedValue(httpError);
@@ -413,14 +429,14 @@ describe('API Client', () => {
       });
     });
 
-    it('should propagate timeout errors', async () => {
-      const timeoutError = new Error('timeout of 5000ms exceeded');
+    it("should propagate timeout errors", async () => {
+      const timeoutError = new Error("timeout of 5000ms exceeded");
       mockAxiosInstance.get.mockRejectedValue(timeoutError);
 
-      await expect(api.getVisualizationData()).rejects.toThrow('timeout');
+      await expect(api.getVisualizationData()).rejects.toThrow("timeout");
     });
 
-    it('should handle malformed response data', async () => {
+    it("should handle malformed response data", async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: null });
 
       const result = await api.healthCheck();

@@ -3,21 +3,25 @@
 ## New Tests Created
 
 ### 1. test_pr_agent_config_validation.py
+
 **Purpose**: Validates PR agent configuration simplification
 **Tests**: 13 methods across 3 classes
 **Focus**: Config version, chunking removal, YAML validity, security
 
 **Run**:
+
 ```bash
 pytest tests/integration/test_pr_agent_config_validation.py -v
 ```
 
 ### 2. test_branch_integration.py
+
 **Purpose**: Integration tests for all branch changes
 **Tests**: 16 methods across 6 classes
 **Focus**: Workflow consistency, dependency integration, branch coherence
 
 **Run**:
+
 ```bash
 pytest tests/integration/test_branch_integration.py -v
 ```

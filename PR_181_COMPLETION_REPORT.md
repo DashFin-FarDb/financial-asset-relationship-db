@@ -26,20 +26,24 @@
 ### The Challenge
 
 PR #181 from the `patch` branch was identified as:
+
 - **The oldest open PR** (opened Nov 18, 2025)
 - **A large PR** with 460+ commits and extensive changes
 - **Foundation for many subsequent PRs** - Multiple PRs branched from patch
 - **Blocked by unrelated histories** - Could not merge using standard Git commands
 
 From the existing documentation (PR_RESOLUTION_ANALYSIS.md):
+
 > PR #181 (patch branch) has branches with completely unrelated Git histories and cannot be merged into main using standard methods.
 
 ### Why This PR Matters
 
 The user noted:
+
 > "This is a large PR that has led to many subsequent PRs that might have been completed and therefore by merging this PR it, given the large number of commits it might help rationalise outstanding work."
 
 This was absolutely correct. Analysis revealed:
+
 - **15-20+ PRs** derived from the patch branch
 - Multiple bot-generated PRs (cubic-fix, coderabbitai, codex) targeting patch files
 - Extensive test infrastructure that subsequent PRs depended on
@@ -66,13 +70,15 @@ Created and executed a systematic resolution strategy:
 **Principle**: Keep main branch stable code, add patch branch test improvements
 
 **Actions**:
+
 - ✅ Used main version for: Core application code (src/, api/, app.py, frontend/)
 - ✅ Used main version for: Configuration files (.github/, pyproject.toml, requirements.txt)
-- ✅ Added from patch: New test files (tests/integration/test_workflow_*.py)
-- ✅ Added from patch: New documentation (44 TEST_*.md files)
+- ✅ Added from patch: New test files (tests/integration/test*workflow*\*.py)
+- ✅ Added from patch: New documentation (44 TEST\_\*.md files)
 - ✅ Added from patch: New utilities (src/workflow_validator.py)
 
 **Script Created**:
+
 ```bash
 # Resolved all 109 conflicts by:
 git checkout --ours <core files>  # Keep main versions
@@ -112,6 +118,7 @@ Added 3 detailed reports:
 ### Step 5: Verification
 
 ✅ **Import Tests Passed**:
+
 ```python
 from src.workflow_validator import validate_workflow  # ✓ Success
 from src.logic.asset_graph import AssetRelationshipGraph  # ✓ Success
@@ -119,6 +126,7 @@ from src.models.financial_models import Equity  # ✓ Success
 ```
 
 ✅ **Syntax Validation Passed**:
+
 ```bash
 python -m py_compile src/workflow_validator.py  # ✓ No errors
 ```
@@ -128,6 +136,7 @@ python -m py_compile src/workflow_validator.py  # ✓ No errors
 ## What Was Added from Patch Branch
 
 ### New Core Feature: Workflow Validator
+
 - **File**: `src/workflow_validator.py` (67 lines)
 - **Purpose**: Validates GitHub Actions workflow YAML files
 - **Classes**: `ValidationResult`, `validate_workflow()`
@@ -136,6 +145,7 @@ python -m py_compile src/workflow_validator.py  # ✓ No errors
 ### New Test Files (15 total)
 
 #### Integration Tests (13 files)
+
 1. `test_branch_integration.py`
 2. `test_documentation_files_validation.py`
 3. `test_modified_config_files_validation.py`
@@ -151,20 +161,25 @@ python -m py_compile src/workflow_validator.py  # ✓ No errors
 13. `test_yaml_config_validation.py`
 
 #### Unit Tests (1 file)
+
 1. `test_workflow_validator.py` (31,522 bytes)
 
 #### Frontend Tests (1 file)
+
 1. `frontend/__tests__/integration/component-integration.test.tsx`
 
 ### Documentation Files (44 files)
+
 Comprehensive test generation and coverage documentation:
-- TEST_GENERATION_*.md (multiple summaries)
-- TEST_COVERAGE_*.md (assessment reports)
-- COMPREHENSIVE_*.md (detailed analyses)
-- WORKFLOW_TESTS_*.md (workflow-specific docs)
+
+- TEST*GENERATION*\*.md (multiple summaries)
+- TEST*COVERAGE*\*.md (assessment reports)
+- COMPREHENSIVE\_\*.md (detailed analyses)
+- WORKFLOW*TESTS*\*.md (workflow-specific docs)
 - Plus quick reference guides and completion reports
 
 ### Helper Scripts (2 files)
+
 1. `add_test_files.sh` - Test file management
 2. `validate_new_tests.sh` - Test validation
 
@@ -173,6 +188,7 @@ Comprehensive test generation and coverage documentation:
 ## What Was Preserved from Main Branch
 
 ### Core Application (Unchanged)
+
 - ✅ `src/` - All core business logic
 - ✅ `api/` - FastAPI backend
 - ✅ `app.py` - Gradio UI
@@ -180,6 +196,7 @@ Comprehensive test generation and coverage documentation:
 - ✅ `frontend/` - Next.js application
 
 ### Configuration (Unchanged)
+
 - ✅ `.github/workflows/` - CI/CD workflows
 - ✅ `pyproject.toml` - Python project config
 - ✅ `requirements.txt` - Dependencies
@@ -187,6 +204,7 @@ Comprehensive test generation and coverage documentation:
 - ✅ `.gitignore` - Git ignore rules
 
 ### Existing Tests (Unchanged)
+
 - ✅ `tests/unit/` - Existing unit tests
 - ✅ `tests/integration/` - Existing integration tests
 - ✅ `conftest.py` - Test configuration
@@ -214,13 +232,13 @@ Comprehensive test generation and coverage documentation:
 
 ### Repository Health
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| **Open PRs** | 44+ | 24-29 (projected) | -35% to -45% |
-| **Test Files** | ~27 | ~42 | +15 files |
-| **Workflow Validator** | ❌ None | ✅ Present | New feature |
-| **Test Documentation** | Scattered | Comprehensive | +44 files |
-| **Unrelated History Issues** | Blocking | Resolved | ✅ Fixed |
+| Metric                       | Before    | After             | Change       |
+| ---------------------------- | --------- | ----------------- | ------------ |
+| **Open PRs**                 | 44+       | 24-29 (projected) | -35% to -45% |
+| **Test Files**               | ~27       | ~42               | +15 files    |
+| **Workflow Validator**       | ❌ None   | ✅ Present        | New feature  |
+| **Test Documentation**       | Scattered | Comprehensive     | +44 files    |
+| **Unrelated History Issues** | Blocking  | Resolved          | ✅ Fixed     |
 
 ---
 
@@ -238,11 +256,13 @@ Comprehensive test generation and coverage documentation:
 Based on PR_MERGE_ORDER_ANALYSIS.md:
 
 **Immediate Closures** (15+ PRs):
+
 - ✅ Close all `cubic-fix-*` PRs (#434, #435, #436, #437, #439, #440, #441, #442)
 - ✅ Close `coderabbitai` PRs from patch (#460, #369, others)
 - ✅ Close `multi-launch` PRs merged to patch (#432)
 
 **Closure Script**:
+
 ```bash
 # Provided in PR_MERGE_ORDER_ANALYSIS.md
 ./close_patch_derived_prs.sh  # Closes 15+ PRs with standard comment
@@ -251,6 +271,7 @@ Based on PR_MERGE_ORDER_ANALYSIS.md:
 ### Phase 3: Review & Consolidate (Week 2)
 
 **Careful Review** (5-10 PRs):
+
 - ⚠️ Review `codex/fix-env-var-naming-test-*` PRs (#253, others)
 - ⚠️ Review `copilot/*` PRs (#395, others)
 - ⚠️ Determine if unique changes exist
@@ -259,6 +280,7 @@ Based on PR_MERGE_ORDER_ANALYSIS.md:
 ### Phase 4: Process Improvements (Week 3)
 
 **Prevent Future Issues**:
+
 1. 📝 Update bot configurations to branch from main
 2. 📝 Add branch protection rules
 3. 📝 Configure auto-close for conflicted PRs after 48h
@@ -304,13 +326,13 @@ Success rate: 100%
 
 ### What Could Go Wrong?
 
-| Risk | Mitigation | Status |
-|------|------------|--------|
-| Test failures | Run full test suite before merge | ⏳ Pending |
-| Breaking changes | Kept main versions of core code | ✅ Mitigated |
-| Lost functionality | Added all new files from patch | ✅ Mitigated |
-| PR confusion | Created clear documentation | ✅ Mitigated |
-| Regression issues | Preserved stable main code | ✅ Mitigated |
+| Risk               | Mitigation                       | Status       |
+| ------------------ | -------------------------------- | ------------ |
+| Test failures      | Run full test suite before merge | ⏳ Pending   |
+| Breaking changes   | Kept main versions of core code  | ✅ Mitigated |
+| Lost functionality | Added all new files from patch   | ✅ Mitigated |
+| PR confusion       | Created clear documentation      | ✅ Mitigated |
+| Regression issues  | Preserved stable main code       | ✅ Mitigated |
 
 ### Low Risk Because:
 
@@ -362,6 +384,7 @@ This merge accomplishes the user's goal:
 > "...by merging this PR, given the large number of commits it might help rationalise outstanding work."
 
 **Achieved**:
+
 - ✅ PR #181 is now merged and can be closed
 - ✅ 15-20+ dependent PRs can be closed as superseded
 - ✅ Test infrastructure is incorporated
