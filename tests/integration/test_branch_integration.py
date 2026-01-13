@@ -232,7 +232,8 @@ class TestRemovedFilesIntegration:
 class TestWorkflowSecurityConsistency:
     """Test security practices are consistent across workflows."""
 
-    def test_all_workflows_avoid_pr_injection(self):
+    @staticmethod
+    def test_all_workflows_avoid_pr_injection():
         """
         Scan all workflow YAMLs for patterns that may allow PR title or body content to be injected into shell or command contexts.
 
@@ -322,7 +323,7 @@ class TestBranchCoherence:
         for wf_file, max_lines in workflows_to_check:
             path = Path(wf_file)
             if path.exists():
-                with open(path, "r") as f:
+                with open(wf_file, "r") as f:
                     line_count = len(f.readlines())
 
                 assert (

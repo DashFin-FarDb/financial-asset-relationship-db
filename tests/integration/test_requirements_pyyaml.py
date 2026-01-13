@@ -57,24 +57,28 @@ class TestPyYAMLDependencyAddition:
                 lines.append(line)
         return lines
 
-    def test_pyyaml_present(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_pyyaml_present(requirements_lines: List[str]):
         """Test that PyYAML is in requirements-dev.txt."""
         pyyaml_lines = [line for line in requirements_lines if line.startswith("PyYAML")]
         assert len(pyyaml_lines) >= 1, "PyYAML should be present in requirements-dev.txt"
 
-    def test_types_pyyaml_present(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_types_pyyaml_present(requirements_lines: List[str]):
         """Test that types-PyYAML is in requirements-dev.txt."""
         types_lines = [line for line in requirements_lines if line.startswith("types-PyYAML")]
         assert len(types_lines) >= 1, "types-PyYAML should be present in requirements-dev.txt"
 
-    def test_pyyaml_version_specified(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_pyyaml_version_specified(requirements_lines: List[str]):
         """Test that PyYAML has a version specifier."""
         pyyaml_lines = [line for line in requirements_lines if line.startswith("PyYAML")]
 
         for line in pyyaml_lines:
             assert ">=" in line or "==" in line, f"PyYAML should have version specifier: {line}"
 
-    def test_pyyaml_version_at_least_6(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_pyyaml_version_at_least_6(requirements_lines: List[str]):
         """
         Ensure any 'PyYAML' entries with a '>=' minimum version in requirements_lines specify version 6.0 or higher.
 
@@ -89,7 +93,8 @@ class TestPyYAMLDependencyAddition:
                 version = float(version_match.group(1))
                 assert version >= 6.0, f"PyYAML version should be >= 6.0, got {version}"
 
-    def test_types_pyyaml_matches_pyyaml_version(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_types_pyyaml_matches_pyyaml_version(requirements_lines: List[str]):
         """
         Assert that the major version of types-PyYAML equals the major version of PyYAML when both are specified with '>=' in the given requirements lines.
 
@@ -119,7 +124,8 @@ class TestPyYAMLDependencyAddition:
 class TestRequirementsDevYAMLUsage:
     """Test that PyYAML is needed for workflow validation."""
 
-    def test_pyyaml_used_in_workflow_tests(self):
+    @staticmethod
+    def test_pyyaml_used_in_workflow_tests():
         """Test that PyYAML is imported in workflow test files."""
         workflow_test_files = [
             Path("tests/integration/test_github_workflows.py"),

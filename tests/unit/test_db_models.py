@@ -47,7 +47,8 @@ class TestAssetORM:
         assert "id" in pk_columns
         assert len(pk_columns) == 1
 
-    def test_create_equity_asset(self, db_session):
+    @staticmethod
+    def test_create_equity_asset(db_session):
         """Test creating an equity asset."""
         asset = AssetORM(
             id="TEST_EQUITY",
@@ -423,7 +424,8 @@ class TestRegulatoryEventORM:
         assert retrieved.event_type == "EARNINGS_REPORT"
         assert retrieved.impact_score == 0.8
 
-    def test_regulatory_event_cascade_delete(self, db_session):
+    @staticmethod
+    def test_regulatory_event_cascade_delete(db_session):
         """Test that events are deleted when asset is deleted."""
         asset = AssetORM(
             id="EVENT_CASCADE",
@@ -524,7 +526,8 @@ class TestRegulatoryEventAssetORM:
         """Test that RegulatoryEventAssetORM uses correct table name."""
         assert RegulatoryEventAssetORM.__tablename__ == "regulatory_event_assets"
 
-    def test_event_asset_unique_constraint(self, db_session):
+    @ staticmethod
+    def test_event_asset_unique_constraint(db_session):
         """Test that duplicate event-asset links are prevented."""
         asset = AssetORM(
             id = "UNIQUE_ASSET",

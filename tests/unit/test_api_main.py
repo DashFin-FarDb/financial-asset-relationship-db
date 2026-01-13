@@ -204,8 +204,8 @@ class TestPydanticModels:
 class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def client():
         """
         Pytest fixture that yields a TestClient configured with a sample in-memory graph for endpoint tests.
@@ -213,6 +213,7 @@ class TestAPIEndpoints:
         Sets a sample in-memory graph on the application before yielding the client and resets the graph after the test completes.
 
         Sets the application's graph to a sample database and yields a TestClient for use in tests. On fixture teardown the application's graph is reset.
+
         Returns:
             TestClient: A test client instance connected to the application populated with the sample graph.
         """
@@ -526,8 +527,8 @@ class TestAPIEndpoints:
 class TestErrorHandling:
     """Test error handling and edge cases."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def client():
         """Create a test client."""
         return TestClient(app)

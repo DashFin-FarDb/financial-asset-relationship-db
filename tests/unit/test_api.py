@@ -748,7 +748,8 @@ class TestRealDataFetcherFallback:
 
     @patch("src.data.real_data_fetcher.logger")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    def test_real_data_fetcher_logs_fallback_on_exception(self, mock_fetch_equity, mock_logger):
+    @staticmethod
+    def test_real_data_fetcher_logs_fallback_on_exception(mock_fetch_equity, mock_logger):
         """Test that RealDataFetcher logs when falling back to sample data."""
         from src.data.real_data_fetcher import RealDataFetcher
 

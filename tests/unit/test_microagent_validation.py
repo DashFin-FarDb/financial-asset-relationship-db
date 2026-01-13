@@ -396,7 +396,8 @@ class TestMicroagentSemantic:
         return Path(".openhands/microagents/repo_engineer_lead.md")
 
     @pytest.fixture
-    def repo_engineer_content(self, repo_engineer_path: Path) -> str:
+    @staticmethod
+    def repo_engineer_content(repo_engineer_path: Path) -> str:
         """Load repo_engineer_lead.md content."""
         with open(repo_engineer_path, encoding="utf-8") as f:
             return f.read()

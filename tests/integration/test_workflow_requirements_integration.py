@@ -54,7 +54,8 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 class TestWorkflowCanInstallRequirements:
     """Test that workflows have steps to install the dependencies from requirements-dev.txt."""
 
-    def test_pr_agent_workflow_has_install_dependencies_step(self):
+    @staticmethod
+    def test_pr_agent_workflow_has_install_dependencies_step():
         """Test that pr-agent workflow has a step to install Python dependencies."""
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
 
@@ -85,7 +86,8 @@ class TestWorkflowCanInstallRequirements:
             "(e.g., 'pip install -r requirements-dev.txt')"
         )
 
-    def test_workflow_installs_before_running_tests(self):
+    @staticmethod
+    def test_workflow_installs_before_running_tests():
         """
         Assert that in pr-agent.yml each job installs dependencies before running tests.
 
@@ -203,7 +205,8 @@ class TestRequirementsMatchWorkflowNeeds:
         for tool in essential_tools:
             assert tool in package_names, f"{tool} should be in requirements-dev.txt for code quality and testing"
 
-    def test_requirements_support_python_version_in_workflow(self):
+    @staticmethod
+    def test_requirements_support_python_version_in_workflow():
         """
         Check that the pr-agent workflow's declared Python version (from a `setup-python` step) is at least Python 3.8.
 

@@ -100,7 +100,8 @@ class TestGreetingsWorkflowChanges:
     """Test greetings workflow simplification."""
 
     @pytest.fixture
-    def greetings_workflow(self):
+    @staticmethod
+    def greetings_workflow():
         """
         Load and parse the .github/workflows/greetings.yml GitHub Actions workflow file.
 
@@ -132,8 +133,8 @@ class TestGreetingsWorkflowChanges:
 class TestLabelWorkflowChanges:
     """Test label workflow simplification."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def label_workflow():
         """
         Load and parse the label workflow YAML at .github/workflows/label.yml.
@@ -145,7 +146,8 @@ class TestLabelWorkflowChanges:
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_label_workflow_no_config_check(self, label_workflow):
+    @staticmethod
+    def test_label_workflow_no_config_check(label_workflow):
         """
         Verify the 'label' job does not include a step that checks for a configuration file.
 
@@ -158,7 +160,8 @@ class TestLabelWorkflowChanges:
         step_names = [s.get("name", "") for s in steps]
         assert not any("check" in name.lower() and "config" in name.lower() for name in step_names)
 
-    def test_label_workflow_uses_actions_labeler(self, label_workflow):
+    @staticmethod
+    def test_label_workflow_uses_actions_labeler(label_workflow):
         """
         Check that the label workflow uses the actions/labeler action and provides a repo-token.
 
@@ -190,7 +193,8 @@ class TestAPISecWorkflowChanges:
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_apisec_no_credential_checks(self, apisec_workflow):
+    @staticmethod
+    def test_apisec_no_credential_checks(apisec_workflow):
         """
         Ensure the APISec Trigger_APIsec_scan job contains no credential-checking steps.
 
@@ -203,7 +207,8 @@ class TestAPISecWorkflowChanges:
         step_names = [s.get("name", "") for s in steps]
         assert not any("check" in name.lower() and "credential" in name.lower() for name in step_names)
 
-    def test_apisec_no_conditional_if(self, apisec_workflow):
+    @staticmethod
+    def test_apisec_no_conditional_if(apisec_workflow):
         """Verify APISec job doesn't have conditional execution."""
         job = apisec_workflow["jobs"]["Trigger_APIsec_scan"]
         assert "if" not in job, "APISec job should not have conditional execution"
