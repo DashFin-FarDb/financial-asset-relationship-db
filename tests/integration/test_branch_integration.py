@@ -174,10 +174,10 @@ class TestDependencyWorkflowIntegration:
 
 
 class TestRemovedFilesIntegration:
-    """Test that removed files don't break functionality."""
+    """Test that removed files do not break functionality."""
 
     def test_workflows_dont_reference_removed_scripts(self):
-        """Verify workflows don't reference deleted files."""
+        """Verify workflows do not reference deleted files."""
         removed_files = [
             "context_chunker.py",
             ".github/scripts/README.md",
