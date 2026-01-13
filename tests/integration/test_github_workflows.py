@@ -447,7 +447,7 @@ class TestWorkflowSecurity:
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
 
-        for job_name, job_config in jobs.items():
+        for _, job_config in jobs.items():
             steps = job_config.get("steps", [])
 
             for step in steps:
@@ -618,7 +618,7 @@ class TestWorkflowPerformance:
         jobs = config.get("jobs", {})
 
         has_cache = False
-        for job_name, job_config in jobs.items():
+        for _, job_config in jobs.items():
             steps = job_config.get("steps", [])
 
             for step in steps:
@@ -2167,7 +2167,7 @@ class TestWorkflowAdvancedSecurity:
         if "curl" in content and "github.event" in content:
             # Warn about potential URL injection
             lines = content.split("\n")
-            for i, line in enumerate(lines):
+            for _, line in enumerate(lines):
                 if "curl" in line.lower() and "github.event" in line:
                     # This is advisory - curl with user input can be dangerous
                     assert True  # Not failing but flagging for review
@@ -2216,7 +2216,7 @@ class TestWorkflowAdvancedValidation:
         data = load_yaml_safe(workflow_file)
         jobs = data.get("jobs", {})
 
-        for job_name, job in jobs.items():
+        for _, job in jobs.items():
             steps = job.get("steps", [])
             for step in steps:
                 if "uses" in step:
@@ -2239,15 +2239,12 @@ class TestWorkflowAdvancedValidation:
         if "pull_request_target" in triggers:
             jobs = data.get("jobs", {})
             has_checkout = False
-            has_safe_ref = False
 
-            for job_name, job in jobs.items():
+            for _, job in jobs.items():
                 steps = job.get("steps", [])
                 for step in steps:
                     if "uses" in step and "actions/checkout" in step["uses"]:
                         has_checkout = True
-                        if "with" in step and "ref" in step["with"]:
-                            has_safe_ref = True
 
             if has_checkout:
                 # Advisory: pull_request_target should specify ref
@@ -2259,7 +2256,7 @@ class TestWorkflowAdvancedValidation:
         data = load_yaml_safe(workflow_file)
         jobs = data.get("jobs", {})
 
-        for job_name, job in jobs.items():
+        for _, job in jobs.items():
             timeout = job.get("timeout-minutes")
             if timeout is not None:
                 assert isinstance(timeout, int), f"timeout-minutes must be integer in {workflow_file.name}"
@@ -2288,7 +2285,7 @@ class TestWorkflowCachingStrategies:
         data = load_yaml_safe(workflow_file)
         jobs = data.get("jobs", {})
 
-        for job_name, job in jobs.items():
+        for _, job in jobs.items():
             strategy = job.get("strategy", {})
             matrix = strategy.get("matrix", {})
 
@@ -2297,7 +2294,6 @@ class TestWorkflowCachingStrategies:
                 for step in steps:
                     if "uses" in step and "actions/cache" in step["uses"]:
                         if "with" in step and "key" in step["with"]:
-                            key = str(step["with"]["key"])
                             # Should include runner.os in cache key
                             if "os" in matrix:
                                 # Advisory: consider including OS in cache key
@@ -2316,7 +2312,7 @@ class TestWorkflowPermissionsBestPractices:
         if permissions:
             # If permissions are specified, ensure they're not overly broad
             if isinstance(permissions, dict):
-                for perm, value in permissions.items():
+                for _, value in permissions.items():
                     # Permissions should be 'read', 'write', or 'none'
                     assert value in [
                         "read",
@@ -2345,7 +2341,7 @@ class TestWorkflowPermissionsBestPractices:
 
         # Check job-level permissions
         jobs = data.get("jobs", {})
-        for job_name, job in jobs.items():
+        for _, job in jobs.items():
             if "permissions" in job:
                 check_perms(job["permissions"])
 
@@ -2383,7 +2379,7 @@ class TestWorkflowComplexScenarios:
         data = load_yaml_safe(workflow_file)
         jobs = data.get("jobs", {})
 
-        for job_name, job in jobs.items():
+        for _, job in jobs.items():
             strategy = job.get("strategy", {})
             matrix = strategy.get("matrix", {})
 
@@ -2451,7 +2447,7 @@ class TestWorkflowConditionalExecution:
 
         for pattern in risky_patterns:
             # Advisory: consider checking for undefined
-            matches = re.findall(pattern, content)
+            _ = re.findall(pattern, content)
             # Not failing, just checking
 
 
@@ -2464,7 +2460,7 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
         data = load_yaml_safe(workflow_file)
         jobs = data.get("jobs", {})
 
-        for job_name, job in jobs.items():
+        for _, job in jobs.items():
             if "outputs" in job:
                 step_ids = {s.get("id") for s in job.get("steps", []) if "id" in s}
 
@@ -2484,7 +2480,7 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
         data = load_yaml_safe(workflow_file)
         jobs = data.get("jobs", {})
 
-        for job_name, job in jobs.items():
+        for _, job in jobs.items():
             steps = job.get("steps", [])
             for step in steps:
                 if "uses" in step and "actions/upload-artifact" in step["uses"]:
@@ -2513,7 +2509,7 @@ class TestWorkflowEnvironmentVariables:
 
         # Job-level env
         jobs = data.get("jobs", {})
-        for job_name, job in jobs.items():
+        for _, job in jobs.items():
             if "env" in job:
                 check_env_names(job["env"])
 
@@ -2525,7 +2521,7 @@ class TestWorkflowEnvironmentVariables:
         workflow_env = set(data.get("env", {}).keys())
         jobs = data.get("jobs", {})
 
-        for job_name, job in jobs.items():
+        for _, job in jobs.items():
             job_env = set(job.get("env", {}).keys())
             # Check for duplication (informational)
             duplicates = workflow_env & job_env
@@ -2554,7 +2550,7 @@ class TestWorkflowScheduledExecutionBestPractices:
                 assert len(parts) == 5, f"Invalid cron '{cron}' in {workflow_file.name} (needs 5 fields)"
 
                 # Check each part is valid
-                for i, part in enumerate(parts):
+                for _, part in enumerate(parts):
                     # Should be number, *, */n, or range
                     assert re.match(r"^(\d+|\*|,|\-|\/)+$", part), f"Invalid cron part '{part}' in {workflow_file.name}"
 

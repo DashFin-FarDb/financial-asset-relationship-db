@@ -447,7 +447,7 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
         g = get_graph()
         assets = []
 
-        for asset_id, asset in g.assets.items():
+        for _, asset in g.assets.items():
             # Apply filters
             if asset_class and asset.asset_class.value != asset_class:
                 continue
@@ -618,7 +618,7 @@ async def get_visualization_data():
     try:
         g = get_graph()
         # get_3d_visualization_data returns: (positions, asset_ids, asset_colors, asset_text, (edges_x, edges_y, edges_z)), but edge coordinates are not used in this endpoint
-        positions, asset_ids, asset_colors, asset_text = g.get_3d_visualization_data()[:4]
+        positions, asset_ids, asset_colors, _ = g.get_3d_visualization_data()[:4]
 
         nodes = []
         for i, asset_id in enumerate(asset_ids):

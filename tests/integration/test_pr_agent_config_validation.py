@@ -243,7 +243,7 @@ class TestPRAgentConfigSecurity:
         import re
 
         # Heuristic to detect inline creds in URLs (user:pass@)
-        inline_creds_re = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
+        re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\\s]+:[^/@\\s]+@", re.IGNORECASE)
 
         # Common secret-like prefixes or markers
         secret_markers = (
@@ -258,47 +258,6 @@ class TestPRAgentConfigSecurity:
             "auth",
             "bearer ",
         )
-
-        def shannon_entropy(s: str) -> float:
-            if not s:
-                return 0.0
-            # Limit to a reasonable window to avoid skew from extremely long text
-            sample = s[:256]
-            freq = {}
-            for ch in sample:
-                freq[ch] = freq.get(ch, 0) + 1
-            ent = 0.0
-            length = len(sample)
-            for c in freq.values():
-                p = c / length
-                ent -= p * math.log2(p)
-            return ent
-
-        def looks_like_secret(val: str) -> bool:
-            v = val.strip()
-            if not v:
-                return False
-            # Common placeholders considered safe
-            placeholders = {
-                "<token>",
-                "<secret>",
-                "changeme",
-                "your-token-here",
-                "dummy",
-                "placeholder",
-                "null",
-                "none",
-            }
-            if v.lower() in placeholders:
-                return False
-            # Inline credentials in URL
-            if inline_creds_re.search(v):
-                return True
-            # Bearer tokens or obvious markers
-            if any(m in v.lower() for m in secret_markers):
-                # If marker appears and string is not trivially short, treat as suspicious
-                if len(v) >= 12:
-                    return True
 
     def test_no_hardcoded_credentials(self, pr_agent_config):
         """

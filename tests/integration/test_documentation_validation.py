@@ -259,7 +259,7 @@ class TestLinkValidation:
             valid_anchors.add(anchor)
 
         # Check each internal link
-        for text, anchor in internal_links:
+        for _, anchor in internal_links:
             assert anchor in valid_anchors, f"Internal link to #{anchor} references non-existent header"
 
 

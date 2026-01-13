@@ -329,7 +329,7 @@ class TestConfigurationConsistency:
                 workflow = yaml.safe_load(f)
 
             jobs = workflow.get("jobs", {})
-            for job_id, job_config in jobs.items():
+            for _, job_config in jobs.items():
                 steps = job_config.get("steps", [])
                 for step in steps:
                     if "actions/setup-python" in step.get("uses", ""):
@@ -352,7 +352,7 @@ class TestConfigurationConsistency:
                 workflow = yaml.safe_load(f)
 
             jobs = workflow.get("jobs", {})
-            for job_id, job_config in jobs.items():
+            for _, job_config in jobs.items():
                 steps = job_config.get("steps", [])
                 for step in steps:
                     if "actions/setup-node" in step.get("uses", ""):
@@ -381,7 +381,7 @@ class TestConfigurationConsistency:
                 workflow = yaml.safe_load(f)
 
             jobs = workflow.get("jobs", {})
-            for job_id, job_config in jobs.items():
+            for _, job_config in jobs.items():
                 steps = job_config.get("steps", [])
                 for step in steps:
                     uses = step.get("uses", "")

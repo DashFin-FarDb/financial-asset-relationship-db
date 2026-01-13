@@ -118,7 +118,7 @@ class TestDatabaseInitialization:
         engine = create_engine("sqlite:///:memory:")
 
         # Create a simple test model
-        class TestModel(Base):
+        class _TestModel(Base):
             __tablename__ = "test_model"
             id = Column(Integer, primary_key=True)
             name = Column(String)
@@ -132,7 +132,7 @@ class TestDatabaseInitialization:
         """Test that init_db can be called multiple times safely."""
         engine = create_engine("sqlite:///:memory:")
 
-        class TestModel(Base):
+        class _TestModel(Base):
             __tablename__ = "test_idempotent"
             id = Column(Integer, primary_key=True)
 

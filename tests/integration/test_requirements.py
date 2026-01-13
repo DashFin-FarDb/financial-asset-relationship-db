@@ -348,7 +348,6 @@ class TestSecurityAndCompliance:
             if ver.startswith("=="):
                 version_match = re.search(r"==(\d+)\.(\d+)", ver)
                 if version_match:
-                    major = int(version_match.group(1))
                     # Basic sanity check - no 0.x versions for production dependencies
                     if pkg.lower() not in ["zipp"]:  # Exclude transitive dependencies
                         pass  # Add specific checks as needed
@@ -362,7 +361,7 @@ class TestEdgeCases:
         # Test that packages with extras are handled correctly
         requirements = parse_requirements(REQUIREMENTS_FILE)
         # If any package has extras, ensure it's parsed correctly
-        for pkg, ver in requirements:
+        for pkg, _ in requirements:
             assert "[" not in pkg, f"Package name should not contain '[': {pkg}"
 
     def test_parse_with_environment_markers(self):
@@ -385,7 +384,7 @@ class TestEdgeCases:
         """Test that empty lines and comment-only lines are ignored."""
         requirements = parse_requirements(REQUIREMENTS_FILE)
         # All returned entries should have valid package names
-        for pkg, ver in requirements:
+        for pkg, _ in requirements:
             assert len(pkg) > 0, "Package name should not be empty"
             assert pkg.strip() == pkg, f"Package name should not have leading/trailing whitespace: '{pkg}'"
 

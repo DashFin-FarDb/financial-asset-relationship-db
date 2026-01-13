@@ -147,7 +147,7 @@ class TestDocumentationFilesValidation:
             content = md_file.read_text(encoding="utf-8")
             links = link_pattern.findall(content)
 
-            for link_text, link_url in links:
+            for _, link_url in links:
                 # Skip external URLs
                 if link_url.startswith(("http://", "https://", "#", "mailto:")):
                     continue
@@ -322,7 +322,7 @@ class TestDocumentationConsistency:
         for md_file in md_files:
             content = md_file.read_text(encoding="utf-8")
 
-            for correct, alternatives in inconsistencies.items():
+            for _, alternatives in inconsistencies.items():
                 for alt in alternatives:
                     # Allow in code blocks
                     if alt in content and "```" not in content.split(alt)[0][-100:]:
