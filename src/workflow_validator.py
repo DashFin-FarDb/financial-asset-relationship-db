@@ -44,7 +44,7 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     allowed_workflow_filenames = globals().get(
         "ALLOWED_WORKFLOW_FILENAMES"
     ) or set(  # may be defined elsewhere at module scope
-        os.listdir(WORKFLOW_DIR)
+        os.listdir(workflow_dir)
     )  # fallback: allow only filenames present in the trusted directory
     if filename not in allowed_workflow_filenames:
         return ValidationResult(False, [f"Invalid workflow filename: {filename}"], {})
