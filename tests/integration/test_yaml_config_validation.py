@@ -143,7 +143,7 @@ class TestWorkflowSchemaCompliance:
     def test_workflows_have_required_top_level_keys(self, all_workflows):
         """Verify workflows have all required top-level keys."""
         required_keys = ["name", "jobs"]
-
+        checkout_versions = {}
         for workflow in all_workflows:
             for key in required_keys:
                 assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"

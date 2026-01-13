@@ -154,7 +154,7 @@ class RealDataFetcher:
                 hist = ticker.history(period="1d")
 
                 if hist.empty:
-                    logger.warning(NO_PRICE_DATA_LOG_MSG, symbol)
+                    logger.warning("No price data for %s", symbol)
                     continue
 
                 current_price = float(hist["Close"].iloc[-1])
@@ -173,7 +173,7 @@ class RealDataFetcher:
                     book_value=info.get("bookValue"),
                 )
                 equities.append(equity)
-                logger.info(FETCHED_PRICE_LOG_MSG, symbol, name, current_price)
+                logger.info("Fetched price for %s (%s): %s", symbol, name, current_price)
 
             except Exception as e:
                 logger.error("Failed to fetch data for %s: %s", symbol, e)
