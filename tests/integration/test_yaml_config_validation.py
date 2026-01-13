@@ -122,10 +122,10 @@ class TestYAMLSyntaxAndStructure:
 class TestWorkflowSchemaCompliance:
     """Tests for GitHub Actions workflow schema compliance."""
 
-        @staticmethod
-        @pytest.fixture
-        def all_workflows() -> List[Dict[str, Any]]:
-            """
+    @staticmethod
+    @pytest.fixture
+    def all_workflows() -> List[Dict[str, Any]]:
+        """
             Collects and parses all YAML workflow files found in .github/workflows.
 
             Returns:
@@ -133,9 +133,9 @@ class TestWorkflowSchemaCompliance:
                     - 'path' (Path): Path to the workflow file.
                     - 'content' (Any): Parsed YAML content as returned by yaml.safe_load (typically a dict, or None if the file is empty).
             """
-            workflow_dir = Path(".github/workflows")
-            workflows = []
-            for workflow_file in workflow_dir.glob("*.yml"):
+         workflow_dir = Path(".github/workflows")
+          workflows = []
+           for workflow_file in workflow_dir.glob("*.yml"):
                 with open(workflow_file, "r") as f:
                     workflows.append({"path": workflow_file, "content": yaml.safe_load(f)})
             return workflows

@@ -305,6 +305,8 @@ class TestLabelWorkflowChanges:
 
 
 class TestAPISecScanWorkflowChanges:
+
+
 ... [rest of code unchanged] ...
 
 
@@ -338,7 +340,7 @@ class TestRequirementsDevChanges:
 
         # Should have version specifier
         pyyaml_line = pyyaml_lines[0]
-        assert any(op in pyyaml_line for op in ["==", ">=", "<=", "~=" ]), "PyYAML should have version constraint"
+        assert any(op in pyyaml_line for op in ["==", ">=", "<=", "~="]), "PyYAML should have version constraint"
 
     @staticmethod
     def test_no_duplicate_dependencies():
