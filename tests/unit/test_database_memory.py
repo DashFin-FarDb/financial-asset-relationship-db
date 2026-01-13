@@ -530,7 +530,8 @@ class TestUriMemoryDatabaseIntegration:
         # Write data
         with reloaded_database.get_connection() as conn:
             conn.execute(
-                "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)", ("persistent", "hash"),
+                "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
+                ("persistent", "hash"),
             )
             conn.commit()
 

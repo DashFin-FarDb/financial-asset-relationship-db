@@ -18,4 +18,4 @@ import pytest
 
 
 class TestDocumentationFilesValidation:
-```), fail if 50% or more of those blocks lack a language specifier (for example, 
+```), fail if 50% or more of those blocks lack a language specifier (for example,

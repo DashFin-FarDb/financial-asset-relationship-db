@@ -480,6 +480,7 @@ class TestFormulaicdAnalyzer:
         assert "key_insights" in summary
         assert isinstance(summary["key_insights"], list)
 
+
 @pytest.mark.unit
 class TestExampleCalculationMethods:
     """Test suite for example calculation methods."""
@@ -630,6 +631,7 @@ class TestExampleCalculationMethods:
         # Assert
         assert isinstance(examples, str)
         assert "Gold" in examples or "commodity" in examples.lower()
+
 
 @pytest.mark.unit
 class TestEdgeCases:

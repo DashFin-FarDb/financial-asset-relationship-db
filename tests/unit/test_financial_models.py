@@ -37,7 +37,7 @@ class TestAsset:
     @staticmethod
     def test_asset_invalid_id():
         """Test that empty id raises ValueError."""
-        with pytest.raises(ValueError, match="id must be a non-empty string"):  
+        with pytest.raises(ValueError, match="id must be a non-empty string"):
             Asset(
                 id="",
                 symbol="TEST",
@@ -50,7 +50,7 @@ class TestAsset:
     @staticmethod
     def test_asset_invalid_price():
         """Test that negative price raises ValueError."""
-        with pytest.raises(ValueError, match="price must be a non-negative number"):  
+        with pytest.raises(ValueError, match="price must be a non-negative number"):
             Asset(
                 id="TEST_001",
                 symbol="TEST",
@@ -63,7 +63,7 @@ class TestAsset:
     @staticmethod
     def test_asset_invalid_currency():
         """Test that invalid currency code raises ValueError."""
-        with pytest.raises(ValueError, match="Currency must be a valid 3-letter ISO code"):  
+        with pytest.raises(ValueError, match="Currency must be a valid 3-letter ISO code"):
             Asset(
                 id="TEST_001",
                 symbol="TEST",
@@ -77,7 +77,7 @@ class TestAsset:
     @staticmethod
     def test_asset_invalid_market_cap():
         """Test that negative market cap raises ValueError."""
-        with pytest.raises(ValueError, match="Market cap must be a non-negative number or None"):  
+        with pytest.raises(ValueError, match="Market cap must be a non-negative number or None"):
             Asset(
                 id="TEST_001",
                 symbol="TEST",

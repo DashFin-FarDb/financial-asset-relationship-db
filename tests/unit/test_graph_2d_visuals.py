@@ -262,6 +262,7 @@ class TestLayoutAlgorithms:
         # Assert
         assert len(positions_2d) == 2
 
+
 @pytest.mark.unit
 class TestRelationshipTraces:
     """Test suite for relationship trace creation."""
@@ -346,6 +347,7 @@ class TestRelationshipTraces:
         # Assert
         assert isinstance(traces, list)
         assert len(traces) == 0
+
 
 @pytest.mark.unit
 class TestEdgeCases:

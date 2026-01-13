@@ -481,7 +481,6 @@ class TestRegulatoryEventORM:
             name="Related 2",
             asset_class="equity",
             sector="Tech",
-            
             sector="Tech",
             price=75.0,
             currency="USD",

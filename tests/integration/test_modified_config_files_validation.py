@@ -17,6 +17,7 @@ import yaml
 
 class TestPRAgentConfigChanges:
     """Validate changes to PR Agent configuration file."""
+
     @pytest.fixture
     @staticmethod
     def config_path() -> Path:
