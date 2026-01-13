@@ -10,4 +10,4 @@ isort>=5.12.0
 pre-commit>=3.0.0
 PyYAML>=6.0
 types-PyYAML>=6.0.0
-ruamel.yaml>=0.18.0
+ruamel.yaml>=0.18.0,<1.0.0  # Restrict to major version 0.x to avoid breaking changes
