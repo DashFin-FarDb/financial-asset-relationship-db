@@ -107,7 +107,8 @@ class TestWorkflowStructure:
 
         # Requirement: Run on PRs to main
         assert "pull_request" in trigger_keys, "Workflow should trigger on 'pull_request'"
-        assert "push" in trigger_keys, "Workflow should trigger on 'push' to main branch"
+        if "push" not in trigger_keys:
+            pytest.fail("Workflow should trigger on 'push' to main branch")
         assert "workflow_dispatch" in trigger_keys, "Workflow should support 'workflow_dispatch' for manual testing"
 
     def test_triggers_on_push_to_main(self, workflow_config: Dict[str, Any]):
