@@ -41,28 +41,14 @@ class TestWorkflowConsistency:
             if path.exists():
                 try:
                     with open(path, 'r') as f:
-                        workflows[wf_file] = yaml.safe_load(f)
+                        loaded = yaml.safe_load(f)
+                        # Ensure we always store a dict to avoid NoneType errors in tests
+                        workflows[wf_file] = loaded if isinstance(loaded, dict) else {}
                 except yaml.YAMLError as e:
                     # Don't let a single malformed workflow break the fixture consumers.
                     # Emit a warning and skip the problematic file.
                     print(f"Warning: failed to parse {wf_file}: {e}; skipping")
                     continue
-        return workflows
-            ".github/workflows/pr-agent.yml",
-            ".github/workflows/apisec-scan.yml",
-            ".github/workflows/label.yml",
-            ".github/workflows/greetings.yml",
-        ]
-
-        workflows = {}
-        for wf_file in workflow_files:
-            path = Path(wf_file)
-            if path.exists():
-                with open(path, 'r') as f:
-                    loaded = yaml.safe_load(f)
-                    # Ensure we always store a dict to avoid NoneType errors in tests
-                    workflows[wf_file] = loaded if isinstance(loaded, dict) else {}
-
         return workflows
 
     def test_all_workflows_use_consistent_action_versions(self, all_workflows):
@@ -113,8 +99,8 @@ class TestWorkflowConsistency:
 
             if 'GITHUB_TOKEN' in workflow_str or 'github.token' in workflow_str:
                 # Should use secrets.GITHUB_TOKEN format
-                assert 'secrets.GITHUB_TOKEN' in workflow_str
-                       or '${{ github.token }}' in workflow_str,
+                assert ('secrets.GITHUB_TOKEN' in workflow_str
+                        or '${{ github.token }}' in workflow_str), \
                     f"{wf_file}: GITHUB_TOKEN should use proper syntax"
 
     def test_simplified_workflows_have_fewer_steps(self, all_workflows):
@@ -136,7 +122,7 @@ class TestWorkflowConsistency:
                 for job_name, job in workflow.get('jobs', {}).items():
                     steps = job.get('steps', [])
                     # Simplified workflows should have minimal steps
-                    assert len(steps) <= 3,
+                    assert len(steps) <= 3, \
                         f"{wf_file}:{job_name} should be simplified (has {len(steps)} steps)"
 
 
@@ -207,7 +193,7 @@ class TestRemovedFilesIntegration:
                 content = f.read()
 
             for removed in removed_files:
-                assert removed not in content,
+                assert removed not in content, \
                     f"{wf_file} references removed file {removed}"
 
     def test_label_workflow_doesnt_need_labeler_config(self):
@@ -219,7 +205,7 @@ class TestRemovedFilesIntegration:
         label_path = Path(".github/workflows/label.yml")
         if not label_path.exists():
             pytest.skip("label.yml not present; skipping label workflow checks")
-        # Proceed: the existing test body will open and parse the file; this early guard avoids FileNotFoundError/KeyError.
+        with open(label_path, "r") as f:
             workflow = yaml.safe_load(f)
 
         # Should use actions/labeler which has default config

@@ -209,6 +209,9 @@ class TestSecretHandling:
             # Use strict pattern match to ensure exact secret reference format
             # Allows optional whitespace around 'secrets.DEBRICKED_TOKEN' but nothing else
             assert re.fullmatch(
+                r"\$\{\{\s*secrets\.DEBRICKED_TOKEN\s*\}\}",
+                token.strip()
+            ), f"DEBRICKED_TOKEN must be exactly '${{{{ secrets.DEBRICKED_TOKEN }}}}', found '{token}'"
 
     def test_no_hardcoded_secrets(self, workflow_content: str):
         """Test for potential hardcoded secrets in the file content."""

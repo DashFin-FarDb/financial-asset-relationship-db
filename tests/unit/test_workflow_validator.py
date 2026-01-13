@@ -14,10 +14,10 @@ from pathlib import Path
 
 import pytest
 
-# Import the module under test
-from workflow_validator import ValidationResult, validate_workflow
-
+# Add src to path before importing the module under test
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+from workflow_validator import ValidationResult, validate_workflow
 
 
 class TestValidationResult:
