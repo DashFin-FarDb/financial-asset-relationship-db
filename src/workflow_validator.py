@@ -1,5 +1,6 @@
 from typing import Any, Dict, List
 
+import os
 import yaml
 
 
@@ -39,8 +40,14 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     Returns:
         ValidationResult: Validation outcome containing `is_valid`, `errors`, and `workflow_data`.
     """
+    allowed_filenames = {"workflow1.yaml", "workflow2.yaml"}
+    filename = os.path.basename(workflow_path)
+    if filename not in allowed_filenames:
+        return ValidationResult(False, [f"Invalid workflow filename: {filename}"], {})
+    WORKFLOW_DIR = "/trusted/workflows"
+    safe_path = os.path.join(WORKFLOW_DIR, filename)
     try:
-        with open(workflow_path, "r", encoding="utf-8") as f:
+        with open(safe_path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         if data is None:
@@ -52,7 +59,7 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
 
         return ValidationResult(True, [], data)
     except FileNotFoundError:
-        return ValidationResult(False, [f"File not found: {workflow_path}"], {})
+        return ValidationResult(False, [f"File not found: {safe_path}"], {})
     except yaml.YAMLError as e:
         return ValidationResult(False, [f"Invalid YAML syntax: {e}"], {})
     except PermissionError as e:
