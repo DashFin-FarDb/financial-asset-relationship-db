@@ -324,7 +324,6 @@ class TestSystemManifest:
         assert match is not None, "Project description not found"
         description = match.group(1).strip()
         assert len(description) > 0, "Project description should not be empty"
-        """Test that systemManifest.md has valid created timestamp."""
         pattern = r"- Created: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)"
         match = re.search(pattern, system_manifest_content)
 
