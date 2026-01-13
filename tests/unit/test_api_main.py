@@ -41,8 +41,8 @@ class TestValidateOrigin:
     def test_validate_origin_http_localhost_production():
         """Test HTTP localhost is rejected in production."""
         with patch.dict(os.environ, {"ENV": "production"}):
-            assert not vo("http://localhost:3000")
-            assert not vo("http://127.0.0.1:8000")
+            assert not validate_origin("http://localhost:3000")
+            assert not validate_origin("http://127.0.0.1:8000")
 
     @staticmethod
     def test_validate_origin_https_localhost():
@@ -86,17 +86,17 @@ class TestGraphInitialization:
 
     def test_graph_initialization(self):
         """Test graph is initialized via get_graph()."""
-        api.main.reset_graph()
-        graph = api.main.get_graph()
+        api_main.reset_graph()
+        graph = api_main.get_graph()
         assert graph is not None
         assert hasattr(graph, "assets")
         assert hasattr(graph, "relationships")
 
     def test_graph_singleton(self):
         """Test graph is a singleton instance via get_graph()."""
-        api.main.reset_graph()
-        graph1 = api.main.get_graph()
-        graph2 = api.main.get_graph()
+        api_main.reset_graph()
+        graph1 = api_main.get_graph()
+        graph2 = api_main.get_graph()
         # Multiple calls should return the same instance
         assert graph1 is graph2
 
@@ -107,14 +107,14 @@ class TestGraphInitialization:
         _save_to_cache(reference_graph, cache_path)
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
-        api.main.reset_graph()
+        api_main.reset_graph()
 
-        graph = api.main.get_graph()
+        graph = api_main.get_graph()
         assert graph is not None
         assert len(graph.assets) == len(reference_graph.assets)
         assert len(graph.relationships) == len(reference_graph.relationships)
 
-        api.main.reset_graph()
+        api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
     def test_graph_fallback_on_corrupted_cache(self, tmp_path, monkeypatch):
@@ -126,16 +126,16 @@ class TestGraphInitialization:
         reference_graph = create_sample_database()
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
-        api.main.reset_graph()
+        api_main.reset_graph()
 
         # Should not raise, and should return a valid graph object
-        graph = api.main.get_graph()
+        graph = api_main.get_graph()
         assert graph is not None
         assert hasattr(graph, "assets")
         assert len(graph.assets) == len(reference_graph.assets)
         assert len(graph.relationships) == len(reference_graph.relationships)
 
-        api.main.reset_graph()
+        api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
 

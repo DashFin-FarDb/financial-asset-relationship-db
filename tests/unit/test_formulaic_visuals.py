@@ -180,7 +180,7 @@ class TestFormulaicVisualizer:
     def test_create_formula_dashboard_with_table(visualizer, sample_analysis_results):
         """Test that formula examples table is created."""
         # Execute
-        fig = visualizer.create_formula_dashboard(sample_analysis - results)
+        fig = visualizer.create_formula_dashboard(sample_analysis_results)
 
         # Find table trace
         table_traces = [trace for trace in fig.data if trace.type == "table"]
