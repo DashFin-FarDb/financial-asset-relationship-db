@@ -84,6 +84,7 @@ class TestWorkflowConsistency:
             if len(versions) > 1:
                 # Allow v4 and v5 for actions/checkout (common upgrade path)
                 if "actions/checkout" in action:
+                    pass
                     continue
                 # Warn if same action uses different versions
                 print(f"Warning: {action} uses multiple versions: {list(versions.keys())}")

@@ -322,41 +322,40 @@ class TestEnvExample:
         """Load .env.example content."""
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
+    with open(config_path) as f:
+        return f.read()
 
-        with open(config_path) as f:
-            return f.read()
+@staticmethod
+def test_env_example_exists():
+    """Test that .env.example exists."""
+    config_path = Path(".env.example")
+    assert config_path.exists()
 
-    @staticmethod
-    def test_env_example_exists():
-        """Test that .env.example exists."""
-        config_path = Path(".env.example")
-        assert config_path.exists()
+@staticmethod
+def test_env_example_has_api_url(env_example_content):
+    """Test that NEXT_PUBLIC_API_URL is documented."""
+    assert "NEXT_PUBLIC_API_URL" in env_example_content
 
-    @staticmethod
-    def test_env_example_has_api_url(env_example_content):
-        """Test that NEXT_PUBLIC_API_URL is documented."""
-        assert "NEXT_PUBLIC_API_URL" in env_example_content
+@staticmethod
+def test_env_example_has_cors_config(env_example_content):
+    """Test that CORS configuration is documented."""
+    assert "ALLOWED_ORIGINS" in env_example_content or "CORS" in env_example_content
 
-    @staticmethod
-    def test_env_example_has_cors_config(env_example_content):
-        """Test that CORS configuration is documented."""
-        assert "ALLOWED_ORIGINS" in env_example_content or "CORS" in env_example_content
+def test_env_example_has_comments(self, env_example_content):
+    """Test that .env.example has helpful comments."""
+    assert "#" in env_example_content
 
-    def test_env_example_has_comments(self, env_example_content):
-        """Test that .env.example has helpful comments."""
-        assert "#" in env_example_content
+def test_env_example_no_real_secrets(self, env_example_content):
+    """Test that .env.example doesn't contain real secrets."""
+    # Check for common secret patterns
+    suspicious_patterns = [
+        "sk_live",  # Stripe live keys
+        "prod_",  # Production keys
+        "pk_live",  # Public live keys
+    ]
 
-    def test_env_example_no_real_secrets(self, env_example_content):
-        """Test that .env.example doesn't contain real secrets."""
-        # Check for common secret patterns
-        suspicious_patterns = [
-            "sk_live",  # Stripe live keys
-            "prod_",  # Production keys
-            "pk_live",  # Public live keys
-        ]
-
-        for pattern in suspicious_patterns:
-            assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
+    for pattern in suspicious_patterns:
+        assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
 
 
 class TestGitignore:
@@ -371,8 +370,11 @@ class TestGitignore:
 
         with open(config_path) as f:
             return f.read()
-    def test_gitignore_exists():
+
+    def test_gitignore_exists(self):
         """Test that .gitignore exists."""
+        config_path = Path(".gitignore")
+        assert config_path.exists()
         config_path = Path(".gitignore")
         assert config_path.exists()
 

@@ -121,7 +121,7 @@ class TestDataIntegrity:
 
     @staticmethod
     def test_asset_detail_matches_list(client):
-        """Test that asset details match what's in the list."""
+        """Test that asset details match what is in the list."""
         assets = client.get("/api/assets").json()
 
         for asset in assets[:3]:  # Test first 3 assets
