@@ -83,9 +83,7 @@ class TestWorkflowConsistency:
         for action, versions in action_versions.items():
             if len(versions) > 1:
                 # Allow v4 and v5 for actions/checkout (common upgrade path)
-                if "actions/checkout" in action: pass
-                    continue
-                    pass
+                if "actions/checkout" in action:
                     continue
                 # Warn if same action uses different versions
                 print(f"Warning: {action} uses multiple versions: {list(versions.keys())}")
@@ -148,14 +146,13 @@ class TestDependencyWorkflowIntegration:
 
         for wf_file in workflow_files:
             try:
-                try:
-                    with open(wf_file, "r") as f:
-                        workflow = yaml.safe_load(f)
+                with open(wf_file, "r") as f:
+                    workflow = yaml.safe_load(f)
 
-                    assert workflow is not None, f"Failed to parse {wf_file}"
-                    assert isinstance(workflow, dict), f"{wf_file} should parse to dict"
-                except yaml.YAMLError as e:
-                    pytest.fail(f"PyYAML failed to parse {wf_file}: {e}")
+                assert workflow is not None, f"Failed to parse {wf_file}"
+                assert isinstance(workflow, dict), f"{wf_file} should parse to dict"
+            except yaml.YAMLError as e:
+                pytest.fail(f"PyYAML failed to parse {wf_file}: {e}")
 
     def test_requirements_support_workflow_test_needs(self):
         """
