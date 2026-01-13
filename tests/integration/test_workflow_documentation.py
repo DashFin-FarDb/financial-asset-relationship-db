@@ -251,7 +251,6 @@ class TestDocumentationBestPractices:
         ), f"Unmatched code fences: found {len(code_fences)} ``` markers (should be even)"
 
 
-
 class TestDocumentationCompleteness:
     """Test that documentation covers all important aspects."""
 
