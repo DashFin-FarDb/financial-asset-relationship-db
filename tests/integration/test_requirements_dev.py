@@ -35,14 +35,13 @@ def _extract_package_name(line: str, req: Requirement) -> str:
     Returns:
         The package name as written in the requirements file.
     """
-    import re as _re
 
     # Drop environment markers
     raw_pkg_token = line.split(";", 1)[0]
     # Drop extras
     raw_pkg_token = raw_pkg_token.split("[", 1)[0]
     # Split at the first occurrence of any operator character (<,>,=,!,~) or comma
-    pkg_part = _re.split(r"(?=[<>=!~,])", raw_pkg_token, 1)[0].strip()
+    pkg_part = re.split(r"(?=[<>=!~,])", raw_pkg_token, 1)[0].strip()
     if pkg_part:
         return pkg_part
     return req.name.strip()
@@ -843,7 +842,6 @@ class TestComprehensivePackageValidation:
     @staticmethod
     def test_all_packages_loadable_by_pip(requirements: List[Tuple[str, str]]):
         """Test that all package specifications are valid pip requirements."""
-        from packaging.requirements import Requirement
 
         # Re-read file and try to parse each line with pip
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:

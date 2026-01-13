@@ -254,7 +254,6 @@ class TestPRAgentConfigSecurity:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
             pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
         import math
-        import re
 
         # Heuristic to detect inline creds in URLs (user:pass@)
         re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\\s]+:[^/@\\s]+@", re.IGNORECASE)
@@ -281,9 +280,6 @@ class TestPRAgentConfigSecurity:
         - Ensures sensitive keys only use safe placeholders.
         """
         import math
-        import re
-
-        import yaml
 
         # Heuristic to detect inline creds in URLs (user:pass@)
         inline_creds_re = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
