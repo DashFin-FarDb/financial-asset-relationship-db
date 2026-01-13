@@ -41,10 +41,11 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
         ValidationResult: Validation outcome containing `is_valid`, `errors`, and `workflow_data`.
     """
     filename = os.path.basename(workflow_path)
-    allowed_workflow_filenames = (
-        globals().get("ALLOWED_WORKFLOW_FILENAMES")  # may be defined elsewhere at module scope
-        or set(os.listdir(WORKFLOW_DIR))  # fallback: allow only filenames present in the trusted directory
-    )
+    allowed_workflow_filenames = globals().get(
+        "ALLOWED_WORKFLOW_FILENAMES"
+    ) or set(  # may be defined elsewhere at module scope
+        os.listdir(WORKFLOW_DIR)
+    )  # fallback: allow only filenames present in the trusted directory
     if filename not in allowed_workflow_filenames:
         return ValidationResult(False, [f"Invalid workflow filename: {filename}"], {})
     workflow_dir = os.environ.get("WORKFLOW_DIR") or os.path.join(
