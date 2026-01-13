@@ -20,8 +20,8 @@ import { join } from "path";
 describe("Package-lock.json Validation", () => {
   const packageJsonPath = join(process.cwd(), "package.json");
   const packageLockPath = join(process.cwd(), "package-lock.json");
-  let packageJson: any;
-  let packageLock: any;
+  let packageJson: unknown;
+  let packageLock: unknown;
 
   beforeAll(() => {
     if (!existsSync(packageJsonPath)) {
@@ -171,7 +171,7 @@ describe("Package-lock.json Validation", () => {
 
     it("all packages should have version or link", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { version?: string; link?: string }]) => {
           if (path !== "") {
             expect(pkg.version || pkg.link).toBeDefined();
           }
@@ -181,7 +181,7 @@ describe("Package-lock.json Validation", () => {
 
     it("all packages should have resolved URLs or be local", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { link?: boolean; dev?: boolean; resolved?: string }]) => {
           if (
             path !== "" &&
             !pkg.link &&
@@ -199,7 +199,7 @@ describe("Package-lock.json Validation", () => {
 
     it("all non-local packages should have integrity hashes", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { link?: boolean; resolved?: string; integrity?: string }]) => {
           if (
             path !== "" &&
             !pkg.link &&
@@ -322,7 +322,7 @@ describe("Package-lock.json Validation", () => {
   describe("Peer Dependencies", () => {
     it("should not have unresolved peer dependencies", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { peerDependencies?: Record<string, string>; peerDependenciesMeta?: Record<string, { optional?: boolean }> }]) => {
           if (pkg.peerDependencies) {
             // Peer dependencies should either be satisfied or marked as optional
             Object.keys(pkg.peerDependencies).forEach((peerDep) => {
@@ -350,7 +350,7 @@ describe("Package-lock.json Validation", () => {
 
       // Check packages that have React as peer dependency
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { peerDependencies?: { react?: string }; peerDependenciesMeta?: { react?: { optional?: boolean } } }]) => {
           if (pkg.peerDependencies?.react) {
             const isOptional = pkg.peerDependenciesMeta?.react?.optional;
             if (!isOptional) {
@@ -366,7 +366,7 @@ describe("Package-lock.json Validation", () => {
   describe("Version Pinning and Resolution", () => {
     it("all package versions should be exact in lockfile", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { version?: string }]) => {
           if (pkg.version && path !== "") {
             // Versions in lockfile should be exact (no ^, ~, etc.)
             expect(pkg.version).toMatch(/^\d+\.\d+\.\d+/);
@@ -378,7 +378,7 @@ describe("Package-lock.json Validation", () => {
 
     it("should not have version ranges in lockfile", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, {version?: string}]) => {
           if (pkg.version) {
             expect(pkg.version).not.toContain("||");
             expect(pkg.version).not.toContain("*");
@@ -390,7 +390,7 @@ describe("Package-lock.json Validation", () => {
 
     it("dependency constraints should use exact versions or ranges", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { dependencies?: Record<string, string> }]) => {
           if (pkg.dependencies) {
             Object.values(pkg.dependencies).forEach((version) => {
               expect(typeof version).toBe("string");
@@ -405,7 +405,7 @@ describe("Package-lock.json Validation", () => {
   describe("Security and Integrity", () => {
     it("all integrity hashes should use SHA-512 or higher", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { integrity?: string }]) => {
           if (pkg.integrity) {
             // Should use sha512 or sha256 at minimum
             expect(pkg.integrity).toMatch(/^sha(256|384|512)-/);
@@ -422,7 +422,7 @@ describe("Package-lock.json Validation", () => {
 
     it("should not have git:// URLs (use https:// instead)", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { resolved?: string }]) => {
           if (pkg.resolved) {
             expect(pkg.resolved).not.toMatch(/^git:/);
           }
@@ -432,7 +432,7 @@ describe("Package-lock.json Validation", () => {
 
     it("should use registry.npmjs.org or known registries", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { resolved?: string }]) => {
           if (pkg.resolved && !pkg.resolved.startsWith("file:")) {
             const validRegistries = [
               "registry.npmjs.org",
@@ -469,7 +469,7 @@ describe("Package-lock.json Validation", () => {
     it("should not have GPL-licensed dependencies (if policy requires)", () => {
       // This is optional - some projects restrict GPL
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, unknown]) => {
           if (pkg.license) {
             const gplLicenses = ["GPL", "AGPL", "LGPL"];
             const isGPL = gplLicenses.some((gpl) =>
@@ -497,7 +497,7 @@ describe("Package-lock.json Validation", () => {
       const versionMap = new Map<string, Set<string>>();
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { version: string }]) => {
           if (path && pkg.version) {
             const pkgName = path.split("node_modules/").pop()?.split("/")[0];
             if (pkgName) {
@@ -550,7 +550,7 @@ describe("Package-lock.json Validation", () => {
       const axiosVersions = new Set<string>();
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { version: string }]) => {
           if (path.includes("axios") && pkg.version) {
             axiosVersions.add(pkg.version);
           }
@@ -593,7 +593,7 @@ describe("Package-lock.json Validation", () => {
       let axiosPeerDepFound = false;
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { peerDependencies?: Record<string, string> }]) => {
           if (pkg.peerDependencies?.axios) {
             axiosPeerDepFound = true;
             const peerVersion = pkg.peerDependencies.axios;

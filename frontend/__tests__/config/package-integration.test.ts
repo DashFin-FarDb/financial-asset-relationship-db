@@ -15,8 +15,8 @@ import { join } from "path";
 describe("Package Configuration Integration", () => {
   const packageJsonPath = join(process.cwd(), "package.json");
   const packageLockPath = join(process.cwd(), "package-lock.json");
-  let packageJson: any;
-  let packageLock: any;
+  let packageJson: { name: string; version: string; dependencies?: Record<string, string>; devDependencies?: Record<string, string>; };
+  let packageLock: { name: string; version: string; packages?: { "": { dependencies?: Record<string, string>; devDependencies?: Record<string, string>; }; }; };
 
   beforeAll(() => {
     packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
@@ -128,7 +128,7 @@ describe("Package Configuration Integration", () => {
       const versionRequirements = new Map<string, Set<string>>();
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { dependencies?: Record<string, string> }]) => {
           if (pkg.dependencies) {
             Object.entries(pkg.dependencies).forEach(([dep, version]) => {
               if (!versionRequirements.has(dep)) {
@@ -152,7 +152,7 @@ describe("Package Configuration Integration", () => {
 
     it("all transitive dependencies should be resolved", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { dependencies?: Record<string, unknown> }]) => {
           if (pkg.dependencies) {
             Object.keys(pkg.dependencies).forEach((dep) => {
               // Dependency should exist somewhere in the tree
@@ -215,7 +215,7 @@ describe("Package Configuration Integration", () => {
       let packagesWithoutIntegrity = 0;
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { resolved: string; link?: boolean; integrity?: string }]) => {
           if (
             path !== "" &&
             pkg.resolved &&
@@ -241,7 +241,7 @@ describe("Package Configuration Integration", () => {
 
     it("no packages should use insecure protocols", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { resolved?: string }]) => {
           if (pkg.resolved) {
             expect(pkg.resolved).not.toMatch(/^http:/);
             expect(pkg.resolved).not.toMatch(/^git:/);
@@ -393,7 +393,7 @@ describe("Package Configuration Integration", () => {
       let missingCount = 0;
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, any]) => {
+        ([path, pkg]: [string, { dependencies?: Record<string, string> }]) => {
           if (pkg.dependencies) {
             Object.keys(pkg.dependencies).forEach((dep) => {
               const depExists = Object.keys(packageLock.packages).some(

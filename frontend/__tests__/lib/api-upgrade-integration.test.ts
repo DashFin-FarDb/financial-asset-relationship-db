@@ -14,6 +14,7 @@
  */
 
 import axios from "axios";
+import type { AxiosInstance } from "axios";
 import type { Asset, Metrics, VisualizationData } from "../../app/types/api";
 import { mockAsset, mockMetrics, mockVizData, mockAssets } from "../test-utils";
 
@@ -21,7 +22,7 @@ jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("Axios Upgrade Integration Tests", () => {
-  let mockAxiosInstance: any;
+  let mockAxiosInstance: AxiosInstance;
   let api: (typeof import("../../app/lib/api"))["api"];
 
   beforeEach(async () => {
