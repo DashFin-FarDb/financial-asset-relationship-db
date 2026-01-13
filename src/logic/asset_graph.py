@@ -85,9 +85,9 @@ class AssetRelationshipGraph:
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
                 all_ids.add(target_id)
-        
+
         effective_assets_count = max(total_assets, len(all_ids))
-        
+
         total_relationships = sum(len(rels) for rels in self.relationships.values())
 
         strengths = [r[2] for rels in self.relationships.values() for r in rels]

@@ -119,16 +119,17 @@ class TestWorkflowPermissionsHardening:
             permissions = workflow["content"].get("permissions", {})
 
             if isinstance(permissions, str):
-                assert permissions in ["read-all", "none"], (
-                    f"Workflow {workflow['path']} has overly permissive default: {permissions}"
-                )
+                assert permissions in [
+                    "read-all",
+                    "none",
+                ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
             elif isinstance(permissions, dict):
                 default_write_perms = [k for k, v in permissions.items() if v == "write"]
                 allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
                 unexpected_write = set(default_write_perms) - allowed_write_perms
-                assert len(unexpected_write) == 0, (
-                    f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
-                )
+                assert (
+                    len(unexpected_write) == 0
+                ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
 
     def test_no_workflows_with_write_all_permission(self, all_workflows):
         """Verify no workflow uses 'write-all' permission."""

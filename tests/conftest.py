@@ -101,6 +101,7 @@ def populated_graph(sample_equity, sample_bond, sample_commodity, sample_currenc
     graph.build_relationships()
     return graph
 
+
 if TYPE_CHECKING:
     from _pytest.config.argparsing import Parser
 
