@@ -14,10 +14,6 @@ import pytest
 # Path to the documentation file
 DOC_FILE = Path(__file__).parent.parent.parent / "TEST_GENERATION_WORKFLOW_SUMMARY.md"
 
-
-```[\s\S]*?
-
-
 class TestDocumentationSections:
     """Test that all expected sections are present."""
 

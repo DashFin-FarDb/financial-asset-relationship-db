@@ -23,7 +23,6 @@ class TestFormulaicVisualizer:
     def visualizer(self):
         """Create a FormulaicVisualizer instance."""
         return FormulaicVisualizer()
-
     @pytest.fixture
     def sample_formula(self):
         """Create a sample formula for testing."""
@@ -48,14 +47,6 @@ class TestFormulaicVisualizer:
         return {
             "formulas": [
                 sample_formula,
-                Formula(
-                    name="Dividend Yield",
-                    formula="Div_Yield = (Annual_Dividends / Price) x 100%",
-                    latex=r"DivYield = \frac{D_{annual}}{P} \times 100\%",
-    @ staticmethod
-    def sample_analysis_results():
-        return {
-            "formulas": [
                 dict(
                     description="Percentage return from dividends",
                     variables={"Div_Yield": "Dividend Yield (%)", "D_annual": "Annual Dividends ($)", "P": "Price ($)"},
@@ -74,6 +65,9 @@ class TestFormulaicVisualizer:
                 "strongest_correlations": [
                     {"asset1": "AAPL", "asset2": "MSFT", "correlation": 0.8, "strength": "Strong"},
                     {"asset1": "MSFT", "asset2": "GOOGL", "correlation": 0.75, "strength": "Strong"},
+                ],
+            },
+        }
                 ],
                 "asset_class_relationships": {"Equity": {"asset_count": 3, "avg_price": 150.0, "total_value": 450.0}},
                 "sector_relationships": {

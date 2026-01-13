@@ -126,19 +126,19 @@ class TestWorkflowSchemaCompliance:
     @pytest.fixture
     def all_workflows() -> List[Dict[str, Any]]:
         """
-            Collects and parses all YAML workflow files found in .github/workflows.
+        Collects and parses all YAML workflow files found in .github/workflows.
 
-            Returns:
-                workflows (List[Dict[str, Any]]): A list of dictionaries, each containing:
-                    - 'path' (Path): Path to the workflow file.
-                    - 'content' (Any): Parsed YAML content as returned by yaml.safe_load (typically a dict, or None if the file is empty).
-            """
-         workflow_dir = Path(".github/workflows")
-          workflows = []
-           for workflow_file in workflow_dir.glob("*.yml"):
-                with open(workflow_file, "r") as f:
-                    workflows.append({"path": workflow_file, "content": yaml.safe_load(f)})
-            return workflows
+        Returns:
+            workflows (List[Dict[str, Any]]): A list of dictionaries, each containing:
+                - 'path' (Path): Path to the workflow file.
+                - 'content' (Any): Parsed YAML content as returned by yaml.safe_load (typically a dict, or None if the file is empty).
+        """
+        workflow_dir = Path(".github/workflows")
+        workflows = []
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, "r") as f:
+                workflows.append({"path": workflow_file, "content": yaml.safe_load(f)})
+        return workflows
 
     def test_workflows_have_required_top_level_keys(self, all_workflows):
         """Verify workflows have all required top-level keys."""

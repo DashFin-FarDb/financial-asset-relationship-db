@@ -463,6 +463,8 @@ class TestRegulatoryEventORM:
         # Create main asset and related assets
         main_asset = AssetORM(
             id="MAIN_ASSET",
+        main_asset = AssetORM(
+            id="MAIN_ASSET",
             symbol="MA",
             name="Main Asset",
             asset_class="equity",
@@ -488,21 +490,17 @@ class TestRegulatoryEventORM:
             price=50.0,
             currency="USD",
         )
-            sector = "Tech",
-            price = 75.0,
-            currency = "USD",
-        )
         db_session.add_all([main_asset, related1, related2])
         db_session.commit()
 
         # Create event
         event = RegulatoryEventORM(
-            id = "EVENT_003",
-            asset_id = "MAIN_ASSET",
-            event_type = "MERGER",
-            date = "2024-03-01",
-            description = "Merger announcement",
-            impact_score = 0.9,
+            id="EVENT_003",
+            asset_id="MAIN_ASSET",
+            event_type="MERGER",
+            date="2024-03-01",
+            description="Merger announcement",
+            impact_score=0.9,
         )
         db_session.add(event)
         db_session.commit()

@@ -176,7 +176,6 @@ class TestRequirementsInstallability:
         result = subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"], capture_output=True, text=True
         )
-
         # Should not have syntax errors
         assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
 
@@ -211,7 +210,7 @@ class TestRequirementsDocumentation:
         for i, line in enumerate(lines):
             if "pyyaml" in line.lower():
                 # Check previous lines for comments
-                context = "\n".join(lines[max(0, i - 3) : i + 1])
+                context = "\n".join(lines[max(0, i - 3): i + 1])
                 # Should have some context about YAML parsing or workflows
                 assert any(
                     keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]

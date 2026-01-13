@@ -305,6 +305,7 @@ class TestLabelWorkflowChanges:
 
 
 class TestAPISecScanWorkflowChanges:
+    pass
 
 
 ... [rest of code unchanged] ...

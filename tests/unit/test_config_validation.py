@@ -331,6 +331,7 @@ class TestEnvExample:
         """Test that .env.example exists."""
         config_path = Path(".env.example")
         assert config_path.exists()
+
     @staticmethod
     def test_env_example_has_api_url(env_example_content):
         """Test that NEXT_PUBLIC_API_URL is documented."""
@@ -370,8 +371,6 @@ class TestGitignore:
 
         with open(config_path) as f:
             return f.read()
-
-    @staticmethod
     @staticmethod
     def test_gitignore_exists():
         """Test that .gitignore exists."""

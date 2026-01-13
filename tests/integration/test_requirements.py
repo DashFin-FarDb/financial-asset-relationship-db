@@ -159,7 +159,6 @@ class TestRequiredPackages:
     def package_names(requirements: List[Tuple[str, str]]) -> List[str]:
         """Extract package names from requirements."""
         return [pkg.lower() for pkg, _ in requirements]
-
     @staticmethod
     def test_has_core_packages(package_names: List[str]):
         """Test that core application packages are present."""
@@ -180,9 +179,6 @@ class TestRequiredPackages:
     def test_has_pydantic(package_names: List[str]):
         """Test that pydantic is included for data validation."""
         assert "pydantic" in package_names
-
-    @staticmethod
-    def test_has_httpx(package_names: List[str]):
 
     @staticmethod
     def test_has_httpx(package_names: List[str]):

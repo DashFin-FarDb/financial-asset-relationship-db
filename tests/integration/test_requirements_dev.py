@@ -420,12 +420,12 @@ class TestEdgeCasesAndErrorHandling:
     @staticmethod
     @staticmethod
     def test_parse_packages_with_extras():
-        \"\"\"Test that packages with extras are parsed correctly.\"\"\"
+        """Test that packages with extras are parsed correctly."""
         requirements = parse_requirements(REQUIREMENTS_FILE)
         # Ensure extras are stripped from package names
         for pkg, _ in requirements:
-            assert "[\" not in pkg, f\"Package name should not contain '[': {pkg}\"
-                     assert "\]\" not in pkg, f\"Package name should not contain ']': {pkg}\"
+            assert "[" not in pkg, f"Package name should not contain '[': {pkg}"
+            assert "]" not in pkg, f"Package name should not contain ']': {pkg}"
 
     @staticmethod
     def test_parse_packages_with_environment_markers():
