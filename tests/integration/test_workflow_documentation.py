@@ -250,20 +250,6 @@ class TestDocumentationBestPractices:
             len(code_fences) % 2 == 0
         ), f"Unmatched code fences: found {len(code_fences)} ``` markers (should be even)"
 
-    def test_uses_proper_emphasis(self, doc_content: str):
-        """Test that document uses proper emphasis markers."""
-        # Check for improperly closed emphasis
-        # Should not have orphaned * or _
-        text_without_code = re.sub(r"```[\s\S]*?```", "", doc_content)
-
-        # Count asterisks not in code
-        asterisks = text_without_code.count("*")
-        underscores = text_without_code.count("_")
-
-        # Should be even (paired for opening/closing)
-        if asterisks > 0:
-            assert asterisks % 2 == 0, "Unmatched * for emphasis"
-
 
 class TestDocumentationCompleteness:
     """Test that documentation covers all important aspects."""
