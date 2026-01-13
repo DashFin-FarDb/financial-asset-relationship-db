@@ -279,16 +279,16 @@ class TestWorkflowSecurityConsistency:
                 r'\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|',
                 r'\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(',
             ]
-            
+
             for pattern in dangerous:
                 matches = re.findall(pattern, content)
                 if matches:
                     print(f"Potential injection risk in {wf_file}: {matches}")
-    
+
     def test_workflows_use_appropriate_checkout_refs(self):
         """
         Verify workflows triggered by pull_request_target specify a safe checkout reference.
-        
+
         For .github/workflows/pr-agent.yml and .github/workflows/apisec-scan.yml, if the workflow's triggers include
         `pull_request_target` this test asserts every `actions/checkout` step supplies either a `ref` or a `fetch-depth`
         in its `with` configuration; failure indicates an unsafe checkout configuration.
@@ -297,14 +297,14 @@ class TestWorkflowSecurityConsistency:
             ".github/workflows/pr-agent.yml",
             ".github/workflows/apisec-scan.yml",
         ]
-        
+
         for wf_file in workflow_files:
             with open(wf_file, 'r') as f:
                 workflow = yaml.safe_load(f)
-            
+
             trigger = workflow.get('on', {})
             uses_pr_target = 'pull_request_target' in trigger
-            
+
             if uses_pr_target:
                 # Should checkout with explicit ref
                 for job in workflow.get('jobs', {}).values():
@@ -318,35 +318,35 @@ class TestWorkflowSecurityConsistency:
 
 class TestBranchCoherence:
     """Test overall branch changes are coherent."""
-    
+
     def test_simplification_theme_consistent(self):
         """
         Ensure selected workflows adhere to the branch's simplification theme.
-        
+
         Checks that each workflow in the predefined list does not exceed its maximum allowed line count and fails the test if any file is longer than its threshold.
         """
         # This branch should simplify, not add complexity
-        
+
         # Check workflow line counts decreased
         workflows_to_check = [
             (".github/workflows/pr-agent.yml", 200),  # Should be under 200 lines
             (".github/workflows/label.yml", 30),      # Should be under 30 lines
             (".github/workflows/greetings.yml", 20),  # Should be under 20 lines
         ]
-        
+
         for wf_file, max_lines in workflows_to_check:
             path = Path(wf_file)
             if path.exists():
                 with open(path, 'r') as f:
                     line_count = len(f.readlines())
-                
+
                 assert line_count <= max_lines, \
                     f"{wf_file} should be simplified (has {line_count} lines, expected <={max_lines})"
-    
+
     def test_removed_complexity_not_referenced(self):
         """
         Assert that removed complexity indicators are not referenced in workflow files.
-        
+
         Scans all YAML files under .github/workflows for the feature names
         'context_chunking', 'tiktoken', 'summarization', 'max_tokens', and 'chunk_size'.
         If any of these names appear in a non-comment line of a workflow file, the test
@@ -359,14 +359,14 @@ class TestBranchCoherence:
             'max_tokens',
             'chunk_size',
         ]
-        
+
         # Check these aren't in workflows anymore
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
-        
+
         for wf_file in workflow_files:
             with open(wf_file, 'r') as f:
                 content = f.read().lower()
-            
+
             for feature in complex_features:
                 if feature in content:
                     # Some context about removal is OK in comments
@@ -374,26 +374,26 @@ class TestBranchCoherence:
                     for line in lines:
                         if feature in line.lower() and not line.strip().startswith('#'):
                             pytest.fail(f"{wf_file} still references removed feature: {feature}")
-    
+
     def test_branch_reduces_dependencies_on_external_config(self):
         """
         Verify the branch no longer depends on removed external configuration and limits workflow references to external files.
-        
+
         Asserts that .github/labeler.yml and .github/scripts/context_chunker.py do not exist, and that each workflow file under .github/workflows contains at most one run step referencing paths that include ".github/" or "scripts/".
         """
         # labeler.yml was removed - workflows should work without it
         assert not Path(".github/labeler.yml").exists()
-        
+
         # context_chunker.py was removed - workflows should work without it
         assert not Path(".github/scripts/context_chunker.py").exists()
-        
+
         # Workflows should be more self-contained
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
-        
+
         for wf_file in workflow_files:
             with open(wf_file, 'r') as f:
                 workflow = yaml.safe_load(f)
-            
+
             # Count steps that reference external files
             external_refs = 0
             for job in workflow.get('jobs', {}).values():
@@ -401,7 +401,7 @@ class TestBranchCoherence:
                     run_cmd = step.get('run', '')
                     if '.github/' in run_cmd or 'scripts/' in run_cmd:
                         external_refs += 1
-            
+
             # Should have minimal external references
             assert external_refs <= 1, \
                 f"{wf_file} has {external_refs} external file references (should be <=1)"
@@ -409,39 +409,39 @@ class TestBranchCoherence:
 
 class TestBranchQuality:
     """Test overall quality of branch changes."""
-    
+
     def test_all_modified_workflows_parse_successfully(self):
         """
         Assert at least one workflow exists and each YAML file in .github/workflows parses to a mapping containing a 'jobs' key.
-        
+
         Raises an assertion failure if no workflow files are found, if a file fails to parse into a mapping, or if the parsed workflow does not contain a 'jobs' entry.
         """
         workflow_dir = Path(".github/workflows")
         workflow_files = list(workflow_dir.glob("*.yml"))
-        
+
         assert len(workflow_files) > 0, "No workflow files found"
-        
+
         for wf_file in workflow_files:
             try:
                 with open(wf_file, 'r') as f:
                     workflow = yaml.safe_load(f)
-                
+
                 assert workflow is not None
                 assert isinstance(workflow, dict)
                 assert 'jobs' in workflow
             except Exception as e:
                 pytest.fail(f"Failed to parse {wf_file}: {e}")
-    
+
     def test_no_merge_conflict_markers(self):
         """
         Ensure specified files do not contain Git merge conflict markers.
-        
+
         Checks each workflow file and the development requirements file for the markers
         '<<<<<<<', '=======', and '>>>>>>>' and asserts their absence. On failure the
         assertion message identifies the file path and the offending marker.
         """
         conflict_markers = ['<<<<<<<', '=======', '>>>>>>>']
-        
+
         files_to_check = [
             '.github/workflows/pr-agent.yml',
             '.github/workflows/apisec-scan.yml',
@@ -449,30 +449,30 @@ class TestBranchQuality:
             '.github/workflows/greetings.yml',
             'requirements-dev.txt',
         ]
-        
+
         for file_path in files_to_check:
             path = Path(file_path)
             if path.exists():
                 with open(path, 'r') as f:
                     content = f.read()
-                
+
                 for marker in conflict_markers:
                     assert marker not in content, \
                         f"{file_path} contains merge conflict marker: {marker}"
-    
+
     def test_consistent_indentation_across_workflows(self):
         """
         Check that every workflow YAML file uses consistent 2-space indentation.
-        
+
         For each non-empty line that begins with a space, the number of leading spaces must be a multiple of two.
         If a line violates this rule, the test asserts with a message identifying the workflow file and line number.
         """
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
-        
+
         for wf_file in workflow_files:
             with open(wf_file, 'r') as f:
                 lines = f.readlines()
-            
+
             for i, line in enumerate(lines, 1):
                 if line.strip() and line[0] == ' ':
                     spaces = len(line) - len(line.lstrip(' '))

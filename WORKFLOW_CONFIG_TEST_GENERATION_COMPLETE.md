@@ -59,7 +59,7 @@ Successfully generated **comprehensive unit and integration tests** for all GitH
   - Script injection
   - SQL injection patterns
   - Path traversal
-  
+
 - **Secret Protection**
   - Logging prevention
   - Artifact security
@@ -70,7 +70,7 @@ Successfully generated **comprehensive unit and integration tests** for all GitH
   - Least privilege
   - Explicit permissions
   - Write permission justification
-  
+
 - **Supply Chain Security**
   - Action pinning
   - Secure downloads
@@ -107,7 +107,7 @@ pytest tests/integration/test_workflow_*.py \
 # Configuration tests only
 pytest tests/integration/test_workflow_config_changes.py -v
 
-# Security tests only  
+# Security tests only
 pytest tests/integration/test_workflow_security_advanced.py -v
 
 # Validation tests only
