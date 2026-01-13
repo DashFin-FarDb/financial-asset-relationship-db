@@ -2337,7 +2337,7 @@ class TestWorkflowPermissionsBestPractices:
                     if value == "write":
                         # Common justified write permissions
 
-        # Check workflow-level permissions
+                        # Check workflow-level permissions
         if "permissions" in data:
             check_perms(data["permissions"])
 
