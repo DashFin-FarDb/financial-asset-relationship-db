@@ -1,7 +1,6 @@
 import argparse
 import copy
 import json
-import sys
 import threading
 
 from src.logic.asset_graph import AssetRelationshipGraph
