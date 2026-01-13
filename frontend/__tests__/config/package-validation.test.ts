@@ -257,8 +257,11 @@ describe("Package.json Validation", () => {
       // Extract version number (handle ^, ~, >=, etc.)
       const versionMatch = axiosVersion.match(/[\d.]+/);
       expect(versionMatch).not.toBeNull();
+      if (versionMatch === null) {
+        throw new Error("Version match is null");
+      }
 
-      const [major, minor, patch] = versionMatch![0].split(".").map(Number);
+      const [major, minor, patch] = versionMatch[0].split(".").map(Number);
 
       // Should be at least 1.13.2
       expect(major).toBeGreaterThanOrEqual(1);
@@ -279,7 +282,10 @@ describe("Package.json Validation", () => {
       // Axios 1.x has built-in TypeScript support
       const axiosVersion = packageJson.dependencies.axios;
       const versionMatch = axiosVersion.match(/[\d.]+/);
-      const [major] = versionMatch![0].split(".").map(Number);
+      if (!versionMatch) {
+        throw new Error(`Invalid axios version: ${axiosVersion}`);
+      }
+      const [major] = versionMatch[0].split(".").map(Number);
 
       expect(major).toBeGreaterThanOrEqual(1);
     });
@@ -567,10 +573,11 @@ describe("Package.json Validation", () => {
     it("axios version should support all required features", () => {
       // Axios 1.x supports TypeScript, interceptors, and modern features
       const axiosVersion = packageJson.dependencies.axios;
-      const [major, minor] = axiosVersion
-        .match(/[\d.]+/)![0]
-        .split(".")
-        .map(Number);
+      const versionMatch = axiosVersion.match(/[\d.]+/);
+      if (!versionMatch) {
+        throw new Error(`Invalid axios version: ${axiosVersion}`);
+      }
+      const [major, minor] = versionMatch[0].split(".").map(Number);
 
       // 1.13.2 has security fixes and improvements
       expect(major).toBe(1);

@@ -148,7 +148,7 @@ describe("Package Configuration Integration", () => {
               if (!versionRequirements.has(dep)) {
                 versionRequirements.set(dep, new Set());
               }
-              versionRequirements.get(dep)!.add(version as string);
+              versionRequirements.get(dep)?.add(version as string);
             });
           }
         },
@@ -188,9 +188,15 @@ describe("Package Configuration Integration", () => {
       expect(react?.version).toBeDefined();
       expect(reactDom?.version).toBeDefined();
 
-      // React and React-DOM should have matching major.minor versions
-      const reactVersion = react!.version!.split(".");
-      const reactDomVersion = reactDom!.version!.split(".");
+      if (!react || !react.version) {
+        throw new Error("React version is required");
+      }
+      if (!reactDom || !reactDom.version) {
+        throw new Error("React-DOM version is required");
+      }
+
+      const reactVersion = react.version.split(".");
+      const reactDomVersion = reactDom.version.split(".");
 
       expect(reactVersion[0]).toBe(reactDomVersion[0]); // Major
       expect(reactVersion[1]).toBe(reactDomVersion[1]); // Minor
@@ -280,7 +286,10 @@ describe("Package Configuration Integration", () => {
       expect(axiosVersion).toBe("1.13.2");
 
       // Parse versions
-      const [major, minor, patch] = axiosVersion!.split(".").map(Number);
+      if (axiosVersion == null) {
+        throw new Error("Expected axiosVersion to be defined");
+      }
+      const [major, minor, patch] = axiosVersion.split(".").map(Number);
       const [rangeMajor, rangeMinor, rangePatch] = "1.13.2"
         .split(".")
         .map(Number);
@@ -301,10 +310,14 @@ describe("Package Configuration Integration", () => {
 
       Object.entries(rootDeps).forEach(([name, range]) => {
         const pkg = packageLock.packages?.[`node_modules/${name}`];
-        expect(pkg?.version).toBeDefined();
+        const version = pkg?.version;
+        expect(version).toBeDefined();
 
         // Basic validation: version should be defined and non-empty
-        expect((pkg!.version as string).length).toBeGreaterThan(0);
+        if (version == null) {
+          throw new Error(`Expected version for package ${name} to be defined`);
+        }
+        expect(version.length).toBeGreaterThan(0);
       });
     });
   });

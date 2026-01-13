@@ -522,7 +522,7 @@ describe("Package-lock.json Validation", () => {
               if (!versionMap.has(pkgName)) {
                 versionMap.set(pkgName, new Set());
               }
-              versionMap.get(pkgName)!.add(pkg.version);
+              versionMap.get(pkgName)?.add(pkg.version);
             }
           }
         },
@@ -602,7 +602,10 @@ describe("Package-lock.json Validation", () => {
       expect(version).toBe("1.13.2");
 
       // Major version should be 1 for backward compatibility
-      const major = parseInt(version!.split(".")[0]);
+      if (version == null) {
+        throw new Error("Expected axios version to be defined");
+      }
+      const major = parseInt(version.split(".")[0]);
       expect(major).toBe(1);
     });
 
