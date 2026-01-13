@@ -25,11 +25,8 @@ class TestEnhancedTestSummary:
     @pytest.fixture
     def summary_path(self):
         """
-    @staticmethod
-    @pytest.fixture
-    def summary_path():
-        """
         Provide the path to the enhanced test summary file.
+        """
 
         Returns:
             Path: Path to "ENHANCED_TEST_SUMMARY.md".
@@ -156,9 +153,7 @@ class TestFinalTestSummary:
             return f.read()
 
     def test_summary_file_exists(self, summary_path):
-        """
-        Verify the FINAL_TEST_SUMMARY.md file exists and is a regular file.
-        """
+        """Verify the FINAL_TEST_SUMMARY.md file exists and is a regular file."""
         assert summary_path.exists()
         assert summary_path.is_file()
 
@@ -229,12 +224,14 @@ class TestFinalTestSummary:
 class TestDocumentationSummary:
     """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
 
+    @staticmethod
     @pytest.fixture
-    def summary_path(self):
+    def summary_path():
         """
         Provide the path to the test documentation summary file.
 
         Returns:
             Path: Path to "TEST_DOCUMENTATION_SUMMARY.md".
+        """
         """
         return Path("TEST_DOCUMENTATION_SUMMARY.md")
