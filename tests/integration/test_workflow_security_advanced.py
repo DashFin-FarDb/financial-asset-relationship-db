@@ -12,8 +12,6 @@ Focus areas:
 import re
 from typing import Any, Dict, List
 
-import pytest
-
 
 class TestWorkflowInjectionPrevention:
     """Tests for preventing injection attacks in workflows."""

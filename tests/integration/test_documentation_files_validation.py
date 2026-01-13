@@ -9,12 +9,7 @@ Tests ensure that:
 - Headings follow a logical hierarchy
 """
 
-import os
-import re
-from pathlib import Path
 from typing import List, Tuple
-
-import pytest
 
 
 class TestDocumentationFilesValidation:
