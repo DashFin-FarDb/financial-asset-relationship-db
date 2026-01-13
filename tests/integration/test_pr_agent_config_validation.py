@@ -115,7 +115,51 @@ class TestPRAgentConfigYAMLValidity:
 
     def test_valid_yaml_syntax(self):
         """Verify config file has valid YAML syntax."""
+    def test_no_duplicate_keys(self):
+        """Verify no duplicate keys in config."""
         config_path = Path(".github/pr-agent-config.yml")
+
+        class _NoDuplicateKeysSafeLoader(yaml.SafeLoader):
+            """YAML loader that fails on duplicate mapping keys."""
+
+            def construct_mapping(self, node, deep=False):
+                mapping = {}
+                seen = set()
+
+                for key_node, value_node in node.value:
+                    key = self.construct_object(key_node, deep=deep)
+
+                    # Most YAML keys here are scalars (strings). For safety, fall back
+                    # to string representation for unhashable keys.
+                    try:
+                        key_id = key
+                        is_hashable = True
+                        hash(key_id)
+                    except Exception:
+                        key_id = repr(key)
+                        is_hashable = False
+
+                    if key_id in seen:
+                        # Use the key node mark for precise location info.
+                        mark = getattr(key_node, "start_mark", None)
+                        if mark is not None:
+                            pytest.fail(
+                                f"Duplicate key '{key}' at line {mark.line + 1}, column {mark.column + 1}"
+                            )
+                        pytest.fail(f"Duplicate key '{key}' found in YAML mapping")
+
+                    seen.add(key_id)
+                    mapping[key] = self.construct_object(value_node, deep=deep)
+
+                return mapping
+
+        try:
+            with open(config_path, "r") as f:
+                config = yaml.load(f, Loader=_NoDuplicateKeysSafeLoader)
+            assert config is not None
+            assert isinstance(config, dict)
+        except yaml.YAMLError as e:
+            pytest.fail(f"Invalid YAML syntax: {e}")
         
         with open(config_path, 'r') as f:
             try:
