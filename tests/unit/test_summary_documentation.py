@@ -26,6 +26,10 @@ class TestEnhancedTestSummary:
     @pytest.fixture
     def summary_path():
         """
+        @staticmethod
+        @pytest.fixture
+        def summary_path():
+        """
         Provide the path to the enhanced test summary file.
 
         Returns:
@@ -101,7 +105,7 @@ class TestEnhancedTestSummary:
         Assert that every Markdown heading in the provided content has a space after the leading `  # ` characters.
 
         Parameters:
-            summary_content(str): Full text of the summary Markdown file to validate.
+            summary_content(str): Full text content of the summary Markdown file to validate.
 
         Raises:
             AssertionError: If any heading line does not have a space after its `  # ` markers; the error message includes the failing line number.
@@ -153,9 +157,7 @@ class TestFinalTestSummary:
             return f.read()
 
     def test_summary_file_exists(self, summary_path):
-        """
-        Verify the FINAL_TEST_SUMMARY.md file exists and is a regular file.
-        """
+        """Verify the FINAL_TEST_SUMMARY.md file exists and is a regular file."""
         assert summary_path.exists()
         assert summary_path.is_file()
 
