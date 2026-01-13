@@ -112,7 +112,8 @@ class TestDocumentationFiles:
             "VERCEL_DEPLOYMENT_CHECKLIST.md",
         ],
     )
-    def test_documentation_exists(self, doc_file):
+    @staticmethod
+    def test_documentation_exists(doc_file):
         """Test that key documentation files exist."""
         assert os.path.exists(doc_file), f"Missing documentation: {doc_file}"
 

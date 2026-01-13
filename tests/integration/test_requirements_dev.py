@@ -220,6 +220,7 @@ class TestRequirementsFileFormat:
 class TestRequiredPackages:
     """Test that required development packages are present."""
 
+    @staticmethod
     @pytest.fixture
     @staticmethod
     def requirements(parsed_requirements) -> List[Tuple[str, str]]:
@@ -302,8 +303,9 @@ class TestVersionSpecifications:
 class TestPackageConsistency:
     """Test consistency and relationships between packages."""
 
+    @staticmethod
     @pytest.fixture
-    def package_names(self) -> List[str]:
+    def package_names() -> List[str]:
         """Extract package names from requirements."""
         requirements = parse_requirements(REQUIREMENTS_FILE)
         return [pkg for pkg, _ in requirements]
@@ -404,7 +406,8 @@ class TestSpecificChanges:
 class TestEdgeCasesAndErrorHandling:
     """Test edge cases and error handling in requirements parsing and validation."""
 
-    def test_parse_packages_with_extras(self):
+    @staticmethod
+    def test_parse_packages_with_extras():
         """Test that packages with extras are parsed correctly."""
         requirements = parse_requirements(REQUIREMENTS_FILE)
         # Ensure extras are stripped from package names
@@ -412,7 +415,8 @@ class TestEdgeCasesAndErrorHandling:
             assert "[" not in pkg, f"Package name should not contain '[': {pkg}"
             assert "]" not in pkg, f"Package name should not contain ']': {pkg}"
 
-    def test_parse_packages_with_environment_markers(self):
+    @staticmethod
+    def test_parse_packages_with_environment_markers():
         """Test that environment markers are handled correctly."""
         requirements = parse_requirements(REQUIREMENTS_FILE)
         # Ensure environment markers are stripped
@@ -420,14 +424,16 @@ class TestEdgeCasesAndErrorHandling:
             assert ";" not in pkg, f"Package name should not contain ';': {pkg}"
             assert ";" not in ver, f"Version spec should not contain ';': {ver}"
 
-    def test_parse_inline_comments(self):
+    @staticmethod
+    def test_parse_inline_comments():
         """Test that inline comments don't leak into parsed data."""
         requirements = parse_requirements(REQUIREMENTS_FILE)
         for pkg, ver in requirements:
             assert "#" not in pkg, f"Package name should not contain '#': {pkg}"
             assert "#" not in ver, f"Version spec should not contain '#': {ver}"
 
-    def test_whitespace_handling(self):
+    @staticmethod
+    def test_whitespace_handling():
         """Test that whitespace is properly handled in parsing."""
         requirements = parse_requirements(REQUIREMENTS_FILE)
         for pkg, ver in requirements:
@@ -435,7 +441,8 @@ class TestEdgeCasesAndErrorHandling:
             assert pkg == pkg.strip(), f"Package name has whitespace: '{pkg}'"
             assert ver == ver.strip(), f"Version spec has whitespace: '{ver}'"
 
-    def test_empty_lines_and_comments_ignored(self):
+    @staticmethod
+    def test_empty_lines_and_comments_ignored():
         """Test that empty lines and comment-only lines are properly ignored."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             all_lines = f.readlines()
@@ -776,13 +783,15 @@ class TestPyYAMLIntegration:
         """Get parsed requirements."""
         return parsed_requirements
 
-    def test_pyyaml_and_types_both_present(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_pyyaml_and_types_both_present(requirements: List[Tuple[str, str]]):
         """Test that both PyYAML and types-PyYAML are present."""
         packages = [pkg.lower() for pkg, _ in requirements]
         assert "pyyaml" in packages, "PyYAML should be present"
         assert "types-pyyaml" in packages, "types-PyYAML should be present"
 
-    def test_pyyaml_version_compatible_with_types(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_pyyaml_version_compatible_with_types(requirements: List[Tuple[str, str]]):
         """Test that PyYAML version is compatible with types-PyYAML."""
         pyyaml_ver = [ver for pkg, ver in requirements if pkg.lower() == "pyyaml"]
 
@@ -793,7 +802,8 @@ class TestPyYAMLIntegration:
         # PyYAML should be at least 6.0 (as per the diff)
         assert pyyaml_ver[0].startswith(">=6.0"), f"PyYAML should be >=6.0, got {pyyaml_ver[0]}"
 
-    def test_yaml_parsing_capability(self):
+    @staticmethod
+    def test_yaml_parsing_capability():
         """Test that PyYAML can be imported and used (if installed)."""
         try:
             import yaml  # noqa: F401
@@ -810,13 +820,15 @@ class TestPyYAMLIntegration:
 class TestComprehensivePackageValidation:
     """Comprehensive validation of all aspects of package specifications."""
 
+    @staticmethod
     @pytest.fixture
     @staticmethod
     def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
-    def test_all_packages_loadable_by_pip(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_all_packages_loadable_by_pip(requirements: List[Tuple[str, str]]):
         """Test that all package specifications are valid pip requirements."""
         from packaging.requirements import Requirement
 
@@ -837,12 +849,14 @@ class TestComprehensivePackageValidation:
                 except Exception as e:
                     pytest.fail(f"Failed to parse requirement line: {line}, error: {e}")
 
-    def test_package_count_reasonable(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_package_count_reasonable(requirements: List[Tuple[str, str]]):
         """Test that the number of development packages is reasonable."""
         # Development dependencies should typically be between 5 and 50 packages
         assert 5 <= len(requirements) <= 50, f"Development dependencies count seems unusual: {len(requirements)}"
 
-    def test_no_missing_pytest_plugins(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_no_missing_pytest_plugins(requirements: List[Tuple[str, str]]):
         """Test that common pytest plugins are not missing."""
         packages = [pkg.lower() for pkg, _ in requirements]
 

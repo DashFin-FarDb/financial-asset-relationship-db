@@ -25,7 +25,8 @@ from src.models.financial_models import Asset, AssetClass, Bond, Equity, Regulat
 class TestAsset:
     """Test cases for the Asset base class."""
 
-    def test_asset_creation(self):
+    @staticmethod
+    def test_asset_creation():
         """Test creating a valid asset."""
         asset = Asset(
             id="TEST_001",
@@ -43,7 +44,8 @@ class TestAsset:
         assert asset.price == 100.0
         assert asset.currency == "USD"
 
-    def test_asset_invalid_id(self):
+    @staticmethod
+    def test_asset_invalid_id():
         """Test that empty id raises ValueError."""
         with pytest.raises(ValueError, match="id must be a non-empty string"):
             Asset(
@@ -55,7 +57,8 @@ class TestAsset:
                 price=100.0,
             )
 
-    def test_asset_invalid_price(self):
+    @staticmethod
+    def test_asset_invalid_price():
         """Test that negative price raises ValueError."""
         with pytest.raises(ValueError, match="price must be a non-negative number"):
             Asset(
@@ -67,7 +70,8 @@ class TestAsset:
                 price=-100.0,
             )
 
-    def test_asset_invalid_currency(self):
+    @staticmethod
+    def test_asset_invalid_currency():
         """Test that invalid currency code raises ValueError."""
         with pytest.raises(ValueError, match="Currency must be a valid 3-letter ISO code"):
             Asset(
@@ -80,7 +84,8 @@ class TestAsset:
                 currency="INVALID",
             )
 
-    def test_asset_invalid_market_cap(self):
+    @staticmethod
+    def test_asset_invalid_market_cap():
         """Test that negative market cap raises ValueError."""
         with pytest.raises(ValueError, match="Market cap must be a non-negative number or None"):
             Asset(
@@ -122,7 +127,8 @@ class TestEquity:
 class TestBond:
     """Test cases for the Bond class."""
 
-    def test_bond_creation(self, sample_bond):
+    @staticmethod
+    def test_bond_creation(sample_bond):
         """Test creating a valid bond asset."""
         assert sample_bond.asset_class == AssetClass.FIXED_INCOME
         assert sample_bond.yield_to_maturity == 0.03

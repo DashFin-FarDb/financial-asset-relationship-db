@@ -1,6 +1,6 @@
 """
 Unit tests for helper functions in test_github_workflows.py module.
-
+"""
 This test suite validates the utility functions used for GitHub Actions workflow
 testing, ensuring they correctly identify workflow files, parse YAML, and detect
 duplicate keys.
@@ -380,7 +380,8 @@ items:
 class TestWorkflowsDirectoryConstant:
     """Test suite for WORKFLOWS_DIR constant."""
 
-    def test_workflows_dir_is_path_object(self):
+    @staticmethod
+    def test_workflows_dir_is_path_object():
         """Test that WORKFLOWS_DIR is a Path object."""
         assert isinstance(WORKFLOWS_DIR, Path)
 
@@ -389,7 +390,8 @@ class TestWorkflowsDirectoryConstant:
         assert WORKFLOWS_DIR.name == "workflows"
         assert WORKFLOWS_DIR.parent.name == ".github"
 
-    def test_workflows_dir_is_absolute_or_relative_to_repo(self):
+    @staticmethod
+    def test_workflows_dir_is_absolute_or_relative_to_repo():
         """Test that WORKFLOWS_DIR path makes sense."""
         path_str = str(WORKFLOWS_DIR)
         assert ".github" in path_str

@@ -330,8 +330,9 @@ class TestEnvExample:
 class TestGitignore:
     """Test cases for .gitignore configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def gitignore_content(self):
+    def gitignore_content():
         """Load .gitignore content."""
         config_path = Path(".gitignore")
         assert config_path.exists(), ".gitignore not found"
@@ -388,7 +389,8 @@ class TestRequirementsTxt:
         with open(config_path) as f:
             return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    def test_requirements_exists(self):
+    @staticmethod
+    def test_requirements_exists():
         """Test that requirements.txt exists."""
         config_path = Path("requirements.txt")
         assert config_path.exists()
@@ -432,11 +434,13 @@ class TestPostCSSConfig:
         with open(config_path) as f:
             return f.read()
 
-    def test_postcss_config_has_tailwindcss(self, postcss_config_content):
+    @staticmethod
+    def test_postcss_config_has_tailwindcss(postcss_config_content):
         """Test that Tailwind CSS plugin is configured."""
         assert "tailwindcss" in postcss_config_content
 
-    def test_postcss_config_has_autoprefixer(self, postcss_config_content):
+    @staticmethod
+    def test_postcss_config_has_autoprefixer(postcss_config_content):
         """Test that autoprefixer plugin is configured."""
         assert "autoprefixer" in postcss_config_content
 

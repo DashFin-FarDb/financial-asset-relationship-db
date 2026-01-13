@@ -25,7 +25,8 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         return Path(".github/workflows/pr-agent.yml")
 
     @pytest.fixture
-    def workflow_content(self, workflow_file: Path) -> Dict[str, Any]:
+    @staticmethod
+    def workflow_content(workflow_file: Path) -> Dict[str, Any]:
         """
         Parse the GitHub Actions workflow YAML file into a Python mapping.
 
@@ -195,9 +196,7 @@ class TestPRAgentWorkflowSetupSteps:
         assert len(python_steps) == 1, "Job should have exactly one Setup Python step"
 
     def test_setup_nodejs_exists(self, pr_agent_job: Dict[str, Any]):
-        """
-        Assert that the job includes at least one step named "Setup Node.js".
-        """
+        """Assert that the job includes at least one step named "Setup Node.js"."""
         steps = pr_agent_job.get("steps", [])
         node_steps = [step for step in steps if step.get("name") == "Setup Node.js"]
         assert len(node_steps) >= 1, "Job should have Setup Node.js step"
@@ -397,7 +396,8 @@ class TestPRAgentWorkflowConditionals:
     """Test conditional execution logic."""
 
     @pytest.fixture
-    def workflow_content(self) -> Dict[str, Any]:
+    @staticmethod
+    def workflow_content() -> Dict[str, Any]:
         """
         Load and parse the repository's pr-agent GitHub Actions workflow YAML.
 

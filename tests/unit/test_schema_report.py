@@ -369,7 +369,8 @@ class TestEdgeCases:
     @staticmethod
     def test_report_with_no_regulatory_events(populated_graph):
         """Test report with no regulatory events."""
-        report = generate_schema_report(populated_graph)
+        empty_graph.add_asset(sample_equity)
+        report = generate_schema_report(empty_graph)
         assert "**Regulatory Events**: 0" in report
 
     @staticmethod

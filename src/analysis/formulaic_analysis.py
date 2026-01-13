@@ -468,7 +468,8 @@ class FormulaicdAnalyzer:
                 examples.append(f"{asset.symbol}: Market Cap = ${asset.market_cap / 1e9:.1f}B")
         return "\n".join(examples[:3]) if examples else "Market cap data from API"
 
-    def _calculate_beta_examples(self, _graph: AssetRelationshipGraph) -> str:
+    @staticmethod
+    def _calculate_beta_examples(_graph: AssetRelationshipGraph) -> str:
         return "Beta calculation requires historical price data (estimated: Tech stocks β ≈ 1.2, Utilities β ≈ 0.8)"
 
     def _calculate_correlation_examples(self, graph: AssetRelationshipGraph) -> str:

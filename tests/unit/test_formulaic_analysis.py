@@ -19,7 +19,8 @@ from src.models.financial_models import AssetClass, Equity
 class TestFormula:
     """Test suite for the Formula dataclass."""
 
-    def test_formula_creation(self):
+    @staticmethod
+    def test_formula_creation():
         """Test creating a Formula instance."""
         formula = Formula(
             name="Test Formula",
@@ -40,7 +41,8 @@ class TestFormula:
         assert formula.r_squared == 0.95
         assert len(formula.variables) == 3
 
-    def test_formula_default_r_squared(self):
+    @staticmethod
+    def test_formula_default_r_squared():
         """Test that r_squared defaults to 0.0."""
         formula = Formula(
             name="Test",

@@ -34,11 +34,11 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """
     requirements: List[Tuple[str, str]] = []
 
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         for raw_line in f:
             line = raw_line.strip()
 
-            if not line or line.startswith('#'):
+            if not line or line.startswith("#"):
                 continue
 
             try:
@@ -61,21 +61,19 @@ class TestWorkflowCanInstallRequirements:
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
 
-        with open(pr_agent_file, 'r') as f:
+        with open(pr_agent_file, "r") as f:
             workflow = yaml.safe_load(f)
 
         # Check that at least one job has a step to install dependencies
         has_install_step = False
 
-        for job_name, job in workflow.get('jobs', {}).items():
-            for step in job.get('steps', []):
-                run_cmd = step.get('run', '')
-                step_name = step.get('name', '').lower()
+        for job_name, job in workflow.get("jobs", {}).items():
+            for step in job.get("steps", []):
+                run_cmd = step.get("run", "")
+                step_name = step.get("name", "").lower()
 
                 # Look for pip install or requirements file installation
-                if ('pip install' in run_cmd.lower()
-                    or 'requirements' in run_cmd.lower()
-                    or 'requirements' in step_name):
+                if "pip install" in run_cmd.lower() or "requirements" in run_cmd.lower() or "requirements" in step_name:
                     has_install_step = True
                     break
 
@@ -98,24 +96,24 @@ class TestWorkflowCanInstallRequirements:
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
 
-        with open(pr_agent_file, 'r') as f:
+        with open(pr_agent_file, "r") as f:
             workflow = yaml.safe_load(f)
 
-        for job_name, job in workflow.get('jobs', {}).items():
-            steps = job.get('steps', [])
+        for job_name, job in workflow.get("jobs", {}).items():
+            steps = job.get("steps", [])
 
             install_idx = None
             test_idx = None
 
             for i, step in enumerate(steps):
-                run_cmd = step.get('run', '').lower()
-                step_name = step.get('name', '').lower()
+                run_cmd = step.get("run", "").lower()
+                step_name = step.get("name", "").lower()
 
-                if 'pip install' in run_cmd or 'requirements' in run_cmd:
+                if "pip install" in run_cmd or "requirements" in run_cmd:
                     if install_idx is None:
                         install_idx = i
 
-                if 'pytest' in run_cmd or 'test' in step_name:
+                if "pytest" in run_cmd or "test" in step_name:
                     if test_idx is None:
                         test_idx = i
 
@@ -140,12 +138,7 @@ class TestPyYAMLAvailability:
 
         requirements = parse_requirements(REQUIREMENTS_FILE)
         package_names = [pkg.lower() for pkg, _ in requirements]
-        assert 'pyyaml' in package_names, (
-        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
-
-        requirements=parse_requirements(REQUIREMENTS_FILE)
-        package_names=[pkg.lower() for pkg, _ in requirements]
-        assert 'pyyaml' in package_names, (
+        assert "pyyaml" in package_names, (
             "PyYAML must be in requirements-dev.txt because test_github_workflows.py "
             "uses it to parse and validate workflow YAML files"
         )
@@ -157,17 +150,15 @@ class TestPyYAMLAvailability:
         except ImportError:
             pytest.skip("PyYAML not installed in test environment")
 
-        workflow_files=list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
 
         assert len(workflow_files) > 0, "No workflow files found to test"
 
         for workflow_file in workflow_files:
-            with open(workflow_file, 'r') as f:
+            with open(workflow_file, "r") as f:
                 try:
-                    content=yaml.safe_load(f)
-                    assert isinstance(content, dict), (
-                        f"{workflow_file.name} should parse to a dictionary"
-                    )
+                    content = yaml.safe_load(f)
+                    assert isinstance(content, dict), f"{workflow_file.name} should parse to a dictionary"
                 except yaml.YAMLError as e:
                     pytest.fail(f"PyYAML failed to parse {workflow_file.name}: {e}")
 
@@ -175,12 +166,11 @@ class TestPyYAMLAvailability:
         """Test that types-PyYAML is available for type checking."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
-        requirements=parse_requirements(REQUIREMENTS_FILE)
-        package_names=[pkg for pkg, _ in requirements]
+        requirements = parse_requirements(REQUIREMENTS_FILE)
+        package_names = [pkg for pkg, _ in requirements]
 
-        assert 'types-PyYAML' in package_names, (
-            "types-PyYAML should be in requirements-dev.txt for static type checking "
-            "of code that uses PyYAML"
+        assert "types-PyYAML" in package_names, (
+            "types-PyYAML should be in requirements-dev.txt for static type checking " "of code that uses PyYAML"
         )
 
 
@@ -195,27 +185,23 @@ class TestRequirementsMatchWorkflowNeeds:
         """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
-        requirements=parse_requirements(REQUIREMENTS_FILE)
-        package_names=[pkg.lower() for pkg, _ in requirements]
+        requirements = parse_requirements(REQUIREMENTS_FILE)
+        package_names = [pkg.lower() for pkg, _ in requirements]
 
-        assert 'pytest' in package_names, (
-            "pytest must be in requirements-dev.txt as workflows run pytest for testing"
-        )
+        assert "pytest" in package_names, "pytest must be in requirements-dev.txt as workflows run pytest for testing"
 
     def test_has_required_dev_tools(self):
         """Test that essential development tools are in requirements."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
-        requirements=parse_requirements(REQUIREMENTS_FILE)
-        package_names=[pkg.lower() for pkg, _ in requirements]
+        requirements = parse_requirements(REQUIREMENTS_FILE)
+        package_names = [pkg.lower() for pkg, _ in requirements]
 
         # Essential dev tools that should be present
-        essential_tools=['pytest', 'flake8', 'black', 'mypy']
+        essential_tools = ["pytest", "flake8", "black", "mypy"]
 
         for tool in essential_tools:
-            assert tool in package_names, (
-                f"{tool} should be in requirements-dev.txt for code quality and testing"
-            )
+            assert tool in package_names, f"{tool} should be in requirements-dev.txt for code quality and testing"
 
     def test_requirements_support_python_version_in_workflow(self):
         """
@@ -223,31 +209,31 @@ class TestRequirementsMatchWorkflowNeeds:
 
         If the pr-agent workflow file is missing the test is skipped. The test locates the first `setup-python` step, reads its `python-version` value (if present) and asserts the major/minor version is 3.8 or greater; if no `python-version` is found the test makes no assertion.
         """
-        pr_agent_file=WORKFLOWS_DIR / "pr-agent.yml"
+        pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
 
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
 
-        with open(pr_agent_file, 'r') as f:
-            workflow=yaml.safe_load(f)
+        with open(pr_agent_file, "r") as f:
+            workflow = yaml.safe_load(f)
 
         # Extract Python version from workflow
-        python_version=None
-        for job_name, job in workflow.get('jobs', {}).items():
-            for step in job.get('steps', []):
-                if 'setup-python' in step.get('uses', '').lower():
-                    python_version=step.get('with', {}).get('python-version')
+        python_version = None
+        for job_name, job in workflow.get("jobs", {}).items():
+            for step in job.get("steps", []):
+                if "setup-python" in step.get("uses", "").lower():
+                    python_version = step.get("with", {}).get("python-version")
                     break
             if python_version:
                 break
 
         if python_version:
             # Verify it's a supported version (3.8+)
-            version_parts=str(python_version).split('.')
+            version_parts = str(python_version).split(".")
             if len(version_parts) >= 2:
-                major=int(version_parts[0])
-                minor=int(version_parts[1])
+                major = int(version_parts[0])
+                minor = int(version_parts[1])
 
-                assert (major > 3) or (major == 3 and minor >= 8), (
-                    f"Workflow uses Python {python_version}, but requires 3.8+ for modern tooling"
-                )
+                assert (major > 3) or (
+                    major == 3 and minor >= 8
+                ), f"Workflow uses Python {python_version}, but requires 3.8+ for modern tooling"

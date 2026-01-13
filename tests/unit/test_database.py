@@ -324,19 +324,22 @@ class TestEdgeCases:
         with session_scope(factory) as _:
             pass
 
-    def test_create_engine_with_empty_string(self):
+    @staticmethod
+    def test_create_engine_with_empty_string():
         """Test engine creation with empty string defaults to env/default."""
         with patch.dict(os.environ, {}, clear=True):
             engine = create_engine_from_url("")
             # Should fall back to default
             assert engine is not None
 
-    def test_create_engine_with_none(self):
+    @staticmethod
+    def test_create_engine_with_none():
         """Test engine creation with None uses default."""
         engine = create_engine_from_url(None)
         assert engine is not None
 
-    def test_session_scope_with_database_error(self):
+    @staticmethod
+    def test_session_scope_with_database_error():
         """Test session scope behavior with database-level errors."""
         from sqlalchemy.exc import IntegrityError
 

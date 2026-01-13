@@ -96,12 +96,14 @@ class TestWorkflowYAMLValidation:
 class TestRequirementsDevChanges:
     """Validate requirements-dev.txt modifications."""
 
-    def test_requirements_dev_file_exists(self):
+    @staticmethod
+    def test_requirements_dev_file_exists():
         """Check that requirements-dev.txt exists at the repository root."""
         path = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         assert path.exists(), "requirements-dev.txt not found"
 
-    def test_pyyaml_present_in_requirements_dev(self):
+    @staticmethod
+    def test_pyyaml_present_in_requirements_dev():
         """
         Check that PyYAML is declared in requirements-dev.txt.
 

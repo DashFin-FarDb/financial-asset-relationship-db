@@ -118,18 +118,21 @@ class TestRequirementsFileFormat:
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             f.read()
 
-    def test_no_trailing_whitespace(self, file_lines: List[str]):
+    @staticmethod
+    def test_no_trailing_whitespace(file_lines: List[str]):
         """Test that lines don't have trailing whitespace."""
         lines_with_trailing = [
             (i + 1, repr(line)) for i, line in enumerate(file_lines) if line.rstrip("\n") != line.rstrip()
         ]
         assert len(lines_with_trailing) == 0, f"Lines with trailing whitespace: {lines_with_trailing}"
 
-    def test_ends_with_newline(self, file_content: str):
+    @staticmethod
+    def test_ends_with_newline(file_content: str):
         """Test that file ends with a newline."""
         assert file_content.endswith("\n"), "File should end with a newline character"
 
-    def test_no_blank_lines_in_middle(self, file_lines: List[str]):
+    @staticmethod
+    def test_no_blank_lines_in_middle(file_lines: List[str]):
         """Test that there are no excessive blank lines (max 1 consecutive)."""
         consecutive_blanks = 0
         max_consecutive = 0
@@ -157,32 +160,39 @@ class TestRequiredPackages:
         """Extract package names from requirements."""
         return [pkg.lower() for pkg, _ in requirements]
 
-    def test_has_core_packages(self, package_names: List[str]):
+    @staticmethod
+    def test_has_core_packages(package_names: List[str]):
         """Test that core application packages are present."""
         # Based on the application structure, these are likely core dependencies
         assert len(package_names) > 0, "Requirements file should not be empty"
 
-    def test_has_fastapi(self, package_names: List[str]):
+    @staticmethod
+    def test_has_fastapi(package_names: List[str]):
         """Test that FastAPI is included for API framework."""
         assert "fastapi" in package_names
 
-    def test_has_uvicorn(self, package_names: List[str]):
+    @staticmethod
+    def test_has_uvicorn(package_names: List[str]):
         """Test that uvicorn is included for ASGI server."""
         assert "uvicorn" in package_names
 
-    def test_has_pydantic(self, package_names: List[str]):
+    @staticmethod
+    def test_has_pydantic(package_names: List[str]):
         """Test that pydantic is included for data validation."""
         assert "pydantic" in package_names
 
-    def test_has_httpx(self, package_names: List[str]):
+    @staticmethod
+    def test_has_httpx(package_names: List[str]):
         """Test that httpx is included for HTTP client."""
         assert "httpx" in package_names
 
-    def test_has_pytest(self, package_names: List[str]):
+    @staticmethod
+    def test_has_pytest(package_names: List[str]):
         """Test that pytest is included for testing."""
         assert "pytest" in package_names
 
-    def test_has_security_pinned_packages(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_has_security_pinned_packages(requirements: List[Tuple[str, str]]):
         """Test that security-pinned packages are present with comments."""
         # Check for zipp which was added as a security fix
         zipp_entries = [pkg for pkg, _ in requirements if pkg.lower() == "zipp"]
@@ -321,12 +331,14 @@ class TestSecurityAndCompliance:
     """Test security-related requirements and compliance."""
 
     @pytest.fixture
-    def requirements(self) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
     @pytest.fixture
-    def file_content(self) -> str:
+    @staticmethod
+    def file_content() -> str:
         """Load requirements file content."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.read()
