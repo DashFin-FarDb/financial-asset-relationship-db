@@ -130,14 +130,14 @@ def _should_use_real_data_fetcher() -> bool:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_fastapi_app: FastAPI):
     """
     Manage the application's lifespan by initialising the global graph on startup and logging shutdown.
 
     Initialises the global asset relationship graph before the application begins handling requests; if initialisation fails the exception is re-raised to abort startup. Yields control for the application's running lifetime and logs on shutdown.
 
     Parameters:
-        app (FastAPI): The FastAPI application instance.
+        fastapi_app (FastAPI): The FastAPI application instance.
     """
     # Startup
     try:
@@ -223,14 +223,17 @@ async def read_users_me(request: Request, current_user: User = Depends(get_curre
     return current_user
 
 
-def validate_origin(origin: str) -> bool:
+def validate_origin(origin_url: str) -> bool:
     """
     Determine whether an HTTP origin is permitted by the application's CORS rules.
 
-    Allows explicitly configured origins, HTTPS origins with a valid domain, Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment, and HTTP localhost/127.0.0.1 when ENV is "development".
+    Allows explicitly configured origins, HTTPS origins with a valid domain,
+    Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment,
+    and HTTP localhost/127.0.0.1 when ENV is "development".
 
     Parameters:
-        origin (str): Origin URL to validate (for example "https://example.com" or "http://localhost:3000").
+        origin_url (str): Origin URL to validate (for example
+            "https://example.com" or "http://localhost:3000").
 
     Returns:
         True if the origin is allowed, False otherwise.
@@ -239,25 +242,37 @@ def validate_origin(origin: str) -> bool:
     current_env = os.getenv("ENV", "development").lower()
 
     # Get allowed origins from environment variable or use default
-    allowed_origins = [origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin]
+    env_allowed_origins = [o for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o]
 
     # If origin is in explicitly allowed list, return True
-    if origin in allowed_origins and origin:
+    if origin_url in env_allowed_origins and origin_url:
         return True
 
     # Allow HTTP localhost only in development
-    if current_env == "development" and re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
+    if current_env == "development" and re.match(
+        r"^http://(localhost|127\\.0\\.0\\.1)(:\\d+)?$",
+        origin_url,
+    ):
         return True
     # Allow HTTPS localhost in any environment
-    if re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
+    if re.match(
+        r"^https://(localhost|127\\.0\\.0\\.1)(:\\d+)?$",
+        origin_url,
+    ):
         return True
-    # Allow Vercel preview deployment URLs (e.g., https://project-git-branch-user.vercel.app)
-    if re.match(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$", origin):
+    # Allow Vercel preview deployment URLs
+    # (e.g., https://project-git-branch-user.vercel.app)
+    if re.match(
+        r"^https://[a-zA-Z0-9\\-\\.]+\\.vercel\\.app$",
+        origin_url,
+    ):
         return True
     # Allow valid HTTPS URLs with proper domains
     if re.match(
-        r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$",
-        origin,
+        r"^https://[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?"
+        r"(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*"
+        r"\\.[a-zA-Z]{2,}$",
+        origin_url,
     ):
         return True
     return False

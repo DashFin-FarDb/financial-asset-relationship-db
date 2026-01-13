@@ -369,7 +369,7 @@ class FinancialAssetApp:
 
     def create_interface(self):
         """Creates the Gradio interface for the Financial Asset Relationship Database."""
-        with gr.Blocks(title=AppConstants.TITLE) as demo:
+        with gr.Blocks(title=AppConstants.TITLE):
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
