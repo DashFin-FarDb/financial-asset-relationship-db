@@ -72,6 +72,3 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
         return ValidationResult(False, [f"Expected a file but found a directory: {e}"], {})
     except NotADirectoryError as e:
         return ValidationResult(False, [f"Invalid path component (not a directory): {e}"], {})
-    except Exception:
-        # Re-raise unexpected exceptions to avoid masking programming errors
-        raise
