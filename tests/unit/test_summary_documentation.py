@@ -190,7 +190,7 @@ assert "test_documentation_validation.py" in summary_content
 
 
 
-de def test_summary_has_test_statistics(self, summary_content):
+def test_summary_has_test_statistics(self, summary_content):
     """Test that summary includes test statistics."""
     assert "Statistics:" in summary_content or "statistics" in summary_content.lower()
     # Should mention line count
