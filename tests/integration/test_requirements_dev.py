@@ -754,9 +754,7 @@ class TestSecurityBestPractices:
                     # Most modern packages should be at least version 1.0
                     # Allow exceptions for certain packages
                     if pkg not in ["types-PyYAML"] and not pkg.startswith("types-"):
-                        # Just log if version is 0.x (not necessarily an error)
-                        if major == 0:
-                            pass  # Could add warning
+                        assert major >= 1, f"{pkg} should be at least major version 1, got {ver}"
 
     @staticmethod
     def test_critical_packages_pinned(requirements: List[Tuple[str, str]]):
