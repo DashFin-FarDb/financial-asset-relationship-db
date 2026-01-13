@@ -25,10 +25,6 @@ class TestEnhancedTestSummary:
     @pytest.fixture
     def summary_path(self):
         """
-    @staticmethod
-    @pytest.fixture
-    def summary_path():
-        """
         Provide the path to the enhanced test summary file.
 
         Returns:
