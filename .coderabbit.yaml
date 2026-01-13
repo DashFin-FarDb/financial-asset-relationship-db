@@ -17,8 +17,15 @@ reviews:
         Apply when the PR fixes defects, crashes, incorrect behaviour, regressions,
         or incorrect outputs.
     - label: documentation
-      instructions: >
-        Apply when the PR primarily updates documentation, comments, READMEs, or
+knowledge_base:
+  mcp:
+    usage: enabled
+    documents:
+      - tech_spec.md
+      - DashFin-financial-asset-relationship-db-wiki-v2.md
+
+  code_guidelines:
+    enabled: true
         developer guides, with no substantive runtime behaviour change.
     - label: security
       instructions: >
