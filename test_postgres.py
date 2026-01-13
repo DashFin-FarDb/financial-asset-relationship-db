@@ -50,7 +50,7 @@ def test_postgres_connection():
 
         return True
 
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to connect to PostgreSQL database")
         return False
 

@@ -1,44 +1,90 @@
-# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# yaml-language-server: $schema=https://docs.coderabbit.ai/schema/schema.v2.json
 # IMPORTANT: CodeRabbit only loads this config when the file is named ".coderabbit.yaml" and is located at the repository root.
+
 language: en-GB
 early_access: true
 inheritance: true
+
 reviews:
   request_changes_workflow: true
   high_level_summary_in_walkthrough: true
   auto_apply_labels: true
   auto_assign_reviewers: true
+
   labeling_instructions:
-    - bug
-    - documentation
-    - security
-  auto_review:
-    drafts: true
-    base_branches:
-      - .*
+    - label: bug
+      instructions: >
+        Apply when the PR fixes defects, crashes, incorrect behaviour, regressions,
+        or incorrect outputs.
+    - label: documentation
+      instructions: >
+        Apply when the PR changes documentation, comments, READMEs, or
+        developer guides, with no substantive runtime behaviour change.
 knowledge_base:
-    mcp:
-      usage: enabled
+  mcp:
+    usage: enabled
+    documents:
       - tech_spec.md
       - DashFin-financial-asset-relationship-db-wiki-v2.md
-  knowledge_base:
+
   code_guidelines:
+        enabled: true
+
+  auto_review:
+    usage: enabled
     filePatterns:
       - tech_spec.md
       - DashFin-financial-asset-relationship-db-wiki-v2.md
+    drafts: true
+    base_branches:
+      - ".*"
+
+knowledge_base:
+reviews:
+  request_changes_workflow: true
+  high_level_summary_in_walkthrough: true
+  auto_apply_labels: true
+  auto_assign_reviewers: true
+
+  labeling_instructions:
+    - label: bug
+      instructions: >
+        Apply when the PR fixes defects, crashes, incorrect behaviour, regressions,
+        or incorrect outputs.
+    - label: documentation
+      instructions: >
+        Apply when the PR only changes documentation, comments, READMEs, or
+        developer guides, with no substantive runtime behaviour change.
+    - label: security
+      instructions: >
+        Apply when the PR addresses security issues, mitigates vulnerabilities,
+        hardens authentication/authorisation, or improves secret handling.
+
+  auto_review:
+    enabled: true
+    drafts: true
+    base_branches:
+      - ".*"
+
+knowledge_base:
   mcp:
-  usage: enabled
-  # MCP server selection:
-  # - This repository currently uses the CodeRabbit built-in MCP integration.
-  # - Additional options (e.g., self-hosted MCP server URL(s)) can be added in a follow-up PR.
-  #
-  # Allowed tools / capabilities:
-  # - Tool allow-listing is configured per MCP server in the CodeRabbit UI (Integrations → MCP Server).
-  # - Current intent: enable all tools exposed by the selected MCP server.
-  #
-  # Data handling / authorization:
-  # - MCP calls may send PR context (diffs, file paths, metadata) required to execute the enabled tools.
-  # - Consider requiring explicit user approval for tool execution if your security posture demands it.
+    usage: enabled
+    filePatterns:
+      - tech_spec.md
+      - DashFin-financial-asset-relationship-db-wiki-v2.md
+
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - tech_spec.md
+      - DashFin-financial-asset-relationship-db-wiki-v2.md
+
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - tech_spec.md
+      - DashFin-financial-asset-relationship-db-wiki-v2.md
+
 issue_enrichment:
   auto_enrich:
     enabled: true
