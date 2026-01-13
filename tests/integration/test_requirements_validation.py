@@ -11,6 +11,7 @@ import pytest
 # No conflicting dependencies
 # All dependencies installable
 
+
 class TestRequirementsDevChanges:
     """Test requirements - dev.txt changes."""
 
