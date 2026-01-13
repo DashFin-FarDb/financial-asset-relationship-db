@@ -187,6 +187,7 @@ class TestFinalTestSummary:
         """Test that summary mentions the test file location."""
 assert "test_documentation_validation.py" in summary_content
 
+
 def test_summary_has_test_statistics(self, summary_content):
     """Test that summary includes test statistics."""
     assert "Statistics:" in summary_content or "statistics" in summary_content.lower()
@@ -211,7 +212,9 @@ def test_summary_includes_tables(self, summary_content):
     assert re.search(r"\|[-\s|]+\|", summary_content)
 
 def test_summary_valid_markdown_structure(self, summary_content):
-    """Validate that a Markdown document's top - level heading is H1 when headings are present."""
+    """
+    Validate that a Markdown document's top-level heading is H1 when headings are present.
+    """
     lines = summary_content.split("\n")
     # Check heading hierarchy
     heading_levels = []
