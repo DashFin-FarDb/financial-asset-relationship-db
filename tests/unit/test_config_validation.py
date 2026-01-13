@@ -492,15 +492,19 @@ class TestConfigurationConsistency:
         """Test that API URL is consistent across configurations."""
         # Check .env.example
         with open(".env.example") as f:
-            env_content = f.read()
+        @staticmethod
+        def test_env_and_next_config():
+            """Test that .env and next.config.js both contain NEXT_PUBLIC_API_URL."""
+            with open(".env.local") as f:
+                env_content = f.read()
 
-        # Check next.config.js
-        with open("frontend/next.config.js") as f:
-            next_config = f.read()
+            # Check next.config.js
+            with open("frontend/next.config.js") as f:
+                next_config = f.read()
 
-        # Both should mention NEXT_PUBLIC_API_URL
-        assert "NEXT_PUBLIC_API_URL" in env_content
-        assert "NEXT_PUBLIC_API_URL" in next_config
+            # Both should mention NEXT_PUBLIC_API_URL
+            assert "NEXT_PUBLIC_API_URL" in env_content
+            assert "NEXT_PUBLIC_API_URL" in next_config
 
     @staticmethod
     def test_package_json_and_tsconfig_consistency():

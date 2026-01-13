@@ -345,6 +345,7 @@ class TestSystemManifest:
     def test_system_manifest_has_current_phase(self, system_manifest_content):
         pass
         pass
+        pass
         Assert that the System Manifest declares a current project phase.
 
         Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
