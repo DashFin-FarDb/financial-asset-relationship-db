@@ -40,11 +40,9 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     Returns:
         ValidationResult: Validation outcome containing `is_valid`, `errors`, and `workflow_data`.
     """
-    allowed_filenames = {"workflow1.yaml", "workflow2.yaml"}
     filename = os.path.basename(workflow_path)
-    if filename not in allowed_filenames:
+    if filename not in ALLOWED_WORKFLOW_FILENAMES:
         return ValidationResult(False, [f"Invalid workflow filename: {filename}"], {})
-    WORKFLOW_DIR = "/trusted/workflows"
     safe_path = os.path.join(WORKFLOW_DIR, filename)
     try:
         with open(safe_path, "r", encoding="utf-8") as f:
