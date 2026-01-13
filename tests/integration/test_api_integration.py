@@ -1,5 +1,5 @@
 """Integration tests for the complete API flow.
-"""
+
 This module tests the full API integration including:
 - End - to - end request / response cycles
 - Data consistency across endpoints
