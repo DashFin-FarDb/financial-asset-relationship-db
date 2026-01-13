@@ -1,6 +1,13 @@
 version = 1
 
 [[analyzers]]
+name = "javascript"
+
+  [analyzers.meta]
+  plugins = ["react"]
+  environment = ["nodejs"]
+
+[[analyzers]]
 name = "python"
 
   [analyzers.meta]
@@ -14,3 +21,9 @@ name = "autopep8"
 
 [[code_formatters]]
 name = "isort"
+
+[[code_formatters]]
+name = "standardjs"
+
+[[code_formatters]]
+name = "prettier"
