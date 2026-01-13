@@ -1,3 +1,4 @@
+# ruff: noqa: S101
 """Unit tests for financial models.
 
 This module contains comprehensive unit tests for all financial model classes including:
@@ -5,6 +6,10 @@ This module contains comprehensive unit tests for all financial model classes in
 - Equity, Bond, Commodity, Currency subclasses
 - RegulatoryEvent class with impact scoring
 - Input validation and error handling for all model types
+
+Note: This test file uses assert statements which is the standard and recommended
+approach for pytest. The S101 rule is suppressed because tests are not run with
+Python optimization flags that would remove assert statements.
 """
 
 # ruff: noqa: S101
