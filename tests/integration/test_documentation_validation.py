@@ -171,20 +171,21 @@ class TestContentAccuracy:
             "requirements" in summary_content.lower() or "pyyaml" in summary_content.lower()
         ), "Document should mention dependencies"
 
-
-```(?:bash | shell)?\n(.*?)
-
-
-code_blocks = summary_content.count("
+    @staticmethod
+    def test_counts_code_blocks(summary_content: str):
+        """Test that document includes at least one fenced code block."""
+        code_block_pattern = re.compile(r"```(?:bash|shell)?\n(.*?)(?:\n```)", re.DOTALL)
+        code_blocks = code_block_pattern.findall(summary_content)
+        assert len(code_blocks) > 0, "Document should include at least one fenced code block"
 
 
 class TestDocumentMaintainability:
     """Test suite for document maintainability."""
 
-    @ staticmethod
+    @staticmethod
     def test_line_length_reasonable(summary_lines: List[str]):
         """Test that lines aren't excessively long."""
-        long_lines=[
+        long_lines = [
             (i + 1, line)
             for i, line in enumerate(summary_lines)
             if len(line) > 120 and not line.strip().startswith("http")
@@ -194,44 +195,44 @@ class TestDocumentMaintainability:
             len(long_lines) < len(summary_lines) * 0.1
         ), f"Too many long lines ({len(long_lines)}), consider breaking them up"
 
-    @ staticmethod
+    @staticmethod
     def test_has_clear_structure(summary_content: str):
         """Test that document has clear hierarchical structure."""
-        h1_count=summary_content.count("\n# ")
-        h2_count=summary_content.count("\n## ")
+        h1_count = summary_content.count("\n# ")
+        h2_count = summary_content.count("\n## ")
 
         assert h1_count >= 1, "Should have at least one H1 heading"
         assert h2_count >= 3, "Should have at least 3 H2 headings for organization"
 
-    @ staticmethod
+    @staticmethod
     def test_sections_have_content(summary_content: str):
         """Test that major sections have substantial content."""
-        sections=re.split(r"\n## ", summary_content)
+        sections = re.split(r"\n## ", summary_content)
         # Skip first section (before first H2)
         for section in sections[1:]:
-            lines=section.split("\n")
-            section_name=lines[0]
-            content_lines=[l for l in lines[1:] if l.strip()]
+            lines = section.split("\n")
+            section_name = lines[0]
+            content_lines = [l for l in lines[1:] if l.strip()]
             assert len(content_lines) > 0, f"Section '{section_name}' should have content"
 
 
 class TestLinkValidation:
     """Test suite for link validation."""
 
-    @ staticmethod
+    @staticmethod
     def test_no_broken_internal_links(summary_content: str):
         """Test that internal markdown links reference valid headers."""
         # Find markdown links [text](#anchor)
-        internal_links=re.findall(r"\[([^\]]+)\]\(#([^\)]+)\)", summary_content)
+        internal_links = re.findall(r"\[([^\]]+)\]\(#([^\)]+)\)", summary_content)
 
         # Find all headers
-        headers=re.findall(r"^#{1,6}\s+(.+)$", summary_content, re.MULTILINE)
+        headers = re.findall(r"^#{1,6}\s+(.+)$", summary_content, re.MULTILINE)
         # Convert headers to anchor format
-        valid_anchors=set()
+        valid_anchors = set()
         for header in headers:
-            anchor=header.lower().strip()
-            anchor=re.sub(r"[^\w\s-]", "", anchor)
-            anchor=re.sub(r"\s+", "-", anchor)
+            anchor = header.lower().strip()
+            anchor = re.sub(r"[^\w\s-]", "", anchor)
+            anchor = re.sub(r"\s+", "-", anchor)
             valid_anchors.add(anchor)
 
         # Check each internal link
@@ -242,20 +243,20 @@ class TestLinkValidation:
 class TestSecurityAndBestPractices:
     """Test suite for security and best practices in documentation."""
 
-    @ staticmethod
+    @staticmethod
     def test_no_hardcoded_secrets(summary_content: str):
         """Test that document doesn't contain hardcoded secrets."""
-        secret_patterns=[
+        secret_patterns = [
             r"ghp_[a-zA-Z0-9]{36}",  # GitHub Personal Access Token
             r"gho_[a-zA-Z0-9]{36}",  # GitHub OAuth Token
             r"github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}",  # GitHub Fine-grained PAT
         ]
 
         for pattern in secret_patterns:
-            matches=re.findall(pattern, summary_content)
+            matches = re.findall(pattern, summary_content)
             assert len(matches) == 0, f"Document should not contain hardcoded secrets (found pattern: {pattern})"
 
-    @ staticmethod
+    @staticmethod
     def test_uses_secure_examples(summary_content: str):
         """Test that examples follow security best practices."""
         # If the document mentions tokens, it should mention secrets context
@@ -268,36 +269,36 @@ class TestSecurityAndBestPractices:
 class TestReferenceAccuracy:
     """Test suite for reference accuracy."""
 
-    @ staticmethod
+    @staticmethod
     def test_test_counts_are_realistic(summary_content: str):
         """Test that mentioned test counts seem realistic."""
         # Extract numbers mentioned with "test"
-        test_counts=re.findall(r"(\d+)\s+tests?", summary_content, re.IGNORECASE)
+        test_counts = re.findall(r"(\d+)\s+tests?", summary_content, re.IGNORECASE)
         for count_str in test_counts:
-            count=int(count_str)
+            count = int(count_str)
             assert 0 < count < 1000, f"Test count {count} seems unrealistic"
 
-    @ staticmethod
+    @staticmethod
     def test_file_references_are_consistent(summary_content: str):
         """Test that file references are consistent throughout."""
         # Main test file should be referenced consistently
-        test_file_mentions=re.findall(r"test_github_workflows\.py", summary_content, re.IGNORECASE)
+        test_file_mentions = re.findall(r"test_github_workflows\.py", summary_content, re.IGNORECASE)
         if test_file_mentions:
             # All mentions should use the same case
-            unique_mentions=set(test_file_mentions)
+            unique_mentions = set(test_file_mentions)
             assert len(unique_mentions) <= 2, "File name should be referenced consistently"
 
 
 class TestEdgeCases:
     """Test suite for edge cases."""
 
-    @ staticmethod
+    @staticmethod
     def test_handles_special_characters(summary_content: str):
         """Test that document handles special characters properly."""
         # Check for common encoding issues
         assert "�" not in summary_content, "Document should not contain replacement characters (encoding issues)"
 
-    @ staticmethod
+    @staticmethod
     def test_utf8_encoding():
         """Test that file is properly UTF-8 encoded."""
         try:
@@ -306,14 +307,14 @@ class TestEdgeCases:
         except UnicodeDecodeError:
             pytest.fail("File should be valid UTF-8")
 
-    @ staticmethod
+    @staticmethod
     def test_consistent_line_endings():
         """Test that file uses consistent line endings."""
         with open(SUMMARY_FILE, "rb") as f:
-            content=f.read()
+            content = f.read()
 
-        has_crlf=b"\r\n" in content
-        has_lf_only=b"\n" in content and b"\r\n" not in content
+        has_crlf = b"\r\n" in content
+        has_lf_only = b"\n" in content and b"\r\n" not in content
 
         assert has_lf_only or has_crlf, "File should have consistent line endings"
         assert not (has_lf_only and has_crlf), "File should not mix line ending styles"
