@@ -28,12 +28,7 @@ knowledge_base:
       - DashFin-financial-asset-relationship-db-wiki-v2.md
 
   code_guidelines:
-    enabled: true
-        developer guides, with no substantive runtime behaviour change.
-    - label: security
-      instructions: >
-        Apply when the PR addresses security issues, mitigates vulnerabilities,
-        hardens authentication/authorisation, or improves secret handling.
+        enabled: true
 
   auto_review:
     usage: enabled
