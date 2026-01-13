@@ -308,9 +308,6 @@ class TestAPISecScanWorkflowChanges:
     pass
 
 
-... [rest of code unchanged] ...
-
-
 class TestRequirementsDevChanges:
     """Tests for requirements-dev.txt changes."""
 

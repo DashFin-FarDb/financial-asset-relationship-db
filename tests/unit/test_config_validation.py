@@ -371,7 +371,6 @@ class TestGitignore:
 
         with open(config_path) as f:
             return f.read()
-    @staticmethod
     def test_gitignore_exists():
         """Test that .gitignore exists."""
         config_path = Path(".gitignore")

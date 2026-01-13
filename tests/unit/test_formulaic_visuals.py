@@ -68,12 +68,13 @@ class TestFormulaicVisualizer:
                     {"asset1": "MSFT", "asset2": "GOOGL", "correlation": 0.75, "strength": "Strong"},
                 ],
             },
+            "asset_class_relationships": {
+                "Equity": {"asset_count": 3, "avg_price": 150.0, "total_value": 450.0}
+            },
+            "sector_relationships": {
+                "Technology": {"asset_count": 3, "avg_price": 150.0, "price_range": "$100.00 - $200.00"}
+            },
         }
-                ],
-                "asset_class_relationships": {"Equity": {"asset_count": 3, "avg_price": 150.0, "total_value": 450.0}},
-                "sector_relationships": {
-                    "Technology": {"asset_count": 3, "avg_price": 150.0, "price_range": "$100.00 - $200.00"}
-                },
             },
         }
 
