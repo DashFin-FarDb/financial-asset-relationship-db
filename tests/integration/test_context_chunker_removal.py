@@ -41,7 +41,7 @@ class TestContextChunkerRemoval:
                 continue
 
             try:
-                with open(py_file, "r") as f:
+                with open(py_file, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 # Check for imports
@@ -63,7 +63,7 @@ class TestContextChunkerRemoval:
         workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
 
         for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
+            with open(workflow_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             assert "context_chunker.py" not in content, f"{workflow_file.name} references context_chunker.py"
@@ -82,7 +82,7 @@ class TestConfigurationCleanup:
         if not config_file.exists():
             pytest.skip("PR agent config not found")
 
-        with open(config_file, "r") as f:
+        with open(config_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Check that there are no dangling references to the removed script
@@ -96,7 +96,7 @@ class TestConfigurationCleanup:
         if not config_file.exists():
             pytest.skip("PR agent config not found")
 
-        with open(config_file, "r") as f:
+        with open(config_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Version should match the configured agent version (currently 1.1.0)
@@ -119,7 +119,7 @@ class TestWorkflowSimplification:
         if not pr_agent_workflow.exists():
             pytest.skip("PR agent workflow not found")
 
-        with open(pr_agent_workflow, "r") as f:
+        with open(pr_agent_workflow, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not have chunking-related steps
@@ -133,7 +133,7 @@ class TestWorkflowSimplification:
         if not pr_agent_workflow.exists():
             pytest.skip("PR agent workflow not found")
 
-        with open(pr_agent_workflow, "r") as f:
+        with open(pr_agent_workflow, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Count occurrences of "Setup Python"
@@ -148,7 +148,7 @@ class TestWorkflowSimplification:
         workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
 
         for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
+            with open(workflow_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # If PyYAML is installed, it shouldn't be for context chunking
@@ -168,7 +168,7 @@ class TestDependenciesCleanup:
         if not req_file.exists():
             pytest.skip("requirements-dev.txt not found")
 
-        with open(req_file, "r") as f:
+        with open(req_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # PyYAML should be present (for other purposes)
@@ -192,7 +192,7 @@ class TestDocumentationUpdates:
             if not doc_file.exists():
                 continue
 
-            with open(doc_file, "r") as f:
+            with open(doc_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Should not have extensive chunking documentation
@@ -236,7 +236,7 @@ class TestNoRegressionOfFixes:
 
                 return mapping
 
-        with open(pr_agent_workflow, "r") as f:
+        with open(pr_agent_workflow, "r", encoding="utf-8") as f:
             try:
                 yaml.load(f.read(), Loader=DuplicateKeyLoader)
             except yaml.constructor.ConstructorError as e:
@@ -250,7 +250,7 @@ class TestNoRegressionOfFixes:
         workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
 
         for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
+            with open(workflow_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             for i, line in enumerate(lines, 1):
@@ -279,7 +279,7 @@ class TestCleanCodebase:
             if not file_path.exists():
                 continue
 
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Look for comment lines mentioning chunking
@@ -302,7 +302,7 @@ class TestCleanCodebase:
         apisec_workflow = WORKFLOWS_DIR / "apisec-scan.yml"
 
         if apisec_workflow.exists():
-            with open(apisec_workflow, "r") as f:
+            with open(apisec_workflow, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Should not have the credential check step
@@ -312,7 +312,7 @@ class TestCleanCodebase:
         label_workflow = WORKFLOWS_DIR / "label.yml"
 
         if label_workflow.exists():
-            with open(label_workflow, "r") as f:
+            with open(label_workflow, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Should not have config check steps
