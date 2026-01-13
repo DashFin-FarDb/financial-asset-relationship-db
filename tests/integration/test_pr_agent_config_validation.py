@@ -9,6 +9,7 @@ Tests the simplified PR agent configuration, ensuring:
 """
 
 import pytest
+import ruamel.yaml
 import yaml
 from pathlib import Path
 
@@ -339,19 +340,18 @@ class TestPRAgentConfigYAMLValidity:
                 while path_stack and path_stack[-1][0] >= indent:
                     path_stack.pop()
 
-                # Build full path from stack + current key
-                parent_path = '.'.join(item[1] for item in path_stack)
-                full_path = f"{parent_path}.{key}" if parent_path else key
+        with open(config_path, 'r') as f:
+            lines = f.readlines()
 
-                if full_path in seen_full_paths:
-                    pytest.fail(f"Duplicate key at path '{full_path}'")
-                seen_full_paths.add(full_path)
+        for i, line in enumerate(lines, 1):
+            # Disallow tabs anywhere (especially in indentation)
+            assert '\t' not in line, f"Line {i}: Tab character found; tabs are not allowed"
 
-                # Push current key onto stack for potential children
-                path_stack.append((indent, key))
-    
-    def test_consistent_indentation(self):
-        """Verify consistent 2-space indentation."""
+            # If line starts with spaces, ensure multiple of 2 indentation
+            if line.strip() and line[0] == ' ':
+                spaces = len(line) - len(line.lstrip(' '))
+                assert spaces % 2 == 0, \
+                    f"Line {i}: Inconsistent indentation (not multiple of 2)"
         config_path = Path(".github/pr-agent-config.yml")
 
         with open(config_path, 'r') as f:
