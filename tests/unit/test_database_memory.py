@@ -83,7 +83,6 @@ def test_uri_style_memory_database_persists_schema_and_data(monkeypatch, restore
     reloaded_database = importlib.reload(database)
 
     reloaded_database.initialize_schema()
-
     with reloaded_database.get_connection() as first_connection:
         first_connection.execute(
             """
@@ -512,7 +511,8 @@ class TestEdgeCasesAndErrorHandling:
 class TestUriMemoryDatabaseIntegration:
     """Integration tests for URI-style memory databases."""
 
-    def test_uri_memory_database_with_cache_shared(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_uri_memory_database_with_cache_shared(monkeypatch, restore_database_module):
         """Test URI memory database with cache=shared parameter."""
         # Note: This tests the detection logic; actual URI handling depends on SQLite build
         uri = "file::memory:?cache=shared"
@@ -530,7 +530,8 @@ class TestUriMemoryDatabaseIntegration:
         # Write data
         with reloaded_database.get_connection() as conn:
             conn.execute(
-                "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)", ("persistent", "hash")
+                "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
+                ("persistent", "hash"),
             )
             conn.commit()
 

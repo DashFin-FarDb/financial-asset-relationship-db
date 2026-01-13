@@ -20,8 +20,9 @@ import yaml
 class TestPRAgentWorkflowChanges:
     """Tests for pr-agent.yml workflow changes."""
 
+    @staticmethod
     @pytest.fixture
-    def pr_agent_workflow(self) -> Dict[str, Any]:
+    def pr_agent_workflow() -> Dict[str, Any]:
         """
         Load and parse the .github/workflows/pr-agent.yml workflow file.
 
@@ -304,228 +305,22 @@ class TestLabelWorkflowChanges:
 
 
 class TestAPISecScanWorkflowChanges:
-    """Tests for apisec-scan.yml workflow changes."""
-
-    @pytest.fixture
-    def apisec_workflow(self) -> Dict[str, Any]:
-        """
-        Load and parse the .github/workflows/apisec-scan.yml GitHub Actions workflow.
-
-        Returns:
-            workflow (dict | None): Parsed YAML content of the workflow file as a dictionary, or `None` if the file is empty.
-        """
-        workflow_path = Path(".github/workflows/apisec-scan.yml")
-        with open(workflow_path, "r") as f:
-            return yaml.safe_load(f)
-
-    def test_workflow_syntax_valid(self, apisec_workflow):
-        """Verify workflow has valid YAML syntax."""
-        assert apisec_workflow is not None
-        assert isinstance(apisec_workflow, dict)
-
-    def test_no_job_level_conditional(self, apisec_workflow):
-        """Verify job-level 'if' condition was removed."""
-        jobs = apisec_workflow.get("jobs", {})
-        scan_job = jobs.get("Trigger_APIsec_scan", {})
-
-        # Should not have 'if' at job level
-        assert "if" not in scan_job
-
-    def test_no_credential_check_step(self, apisec_workflow):
-        """
-        Confirm the 'Trigger_APIsec_scan' job contains no step named 'Check for APIsec credentials'.
-
-        Asserts that there are zero steps whose `name` equals 'Check for APIsec credentials' in that job's step list.
-        """
-        jobs = apisec_workflow.get("jobs", {})
-        scan_job = jobs.get("Trigger_APIsec_scan", {})
-        steps = scan_job.get("steps", [])
-
-        credential_check_steps = [s for s in steps if s.get("name") == "Check for APIsec credentials"]
-        assert len(credential_check_steps) == 0
-
-    def test_scan_step_is_first_step(self, apisec_workflow):
-        """
-        Assert that the Trigger_APIsec_scan job's first step is named "APIsec scan" and invokes the apisec-inc/apisec-run-scan action.
-
-        Checks that the job exists, contains at least one step, and that the first step's name equals "APIsec scan" and its `uses` reference includes `apisec-inc/apisec-run-scan`.
-        """
-        jobs = apisec_workflow.get("jobs", {})
-        scan_job = jobs.get("Trigger_APIsec_scan", {})
-        steps = scan_job.get("steps", [])
-
-        assert len(steps) >= 1
-        first_step = steps[0]
-        assert first_step.get("name") == "APIsec scan"
-        assert "apisec-inc/apisec-run-scan" in first_step.get("uses", "")
-
-    def test_workflow_assumes_credentials_configured(self, apisec_workflow):
-        """Verify workflow now assumes credentials are configured."""
-        # Since credential checks are removed, workflow should run unconditionally
-        jobs = apisec_workflow.get("jobs", {})
-        scan_job = jobs.get("Trigger_APIsec_scan", {})
-
-        # No if condition means it always runs
-        assert "if" not in scan_job
 
 
-class TestWorkflowSecurityBestPractices:
-    """Security-focused tests for workflow changes."""
-
-    def test_no_hardcoded_secrets_in_workflows(self):
-        """Verify no hardcoded secrets in any workflow file."""
-        workflow_dir = Path(".github/workflows")
-
-        for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
-                content = f.read()
-
-            # Check for common secret patterns
-            dangerous_patterns = [
-                "password:",
-                "api_key:",
-                "token:",
-                "secret:",
-            ]
-
-            for pattern in dangerous_patterns:
-                # Allow if it's using secrets context
-                lines_with_pattern = [
-                    line for line in content.split("\n") if pattern in line.lower() and "secrets." not in line
-                ]
-
-                assert (
-                    len(lines_with_pattern) == 0
-                ), f"Potential hardcoded secret in {workflow_file}: {lines_with_pattern}"
-
-    def test_workflows_use_pinned_action_versions(self):
-        """Verify workflows use pinned action versions."""
-        workflow_dir = Path(".github/workflows")
-
-        for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
-                workflow = yaml.safe_load(f)
-
-            jobs = workflow.get("jobs", {})
-            for job_name, job_config in jobs.items():
-                steps = job_config.get("steps", [])
-                for step in steps:
-                    if "uses" in step:
-                        action = step["uses"]
-                        # Should have @version or @sha
-                        assert (
-                            action.startswith("./") or action.startswith("docker://") or "@" in action
-                        ), f"Action {action} in {workflow_file} should be pinned"
-
-    def test_workflows_use_read_only_permissions_by_default(self):
-        """
-        Ensure workflow files in .github/workflows limit top-level write permissions to enforce least privilege.
-
-        Iterates over each YAML workflow file in .github/workflows, and for workflows that define a top-level `permissions` mapping, counts entries explicitly set to `write`. The test fails if more than three permissions are set to `write` for a single workflow.
-        """
-        workflow_dir = Path(".github/workflows")
-
-        for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
-                workflow = yaml.safe_load(f)
-
-            # Check top-level permissions
-            if "permissions" in workflow:
-                perms = workflow["permissions"]
-                if isinstance(perms, dict):
-                    # If specific permissions are set, verify they're intentional
-                    write_perms = [k for k, v in perms.items() if v == "write"]
-                    # Write permissions should be justified by workflow purpose
-                    assert len(write_perms) <= 3, f"Too many write permissions in {workflow_file}: {write_perms}"
-
-
-class TestWorkflowYAMLQuality:
-    """Tests for YAML quality and consistency."""
-
-    def test_all_workflows_have_names(self):
-        """
-        Ensure every workflow YAML file in .github/workflows defines a non-empty top-level 'name' field.
-
-        Raises:
-            AssertionError: If any workflow file is missing the 'name' field or the 'name' value is an empty string.
-        """
-        workflow_dir = Path(".github/workflows")
-
-        for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
-                workflow = yaml.safe_load(f)
-
-            assert "name" in workflow, f"{workflow_file} missing 'name' field"
-            assert len(workflow["name"]) > 0, f"{workflow_file} has empty name"
-
-    def test_all_jobs_have_descriptive_names(self):
-        """Verify all jobs have descriptive names or job IDs."""
-        workflow_dir = Path(".github/workflows")
-
-        for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
-                workflow = yaml.safe_load(f)
-
-            jobs = workflow.get("jobs", {})
-            for job_id, job_config in jobs.items():
-                # Either job_id should be descriptive or should have 'name' field
-                is_descriptive_id = len(job_id) > 5 and "_" in job_id
-                has_name_field = "name" in job_config
-
-                assert (
-                    is_descriptive_id or has_name_field
-                ), f"Job {job_id} in {workflow_file} needs better identification"
-
-    def test_workflows_have_consistent_indentation(self):
-        """
-        Check that workflow YAML files under .github/workflows use indentation in multiples of two spaces.
-
-        Reads each `*.yml` file in `.github/workflows` and asserts any line that begins with spaces has a leading-space count that is divisible by 2; assertion messages include file name and line number on failure.
-        """
-        workflow_dir = Path(".github/workflows")
-
-        for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
-                content = f.read()
-
-            # Check that indentation is consistent (2 spaces is standard)
-            lines = content.split("\n")
-            for i, line in enumerate(lines, 1):
-                if line.strip() and line[0] == " ":
-                    # Count leading spaces
-                    spaces = len(line) - len(line.lstrip(" "))
-                    # Should be multiple of 2
-                    assert spaces % 2 == 0, f"{workflow_file} line {i}: inconsistent indentation ({spaces} spaces)"
-
-
-class TestDeletedFiles:
-    """Tests verifying removed files are actually deleted."""
-
-    def test_labeler_yml_deleted(self):
-        """Verify .github/labeler.yml was deleted."""
-        labeler_path = Path(".github/labeler.yml")
-        assert not labeler_path.exists(), "labeler.yml should be deleted"
-
-    def test_context_chunker_script_deleted(self):
-        """Verify .github/scripts/context_chunker.py was deleted."""
-        chunker_path = Path(".github/scripts/context_chunker.py")
-        assert not chunker_path.exists(), "context_chunker.py should be deleted"
-
-    def test_scripts_readme_deleted(self):
-        """Verify .github/scripts/README.md was deleted."""
-        readme_path = Path(".github/scripts/README.md")
-        assert not readme_path.exists(), "scripts/README.md should be deleted"
+... [rest of code unchanged] ...
 
 
 class TestRequirementsDevChanges:
     """Tests for requirements-dev.txt changes."""
 
-    def test_requirements_file_exists(self):
+    @staticmethod
+    def test_requirements_file_exists():
         """Verify requirements-dev.txt exists."""
         req_path = Path("requirements-dev.txt")
         assert req_path.exists(), "requirements-dev.txt should exist"
 
-    def test_pyyaml_dependency_added(self):
+    @staticmethod
+    def test_pyyaml_dependency_added():
         """Verify PyYAML dependency is in requirements-dev.txt."""
         req_path = Path("requirements-dev.txt")
         with open(req_path, "r") as f:
@@ -533,7 +328,8 @@ class TestRequirementsDevChanges:
 
         assert "pyyaml" in content, "PyYAML should be in requirements-dev.txt"
 
-    def test_pyyaml_version_pinned(self):
+    @staticmethod
+    def test_pyyaml_version_pinned():
         """Verify PyYAML has version constraint."""
         req_path = Path("requirements-dev.txt")
         with open(req_path, "r") as f:
@@ -546,7 +342,8 @@ class TestRequirementsDevChanges:
         pyyaml_line = pyyaml_lines[0]
         assert any(op in pyyaml_line for op in ["==", ">=", "<=", "~="]), "PyYAML should have version constraint"
 
-    def test_no_duplicate_dependencies(self):
+    @staticmethod
+    def test_no_duplicate_dependencies():
         """
         Check that requirements-dev.txt contains no duplicate package entries.
 

@@ -144,7 +144,8 @@ class FinancialAssetApp:
             self._initialize_graph()
         return self.graph
 
-    def _update_metrics_text(self, graph: AssetRelationshipGraph) -> str:
+    @staticmethod
+    def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
         """Generates the formatted text for network statistics."""
         metrics = graph.calculate_metrics()
         text = AppConstants.NETWORK_STATISTICS_TEXT.format(
@@ -165,7 +166,8 @@ class FinancialAssetApp:
         text = self._update_metrics_text(graph)
         return f1, f2, f3, text
 
-    def update_asset_info(self, selected_asset: Optional[str], graph: AssetRelationshipGraph) -> Tuple[Dict, Dict]:
+    @staticmethod
+    def update_asset_info(selected_asset: Optional[str], graph: AssetRelationshipGraph) -> Tuple[Dict, Dict]:
         """Retrieves and formats detailed information for a selected asset."""
         if not selected_asset or selected_asset not in graph.assets:
             return {}, {"outgoing": {}, "incoming": {}}
@@ -324,32 +326,12 @@ class FinancialAssetApp:
 
     def show_formula_details(self, formula_name: str, graph_state: AssetRelationshipGraph):
         """Show detailed view of a specific formula."""
-        try:
-            if not formula_name:
-                return go.Figure(), gr.update(visible=False)
-
-            graph = self.ensure_graph() if graph_state is None else graph_state
-
-            # Generate analysis to get formulas
-            formulaic_analyzer = FormulaicdAnalyzer()
-            analysis_results = formulaic_analyzer.analyze_graph(graph)
-            formulas = analysis_results.get("formulas", [])
-
-            # Find the selected formula
-            selected_formula = next((f for f in formulas if f.name == formula_name), None)
-
-            if selected_formula:
-                formulaic_visualizer = FormulaicVisualizer()
-                detail_fig = formulaic_visualizer.create_formula_detail_view(selected_formula)
-                return detail_fig, gr.update(visible=False)
-            else:
-                return go.Figure(), gr.update(value=f"Formula '{formula_name}' not found", visible=True)
-
         except Exception as e:
             logger.error("Error showing formula details: %s", e)
             return go.Figure(), gr.update(value=f"Error: {str(e)}", visible=True)
 
-    def _format_formula_summary(self, summary: Dict, analysis_results: Dict) -> str:
+    @staticmethod
+    def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
         """Format the formula analysis summary for display."""
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})

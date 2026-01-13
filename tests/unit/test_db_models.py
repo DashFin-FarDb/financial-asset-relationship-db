@@ -34,11 +34,13 @@ def db_session(tmp_path):
 class TestAssetORM:
     """Test cases for AssetORM model."""
 
-    def test_asset_orm_table_name(self):
+    @staticmethod
+    def test_asset_orm_table_name():
         """Test that AssetORM uses correct table name."""
         assert AssetORM.__tablename__ == "assets"
 
-    def test_asset_orm_primary_key(self):
+    @staticmethod
+    def test_asset_orm_primary_key():
         """Test AssetORM primary key configuration."""
         inspector = inspect(AssetORM)
         pk_columns = [col.name for col in inspector.primary_key]
@@ -216,7 +218,7 @@ class TestAssetORM:
 class TestAssetRelationshipORM:
     """Test cases for AssetRelationshipORM model."""
 
-    def test_relationship_table_name(self):
+    def test_relationship_table_name(self, db_session):
         """Test that AssetRelationshipORM uses correct table name."""
         assert AssetRelationshipORM.__tablename__ == "asset_relationships"
 
@@ -385,7 +387,7 @@ class TestAssetRelationshipORM:
 class TestRegulatoryEventORM:
     """Test cases for RegulatoryEventORM model."""
 
-    def test_regulatory_event_table_name(self):
+    def test_regulatory_event_table_name(self, db_session):
         """Test that RegulatoryEventORM uses correct table name."""
         assert RegulatoryEventORM.__tablename__ == "regulatory_events"
 
@@ -479,6 +481,7 @@ class TestRegulatoryEventORM:
             name="Related 2",
             asset_class="equity",
             sector="Tech",
+            sector="Tech",
             price=75.0,
             currency="USD",
         )
@@ -511,7 +514,8 @@ class TestRegulatoryEventORM:
 class TestRegulatoryEventAssetORM:
     """Test cases for RegulatoryEventAssetORM join table."""
 
-    def test_event_asset_table_name(self):
+    @staticmethod
+    def test_event_asset_table_name():
         """Test that RegulatoryEventAssetORM uses correct table name."""
         assert RegulatoryEventAssetORM.__tablename__ == "regulatory_event_assets"
 

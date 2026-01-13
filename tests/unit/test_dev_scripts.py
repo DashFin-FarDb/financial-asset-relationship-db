@@ -15,11 +15,13 @@ import pytest
 class TestVercelConfiguration:
     """Test Vercel deployment configuration."""
 
-    def test_vercel_json_exists(self):
+    @staticmethod
+    def test_vercel_json_exists():
         """Test that vercel.json exists."""
         assert os.path.exists("vercel.json")
 
-    def test_vercel_json_valid(self):
+    @staticmethod
+    def test_vercel_json_valid():
         """Test that vercel.json is valid JSON."""
         with open("vercel.json") as f:
             config = json.load(f)
@@ -27,7 +29,8 @@ class TestVercelConfiguration:
         assert "builds" in config
         assert "routes" in config
 
-    def test_vercel_builds_configuration(self):
+    @staticmethod
+    def test_vercel_builds_configuration():
         """Test Vercel builds are properly configured."""
         with open("vercel.json") as f:
             config = json.load(f)
@@ -40,7 +43,8 @@ class TestVercelConfiguration:
         assert python_build["use"] == "@vercel/python"
         assert "maxLambdaSize" in python_build["config"]
 
-    def test_vercel_routes_configuration(self):
+    @staticmethod
+    def test_vercel_routes_configuration():
         """Test Vercel routes are properly configured."""
         with open("vercel.json") as f:
             config = json.load(f)
@@ -55,11 +59,13 @@ class TestVercelConfiguration:
 class TestEnvironmentConfiguration:
     """Test environment configuration."""
 
-    def test_env_example_exists(self):
+    @staticmethod
+    def test_env_example_exists():
         """Test that .env.example exists."""
         assert os.path.exists(".env.example")
 
-    def test_env_example_has_required_vars(self):
+    @staticmethod
+    def test_env_example_has_required_vars():
         """Test that .env.example contains required variables."""
         with open(".env.example") as f:
             content = f.read()
@@ -71,7 +77,8 @@ class TestEnvironmentConfiguration:
 class TestGitIgnore:
     """Test .gitignore configuration."""
 
-    def test_gitignore_excludes_build_artifacts(self):
+    @staticmethod
+    def test_gitignore_excludes_build_artifacts():
         """Test that .gitignore excludes build artifacts."""
         with open(".gitignore") as f:
             content = f.read()
@@ -105,7 +112,8 @@ class TestDocumentationFiles:
             "VERCEL_DEPLOYMENT_CHECKLIST.md",
         ],
     )
-    def test_documentation_exists(self, doc_file):
+    @staticmethod
+    def test_documentation_exists(doc_file):
         """Test that key documentation files exist."""
         assert os.path.exists(doc_file), f"Missing documentation: {doc_file}"
 

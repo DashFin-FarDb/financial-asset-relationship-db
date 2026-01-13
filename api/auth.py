@@ -91,7 +91,8 @@ class UserRepository:
             hashed_password=row["hashed_password"],
         )
 
-    def has_users(self) -> bool:
+    @staticmethod
+    def has_users() -> bool:
         """
         Check whether any user credential records exist.
 

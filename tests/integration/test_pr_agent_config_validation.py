@@ -18,8 +18,9 @@ import yaml
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
 
+    @staticmethod
     @pytest.fixture
-    def pr_agent_config(self):
+    def pr_agent_config():
         """
         Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
@@ -166,8 +167,9 @@ class TestPRAgentConfigYAMLValidity:
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def pr_agent_config(self):
+    def pr_agent_config():
         """
         Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
@@ -259,7 +261,8 @@ class TestPRAgentConfigSecurity:
             "bearer ",
         )
 
-    def test_no_hardcoded_credentials(self, pr_agent_config):
+    @staticmethod
+    def test_no_hardcoded_credentials(pr_agent_config):
         """
         Recursively scan configuration values and keys for suspected secrets.
         - Flags high - entropy or secret - like string values.
@@ -441,7 +444,8 @@ class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
     @pytest.fixture
-    def pr_agent_config_content(self):
+    @staticmethod
+    def pr_agent_config_content():
         """
         Return the contents of .github / pr - agent - config.yml as a string.
 

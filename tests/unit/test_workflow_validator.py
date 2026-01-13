@@ -23,14 +23,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 class TestValidationResult:
     """Test suite for ValidationResult class"""
 
-    def test_validation_result_creation_valid(self):
+    @staticmethod
+    def test_validation_result_creation_valid():
         """Test creating a valid ValidationResult"""
         result = ValidationResult(True, [], {"key": "value"})
         assert result.is_valid is True
         assert result.errors == []
         assert result.workflow_data == {"key": "value"}
 
-    def test_validation_result_creation_invalid(self):
+    @staticmethod
+    def test_validation_result_creation_invalid():
         """Test creating an invalid ValidationResult"""
         errors = ["Error 1", "Error 2"]
         result = ValidationResult(False, errors, {})
@@ -38,7 +40,8 @@ class TestValidationResult:
         assert result.errors == errors
         assert result.workflow_data == {}
 
-    def test_validation_result_with_workflow_data(self):
+    @staticmethod
+    def test_validation_result_with_workflow_data():
         """Test ValidationResult retains workflow data even when invalid"""
         data = {"name": "Test", "on": "push"}
         result = ValidationResult(False, ["Missing jobs"], data)
@@ -48,7 +51,8 @@ class TestValidationResult:
 class TestValidateWorkflow:
     """Test suite for validate_workflow function"""
 
-    def test_valid_minimal_workflow_file(self):
+    @staticmethod
+    def test_valid_minimal_workflow_file():
         """Test validation of a minimal valid workflow file"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -72,7 +76,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_valid_complex_workflow_file(self):
+    @staticmethod
+    def test_valid_complex_workflow_file():
         """Test validation of a complex valid workflow"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -107,7 +112,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_missing_jobs_key(self):
+    @staticmethod
+    def test_workflow_missing_jobs_key():
         """Test detection of missing 'jobs' key"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -127,7 +133,8 @@ on: push
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_not_a_dict(self):
+    @staticmethod
+    def test_workflow_not_a_dict():
         """Test detection when YAML content is not a dictionary"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -148,7 +155,8 @@ on: push
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_invalid_yaml_syntax(self):
+    @staticmethod
+    def test_workflow_invalid_yaml_syntax():
         """Test handling of invalid YAML syntax"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -171,14 +179,16 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_file_not_found(self):
+    @staticmethod
+    def test_workflow_file_not_found():
         """Test handling of non-existent file"""
         result = validate_workflow("/nonexistent/file.yml")
         assert result.is_valid is False
         assert len(result.errors) >= 1
         assert result.workflow_data == {}
 
-    def test_workflow_empty_file(self):
+    @staticmethod
+    def test_workflow_empty_file():
         """Test handling of empty workflow file"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("")
@@ -190,7 +200,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_null_value(self):
+    @staticmethod
+    def test_workflow_with_null_value():
         """Test workflow file that parses to None"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("~\n")
@@ -203,7 +214,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_empty_jobs_dict(self):
+    @staticmethod
+    def test_workflow_with_empty_jobs_dict():
         """Test workflow with empty jobs dictionary"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -221,7 +233,8 @@ jobs: {}
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_special_characters(self):
+    @staticmethod
+    def test_workflow_with_special_characters():
         """Test workflow with special characters in values"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -243,7 +256,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_unicode(self):
+    @staticmethod
+    def test_workflow_with_unicode():
         """Test workflow with Unicode characters"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False, encoding="utf-8") as f:
             f.write(
@@ -269,7 +283,8 @@ jobs:
 class TestEdgeCases:
     """Test edge cases and boundary conditions"""
 
-    def test_workflow_with_very_long_name(self):
+    @staticmethod
+    def test_workflow_with_very_long_name():
         """Test workflow with extremely long name"""
         long_name = "A" * 1000
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
@@ -284,7 +299,8 @@ class TestEdgeCases:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_deeply_nested_structure(self):
+    @staticmethod
+    def test_workflow_with_deeply_nested_structure():
         """Test workflow with deeply nested YAML structure"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -311,7 +327,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_many_jobs(self):
+    @staticmethod
+    def test_workflow_with_many_jobs():
         """Test workflow with many jobs"""
         jobs = "\n".join(
             [f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo {i}" for i in range(50)]
@@ -328,7 +345,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_yaml_anchors(self):
+    @staticmethod
+    def test_workflow_with_yaml_anchors():
         """Test workflow using YAML anchors"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -354,7 +372,8 @@ jobs:
 class TestErrorHandling:
     """Test error handling and exception scenarios"""
 
-    def test_workflow_permission_denied(self):
+    @staticmethod
+    def test_workflow_permission_denied():
         """Test handling of permission denied error"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -371,7 +390,8 @@ class TestErrorHandling:
                 Path(f.name).chmod(0o644)
                 Path(f.name).unlink()
 
-    def test_workflow_with_duplicate_keys(self):
+    @staticmethod
+    def test_workflow_with_duplicate_keys():
         """Test workflow with duplicate keys"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -399,7 +419,8 @@ jobs:
 class TestIntegrationWithActualWorkflows:
     """Integration tests with actual project workflows"""
 
-    def test_validate_actual_pr_agent_workflow(self):
+    @staticmethod
+    def test_validate_actual_pr_agent_workflow():
         """Test validation of actual pr-agent.yml if it exists"""
         workflow_path = Path(__file__).parent.parent.parent / ".github" / "workflows" / "pr-agent.yml"
 
@@ -410,7 +431,8 @@ class TestIntegrationWithActualWorkflows:
         assert result.is_valid is True, f"pr-agent.yml validation failed: {result.errors}"
         assert "jobs" in result.workflow_data
 
-    def test_validate_actual_apisec_workflow(self):
+    @staticmethod
+    def test_validate_actual_apisec_workflow():
         """Test validation of actual apisec-scan.yml if it exists"""
         workflow_path = Path(__file__).parent.parent.parent / ".github" / "workflows" / "apisec-scan.yml"
 
@@ -420,7 +442,8 @@ class TestIntegrationWithActualWorkflows:
         result = validate_workflow(str(workflow_path))
         assert result.is_valid is True, f"apisec-scan.yml validation failed: {result.errors}"
 
-    def test_validate_all_project_workflows(self):
+    @staticmethod
+    def test_validate_all_project_workflows():
         """Test validation of all workflows in the project"""
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
 
@@ -444,7 +467,8 @@ class TestIntegrationWithActualWorkflows:
 class TestValidationResultDataStructure:
     """Test ValidationResult data structure integrity"""
 
-    def test_validation_result_attributes_accessible(self):
+    @staticmethod
+    def test_validation_result_attributes_accessible():
         """Test that ValidationResult attributes are accessible"""
         data = {"name": "Test", "jobs": {"build": {}}}
         result = ValidationResult(True, [], data)
@@ -692,7 +716,8 @@ jobs:
 class TestValidationResultBehavior:
     """Test ValidationResult behavior and edge cases"""
 
-    def test_validation_result_with_multiple_errors(self):
+    @staticmethod
+    def test_validation_result_with_multiple_errors():
         """Test ValidationResult with multiple error messages"""
         errors = ["Error 1", "Error 2", "Error 3", "Error 4"]
         result = ValidationResult(False, errors, {})
@@ -700,14 +725,16 @@ class TestValidationResultBehavior:
         assert result.errors[0] == "Error 1"
         assert result.errors[-1] == "Error 4"
 
-    def test_validation_result_with_empty_error_list(self):
+    @staticmethod
+    def test_validation_result_with_empty_error_list():
         """Test valid ValidationResult with empty error list"""
         result = ValidationResult(True, [], {"jobs": {}})
         assert result.is_valid is True
         assert result.errors == []
         assert isinstance(result.errors, list)
 
-    def test_validation_result_preserves_complex_workflow_data(self):
+    @staticmethod
+    def test_validation_result_preserves_complex_workflow_data():
         """Test that ValidationResult preserves complex nested workflow data"""
         complex_data = {
             "name": "Complex",
@@ -724,7 +751,8 @@ class TestValidationResultBehavior:
         assert result.workflow_data == complex_data
         assert result.workflow_data["jobs"]["job1"]["env"]["NODE_ENV"] == "test"
 
-    def test_validation_result_error_message_types(self):
+    @staticmethod
+    def test_validation_result_error_message_types():
         """Test that error messages can be various string types"""
         errors = [
             "Simple error",
@@ -740,7 +768,8 @@ class TestValidationResultBehavior:
 class TestWorkflowValidatorSecurityScenarios:
     """Test security-related scenarios and potential exploits"""
 
-    def test_workflow_with_extremely_deep_nesting(self):
+    @staticmethod
+    def test_workflow_with_extremely_deep_nesting():
         """Test workflow with extremely deep nesting (YAML bomb prevention)"""
         # Create a deeply nested structure
         nested = "jobs:\n"
@@ -759,7 +788,8 @@ class TestWorkflowValidatorSecurityScenarios:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_suspicious_filenames(self):
+    @staticmethod
+    def test_workflow_with_suspicious_filenames():
         """Test workflow validation with suspicious filename patterns"""
         suspicious_names = ["../../../etc/passwd.yml", "workflow;rm -rf /.yml", "workflow`whoami`.yml"]
 
@@ -768,7 +798,8 @@ class TestWorkflowValidatorSecurityScenarios:
             result = validate_workflow(name)
             assert result.is_valid is False
 
-    def test_workflow_with_large_file_size(self):
+    @staticmethod
+    def test_workflow_with_large_file_size():
         """Test validation of very large workflow file"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("name: Large\non: push\njobs:\n")
@@ -787,7 +818,8 @@ class TestWorkflowValidatorSecurityScenarios:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_yaml_injection_attempts(self):
+    @staticmethod
+    def test_workflow_with_yaml_injection_attempts():
         """Test workflow with potential YAML injection patterns"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -817,7 +849,8 @@ jobs:
 class TestWorkflowValidatorPerformance:
     """Test performance-related aspects of workflow validation"""
 
-    def test_validate_workflow_returns_quickly_on_error(self):
+    @staticmethod
+    def test_validate_workflow_returns_quickly_on_error():
         """Test that validation returns quickly even on error"""
         import time
 
@@ -828,7 +861,8 @@ class TestWorkflowValidatorPerformance:
         assert result.is_valid is False
         assert elapsed < 1.0  # Should complete in less than 1 second
 
-    def test_validate_multiple_workflows_sequentially(self):
+    @staticmethod
+    def test_validate_multiple_workflows_sequentially():
         """Test validating multiple workflows in sequence"""
         workflows = []
         for i in range(10):
@@ -859,7 +893,8 @@ jobs:
             for workflow in workflows:
                 Path(workflow).unlink()
 
-    def test_workflow_with_minimal_memory_footprint(self):
+    @staticmethod
+    def test_workflow_with_minimal_memory_footprint():
         """Test that validation doesn't consume excessive memory"""
         # Create a workflow with moderate size
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
@@ -879,7 +914,8 @@ jobs:
 class TestWorkflowValidatorEdgeCasesExtended:
     """Extended edge cases and corner scenarios"""
 
-    def test_workflow_with_boolean_values(self):
+    @staticmethod
+    def test_workflow_with_boolean_values():
         """Test workflow with boolean values in various positions"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -906,7 +942,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_scientific_notation(self):
+    @staticmethod
+    def test_workflow_with_scientific_notation():
         """Test workflow with scientific notation numbers"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -929,7 +966,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_float_values(self):
+    @staticmethod
+    def test_workflow_with_float_values():
         """Test workflow with float values"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -954,7 +992,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_mixed_indentation(self):
+    @staticmethod
+    def test_workflow_with_mixed_indentation():
         """Test workflow with mixed tabs and spaces"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -969,7 +1008,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_trailing_commas(self):
+    @staticmethod
+    def test_workflow_with_trailing_commas():
         """Test workflow with trailing commas in flow style"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -993,7 +1033,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_explicit_types(self):
+    @staticmethod
+    def test_workflow_with_explicit_types():
         """Test workflow with explicit YAML type tags"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(

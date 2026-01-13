@@ -205,7 +205,8 @@ class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
     @pytest.fixture
-    def client(self):
+    @staticmethod
+    def client():
         """
         Pytest fixture that yields a TestClient configured with a sample in-memory graph for endpoint tests.
 
@@ -364,7 +365,7 @@ class TestAPIEndpoints:
 
     def test_get_assets_filter_by_class_and_sector(self, client):
         """Test filtering assets by both class and sector."""
-        response = client.get("/api/assets?asset_class=EQUITY&sector=Technology")
+        response = client.get("/api/assets?asset_class=EQUITY&amp;sector=Technology")
         assert response.status_code == 200
         assets = response.json()
         assert isinstance(assets, list)
@@ -526,7 +527,8 @@ class TestErrorHandling:
     """Test error handling and edge cases."""
 
     @pytest.fixture
-    def client(self):
+    @staticmethod
+    def client():
         """Create a test client."""
         return TestClient(app)
 
@@ -617,12 +619,14 @@ def test_cors_allows_development_origins(cors_client):
 class TestAdditionalFields:
     """Test handling of asset-specific additional fields."""
 
+    @staticmethod
     @pytest.fixture
-    def client(self):
+    def client():
         """Create a test client."""
         return TestClient(app)
 
-    def test_equity_additional_fields(self, client):
+    @staticmethod
+    def test_equity_additional_fields(client):
         """Test that equity-specific fields are included."""
         response = client.get("/api/assets?asset_class=EQUITY")
         assets = response.json()
@@ -636,7 +640,8 @@ class TestAdditionalFields:
             has_equity_field = any(field in additional for field in possible_fields)
             assert has_equity_field or len(additional) == 0  # Either has fields or empty
 
-    def test_bond_additional_fields(self, client):
+    @staticmethod
+    def test_bond_additional_fields(client):
         """Test that bond-specific fields are included."""
         response = client.get("/api/assets?asset_class=BOND")
         assets = response.json()
@@ -654,12 +659,14 @@ class TestAdditionalFields:
 class TestVisualizationDataProcessing:
     """Test the processing of visualization data."""
 
+    @staticmethod
     @pytest.fixture
-    def client(self):
+    def client():
         """Create a test client."""
         return TestClient(app)
 
-    def test_visualization_coordinate_types(self, client):
+    @staticmethod
+    def test_visualization_coordinate_types(client):
         """Test that all coordinates are properly converted to floats."""
         response = client.get("/api/visualization")
         viz_data = response.json()
@@ -670,7 +677,8 @@ class TestVisualizationDataProcessing:
             assert isinstance(node["y"], (int, float))
             assert isinstance(node["z"], (int, float))
 
-    def test_visualization_node_defaults(self, client):
+    @staticmethod
+    def test_visualization_node_defaults(client):
         """Test that nodes have default values for color and size."""
         response = client.get("/api/visualization")
         viz_data = response.json()
@@ -682,7 +690,8 @@ class TestVisualizationDataProcessing:
             assert isinstance(node["color"], str)
             assert isinstance(node["size"], (int, float))
 
-    def test_visualization_edge_defaults(self, client):
+    @staticmethod
+    def test_visualization_edge_defaults(client):
         """Test that edges have default values."""
         response = client.get("/api/visualization")
         viz_data = response.json()
@@ -697,12 +706,14 @@ class TestVisualizationDataProcessing:
 class TestIntegrationScenarios:
     """Test realistic integration scenarios."""
 
+    @staticmethod
     @pytest.fixture
-    def client(self):
+    def client():
         """Create a test client."""
         return TestClient(app)
 
-    def test_full_workflow_asset_exploration(self, client):
+    @staticmethod
+    def test_full_workflow_asset_exploration(client):
         """Test a complete workflow: list assets, get detail, get relationships."""
         # Step 1: Get all assets
         response = client.get("/api/assets")
@@ -723,7 +734,8 @@ class TestIntegrationScenarios:
         relationships = response.json()
         assert isinstance(relationships, list)
 
-    def test_full_workflow_visualization_and_metrics(self, client):
+    @staticmethod
+    def test_full_workflow_visualization_and_metrics(client):
         """Test workflow for visualization: get metrics then visualization data."""
         # Step 1: Get metrics
         response = client.get("/api/metrics")
@@ -738,7 +750,8 @@ class TestIntegrationScenarios:
         # Step 3: Verify consistency
         assert len(viz_data["nodes"]) == metrics["total_assets"]
 
-    def test_filter_refinement_workflow(self, client):
+    @staticmethod
+    def test_filter_refinement_workflow(client):
         """Test progressive filter refinement."""
         # Get all assets
         response = client.get("/api/assets")
