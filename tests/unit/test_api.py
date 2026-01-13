@@ -19,11 +19,25 @@ from api.main import app, validate_origin
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 
+# Test fixture URLs for CORS origin validation tests.
+# These localhost URLs are intentional test inputs for verifying the validate_origin
+# function correctly handles local development origins. They are not debug code.
+TEST_ORIGIN_HTTP_LOCALHOST = "http://localhost:3000"  # nosec B104
+TEST_ORIGIN_HTTP_LOOPBACK = "http://127.0.0.1:8000"  # nosec B104
+TEST_ORIGIN_HTTPS_LOCALHOST = "https://localhost:3000"
+TEST_ORIGIN_HTTPS_LOOPBACK = "https://127.0.0.1:8000"
+TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
+
 
 @pytest.fixture
 def client():
-    """Create a test client for the FastAPI app."""
-    return TestClient(app)
+    """Create a test client for the FastAPI app.
+
+    Note: TestClient uses internal ASGI transport, not actual network requests.
+    The base_url is only used for URL construction in tests, not for real HTTP calls.
+    """
+    # nosec B113 - TestClient uses ASGI transport, no actual localhost network access
+    return TestClient(app, base_url="http://testserver")
 
 
 @pytest.fixture
@@ -128,14 +142,14 @@ class TestCORSValidation:
     def test_validate_origin_localhost_http_dev():
         """Test HTTP localhost is valid in development."""
         with patch("api.main.ENV", "development"):
-            assert validate_origin("http://localhost:3000") is True
-            assert validate_origin("http://127.0.0.1:8000") is True
+            assert validate_origin(TEST_ORIGIN_HTTP_LOCALHOST) is True
+            assert validate_origin(TEST_ORIGIN_HTTP_LOOPBACK) is True
 
     @staticmethod
     def test_validate_origin_localhost_https_always():
         """Test HTTPS localhost is always valid."""
-        assert validate_origin("https://localhost:3000") is True
-        assert validate_origin("https://127.0.0.1:8000") is True
+        assert validate_origin(TEST_ORIGIN_HTTPS_LOCALHOST) is True
+        assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is True
 
     @staticmethod
     def test_validate_origin_vercel_urls():
@@ -159,7 +173,7 @@ class TestCORSValidation:
             assert validate_origin("http://example.com") is False
 
         # Invalid formats
-        assert validate_origin("ftp://localhost:3000") is False
+        assert validate_origin(TEST_ORIGIN_FTP_LOCALHOST) is False
         assert validate_origin("javascript:alert(1)") is False
         assert validate_origin("") is False
 

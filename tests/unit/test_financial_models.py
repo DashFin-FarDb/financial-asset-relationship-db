@@ -7,6 +7,11 @@ This module contains comprehensive unit tests for all financial model classes in
 - Input validation and error handling for all model types
 """
 
+# ruff: noqa: S101
+# The S101 rule flags use of assert statements. In pytest test files, assert is the
+# standard and recommended way to make assertions. Pytest rewrites these statements
+# to provide detailed error messages, and test files are not run with Python's -O flag.
+
 import pytest
 
 from src.models.financial_models import Asset, AssetClass, Bond, Equity, RegulatoryActivity, RegulatoryEvent
