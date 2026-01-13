@@ -150,9 +150,10 @@ def format_checklist(status: PRStatus) -> str:
         tasks.append("- [x] No merge conflicts")
     elif unknown_merge:
         tasks.append("- [ ] Check for merge conflicts")
+
     else:
-        # mergeable=False but not dirty (e.g., blocked) - no conflicts, just blocked
-        tasks.append("- [x] No merge conflicts")
+        # mergeable=False but state is unclear - should check
+        tasks.append("- [ ] Check for merge conflicts")
 
     # Change Requests
     has_cr = status.review_stats["changes_requested"] > 0
