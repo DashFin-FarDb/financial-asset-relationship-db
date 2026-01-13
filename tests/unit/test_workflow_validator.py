@@ -471,7 +471,6 @@ class TestValidationResultDataStructure:
     def test_validation_result_attributes_accessible():
         """Test that ValidationResult attributes are accessible"""
 
-
         @staticmethod
         def test_validation_result_attributes():
             data = {"name": "Test", "jobs": {"build": {}}}
