@@ -64,8 +64,9 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         image: your/image-to-test
-        args: --file=Dockerfile
+        args: --file=Dockerfile --sarif-file-output=snyk.sarif
     - name: Upload result to GitHub Code Scanning
-      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('snyk.sarif') != ''
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: snyk.sarif
