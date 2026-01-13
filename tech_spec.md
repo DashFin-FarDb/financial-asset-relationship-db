@@ -87,22 +87,22 @@ flowchart TB
         GradioUI["Gradio UI<br/>(app.py)"]
         NextJS["Next.js Frontend<br/>(frontend/)"]
     end
-    
+
     subgraph APILayer["API Layer"]
         FastAPI["FastAPI Backend<br/>(api/main.py)"]
     end
-    
+
     subgraph BusinessLogic["Business Logic Layer"]
         GraphLogic["Asset Graph<br/>(src/logic/)"]
         Models["Domain Models<br/>(src/models/)"]
         Visualization["Visualization<br/>(src/visualizations/)"]
     end
-    
+
     subgraph DataLayer["Data Layer"]
         SampleData["Sample Data<br/>(src/data/sample_data.py)"]
         YahooFinance["Yahoo Finance<br/>(yfinance)"]
     end
-    
+
     GradioUI --> GraphLogic
     NextJS --> FastAPI
     FastAPI --> GraphLogic
@@ -145,24 +145,24 @@ flowchart LR
         A1["Gradio UI"]
         A2["Next.js App"]
     end
-    
+
     subgraph Backend["Backend Services"]
         B1["FastAPI Server"]
         B2["JWT Auth"]
         B3["Rate Limiter"]
     end
-    
+
     subgraph Core["Core Logic"]
         C1["Asset Graph Engine"]
         C2["Relationship Builder"]
         C3["Metrics Calculator"]
     end
-    
+
     subgraph Data["Data Sources"]
         D1["Sample Database"]
         D2["Yahoo Finance"]
     end
-    
+
     A1 --> C1
     A2 --> B1
     B1 --> B2
@@ -310,18 +310,18 @@ flowchart TD
         W1B --> W1C["Interact with Graph"]
         W1C --> W1D["Hover for Details"]
     end
-    
+
     subgraph Workflow2["Analytics Workflow"]
         W2A["View Metrics Dashboard"] --> W2B["Analyze Network Statistics"]
         W2B --> W2C["Review Distributions"]
     end
-    
+
     subgraph Workflow3["Exploration Workflow"]
         W3A["Open Asset Explorer"] --> W3B["Apply Filters"]
         W3B --> W3C["Select Asset"]
         W3C --> W3D["View Relationships"]
     end
-    
+
     subgraph Workflow4["Integration Workflow"]
         W4A["Authenticate via /token"] --> W4B["Call REST Endpoints"]
         W4B --> W4C["Process JSON Response"]
@@ -521,31 +521,31 @@ flowchart TD
         F001["F-001<br/>Multi-Asset Data Model"]
         F002["F-002<br/>Regulatory Events"]
     end
-    
+
     subgraph CoreEngine["Core Engine Domain"]
         F003["F-003<br/>Graph Engine"]
     end
-    
+
     subgraph APILayer["API Layer Domain"]
         F004["F-004<br/>REST API"]
         F005["F-005<br/>JWT Auth"]
         F006["F-006<br/>CORS Config"]
         F007["F-007<br/>Rate Limiting"]
     end
-    
+
     subgraph Visualization["Visualization Domain"]
         F008["F-008<br/>3D Visualization"]
         F009["F-009<br/>2D Visualization"]
         F010["F-010<br/>Metrics Dashboard"]
     end
-    
+
     subgraph UserInterface["User Interface Domain"]
         F011["F-011<br/>Asset Explorer"]
         F012["F-012<br/>Schema Report"]
         F016["F-016<br/>Gradio UI"]
         F017["F-017<br/>Next.js Frontend"]
     end
-    
+
     F001 --> F003
     F002 --> F003
     F003 --> F004
@@ -1649,43 +1649,43 @@ flowchart TD
         F001["F-001: Multi-Asset<br/>Data Model"]
         F002["F-002: Regulatory<br/>Events"]
     end
-    
+
     subgraph Core["Core Processing"]
         F003["F-003: Graph<br/>Engine"]
     end
-    
+
     subgraph DataLayer["Data Layer"]
         F014["F-014: Real Data<br/>Fetching"]
         F015["F-015: Database<br/>Persistence"]
     end
-    
+
     subgraph Security["Security Layer"]
         F005["F-005: JWT Auth"]
         F006["F-006: CORS"]
         F007["F-007: Rate Limiting"]
     end
-    
+
     subgraph API["API Layer"]
         F004["F-004: REST API"]
     end
-    
+
     subgraph Visualization["Visualization Layer"]
         F008["F-008: 3D Visualization"]
         F009["F-009: 2D Visualization"]
         F010["F-010: Metrics Dashboard"]
     end
-    
+
     subgraph Analytics["Analytics Layer"]
         F012["F-012: Schema Report"]
         F013["F-013: Formulaic Analysis"]
     end
-    
+
     subgraph Interface["Interface Layer"]
         F011["F-011: Asset Explorer"]
         F016["F-016: Gradio UI"]
         F017["F-017: Next.js Frontend"]
     end
-    
+
     F001 --> F003
     F002 --> F003
     F014 --> F001
@@ -1962,28 +1962,28 @@ flowchart TB
         NextJS["Next.js 14.2.35<br/>TypeScript ^5.3.0"]
         Gradio["Gradio ≥4.0.0<br/>Python UI"]
     end
-    
+
     subgraph Backend["Backend Layer"]
         FastAPI["FastAPI 0.127.0<br/>Python 3.11"]
         Uvicorn["Uvicorn ≥0.24.0<br/>ASGI Server"]
     end
-    
+
     subgraph Visualization["Visualization Layer"]
         PlotlyPy["Plotly ≥6.0.0<br/>Server-side"]
         PlotlyJS["plotly.js ^2.27.0<br/>Client-side"]
     end
-    
+
     subgraph Data["Data Layer"]
         SQLAlchemy["SQLAlchemy ≥2.0.0<br/>ORM"]
         yfinance["yfinance ≥0.2.51<br/>Market Data"]
     end
-    
+
     subgraph Infrastructure["Infrastructure"]
         Docker["Docker<br/>python:3.11-slim"]
         Vercel["Vercel<br/>Serverless"]
         GHACI["GitHub Actions<br/>CircleCI"]
     end
-    
+
     NextJS --> FastAPI
     Gradio --> PlotlyPy
     FastAPI --> Uvicorn
@@ -2123,17 +2123,17 @@ flowchart LR
         Router["API<br/>Router"]
         Middleware["Middleware<br/>Stack"]
     end
-    
+
     subgraph MiddlewareChain["Middleware Chain"]
         CORS["CORS<br/>Middleware"]
         RateLimit["SlowAPI<br/>Rate Limiter"]
     end
-    
+
     subgraph DependencySystem["Dependency Injection"]
         Auth["OAuth2<br/>Bearer"]
         UserDep["get_current_user"]
     end
-    
+
     Lifespan --> Router
     Middleware --> MiddlewareChain
     CORS --> RateLimit
@@ -2398,25 +2398,25 @@ flowchart TD
         Minimum["Minimum Versions"]
         Range["Version Ranges"]
     end
-    
+
     subgraph PinnedPackages["Pinned (Critical Compatibility)"]
         FastAPIPkg["fastapi 0.127.0"]
         PydanticPkg["pydantic 2.12.5"]
         NumpyPkg["numpy 2.2.6"]
         H11Pkg["h11 0.16.0"]
     end
-    
+
     subgraph MinimumPackages["Minimum (Security + Features)"]
         SQLAlchemyPkg["sqlalchemy >=2.0.0"]
         PyJWTPkg["PyJWT >=2.8.0"]
         Urllib3Pkg["urllib3 >=2.6.0"]
     end
-    
+
     subgraph RangePackages["Range (Compatibility)"]
         GradioPkg["gradio >=4.0.0,<6.0.0"]
         NextPkg["next ^14.2.35"]
     end
-    
+
     Pinned --> PinnedPackages
     Minimum --> MinimumPackages
     Range --> RangePackages
@@ -2472,7 +2472,7 @@ sequenceDiagram
     participant FastAPI
     participant AuthModule
     participant Database
-    
+
     Client->>FastAPI: POST /token (credentials)
     FastAPI->>AuthModule: Validate credentials
     AuthModule->>Database: Query user_credentials
@@ -2481,7 +2481,7 @@ sequenceDiagram
     AuthModule->>AuthModule: Create JWT (HS256)
     AuthModule-->>FastAPI: Access token
     FastAPI-->>Client: JWT token (30 min expiry)
-    
+
     Client->>FastAPI: GET /api/assets (Bearer token)
     FastAPI->>AuthModule: Validate JWT
     AuthModule->>AuthModule: Decode and verify
@@ -2544,7 +2544,7 @@ flowchart TD
         ReleaseLock["Release<br/>Lock"]
         ReturnGraph["Return<br/>Graph"]
     end
-    
+
     Request --> CheckGlobal
     CheckGlobal -->|No| AcquireLock
     CheckGlobal -->|Yes| ReturnGraph
@@ -2742,16 +2742,16 @@ flowchart LR
         Pylint["Static Analysis<br/>pylint"]
         Tests["pytest<br/>+ coverage"]
     end
-    
+
     subgraph SecurityJob["Security Job"]
         Safety["safety check"]
         Bandit["bandit scan"]
     end
-    
+
     subgraph CoverageJob["Coverage Job"]
         Codecov["Upload to<br/>Codecov"]
     end
-    
+
     Matrix --> Lint
     Lint --> Pylint
     Pylint --> Tests
@@ -2971,33 +2971,33 @@ flowchart TB
     subgraph UserLayer["User Layer"]
         User([User])
     end
-    
+
     subgraph PresentationLayer["Presentation Layer"]
         GradioUI["Gradio UI<br/>(app.py:7860)"]
         NextJS["Next.js Frontend<br/>(frontend/:3000)"]
     end
-    
+
     subgraph APILayer["API Layer"]
         FastAPI["FastAPI Backend<br/>(api/main.py:8000)"]
         Auth["JWT Authentication<br/>(api/auth.py)"]
         RateLimit["Rate Limiter<br/>(slowapi)"]
         CORS["CORS Middleware"]
     end
-    
+
     subgraph BusinessLogic["Business Logic Layer"]
         GraphEngine["Asset Graph Engine<br/>(src/logic/asset_graph.py)"]
         RelBuilder["Relationship Builder<br/>(8 relationship types)"]
         MetricsCalc["Metrics Calculator"]
         VizData["Visualization Data<br/>Generator"]
     end
-    
+
     subgraph DataLayer["Data Layer"]
         SampleData["Sample Data<br/>(src/data/sample_data.py)"]
         RealData["Real Data Fetcher<br/>(src/data/real_data_fetcher.py)"]
         YahooFinance["Yahoo Finance<br/>(yfinance)"]
         Cache["JSON File Cache"]
     end
-    
+
     User --> GradioUI
     User --> NextJS
     GradioUI --> GraphEngine
@@ -3050,12 +3050,12 @@ sequenceDiagram
     participant Factory as Graph Factory
     participant Data as Data Source
     participant Cache as Cache Layer
-    
+
     Uvicorn->>FastAPI: Start Application
     FastAPI->>Lifespan: Enter Lifespan Context
     Lifespan->>Graph: get_graph()
     Graph->>Graph: Acquire Thread Lock
-    
+
     alt Graph Not Initialized
         Graph->>Factory: Check Custom Factory
         alt Custom Factory Set
@@ -3071,7 +3071,7 @@ sequenceDiagram
             Data-->>Graph: Return Sample Data
         end
     end
-    
+
     Graph->>Graph: Release Thread Lock
     Graph-->>Lifespan: Graph Ready
     Lifespan-->>FastAPI: Startup Complete
@@ -3354,37 +3354,37 @@ flowchart TB
 ```mermaid
 stateDiagram-v2
     [*] --> Visualization: Default Tab
-    
+
     Visualization --> Metrics: Tab Click
     Visualization --> SchemaRules: Tab Click
     Visualization --> AssetExplorer: Tab Click
     Visualization --> Documentation: Tab Click
     Visualization --> FormulaicAnalysis: Tab Click
-    
+
     Metrics --> Visualization: Tab Click
     Metrics --> SchemaRules: Tab Click
     Metrics --> AssetExplorer: Tab Click
     Metrics --> Documentation: Tab Click
     Metrics --> FormulaicAnalysis: Tab Click
-    
+
     SchemaRules --> Visualization: Tab Click
     SchemaRules --> Metrics: Tab Click
     SchemaRules --> AssetExplorer: Tab Click
     SchemaRules --> Documentation: Tab Click
     SchemaRules --> FormulaicAnalysis: Tab Click
-    
+
     AssetExplorer --> Visualization: Tab Click
     AssetExplorer --> Metrics: Tab Click
     AssetExplorer --> SchemaRules: Tab Click
     AssetExplorer --> Documentation: Tab Click
     AssetExplorer --> FormulaicAnalysis: Tab Click
-    
+
     Documentation --> Visualization: Tab Click
     Documentation --> Metrics: Tab Click
     Documentation --> SchemaRules: Tab Click
     Documentation --> AssetExplorer: Tab Click
     Documentation --> FormulaicAnalysis: Tab Click
-    
+
     FormulaicAnalysis --> Visualization: Tab Click
     FormulaicAnalysis --> Metrics: Tab Click
     FormulaicAnalysis --> SchemaRules: Tab Click
@@ -3402,7 +3402,7 @@ The API implements comprehensive error handling with proper HTTP status codes an
 flowchart TB
     subgraph APIErrors["API Error Handling Flow"]
         ErrStart([Error<br/>Occurs]) --> ErrType{Error<br/>Type?}
-        
+
         ErrType -->|HTTPException| HTTPErr[Return HTTP<br/>Error Code]
         HTTPErr --> HTTP401{401?}
         HTTP401 -->|Yes| AddAuth[Add WWW-Authenticate<br/>Bearer Header]
@@ -3411,16 +3411,16 @@ flowchart TB
         HTTP404 -->|No| HTTP400{400?}
         HTTP400 -->|Yes| BadRequest[Return<br/>Bad Request Detail]
         HTTP400 -->|No| OtherHTTP[Return<br/>Error Detail]
-        
+
         ErrType -->|Rate Limit| RateErr[429 Too Many<br/>Requests]
         RateErr --> AddRetry[Add Retry-After<br/>Header]
-        
+
         ErrType -->|Validation| ValErr[422 Validation<br/>Error]
         ValErr --> PydanticDetail[Return Pydantic<br/>Error Details]
-        
+
         ErrType -->|Unexpected| UnexpErr[Log Exception]
         UnexpErr --> Return500[500 Internal<br/>Server Error]
-        
+
         AddAuth --> ErrEnd([Error Response<br/>Sent])
         NotFound --> ErrEnd
         BadRequest --> ErrEnd
@@ -3437,21 +3437,21 @@ flowchart TB
 flowchart TB
     subgraph AuthErrors["Authentication Error Scenarios"]
         AuthErrStart([Auth Error<br/>Detected]) --> AuthErrType{Error<br/>Scenario}
-        
+
         AuthErrType -->|Invalid Credentials| InvalidCred["401: Incorrect<br/>username or password"]
         AuthErrType -->|Expired Token| ExpiredTok["401: Token<br/>has expired"]
         AuthErrType -->|Malformed Token| MalformedTok["401: Could not<br/>validate credentials"]
         AuthErrType -->|Missing Token| MissingTok["401: Not<br/>authenticated"]
         AuthErrType -->|Disabled Account| DisabledAcc["400: Inactive<br/>user"]
         AuthErrType -->|Rate Limited| RateLimited["429: Too many<br/>requests"]
-        
+
         InvalidCred --> RetryPrompt[Prompt User<br/>to Retry]
         ExpiredTok --> ReAuth[Redirect to<br/>Re-authenticate]
         MalformedTok --> ReAuth
         MissingTok --> LoginPrompt[Show Login<br/>Form]
         DisabledAcc --> ContactAdmin[Contact<br/>Administrator]
         RateLimited --> WaitRetry[Wait and<br/>Retry]
-        
+
         RetryPrompt --> AuthErrEnd([Error<br/>Handled])
         ReAuth --> AuthErrEnd
         LoginPrompt --> AuthErrEnd
@@ -3466,21 +3466,21 @@ flowchart TB
 flowchart TB
     subgraph GraphErrors["Graph Initialization Error Handling"]
         GraphErrStart([Graph Init<br/>Error]) --> ErrSource{Error<br/>Source}
-        
+
         ErrSource -->|Cache Load Failed| CacheErr[Log Cache<br/>Error]
         CacheErr --> FallbackFetch[Proceed to<br/>Standard Fetch]
-        
+
         ErrSource -->|Network Disabled| NetErr[Network<br/>Unavailable]
         NetErr --> UseSample[Use Sample<br/>Data Fallback]
-        
+
         ErrSource -->|Yahoo Finance Error| YFErr[Log Yahoo<br/>Finance Error]
         YFErr --> CheckPartial{Partial Data<br/>Retrieved?}
         CheckPartial -->|Yes| UsePartial[Use Available<br/>Data]
         CheckPartial -->|No| UseSample
-        
+
         ErrSource -->|Critical Failure| CritErr[Log Critical<br/>Error]
         CritErr --> AbortStartup[Abort<br/>Application Startup]
-        
+
         FallbackFetch --> GraphReady([Graph<br/>Initialized])
         UseSample --> GraphReady
         UsePartial --> GraphReady
@@ -3494,15 +3494,15 @@ flowchart TB
 flowchart TB
     subgraph FrontendErrors["Frontend Error Recovery"]
         FEStart([Frontend Error<br/>Detected]) --> ErrCategory{Error<br/>Category}
-        
+
         ErrCategory -->|Network Error| NetError[Set Error:<br/>Network Unavailable]
         ErrCategory -->|API Error| APIError[Set Error:<br/>API Error Message]
         ErrCategory -->|Render Error| RenderError[Set Error:<br/>Display Error]
-        
+
         NetError --> ShowRetryUI[Show Retry<br/>Button]
         APIError --> ShowRetryUI
         RenderError --> ShowRefresh[Show Refresh<br/>Page Option]
-        
+
         ShowRetryUI --> UserRetries{User<br/>Retries?}
         UserRetries -->|Yes| ClearError[Clear Error<br/>State]
         ClearError --> ReloadData[Reload<br/>Data]
@@ -3510,7 +3510,7 @@ flowchart TB
         Success -->|Yes| Normal([Normal<br/>Operation])
         Success -->|No| NetError
         UserRetries -->|No| WaitUser([Wait for<br/>User])
-        
+
         ShowRefresh --> UserRefresh{User<br/>Refreshes?}
         UserRefresh -->|Yes| PageReload[Full Page<br/>Reload]
         PageReload --> Normal
@@ -3530,12 +3530,12 @@ sequenceDiagram
     participant CORS as CORS Middleware
     participant FastAPI as FastAPI Backend
     participant Graph as Graph Engine
-    
+
     User->>NextJS: Navigate to Page
     NextJS->>Axios: api.getMetrics()
     Axios->>CORS: GET /api/metrics
     CORS->>CORS: Validate Origin
-    
+
     alt Origin Valid
         CORS->>FastAPI: Forward Request
         FastAPI->>Graph: get_graph()
@@ -3562,18 +3562,18 @@ sequenceDiagram
     participant Auth as Auth Module
     participant UserRepo as User Repository
     participant JWT as JWT Library
-    
+
     Client->>RateLimiter: POST /token
     RateLimiter->>RateLimiter: Check 5/min limit
-    
+
     alt Rate Limit OK
         RateLimiter->>Auth: Process Login
         Auth->>UserRepo: get_user(username)
         UserRepo-->>Auth: User or None
-        
+
         alt User Found
             Auth->>Auth: verify_password(plain, hashed)
-            
+
             alt Password Valid
                 Auth->>JWT: encode(payload, SECRET_KEY, HS256)
                 JWT-->>Auth: Access Token
@@ -3598,10 +3598,10 @@ sequenceDiagram
     participant Cache as File Cache
     participant YF as Yahoo Finance
     participant Graph as Graph Engine
-    
+
     App->>Fetcher: create_real_database()
     Fetcher->>Cache: Check cache file
-    
+
     alt Cache Exists
         Cache-->>Fetcher: Cached JSON
         Fetcher->>Graph: Load from cache
@@ -3615,15 +3615,15 @@ sequenceDiagram
         YF-->>Fetcher: Commodity Data
         Fetcher->>YF: Download EURUSD=X, GBPUSD=X, JPYUSD=X
         YF-->>Fetcher: Currency Data
-        
+
         Fetcher->>Graph: add_asset() × N
         Fetcher->>Graph: add_regulatory_event() × N
         Fetcher->>Graph: build_relationships()
-        
+
         Fetcher->>Cache: Write temp file
         Cache->>Cache: Atomic rename
         Cache-->>Fetcher: Cache saved
-        
+
         Graph-->>App: Fresh Graph
     end
 ```
@@ -3638,7 +3638,7 @@ sequenceDiagram
     participant Graph as Graph Engine
     participant Viz as Visualization Module
     participant Plotly as Plotly Renderer
-    
+
     User->>UI: Request 3D Visualization
     UI->>API: GET /api/visualization
     API->>Graph: get_graph()
@@ -3663,28 +3663,28 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Uninitialized: Application Start
-    
+
     Uninitialized --> Initializing: get_graph() called
     Initializing --> Loading: Acquire Lock
-    
+
     Loading --> LoadingFromCache: Cache path set
     Loading --> LoadingFromNetwork: Real data enabled
     Loading --> LoadingFromSample: Default mode
-    
+
     LoadingFromCache --> Initialized: Cache loaded
     LoadingFromCache --> LoadingFromNetwork: Cache invalid
-    
+
     LoadingFromNetwork --> Initialized: Data fetched
     LoadingFromNetwork --> LoadingFromSample: Network error
-    
+
     LoadingFromSample --> Initialized: Sample created
-    
+
     Initialized --> Ready: Release Lock
     Ready --> Ready: Serving requests
-    
+
     Ready --> Resetting: reset_graph() called
     Resetting --> Uninitialized: Graph cleared
-    
+
     Ready --> FactoryOverride: set_graph_factory()
     FactoryOverride --> Resetting: Factory set
 ```
@@ -3694,29 +3694,29 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     [*] --> Received: HTTP Request
-    
+
     Received --> ValidatingCORS: Check origin
     ValidatingCORS --> CORSRejected: Invalid origin
     ValidatingCORS --> CheckingRateLimit: Valid origin
-    
+
     CORSRejected --> [*]: 403 Forbidden
-    
+
     CheckingRateLimit --> RateLimited: Limit exceeded
     CheckingRateLimit --> CheckingAuth: Within limit
-    
+
     RateLimited --> [*]: 429 Too Many Requests
-    
+
     CheckingAuth --> Authenticated: Valid token
     CheckingAuth --> AuthRequired: Missing/invalid token
     CheckingAuth --> Processing: No auth required
-    
+
     AuthRequired --> [*]: 401 Unauthorized
-    
+
     Authenticated --> Processing: User validated
-    
+
     Processing --> Completed: Success
     Processing --> Failed: Exception
-    
+
     Completed --> [*]: 2xx Response
     Failed --> [*]: 4xx/5xx Response
 ```
@@ -3726,17 +3726,17 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     [*] --> Anonymous: Visit application
-    
+
     Anonymous --> Authenticating: Submit credentials
     Authenticating --> Authenticated: Valid credentials
     Authenticating --> Anonymous: Invalid credentials
-    
+
     Authenticated --> TokenExpired: 30 min elapsed
     TokenExpired --> Authenticating: Re-authenticate
     TokenExpired --> Anonymous: Session ended
-    
+
     Authenticated --> Anonymous: Logout
-    
+
     Authenticated --> Accessing: Request protected resource
     Accessing --> Authenticated: Request complete
 ```
@@ -3784,17 +3784,17 @@ flowchart LR
 flowchart TB
     subgraph ValidationFlow["Validation Flow"]
         ValStart([Data<br/>Input]) --> DomainVal{Domain<br/>Validation}
-        
+
         DomainVal -->|Asset| AssetRules["Asset Rules:<br/>• id non-empty<br/>• symbol non-empty<br/>• name non-empty<br/>• price ≥ 0<br/>• currency 3-letter ISO"]
-        
+
         DomainVal -->|RegulatoryEvent| EventRules["Event Rules:<br/>• impact_score in [-1, 1]<br/>• date ISO 8601<br/>• id non-empty"]
-        
+
         AssetRules --> ClassSpecific{Asset<br/>Class?}
         ClassSpecific -->|Equity| EquityRules["Equity Rules:<br/>• P/E ratio numeric<br/>• dividend_yield numeric"]
         ClassSpecific -->|FixedIncome| BondRules["Bond Rules:<br/>• maturity_date valid<br/>• coupon_rate numeric<br/>• credit_rating valid"]
         ClassSpecific -->|Commodity| CommodityRules["Commodity Rules:<br/>• contract_size positive<br/>• delivery_date valid"]
         ClassSpecific -->|Currency| CurrencyRules["Currency Rules:<br/>• exchange_rate positive<br/>• country non-empty"]
-        
+
         EventRules --> ValEnd([Validation<br/>Complete])
         EquityRules --> ValEnd
         BondRules --> ValEnd
@@ -3862,11 +3862,11 @@ flowchart TB
         Request1["Request 1"] --> Lock["graph_lock<br/>Threading Lock"]
         Request2["Request 2"] --> Lock
         Request3["Request 3"] --> Lock
-        
+
         Lock --> GraphAccess["Graph Singleton<br/>Access"]
         GraphAccess --> ReadOps["Read Operations<br/>(Concurrent OK)"]
         GraphAccess --> WriteOps["Write Operations<br/>(Serialized)"]
-        
+
         ReadOps --> Response1["Response 1"]
         ReadOps --> Response2["Response 2"]
         WriteOps --> Response3["Response 3"]
@@ -3932,27 +3932,27 @@ flowchart TB
         Users[End Users]
         Vercel[Vercel Platform]
     end
-    
+
     subgraph SystemBoundary[Financial Asset Relationship Database]
         subgraph Presentation[Presentation Layer]
             NextJS[Next.js Frontend<br/>Port 3000]
             Gradio[Gradio UI<br/>Port 7860]
         end
-        
+
         subgraph API[API Layer]
             FastAPI[FastAPI Backend<br/>Port 8000]
             Auth[JWT Auth Module]
             RateLimit[Rate Limiter]
             CORS[CORS Middleware]
         end
-        
+
         subgraph Core[Business Logic Layer]
             Graph[Asset Graph Engine]
             Models[Domain Models]
             Viz[Visualization Module]
             Metrics[Metrics Calculator]
         end
-        
+
         subgraph Data[Data Layer]
             Sample[Sample Data Generator]
             Fetcher[Real Data Fetcher]
@@ -3960,7 +3960,7 @@ flowchart TB
             SQLite[SQLite Auth DB]
         end
     end
-    
+
     Users --> NextJS
     Users --> Gradio
     NextJS --> FastAPI
@@ -4165,7 +4165,7 @@ sequenceDiagram
     participant API as API Client
     participant Backend as FastAPI
     participant Plotly as Plotly.js
-    
+
     User->>Page: Navigate to Page
     Page->>Page: useEffect on mount
     Page->>API: getMetrics()
@@ -4286,14 +4286,14 @@ classDiagram
         +str currency
         +__post_init__()
     }
-    
+
     class Equity {
         +Optional[float] pe_ratio
         +Optional[float] dividend_yield
         +Optional[float] earnings_per_share
         +Optional[float] book_value
     }
-    
+
     class Bond {
         +Optional[float] yield_to_maturity
         +Optional[float] coupon_rate
@@ -4301,19 +4301,19 @@ classDiagram
         +Optional[str] credit_rating
         +Optional[str] issuer_id
     }
-    
+
     class Commodity {
         +Optional[float] contract_size
         +Optional[str] delivery_date
         +Optional[float] volatility
     }
-    
+
     class Currency {
         +Optional[float] exchange_rate
         +Optional[str] country
         +Optional[float] central_bank_rate
     }
-    
+
     Asset <|-- Equity
     Asset <|-- Bond
     Asset <|-- Commodity
@@ -4363,26 +4363,26 @@ flowchart LR
         NextJS[Next.js]
         Gradio[Gradio]
     end
-    
+
     subgraph API[API Layer]
         FastAPI[FastAPI]
         Auth[Auth]
         Rate[Rate Limiter]
     end
-    
+
     subgraph Business[Business Logic]
         Graph[Graph Engine]
         Viz[Visualization]
         Models[Domain Models]
     end
-    
+
     subgraph Data[Data Layer]
         Sample[Sample Data]
         Yahoo[Yahoo Finance]
         Cache[Cache]
         SQLite[SQLite]
     end
-    
+
     NextJS -->|HTTP/JSON| FastAPI
     Gradio -->|Direct Call| Graph
     FastAPI --> Rate
@@ -4565,20 +4565,20 @@ The system exposes operational metrics through the `/api/metrics` endpoint:
 flowchart TB
     subgraph ErrorHandling[Error Handling Flow]
         Error([Error Occurs]) --> ErrorType{Error Type}
-        
+
         ErrorType -->|HTTPException| HTTPHandle[Return HTTP Status]
         HTTPHandle --> Status401{401?}
         Status401 -->|Yes| AddWWW[Add WWW-Authenticate Header]
         Status401 -->|No| ReturnDetail[Return Error Detail]
         AddWWW --> ReturnDetail
-        
+
         ErrorType -->|Rate Limit| RateHandle[429 + Retry-After]
-        
+
         ErrorType -->|Validation| ValHandle[422 + Pydantic Details]
-        
+
         ErrorType -->|Unexpected| UnexpHandle[Log Exception]
         UnexpHandle --> Return500[500 Internal Error]
-        
+
         ReturnDetail --> Done([Response Sent])
         RateHandle --> Done
         ValHandle --> Done
@@ -4614,18 +4614,18 @@ sequenceDiagram
     participant Auth as Auth Module
     participant Repo as User Repository
     participant JWT as JWT Library
-    
+
     Client->>Rate: POST /token (credentials)
     Rate->>Rate: Check 5/min limit
-    
+
     alt Within Limit
         Rate->>Auth: Process Login
         Auth->>Repo: get_user(username)
         Repo-->>Auth: User or None
-        
+
         alt User Found
             Auth->>Auth: verify_password()
-            
+
             alt Password Valid
                 Auth->>Auth: Check user active
                 Auth->>JWT: encode(payload, SECRET_KEY)
@@ -4770,13 +4770,13 @@ flowchart TB
         LocalAPI[FastAPI<br/>:8000]
         LocalGradio[Gradio<br/>:7860]
     end
-    
+
     subgraph Docker[Docker Deployment]
         DockerApp[app container<br/>:7860]
         DockerVol[(Volumes)]
         DockerApp --> DockerVol
     end
-    
+
     subgraph Vercel[Vercel Serverless]
         VercelEdge[Edge Network]
         VercelLambda[Python Lambda]
@@ -4784,7 +4784,7 @@ flowchart TB
         VercelEdge --> VercelLambda
         VercelEdge --> VercelNext
     end
-    
+
     Users([Users]) --> Local
     Users --> Docker
     Users --> Vercel
@@ -4819,14 +4819,14 @@ erDiagram
         float market_cap
         string currency
     }
-    
+
     asset_relationships {
         string source_id FK
         string target_id FK
         string relationship_type
         float strength
     }
-    
+
     regulatory_events {
         string id PK
         string event_type
@@ -4834,12 +4834,12 @@ erDiagram
         string description
         float impact_score
     }
-    
+
     regulatory_event_assets {
         string event_id FK
         string asset_id FK
     }
-    
+
     assets ||--o{ asset_relationships : "source"
     assets ||--o{ asset_relationships : "target"
     assets ||--o{ regulatory_event_assets : "affected_by"
@@ -4969,21 +4969,21 @@ flowchart TB
             NextJS[Next.js Frontend<br/>Port 3000]
             GradioUI[Gradio UI<br/>Port 7860]
         end
-        
+
         subgraph APILayer[API Layer]
             FastAPIApp[FastAPI Backend<br/>Port 8000]
             AuthModule[Auth Module]
             RateLimiter[Rate Limiter]
             CORSMiddleware[CORS Middleware]
         end
-        
+
         subgraph BusinessLayer[Business Logic Layer]
             GraphEngine[Asset Graph Engine]
             DomainModels[Domain Models]
             VizModule[Visualization Module]
             MetricsCalc[Metrics Calculator]
         end
-        
+
         subgraph DataLayer[Data Layer]
             SampleGen[Sample Data Generator]
             RealFetcher[Real Data Fetcher]
@@ -4991,7 +4991,7 @@ flowchart TB
             SQLiteDB[SQLite Auth DB]
         end
     end
-    
+
     NextJS --> FastAPIApp
     GradioUI --> GraphEngine
     FastAPIApp --> CORSMiddleware
@@ -5030,38 +5030,38 @@ flowchart LR
             AuthPy[auth.py<br/>JWT Handler]
             DatabasePy[database.py<br/>User Store]
         end
-        
+
         subgraph SrcPackage[src/ Package]
             subgraph LogicPkg[logic/]
                 AssetGraph[asset_graph.py]
             end
-            
+
             subgraph ModelsPkg[models/]
                 FinModels[financial_models.py]
             end
-            
+
             subgraph DataPkg[data/]
                 RealFetch[real_data_fetcher.py]
                 SampleData[sample_database.py]
             end
-            
+
             subgraph VizPkg[visualizations/]
                 Graph3D[graph_visuals.py]
                 Metrics[metric_visuals.py]
             end
-            
+
             subgraph ReportsPkg[reports/]
                 SchemaRpt[schema_report.py]
             end
         end
-        
+
         subgraph FrontendPkg[frontend/ Package]
             NextApp[Next.js Application]
             Components[React Components]
             APIClient[Axios API Client]
         end
     end
-    
+
     APIPackage --> SrcPackage
     FrontendPkg --> APIPackage
 ```
@@ -5109,25 +5109,25 @@ The system uses a thread-safe singleton pattern for the graph engine instead of 
 flowchart TB
     subgraph SingletonPattern[Thread-Safe Singleton Graph Access]
         APIRequest([API Request<br/>Arrives]) --> CheckGlobal{Global graph<br/>instance exists?}
-        
+
         CheckGlobal -->|Yes| ReturnExisting[Return Existing<br/>Graph Instance]
         CheckGlobal -->|No| AcquireLock[Acquire<br/>threading.Lock]
-        
+
         AcquireLock --> DoubleCheck{Double-check<br/>inside lock}
         DoubleCheck -->|Created by<br/>another thread| ReleaseReturn[Release Lock<br/>Return Graph]
         DoubleCheck -->|Still None| InitGraph[Initialize<br/>New Graph]
-        
+
         InitGraph --> LoadCache{Cache<br/>available?}
         LoadCache -->|Yes| LoadFromCache[Load from<br/>JSON Cache]
         LoadCache -->|No| FetchData[Fetch from<br/>Data Source]
-        
+
         FetchData --> BuildRelations[Build<br/>Relationships]
         LoadFromCache --> SetGlobal[Set Global<br/>Reference]
         BuildRelations --> SetGlobal
-        
+
         SetGlobal --> ReleaseLock[Release Lock]
         ReleaseLock --> ReturnNew[Return New<br/>Graph Instance]
-        
+
         ReturnExisting --> GraphReady([Graph Ready<br/>for Use])
         ReleaseReturn --> GraphReady
         ReturnNew --> GraphReady
@@ -5153,18 +5153,18 @@ Although not a distributed system, the monolith implements resilience patterns f
 flowchart TB
     subgraph GracefulDegradation[Graceful Degradation Flow]
         StartInit([Initialize<br/>Graph]) --> TryCache{Try Load<br/>from Cache}
-        
+
         TryCache -->|Success| CacheLoaded[Use Cached<br/>Graph Data]
         TryCache -->|Failure| LogCacheErr[Log Cache<br/>Error]
-        
+
         LogCacheErr --> TryNetwork{Network<br/>Available?}
         TryNetwork -->|Yes| TryYahoo{Fetch from<br/>Yahoo Finance}
         TryNetwork -->|No| UseSample1[Fall Back to<br/>Sample Data]
-        
+
         TryYahoo -->|Success| UseRealData[Use Real<br/>Market Data]
         TryYahoo -->|Partial| UsePartial[Use Available<br/>Partial Data]
         TryYahoo -->|Failure| UseSample2[Fall Back to<br/>Sample Data]
-        
+
         CacheLoaded --> GraphReady([Graph<br/>Initialized])
         UseRealData --> SaveCache[Save to<br/>Cache]
         UsePartial --> SaveCache
@@ -5281,13 +5281,13 @@ flowchart TB
             LocalAPI[FastAPI<br/>:8000]
             LocalGradio[Gradio<br/>:7860]
         end
-        
+
         subgraph DockerDeploy[Docker Deployment]
             DockerContainer[Single Container<br/>:7860]
             DockerVolumes[(Mounted<br/>Volumes)]
             DockerContainer --> DockerVolumes
         end
-        
+
         subgraph VercelDeploy[Vercel Serverless]
             VercelEdge[Edge<br/>Network]
             VercelLambda[Python<br/>Lambda]
@@ -5296,7 +5296,7 @@ flowchart TB
             VercelEdge --> VercelSSR
         end
     end
-    
+
     Users([End Users]) --> LocalDev
     Users --> DockerDeploy
     Users --> VercelDeploy
@@ -5413,12 +5413,12 @@ flowchart TB
             GraphSingleton[Thread-Safe<br/>Singleton Pattern]
             InMemoryGraph --> GraphSingleton
         end
-        
+
         subgraph PersistenceLayer[Persistence Layer]
             subgraph AuthDB[Authentication Database]
                 SQLiteAuth[(SQLite<br/>user_credentials)]
             end
-            
+
             subgraph AssetDB[Asset Persistence]
                 SQLAORM[SQLAlchemy ORM]
                 PostgreSQL[(PostgreSQL<br/>Production)]
@@ -5426,13 +5426,13 @@ flowchart TB
                 SQLAORM --> PostgreSQL
                 SQLAORM --> SQLiteDev
             end
-            
+
             subgraph CacheLayer[Cache Layer]
                 JSONCache[(JSON Files<br/>Atomic Writes)]
             end
         end
     end
-    
+
     GraphSingleton --> SQLAORM
     GraphSingleton --> JSONCache
     AuthModule[Auth Module] --> SQLiteAuth
@@ -5577,7 +5577,7 @@ erDiagram
         TEXT credit_rating "NULLABLE - Bond"
         TEXT issuer_id "NULLABLE - Bond FK"
     }
-    
+
     asset_relationships {
         INTEGER id PK "AUTOINCREMENT"
         TEXT source_asset_id FK "NOT NULL"
@@ -5586,7 +5586,7 @@ erDiagram
         REAL strength "NOT NULL [0-1]"
         INTEGER bidirectional "DEFAULT 0"
     }
-    
+
     regulatory_events {
         TEXT id PK "Unique identifier"
         TEXT asset_id FK "Primary affected"
@@ -5595,13 +5595,13 @@ erDiagram
         TEXT description "NOT NULL"
         REAL impact_score "[-1, 1]"
     }
-    
+
     regulatory_event_assets {
         INTEGER id PK "AUTOINCREMENT"
         TEXT event_id FK "NOT NULL"
         TEXT asset_id FK "NOT NULL"
     }
-    
+
     user_credentials {
         INTEGER id PK "AUTOINCREMENT"
         TEXT username UK "NOT NULL"
@@ -5610,7 +5610,7 @@ erDiagram
         TEXT hashed_password "NOT NULL"
         INTEGER disabled "DEFAULT 0"
     }
-    
+
     assets ||--o{ asset_relationships : "source_asset_id"
     assets ||--o{ asset_relationships : "target_asset_id"
     assets ||--o{ regulatory_events : "primary_asset"
@@ -5677,32 +5677,32 @@ flowchart TB
         YahooFinance[Yahoo Finance API]
         SampleData[Sample Data Generator]
     end
-    
+
     subgraph DataIngestion[Data Ingestion Layer]
         RealFetcher[RealDataFetcher<br/>src/data/real_data_fetcher.py]
         SampleGen[Sample Database<br/>src/data/sample_data.py]
     end
-    
+
     subgraph CacheLayer[Cache Layer]
         JSONCache[(JSON File Cache<br/>Atomic Writes)]
     end
-    
+
     subgraph GraphLayer[Graph Layer]
         InMemoryGraph[AssetRelationshipGraph<br/>src/logic/asset_graph.py]
         RelationshipBuilder[Relationship Builder<br/>Sector/Bond/Currency Links]
     end
-    
+
     subgraph PersistenceLayer[Persistence Layer]
         Repository[AssetGraphRepository<br/>src/data/repository.py]
         SQLAlchemyDB[(SQLAlchemy ORM<br/>PostgreSQL/SQLite)]
         SQLiteAuth[(SQLite Auth<br/>user_credentials)]
     end
-    
+
     subgraph APILayer[API Layer]
         FastAPI[FastAPI Endpoints<br/>api/main.py]
         AuthModule[Auth Module<br/>api/auth.py]
     end
-    
+
     YahooFinance --> RealFetcher
     SampleData --> SampleGen
     RealFetcher --> JSONCache
@@ -5826,7 +5826,7 @@ flowchart LR
         CloseHandle --> AtomicRename[os.replace()<br/>Atomic Rename]
         AtomicRename --> Complete([Write Complete])
     end
-    
+
     subgraph FailurePath[Failure Recovery]
         WriteJSON -.->|Exception| CleanupTemp[Delete Temp File]
         FlushSync -.->|Exception| CleanupTemp
@@ -5875,19 +5875,19 @@ flowchart TB
         InMemoryGraph[In-Memory Graph]
         SQLiteAuth[(SQLite Auth)]
         JSONCache[(JSON Cache)]
-        
+
         SingleProcess --> InMemoryGraph
         SingleProcess --> SQLiteAuth
         SingleProcess --> JSONCache
     end
-    
+
     subgraph FutureScaling[Future Scaling Path]
         LoadBalancer[Load Balancer]
         Instance1[Instance 1]
         Instance2[Instance 2]
         SharedDB[(PostgreSQL<br/>Shared Database)]
         DistCache[(Redis Cache)]
-        
+
         LoadBalancer --> Instance1
         LoadBalancer --> Instance2
         Instance1 --> SharedDB
@@ -5895,7 +5895,7 @@ flowchart TB
         Instance1 --> DistCache
         Instance2 --> DistCache
     end
-    
+
     CurrentArchitecture -.->|Migration Path| FutureScaling
 ```
 
@@ -5936,22 +5936,22 @@ flowchart TB
 flowchart TB
     subgraph DisasterRecovery[Disaster Recovery Flow]
         Failure([System Failure]) --> DetectType{Failure Type}
-        
+
         DetectType -->|Graph Corruption| ClearGraph[Clear In-Memory<br/>Graph]
         DetectType -->|Cache Corruption| DeleteCache[Delete Cache<br/>File]
         DetectType -->|Database Loss| RestoreBackup[Restore from<br/>Backup]
         DetectType -->|Full System| FullRestore[Full System<br/>Recovery]
-        
+
         ClearGraph --> ReinitGraph[Reinitialize<br/>Graph]
         DeleteCache --> FreshFetch[Fresh Data<br/>Fetch]
         RestoreBackup --> VerifyData[Verify Data<br/>Integrity]
         FullRestore --> DeployNew[Deploy New<br/>Instance]
-        
+
         ReinitGraph --> CheckCache{Cache<br/>Available?}
         CheckCache -->|Yes| LoadCache[Load from<br/>Cache]
         CheckCache -->|No| FreshFetch
         FreshFetch --> BuildGraph[Build Graph<br/>from Source]
-        
+
         LoadCache --> Operational([System<br/>Operational])
         BuildGraph --> Operational
         VerifyData --> Operational
@@ -6068,11 +6068,11 @@ flowchart TB
         StartOp([Start Operation]) --> AcquireSession[Acquire<br/>Session]
         AcquireSession --> BeginTx[Begin<br/>Transaction]
         BeginTx --> ExecuteOps[Execute<br/>Operations]
-        
+
         ExecuteOps --> CheckSuccess{Success?}
         CheckSuccess -->|Yes| CommitTx[Commit<br/>Transaction]
         CheckSuccess -->|No| RollbackTx[Rollback<br/>Transaction]
-        
+
         CommitTx --> CloseSession[Close<br/>Session]
         RollbackTx --> CloseSession
         CloseSession --> EndOp([End Operation])
@@ -6245,7 +6245,7 @@ flowchart TB
         Client([API Client]) --> HTTPS[HTTPS/TLS Layer]
         HTTPS --> ASGI[Uvicorn ASGI Server]
         ASGI --> Middleware[FastAPI Middleware Stack]
-        
+
         subgraph MiddlewareChain[Middleware Processing]
             CORS[CORS Middleware]
             RateLimit[Rate Limiter]
@@ -6253,7 +6253,7 @@ flowchart TB
             CORS --> RateLimit
             RateLimit --> Auth
         end
-        
+
         Middleware --> MiddlewareChain
         Auth --> Router[FastAPI Router]
         Router --> Pydantic[Pydantic Validation]
@@ -6299,18 +6299,18 @@ sequenceDiagram
     participant Auth as Auth Module
     participant UserRepo as User Repository
     participant JWT as JWT Library
-    
+
     Client->>RateLimiter: POST /token (credentials)
     RateLimiter->>RateLimiter: Check 5/min limit
-    
+
     alt Rate Limit OK
         RateLimiter->>Auth: Process Login
         Auth->>UserRepo: get_user(username)
         UserRepo-->>Auth: User or None
-        
+
         alt User Found
             Auth->>Auth: verify_password(plain, hashed)
-            
+
             alt Password Valid
                 Auth->>JWT: encode(payload, SECRET_KEY, HS256)
                 JWT-->>Auth: Access Token
@@ -6429,7 +6429,7 @@ flowchart TB
         BuildRelations --> GraphReady
         GraphReady --> LogStartup[Log Startup Complete]
         LogStartup --> Ready([Accept Requests])
-        
+
         Ready --> Shutdown([Shutdown Signal])
         Shutdown --> LogShutdown[Log Shutdown]
         LogShutdown --> Exit([Application Exit])
@@ -6453,10 +6453,10 @@ sequenceDiagram
     participant Cache as File Cache
     participant YF as Yahoo Finance
     participant Graph as Graph Engine
-    
+
     App->>Fetcher: create_real_database()
     Fetcher->>Cache: Check cache file
-    
+
     alt Cache Exists
         Cache-->>Fetcher: Cached JSON
         Fetcher->>Graph: Load from cache
@@ -6470,15 +6470,15 @@ sequenceDiagram
         YF-->>Fetcher: Commodity Data
         Fetcher->>YF: Download EURUSD=X, GBPUSD=X, JPYUSD=X
         YF-->>Fetcher: Currency Data
-        
+
         Fetcher->>Graph: add_asset() × N
         Fetcher->>Graph: add_regulatory_event() × N
         Fetcher->>Graph: build_relationships()
-        
+
         Fetcher->>Cache: Write temp file
         Cache->>Cache: Atomic rename
         Cache-->>Fetcher: Cache saved
-        
+
         Graph-->>App: Fresh Graph
     end
 ```
@@ -6514,20 +6514,20 @@ The API implements comprehensive error categorization with appropriate HTTP stat
 flowchart TB
     subgraph ErrorHandling[Error Handling Architecture]
         Error([Error Occurs]) --> ErrorType{Error Type}
-        
+
         ErrorType -->|HTTPException| HTTPHandle[Return HTTP Status]
         HTTPHandle --> Status401{401?}
         Status401 -->|Yes| AddWWW[Add WWW-Authenticate Header]
         Status401 -->|No| ReturnDetail[Return Error Detail]
         AddWWW --> ReturnDetail
-        
+
         ErrorType -->|Rate Limit| RateHandle[429 + Retry-After]
-        
+
         ErrorType -->|Validation| ValHandle[422 + Pydantic Details]
-        
+
         ErrorType -->|Unexpected| UnexpHandle[Log Exception]
         UnexpHandle --> Return500[500 Internal Error]
-        
+
         ReturnDetail --> Done([Response Sent])
         RateHandle --> Done
         ValHandle --> Done
@@ -6587,15 +6587,15 @@ flowchart TB
         CheckEnabled -->|Yes| CheckCache{Cache<br/>Valid?}
         CheckCache -->|Yes| LoadCache[Load from Cache]
         CheckCache -->|No| FetchAPI[Fetch from Yahoo Finance]
-        
+
         FetchAPI --> HandleResponse{Response<br/>OK?}
         HandleResponse -->|Yes| ProcessData[Process Market Data]
         HandleResponse -->|Partial| PartialData[Use Available Data]
         HandleResponse -->|No| FallbackSample[Fallback to Sample]
-        
+
         ProcessData --> WriteCache[Write to Cache]
         WriteCache --> AtomicRename[Atomic File Rename]
-        
+
         LoadCache --> ReturnData([Return Data])
         AtomicRename --> ReturnData
         PartialData --> ReturnData
@@ -6655,12 +6655,12 @@ sequenceDiagram
     participant CORS as CORS Middleware
     participant FastAPI as FastAPI Backend
     participant Graph as Graph Engine
-    
+
     User->>NextJS: Navigate to Page
     NextJS->>Axios: api.getMetrics()
     Axios->>CORS: GET /api/metrics
     CORS->>CORS: Validate Origin
-    
+
     alt Origin Valid
         CORS->>FastAPI: Forward Request
         FastAPI->>Graph: get_graph()
@@ -6732,13 +6732,13 @@ flowchart TB
             LocalAPI[FastAPI<br/>:8000]
             LocalGradio[Gradio<br/>:7860]
         end
-        
+
         subgraph DockerDeploy[Docker Deployment]
             DockerApp[Single Container<br/>:7860]
             DockerVol[(Mounted Volumes)]
             DockerApp --> DockerVol
         end
-        
+
         subgraph VercelDeploy[Vercel Serverless]
             VercelEdge[Edge Network]
             VercelLambda[Python Lambda]
@@ -6747,7 +6747,7 @@ flowchart TB
             VercelEdge --> VercelNext
         end
     end
-    
+
     Users([End Users]) --> LocalDev
     Users --> DockerDeploy
     Users --> VercelDeploy
@@ -6822,32 +6822,32 @@ flowchart TB
         TLS --> Load[Load Balancer]
         Load --> ASGI[Uvicorn ASGI]
         ASGI --> CORS[CORS Validation]
-        
+
         CORS --> CORSCheck{Origin<br/>Valid?}
         CORSCheck -->|No| Reject403[403 Forbidden]
         CORSCheck -->|Yes| RateLimit[Rate Limit Check]
-        
+
         RateLimit --> RateLimitCheck{Within<br/>Limit?}
         RateLimitCheck -->|No| Reject429[429 Too Many]
         RateLimitCheck -->|Yes| AuthCheck{Auth<br/>Required?}
-        
+
         AuthCheck -->|Yes| ValidateJWT[Validate JWT]
         ValidateJWT --> JWTValid{Token<br/>Valid?}
         JWTValid -->|No| Reject401[401 Unauthorized]
         JWTValid -->|Yes| Process[Process Request]
-        
+
         AuthCheck -->|No| Process
-        
+
         Process --> Validate[Pydantic Validation]
         Validate --> ValidationOK{Valid<br/>Input?}
         ValidationOK -->|No| Reject422[422 Validation Error]
         ValidationOK -->|Yes| Handler[Endpoint Handler]
-        
+
         Handler --> Graph[Graph Engine]
         Graph --> Serialize[Serialize Response]
         Serialize --> AddHeaders[Add Response Headers]
         AddHeaders --> Response([JSON Response])
-        
+
         Reject403 --> ErrorResponse([Error Response])
         Reject429 --> ErrorResponse
         Reject401 --> ErrorResponse
@@ -6865,7 +6865,7 @@ sequenceDiagram
     participant Graph as Graph Engine
     participant Viz as Visualization Module
     participant Plotly as Plotly Renderer
-    
+
     User->>UI: Request 3D Visualization
     UI->>API: GET /api/visualization
     API->>Graph: get_graph()
@@ -6939,7 +6939,7 @@ The integration architecture is designed to meet specific service level objectiv
 #### Timeout Configuration
 
 | Component | Timeout | Purpose |
-|-----------|---------|---------| 
+|-----------|---------|---------|
 | JWT Token | 30 minutes | Session expiration |
 | Rate Limit Window | 1 minute | Request counting period |
 | HTTP Client | 30 seconds | API request timeout |
@@ -7050,24 +7050,24 @@ flowchart TB
         Internet([Internet<br/>Clients])
         Vercel[Vercel Edge<br/>TLS Termination]
     end
-    
+
     subgraph DMZ[DMZ - Semi-Trusted]
         LB[Load Balancer<br/>Rate Limiting]
         CORS[CORS<br/>Middleware]
     end
-    
+
     subgraph ApplicationZone[Application Zone - Protected]
         Auth[Authentication<br/>Module]
         API[FastAPI<br/>Endpoints]
         RateLimit[Rate<br/>Limiter]
     end
-    
+
     subgraph DataZone[Data Zone - Restricted]
         Graph[Graph<br/>Engine]
         SQLite[(SQLite<br/>Auth DB)]
         Cache[(JSON<br/>Cache)]
     end
-    
+
     Internet --> Vercel
     Vercel --> LB
     LB --> CORS
@@ -7158,21 +7158,21 @@ sequenceDiagram
     participant Auth as Auth Module
     participant Repo as User Repository
     participant JWT as JWT Library
-    
+
     Client->>Rate: POST /token (credentials)
     Rate->>Rate: Check 5/min limit
-    
+
     alt Within Rate Limit
         Rate->>Auth: Process Login Request
         Auth->>Repo: get_user(username)
         Repo-->>Auth: User Object or None
-        
+
         alt User Found
             Auth->>Auth: verify_password()
-            
+
             alt Password Valid
                 Auth->>Auth: Check user.disabled
-                
+
                 alt User Active
                     Auth->>JWT: encode(payload, SECRET_KEY, HS256)
                     JWT-->>Auth: Access Token
@@ -7247,25 +7247,25 @@ The `get_current_user` dependency implements a multi-step validation pipeline:
 flowchart TB
     subgraph ValidationPipeline[Protected Endpoint Validation]
         Request([Incoming<br/>Request]) --> ExtractToken{Extract Bearer<br/>Token from Header}
-        
+
         ExtractToken -->|Missing| NoAuth[401: Not authenticated<br/>WWW-Authenticate: Bearer]
         ExtractToken -->|Present| DecodeJWT{Decode JWT with<br/>SECRET_KEY + HS256}
-        
+
         DecodeJWT -->|Decode Error| InvalidToken[401: Could not<br/>validate credentials]
         DecodeJWT -->|Success| CheckExpiry{Check Token<br/>Expiration}
-        
+
         CheckExpiry -->|Expired| ExpiredToken[401: Token<br/>has expired]
         CheckExpiry -->|Valid| ExtractSub{Extract username<br/>from 'sub' claim}
-        
+
         ExtractSub -->|Missing| InvalidPayload[401: Could not<br/>validate credentials]
         ExtractSub -->|Present| LookupUser{Lookup User<br/>in Repository}
-        
+
         LookupUser -->|Not Found| UserNotFound[401: Could not<br/>validate credentials]
         LookupUser -->|Found| CheckActive{User<br/>Active?}
-        
+
         CheckActive -->|Disabled| InactiveUser[400: Inactive user]
         CheckActive -->|Active| Authorized([Request<br/>Authorized])
-        
+
         NoAuth --> ErrorResponse([Error Response])
         InvalidToken --> ErrorResponse
         ExpiredToken --> ErrorResponse
@@ -7406,15 +7406,15 @@ The system implements three layers of input validation:
 flowchart TB
     subgraph ValidationLayers[Multi-Layer Input Validation]
         Input([External Input]) --> Layer1{Layer 1:<br/>API Validation}
-        
+
         Layer1 -->|Pydantic Models| PydanticCheck[Type Enforcement<br/>Format Validation]
         PydanticCheck -->|Invalid| Reject422[422 Validation Error]
         PydanticCheck -->|Valid| Layer2{Layer 2:<br/>Domain Validation}
-        
+
         Layer2 -->|Dataclass __post_init__| DomainCheck[Business Rule<br/>Validation]
         DomainCheck -->|Invalid| RejectValue[ValueError Exception]
         DomainCheck -->|Valid| Layer3{Layer 3:<br/>Database Constraints}
-        
+
         Layer3 -->|SQLite/PostgreSQL| DBCheck[NOT NULL<br/>UNIQUE<br/>FOREIGN KEY]
         DBCheck -->|Invalid| RejectDB[Database Error]
         DBCheck -->|Valid| Success([Data Accepted])
@@ -7653,26 +7653,26 @@ flowchart TB
             TLS[TLS/HTTPS<br/>Termination]
             EdgeCORS[CORS<br/>Validation]
         end
-        
+
         subgraph ApplicationSecurity[Application Security Layer]
             RateLimit[Rate<br/>Limiting]
             JWTAuth[JWT<br/>Authentication]
             InputVal[Input<br/>Validation]
         end
-        
+
         subgraph DataSecurity[Data Security Layer]
             PassHash[Password<br/>Hashing]
             ParamQuery[Parameterized<br/>Queries]
             SecretMgmt[Secrets<br/>Management]
         end
-        
+
         subgraph InfrastructureSecurity[Infrastructure Security]
             Container[Container<br/>Hardening]
             CICD[CI/CD<br/>Scanning]
             AuditLog[Audit<br/>Logging]
         end
     end
-    
+
     Client([Client]) --> TLS
     TLS --> EdgeCORS
     EdgeCORS --> RateLimit
@@ -7681,7 +7681,7 @@ flowchart TB
     InputVal --> PassHash
     PassHash --> ParamQuery
     ParamQuery --> SecretMgmt
-    
+
     Container -.-> ApplicationSecurity
     CICD -.-> DataSecurity
     AuditLog -.-> ApplicationSecurity
@@ -7760,37 +7760,37 @@ flowchart TB
             Gradio[Gradio UI<br/>Port 7860]
             NextJS[Next.js Frontend<br/>Port 3000]
         end
-        
+
         subgraph MonitoringEndpoints[Monitoring Endpoints]
             HealthCheck["/api/health<br/>Health Check"]
             MetricsEndpoint["/api/metrics<br/>Graph Metrics"]
         end
-        
+
         subgraph LoggingLayer[Logging Layer]
             PythonLogging[Python Standard<br/>Logging]
             ConsoleOutput[Console/Stdout<br/>Output]
         end
-        
+
         subgraph ContainerMonitoring[Container Monitoring]
             DockerHealth[Docker HEALTHCHECK<br/>HTTP Probe]
             ComposeHealth[Docker Compose<br/>Health Config]
         end
-        
+
         subgraph CICDMonitoring[CI/CD Monitoring]
             GitHubActions[GitHub Actions<br/>Security Scans]
             CircleCI[CircleCI<br/>Test Coverage]
             Codecov[Codecov<br/>Coverage Reports]
         end
     end
-    
+
     FastAPI --> HealthCheck
     FastAPI --> MetricsEndpoint
     FastAPI --> PythonLogging
     PythonLogging --> ConsoleOutput
-    
+
     DockerHealth --> HealthCheck
     ComposeHealth --> HealthCheck
-    
+
     GitHubActions --> SecurityScan([Security<br/>Results])
     CircleCI --> CoverageRpt([Coverage<br/>Reports])
     CoverageRpt --> Codecov
@@ -7831,17 +7831,17 @@ The health check endpoint provides immediate visibility into application state a
 flowchart TB
     subgraph HealthCheckFlow[Health Check Flow]
         Orchestrator([Container<br/>Orchestrator]) --> DockerProbe{Docker<br/>HEALTHCHECK}
-        
+
         DockerProbe --> CurlRequest[HTTP GET<br/>localhost:7860/]
         CurlRequest --> CheckResponse{Response<br/>Status?}
-        
+
         CheckResponse -->|200 OK| Healthy[Container<br/>Healthy]
         CheckResponse -->|Error/Timeout| RetryCount{Retry<br/>Count < 3?}
-        
+
         RetryCount -->|Yes| WaitInterval[Wait 30s]
         WaitInterval --> CurlRequest
         RetryCount -->|No| Unhealthy[Container<br/>Unhealthy]
-        
+
         Unhealthy --> RestartPolicy{Restart<br/>Policy?}
         RestartPolicy -->|unless-stopped| Restart[Restart<br/>Container]
         Restart --> StartPeriod[Start Period<br/>Grace 40s]
@@ -7996,17 +7996,17 @@ Rate limiting provides visibility into API usage patterns and abuse prevention.
 flowchart TB
     subgraph ErrorObservability[Error Observability Flow]
         ErrorOccurs([Error<br/>Detected]) --> ErrorType{Error<br/>Category}
-        
+
         ErrorType -->|HTTPException| HTTPLog[Log HTTP<br/>Error Details]
         ErrorType -->|Rate Limit| RateLog[Log Rate<br/>Limit Hit]
         ErrorType -->|Validation| ValLog[Log Validation<br/>Error]
         ErrorType -->|Unexpected| UnexpLog[Logger.exception<br/>Full Stack Trace]
-        
+
         HTTPLog --> ReturnStatus[Return HTTP<br/>Status Code]
         RateLog --> Return429[Return 429<br/>+ Retry-After]
         ValLog --> Return422[Return 422<br/>+ Field Details]
         UnexpLog --> Return500[Return 500<br/>Generic Error]
-        
+
         ReturnStatus --> ClientResponse([Client<br/>Response])
         Return429 --> ClientResponse
         Return422 --> ClientResponse
@@ -8115,32 +8115,32 @@ flowchart TB
             Trivy[Trivy<br/>Container Scan]
             Snyk[Snyk<br/>Dependency Scan]
         end
-        
+
         subgraph CircleCISecurity[CircleCI Security]
             Safety[Safety<br/>Dependency Check]
             BanditCI[Bandit<br/>SAST]
         end
-        
+
         subgraph Results[Security Results]
             SARIF[SARIF Upload<br/>GitHub Security Tab]
             Artifacts[Scan<br/>Artifacts]
         end
-        
+
         subgraph Schedule[Scheduled Scans]
             Nightly[Nightly Security<br/>2:00 AM UTC]
             Weekly[Weekly Trivy<br/>Saturday 14:30 UTC]
         end
     end
-    
+
     CodeQL --> SARIF
     Bandit --> SARIF
     Semgrep --> SARIF
     Trivy --> SARIF
     Snyk --> SARIF
-    
+
     Safety --> Artifacts
     BanditCI --> Artifacts
-    
+
     Nightly --> CircleCISecurity
     Weekly --> Trivy
 ```
@@ -8166,18 +8166,18 @@ flowchart TB
 flowchart TB
     subgraph InitRecovery[Graph Initialization Recovery]
         StartInit([Initialize<br/>Graph]) --> TryCache{Load from<br/>Cache?}
-        
+
         TryCache -->|Success| CacheLoaded[Use Cached<br/>Data]
         TryCache -->|JSON Error| LogCacheErr[Log Cache<br/>Error]
-        
+
         LogCacheErr --> TryNetwork{Network<br/>Available?}
         TryNetwork -->|Yes| TryYahoo{Fetch Yahoo<br/>Finance?}
         TryNetwork -->|No| UseSample1[Use Sample<br/>Data]
-        
+
         TryYahoo -->|Success| UseRealData[Use Real<br/>Market Data]
         TryYahoo -->|Partial| UsePartial[Use Partial<br/>Data]
         TryYahoo -->|Failure| UseSample2[Use Sample<br/>Data]
-        
+
         CacheLoaded --> GraphReady([Graph<br/>Initialized])
         UseRealData --> SaveCache[Save to<br/>Cache]
         UsePartial --> SaveCache
@@ -8202,25 +8202,25 @@ flowchart TB
             BuildFail[Build<br/>Failure]
             CoverageDrop[Coverage<br/>Drop]
         end
-        
+
         subgraph Platforms[CI/CD Platforms]
             GitHub[GitHub<br/>Actions]
             CircleCI[CircleCI]
         end
-        
+
         subgraph Notifications[Notification Channels]
             GitHubUI[GitHub<br/>UI Alerts]
             Email[Email<br/>Notifications]
             SecurityTab[GitHub Security<br/>Tab]
         end
-        
+
         TestFail --> GitHub
         TestFail --> CircleCI
         SecurityFail --> GitHub
         BuildFail --> GitHub
         BuildFail --> CircleCI
         CoverageDrop --> GitHub
-        
+
         GitHub --> GitHubUI
         GitHub --> Email
         GitHub --> SecurityTab
@@ -8263,13 +8263,13 @@ flowchart TB
             TotalRelationships[Total Relationships<br/>Counter]
             NetworkDensity[Network Density<br/>Gauge]
         end
-        
+
         subgraph MiddleRow[Network Analysis]
             AvgDegree[Average Degree<br/>Gauge]
             MaxDegree[Maximum Degree<br/>Gauge]
             RelDensity[Relationship<br/>Density]
         end
-        
+
         subgraph BottomRow[Asset Distribution]
             AssetClasses[Asset Classes<br/>Breakdown Chart]
         end
@@ -8368,38 +8368,38 @@ flowchart TB
             PRCreated[Pull Request<br/>Created]
             Schedule[Scheduled<br/>Trigger]
         end
-        
+
         subgraph Scans[Security Scans]
             SAST[SAST<br/>Analysis]
             DependencyScan[Dependency<br/>Scan]
             ContainerScan[Container<br/>Scan]
         end
-        
+
         subgraph Analysis[Results Analysis]
             FindingsReview[Findings<br/>Review]
             SeverityClass[Severity<br/>Classification]
         end
-        
+
         subgraph Actions[Response Actions]
             BlockMerge[Block PR<br/>Merge]
             CreateIssue[Create<br/>Issue]
             AlertTeam[Alert<br/>Team]
         end
     end
-    
+
     CodePush --> SAST
     CodePush --> DependencyScan
     PRCreated --> ContainerScan
     Schedule --> SAST
     Schedule --> DependencyScan
     Schedule --> ContainerScan
-    
+
     SAST --> FindingsReview
     DependencyScan --> FindingsReview
     ContainerScan --> FindingsReview
-    
+
     FindingsReview --> SeverityClass
-    
+
     SeverityClass -->|Critical/High| BlockMerge
     SeverityClass -->|Critical/High| AlertTeam
     SeverityClass -->|Medium/Low| CreateIssue
@@ -8596,11 +8596,11 @@ flowchart TB
         subgraph SessionScope[Session Scope]
             DBEngine[Database Engine<br/>SQLite in-memory]
         end
-        
+
         subgraph ModuleScope[Module Scope]
             GraphFactory[Graph Factory<br/>Mock/Real Toggle]
         end
-        
+
         subgraph FunctionScope[Function Scope]
             TestClient[FastAPI TestClient]
             MockGraph[Mock Graph Instance]
@@ -8608,7 +8608,7 @@ flowchart TB
             DBSession[Database Session<br/>With Rollback]
         end
     end
-    
+
     DBEngine --> DBSession
     GraphFactory --> MockGraph
     MockGraph --> TestClient
@@ -8769,21 +8769,21 @@ flowchart TB
         Setup([Test Setup]) --> DBInit[Initialize Test<br/>Database]
         DBInit --> GraphInit[Initialize<br/>Graph Instance]
         GraphInit --> ClientCreate[Create FastAPI<br/>TestClient]
-        
+
         ClientCreate --> TestExec{Execute Test<br/>Scenarios}
-        
+
         TestExec --> HealthCheck[Health Check<br/>Endpoint]
         TestExec --> AssetFlow[Asset CRUD<br/>Operations]
         TestExec --> RelFlow[Relationship<br/>Queries]
         TestExec --> MetricsFlow[Metrics<br/>Validation]
         TestExec --> VizFlow[Visualization<br/>Data Check]
-        
+
         HealthCheck --> Assert[Assert<br/>Expectations]
         AssetFlow --> Assert
         RelFlow --> Assert
         MetricsFlow --> Assert
         VizFlow --> Assert
-        
+
         Assert --> Teardown([Test Teardown<br/>Reset State])
     end
 ```
@@ -8898,20 +8898,20 @@ flowchart TB
             LoadFixtures[Load Test<br/>Fixtures]
             SeedData[Seed Sample<br/>Data]
         end
-        
+
         subgraph Execution[Execution Phase]
             RunTest[Execute Test<br/>Case]
             CaptureState[Capture<br/>State Changes]
             Validate[Validate<br/>Expectations]
         end
-        
+
         subgraph Teardown[Teardown Phase]
             RollbackTx[Rollback<br/>Transactions]
             ResetState[Reset Graph<br/>State]
             CleanupFiles[Cleanup<br/>Temp Files]
         end
     end
-    
+
     InitEnv --> CreateDB
     CreateDB --> LoadFixtures
     LoadFixtures --> SeedData
@@ -8939,25 +8939,25 @@ The testing strategy integrates with both GitHub Actions and CircleCI for compre
 flowchart TB
     subgraph GitHubActionsCI[GitHub Actions CI Pipeline]
         Trigger([Push/PR to main]) --> Checkout[Checkout Code]
-        
+
         Checkout --> Matrix{Python Version<br/>Matrix}
         Matrix --> Py310[Python 3.10]
         Matrix --> Py311[Python 3.11]
         Matrix --> Py312[Python 3.12]
-        
+
         Py310 --> LintJobs
         Py311 --> LintJobs
         Py312 --> LintJobs
-        
+
         subgraph LintJobs[Linting Jobs]
             Flake8[flake8<br/>Critical + Full]
             Black[black --check]
             Isort[isort --check-only]
             Pylint[pylint<br/>fail-under=7.0]
         end
-        
+
         LintJobs --> TestJob[pytest<br/>--cov=src<br/>--cov-report=xml]
-        
+
         TestJob --> CoverageCheck{Python 3.11<br/>Only?}
         CoverageCheck -->|Yes| Codecov[Upload to<br/>Codecov]
         CoverageCheck -->|No| Complete([Job Complete])
@@ -9078,31 +9078,31 @@ flowchart TB
             PR([Pull Request])
             Schedule([Nightly/Weekly])
         end
-        
+
         subgraph SAST[SAST Analysis]
             Bandit[Bandit<br/>Python SAST]
             CodeQL[CodeQL<br/>Multi-language]
             Semgrep[Semgrep<br/>Pattern Detection]
         end
-        
+
         subgraph SCA[Dependency Scanning]
             Safety[Safety<br/>Python Deps]
             Snyk[Snyk<br/>All Deps]
             Debricked[Debricked<br/>Analysis]
         end
-        
+
         subgraph Container[Container Security]
             Trivy[Trivy<br/>Image Scan]
             Hadolint[Hadolint<br/>Dockerfile]
         end
-        
+
         subgraph Results[Results Processing]
             SARIF[SARIF Upload]
             SecurityTab[GitHub Security<br/>Tab]
             Artifacts[Scan Artifacts]
         end
     end
-    
+
     Push --> SAST
     Push --> SCA
     PR --> SAST
@@ -9111,11 +9111,11 @@ flowchart TB
     Schedule --> SAST
     Schedule --> SCA
     Schedule --> Container
-    
+
     SAST --> SARIF
     SCA --> SARIF
     Container --> SARIF
-    
+
     SARIF --> SecurityTab
     SARIF --> Artifacts
 ```
@@ -9170,19 +9170,19 @@ flowchart TB
 flowchart TB
     subgraph QualityGates[Quality Gate Checkpoints]
         PRSubmit([PR Submitted]) --> Gate1{Code Coverage<br/>>= 80%?}
-        
+
         Gate1 -->|No| Block1[Block Merge]
         Gate1 -->|Yes| Gate2{Linting<br/>Passed?}
-        
+
         Gate2 -->|No| Block2[Block Merge]
         Gate2 -->|Yes| Gate3{Tests<br/>Passed?}
-        
+
         Gate3 -->|No| Block3[Block Merge]
         Gate3 -->|Yes| Gate4{Security<br/>Scan Clean?}
-        
+
         Gate4 -->|Critical| Block4[Block Merge]
         Gate4 -->|Warning/Clean| Gate5{Build<br/>Success?}
-        
+
         Gate5 -->|No| Block5[Block Merge]
         Gate5 -->|Yes| Approve([Ready for Review])
     end
@@ -9211,20 +9211,20 @@ flowchart TB
             LocalJest[Jest<br/>Watch mode]
             LocalDB[SQLite<br/>In-memory]
         end
-        
+
         subgraph CI[CI Environment]
             GitHubRunner[GitHub Actions<br/>Ubuntu Latest]
             CircleCIRunner[CircleCI<br/>Python/Node Images]
             CIDatabase[Ephemeral<br/>SQLite]
         end
-        
+
         subgraph Docker[Docker Testing]
             DockerBuild[Build Validation]
             SmokeTest[Container<br/>Smoke Test]
             HealthCheck[Health Check<br/>Probe]
         end
     end
-    
+
     LocalDev -->|Push| CI
     CI -->|Build| Docker
 ```
@@ -9268,37 +9268,37 @@ flowchart TB
 flowchart TB
     subgraph TestExecutionFlow[Test Execution Pipeline]
         Trigger([Trigger:<br/>Push/PR/Manual]) --> Checkout[Checkout<br/>Repository]
-        
+
         Checkout --> ParallelStart{Start Parallel<br/>Execution}
-        
+
         ParallelStart --> BackendTrack
         ParallelStart --> FrontendTrack
         ParallelStart --> SecurityTrack
-        
+
         subgraph BackendTrack[Backend Track]
             PyMatrix[Python Matrix<br/>3.10, 3.11, 3.12]
             PyMatrix --> PyLint[Linting<br/>flake8, black, isort]
             PyLint --> PyTest[pytest<br/>--cov=src]
             PyTest --> PyCoverage[Coverage<br/>Upload]
         end
-        
+
         subgraph FrontendTrack[Frontend Track]
             NodeMatrix[Node Matrix<br/>18.x, 20.x, 22.x]
             NodeMatrix --> NodeLint[npm run lint]
             NodeLint --> NodeBuild[npm run build]
             NodeBuild --> NodeTest[npm test]
         end
-        
+
         subgraph SecurityTrack[Security Track]
             SASTScans[SAST Scans<br/>Bandit, CodeQL]
             SASTScans --> SCAScans[SCA Scans<br/>Safety, Snyk]
             SCAScans --> ContainerScans[Container Scans<br/>Trivy]
         end
-        
+
         BackendTrack --> Aggregate{Aggregate<br/>Results}
         FrontendTrack --> Aggregate
         SecurityTrack --> Aggregate
-        
+
         Aggregate --> QualityGate{Quality<br/>Gates Met?}
         QualityGate -->|Yes| Success([Pipeline<br/>Success])
         QualityGate -->|No| Failure([Pipeline<br/>Failure])
@@ -9418,24 +9418,24 @@ flowchart TB
             GradioTabs[6 Tabbed Sections]
             GradioPlotly[Server-Side Plotly]
         end
-        
+
         subgraph NextJSUI[Next.js Frontend - Port 3000]
             ReactComponents[React Components]
             ClientPlotly[Client-Side Plotly.js]
         end
     end
-    
+
     subgraph Integration[Integration Layer]
         DirectCall[Direct Python Calls]
         RESTApi[REST API - Port 8000]
     end
-    
+
     subgraph Backend[Backend Layer]
         GraphEngine[Graph Engine]
         Visualization[Visualization Module]
         Metrics[Metrics Calculator]
     end
-    
+
     GradioUI --> DirectCall
     NextJSUI --> RESTApi
     DirectCall --> GraphEngine
@@ -9500,16 +9500,16 @@ flowchart LR
         EdgeColors[Relationship Colors]
         LayoutEngine[3D Layout Calculator]
     end
-    
+
     subgraph ServerSide[Server-Side - Gradio]
         PlotlyPython[Plotly Python ≥6.0.0]
     end
-    
+
     subgraph ClientSide[Client-Side - Next.js]
         PlotlyJS[Plotly.js ^2.27.0]
         ReactPlotly[react-plotly.js]
     end
-    
+
     VisualizationLayer --> PlotlyPython
     VisualizationLayer --> PlotlyJS
     PlotlyJS --> ReactPlotly
@@ -9535,29 +9535,29 @@ The Next.js frontend implements three primary views accessible via tab navigatio
 flowchart TB
     subgraph NextJSApp[Next.js Application Structure]
         RootLayout[Root Layout<br/>layout.tsx]
-        
+
         subgraph HomePage[Home Page - page.tsx]
             TabNav[Tab Navigation]
-            
+
             subgraph TabContent[Tab Content Area]
                 VizTab[3D Visualization Tab]
                 MetricsTab[Metrics Tab]
                 AssetsTab[Asset Explorer Tab]
             end
         end
-        
+
         RootLayout --> HomePage
         TabNav --> VizTab
         TabNav --> MetricsTab
         TabNav --> AssetsTab
     end
-    
+
     subgraph Components[Component Library]
         NetworkViz[NetworkVisualization.tsx]
         MetricsDash[MetricsDashboard.tsx]
         AssetsList[AssetList.tsx]
     end
-    
+
     VizTab --> NetworkViz
     MetricsTab --> MetricsDash
     AssetsTab --> AssetsList
@@ -9582,7 +9582,7 @@ The Gradio interface implements six tabbed sections providing comprehensive acce
 flowchart TB
     subgraph GradioApp[Gradio Application - app.py]
         Blocks[gr.Blocks Container]
-        
+
         subgraph Tabs[Tab Navigation]
             Tab1[🌐 Network Visualization]
             Tab2[Metrics & Analytics]
@@ -9591,24 +9591,24 @@ flowchart TB
             Tab5[Documentation]
             Tab6[📊 Formulaic Analysis]
         end
-        
+
         Blocks --> Tabs
     end
-    
+
     subgraph Tab1Content[Network Visualization Content]
         ViewMode[2D/3D Toggle]
         LayoutType[Layout Selector]
         RelFilters[8 Relationship Checkboxes]
         GraphPlot[Network Graph Plot]
     end
-    
+
     subgraph Tab6Content[Formulaic Analysis Content]
         Dashboard[Dashboard Plot]
         CorrelationNet[Correlation Network]
         FormulaSelect[Formula Selector]
         FormulaDetails[Formula Details]
     end
-    
+
     Tab1 --> Tab1Content
     Tab6 --> Tab6Content
 ```
@@ -9648,10 +9648,10 @@ sequenceDiagram
     participant Axios as Axios HTTP
     participant Backend as FastAPI<br/>(Port 8000)
     participant Graph as Graph Engine
-    
+
     User->>Page: Navigate to Page
     Page->>Page: useEffect Hook
-    
+
     par Parallel Data Fetch
         Page->>Client: getMetrics()
         Client->>Axios: GET /api/metrics
@@ -9671,7 +9671,7 @@ sequenceDiagram
         Axios-->>Client: Response Object
         Client-->>Page: Visualization Data
     end
-    
+
     Page->>Page: setState(data)
     Page->>User: Render Components
 ```
@@ -9721,7 +9721,7 @@ flowchart LR
         EventHandler[Event Handlers]
         Components[UI Components]
     end
-    
+
     subgraph CorePython[Python Core Layer]
         GraphVisuals[graph_visuals.py]
         MetricVisuals[metric_visuals.py]
@@ -9729,13 +9729,13 @@ flowchart LR
         FormulaicVisuals[formulaic_visuals.py]
         AssetGraph[asset_graph.py]
     end
-    
+
     EventHandler -->|Direct Import| GraphVisuals
     EventHandler -->|Direct Import| MetricVisuals
     EventHandler -->|Direct Import| SchemaReport
     EventHandler -->|Direct Import| FormulaicVisuals
     EventHandler -->|Direct Import| AssetGraph
-    
+
     GraphVisuals --> Components
     MetricVisuals --> Components
 ```
@@ -9786,14 +9786,14 @@ classDiagram
         +string currency
         +Record~string,any~ additional_fields
     }
-    
+
     class Relationship {
         +string source_id
         +string target_id
         +string relationship_type
         +number strength
     }
-    
+
     class Metrics {
         +number total_assets
         +number total_relationships
@@ -9802,7 +9802,7 @@ classDiagram
         +number max_degree
         +number network_density
     }
-    
+
     class VisualizationNode {
         +string id
         +string name
@@ -9814,19 +9814,19 @@ classDiagram
         +string color
         +number size
     }
-    
+
     class VisualizationEdge {
         +string source
         +string target
         +string relationship_type
         +number strength
     }
-    
+
     class VisualizationData {
         +VisualizationNode[] nodes
         +VisualizationEdge[] edges
     }
-    
+
     VisualizationData *-- VisualizationNode
     VisualizationData *-- VisualizationEdge
 ```
@@ -9895,7 +9895,7 @@ flowchart TB
         PlotlyLoad[Plotly.js Load]
         GraphRender[3D Graph Render]
     end
-    
+
     DynamicImport --> ClientOnly
     ClientOnly --> PlotlyLoad
     PlotlyLoad --> GraphRender
@@ -9955,7 +9955,7 @@ flowchart LR
         ComponentState[React Component State]
         FilterControls[Filter Dropdowns]
     end
-    
+
     URLParams -->|Read on mount| ComponentState
     FilterControls -->|onChange| URLParams
     URLParams -->|Browser history| Navigation
@@ -10041,14 +10041,14 @@ flowchart TB
     subgraph NextJSPageLoad[Next.js Page Load Workflow]
         PageMount([Page Mount]) --> SetLoading[Set Loading<br/>State = true]
         SetLoading --> FetchData[Promise.all:<br/>getMetrics()<br/>getVisualizationData()]
-        
+
         FetchData --> FetchResult{Fetch<br/>Successful?}
-        
+
         FetchResult -->|Yes| StoreData[Store Data<br/>in State]
         StoreData --> ClearLoading[Clear Loading<br/>State]
         ClearLoading --> RenderUI[Render UI<br/>Components]
         RenderUI --> PageReady([Page Ready])
-        
+
         FetchResult -->|No| SetError[Set Error<br/>State]
         SetError --> ShowRetry[Show Retry<br/>Button]
         ShowRetry --> UserRetry{User Clicks<br/>Retry?}
@@ -10064,16 +10064,16 @@ Both UIs implement tab-based navigation with distinct state transitions:
 ```mermaid
 stateDiagram-v2
     [*] --> Visualization: Default Tab
-    
+
     Visualization --> Metrics: Tab Click
     Visualization --> Assets: Tab Click
-    
+
     Metrics --> Visualization: Tab Click
     Metrics --> Assets: Tab Click
-    
+
     Assets --> Visualization: Tab Click
     Assets --> Metrics: Tab Click
-    
+
     note right of Visualization: 3D Network Graph
     note right of Metrics: Statistics Dashboard
     note right of Assets: Filterable Table
@@ -10092,14 +10092,14 @@ flowchart TB
         SetupTabs --> WireEvents[Wire Event<br/>Handlers]
         WireEvents --> LaunchServer[Launch Server<br/>Port 7860]
         LaunchServer --> WaitEvent([Wait for<br/>User Event])
-        
+
         WaitEvent --> UserAction{User<br/>Action Type}
-        
+
         UserAction -->|Refresh| RefreshAll[refresh_all_outputs()]
         UserAction -->|Filter Change| UpdateViz[refresh_visualization()]
         UserAction -->|Tab Change| LoadTab[Load Tab<br/>Content]
         UserAction -->|Asset Select| UpdateAsset[update_asset_info()]
-        
+
         RefreshAll --> WaitEvent
         UpdateViz --> WaitEvent
         LoadTab --> WaitEvent
@@ -10133,15 +10133,15 @@ flowchart TB
 flowchart TB
     subgraph ErrorRecovery[Frontend Error Recovery]
         ErrorDetected([Error<br/>Detected]) --> ErrorCategory{Error<br/>Category}
-        
+
         ErrorCategory -->|Network Error| NetError[Set Error:<br/>Network Unavailable]
         ErrorCategory -->|API Error| APIError[Set Error:<br/>API Error Message]
         ErrorCategory -->|Render Error| RenderError[Set Error:<br/>Display Error]
-        
+
         NetError --> ShowRetryUI[Show Retry<br/>Button]
         APIError --> ShowRetryUI
         RenderError --> ShowRefresh[Show Refresh<br/>Page Option]
-        
+
         ShowRetryUI --> UserRetries{User<br/>Retries?}
         UserRetries -->|Yes| ClearError[Clear Error<br/>State]
         ClearError --> ReloadData[Reload<br/>Data]
@@ -10149,7 +10149,7 @@ flowchart TB
         Success -->|Yes| Normal([Normal<br/>Operation])
         Success -->|No| ErrorDetected
         UserRetries -->|No| WaitUser([Wait for<br/>User])
-        
+
         ShowRefresh --> UserRefresh{User<br/>Refreshes?}
         UserRefresh -->|Yes| PageReload[Full Page<br/>Reload]
         PageReload --> Normal
@@ -10424,56 +10424,56 @@ flowchart TB
         Developers([Developers])
         CI([CI/CD Pipelines])
     end
-    
+
     subgraph EdgeLayer[Edge & CDN Layer]
         VercelEdge[Vercel Edge Network<br/>Global CDN]
         TLS[TLS Termination<br/>HTTPS Enforcement]
     end
-    
+
     subgraph ComputeLayer[Compute Layer]
         subgraph VercelCompute[Vercel Serverless]
             NextSSR[Next.js SSR<br/>@vercel/next]
             PythonLambda[Python Functions<br/>@vercel/python<br/>50MB max]
         end
-        
+
         subgraph DockerCompute[Docker Deployment]
             AppContainer[app container<br/>python:3.11-slim<br/>Port 7860]
         end
-        
+
         subgraph LocalDev[Local Development]
             FastAPILocal[FastAPI<br/>Port 8000]
             NextJSLocal[Next.js<br/>Port 3000]
             GradioLocal[Gradio<br/>Port 7860]
         end
     end
-    
+
     subgraph DataLayer[Data Layer]
         InMemGraph[In-Memory Graph<br/>Dict-based Storage]
         SQLiteAuth[(SQLite<br/>Auth Database)]
         JSONCache[(JSON File Cache<br/>Atomic Writes)]
     end
-    
+
     subgraph ExternalServices[External Services]
         YahooFinance[Yahoo Finance API<br/>via yfinance]
         GHCR[GitHub Container Registry<br/>ghcr.io]
         GitHubActions[GitHub Actions<br/>CI/CD]
     end
-    
+
     Users --> VercelEdge
     Developers --> LocalDev
     CI --> GitHubActions
-    
+
     VercelEdge --> TLS
     TLS --> VercelCompute
-    
+
     VercelCompute --> InMemGraph
     DockerCompute --> InMemGraph
     LocalDev --> InMemGraph
-    
+
     InMemGraph --> SQLiteAuth
     InMemGraph --> JSONCache
     InMemGraph --> YahooFinance
-    
+
     GitHubActions --> GHCR
     GitHubActions --> VercelCompute
 ```
@@ -10578,22 +10578,22 @@ flowchart LR
         LocalDev[Local Development<br/>Feature Branches]
         DevTest[Developer Testing<br/>run-dev.sh]
     end
-    
+
     subgraph Integration[Integration Stage]
         PR[Pull Request<br/>Preview Deploy]
         QualityGates[Quality Gates<br/>CI Pipeline]
     end
-    
+
     subgraph Staging[Staging Stage]
         DockerValidate[Docker Build<br/>Validation]
         IntegrationTests[Integration<br/>Tests]
     end
-    
+
     subgraph Production[Production Stage]
         VercelProd[Vercel Production<br/>Auto-Deploy]
         DockerProd[Docker Registry<br/>GHCR Publish]
     end
-    
+
     LocalDev --> DevTest
     DevTest --> PR
     PR --> QualityGates
@@ -10687,25 +10687,25 @@ flowchart TB
             Edge2[Edge Location 2<br/>EU-West]
             Edge3[Edge Location 3<br/>APAC]
         end
-        
+
         subgraph ComputeRegions[Compute Regions]
             Lambda1[Lambda Instance<br/>Primary]
             Lambda2[Lambda Instance<br/>Replica]
         end
-        
+
         subgraph StaticAssets[Static Asset CDN]
             CDN[Global CDN<br/>Static Files]
         end
     end
-    
+
     Users([Global Users]) --> Edge1
     Users --> Edge2
     Users --> Edge3
-    
+
     Edge1 --> Lambda1
     Edge2 --> Lambda1
     Edge3 --> Lambda2
-    
+
     Edge1 --> CDN
     Edge2 --> CDN
     Edge3 --> CDN
@@ -10792,19 +10792,19 @@ flowchart TB
             NoCache[No Pip Cache<br/>--no-cache-dir]
             NoBytecode[No Bytecode<br/>PYTHONDONTWRITEBYTECODE=1]
         end
-        
+
         subgraph RuntimeSecurity[Runtime Security]
             NonRoot[Non-Root User<br/>appuser UID 1000]
             ReadOnly[Minimal Permissions<br/>Application Directory Only]
             HealthCheck[Health Monitoring<br/>HTTP Probe]
         end
-        
+
         subgraph NetworkSecurity[Network Security]
             SinglePort[Single Port Exposure<br/>7860]
             InternalOnly[Internal Services<br/>No External Access]
         end
     end
-    
+
     BaseImage --> NoCache
     NoCache --> NoBytecode
     NoBytecode --> NonRoot
@@ -10931,22 +10931,22 @@ flowchart TB
         subgraph AppService[Application Service]
             App[app container<br/>Port 7860<br/>Python 3.11-slim]
         end
-        
+
         subgraph OptionalServices[Optional Services]
             Postgres[(PostgreSQL 15<br/>Port 5432<br/>Optional)]
         end
-        
+
         subgraph Volumes[Persistent Volumes]
             SrcVol[Source Volume<br/>./src:/app/src]
             DataVol[Data Volume<br/>./data:/app/data]
             PgVol[(PostgreSQL Data<br/>Optional)]
         end
-        
+
         subgraph Network[Docker Network]
             Bridge[Default Bridge<br/>Network]
         end
     end
-    
+
     App --> SrcVol
     App --> DataVol
     App --> Bridge
@@ -11013,38 +11013,38 @@ flowchart TB
         Schedule[Scheduled Jobs]
         Tag[Version Tags]
     end
-    
+
     subgraph QualityGates[Quality Gates]
         Lint[Linting<br/>flake8, black, isort]
         StaticAnalysis[Static Analysis<br/>pylint, mypy]
         Tests[Test Suite<br/>pytest + coverage]
         Security[Security Scans<br/>bandit, safety]
     end
-    
+
     subgraph BuildPhase[Build Phase]
         DockerBuild[Docker Build]
         FrontendBuild[Frontend Build<br/>Next.js]
     end
-    
+
     subgraph DeployPhase[Deployment Phase]
         VercelDeploy[Vercel<br/>Auto-Deploy]
         GHCRPublish[GHCR<br/>Image Publish]
         ImageSign[Image Signing<br/>cosign]
     end
-    
+
     subgraph Reporting[Reporting]
         Codecov[Codecov<br/>Coverage]
         SARIF[GitHub Security<br/>SARIF Upload]
     end
-    
+
     Push --> QualityGates
     PR --> QualityGates
     Schedule --> Security
     Tag --> BuildPhase
-    
+
     QualityGates --> BuildPhase
     BuildPhase --> DeployPhase
-    
+
     Tests --> Codecov
     Security --> SARIF
     DockerBuild --> GHCRPublish
@@ -11189,13 +11189,13 @@ flowchart LR
     subgraph BuildAndTest[build-and-test Workflow]
         PLint[python-lint] --> PTest[python-test]
         PTest --> PSec[python-security]
-        
+
         FLint[frontend-lint] --> FBuild[frontend-build]
-        
+
         PTest --> Docker[docker-build]
         FBuild --> Docker
     end
-    
+
     subgraph NightlySecurity[nightly-security Workflow]
         Cron[Schedule<br/>02:00 UTC] --> NightSec[python-security]
     end
@@ -11268,26 +11268,26 @@ flowchart TB
             FeatureBranch[Feature Branch<br/>Development]
             LocalTest[Local Testing<br/>run-dev.sh]
         end
-        
+
         subgraph Preview[Preview]
             PROpen[Pull Request<br/>Opened]
             PreviewDeploy[Vercel Preview<br/>Deployment]
             CodeReview[Code Review<br/>+ Quality Gates]
         end
-        
+
         subgraph Staging[Staging]
             DockerBuild[Docker Build<br/>Validation]
             SecurityScan[Security<br/>Scanning]
             IntegrationTest[Integration<br/>Tests]
         end
-        
+
         subgraph Prod[Production]
             MergeMain[Merge to<br/>main]
             ProdDeploy[Production<br/>Deployment]
             Monitoring[Post-Deploy<br/>Monitoring]
         end
     end
-    
+
     FeatureBranch --> LocalTest
     LocalTest --> PROpen
     PROpen --> PreviewDeploy
@@ -11359,32 +11359,32 @@ flowchart TB
             MetricsEndpoint[/api/metrics<br/>Application Metrics]
             LoggingLayer[Python Logging<br/>INFO Level]
         end
-        
+
         subgraph ContainerMonitoring[Container Layer]
             DockerHealth[Docker HEALTHCHECK<br/>HTTP Probe]
             ComposeHealth[Docker Compose<br/>Health Config]
         end
-        
+
         subgraph CICDMonitoring[CI/CD Layer]
             GitHubSecurity[GitHub Actions<br/>Security Scans]
             CircleCITests[CircleCI<br/>Test Coverage]
             Codecov[Codecov<br/>Coverage Reports]
         end
-        
+
         subgraph SecurityScanning[Security Monitoring]
             SAST[SAST Tools<br/>Bandit, CodeQL]
             Dependency[Dependency Scan<br/>Snyk, Safety]
             Container[Container Scan<br/>Trivy]
         end
     end
-    
+
     HealthEndpoint --> DockerHealth
     DockerHealth --> ComposeHealth
-    
+
     GitHubSecurity --> SAST
     GitHubSecurity --> Dependency
     GitHubSecurity --> Container
-    
+
     CircleCITests --> Codecov
 ```
 
@@ -11528,21 +11528,21 @@ flowchart TB
         subgraph PrimaryStorage[Primary Storage]
             InMemGraph[In-Memory Graph<br/>Dict-based Structure<br/>< 500 nodes optimal]
         end
-        
+
         subgraph AuthStorage[Authentication Storage]
             SQLiteAuth[(SQLite Database<br/>User Credentials<br/>DATABASE_URL)]
         end
-        
+
         subgraph CacheStorage[Cache Storage]
             JSONCache[(JSON File Cache<br/>Atomic Writes<br/>REAL_DATA_CACHE_PATH)]
             GraphCache[(Graph Cache<br/>Optional Serialization<br/>GRAPH_CACHE_PATH)]
         end
-        
+
         subgraph OptionalStorage[Optional Production Storage]
             PostgreSQL[(PostgreSQL 15<br/>Full Persistence<br/>ASSET_GRAPH_DATABASE_URL)]
         end
     end
-    
+
     InMemGraph --> SQLiteAuth
     InMemGraph --> JSONCache
     InMemGraph --> GraphCache
@@ -11664,40 +11664,40 @@ flowchart TB
         Users([End Users])
         Attackers([Potential Attackers])
     end
-    
+
     subgraph EdgeSecurity[Edge Security Layer]
         VercelEdge[Vercel Edge<br/>TLS Termination<br/>DDoS Protection]
         CORS[CORS Middleware<br/>Origin Validation]
     end
-    
+
     subgraph ApplicationNetwork[Application Network]
         subgraph RateLimiting[Rate Limiting]
             SlowAPI[SlowAPI<br/>IP-based Throttling]
         end
-        
+
         subgraph Services[Application Services]
             FastAPI[FastAPI Backend<br/>Port 8000]
             NextJS[Next.js Frontend<br/>Port 3000]
             Gradio[Gradio UI<br/>Port 7860]
         end
     end
-    
+
     subgraph DataNetwork[Data Network - Internal Only]
         Graph[Graph Engine]
         SQLite[(SQLite DB)]
         Cache[(File Cache)]
     end
-    
+
     subgraph External[External APIs]
         YahooFinance[Yahoo Finance<br/>HTTPS]
     end
-    
+
     Users --> VercelEdge
     Attackers --> VercelEdge
     VercelEdge --> CORS
     CORS --> SlowAPI
     SlowAPI --> Services
-    
+
     FastAPI --> Graph
     Graph --> SQLite
     Graph --> Cache
@@ -12170,12 +12170,12 @@ flowchart LR
         Classes["/api/asset-classes"]
         Sectors["/api/sectors"]
     end
-    
+
     subgraph ProtectedEndpoints[Protected Endpoints]
         Token["POST /token"]
         UserMe["/api/users/me"]
     end
-    
+
     Client([Client]) --> PublicEndpoints
     Client --> ProtectedEndpoints
 ```
