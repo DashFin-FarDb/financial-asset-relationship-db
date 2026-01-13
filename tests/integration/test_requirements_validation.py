@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-
 - PyYAML added with correct version
 """
 - No conflicting dependencies
