@@ -96,10 +96,6 @@ def _parse_single_requirement(line: str) -> tuple[str, str] | None:
     specifier_str = _normalize_specifier(str(req.specifier).strip())
     return (pkg, specifier_str)
 
-    pkg = _extract_package_name(line, req)
-    specifier_str = _normalize_specifier(str(req.specifier).strip())
-    return (pkg, specifier_str)
-
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """Parse requirements file and return list of (package, version_spec) tuples.
