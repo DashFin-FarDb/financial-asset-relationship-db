@@ -182,11 +182,90 @@ class TestPRAgentConfigSimplification:
 
 
 class TestPRAgentConfigYAMLValidity:
-    """Test YAML validity and structure."""
-    
-    def test_config_is_valid_yaml(self):
-        """Verify config file is valid YAML."""
+    """Test YAML validity and format."""
+
+    @staticmethod
+    def _validate_line_indentation(line: str, line_num: int) -> int:
+        """Validate indentation of a line and return the indent level.
+
+        Args:
+            line: The line to validate
+            line_num: Line number for error messages
+
+        Returns:
+            The indentation level (number of spaces)
+
+        Raises:
+            pytest.fail: If line contains tabs or inconsistent indentation
+        """
+        from itertools import takewhile
+        leading_whitespace = "".join(takewhile(lambda c: c == ' ' or c == '\t', line))
+
+        # Check for tab characters in indentation
+        if '\t' in leading_whitespace:
+            pytest.fail(
+                f"Line {line_num}: Tab character in indentation. "
+                "YAML requires consistent space-based indentation."
+            )
+
+        # Check for mixed spaces/inconsistent indentation
+        indent = len(leading_whitespace)
+        if indent > 0 and indent % 2 != 0:
+            pytest.fail(
+                f"Line {line_num}: Indentation of {indent} spaces is not "
+                "a multiple of 2. Use consistent 2-space indentation."
+            )
+
+        return indent
+
+    def test_valid_yaml_syntax(self):
+        """Verify config file has valid YAML syntax."""
+    def test_no_duplicate_keys(self):
+        """Verify no duplicate keys in config."""
         config_path = Path(".github/pr-agent-config.yml")
+
+        class _NoDuplicateKeysSafeLoader(yaml.SafeLoader):
+            """YAML loader that fails on duplicate mapping keys."""
+
+            def construct_mapping(self, node, deep=False):
+                mapping = {}
+                seen = set()
+
+                for key_node, value_node in node.value:
+                    key = self.construct_object(key_node, deep=deep)
+
+                    # Most YAML keys here are scalars (strings). For safety, fall back
+                    # to string representation for unhashable keys.
+                    try:
+                        key_id = key
+                        is_hashable = True
+                        hash(key_id)
+                    except Exception:
+                        key_id = repr(key)
+                        is_hashable = False
+
+                    if key_id in seen:
+                        # Use the key node mark for precise location info.
+                        mark = getattr(key_node, "start_mark", None)
+                        if mark is not None:
+                            pytest.fail(
+                                f"Duplicate key '{key}' at line {mark.line + 1}, column {mark.column + 1}"
+                            )
+                        pytest.fail(f"Duplicate key '{key}' found in YAML mapping")
+
+                    seen.add(key_id)
+                    mapping[key] = self.construct_object(value_node, deep=deep)
+
+                return mapping
+
+        try:
+            with open(config_path, "r") as f:
+                config = yaml.load(f, Loader=_NoDuplicateKeysSafeLoader)
+            assert config is not None
+            assert isinstance(config, dict)
+        except yaml.YAMLError as e:
+            pytest.fail(f"Invalid YAML syntax: {e}")
+        
         with open(config_path, 'r') as f:
             try:
                 yaml.safe_load(f)
@@ -272,21 +351,15 @@ class TestPRAgentConfigYAMLValidity:
                 path_stack.append((indent, key))
     
     def test_consistent_indentation(self):
-        """
-        Assert that every non-empty, non-comment line in the PR agent YAML file uses indentation in 2-space increments.
-        
-        Raises an assertion error pointing to the line number if a line has a number of leading spaces that is not a multiple of two.
-        """
+        """Verify consistent 2-space indentation."""
         config_path = Path(".github/pr-agent-config.yml")
+
         with open(config_path, 'r') as f:
             lines = f.readlines()
-        
-        for i, line in enumerate(lines, 1):
-            if line.strip() and not line.strip().startswith('#'):
-                indent = len(line) - len(line.lstrip())
-                if indent > 0:
-                    assert indent % 2 == 0, \
-                        f"Line {i} has inconsistent indentation: {indent} spaces"
+
+        for line_num, line in enumerate(lines, 1):
+            # Use the shared validation helper
+            self._validate_line_indentation(line, line_num)
 
 
 class TestPRAgentConfigSecurity:
