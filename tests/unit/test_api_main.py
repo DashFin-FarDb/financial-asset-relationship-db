@@ -29,7 +29,8 @@ from src.models.financial_models import AssetClass, Equity
 class TestValidateOrigin:
     """Test the validate_origin function for CORS configuration."""
 
-    def test_validate_origin_http_localhost_development(self):
+    @staticmethod
+    def test_validate_origin_http_localhost_development():
         """Test HTTP localhost is allowed in development."""
         with patch.dict(os.environ, {"ENV": "development"}):
             from api.main import validate_origin as vo
@@ -38,7 +39,8 @@ class TestValidateOrigin:
             assert vo("http://127.0.0.1:8000")
             assert vo("http://localhost")
 
-    def test_validate_origin_http_localhost_production(self):
+    @staticmethod
+    def test_validate_origin_http_localhost_production():
         """Test HTTP localhost is rejected in production."""
         with patch.dict(os.environ, {"ENV": "production"}):
             from api.main import validate_origin as vo
@@ -46,31 +48,36 @@ class TestValidateOrigin:
             assert not vo("http://localhost:3000")
             assert not vo("http://127.0.0.1:8000")
 
-    def test_validate_origin_https_localhost(self):
+    @staticmethod
+    def test_validate_origin_https_localhost():
         """Test HTTPS localhost is always allowed."""
         assert validate_origin("https://localhost:3000")
         assert validate_origin("https://127.0.0.1:8000")
 
-    def test_validate_origin_vercel_urls(self):
+    @staticmethod
+    def test_validate_origin_vercel_urls():
         """Test Vercel deployment URLs are validated correctly."""
         assert validate_origin("https://my-app.vercel.app")
         assert validate_origin("https://my-app-git-main-user.vercel.app")
         assert validate_origin("https://subdomain.vercel.app")
         assert not validate_origin("http://my-app.vercel.app")  # HTTP rejected
 
-    def test_validate_origin_https_valid_domains(self):
+    @staticmethod
+    def test_validate_origin_https_valid_domains():
         """Test valid HTTPS URLs with proper domains."""
         assert validate_origin("https://example.com")
         assert validate_origin("https://subdomain.example.com")
         assert validate_origin("https://api.example.co.uk")
 
-    def test_validate_origin_invalid_schemes(self):
+    @staticmethod
+    def test_validate_origin_invalid_schemes():
         """Test invalid URL schemes are rejected."""
         assert not validate_origin("ftp://example.com")
         assert not validate_origin("ws://example.com")
         assert not validate_origin("file://localhost")
 
-    def test_validate_origin_malformed_urls(self):
+    @staticmethod
+    def test_validate_origin_malformed_urls():
         """Test malformed URLs are rejected."""
         assert not validate_origin("not-a-url")
         assert not validate_origin("https://")

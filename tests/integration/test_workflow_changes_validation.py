@@ -18,7 +18,8 @@ class TestPRAgentWorkflowChanges:
     """Test PR agent workflow simplification changes."""
 
     @pytest.fixture
-    def pr_agent_workflow(self):
+    @staticmethod
+    def pr_agent_workflow():
         """
         Load and parse the PR Agent GitHub Actions workflow file.
 

@@ -225,7 +225,8 @@ class TestRequirementsDevCompleteness:
 class TestPyYAMLCompatibility:
     """Test PyYAML compatibility and best practices."""
 
-    def test_pyyaml_safe_load_available(self):
+    @staticmethod
+    def test_pyyaml_safe_load_available():
         """
         Verify that the installed PyYAML package exposes a `safe_load` symbol; skip the test if PyYAML is not installed.
 
@@ -238,7 +239,8 @@ class TestPyYAMLCompatibility:
         except ImportError:
             pytest.skip("PyYAML not installed in test environment")
 
-    def test_pyyaml_can_parse_workflow_files(self):
+    @staticmethod
+    def test_pyyaml_can_parse_workflow_files():
         """Test that PyYAML can parse actual workflow files."""
         try:
             import yaml

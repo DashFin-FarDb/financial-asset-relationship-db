@@ -171,8 +171,10 @@ class TestLayoutAlgorithms:
         assert isinstance(x, float)
         assert isinstance(y, float)
 
-    def test_create_circular_layout_multiple_assets(self):
+    @staticmethod
+    def test_create_circular_layout_multiple_assets():
         """Test circular layout with multiple assets."""
+        # Execute
         asset_ids = ["AAPL", "MSFT", "GOOGL", "AMZN"]
 
         # Execute
@@ -263,7 +265,6 @@ class TestLayoutAlgorithms:
         # Assert
         assert len(positions_2d) == 2
 
-
 @pytest.mark.unit
 class TestRelationshipTraces:
     """Test suite for relationship trace creation."""
@@ -348,7 +349,6 @@ class TestRelationshipTraces:
         # Assert
         assert isinstance(traces, list)
         assert len(traces) == 0
-
 
 @pytest.mark.unit
 class TestEdgeCases:

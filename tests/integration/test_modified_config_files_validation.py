@@ -126,7 +126,8 @@ class TestWorkflowSimplifications:
     """Validate simplifications made to GitHub workflows."""
 
     @pytest.fixture
-    def workflows_dir(self) -> Path:
+    @staticmethod
+    def workflows_dir() -> Path:
         """Get workflows directory."""
         return Path(__file__).parent.parent.parent / ".github" / "workflows"
 

@@ -130,7 +130,8 @@ class TestDocumentationFiles:
 class TestShellScripts:
     """Test shell scripts for syntax, structure, and functionality."""
 
-    def test_cleanup_branches_script_exists(self):
+    @staticmethod
+    def test_cleanup_branches_script_exists():
         """Test that cleanup-branches.sh exists and is executable."""
         assert os.path.exists("cleanup-branches.sh")
         # Check if file has execute permissions
