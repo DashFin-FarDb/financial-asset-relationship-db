@@ -539,7 +539,6 @@ class TestWorkflowEdgeCases:
         workflow_files = get_workflow_files()
         assert len(workflow_files) > 0, "No workflow files found in .github/workflows directory"
 
-
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     @staticmethod
     def test_workflow_file_extension(workflow_file: Path):
@@ -565,7 +564,7 @@ class TestWorkflowEdgeCases:
                 f"Workflow {workflow_file.name} is not valid UTF-8. " "Ensure file is saved with UTF-8 encoding."
             )
 
-    @ pytest.mark.parametrize("workflow_file", get_workflow_files())
+    @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_tabs(self, workflow_file: Path):
         """
         Ensure the workflow YAML file contains no tab characters.
@@ -580,7 +579,7 @@ class TestWorkflowEdgeCases:
             "YAML files should use spaces for indentation, not tabs."
         )
 
-    @ pytest.mark.parametrize("workflow_file", get_workflow_files())
+    @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_consistent_indentation(self, workflow_file: Path):
         """
         Ensure all non-empty, non-comment lines in the workflow file use indentation in multiples of two spaces.

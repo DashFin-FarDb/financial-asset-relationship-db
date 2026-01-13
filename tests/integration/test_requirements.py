@@ -159,6 +159,7 @@ class TestRequiredPackages:
     def package_names(requirements: List[Tuple[str, str]]) -> List[str]:
         """Extract package names from requirements."""
         return [pkg.lower() for pkg, _ in requirements]
+
     @staticmethod
     def test_has_core_packages(package_names: List[str]):
         """Test that core application packages are present."""
