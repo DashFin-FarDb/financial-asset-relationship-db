@@ -213,7 +213,7 @@ def test_summary_includes_tables(self, summary_content):
     assert re.search(r"\|[-\s|]+\|", summary_content)
 
 def test_summary_valid_markdown_structure(self, summary_content):
-    """Validate that a Markdown document's top-level heading is H1 when headings are present."""
+    """Validate that a Markdown document's top - level heading is H1 when headings are present."""
     lines = summary_content.split("\n")
     # Check heading hierarchy
     heading_levels = []

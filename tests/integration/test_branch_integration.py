@@ -204,7 +204,7 @@ class TestRemovedFilesIntegration:
         """
         Verify the label workflow does not require an external labeler configuration file.
 
-        Checks that .github/workflows/label.yml (if present) defines the 'label' job's first step using 'actions/labeler',
+        Checks that .github / workflows / label.yml(if present) defines the 'label' job's first step using 'actions / labeler',
         and that the step either omits 'config-path' or sets it to '.github/labeler.yml'. Skips the test if label.yml is missing.
         """
         label_path = Path(".github/workflows/label.yml")
