@@ -148,13 +148,14 @@ class TestDependencyWorkflowIntegration:
 
         for wf_file in workflow_files:
             try:
-                with open(wf_file, "r") as f:
-                    workflow = yaml.safe_load(f)
+                try:
+                    with open(wf_file, "r") as f:
+                        workflow = yaml.safe_load(f)
 
-                assert workflow is not None, f"Failed to parse {wf_file}"
-                assert isinstance(workflow, dict), f"{wf_file} should parse to dict"
-            except yaml.YAMLError as e:
-                pytest.fail(f"PyYAML failed to parse {wf_file}: {e}")
+                    assert workflow is not None, f"Failed to parse {wf_file}"
+                    assert isinstance(workflow, dict), f"{wf_file} should parse to dict"
+                except yaml.YAMLError as e:
+                    pytest.fail(f"PyYAML failed to parse {wf_file}: {e}")
 
     def test_requirements_support_workflow_test_needs(self):
         """

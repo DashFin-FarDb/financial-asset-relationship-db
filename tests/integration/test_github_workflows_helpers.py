@@ -133,6 +133,12 @@ class TestGetWorkflowFiles:
             result = get_workflow_files()
             assert len(result) == 1
             assert result[0].name == "test.yaml"
+        yaml_file.write_text("name: Test")
+
+        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+            result = get_workflow_files()
+            assert len(result) == 1
+            assert result[0].name == "test.yaml"
 
     def test_finds_both_yml_and_yaml(self, tmp_path):
         """Test that both .yml and .yaml files are found together."""

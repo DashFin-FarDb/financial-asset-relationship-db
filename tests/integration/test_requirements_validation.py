@@ -182,10 +182,11 @@ class TestRequirementsInstallability:
         assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
 
 
+
 class TestRequirementsDocumentation:
     """Test requirements documentation and comments."""
 
-    @ staticmethod
+    @staticmethod
     def test_requirements_has_helpful_comments():
         """
         Verify that requirements - dev.txt contains at least one comment line.
@@ -201,7 +202,7 @@ class TestRequirementsDocumentation:
         comment_lines=[l for l in lines if l.strip().startswith("#")]
         assert len(comment_lines) >= 1, "requirements-dev.txt should have explanatory comments"
 
-    @ staticmethod
+    @staticmethod
     def test_pyyaml_purpose_documented():
         """
         Verify PyYAML addition has comment explaining purpose.
