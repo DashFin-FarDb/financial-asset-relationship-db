@@ -346,7 +346,7 @@ def test_env_example_has_comments(self, env_example_content):
     assert "#" in env_example_content
 
 def test_env_example_no_real_secrets(self, env_example_content):
-    """Test that .env.example doesn't contain real secrets."""
+    """Test that .env.example does not contain real secrets."""
     # Check for common secret patterns
     suspicious_patterns = [
         "sk_live",  # Stripe live keys
