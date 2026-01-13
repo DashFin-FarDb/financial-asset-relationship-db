@@ -33,7 +33,10 @@ knowledge_base:
         hardens authentication/authorisation, or improves secret handling.
 
   auto_review:
-    enabled: true
+    usage: enabled
+    filePatterns:
+      - tech_spec.md
+      - DashFin-financial-asset-relationship-db-wiki-v2.md
     drafts: true
     base_branches:
       - ".*"
