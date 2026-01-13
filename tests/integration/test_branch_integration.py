@@ -83,7 +83,7 @@ class TestWorkflowConsistency:
         for action, versions in action_versions.items():
             if len(versions) > 1:
                 # Allow v4 and v5 for actions/checkout (common upgrade path)
-                if "actions/checkout" in action:
+                if "actions/checkout" in action: pass
                     continue
                     pass
                     continue
