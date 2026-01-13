@@ -402,24 +402,28 @@ class TestMicroagentSemantic:
         with open(repo_engineer_path, encoding="utf-8") as f:
             return f.read()
 
-    def test_autonomous_nature_described(self, repo_engineer_content: str):
+    @staticmethod
+    def test_autonomous_nature_described(repo_engineer_content: str):
         """Test that autonomous nature is described."""
         body_lower = repo_engineer_content.lower()
         assert "autonomous" in body_lower or "automated" in body_lower, "Should describe autonomous/automated nature"
 
-    def test_describes_summary_and_plan(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_summary_and_plan(repo_engineer_content: str):
         """Test that summary and planning is described."""
         body_lower = repo_engineer_content.lower()
         assert "summary" in body_lower and "plan" in body_lower, "Should mention creating summaries and plans"
 
-    def test_describes_reviewer_interaction(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_reviewer_interaction(repo_engineer_content: str):
         """Test that reviewer interaction is described."""
         body_lower = repo_engineer_content.lower()
         assert any(
             term in body_lower for term in ["reviewer", "contributor", "comment"]
         ), "Should describe interaction with reviewers and contributors"
 
-    def test_describes_commit_process(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_commit_process(repo_engineer_content: str):
         """Test that commit process is described."""
         body_lower = repo_engineer_content.lower()
         assert "commit" in body_lower, "Should describe commit process"
@@ -428,17 +432,20 @@ class TestMicroagentSemantic:
             term in body_lower for term in ["commit any changes", "commit changes"]
         ), "Should explain committing changes"
 
-    def test_describes_post_explanation(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_post_explanation(repo_engineer_content: str):
         """Test that posting explanations is described."""
         body_lower = repo_engineer_content.lower()
         assert "post" in body_lower or "explain" in body_lower, "Should mention posting explanations"
 
-    def test_describes_efficiency_focus(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_efficiency_focus(repo_engineer_content: str):
         """Test that efficiency focus is described."""
         body_lower = repo_engineer_content.lower()
         assert "efficiency" in body_lower, "Should mention efficiency in code fixes"
 
-    def test_proper_grammar_and_punctuation(self, repo_engineer_content: str):
+    @staticmethod
+    def test_proper_grammar_and_punctuation(repo_engineer_content: str):
         """Test basic grammar and punctuation."""
         # Extract body after frontmatter
         content = repo_engineer_content.lstrip()
@@ -458,7 +465,8 @@ class TestMicroagentSemantic:
         assert ".." not in body, "Should not have double periods"
         assert "  ." not in body, "Should not have space before period"
 
-    def test_consistent_terminology(self, repo_engineer_content: str):
+    @staticmethod
+    def test_consistent_terminology(repo_engineer_content: str):
         """Test that terminology is used consistently."""
         body = repo_engineer_content.lower()
 
@@ -481,13 +489,15 @@ class TestMicroagentEdgeCases:
         """Return the path to repo_engineer_lead.md."""
         return Path(".openhands/microagents/repo_engineer_lead.md")
 
-    def test_file_size_reasonable(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_file_size_reasonable(repo_engineer_path: Path):
         """Test that file size is reasonable."""
         file_size = repo_engineer_path.stat().st_size
         assert file_size > 100, "File should have meaningful content"
         assert file_size < 50000, "File should be concise (under 50KB)"
 
-    def test_no_binary_content(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_no_binary_content(repo_engineer_path: Path):
         """Test that file contains only text (no binary data)."""
         with open(repo_engineer_path, "rb") as f:
             content = f.read()
@@ -498,7 +508,8 @@ class TestMicroagentEdgeCases:
         except UnicodeDecodeError:
             pytest.fail("File should contain only UTF-8 text")
 
-    def test_no_control_characters(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_no_control_characters(repo_engineer_path: Path):
         """Test that file doesn't contain unexpected control characters."""
         with open(repo_engineer_path, encoding="utf-8") as f:
             content = f.read()
@@ -510,7 +521,8 @@ class TestMicroagentEdgeCases:
             if code < 32:  # Control character
                 assert char in ["\n", "\t", "\r"], f"File should not contain control character: {repr(char)}"
 
-    def test_consistent_newlines(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_consistent_newlines(repo_engineer_path: Path):
         """Test that newlines are used consistently."""
         with open(repo_engineer_path, "rb") as f:
             content = f.read()

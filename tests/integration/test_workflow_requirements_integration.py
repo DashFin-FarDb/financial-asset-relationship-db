@@ -130,7 +130,8 @@ class TestWorkflowCanInstallRequirements:
 class TestPyYAMLAvailability:
     """Test that PyYAML is properly configured for use in workflow tests."""
 
-    def test_pyyaml_in_requirements_for_workflow_validation(self):
+    @staticmethod
+    def test_pyyaml_in_requirements_for_workflow_validation():
         """
         Ensure PyYAML is listed in requirements-dev.txt so workflow YAML files can be parsed for validation.
 
@@ -145,7 +146,8 @@ class TestPyYAMLAvailability:
             "uses it to parse and validate workflow YAML files"
         )
 
-    def test_pyyaml_can_parse_workflow_files(self):
+    @staticmethod
+    def test_pyyaml_can_parse_workflow_files():
         """Test that installed PyYAML can successfully parse workflow files."""
         try:
             import yaml
@@ -164,7 +166,8 @@ class TestPyYAMLAvailability:
                 except yaml.YAMLError as e:
                     pytest.fail(f"PyYAML failed to parse {workflow_file.name}: {e}")
 
-    def test_types_pyyaml_provides_type_hints(self):
+    @staticmethod
+    def test_types_pyyaml_provides_type_hints():
         """Test that types-PyYAML is available for type checking."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
@@ -179,7 +182,8 @@ class TestPyYAMLAvailability:
 class TestRequirementsMatchWorkflowNeeds:
     """Test that requirements-dev.txt contains packages needed by workflows."""
 
-    def test_has_pytest_for_testing(self):
+    @staticmethod
+    def test_has_pytest_for_testing():
         """
         Check that pytest is present in requirements-dev.txt for workflow tests.
 
@@ -192,7 +196,8 @@ class TestRequirementsMatchWorkflowNeeds:
 
         assert "pytest" in package_names, "pytest must be in requirements-dev.txt as workflows run pytest for testing"
 
-    def test_has_required_dev_tools(self):
+    @staticmethod
+    def test_has_required_dev_tools():
         """Test that essential development tools are in requirements."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
