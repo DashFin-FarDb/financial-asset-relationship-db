@@ -25,6 +25,83 @@ def parsed_requirements() -> List[Tuple[str, str]]:
     return parse_requirements(REQUIREMENTS_FILE)
 
 
+def _extract_package_name(line: str, req: Requirement) -> str:
+    """Extract the package name from a requirement line, preserving original casing.
+
+    Args:
+        line: The raw requirement line from the file.
+        req: The parsed Requirement object.
+
+    Returns:
+        The package name as written in the requirements file.
+    """
+    import re as _re
+
+    # Drop environment markers
+    raw_pkg_token = line.split(";", 1)[0]
+    # Drop extras
+    raw_pkg_token = raw_pkg_token.split("[", 1)[0]
+    # Split at the first occurrence of any operator character (<,>,=,!,~) or comma
+    pkg_part = _re.split(r"(?=[<>=!~,])", raw_pkg_token, 1)[0].strip()
+    if pkg_part:
+        return pkg_part
+    return req.name.strip()
+
+
+def _normalize_specifier(specifier_str: str) -> str:
+    """Normalize a version specifier string by removing spaces around commas.
+
+    Args:
+        specifier_str: The version specifier string to normalize.
+
+    Returns:
+        The normalized specifier string.
+    """
+    if not specifier_str:
+        return specifier_str
+    parts = [s.strip() for s in specifier_str.split(",") if s.strip()]
+    return ",".join(parts)
+
+
+def _parse_single_requirement(line: str) -> tuple:
+    """Parse a single requirement line into (package, version_spec) tuple.
+
+    Args:
+        line: A stripped, non-empty, non-comment line from the requirements file.
+
+    Returns:
+        A tuple of (package_name, version_specifier) or None if parsing fails.
+    """
+    try:
+        Requirement(line)
+    except (ValueError, TypeError) as parse_error:
+        print(f"Could not parse requirement: {line} due to {parse_error}")
+
+
+def _parse_single_requirement(line: str) -> tuple[str, str] | None:
+    """Parse a single requirement line into (package, version_spec) tuple.
+
+    Args:
+        line: A stripped, non-empty, non-comment line from the requirements file.
+
+    Returns:
+        A tuple of (package_name, version_specifier) or None if parsing fails.
+    """
+    try:
+        req = Requirement(line)
+    except (ValueError, TypeError) as parse_error:
+        print(f"Could not parse requirement: {line} due to {parse_error}")
+        return None
+
+    pkg = _extract_package_name(line, req)
+    specifier_str = _normalize_specifier(str(req.specifier).strip())
+    return (pkg, specifier_str)
+
+    pkg = _extract_package_name(line, req)
+    specifier_str = _normalize_specifier(str(req.specifier).strip())
+    return (pkg, specifier_str)
+
+
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """Parse requirements file and return list of (package, version_spec) tuples.
     Examples:
@@ -45,7 +122,6 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     ...
     """
     requirements = []
-    import re as _re
 
     try:
         with open(file_path, "r", encoding="utf-8") as file_handle:
@@ -71,7 +147,7 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 raw_pkg_token = raw_pkg_token.split("[", 1)[0]
                 # Split at the first occurrence of any operator character
                 # (<,>,=,!,~) or comma
-                pkg_part = _re.split(r"(?=[<>=!~,])", raw_pkg_token, 1)[0].strip()
+                pkg_part = re.split(r"(?=[<>=!~,])", raw_pkg_token, 1)[0].strip()
                 pkg = pkg_part or req.name.strip()
 
                 specifier_str = str(req.specifier).strip()
