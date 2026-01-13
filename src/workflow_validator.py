@@ -48,9 +48,7 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     )  # fallback: allow only filenames present in the trusted directory
     if filename not in allowed_workflow_filenames:
         return ValidationResult(False, [f"Invalid workflow filename: {filename}"], {})
-    workflow_dir = os.environ.get("WORKFLOW_DIR") or os.path.join(
-        os.path.dirname(__file__), "workflows"
-    )
+    workflow_dir = os.environ.get("WORKFLOW_DIR") or os.path.join(os.path.dirname(__file__), "workflows")
     safe_path = os.path.join(workflow_dir, filename)
     try:
         with open(safe_path, "r", encoding="utf-8") as f:
