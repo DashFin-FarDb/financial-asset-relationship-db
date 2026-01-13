@@ -22,9 +22,6 @@ import pytest
 class TestEnhancedTestSummary:
     """Test cases for ENHANCED_TEST_SUMMARY.md."""
 
-    @pytest.fixture
-    def summary_path(self):
-        """
     @staticmethod
     @pytest.fixture
     def summary_path():
