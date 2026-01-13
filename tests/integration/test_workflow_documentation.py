@@ -250,7 +250,6 @@ class TestDocumentationBestPractices:
             len(code_fences) % 2 == 0
         ), f"Unmatched code fences: found {len(code_fences)} ``` markers (should be even)"
 
-    ```[\s\S]*?
 
 
 class TestDocumentationCompleteness:
