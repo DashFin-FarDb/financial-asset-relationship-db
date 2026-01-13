@@ -291,7 +291,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top - level title '# System Manifest'.
+        Assert that the system manifest's first line is the top - level title '  # System Manifest'.
         """
         assert system_manifest_lines[0] == "# System Manifest"
 
