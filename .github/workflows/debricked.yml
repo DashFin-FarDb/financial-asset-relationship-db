@@ -41,11 +41,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+
       - name: Install Debricked CLI
         run: |
-          curl -L https://github.com/debricked/cli/releases/latest/download/cli_linux_x86_64.tar.gz | tar -xz
+          EXPECTED_SHA256="<insert-expected-sha256>"
+          curl -L https://github.com/debricked/cli/releases/latest/download/cli_linux_x86_64.tar.gz -o debricked.tar.gz
+          echo "${EXPECTED_SHA256}  debricked.tar.gz" | sha256sum -c -
+          tar -xzf debricked.tar.gz
           sudo mv debricked /usr/local/bin/
           debricked --version
+
 
       - name: Run Debricked Scan
         env:
