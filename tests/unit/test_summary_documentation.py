@@ -206,6 +206,7 @@ def test_summary_describes_test_classes(self, summary_content):
     assert "TestSystemManifest" in summary_content
     assert "TestDocumentationConsistency" in summary_content
 
+
 def test_summary_includes_tables(self, summary_content):
     """Test that summary includes markdown tables."""
     # Should have at least one table
