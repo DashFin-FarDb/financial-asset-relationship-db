@@ -19,7 +19,7 @@ import { join } from "path";
 
 describe("Package.json Validation", () => {
   const packageJsonPath = join(process.cwd(), "package.json");
-  let packageJson: any;
+  let packageJson: unknown;
 
   beforeAll(() => {
     if (!existsSync(packageJsonPath)) {

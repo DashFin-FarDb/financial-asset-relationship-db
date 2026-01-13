@@ -81,7 +81,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
           clear: jest.fn(),
         },
       },
-    } as any;
+    } as unknown as AxiosInstance;
 
     mockedAxios.create.mockReturnValue(mockAxiosInstance);
 
@@ -141,7 +141,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.getAssets({
@@ -167,7 +167,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.getAssets({ asset_class: undefined });
@@ -183,7 +183,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // Test with special characters that need encoding
@@ -202,7 +202,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: { "content-type": "application/json" },
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       };
 
       mockAxiosInstance.get.mockResolvedValue(mockResponse);
@@ -219,7 +219,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 204,
         statusText: "No Content",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.healthCheck();
@@ -237,7 +237,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
           "x-request-id": "test-123",
           "x-ratelimit-remaining": "99",
         },
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       };
 
       mockAxiosInstance.get.mockResolvedValue(mockResponse);
@@ -254,14 +254,14 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         name: "AxiosError",
         message: "Request failed with status code 404",
         code: "ERR_BAD_REQUEST",
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
         request: {},
         response: {
           data: { detail: "Not found" },
           status: 404,
           statusText: "Not Found",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         },
         isAxiosError: true,
         toJSON: () => ({}),
@@ -282,7 +282,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         name: "AxiosError",
         message: "Network Error",
         code: "ERR_NETWORK",
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
         request: {},
         isAxiosError: true,
         toJSON: () => ({}),
@@ -301,7 +301,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         name: "AxiosError",
         message: "timeout of 5000ms exceeded",
         code: "ECONNABORTED",
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
         request: {},
         isAxiosError: true,
         toJSON: () => ({}),
@@ -320,14 +320,14 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         name: "AxiosError",
         message: "Request failed with status code 500",
         code: "ERR_BAD_RESPONSE",
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
         request: {},
         response: {
           data: { error: "Internal Server Error" },
           status: 500,
           statusText: "Internal Server Error",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         },
         isAxiosError: true,
         toJSON: () => ({}),
@@ -341,18 +341,18 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
     });
 
     it("should handle 4xx client errors correctly", async () => {
-      const clientError: AxiosError = {
+      const clientError: AxiosError<{ detail: string }> = {
         name: "AxiosError",
         message: "Request failed with status code 400",
         code: "ERR_BAD_REQUEST",
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
         request: {},
         response: {
           data: { detail: "Invalid request parameters" },
           status: 400,
           statusText: "Bad Request",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         },
         isAxiosError: true,
         toJSON: () => ({}),
@@ -381,7 +381,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: { "content-type": "application/json; charset=utf-8" },
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.getMetrics();
@@ -396,7 +396,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.healthCheck();
@@ -412,7 +412,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.getAssetDetail("ASSET_1");
@@ -427,7 +427,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as unknown,
       });
 
       await api.getAssetRelationships("ASSET_1");
@@ -443,7 +443,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.healthCheck();
@@ -460,7 +460,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // TypeScript should infer correct return type
@@ -477,7 +477,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // TypeScript should infer array type
@@ -498,7 +498,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.getAssets({ page: 1, per_page: 10 });
@@ -514,7 +514,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // Same usage pattern as axios 1.6.0
@@ -527,7 +527,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       const error: AxiosError = {
         name: "AxiosError",
         message: "Test error",
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
         isAxiosError: true,
         toJSON: () => ({}),
       };
@@ -546,7 +546,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       };
 
       mockAxiosInstance.get.mockResolvedValue(mockResponse);
@@ -568,7 +568,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.getAssetDetail(longId);
@@ -585,14 +585,14 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
           status: 200,
           statusText: "OK",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         })
         .mockResolvedValueOnce({
           data: mockMetrics,
           status: 200,
           statusText: "OK",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         });
 
       // Make concurrent requests
@@ -612,7 +612,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // Make rapid sequential requests
@@ -633,7 +633,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.getAssetDetail("ASSET_1");
@@ -658,8 +658,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
     });
 
     it("should allow interceptor registration", () => {
-      const requestInterceptor = (config: any) => config;
-      const responseInterceptor = (response: any) => response;
+      const requestInterceptor = <T>(config: T) => config;
+      const responseInterceptor = <T>(response: T): T => response;
 
       mockAxiosInstance.interceptors.request.use(requestInterceptor);
       mockAxiosInstance.interceptors.response.use(responseInterceptor);
@@ -680,7 +680,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.getAssetDetail("ASSET_1");
@@ -703,7 +703,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.getAssets();
