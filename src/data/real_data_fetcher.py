@@ -110,8 +110,8 @@ class RealDataFetcher:
             return graph
 
         except Exception as e:
-            logger.error("Failed to create real database: %s", e)
-            # Fallback to sample data if real data fails
+            logger.error(f"Failed to create real database: {e}")
+            # Fallback to sample data if real data fetch failure
             logger.warning("Falling back to sample data due to real data fetch failure")
             return self._fallback()
 
@@ -181,7 +181,8 @@ class RealDataFetcher:
 
         return equities
 
-    def _fetch_bond_data(self) -> List[Bond]:
+    @staticmethod
+    def _fetch_bond_data() -> List[Bond]:
         """Fetch real bond/treasury data"""
         # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
         bond_symbols = {
@@ -225,7 +226,8 @@ class RealDataFetcher:
 
         return bonds
 
-    def _fetch_commodity_data(self) -> List[Commodity]:
+    @staticmethod
+    def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity data"""
         commodity_symbols = {
             "GC=F": ("Gold Futures", "Precious Metals", 100),
@@ -269,7 +271,8 @@ class RealDataFetcher:
 
         return commodities
 
-    def _fetch_currency_data(self) -> List[Currency]:
+    @staticmethod
+    def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
         currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
@@ -309,7 +312,8 @@ class RealDataFetcher:
 
         return currencies
 
-    def _create_regulatory_events(self) -> List[RegulatoryEvent]:
+    @staticmethod
+    def _create_regulatory_events() -> List[RegulatoryEvent]:
         """Create realistic regulatory events for the fetched assets"""
         # Create some realistic recent events
         events = []

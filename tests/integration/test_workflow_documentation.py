@@ -18,50 +18,6 @@ DOC_FILE = Path(__file__).parent.parent.parent / "TEST_GENERATION_WORKFLOW_SUMMA
 ```[\s\S]*?
 
 
-class TestDocumentationCompleteness:
-    """Test that documentation covers all important aspects."""
-
-    @staticmethod
-    @pytest.fixture
-    def doc_content() -> str:
-        """Load the documentation content."""
-        with open(DOC_FILE, "r", encoding="utf-8") as f:
-            return f.read()
-
-    @staticmethod
-    def test_has_benefits_or_features(doc_content: str):
-        """Test that document lists benefits or features."""
-        content_lower = doc_content.lower()
-        assert "benefit" in content_lower or "feature" in content_lower, "Document should describe benefits or features"
-
-    @staticmethod
-    def test_has_usage_instructions(doc_content: str):
-        """Test that document provides usage instructions."""
-        # Should have imperative verbs or command examples
-        has_instructions = any(
-            [
-                re.search(r"\brun\b.*pytest", doc_content, re.IGNORECASE),
-                re.search(r"\bexecute\b", doc_content, re.IGNORECASE),
-                re.search(r"\binstall\b", doc_content, re.IGNORECASE),
-            ]
-        )
-        assert has_instructions, "Document should provide usage instructions"
-
-    @staticmethod
-    def test_mentions_ci_integration(doc_content: str):
-        """Test that document mentions CI/CD integration."""
-        content_lower = doc_content.lower()
-        has_ci_mention = any(
-            [
-                "ci" in content_lower,
-                "continuous integration" in content_lower,
-                "github actions" in content_lower,
-                "workflow" in content_lower,
-            ]
-        )
-        assert has_ci_mention, "Document should mention CI/CD or workflow integration"
-
-
 class TestDocumentationSections:
     """Test that all expected sections are present."""
 

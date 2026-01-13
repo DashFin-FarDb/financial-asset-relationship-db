@@ -17,8 +17,8 @@ import pytest
 class TestVercelConfig:
     """Test cases for vercel.json configuration."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def vercel_config():
         """Load vercel.json configuration."""
         config_path = Path("vercel.json")
@@ -95,8 +95,9 @@ class TestVercelConfig:
 class TestNextConfig:
     """Test cases for Next.js configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def next_config_content(self):
+    def next_config_content():
         """Load Next.js configuration file content."""
         config_path = Path("frontend/next.config.js")
         assert config_path.exists(), "next.config.js not found"
@@ -125,8 +126,9 @@ class TestNextConfig:
 class TestPackageJson:
     """Test cases for package.json configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def package_json(self):
+    def package_json():
         """Load package.json configuration."""
         config_path = Path("frontend/package.json")
         assert config_path.exists(), "package.json not found"
@@ -201,8 +203,9 @@ class TestPackageJson:
 class TestTSConfig:
     """Test cases for TypeScript configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def tsconfig(self):
+    def tsconfig():
         """Load tsconfig.json."""
         config_path = Path("frontend/tsconfig.json")
         assert config_path.exists(), "tsconfig.json not found"
@@ -259,20 +262,24 @@ class TestTailwindConfig:
         with open(config_path) as f:
             return f.read()
 
-    def test_tailwind_config_exists(self):
+    @staticmethod
+    def test_tailwind_config_exists():
         """Test that tailwind.config.js exists."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists()
 
-    def test_tailwind_config_has_module_exports(self, tailwind_config_content):
+    @staticmethod
+    def test_tailwind_config_has_module_exports(tailwind_config_content):
         """Test that Tailwind config exports configuration."""
         assert "module.exports" in tailwind_config_content
 
-    def test_tailwind_config_has_content_paths(self, tailwind_config_content):
+    @staticmethod
+    def test_tailwind_config_has_content_paths(tailwind_config_content):
         """Test that content paths are configured."""
         assert "content" in tailwind_config_content
 
-    def test_tailwind_config_includes_app_directory(self, tailwind_config_content):
+    @staticmethod
+    def test_tailwind_config_includes_app_directory(tailwind_config_content):
         """Test that content paths include app directory."""
         assert "app/" in tailwind_config_content or "./app/" in tailwind_config_content
 
@@ -280,8 +287,8 @@ class TestTailwindConfig:
 class TestEnvExample:
     """Test cases for .env.example file."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def env_example_content():
         """Load .env.example content."""
         config_path = Path(".env.example")
@@ -333,28 +340,34 @@ class TestGitignore:
         with open(config_path) as f:
             return f.read()
 
-    def test_gitignore_exists(self):
+    @staticmethod
+    def test_gitignore_exists():
         """Test that .gitignore exists."""
         config_path = Path(".gitignore")
         assert config_path.exists()
 
-    def test_gitignore_excludes_node_modules(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_node_modules(gitignore_content):
         """Test that node_modules is excluded."""
         assert "node_modules" in gitignore_content
 
-    def test_gitignore_excludes_next_artifacts(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_next_artifacts(gitignore_content):
         """Test that Next.js build artifacts are excluded."""
         assert ".next" in gitignore_content or ".next/" in gitignore_content
 
-    def test_gitignore_excludes_env_files(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_env_files(gitignore_content):
         """Test that environment files are excluded."""
         assert ".env.local" in gitignore_content
 
-    def test_gitignore_excludes_vercel(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_vercel(gitignore_content):
         """Test that Vercel directory is excluded."""
         assert ".vercel" in gitignore_content
 
-    def test_gitignore_excludes_python_artifacts(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_python_artifacts(gitignore_content):
         """Test that Python artifacts are excluded."""
         assert "__pycache__" in gitignore_content
         # Check for *.pyc explicitly or the pattern *.py[cod] (which matches files ending in .pyc, .pyo, or .pyd; [cod] means any single character from the set {c, o, d})
@@ -366,8 +379,9 @@ class TestRequirementsTxt:
 
     require_version_pinning = True  # When True, enforces version constraints for all dependencies in requirements.txt
 
+    @staticmethod
     @pytest.fixture
-    def requirements(self):
+    def requirements():
         """Load requirements.txt content."""
         config_path = Path("requirements.txt")
         assert config_path.exists(), "requirements.txt not found"
@@ -409,8 +423,9 @@ class TestRequirementsTxt:
 class TestPostCSSConfig:
     """Test cases for PostCSS configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def postcss_config_content(self):
+    def postcss_config_content():
         """Load PostCSS configuration."""
         config_path = Path("frontend/postcss.config.js")
         if not config_path.exists():

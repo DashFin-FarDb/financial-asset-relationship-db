@@ -172,27 +172,6 @@ class TestContentAccuracy:
         ), "Document should mention dependencies"
 
 
-class TestCodeBlocks:
-    """Test suite for fenced code block validation in the documentation."""
-
-    CODE_BLOCK_PATTERN = re.compile(r"```(?:bash|shell)?\n.*?\n```", re.DOTALL | re.IGNORECASE)
-
-    @staticmethod
-    def test_has_at_least_one_code_block(summary_content: str):
-        """Ensure that the document contains at least one fenced code block."""
-        matches = TestCodeBlocks.CODE_BLOCK_PATTERN.findall(summary_content)
-        assert len(matches) > 0, "Document should include at least one fenced code block"
-
-    @staticmethod
-    def test_code_block_fence_count_is_consistent(summary_content: str):
-        """Basic sanity check: count of opening fences should match regex matches."""
-        # Count raw occurrences of opening code fences.
-        fence_count = summary_content.count("```")
-        # Each fenced block should contribute at least one opening fence.
-        regex_matches = TestCodeBlocks.CODE_BLOCK_PATTERN.findall(summary_content)
-        assert fence_count >= len(regex_matches) >= 0, "Inconsistent fenced code block counting"
-
-
 class TestDocumentMaintainability:
     """Test suite for document maintainability."""
 

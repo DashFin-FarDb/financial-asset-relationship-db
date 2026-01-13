@@ -117,7 +117,8 @@ class TestDocumentationFiles:
         """Test that key documentation files exist."""
         assert os.path.exists(doc_file), f"Missing documentation: {doc_file}"
 
-    def test_readme_has_quick_start(self):
+    @staticmethod
+    def test_readme_has_quick_start():
         """Test README contains quick start section."""
         with open("README.md") as f:
             content = f.read()

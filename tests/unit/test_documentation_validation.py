@@ -49,7 +49,8 @@ class TestDependencyMatrix:
             return f.read()
 
     @pytest.fixture
-    def dependency_matrix_lines(self, dependency_matrix_content):
+    @staticmethod
+    def dependency_matrix_lines(dependency_matrix_content):
         """
         Split dependency matrix content into individual lines.
 
@@ -354,7 +355,7 @@ class TestSystemManifest:
         assert match is not None, "Current Phase not found"
 
     def test_system_manifest_has_last_updated(self, system_manifest_content):
-        """Test that systemManifest.md has Last Updated ISO 8601 timestamp."""
+        """Test that systemManifest.md has Last Updated timestamp as valid ISO 8601."""
         pattern = r"- Last Updated: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)"
         match = re.search(pattern, system_manifest_content)
 
@@ -620,7 +621,7 @@ class TestDocumentationRealisticContent:
         r"""
         Verify that file paths listed in the system manifest correspond to actual files in the repository.
 
-        Searches the manifest for file entries formatted as "### \path\to\file.ext" (common Python, TS / TSX, JSX / JSX patterns), normalises Windows - style backslashes to POSIX paths, strips any leading slash, and checks existence for up to the first 20 discovered paths. Entries that are placeholders or clearly test - related(containing "...", "test_", or "__tests__") are skipped.
+        Searches the manifest for file entries formatted as "### \\path\\to\\file.ext" (common Python, TS / TSX, JSX / JSX patterns), normalises Windows - style backslashes to POSIX paths, strips any leading slash, and checks existence for up to the first 20 discovered paths. Entries that are placeholders or clearly test - related(containing "...", "test_", or "__tests__") are skipped.
         """
         manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
         with open(manifest_path, encoding="utf-8") as f:

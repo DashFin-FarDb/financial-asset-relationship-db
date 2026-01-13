@@ -202,8 +202,8 @@ class TestRequiredPackages:
 class TestVersionSpecifications:
     """Test version specifications and constraints."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
@@ -366,7 +366,8 @@ class TestSecurityAndCompliance:
             keyword in comment for keyword in security_keywords
         ), f"zipp comment should mention security/vulnerability, got: {comment}"
 
-    def test_no_known_vulnerable_versions(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_no_known_vulnerable_versions(requirements: List[Tuple[str, str]]):
         """Test that packages don't use known vulnerable version patterns."""
         # This is a basic check - in production, integrate with safety or snyk
         for pkg, ver in requirements:
@@ -420,8 +421,8 @@ class TestEdgeCases:
 class TestComprehensiveValidation:
     """Comprehensive validation tests for the requirements file."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)

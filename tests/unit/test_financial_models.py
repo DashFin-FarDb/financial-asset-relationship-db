@@ -1,3 +1,4 @@
+# ruff: noqa: S101
 """Unit tests for financial models.
 
 This module contains comprehensive unit tests for all financial model classes including:
@@ -5,7 +6,16 @@ This module contains comprehensive unit tests for all financial model classes in
 - Equity, Bond, Commodity, Currency subclasses
 - RegulatoryEvent class with impact scoring
 - Input validation and error handling for all model types
+
+Note: This test file uses assert statements which is the standard and recommended
+approach for pytest. The S101 rule is suppressed because tests are not run with
+Python optimization flags that would remove assert statements.
 """
+
+# ruff: noqa: S101
+# The S101 rule flags use of assert statements. In pytest test files, assert is the
+# standard and recommended way to make assertions. Pytest rewrites these statements
+# to provide detailed error messages, and test files are not run with Python's -O flag.
 
 import pytest
 
@@ -93,13 +103,6 @@ class TestEquity:
     """Test cases for the Equity class."""
 
     @staticmethod
-    def test_equity_creation(sample_equity):
-        """Test creating a valid equity asset."""
-        assert sample_equity.asset_class == AssetClass.EQUITY
-        assert sample_equity.pe_ratio == 25.5
-        assert sample_equity.dividend_yield == 0.005
-
-    @staticmethod
     def test_equity_optional_fields():
         """Test equity with optional fields as None."""
         equity = Equity(
@@ -113,6 +116,12 @@ class TestEquity:
         assert equity.pe_ratio is None
         assert equity.dividend_yield is None
         assert equity.earnings_per_share is None
+
+    def test_equity_creation(self, sample_equity):
+        """Test creating a valid equity asset."""
+        assert sample_equity.asset_class == AssetClass.EQUITY
+        assert sample_equity.pe_ratio == 25.5
+        assert sample_equity.dividend_yield == 0.005
 
 
 class TestBond:

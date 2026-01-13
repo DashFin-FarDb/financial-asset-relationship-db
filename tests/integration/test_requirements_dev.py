@@ -25,6 +25,83 @@ def parsed_requirements() -> List[Tuple[str, str]]:
     return parse_requirements(REQUIREMENTS_FILE)
 
 
+def _extract_package_name(line: str, req: Requirement) -> str:
+    """Extract the package name from a requirement line, preserving original casing.
+
+    Args:
+        line: The raw requirement line from the file.
+        req: The parsed Requirement object.
+
+    Returns:
+        The package name as written in the requirements file.
+    """
+    import re as _re
+
+    # Drop environment markers
+    raw_pkg_token = line.split(";", 1)[0]
+    # Drop extras
+    raw_pkg_token = raw_pkg_token.split("[", 1)[0]
+    # Split at the first occurrence of any operator character (<,>,=,!,~) or comma
+    pkg_part = _re.split(r"(?=[<>=!~,])", raw_pkg_token, 1)[0].strip()
+    if pkg_part:
+        return pkg_part
+    return req.name.strip()
+
+
+def _normalize_specifier(specifier_str: str) -> str:
+    """Normalize a version specifier string by removing spaces around commas.
+
+    Args:
+        specifier_str: The version specifier string to normalize.
+
+    Returns:
+        The normalized specifier string.
+    """
+    if not specifier_str:
+        return specifier_str
+    parts = [s.strip() for s in specifier_str.split(",") if s.strip()]
+    return ",".join(parts)
+
+
+def _parse_single_requirement(line: str) -> tuple:
+    """Parse a single requirement line into (package, version_spec) tuple.
+
+    Args:
+        line: A stripped, non-empty, non-comment line from the requirements file.
+
+    Returns:
+        A tuple of (package_name, version_specifier) or None if parsing fails.
+    """
+    try:
+        Requirement(line)
+    except (ValueError, TypeError) as parse_error:
+        print(f"Could not parse requirement: {line} due to {parse_error}")
+
+
+def _parse_single_requirement(line: str) -> tuple[str, str] | None:
+    """Parse a single requirement line into (package, version_spec) tuple.
+
+    Args:
+        line: A stripped, non-empty, non-comment line from the requirements file.
+
+    Returns:
+        A tuple of (package_name, version_specifier) or None if parsing fails.
+    """
+    try:
+        req = Requirement(line)
+    except (ValueError, TypeError) as parse_error:
+        print(f"Could not parse requirement: {line} due to {parse_error}")
+        return None
+
+    pkg = _extract_package_name(line, req)
+    specifier_str = _normalize_specifier(str(req.specifier).strip())
+    return (pkg, specifier_str)
+
+    pkg = _extract_package_name(line, req)
+    specifier_str = _normalize_specifier(str(req.specifier).strip())
+    return (pkg, specifier_str)
+
+
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """Parse requirements file and return list of (package, version_spec) tuples.
     Examples:
@@ -45,7 +122,6 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     ...
     """
     requirements = []
-    import re as _re
 
     try:
         with open(file_path, "r", encoding="utf-8") as file_handle:
@@ -71,7 +147,7 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 raw_pkg_token = raw_pkg_token.split("[", 1)[0]
                 # Split at the first occurrence of any operator character
                 # (<,>,=,!,~) or comma
-                pkg_part = _re.split(r"(?=[<>=!~,])", raw_pkg_token, 1)[0].strip()
+                pkg_part = re.split(r"(?=[<>=!~,])", raw_pkg_token, 1)[0].strip()
                 pkg = pkg_part or req.name.strip()
 
                 specifier_str = str(req.specifier).strip()
@@ -146,12 +222,14 @@ class TestRequiredPackages:
 
     @staticmethod
     @pytest.fixture
+    @staticmethod
     def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Parse and return requirements."""
         return parsed_requirements
 
     @pytest.fixture
-    def package_names(self, parsed_requirements) -> List[str]:
+    @staticmethod
+    def package_names(parsed_requirements) -> List[str]:
         """Extract just the package names."""
         return [pkg for pkg, _ in parsed_requirements]
 
@@ -232,7 +310,8 @@ class TestPackageConsistency:
         requirements = parse_requirements(REQUIREMENTS_FILE)
         return [pkg for pkg, _ in requirements]
 
-    def test_types_packages_match_base_packages(self, package_names: List[str]):
+    @staticmethod
+    def test_types_packages_match_base_packages(package_names: List[str]):
         """Test that type stub packages have corresponding base packages."""
         types_packages = [pkg for pkg in package_names if pkg.startswith("types-")]
 
@@ -241,7 +320,8 @@ class TestPackageConsistency:
             base_exists = any(pkg.lower() == base_pkg.lower() for pkg in package_names)
             assert base_exists
 
-    def test_no_duplicate_packages(self, package_names: List[str]):
+    @staticmethod
+    def test_no_duplicate_packages(package_names: List[str]):
         """Test that no package is listed multiple times."""
         seen = set()
         duplicates = []
@@ -253,7 +333,8 @@ class TestPackageConsistency:
 
         assert len(duplicates) == 0
 
-    def test_package_names_valid(self, package_names: List[str]):
+    @staticmethod
+    def test_package_names_valid(package_names: List[str]):
         """Test that package names follow valid naming conventions."""
         valid_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
 
@@ -284,8 +365,8 @@ class TestFileOrganization:
 class TestSpecificChanges:
     """Test the specific changes made in the diff."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def requirements() -> List[Tuple[str, str]]:
         """Parse and return requirements."""
         return parse_requirements(REQUIREMENTS_FILE)
@@ -379,7 +460,8 @@ class TestVersionConstraintValidation:
     """Test detailed version constraint validation."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
@@ -443,7 +525,8 @@ class TestPackageNamingAndCasing:
     """Test package naming conventions and casing consistency."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
@@ -489,27 +572,32 @@ class TestDevelopmentToolsPresence:
         """Extract package names."""
         return [pkg.lower() for pkg, _ in parsed_requirements]
 
-    def test_has_testing_framework(self, package_names: List[str]):
+    @staticmethod
+    def test_has_testing_framework(package_names: List[str]):
         """Test that a testing framework is present."""
         testing_frameworks = ["pytest", "unittest", "nose"]
         assert any(fw in package_names for fw in testing_frameworks), "No testing framework found"
 
-    def test_has_code_formatter(self, package_names: List[str]):
+    @staticmethod
+    def test_has_code_formatter(package_names: List[str]):
         """Test that a code formatter is present."""
         formatters = ["black", "autopep8", "yapf"]
         assert any(fmt in package_names for fmt in formatters), "No code formatter found"
 
-    def test_has_linter(self, package_names: List[str]):
+    @staticmethod
+    def test_has_linter(package_names: List[str]):
         """Test that at least one linter is present."""
         linters = ["flake8", "pylint", "ruff"]
         assert any(linter in package_names for linter in linters), "No linter found"
 
-    def test_has_type_checker(self, package_names: List[str]):
+    @staticmethod
+    def test_has_type_checker(package_names: List[str]):
         """Test that a type checker is present."""
         type_checkers = ["mypy", "pytype", "pyre"]
         assert any(tc in package_names for tc in type_checkers), "No type checker found"
 
-    def test_has_import_sorter(self, package_names: List[str]):
+    @staticmethod
+    def test_has_import_sorter(package_names: List[str]):
         """Test that an import sorter is present."""
         import_sorters = ["isort", "reorder-python-imports"]
         # This is optional but good to have
@@ -524,12 +612,14 @@ class TestPytestEcosystem:
     """Test pytest and related plugins."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
     @pytest.fixture
-    def package_names(self, parsed_requirements) -> List[str]:
+    @staticmethod
+    def package_names(parsed_requirements) -> List[str]:
         """Extract package names."""
         return [pkg.lower() for pkg, _ in parsed_requirements]
 
@@ -688,7 +778,8 @@ class TestPyYAMLIntegration:
     """Test PyYAML-specific integration based on the diff changes."""
 
     @pytest.fixture
-    def requirements(self, parsed_requirements) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements
 
@@ -731,6 +822,7 @@ class TestComprehensivePackageValidation:
 
     @staticmethod
     @pytest.fixture
+    @staticmethod
     def requirements(parsed_requirements) -> List[Tuple[str, str]]:
         """Get parsed requirements."""
         return parsed_requirements

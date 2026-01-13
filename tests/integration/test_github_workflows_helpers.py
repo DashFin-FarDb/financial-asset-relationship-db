@@ -25,7 +25,8 @@ from tests.integration.test_github_workflows import (
 class TestGetWorkflowFiles:
     """Test suite for get_workflow_files() function."""
 
-    def test_returns_list(self):
+    @staticmethod
+    def test_returns_list():
         """Test that get_workflow_files returns a list."""
         result = get_workflow_files()
         assert isinstance(result, list)
@@ -384,8 +385,7 @@ class TestWorkflowsDirectoryConstant:
         """Test that WORKFLOWS_DIR is a Path object."""
         assert isinstance(WORKFLOWS_DIR, Path)
 
-    @staticmethod
-    def test_workflows_dir_points_to_github_workflows():
+    def test_workflows_dir_points_to_github_workflows(self):
         """Test that WORKFLOWS_DIR points to .github / workflows."""
         assert WORKFLOWS_DIR.name == "workflows"
         assert WORKFLOWS_DIR.parent.name == ".github"
@@ -476,7 +476,7 @@ jobs:
         with:
 """
         )
-          fetch-depth: 0
+            fetch - depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:

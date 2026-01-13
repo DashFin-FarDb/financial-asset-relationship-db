@@ -25,8 +25,8 @@ class TestEnhancedTestSummary:
     @pytest.fixture
     def summary_path(self):
         """
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def summary_path():
         """
         Provide the path to the enhanced test summary file.
@@ -129,8 +129,9 @@ class TestEnhancedTestSummary:
 class TestFinalTestSummary:
     """Test cases for FINAL_TEST_SUMMARY.md."""
 
+    @staticmethod
     @pytest.fixture
-    def summary_path(self):
+    def summary_path():
         """
         Path to the final test summary markdown file.
 

@@ -102,8 +102,8 @@ class UserRepository:
 
         return fetch_value("SELECT 1 FROM user_credentials LIMIT 1") is not None
 
+    @staticmethod
     def create_or_update_user(
-        self,
         *,
         username: str,
         hashed_password: str,

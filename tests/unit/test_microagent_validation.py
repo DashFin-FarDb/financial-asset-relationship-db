@@ -390,7 +390,8 @@ class TestMicroagentSemantic:
     """Semantic validation tests for microagent content."""
 
     @pytest.fixture
-    def repo_engineer_path(self) -> Path:
+    @staticmethod
+    def repo_engineer_path() -> Path:
         """Return the path to repo_engineer_lead.md."""
         return Path(".openhands/microagents/repo_engineer_lead.md")
 

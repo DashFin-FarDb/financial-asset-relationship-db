@@ -661,6 +661,7 @@ class TestVisualizationDataProcessing:
 
     @staticmethod
     @pytest.fixture
+    @staticmethod
     def client():
         """Create a test client."""
         return TestClient(app)
@@ -708,6 +709,7 @@ class TestIntegrationScenarios:
 
     @staticmethod
     @pytest.fixture
+    @staticmethod
     def client():
         """Create a test client."""
         return TestClient(app)
