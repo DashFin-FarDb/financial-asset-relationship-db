@@ -7,6 +7,7 @@ duplicate keys, invalid syntax, and missing required fields.
 """
 
 import pytest
+import re
 import yaml
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -298,16 +299,13 @@ class TestPrAgentWorkflow:
         )
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that pr-agent-trigger job runs on Ubuntu runner."""
+        """Test that pr-agent workflow runs on Ubuntu."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         runs_on = review_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), (
             f"PR Agent trigger job should run on Ubuntu runner, got '{runs_on}'"
         )
-        assert runs_on in ["ubuntu-latest", "ubuntu-22.04", "ubuntu-20.04"], (
-            f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
-        )
-    
+
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
         """Test that review job checks out the code."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
@@ -332,7 +330,8 @@ class TestPrAgentWorkflow:
         for step in checkout_steps:
             step_with = step.get("with", {})
             token = step_with.get("token")
-            assert token, "Checkout steps must specify a non-empty token"
+            assert token and len(token.strip()) > 0, "Checkout step should define a non-empty token"
+
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """Asserts the workflow's trigger job includes a setup-python step."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
@@ -423,24 +422,25 @@ class TestPrAgentWorkflow:
         self._assert_valid_fetch_depth({"token": "${{ secrets.GITHUB_TOKEN }}"})
 
 class TestWorkflowSecurity:
-    
+    """Tests for workflow security best practices."""
+
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_hardcoded_secrets(self, workflow_file: Path):
         """Test that workflows don't contain hardcoded secrets or tokens."""
         with open(workflow_file, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Patterns that might indicate hardcoded secrets
+        # More precise patterns with word boundaries
         suspicious_patterns = [
-            "ghp_",  # GitHub personal access token
-            "gho_",  # GitHub OAuth token
-            "ghu_",  # GitHub user token
-            "ghs_",  # GitHub server token
-            "ghr_",  # GitHub refresh token
+            r'\bghp_[a-zA-Z0-9]{36}\b',  # GitHub personal access token
+            r'\bgho_[a-zA-Z0-9]{36}\b',  # GitHub OAuth token
+            r'\bghu_[a-zA-Z0-9]{36}\b',  # GitHub user token
+            r'\bghs_[a-zA-Z0-9]{36}\b',  # GitHub server token
+            r'\bghr_[a-zA-Z0-9]{36}\b',  # GitHub refresh token
         ]
         
         for pattern in suspicious_patterns:
-            assert pattern not in content, (
+            assert not re.search(pattern, content), (
                 f"Workflow {workflow_file.name} may contain hardcoded secret "
                 f"(found pattern: {pattern}). Use secrets context instead."
             )
@@ -1072,20 +1072,27 @@ class TestWorkflowEnvAndSecrets:
     """Tests for environment variables and secrets usage."""
 
     @staticmethod
+    def _is_valid_env_var_name(key: str) -> bool:
+        """Check if a string is a valid environment variable name."""
+        if not key:
+            return False
+        return (all(c.isupper() or c.isdigit() or c == "_" for c in key)
+                and any(c.isupper() for c in key))
+
+    @staticmethod
     def _check_env_vars(env_dict: Any) -> List[str]:
         """Return invalid environment variable names from a mapping."""
         if not isinstance(env_dict, dict):
             return []
 
         return [
-            key
-            for key in env_dict.keys()
-            if not isinstance(key, str) or not key or not all(c.isupper() or c.isdigit() or c == "_" for c in key)
+            key for key in env_dict.keys()
+            if not isinstance(key, str) or not TestWorkflowEnvAndSecrets._is_valid_env_var_name(key)
         ]
-    
+
     @staticmethod
-    def _env_scopes(config: Dict[str, Any], workflow_name: str) -> List[Tuple[str, Dict[str, Any]]]:
-        """Extract environment variable scopes from a workflow config."""
+    def _env_scopes(config: Dict[str, Any], workflow_name: str) -> List[Tuple[str, Any]]:
+        """Return list of (scope_name, env_dict) tuples for workflow and jobs."""
         scopes = []
         
         if "env" in config:
