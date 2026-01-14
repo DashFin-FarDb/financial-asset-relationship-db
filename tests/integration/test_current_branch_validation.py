@@ -113,7 +113,11 @@ class TestWorkflowModifications:
 
         # Should only appear in test files documenting the deletion
         if files_with_reference:
-            test_files = [f for f in files_with_reference if 'test' in f]
+            test_files = [
+                f
+                for f in files_with_reference
+                if ("tests" in Path(f).parts) or Path(f).name.startswith("test_")
+            ]
             # All references should be in test files
             assert len(files_with_reference) == len(test_files)
     
