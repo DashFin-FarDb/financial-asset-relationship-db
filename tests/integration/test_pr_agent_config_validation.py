@@ -11,8 +11,6 @@ Tests the simplified PR agent configuration, ensuring:
 import pytest
 import ruamel.yaml
 import yaml
-from pathlib import Path
-
 
 class DuplicateKeyLoader(yaml.SafeLoader):
     """Custom YAML loader that detects duplicate keys.
@@ -21,26 +19,17 @@ class DuplicateKeyLoader(yaml.SafeLoader):
     with trusted configuration files. Not suitable for untrusted input
     due to recursive construction without depth limits.
     """
+    pass
 
-    def construct_mapping(self, node, deep: bool = False):
-        """Override mapping construction to fail on duplicate keys."""
-        self.flatten_mapping(node)
-        mapping = {}
-        for key_node, value_node in node.value:
-            key = self.construct_object(key_node, deep=deep)
-            if key in mapping:
-                raise yaml.constructor.ConstructorError(
-                    "while constructing a mapping",
-                    node.start_mark,
-                    f"found duplicate key ({key!r})",
-                    key_node.start_mark,
-                )
-            mapping[key] = self.construct_object(value_node, deep=deep)
-    return mapping
+
+def _check_duplicate_keys(loader, node, deep=False):
     """Check for duplicate keys in YAML mappings."""
     loader.flatten_mapping(node)
+    mapping = {}
+    
+    for key_node, value_node in node.value:
         key = loader.construct_object(key_node, deep=deep)
-
+        
         try:
             hash(key)
         except TypeError as e:
@@ -48,18 +37,24 @@ class DuplicateKeyLoader(yaml.SafeLoader):
                 "while constructing a mapping", node.start_mark,
                 f"found unhashable key ({key!r})", key_node.start_mark
             ) from e
-
+        
         if key in mapping:
             raise yaml.constructor.ConstructorError(
                 "while constructing a mapping", node.start_mark,
                 f"found duplicate key ({key!r})", key_node.start_mark
             )
-
-        value = loader.construct_object(value_node, deep=deep)
-            )
+        
         value = loader.construct_object(value_node, deep=deep)
         mapping[key] = value
+    
     return mapping
+
+
+DuplicateKeyLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    _check_duplicate_keys
+)
+
 
 
 def _check_duplicate_keys(loader, node):
