@@ -99,8 +99,8 @@ def populated_graph(
 ):
     """
     Provide a populated AssetRelationshipGraph with 4 assets and 1 event.
-    
-    
+
+
     """
     graph = AssetRelationshipGraph()
     graph.add_asset(sample_equity)
