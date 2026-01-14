@@ -21,24 +21,21 @@ class DuplicateKeyLoader(yaml.SafeLoader):
     with trusted configuration files. Not suitable for untrusted input
     due to recursive construction without depth limits.
     """
-    pass
-    pass
 
-    """Check for duplicate keys in YAML mappings."""
-    loader.flatten_mapping(node)
-
-    mapping = {}
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=deep)
-        if key in mapping:
-            raise yaml.constructor.ConstructorError(
-                "while constructing a mapping", node.start_mark,
-                f"found duplicate key ({key!r})", key_node.start_mark
-            )
-                f"found duplicate key ({key})", key_node.start_mark
-            )
-        value = loader.construct_object(value_node, deep=True)
-        mapping[key] = value
+    def construct_mapping(self, node, deep: bool = False):
+        """Override mapping construction to fail on duplicate keys."""
+        self.flatten_mapping(node)
+        mapping = {}
+        for key_node, value_node in node.value:
+            key = self.construct_object(key_node, deep=deep)
+            if key in mapping:
+                raise yaml.constructor.ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    f"found duplicate key ({key!r})",
+                    key_node.start_mark,
+                )
+            mapping[key] = self.construct_object(value_node, deep=deep)
     return mapping
     """Check for duplicate keys in YAML mappings."""
     loader.flatten_mapping(node)
