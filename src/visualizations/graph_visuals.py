@@ -589,7 +589,6 @@ def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
         raise ValueError(f"Invalid graph data: duplicate asset_ids detected: {dup_str}")
 
 
-
 def _validate_visualization_data(
     positions: np.ndarray,
     asset_ids: List[str],

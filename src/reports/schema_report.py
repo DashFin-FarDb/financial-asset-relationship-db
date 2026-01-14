@@ -19,7 +19,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ### Relationship Types
 """
 
-    for rel_type, count in sorted(metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True):
+    for rel_type, count in sorted(
+        metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True
+    ):
         report += f"- **{rel_type}**: {count} instances\n"
 
     report += f"""
@@ -44,7 +46,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ## Top Relationships
 """
 
-    for idx, (source, target, rel_type, strength) in enumerate(metrics["top_relationships"], 1):
+    for idx, (source, target, rel_type, strength) in enumerate(
+        metrics["top_relationships"], 1
+    ):
         report += f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}\n"
 
     report += """
@@ -74,7 +78,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 
     quality_score = min(
         1.0,
-        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+        metrics["average_relationship_strength"]
+        + (metrics["regulatory_event_count"] / 10),
     )
     report += f"{quality_score:.1%}\n"
 

@@ -18,13 +18,13 @@ from src.models.financial_models import (
 
 
 @pytest.fixture
- def empty_graph():
+def empty_graph():
     """Provide an empty AssetRelationshipGraph."""
     return AssetRelationshipGraph()
 
 
 @pytest.fixture
- def sample_equity():
+def sample_equity():
     """Provide a sample Equity asset."""
     return Equity(
         id="AAPL",
