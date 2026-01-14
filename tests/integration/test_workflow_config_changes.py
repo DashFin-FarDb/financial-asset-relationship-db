@@ -569,7 +569,7 @@ class TestRequirementsDevChanges:
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short"])"""
+    pytest.main([__file__, "-v", "--tb=short"])
 Additional comprehensive tests for workflow configuration edge cases and regressions.
 
 These tests provide additional coverage beyond the existing test suite, focusing on:
