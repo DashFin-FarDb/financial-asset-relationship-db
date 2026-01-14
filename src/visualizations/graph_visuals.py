@@ -251,18 +251,22 @@ def _create_node_trace(
     """Create node trace for 3D visualization with comprehensive input validation.
 
     Validates all inputs to ensure:
-    - positions is a non-empty 2D numpy array with shape (n, 3) containing finite numeric values
-    - asset_ids is a non-empty list/tuple of non-empty strings with length matching positions
-    - colors is a non-empty list/tuple of valid color strings with length matching positions
-    - hover_texts is a non-empty list/tuple of strings with length matching positions
-    - All arrays have consistent lengths
-    - No duplicate asset IDs
+    - positions is a non-empty 2D numpy array with
+      shape(n, 3) containing finite numeric values
+    - asset_ids is a non-empty list or tuple of
+      non-empty strings with length matching positions
+    - colors is a non-empty list or tuple of valid color strings with
+      length matching positions
+    - hover_texts is a non-empty list or tuple of strings with
+      length matching positions
 
     Args:
-        positions: NumPy array of node positions with shape (n, 3) containing finite numeric values
-        asset_ids: List of asset ID strings (must be non-empty strings, length must match positions)
-        colors: List of node colors (length must match positions)
-        hover_texts: List of hover texts (length must match positions)
+        positions: NumPy array of node positions with shape(n, 3)
+            containing finite numeric values
+        asset_ids: List of asset ID strings (must be non-empty strings,
+            length must match positions)
+        colors: List of node colors(length must match positions)
+        hover_texts: List of hover texts(length must match positions)
 
     Returns:
         Plotly Scatter3d trace for nodes
@@ -337,7 +341,9 @@ def _create_node_trace(
 
 
 def _generate_dynamic_title(
-    num_assets: int, num_relationships: int, base_title: str = "Financial Asset Network"
+    num_assets: int,
+    num_relationships: int,
+    base_title: str = "Financial Asset Network",
 ) -> str:
     """Generate a dynamic title for the visualization based on asset and relationship counts.
 
@@ -347,7 +353,7 @@ def _generate_dynamic_title(
     Args:
         num_assets: Number of assets in the visualization
         num_relationships: Number of relationships displayed
-        base_title: Base title text (default: "Financial Asset Network")
+        base_title: Base title text(default: "Financial Asset Network")
 
     Returns:
         Formatted title string with asset and relationship counts
@@ -365,7 +371,7 @@ def _calculate_visible_relationships(relationship_traces: List[go.Scatter3d]) ->
         relationship_traces: List of Scatter3d traces representing relationships
 
     Returns:
-        Number of visible relationships (edges) in the traces
+        Number of visible relationships(edges) in the traces
     """
     try:
         return (
@@ -390,11 +396,11 @@ def _prepare_layout_config(
     Args:
         num_assets: Number of assets in the visualization
         relationship_traces: List of relationship traces to count visible relationships
-        base_title: Base title text (default: "Financial Asset Network")
+        base_title: Base title text(default: "Financial Asset Network")
         layout_options: Optional layout customization options
 
     Returns:
-        Tuple of (dynamic_title, layout_options) ready for use with _configure_3d_layout
+        Tuple of(dynamic_title, layout_options) ready for use with _configure_3d_layout
     """
     num_relationships = _calculate_visible_relationships(relationship_traces)
     dynamic_title = _generate_dynamic_title(num_assets, num_relationships, base_title)
@@ -408,7 +414,9 @@ def _add_directional_arrows_to_figure(
     positions: np.ndarray,
     asset_ids: List[str],
 ) -> None:
-    """Add directional arrows to the figure for unidirectional relationships using batch operations."""
+    """Add directional arrows to the figure for unidirectional
+    relationships using batch operations.
+    """
     arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
     if arrow_traces:
         fig.add_traces(arrow_traces)
@@ -425,12 +433,12 @@ def _configure_3d_layout(
         fig: Target Plotly figure
         title: Title text
         options: Optional mapping to override defaults. Supported keys:
-            - width (int)
-            - height (int)
-            - gridcolor (str)
-            - bgcolor (str)
-            - legend_bgcolor (str)
-            - legend_bordercolor (str)
+            - width(int)
+            - height(int)
+            - gridcolor(str)
+            - bgcolor(str)
+            - legend_bgcolor(str)
+            - legend_bordercolor(str)
     """
     opts = options or {}
     width = int(opts.get("width", 1200))
@@ -513,8 +521,8 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
         colors_type = type(colors).__name__
         colors_len = len(colors) if isinstance(colors, (list, tuple)) else "N/A"
         raise ValueError(
-            f"Invalid graph data: colors must be a list/tuple of length {expected_length}, "
-            f"got {colors_type} with length {colors_len}"
+            f"Invalid graph data: colors must be a list/tuple of "
+            f"length {expected_length}, got {colors_type} with length {colors_len}"
         )
     if not all(isinstance(c, str) and c for c in colors):
         raise ValueError("Invalid graph data: colors must contain non-empty strings")
@@ -573,7 +581,8 @@ def _validate_visualization_data(
     n = len(asset_ids)
     if positions.shape[0] != n:
         raise ValueError(
-            f"Invalid graph data: positions length ({positions.shape[0]}) must match asset_ids length ({n})"
+            f"Invalid graph data: positions length ({positions.shape[0]}) "
+            f"must match asset_ids length ({n})"
         )
 
     _validate_colors_list(colors, n)
@@ -592,7 +601,7 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
         graph.get_3d_visualization_data_enhanced()
     )
 
-    # Validate visualization data to prevent runtime errors (addresses review feedback)
+    # Validate visualization data to prevent runtime errors
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
     fig = go.Figure()
@@ -766,14 +775,8 @@ def _build_hover_texts(
 
 
 def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
-    """Get line style configuration for a relationship with color validation.
-
-    Args:
-        rel_type: Relationship type identifier
-        is_bidirectional: Whether the relationship is bidirectional
-
-    Returns:
-        Dictionary with line style configuration including validated color
+    """Get line style configuration for a relationship
+    with color validation.
     """
     color = REL_TYPE_COLORS[rel_type]
     if not _is_valid_color_format(color):
@@ -832,9 +835,11 @@ def _create_relationship_traces(
     asset_ids: List[str],
     relationship_filters: Optional[Dict[str, bool]] = None,
 ) -> List[go.Scatter3d]:
-    """Create separate traces for different types of relationships with enhanced visibility.
+    """Create separate traces for different types of relationships
+    with enhanced visibility.
 
-    Returns a list of traces for batch addition to figure using fig.add_traces() for optimal performance.
+    Returns a list of traces for batch addition to figure using
+    fig.add_traces() for optimal performance.
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError(
@@ -869,9 +874,15 @@ def _create_relationship_traces(
 
 
 def _create_directional_arrows(
-    graph: AssetRelationshipGraph, positions: np.ndarray, asset_ids: List[str]
+    graph: AssetRelationshipGraph,
+    positions: np.ndarray,
+    asset_ids: List[str],
 ) -> List[go.Scatter3d]:
-    """Create arrow markers for unidirectional relationships using vectorized NumPy operations. Returns a list of traces for batch addition to figure."""
+    """Create arrow markers for unidirectional relationships using
+    vectorized NumPy operations.
+
+    Returns a list of traces for batch addition to figure.
+    """
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
     if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
@@ -909,7 +920,8 @@ def _create_directional_arrows(
     if not np.isfinite(positions).all():
         raise ValueError("Invalid positions: values must be finite numbers")
 
-    # Early return optimization: prevent unnecessary computation and memory allocation
+    # Early return optimization:
+    # prevent unnecessary computation and memory allocation
     # when there are no unidirectional relationships to display
     if not all(isinstance(a, str) and a for a in asset_ids):
         raise ValueError("asset_ids must contain non-empty strings")
@@ -958,6 +970,7 @@ def _create_directional_arrows(
         visible=True,
         showlegend=False,
     )
+
     return [arrow_trace]
 
 
@@ -966,9 +979,16 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
 
     Args:
         filter_params: Dictionary mapping filter parameter names to their boolean values.
-            Expected keys: show_same_sector, show_market_cap, show_correlation,
-            show_corporate_bond, show_commodity_currency, show_income_comparison,
-            show_regulatory, show_all_relationships, toggle_arrows
+            Expected keys:
+                show_same_sector,
+                show_market_cap,
+                show_correlation,
+                show_corporate_bond,
+                show_commodity_currency,
+                show_income_comparison,
+                show_regulatory,
+                show_all_relationships,
+                toggle_arrows
 
     Raises:
         TypeError: If any parameter is not a boolean or if filter_params is not a dictionary
@@ -985,8 +1005,8 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
 
     if invalid_params:
         raise TypeError(
-            f"Invalid filter configuration: The following parameters must be boolean values: "
-            f"{', '.join(invalid_params)}"
+            f"Invalid filter configuration: The following parameters must be "
+            f"boolean values: {', '.join(invalid_params)}"
         )
 
 
@@ -996,18 +1016,21 @@ def _validate_relationship_filters(
     """Validate relationship filter dictionary structure and values.
 
     Args:
-        relationship_filters: Optional dictionary mapping relationship types to boolean visibility flags
+        relationship_filters: Optional dictionary mapping
+            relationship types to boolean visibility flags
 
     Raises:
         TypeError: If relationship_filters is not None and not a dictionary
-        ValueError: If relationship_filters contains invalid keys or non-boolean values
+        ValueError: If relationship_filters contains invalid keys or non-boolean
+            values
     """
     if relationship_filters is None:
         return
 
     if not isinstance(relationship_filters, dict):
         raise TypeError(
-            f"Invalid filter configuration: relationship_filters must be a dictionary or None, "
+            f"Invalid filter configuration: "
+            f"relationship_filters must be a dictionary or None, "
             f"got {type(relationship_filters).__name__}"
         )
 
@@ -1019,8 +1042,9 @@ def _validate_relationship_filters(
     ]
     if invalid_values:
         raise ValueError(
-            f"Invalid filter configuration: relationship_filters must contain only boolean values. "
-            f"Invalid keys: {', '.join(invalid_values)}"
+            f"Invalid filter configuration: "
+            f"relationship_filters must contain only boolean "
+            f"values. Invalid keys: {', '.join(invalid_values)}"
         )
 
     # Validate keys are strings
@@ -1048,9 +1072,10 @@ def visualize_3d_graph_with_filters(
 ) -> go.Figure:
     """Create 3D visualization with selective relationship filtering.
 
-    This function dynamically creates and adds relationship traces based on optional filters,
-    with comprehensive error handling to manage potential issues from invalid filter
-    configurations or data inconsistencies.
+    This function dynamically creates and adds relationship traces based
+    on optional filters, with comprehensive error handling to manage
+    potential issues from invalid filter configurations or data
+    inconsistencies.
 
     Args:
         graph: Asset relationship graph to visualize
@@ -1058,17 +1083,22 @@ def visualize_3d_graph_with_filters(
         show_market_cap: Show market cap relationships (default: True)
         show_correlation: Show correlation relationships (default: True)
         show_corporate_bond: Show corporate bond relationships (default: True)
-        show_commodity_currency: Show commodity currency relationships (default: True)
-        show_income_comparison: Show income comparison relationships (default: True)
+        show_commodity_currency: Show commodity currency relationships
+            (default: True)
+        show_income_comparison: Show income comparison relationships
+            (default: True)
         show_regulatory: Show regulatory relationships (default: True)
-        show_all_relationships: Master toggle to show all relationships (default: True)
-        toggle_arrows: Show directional arrows for unidirectional relationships (default: True)
+        show_all_relationships: Master toggle to show all relationships
+            (default: True)
+        toggle_arrows: Show directional arrows for unidirectional
+            relationships (default: True)
 
     Returns:
         Plotly Figure object with 3D visualization
 
     Raises:
-        ValueError: If graph is invalid or missing required methods/attributes
+        ValueError: If graph is invalid or missing required methods /
+            attributes
         TypeError: If filter parameters are not boolean values
     """
     # Validate graph input
@@ -1113,7 +1143,8 @@ def visualize_3d_graph_with_filters(
             # Validate the constructed filter dictionary
             _validate_relationship_filters(relationship_filters)
 
-            # Check if all filters are disabled (would result in empty visualization)
+            # Check if all filters are disabled (would result in empty
+            # visualization)
             if not any(relationship_filters.values()):
                 logger.warning(
                     "All relationship filters are disabled. "
@@ -1222,6 +1253,3 @@ def visualize_3d_graph_with_filters(
         _configure_3d_layout(fig, fallback_title)
 
     return fig
-    # Error Handling Strategy: Directional Arrows
-    # - Catch TypeError/ValueError for invalid data (log and set empty list)
-    # - Catch unexpected errors (log and set empty list to allow visualization to continue)

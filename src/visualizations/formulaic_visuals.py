@@ -1,6 +1,7 @@
 import math
 from typing import Any, Dict
 
+import networkx as nx
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -8,7 +9,7 @@ from src.analysis.formulaic_analysis import Formula
 
 
 class FormulaicVisualizer:
-    """Visualizes mathematical formulas and relationships from financial analysis"""
+    """Visualizes mathematical formulas and relationships from financial analysis."""
 
     def __init__(self):
         self.color_scheme = {
@@ -91,6 +92,7 @@ class FormulaicVisualizer:
             )
 
         # 3. Empirical Correlation Heatmap
+        #
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
         if correlation_matrix:
             # Convert correlation matrix to heatmap format
@@ -216,7 +218,10 @@ class FormulaicVisualizer:
             showlegend=False,
             plot_bgcolor="white",
             paper_bgcolor="#F8F9FA",
-            font=dict(family="Arial, sans-serif", size=10),
+            font=dict(
+                family="Arial, sans-serif",
+                size=10,
+            ),
         )
 
         # Update axes
@@ -233,18 +238,28 @@ class FormulaicVisualizer:
         fig = go.Figure()
 
         # Create a text-based visualization of the formula
+        #
         fig.add_annotation(
-            text=f"<b>{formula.name}</b><br><br>"
-            + f"<b>Mathematical Expression:</b><br>{formula.formula}<br><br>"
-            + f"<b>LaTeX:</b><br>{formula.latex}<br><br>"
-            + f"<b>Description:</b><br>{formula.description}<br><br>"
-            + f"<b>Category:</b> {formula.category}<br>"
-            + f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
-            + "<b>Variables:</b><br>"
-            + "<br>".join(
-                [f"• {var}: {desc}" for var, desc in formula.variables.items()]
-            )
-            + f"<br><br><b>Example Calculation:</b><br>{formula.example_calculation}",
+            text=(
+                f"<b>{formula.name}</b><br><br>"
+                f"<b>Mathematical Expression:</b><br>"
+                f"{formula.formula}<br><br>"
+                f"<b>LaTeX:</b><br>"
+                f"{formula.latex}<br><br>"
+                f"<b>Description:</b><br>"
+                f"{formula.description}<br><br>"
+                f"<b>Category:</b> {formula.category}<br>"
+                f"<b>Reliability (R²):</b> "
+                f"{formula.r_squared:.3f}<br><br>"
+                + "<b>Variables:</b><br>"
+                + "<br>".join(
+                    [f"• {var}: {desc}" for var, desc in formula.variables.items()]
+                )
+                + (
+                    f"<br><br><b>Example Calculation:</b><br>"
+                    f"{formula.example_calculation}"
+                )
+            ),
             xref="paper",
             yref="paper",
             x=0.5,
@@ -277,6 +292,7 @@ class FormulaicVisualizer:
         strongest_correlations = empirical_relationships.get(
             "strongest_correlations", []
         )
+        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
             fig = go.Figure()
@@ -291,12 +307,31 @@ class FormulaicVisualizer:
             )
             return fig
 
-        # Extract unique assets
-        assets = list(
-            set(
-                [corr["asset1"] for corr in strongest_correlations]
-                + [corr["asset2"] for corr in strongest_correlations]
-            )
+        # Build graph from correlations
+        G = nx.Graph()
+        for pair, corr_value in correlation_matrix.items():
+            if abs(corr_value) > 0.3:  # Only show significant correlations
+                assets = pair.split("-")
+                if len(assets) == 2:
+                    G.add_edge(assets[0], assets[1], weight=corr_value)
+
+        # Generate layout
+        pos = nx.spring_layout(G, seed=42)
+
+        edge_x = []
+        edge_y = []
+        for edge in G.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+            edge_x.extend([x0, x1, None])
+            edge_y.extend([y0, y1, None])
+
+        edge_trace = go.Scatter(
+            x=edge_x,
+            y=edge_y,
+            line=dict(width=0.5, color="#888"),
+            hoverinfo="none",
+            mode="lines",
         )
 
         # Create positions in a circle
@@ -339,60 +374,65 @@ class FormulaicVisualizer:
         # Create node trace
         node_x = [positions[asset][0] for asset in assets]
         node_y = [positions[asset][1] for asset in assets]
+        node_text = assets
 
         node_trace = go.Scatter(
             x=node_x,
             y=node_y,
             mode="markers+text",
-            text=assets,
-            textposition="middle center",
+            text=node_text,
+            textposition="top center",
             marker=dict(
-                size=30, color="lightblue", line=dict(width=2, color="darkblue")
+                showscale=True,
+                colorscale="YlGnBu",
+                size=10,
+                colorbar=dict(
+                    thickness=15,
+                    title="Node Connections",
+                    xanchor="left",
+                    titleside="right",
+                ),
+                line_width=2,
             ),
             hoverinfo="text",
-            hovertext=[f"Asset: {asset}" for asset in assets],
-            showlegend=False,
         )
 
-        # Create figure
-        fig = go.Figure(data=edge_traces + [node_trace])
+        # Color nodes by degree
+        node_adjacencies = []
+        for _, adjacencies in enumerate(G.adjacency()):
+            node_adjacencies.append(len(adjacencies[1]))
+        node_trace.marker.color = node_adjacencies
 
-        fig.update_layout(
-            title="📈 Asset Correlation Network",
-            showlegend=False,
-            hovermode="closest",
-            margin=dict(b=20, l=5, r=5, t=40),
-            annotations=[
-                dict(
-                    text="Node size represents asset importance<br>Line thickness represents correlation strength",
-                    showarrow=False,
-                    xref="paper",
-                    yref="paper",
-                    x=0.005,
-                    y=-0.002,
-                    xanchor="left",
-                    font=dict(size=10),
-                )
-            ],
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            plot_bgcolor="white",
-            paper_bgcolor="#F8F9FA",
+        fig = go.Figure(
+            data=[edge_trace, node_trace],
+            layout=go.Layout(
+                title="Correlation Network Graph",
+                titlefont_size=16,
+                showlegend=False,
+                hovermode="closest",
+                margin=dict(b=20, l=5, r=5, t=40),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            ),
         )
-
         return fig
 
     @staticmethod
     def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
-        """Create a comparison chart of different financial metrics"""
-        formulas = analysis_results.get("formulas", [])
+        """Create a chart comparing different metrics derived from formulas."""
+        fig = go.Figure()
 
-        # Group formulas by category
+        # Example logic: Compare theoretical vs empirical values if available
+        # For now, we plot R-squared distribution by category
+        formulas = analysis_results.get("formulas", [])
+        if not formulas:
+            return fig
+
         categories = {}
-        for formula in formulas:
-            if formula.category not in categories:
-                categories[formula.category] = []
-            categories[formula.category].append(formula)
+        for f in formulas:
+            if f.category not in categories:
+                categories[f.category] = []
+            categories[f.category].append(f.r_squared)
 
         fig = go.Figure()
 
@@ -421,27 +461,11 @@ class FormulaicVisualizer:
             )
         )
 
-        # Formula count bars
-        fig.add_trace(
-            go.Bar(
-                name="Formula Count",
-                x=category_names,
-                y=formula_counts,
-                marker=dict(color="lightblue"),
-                yaxis="y2",
-                offsetgroup=2,
-            )
-        )
-
         fig.update_layout(
-            title="📊 Formula Categories: Reliability vs Count",
-            xaxis=dict(title="Category"),
-            yaxis=dict(title="Average R-squared", side="left"),
-            yaxis2=dict(title="Number of Formulas", side="right", overlaying="y"),
-            barmode="group",
-            plot_bgcolor="white",
-            paper_bgcolor="#F8F9FA",
-            legend=dict(x=0.7, y=1),
+            title="Formula Reliability Distribution by Category",
+            yaxis_title="R-Squared Score",
+            xaxis_title="Formula Category",
+            showlegend=False,
+            template="plotly_white",
         )
-
         return fig

@@ -22,7 +22,7 @@ class Formula:
 
 
 class FormulaicdAnalyzer:
-    """Analyzes financial data to extract and render mathematical relationships"""
+    """Analyzes financial data to extract and render mathematical relationships."""
 
     def __init__(self):
         self.formulas: List[Formula] = []
@@ -83,7 +83,9 @@ class FormulaicdAnalyzer:
                 name="Price-to-Earnings Ratio",
                 formula="PE = P / EPS",
                 latex=r"PE = \frac{P}{EPS}",
-                description="Valuation metric comparing stock price to earnings per share",
+                description=(
+                    "Valuation metric comparing stock price to earnings per share"
+                ),
                 variables={
                     "PE": "Price-to-Earnings Ratio",
                     "P": "Current Stock Price ($)",
@@ -99,9 +101,11 @@ class FormulaicdAnalyzer:
         if self._has_dividend_stocks(graph):
             div_yield_formula = Formula(
                 name="Dividend Yield",
-                formula="Div_Yield = (Annual_Dividends / Price) × 100%",
-                latex=r"DivYield = \frac{D_{annual}}{P} \times 100\%",
-                description="Percentage return from dividends relative to stock price",
+                formula=("Div_Yield = (Annual_Dividends / Price) × 100%"),
+                latex=(r"DivYield = \frac{D_{annual}}{P}" r" \times 100%"),
+                description=(
+                    "Percentage return from dividends relative to stock price"
+                ),
                 variables={
                     "Div_Yield": "Dividend Yield (%)",
                     "D_annual": "Annual Dividends per Share ($)",
@@ -116,9 +120,11 @@ class FormulaicdAnalyzer:
         # Bond Yield-to-Maturity Approximation
         if self._has_bonds(graph):
             ytm_formula = Formula(
-                name="Bond Yield-to-Maturity (Approximation)",
-                formula="YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)",
-                latex=r"YTM \approx \frac{C + \frac{FV - P}{n}}{\frac{FV + P}{2}}",
+                name=("Bond Yield-to-Maturity (Approximation)"),
+                formula=("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
+                latex=(
+                    r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"
+                ),
                 description="Approximate yield-to-maturity for bonds",
                 variables={
                     "YTM": "Yield-to-Maturity (%)",
@@ -164,7 +170,7 @@ class FormulaicdAnalyzer:
             name="Beta (Systematic Risk)",
             formula="β = Cov(R_asset, R_market) / Var(R_market)",
             latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",
-            description="Measure of an asset's sensitivity to market movements",
+            description=("Measure of an asset's sensitivity to market movements"),
             variables={
                 "β": "Beta coefficient",
                 "R_i": "Asset return",
@@ -172,7 +178,7 @@ class FormulaicdAnalyzer:
                 "Cov": "Covariance",
                 "Var": "Variance",
             },
-            example_calculation=self._calculate_beta_examples(graph),
+            example_calculation=(self._calculate_beta_examples(graph)),
             category="Risk Management",
             r_squared=0.75,
         )
@@ -182,17 +188,17 @@ class FormulaicdAnalyzer:
         correlation_formula = Formula(
             name="Correlation Coefficient",
             formula="ρ = Cov(X, Y) / (σ_X × σ_Y)",
-            latex=r"\rho = \frac{Cov(X, Y)}{\sigma_X \times \sigma_Y}",
-            description="Measure of linear relationship between two variables",
+            latex=(r"\rho = \frac{Cov(X, Y)}{\sigma_X " r"\times \sigma_Y}"),
+            description=("Measure of linear relationship between two variables"),
             variables={
                 "ρ": "Correlation coefficient (-1 to 1)",
                 "Cov(X,Y)": "Covariance between X and Y",
                 "σ_X": "Standard deviation of X",
                 "σ_Y": "Standard deviation of Y",
             },
-            example_calculation=self._calculate_correlation_examples(graph),
+            example_calculation=(self._calculate_correlation_examples(graph)),
             category="Statistical Analysis",
-            r_squared=self._calculate_avg_correlation_strength(graph),
+            r_squared=(self._calculate_avg_correlation_strength(graph)),
         )
         formulas.append(correlation_formula)
 
@@ -210,7 +216,7 @@ class FormulaicdAnalyzer:
                 name="Price-to-Book Ratio",
                 formula="P/B = Market_Price / Book_Value_per_Share",
                 latex=r"P/B = \frac{P}{BV_{per\_share}}",
-                description="Valuation metric comparing market price to book value",
+                description=("Valuation metric comparing market price to book value"),
                 variables={
                     "P/B": "Price-to-Book Ratio",
                     "P": "Market Price per Share ($)",
@@ -234,7 +240,10 @@ class FormulaicdAnalyzer:
                 "Debt": "Total Debt ($)",
                 "Cash": "Cash and Cash Equivalents ($)",
             },
-            example_calculation="EV calculation requires debt and cash data (not available in current dataset)",
+            example_calculation=(
+                "EV calculation requires debt and cash data "
+                "(not available in current dataset)"
+            ),
             category="Valuation",
             r_squared=0.95,
         )
@@ -304,7 +313,7 @@ class FormulaicdAnalyzer:
                 "E(R_i)": "Expected return of asset i",
                 "n": "Number of assets",
             },
-            example_calculation=self._calculate_portfolio_return_examples(graph),
+            example_calculation=(self._calculate_portfolio_return_examples(graph)),
             category="Portfolio Theory",
             r_squared=1.0,
         )
@@ -314,7 +323,10 @@ class FormulaicdAnalyzer:
         portfolio_variance_formula = Formula(
             name="Portfolio Variance (2-Asset)",
             formula="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
-            latex=r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
+            latex=(
+                r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + "
+                r"2w_1w_2\sigma_1\sigma_2\rho_{12}"
+            ),
             description="Portfolio risk considering correlation between assets",
             variables={
                 "σ²_p": "Portfolio variance",
@@ -322,7 +334,7 @@ class FormulaicdAnalyzer:
                 "σ_1, σ_2": "Standard deviations of assets 1 and 2",
                 "ρ_12": "Correlation between assets 1 and 2",
             },
-            example_calculation=self._calculate_portfolio_variance_examples(graph),
+            example_calculation=(self._calculate_portfolio_variance_examples(graph)),
             category="Portfolio Theory",
             r_squared=0.87,
         )
@@ -341,14 +353,14 @@ class FormulaicdAnalyzer:
             exchange_rate_formula = Formula(
                 name="Exchange Rate Relationships",
                 formula="USD/EUR × EUR/GBP = USD/GBP",
-                latex=r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}",
+                latex=(r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}"),
                 description="Triangular arbitrage relationship between currencies",
                 variables={
                     "USD/EUR": "US Dollar to Euro exchange rate",
                     "EUR/GBP": "Euro to British Pound exchange rate",
                     "USD/GBP": "US Dollar to British Pound exchange rate",
                 },
-                example_calculation=self._calculate_exchange_rate_examples(graph),
+                example_calculation=(self._calculate_exchange_rate_examples(graph)),
                 category="Currency Markets",
                 r_squared=0.99,
             )
@@ -398,6 +410,9 @@ class FormulaicdAnalyzer:
         self, formulas: List[Formula], empirical_relationships: Dict
     ) -> Dict[str, Any]:
         """Generate a comprehensive summary of formulaic analysis"""
+        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
+            empirical_relationships
+        )
         return {
             "total_formulas": len(formulas),
             "avg_r_squared": sum(f.r_squared for f in formulas) / len(formulas)
@@ -409,10 +424,13 @@ class FormulaicdAnalyzer:
             ),
             "key_insights": [
                 f"Identified {len(formulas)} mathematical relationships",
-                f"Average correlation strength: {self._calculate_avg_correlation_strength_from_empirical(empirical_relationships):.2f}",
+                f"Average correlation strength: {avg_corr_strength:.2f}",
                 "Valuation models applicable to equity assets",
-                "Portfolio theory formulas available for multi-asset analysis",
-                "Cross-asset relationships identified between commodities and currencies",
+                ("Portfolio theory formulas available for multi-asset analysis"),
+                (
+                    "Cross-asset relationships identified between "
+                    "commodities and currencies"
+                ),
             ],
         }
 

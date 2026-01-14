@@ -32,7 +32,7 @@ class _ThreadSafeGraph:
 
             # For non-callable attributes, return a defensive copy so callers cannot
             # mutate shared state without holding the lock.
-            # FIX: Deepcopy must occur INSIDE the lock context.
+            # Deepcopy must occur INSIDE the lock context.
             return copy.deepcopy(attr)
 
 
@@ -44,6 +44,8 @@ def _build_mcp_app():
     """
     Build and return the FastMCP app.
 
+
+
     Kept in a function so importing this module (or running `--help`) does not
     require the optional `mcp` dependency to be importable.
     """
@@ -52,7 +54,9 @@ def _build_mcp_app():
     mcp = FastMCP("DashFin-Relationship-Manager")
 
     @mcp.tool()
-    def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+    def add_equity_node(
+        asset_id: str, symbol: str, name: str, sector: str, price: float
+    ) -> str:
         """
         Validate an Equity asset and add it to the graph.
 
@@ -80,8 +84,11 @@ def _build_mcp_app():
                 return f"Successfully added: {new_equity.name} ({new_equity.symbol})"
 
             # Fallback: validation-only behavior if the graph does not expose an add API.
-            # FIX: Explicitly indicate that no mutation occurred.
-            return f"Successfully validated (Graph mutation not supported): {new_equity.name} ({new_equity.symbol})"
+            # Explicitly indicate that no mutation occurred.
+            return (
+                f"Successfully validated (Graph mutation not supported): "
+                f"{new_equity.name} ({new_equity.symbol})"
+            )
         except ValueError as e:
             return f"Validation Error: {str(e)}"
 
@@ -102,8 +109,15 @@ def _build_mcp_app():
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="mcp_server.py", description="DashFin MCP server")
-    parser.add_argument("--version", action="store_true", help="Print version info and exit")
+    parser = argparse.ArgumentParser(
+        prog="mcp_server.py",
+        description="DashFin MCP server",
+    )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="Print version info and exit",
+    )
     args = parser.parse_args(argv)
 
     if args.version:
@@ -113,13 +127,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         mcp = _build_mcp_app()
     except ModuleNotFoundError as e:
-        # Provide a clear message for missing optional dependency when invoked via the CLI.
+        # Provide a clear message for missing optional dependency
+        # when invoked via the CLI.
         missing = getattr(e, "name", None) or str(e)
-        raise SystemExit(f"Missing dependency '{missing}'. Install the MCP package to run the server.") from e
+        raise SystemExit(
+            f"Missing dependency '{missing}'. "
+            + "Install the MCP package to run the server."
+        ) from e
 
     mcp.run()
     return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

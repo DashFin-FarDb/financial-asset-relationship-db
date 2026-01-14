@@ -224,8 +224,14 @@ class FinancialAssetApp:
                 f3,
                 metrics_txt,
                 schema_rpt,
-                gr.update(choices=asset_choices, value=None),
-                gr.update(value="", visible=False),
+                gr.update(
+                    choices=asset_choices,
+                    value=None,
+                ),
+                gr.update(
+                    value="",
+                    visible=False,
+                ),
             )
         except Exception as e:
             logger.error("%s: %s", AppConstants.REFRESH_OUTPUTS_ERROR, e)
@@ -236,8 +242,14 @@ class FinancialAssetApp:
                 gr.update(),
                 gr.update(),
                 gr.update(),
-                gr.update(choices=[], value=None),
-                gr.update(value=f"Error: {str(e)}", visible=True),
+                gr.update(
+                    choices=[],
+                    value=None,
+                ),
+                gr.update(
+                    value=f"Error: {str(e)}",
+                    visible=True,
+                ),
             )
 
     def refresh_visualization(
@@ -360,7 +372,10 @@ class FinancialAssetApp:
             pass
         except Exception as e:
             logger.error("Error showing formula details: %s", e)
-            return go.Figure(), gr.update(value="Error: {}".format(e), visible=True)
+            return (
+                go.Figure(),
+                gr.update(value=f"Error: {e}", visible=True),
+            )
 
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
@@ -372,8 +387,11 @@ class FinancialAssetApp:
             "🔍 **Formulaic Analysis Summary**",
             "",
             f"📊 **Total Formulas Identified:** {len(formulas)}",
-            f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}",
-            f"🔗 **Empirical Data Points:** {summary.get('empirical_data_points', 0)}",
+            (f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}"),
+            (
+                f"🔗 **Empirical Data Points:** "
+                f"{summary.get('empirical_data_points', 0)}"
+            ),
             "",
             "📋 **Formula Categories:",
         ]
@@ -401,7 +419,10 @@ class FinancialAssetApp:
         return "\n".join(summary_lines)
 
     def create_interface(self):
-        """Creates the Gradio interface for the Financial Asset Relationship Database."""
+        """
+        Creates the Gradio interface for the Financial Asset Relationship Database.
+
+        """
         with gr.Blocks(title=AppConstants.TITLE):
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
@@ -547,12 +568,14 @@ class FinancialAssetApp:
                 with gr.Tab("📊 Formulaic Analysis"):
                     gr.Markdown(
                         """
-                    ## Mathematical Relationships & Formulas
+                        ## Mathematical Relationships & Formulas
 
-                    This section extracts and visualizes mathematical formulas and relationships between financial variables.
-                    It includes fundamental financial ratios, correlation patterns, valuation models, and empirical relationships
-                    derived from the asset database.
-                    """
+                        This section extracts and visualizes mathematical
+                        formulas and relationships between financial variables.
+                        It includes fundamental financial ratios,
+                        correlation patterns, valuation models, and empirical
+                        relationships derived from the asset database.
+                        """
                     )
 
                     with gr.Row():
@@ -631,7 +654,10 @@ class FinancialAssetApp:
                 show_all_relationships,
                 toggle_arrows,
             ]
-            visualization_outputs = [visualization_3d, error_message]
+            visualization_outputs = [
+                visualization_3d,
+                error_message,
+            ]
 
             # Main refresh button for visualization
             refresh_btn.click(
@@ -644,11 +670,15 @@ class FinancialAssetApp:
             view_mode.change(
                 lambda *args: (
                     gr.update(visible=args[1] == "2D"),
-                    *self.refresh_visualization(*args)[0:1],
+                    self.refresh_visualization(*args)[0],  # Get just the graph_viz
                     gr.update(visible=False),
                 ),
                 inputs=visualization_inputs,
-                outputs=[layout_type, visualization_3d, error_message],
+                outputs=[
+                    layout_type,
+                    visualization_3d,
+                    error_message,
+                ],
             )
 
             # Formulaic analysis event handlers
@@ -672,9 +702,6 @@ class FinancialAssetApp:
                 inputs=[formula_selector, graph_state],
                 outputs=[formula_detail_view, error_message],
             )
-
-            # Add event handlers for relationship filtering (moved to main visualization handlers above)
-            # Legacy handlers removed - now using unified refresh_visualization function
 
             # Wire up each checkbox to refresh the visualization
             for checkbox in [
@@ -744,4 +771,3 @@ if __name__ == "__main__":
         demo.launch()
     except Exception as e:
         logger.error("%s: %s", AppConstants.APP_START_ERROR, e)
-        raise

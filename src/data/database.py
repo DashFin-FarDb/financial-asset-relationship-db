@@ -21,8 +21,10 @@ DEFAULT_DATABASE_URL = os.getenv(
 
 def create_engine_from_url(url: Optional[str] = None) -> Engine:
     """Create a SQLAlchemy engine for the configured database URL."""
-
     resolved_url = url or DEFAULT_DATABASE_URL
+
+    #
+
     if resolved_url.startswith("sqlite") and ":memory:" in resolved_url:
         return create_engine(
             resolved_url,
@@ -35,13 +37,11 @@ def create_engine_from_url(url: Optional[str] = None) -> Engine:
 
 def create_session_factory(engine: Engine) -> sessionmaker:
     """Create a configured session factory bound to the supplied engine."""
-
     return sessionmaker(bind=engine, autocommit=False, autoflush=False, future=True)
 
 
 def init_db(engine: Engine) -> None:
     """Initialise database schema if it has not been created."""
-
     Base.metadata.create_all(engine)
 
 

@@ -8,7 +8,10 @@ from src.models.financial_models import Asset, Bond, RegulatoryEvent
 
 
 class AssetRelationshipGraph:
-    """Interface used by visualization and reporting code.
+    """
+    Interface used by visualization and reporting code.
+
+
 
     Attributes:
         assets: Dict[str, Asset] mapping asset IDs to Asset objects.
