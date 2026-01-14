@@ -377,7 +377,7 @@ export default function AssetList() {
           <div className="flex items-center space-x-2">
             <button
               type="button"
-              onClick={() => goToPage(page - 1)}
+              onClick={handlePrevPage}
               disabled={!canGoPrev}
               className={`px-3 py-1 rounded-md border ${
                 canGoPrev
@@ -393,7 +393,7 @@ export default function AssetList() {
             </span>
             <button
               type="button"
-              onClick={() => goToPage(page + 1)}
+              onClick={handleNextPage}
               disabled={!canGoNext}
               className={`px-3 py-1 rounded-md border ${
                 canGoNext
