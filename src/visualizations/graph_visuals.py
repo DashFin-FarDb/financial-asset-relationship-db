@@ -112,6 +112,7 @@ def _build_relationship_index(
     Thread safety for modifications must be managed by the calling code. If other parts of
     your application modify graph.relationships without using _graph_access_lock, race
     conditions may occur.
+    """
     # Validate graph input
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError(
@@ -225,16 +226,16 @@ def _create_node_trace(
     """Create node trace for 3D visualization with comprehensive input validation.
 
     Validates all inputs to ensure:
-    - positions is a non - empty 2D numpy array with shape(n, 3) containing finite numeric values
-    - asset_ids is a non - empty list or tuple of non - empty strings with length matching positions
-    - colors is a non - empty list or tuple of valid color strings with length matching positions
-    - hover_texts is a non - empty list or tuple of strings with length matching positions
+    - positions is a non-empty 2D numpy array with shape(n, 3) containing finite numeric values
+    - asset_ids is a non-empty list or tuple of non-empty strings with length matching positions
+    - colors is a non-empty list or tuple of valid color strings with length matching positions
+    - hover_texts is a non-empty list or tuple of strings with length matching positions
     - All arrays have consistent lengths
     - No duplicate asset IDs
 
     Args:
         positions: NumPy array of node positions with shape(n, 3) containing finite numeric values
-        asset_ids: List of asset ID strings(must be non - empty strings, length must match positions)
+        asset_ids: List of asset ID strings(must be non-empty strings, length must match positions)
         colors: List of node colors(length must match positions)
         hover_texts: List of hover texts(length must match positions)
 
@@ -717,7 +718,7 @@ def _build_hover_texts(
     rel_type: str,
     is_bidirectional: bool,
 ) -> List[Optional[str]]:
-    """Build hover text list for relationships with pre - allocation for performance."""
+    """Build hover text list for relationships with pre-allocation for performance."""
     direction_text = "↔" if is_bidirectional else "→"
 
     num_rels = len(relationships)
@@ -849,6 +850,8 @@ def _create_directional_arrows(
 
     Returns a list of traces for batch addition to figure.
     """
+    
+    
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError(
             "Expected graph to be an instance of AssetRelationshipGraph"
@@ -948,12 +951,10 @@ def _create_directional_arrows(
         hovertext=hover_texts,
         hoverinfo="text",
         name="Direction Arrows",
-    )
-
-    return [arrow_trace]
         visible=True,
         showlegend=False,
     )
+
     return [arrow_trace]
 
 
@@ -1000,7 +1001,7 @@ def _validate_relationship_filters(relationship_filters: Optional[Dict[str, bool
 
     Raises:
         TypeError: If relationship_filters is not None and not a dictionary
-        ValueError: If relationship_filters contains invalid keys or non - boolean
+        ValueError: If relationship_filters contains invalid keys or non-boolean
             values
     """
     if relationship_filters is None:
@@ -1195,6 +1196,3 @@ def visualize_3d_graph_with_filters(
         _configure_3d_layout(fig, fallback_title)
 
     return fig
-    # Error Handling Strategy: Directional Arrows
-    # - Catch TypeError/ValueError for invalid data (log and set empty list)
-    # - Catch unexpected errors (log and set empty list to allow visualization to continue)
