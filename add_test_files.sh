@@ -10,7 +10,13 @@ echo ""
 # This script just adds comments to document what was generated
 
 # Create a comment in the test file explaining its purpose
-cat >> tests/integration/test_workflow_yaml_validation.py << 'ENDCOMMENT'
+# Verify target file exists and is writable before appending
+if [[ ! -f tests/integration/test_workflow_yaml_validation.py || ! -r tests/integration/test_workflow_yaml_validation.py || ! -w tests/integration/test_workflow_yaml_validation.py ]]; then
+  echo "Error: Target file does not exist or is not readable/writable: tests/integration/test_workflow_yaml_validation.py" >&2
+  exit 1
+fi
+
+grep -q "# This test file was generated to validate workflow YAML changes" tests/integration/test_workflow_yaml_validation.py || cat >> tests/integration/test_workflow_yaml_validation.py << 'ENDCOMMENT'
 
 # This test file was generated to validate workflow YAML changes
 # in branch: codex/fix-env-var-naming-test-in-pr-agent-workflow
@@ -19,14 +25,8 @@ cat >> tests/integration/test_workflow_yaml_validation.py << 'ENDCOMMENT'
 ENDCOMMENT
 
 echo "✅ Test file annotated"
-echo "✅ Documentation files created"
 echo ""
 echo "Files ready:"
 echo "  - tests/integration/test_workflow_yaml_validation.py"
-echo "  - BRANCH_TEST_GENERATION_SUMMARY.md"
-echo "  - FINAL_TEST_GENERATION_REPORT.md"
-echo "  - TEST_GENERATION_NOTES.md"
-echo "  - TEST_GENERATION_COMPLETE_FINAL_SUMMARY.md"
-echo "  - TEST_GENERATION_README.md"
 echo ""
-echo "Total: 6 files, ~800 lines"
+echo "Total: 1 file annotated"
