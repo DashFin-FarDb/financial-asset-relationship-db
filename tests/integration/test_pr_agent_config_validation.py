@@ -176,7 +176,7 @@ class TestPRAgentConfigYAMLValidity:
             assert isinstance(config, dict)
         except yaml.YAMLError as e:
             pytest.fail(f"Invalid YAML syntax: {e}")
-        
+
         with open(config_path, 'r') as f:
             try:
                 yaml.safe_load(f)
