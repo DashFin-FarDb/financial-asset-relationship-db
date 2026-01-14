@@ -236,10 +236,10 @@ def _build_relationship_index(
                 ) from exc
 
             # Add to index if target is in asset_ids_set
-           if target_id in asset_ids_set:
-               relationship_index[(source_id, target_id, rel_type)] = strength_float
+            if target_id in asset_ids_set:
+                relationship_index[(source_id, target_id, rel_type)] = strength_float
 
-   return relationship_index
+    return relationship_index
 
 
 def _create_node_trace(
