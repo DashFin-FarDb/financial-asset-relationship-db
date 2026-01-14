@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -219,31 +219,31 @@ if not user_repository.has_users():
     )
 
 
- def get_user(
-     username: str,
-     repository: Optional[UserRepository] = None,
- ) -> Optional[UserInDB]:
-     """
-     Retrieve a user by username.
+def get_user(
+    username: str,
+    repository: Optional[UserRepository] = None,
+) -> Optional[UserInDB]:
+    """
+    Retrieve a user by username.
 
-     Parameters:
-         repository (Optional[UserRepository]): Repository to query;
-             if omitted the module-level `user_repository` is used.
+    Parameters:
+        repository (Optional[UserRepository]): Repository to query;
+            if omitted the module-level `user_repository` is used.
 
-     Returns:
-         Optional[UserInDB]: The matching UserInDB instance, or `None` if no
-             user exists with that username.
-     """
+    Returns:
+        Optional[UserInDB]: The matching UserInDB instance, or `None` if no
+            user exists with that username.
+    """
 
-     repo = repository or user_repository
-     return repo.get_user(username)
+    repo = repository or user_repository
+    return repo.get_user(username)
 
 
- def authenticate_user(
-     username: str,
+def authenticate_user(
+    username: str,
     password: str,
     repository: Optional[UserRepository] = None,
-):
+) -> Union[UserInDB, bool]:
     """
     Authenticate a username and password and return the corresponding stored user.
 
@@ -290,6 +290,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """
     Return the user represented by the provided JWT.
+    
+    
 
     Returns:
         User: The User model corresponding to the token's subject.
