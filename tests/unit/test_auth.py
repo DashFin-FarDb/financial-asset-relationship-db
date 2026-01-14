@@ -327,11 +327,10 @@ class TestJWTOperations:
         
         # Decode to verify expiration was set
         import jwt
-        from api.auth import SECRET_KEY
-        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        
+        from api.auth import SECRET_KEY, ALGORITHM
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    
         assert "exp" in decoded
-        assert "sub" in decoded
         assert decoded["sub"] == "testuser"
 
     def test_create_access_token_additional_claims(self):
