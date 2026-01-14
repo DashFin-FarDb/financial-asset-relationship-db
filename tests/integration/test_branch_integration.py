@@ -236,7 +236,7 @@ class TestRemovedFilesIntegration:
             with open(path, 'r') as f:
                 content = f.read()
             
-            for removed in removed_files:
+            lines = content.splitlines()
                 for line in lines:
                     if removed in line and not line.strip().startswith('#'):
                         pytest.fail(f"{wf_file} references removed file {removed}")
