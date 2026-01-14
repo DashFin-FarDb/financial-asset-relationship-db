@@ -621,7 +621,7 @@ describe('API Client', () => {
         },
       };
       mockAxiosInstance.get.mockResolvedValueOnce({ data: malformedNestedAsset });
-      const resultMalformed = await api.getAssetDetail('ASSET_1');
+      expect(resultMalformed.additional_fields?.nested?.deep).toBeNull();
       expect(resultMalformed.additional_fields?.nested?.deep && typeof resultMalformed.additional_fields.nested.deep === 'object').toBe(false);
   });
 });

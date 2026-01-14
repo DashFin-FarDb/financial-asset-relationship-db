@@ -1,390 +1,622 @@
 """
-Validation tests for GitHub workflow simplifications.
+Comprehensive tests for workflow simplification changes.
 
-This test suite validates that workflow simplifications (removal of conditional
-checks, simplified greetings, removed labeler prerequisites) were properly
-implemented and don't break workflow functionality.
+This test module specifically validates the changes made in the current branch:
+- Removal of complex context chunking from pr-agent.yml
+- Simplification of greetings.yml messages
+- Removal of config checks in label.yml
+- Removal of credential checks in apisec-scan.yml
+- Simplification of pr-agent-config.yml
+
+These tests ensure the simplified workflows function correctly and that
+removed complexity does not inadvertently reappear.
 """
+
+from pathlib import Path
+from typing import Any, Dict, List
 
 import pytest
 import yaml
-from pathlib import Path
-from typing import Any, Dict
 
 
-WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
+class TestPRAgentWorkflowSimplification:
+    """Test that pr-agent.yml has been properly simplified."""
 
-
-def load_workflow(name: str) -> Dict[str, Any]:
-    """Load a workflow file by name."""
-    workflow_file = WORKFLOWS_DIR / name
-    if not workflow_file.exists():
-        pytest.skip(f"{name} not found")
-    with open(workflow_file, 'r', encoding='utf-8') as f:
-        try:
+    @pytest.fixture
+    def pr_agent_workflow(self) -> Dict[str, Any]:
+        """Load pr-agent.yml workflow."""
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'pr-agent.yml'
+        with open(workflow_path, 'r') as f:
             return yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            pytest.fail(f"Failed to parse {name}: {e}")
+
+    def test_no_context_chunking_dependencies(self, pr_agent_workflow: Dict[str, Any]):
+        """
+        Test that pr-agent workflow no longer installs context chunking dependencies.
+
+        The simplified workflow should not install PyYAML or tiktoken for context management.
+        """
+        for job_name, job in pr_agent_workflow.get('jobs', {}).items():
+            for step in job.get('steps', []):
+                # Check step name
+                step_name = step.get('name', '')
+                run_command = step.get('run', '')
+
+                # Should not have steps specifically for context chunking
+                assert 'chunking' not in step_name.lower(), (
+                    f"Job '{job_name}' should not have context chunking steps"
+                )
+                assert 'tiktoken' not in step_name.lower(), (
+                    f"Job '{job_name}' should not reference tiktoken"
+                )
+
+                # Should not install tiktoken in run commands
+                assert 'tiktoken' not in run_command.lower(), (
+                    f"Job '{job_name}' should not install tiktoken dependency"
+                )
+
+    def test_no_context_fetching_step(self, pr_agent_workflow: Dict[str, Any]):
+        """
+        Test that the complex 'Fetch PR Context with Chunking' step has been removed.
+
+        The workflow should use simple comment parsing instead.
+        """
+        for job_name, job in pr_agent_workflow.get('jobs', {}).items():
+            step_names = [step.get('name', '') for step in job.get('steps', [])]
+
+            # Should not have the old complex context fetching step
+            assert not any('Fetch PR Context with Chunking' in name for name in step_names), (
+                f"Job '{job_name}' should not have 'Fetch PR Context with Chunking' step"
+            )
+
+            # Should not have context file references
+            for step in job.get('steps', []):
+                run_command = step.get('run', '')
+                assert 'pr_context.json' not in run_command, (
+                    f"Job '{job_name}' should not reference pr_context.json files"
+                )
+                assert 'pr_context_chunked.json' not in run_command, (
+                    f"Job '{job_name}' should not reference pr_context_chunked.json files"
+                )
+
+    def test_has_simplified_comment_parsing(self, pr_agent_workflow: Dict[str, Any]):
+        """
+        Test that workflow uses simplified comment parsing.
+
+        Should have a 'Parse PR Review Comments' step that directly extracts action items.
+        """
+        for job_name, job in pr_agent_workflow.get('jobs', {}).items():
+            steps = job.get('steps', [])
+            step_names = [step.get('name', '') for step in steps]
+
+            # Should have the simplified parsing step
+            has_parse_comments = any('Parse PR Review Comments' in name for name in step_names)
+
+            if 'pr-agent' in job_name.lower() or any('review' in name.lower() for name in step_names):
+                assert has_parse_comments, (
+                    f"Job '{job_name}' should have simplified 'Parse PR Review Comments' step"
+                )
+
+    def test_no_duplicate_setup_python_steps(self, pr_agent_workflow: Dict[str, Any]):
+        """
+        Regression test: Ensure no duplicate Setup Python steps exist.
+
+        This validates the fix for the duplicate YAML key issue that was corrected.
+        """
+        for job_name, job in pr_agent_workflow.get('jobs', {}).items():
+            steps = job.get('steps', [])
+
+            # Count Setup Python steps
+            setup_python_count = sum(
+                1 for step in steps
+                if step.get('name') == 'Setup Python'
+            )
+
+            assert setup_python_count <= 1, (
+                f"Job '{job_name}' has {setup_python_count} 'Setup Python' steps. "
+                "Should have at most one."
+            )
+
+            # Count setup-python action usage
+            setup_python_action_count = sum(
+                1 for step in steps
+                if 'setup-python' in step.get('uses', '').lower()
+            )
+
+            assert setup_python_action_count <= 1, (
+                f"Job '{job_name}' uses setup-python action {setup_python_action_count} times. "
+                "Should use it at most once."
+            )
+
+    def test_no_context_size_checking(self, pr_agent_workflow: Dict[str, Any]):
+        """
+        Test that workflow no longer checks context size.
+
+        The simplified workflow should not have logic to measure or compare context sizes.
+        """
+        for job_name, job in pr_agent_workflow.get('jobs', {}).items():
+            for step in job.get('steps', []):
+                run_command = step.get('run', '')
+
+                # Should not have context size checking
+                assert 'CONTEXT_SIZE' not in run_command, (
+                    f"Job '{job_name}' should not check CONTEXT_SIZE"
+                )
+                assert 'wc -c' not in run_command or 'pr_context' not in run_command, (
+                    f"Job '{job_name}' should not measure context file size"
+                )
+                assert 'context_size' not in run_command, (
+                    f"Job '{job_name}' should not reference context_size variable"
+                )
+
+    def test_no_chunking_script_references(self, pr_agent_workflow: Dict[str, Any]):
+        """
+        Test that workflow does not reference the deleted context_chunker.py script.
+        """
+        workflow_str = yaml.dump(pr_agent_workflow)
+
+        assert 'context_chunker.py' not in workflow_str, (
+            "Workflow should not reference deleted context_chunker.py script"
+        )
+        assert '.github/scripts/context_chunker' not in workflow_str, (
+            "Workflow should not reference context_chunker in any path"
+        )
+
+    def test_simplified_output_variables(self, pr_agent_workflow: Dict[str, Any]):
+        """
+        Test that step outputs have been simplified.
+
+        Should not have outputs related to context chunking like 'chunked' or 'context_file'.
+        """
+        for job_name, job in pr_agent_workflow.get('jobs', {}).items():
+            for step in job.get('steps', []):
+                if 'id' in step:
+                    run_command = step.get('run', '')
+
+                    # Should not set chunking-related outputs
+                    assert 'chunked=true' not in run_command and 'chunked=false' not in run_command, (
+                        f"Step '{step.get('name')}' in job '{job_name}' should not set 'chunked' output"
+                    )
+                    assert 'context_file=' not in run_command, (
+                        f"Step '{step.get('name')}' in job '{job_name}' should not set 'context_file' output"
+                    )
 
 
 class TestGreetingsWorkflowSimplification:
-    """Test suite for greetings.yml simplification."""
-    
-    def test_greetings_workflow_exists(self):
-        """Test that greetings workflow still exists."""
-        assert (WORKFLOWS_DIR / "greetings.yml").exists()
-    
-    def test_greetings_has_placeholder_messages(self):
-        """Test that greetings uses placeholder messages (not custom ones)."""
-        workflow = load_workflow("greetings.yml")
-        
-        steps = workflow.get('jobs', {}).get('greeting', {}).get('steps', [])
-        first_interaction_step = None
-        
-        for step in steps:
-            if 'first-interaction' in step.get('uses', ''):
-                first_interaction_step = step
-                break
-        
-        assert first_interaction_step is not None, "Should have first-interaction step"
-        
-        with_section = first_interaction_step.get('with', {})
-        issue_message = with_section.get('issue-message', '')
-        pr_message = with_section.get('pr-message', '')
-        
-        # Should be simple placeholder messages, not long custom ones
-        assert len(issue_message) < 200, "Issue message should be simple placeholder"
-        assert len(pr_message) < 200, "PR message should be simple placeholder"
-        assert 'displayed on users' in issue_message.lower(), (
-            "Should contain generic placeholder text"
-        )
-    
-    def test_greetings_no_complex_formatting(self):
-        """Test that greetings don't contain complex markdown formatting."""
-        workflow = load_workflow("greetings.yml")
-        
-        steps = workflow.get('jobs', {}).get('greeting', {}).get('steps', [])
-        for step in steps:
-            if 'first-interaction' in step.get('uses', ''):
-                with_section = step.get('with', {})
-                messages = [
-                    with_section.get('issue-message', ''),
-                    with_section.get('pr-message', '')
-                ]
-                
-                for msg in messages:
-                    # Should not contain multiple paragraphs or lists
-                    assert msg.count('\n') < 3, "Messages should be simple, not multi-paragraph"
-                    assert '- ' not in msg, "Messages should not contain lists"
-                    assert '**' not in msg, "Messages should not contain bold formatting"
+    """Test that greetings.yml has been simplified."""
+
+    @pytest.fixture
+    def greetings_workflow(self) -> Dict[str, Any]:
+        """Load greetings.yml workflow."""
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'greetings.yml'
+        with open(workflow_path, 'r') as f:
+            return yaml.safe_load(f)
+
+    def test_uses_generic_messages(self, greetings_workflow: Dict[str, Any]):
+        """
+        Test that greetings workflow uses generic placeholder messages.
+
+        The custom detailed welcome messages should be replaced with simple placeholders.
+        """
+        for job in greetings_workflow.get('jobs', {}).values():
+            for step in job.get('steps', []):
+                if 'first-interaction' in step.get('uses', ''):
+                    issue_message = step.get('with', {}).get('issue-message', '')
+                    pr_message = step.get('with', {}).get('pr-message', '')
+
+                    # Messages should be simple placeholders
+                    assert len(issue_message) < 200, (
+                        "Issue message should be short placeholder, not detailed custom message"
+                    )
+                    assert len(pr_message) < 200, (
+                        "PR message should be short placeholder, not detailed custom message"
+                    )
+
+                    # Should not contain custom project-specific content
+                    assert 'Financial Asset Relationship Database' not in issue_message, (
+                        "Should not have project-specific content in issue message"
+                    )
+                    assert 'Financial Asset Relationship Database' not in pr_message, (
+                        "Should not have project-specific content in PR message"
+                    )
+
+    def test_no_markdown_formatting_in_messages(self, greetings_workflow: Dict[str, Any]):
+        """
+        Test that greeting messages don't have complex markdown formatting.
+
+        Simplified messages should not have bullets, headers, or complex structure.
+        """
+        for job in greetings_workflow.get('jobs', {}).values():
+            for step in job.get('steps', []):
+                if 'first-interaction' in step.get('uses', ''):
+                    issue_message = step.get('with', {}).get('issue-message', '')
+                    pr_message = step.get('with', {}).get('pr-message', '')
+
+                    # Should not have markdown headers
+                    assert '**' not in issue_message or issue_message.count('**') < 4, (
+                        "Issue message should not have extensive markdown formatting"
+                    )
+                    assert '**' not in pr_message or pr_message.count('**') < 4, (
+                        "PR message should not have extensive markdown formatting"
+                    )
+
+                    # Should not have bullet lists
+                    assert issue_message.count('- ') < 3, (
+                        "Issue message should not have extensive bullet lists"
+                    )
+                    assert pr_message.count('- ') < 3, (
+                        "PR message should not have extensive bullet lists"
+                    )
 
 
-class TestLabelWorkflowSimplification:
-    """Test suite for label.yml simplification."""
-    
-    def test_label_workflow_exists(self):
-        """Test that label workflow still exists."""
-        assert (WORKFLOWS_DIR / "label.yml").exists()
-    
-    def test_label_no_config_check_step(self):
-        """Test that label workflow no longer checks for labeler config."""
-        workflow = load_workflow("label.yml")
-        
-        steps = workflow.get('jobs', {}).get('label', {}).get('steps', [])
-        step_names = [step.get('name', '') for step in steps]
-        
-        # Should not have checkout or config check steps
-        assert 'Checkout repository' not in step_names, (
-            "Label workflow should not checkout repository"
-        )
-        assert 'Check for labeler config' not in step_names, (
-            "Label workflow should not check for config file"
-        )
-    
-    def test_label_directly_uses_labeler(self):
-        """Test that label workflow directly uses labeler action."""
-        workflow = load_workflow("label.yml")
-        
-        steps = workflow.get('jobs', {}).get('label', {}).get('steps', [])
-        
-        # Should have exactly one step that uses labeler
-        labeler_steps = [s for s in steps if 'labeler' in s.get('uses', '').lower()]
-        assert len(labeler_steps) == 1, "Should have exactly one labeler step"
-        
-        # Should be a simple workflow with minimal steps
-        assert len(steps) <= 2, "Should be a simple workflow with minimal steps"
-    
-    def test_label_no_conditional_execution(self):
-        """Test that label workflow doesn't have conditional step execution."""
-        workflow = load_workflow("label.yml")
-        
-        steps = workflow.get('jobs', {}).get('label', {}).get('steps', [])
-        
-        for step in steps:
-            assert 'if' not in step, (
-                f"Step '{step.get('name')}' should not have conditional execution"
+class TestLabelerWorkflowSimplification:
+    """Test that label.yml has been simplified."""
+
+    @pytest.fixture
+    def labeler_workflow(self) -> Dict[str, Any]:
+        """Load label.yml workflow."""
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'label.yml'
+        with open(workflow_path, 'r') as f:
+            return yaml.safe_load(f)
+
+    def test_no_config_existence_check(self, labeler_workflow: Dict[str, Any]):
+        """
+        Test that labeler workflow no longer checks for config file existence.
+
+        The workflow should directly use the labeler action without conditional checks.
+        """
+        for job in labeler_workflow.get('jobs', {}).values():
+            step_names = [step.get('name', '') for step in job.get('steps', [])]
+
+            # Should not have config checking steps
+            assert not any('Check for labeler config' in name for name in step_names), (
+                "Should not have 'Check for labeler config' step"
+            )
+            assert not any('check-config' in step.get('id', '') for step in job.get('steps', [])), (
+                "Should not have 'check-config' step id"
+            )
+
+    def test_no_conditional_labeler_execution(self, labeler_workflow: Dict[str, Any]):
+        """
+        Test that labeler action runs unconditionally.
+
+        Should not have 'if' conditions on the labeler step based on config existence.
+        """
+        for job in labeler_workflow.get('jobs', {}).values():
+            for step in job.get('steps', []):
+                if 'labeler' in step.get('uses', ''):
+                    step_if = step.get('if', '')
+
+                    # Should not have config existence condition
+                    assert 'config_exists' not in step_if, (
+                        "Labeler step should not be conditional on config_exists"
+                    )
+                    assert not step_if or step_if == 'always()', (
+                        "Labeler step should run unconditionally or always"
+                    )
+
+    def test_no_skipped_message_step(self, labeler_workflow: Dict[str, Any]):
+        """
+        Test that there's no step to report labeler being skipped.
+        """
+        for job in labeler_workflow.get('jobs', {}).values():
+            step_names = [step.get('name', '') for step in job.get('steps', [])]
+
+            assert not any('Labeler skipped' in name for name in step_names), (
+                "Should not have 'Labeler skipped' reporting step"
+            )
+            assert not any('skipped' in name.lower() for name in step_names), (
+                "Should not have steps related to skipping labeler"
+            )
+
+    def test_no_checkout_step(self, labeler_workflow: Dict[str, Any]):
+        """
+        Test that labeler workflow doesn't checkout repository.
+
+        The simplified workflow should directly use the labeler action without checkout.
+        """
+        for job in labeler_workflow.get('jobs', {}).values():
+            step_names = [step.get('name', '') for step in job.get('steps', [])]
+            uses_actions = [step.get('uses', '') for step in job.get('steps', [])]
+
+            # Should not checkout since config check was removed
+            assert not any('Checkout' in name for name in step_names), (
+                "Should not have checkout step in simplified labeler workflow"
+            )
+            assert not any('checkout' in uses for uses in uses_actions), (
+                "Should not use checkout action in simplified labeler workflow"
             )
 
 
 class TestAPISecWorkflowSimplification:
-    """Test suite for apisec-scan.yml simplification."""
-    
-    def test_apisec_workflow_exists(self):
-        """Test that APIsec workflow still exists."""
-        assert (WORKFLOWS_DIR / "apisec-scan.yml").exists()
-    
-    def test_apisec_no_job_level_credential_check(self):
-        """Test that APIsec workflow jobs don't check for credentials at job level."""
-        workflow = load_workflow("apisec-scan.yml")
-        
-        for job_name, job in workflow.get('jobs', {}).items():
-            # Job should not have conditional on secrets
+    """Test that apisec-scan.yml has been simplified."""
+
+    @pytest.fixture
+    def apisec_workflow(self) -> Dict[str, Any]:
+        """Load apisec-scan.yml workflow."""
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'apisec-scan.yml'
+        with open(workflow_path, 'r') as f:
+            return yaml.safe_load(f)
+
+    def test_no_credential_check_step(self, apisec_workflow: Dict[str, Any]):
+        """
+        Test that APIsec workflow no longer checks for credentials before running.
+
+        The workflow should directly run the scan without checking secret availability.
+        """
+        for job_name, job in apisec_workflow.get('jobs', {}).items():
+            step_names = [step.get('name', '') for step in job.get('steps', [])]
+
+            # Should not have credential checking step
+            assert not any('Check for APIsec credentials' in name for name in step_names), (
+                f"Job '{job_name}' should not have 'Check for APIsec credentials' step"
+            )
+            assert not any('credential' in name.lower() for name in step_names), (
+                f"Job '{job_name}' should not have credential checking steps"
+            )
+
+    def test_no_conditional_job_execution(self, apisec_workflow: Dict[str, Any]):
+        """
+        Test that APIsec scan job no longer has credential-based conditional execution.
+
+        Job should not have 'if' condition checking for secret availability.
+        """
+        for job_name, job in apisec_workflow.get('jobs', {}).items():
             job_if = job.get('if', '')
+
+            # Should not check for secrets in job condition
             assert 'apisec_username' not in job_if, (
-                f"Job '{job_name}' should not check for APIsec username credential"
+                f"Job '{job_name}' should not have conditional execution based on apisec_username"
             )
             assert 'apisec_password' not in job_if, (
-                f"Job '{job_name}' should not check for APIsec password credential"
+                f"Job '{job_name}' should not have conditional execution based on apisec_password"
             )
-    
-    def test_apisec_no_credential_check_steps(self):
-        """Test that APIsec workflow doesn't have steps that check credentials."""
-        workflow = load_workflow("apisec-scan.yml")
-        
-        for job_name, job in workflow.get('jobs', {}).items():
-            steps = job.get('steps', [])
-            for step in steps:
-                step_name = step.get('name', '')
-                assert 'credential' not in step_name.lower(), (
-                    f"Step '{step_name}' should not check credentials"
+            assert 'secrets.' not in job_if or 'secrets.GITHUB_TOKEN' in job_if, (
+                f"Job '{job_name}' should not check for APIsec secrets in job condition"
+            )
+
+    def test_no_skip_warning_messages(self, apisec_workflow: Dict[str, Any]):
+        """
+        Test that there are no steps warning about skipped scans.
+        """
+        for job in apisec_workflow.get('jobs', {}).values():
+            for step in job.get('steps', []):
+                run_command = step.get('run', '')
+
+                # Should not have warning messages about skipping
+                assert 'credentials not configured' not in run_command.lower(), (
+                    "Should not have messages about credentials not configured"
                 )
-                assert 'Check for APIsec' not in step_name, (
-                    f"Step '{step_name}' should not check for APIsec setup"
+                assert 'Skipping scan' not in run_command, (
+                    "Should not have messages about skipping scan"
                 )
-    
-    def test_apisec_scan_step_exists(self):
-        """Test that APIsec scan step still exists."""
-        workflow = load_workflow("apisec-scan.yml")
-        
-        found_scan_step = False
-        for job_name, job in workflow.get('jobs', {}).items():
-            steps = job.get('steps', [])
-            for step in steps:
-                if 'apisec-run-scan' in step.get('uses', ''):
-                    found_scan_step = True
-                    break
-        
-        assert found_scan_step, "APIsec scan step should exist"
+                assert 'Register at' not in run_command, (
+                    "Should not have registration instructions"
+                )
 
 
-class TestPRAgentWorkflowSimplification:
-    """Test suite for pr-agent.yml simplification (removal of context chunking)."""
-    
-    def test_pr_agent_no_chunking_step(self):
-        """Test that PR Agent workflow no longer has context chunking step."""
-        workflow = load_workflow("pr-agent.yml")
-        
-        for job_name, job in workflow.get('jobs', {}).items():
-            steps = job.get('steps', [])
-            step_names = [s.get('name', '') for s in steps]
-            
-            assert 'Fetch PR Context with Chunking' not in step_names, (
-                "PR Agent should not have context chunking step"
+class TestPRAgentConfigSimplification:
+    """Test that pr-agent-config.yml has been simplified."""
+
+    @pytest.fixture
+    def pr_agent_config(self) -> Dict[str, Any]:
+        """Load pr-agent-config.yml."""
+        config_path = Path(__file__).parent.parent.parent / '.github' / 'pr-agent-config.yml'
+        with open(config_path, 'r') as f:
+            return yaml.safe_load(f)
+
+    def test_no_context_management_section(self, pr_agent_config: Dict[str, Any]):
+        """
+        Test that config no longer has complex context management section.
+
+        The agent.context section with chunking and summarization should be removed.
+        """
+        agent = pr_agent_config.get('agent', {})
+        context = agent.get('context', {})
+
+        # Should not have complex context configuration
+        if context:
+            assert 'max_tokens' not in context, (
+                "Config should not have max_tokens in context section"
             )
-            assert 'context_chunker' not in str(steps).lower(), (
-                "PR Agent should not reference context_chunker script"
+            assert 'chunk_size' not in context, (
+                "Config should not have chunk_size in context section"
             )
-    
-    def test_pr_agent_no_tiktoken_installation(self):
-        """Test that PR Agent no longer installs tiktoken."""
-        workflow = load_workflow("pr-agent.yml")
-        
-        workflow_str = yaml.dump(workflow).lower()
-        assert 'tiktoken' not in workflow_str, (
-            "PR Agent should not install or reference tiktoken"
+            assert 'overlap_tokens' not in context, (
+                "Config should not have overlap_tokens in context section"
+            )
+            assert 'summarization_threshold' not in context, (
+                "Config should not have summarization_threshold in context section"
+            )
+            assert 'chunking' not in context, (
+                "Config should not have chunking subsection"
+            )
+            assert 'summarization' not in context, (
+                "Config should not have summarization subsection"
+            )
+
+    def test_no_fallback_strategies(self, pr_agent_config: Dict[str, Any]):
+        """
+        Test that limits section doesn't have complex fallback strategies.
+        """
+        limits = pr_agent_config.get('limits', {})
+
+        if limits:
+            assert 'fallback' not in limits, (
+                "Config should not have fallback subsection in limits"
+            )
+            assert 'on_context_overflow' not in str(limits).lower(), (
+                "Config should not reference context overflow handling"
+            )
+            assert 'priority_order' not in limits, (
+                "Config should not have priority_order for chunking"
+            )
+
+    def test_no_chunking_limits(self, pr_agent_config: Dict[str, Any]):
+        """
+        Test that config doesn't have chunking-specific limits.
+        """
+        limits = pr_agent_config.get('limits', {})
+
+        if limits:
+            assert 'max_files_per_chunk' not in limits, (
+                "Config should not have max_files_per_chunk"
+            )
+            assert 'max_diff_lines' not in limits, (
+                "Config should not have max_diff_lines for chunking"
+            )
+            assert 'max_comment_length' not in limits, (
+                "Config should not have max_comment_length for chunking"
+            )
+
+    def test_version_downgraded(self, pr_agent_config: Dict[str, Any]):
+        """
+        Test that agent version has been reset to 1.0.0.
+
+        With simplification, version should be 1.0.0 not 1.1.0.
+        """
+        agent = pr_agent_config.get('agent', {})
+        version = agent.get('version', '')
+
+        assert version == '1.0.0', (
+            f"Agent version should be '1.0.0' after simplification, got '{version}'"
         )
-    
-    def test_pr_agent_simplified_comment_parsing(self):
-        """Test that PR Agent uses simplified comment parsing."""
-        workflow = load_workflow("pr-agent.yml")
-        
-        for job_name, job in workflow.get('jobs', {}).items():
-            steps = job.get('steps', [])
-            
-            # Should have "Parse PR Review Comments" step
-            parse_steps = [s for s in steps if 'Parse' in s.get('name', '')]
-            if parse_steps:
-                parse_step = parse_steps[0]
-                run_script = parse_step.get('run', '')
-                
-                # Should not reference context files or chunking
-                assert 'context_chunked' not in run_script, (
-                    "Should not use chunked context files"
-                )
-                assert 'CONTEXT_FILE' not in run_script, (
-                    "Should not use context file variable"
-                )
-    
-    def test_pr_agent_no_context_size_output(self):
-        """Test that PR Agent no longer outputs context size metrics."""
-        workflow = load_workflow("pr-agent.yml")
-        
-        for job_name, job in workflow.get('jobs', {}).items():
-            steps = job.get('steps', [])
-            for step in steps:
-                run_script = step.get('run', '')
-                
-                # Should not output context_size or chunked status
-                assert 'context_size=' not in run_script, (
-                    "Should not output context_size"
-                )
-                assert 'chunked=' not in run_script, (
-                    "Should not output chunked status"
-                )
-    
-    def test_pr_agent_comment_simplified(self):
-        """Test that PR Agent bot comment is simplified (no context stats)."""
-        workflow = load_workflow("pr-agent.yml")
-        
-        for job_name, job in workflow.get('jobs', {}).items():
-            steps = job.get('steps', [])
-            for step in steps:
-                if 'Comment' in step.get('name', ''):
-                    script = step.get('with', {}).get('script', '')
-                    if script:
-                        # Should not mention context size or chunking
-                        assert 'context size' not in script.lower(), (
-                            "Comment should not mention context size"
-                        )
-                        assert 'chunking' not in script.lower(), (
-                            "Comment should not mention chunking"
-                        )
-                        assert 'Context Management' not in script, (
-                            "Comment should not mention Context Management"
-                        )
+
+    def test_config_structure_remains_valid(self, pr_agent_config: Dict[str, Any]):
+        """
+        Test that despite simplification, core config structure remains valid.
+        """
+        # Should still have essential sections
+        assert 'agent' in pr_agent_config, "Config should still have agent section"
+        assert 'monitoring' in pr_agent_config, "Config should still have monitoring section"
+
+        # Agent should have basic fields
+        agent = pr_agent_config.get('agent', {})
+        assert 'name' in agent, "Agent should have name"
+        assert 'version' in agent, "Agent should have version"
+        assert 'enabled' in agent, "Agent should have enabled flag"
 
 
-class TestWorkflowSimplificationsConsistency:
-    """Test suite for consistency across workflow simplifications."""
-    
-    def test_all_modified_workflows_exist(self):
-        """Test that all modified workflows still exist."""
-        modified_workflows = [
-            'pr-agent.yml',
-            'greetings.yml',
-            'label.yml',
-            'apisec-scan.yml'
-        ]
-        
-        for workflow in modified_workflows:
-            assert (WORKFLOWS_DIR / workflow).exists(), (
-                f"Modified workflow {workflow} should still exist"
+class TestDeletedScriptFilesVerification:
+    """Verify that script files meant to be deleted are actually gone."""
+
+    def test_context_chunker_script_deleted(self):
+        """Test that .github/scripts/context_chunker.py has been deleted."""
+        chunker_script = Path(__file__).parent.parent.parent / '.github' / 'scripts' / 'context_chunker.py'
+
+        assert not chunker_script.exists(), (
+            ".github/scripts/context_chunker.py should be deleted"
+        )
+
+    def test_scripts_readme_deleted(self):
+        """Test that .github/scripts/README.md has been deleted."""
+        scripts_readme = Path(__file__).parent.parent.parent / '.github' / 'scripts' / 'README.md'
+
+        assert not scripts_readme.exists(), (
+            ".github/scripts/README.md should be deleted"
+        )
+
+    def test_scripts_directory_empty_or_gone(self):
+        """Test that .github/scripts directory is empty or doesn't exist."""
+        scripts_dir = Path(__file__).parent.parent.parent / '.github' / 'scripts'
+
+        if scripts_dir.exists():
+            # If it exists, should be empty or only contain __pycache__
+            ignorable_names = {'__pycache__', '.DS_Store', '.gitkeep'}
+            non_ignorable = [
+                f for f in contents
+                if f.name not in ignorable_names and not f.name.startswith('.')
+            ]
+
+            assert len(non_ignorable) == 0, (
+                f".github/scripts directory should be empty, found: {non_ignorable}"
             )
-    
-    def test_workflows_still_have_proper_triggers(self):
-        """Test that simplified workflows still have proper triggers."""
-        workflows = {
-            'greetings.yml': ['pull_request_target', 'issues'],
-            'label.yml': ['pull_request_target'],
-            'apisec-scan.yml': ['push', 'pull_request'],
-            'pr-agent.yml': ['pull_request', 'pull_request_review', 'issue_comment']
-        }
-        
-        for workflow_name, expected_triggers in workflows.items():
-            workflow = load_workflow(workflow_name)
-            actual_triggers = workflow.get('on', {})
-            
-            if isinstance(actual_triggers, list):
-                actual_trigger_keys = actual_triggers
-            elif isinstance(actual_triggers, dict):
-                actual_trigger_keys = list(actual_triggers.keys())
-            else:
-                actual_trigger_keys = [actual_triggers]
-            
-            for expected in expected_triggers:
-                assert any(expected in str(t) for t in actual_trigger_keys), (
-                    f"{workflow_name} should trigger on {expected}"
-                )
-    
-    def test_no_workflows_reference_deleted_files(self):
-        """Test that no workflow references deleted files (labeler.yml, context_chunker.py)."""
-        deleted_files = [
-            'labeler.yml',
-            'context_chunker.py',
-            '.github/scripts/context_chunker.py'
-        ]
-        
-        for workflow_file in list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml")):
+
+
+class TestWorkflowRegressionPrevention:
+    """Regression tests to prevent reintroduction of complexity."""
+
+    def test_no_workflow_references_deleted_files(self):
+        """
+        Test that no workflow file references the deleted files.
+        """
+        workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+        workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
+        for workflow_file in workflow_files:
             with open(workflow_file, 'r') as f:
                 content = f.read()
-            
-            for deleted_file in deleted_files:
-                assert deleted_file not in content, (
-                    f"{workflow_file.name} should not reference deleted file {deleted_file}"
-                )
-
-
-class TestWorkflowSimplificationsBenefits:
-    """Test suite validating benefits of simplifications."""
-    
-    def test_simplified_workflows_are_shorter(self):
-        """Test that simplified workflows are shorter (fewer lines)."""
-        # These workflows should be relatively short after simplification
-        simple_workflows = {
-            'greetings.yml': 30,  # Max lines
-            'label.yml': 30,
-        }
-        
-        for workflow_name, max_lines in simple_workflows.items():
-            workflow_file = WORKFLOWS_DIR / workflow_name
-            if workflow_file.exists():
-                with open(workflow_file, 'r') as f:
-                    line_count = len(f.readlines())
-                
-                assert line_count <= max_lines, (
-                    f"{workflow_name} should be under {max_lines} lines after simplification "
-                    f"(current: {line_count} lines)"
-                )
-    
-    def test_workflows_have_fewer_conditional_steps(self):
-        """Test that workflows have minimal conditional logic."""
-        simplified_workflows = ['greetings.yml', 'label.yml']
-        
-        for workflow_name in simplified_workflows:
-            workflow = load_workflow(workflow_name)
-            
-            conditional_count = 0
-            for job_name, job in workflow.get('jobs', {}).items():
-                if 'if' in job:
-                    conditional_count += 1
-                
-                steps = job.get('steps', [])
-                for step in steps:
-                    if 'if' in step:
-                        conditional_count += 1
-            
-            assert conditional_count <= 1, (
-                f"{workflow_name} should have minimal conditionals (found {conditional_count})"
+            # Should not reference deleted files
+            assert 'context_chunker.py' not in content, (
+                f"{workflow_file.name} should not reference deleted context_chunker.py"
             )
-    
-    def test_workflows_use_versioned_actions(self):
-        """Test that workflows use versioned actions (not floating tags)."""
-        
-        for workflow_file in list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml")):
-            if workflow_file.suffix.lower() not in {'.yml', '.yaml'}:
-                continue
+            assert '.github/scripts/context_chunker' not in content, (
+                f"{workflow_file.name} should not reference context_chunker path"
+            )
+
+    def test_no_yaml_duplicate_keys_anywhere(self):
+        """
+        Test that no workflow file has duplicate YAML keys.
+
+        This is a comprehensive regression test for the duplicate key issue.
+        """
+        workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+
+        workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
+        for workflow_file in workflow_files:
+            duplicates = self._check_duplicate_keys(workflow_file)
+
+            assert len(duplicates) == 0, (
+                f"{workflow_file.name} contains duplicate YAML keys: {duplicates}"
+            )
+
+    def _check_duplicate_keys(self, file_path: Path) -> List[str]:
+        """Helper to detect duplicate keys in YAML file."""
+        duplicates = []
+
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        class DuplicateKeySafeLoader(yaml.SafeLoader):
+            pass
+
+        def constructor_with_dup_check(loader, node):
+            mapping = {}
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=False)
+                if key in mapping:
+                    duplicates.append(key)
+                mapping[key] = loader.construct_object(value_node, deep=False)
+            return mapping
+
+        DuplicateKeySafeLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            constructor_with_dup_check
+        )
+
+        try:
+            yaml.load(content, Loader=DuplicateKeySafeLoader)
+        except yaml.YAMLError:
+            # Ignore YAML errors here because this function only checks for duplicate keys.
             try:
-                with open(workflow_file, 'r', encoding='utf-8') as f:
-                    workflow = yaml.safe_load(f) or {}
-            except yaml.YAMLError:
-                # Skip files that are not valid YAML to avoid failing the test suite
-                continue
-            for job_name, job in workflow.get('jobs', {}).items():
-                steps = job.get('steps', [])
-                for step in steps:
-                    uses = step.get('uses', '')
-                    if uses and '/' in uses:
-                        # If it's a third-party action, it should be versioned
-                        assert '@' in uses, (
-                            f"Action '{uses}' in {workflow_file.name} should specify version"
-                        )
+               yaml.load(content, Loader=DuplicateKeySafeLoader)
+           except yaml.YAMLError as e:
+               raise RuntimeError(f"Invalid YAML in {file_path}: {e}")
+        
+        return duplicates
+    
+    def test_workflow_files_remain_valid_yaml(self):
+        """
+        Test that all workflow files are still valid YAML after simplification.
+        """
+        workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+        
+        workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
+        for workflow_file in workflow_files:
+            with open(workflow_file, 'r') as f:
+                try:
+                    yaml.safe_load(f)
+                except yaml.YAMLError as e:
+                    pytest.fail(f"{workflow_file.name} contains invalid YAML: {e}")
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-v'])

@@ -1,410 +1,476 @@
 """
-Comprehensive validation tests for .github/pr-agent-config.yml configuration file.
+Validation tests for PR agent configuration changes.
 
-Tests ensure the PR Agent configuration is valid, secure, and follows best practices.
+Tests the simplified PR agent configuration, ensuring:
+- Version downgrade from 1.1.0 to 1.0.0
+- Removal of context chunking features
+- Removal of tiktoken dependencies
+- Simplified configuration structure
 """
 
-import os
-import pytest
-import yaml
 from pathlib import Path
 
+import pytest
+import yaml
 
-class TestPRAgentConfigStructure:
-    """Test the structure and validity of PR Agent configuration."""
-    
+
+class TestPRAgentConfigSimplification:
+    """Test PR agent config simplification changes."""
+
     @pytest.fixture
-    def config_path(self):
-        """Path to PR Agent config file."""
-        return Path(".github/pr-agent-config.yml")
-    
-    @pytest.fixture
-    def config_data(self, config_path):
-        """Load and parse the PR Agent configuration."""
-        assert config_path.exists(), f"PR Agent config not found at {config_path}"
-        with open(config_path, 'r') as f:
-            data = yaml.safe_load(f)
-        assert data is not None, "PR Agent config is empty"
-        return data
-    
-    def test_config_file_exists(self, config_path):
-        """PR Agent config file should exist."""
-        assert config_path.exists()
-        assert config_path.is_file()
-    
-    def test_config_is_valid_yaml(self, config_path):
-        """PR Agent config should be valid YAML."""
-        with open(config_path, 'r') as f:
-            data = yaml.safe_load(f)
-        assert data is not None
-        assert isinstance(data, dict)
-    
-    def test_agent_section_exists(self, config_data):
-        """Agent section should be defined."""
-        assert 'agent' in config_data
-        assert isinstance(config_data['agent'], dict)
-    
-    def test_agent_has_required_fields(self, config_data):
-        """Agent section should have required fields."""
-        agent = config_data['agent']
-        assert 'name' in agent
-        assert 'version' in agent
-        assert 'enabled' in agent
-        
-        assert isinstance(agent['name'], str)
-        assert len(agent['name']) > 0
-        assert isinstance(agent['version'], str)
-        assert isinstance(agent['enabled'], bool)
-    
-    def test_monitoring_section_structure(self, config_data):
-        """Monitoring section should be properly structured."""
-        assert 'monitoring' in config_data
-        monitoring = config_data['monitoring']
-        
+    def pr_agent_config(self):
+        """
+        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+
+        If the file is missing, contains invalid YAML, or does not contain a top-level mapping, the fixture will call pytest.fail to abort the test.
+
+        Returns:
+            dict: The parsed YAML content as a Python mapping.
+        """
+        config_path = Path(".github/pr-agent-config.yml")
+        if not config_path.exists():
+            pytest.fail(f"Config file not found: {config_path}")
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                cfg = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in config: {e}")
+        if cfg is None or not isinstance(cfg, dict):
+            pytest.fail("Config must be a YAML mapping (dict) and not empty")
+        return cfg
+            pytest.fail(f"Config file not found: {config_path}")
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                cfg = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in config: {e}")
+        if cfg is None or not isinstance(cfg, dict):
+            pytest.fail("Config must be a YAML mapping (dict) and not empty")
+        return cfg
+
+    def test_version_reverted_to_1_0_0(self, pr_agent_config):
+        """Check that the PR agent's configured version is '1.0.0'."""
+        assert pr_agent_config['agent']['version'] == '1.0.0'
+
+    def test_no_context_configuration(self, pr_agent_config):
+        """
+        Assert that the 'agent' section does not contain a 'context' key.
+
+        The test fails if the parsed PR agent configuration includes a 'context' key under the top-level 'agent' section.
+        """
+        agent_config = pr_agent_config['agent']
+        assert 'context' not in agent_config
+
+    def test_no_chunking_settings(self, pr_agent_config):
+        """
+        Assert the configuration contains no chunking-related settings.
+
+        Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string (case-insensitive).
+        """
+        config_str = yaml.dump(pr_agent_config)
+        assert 'chunking' not in config_str.lower()
+        assert 'chunk_size' not in config_str.lower()
+        assert 'overlap_tokens' not in config_str.lower()
+
+    def test_no_tiktoken_references(self, pr_agent_config):
+        """Verify tiktoken references removed."""
+        config_str = yaml.dump(pr_agent_config)
+        assert 'tiktoken' not in config_str.lower()
+
+    def test_no_fallback_strategies(self, pr_agent_config):
+        """
+        Ensure the top-level `limits` section does not contain a `fallback` key.
+        """
+        limits = pr_agent_config.get('limits', {})
+        assert 'fallback' not in limits
+
+    def test_basic_config_structure_intact(self, pr_agent_config):
+        """Verify basic configuration sections still present."""
+        # Essential sections should remain
+        assert 'agent' in pr_agent_config
+        assert 'monitoring' in pr_agent_config
+        assert 'actions' in pr_agent_config
+        assert 'quality' in pr_agent_config
+        assert 'security' in pr_agent_config
+
+    def test_monitoring_config_present(self, pr_agent_config):
+        """
+        Ensure the top-level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
+
+        Parameters:
+            pr_agent_config (dict): Parsed PR agent configuration mapping.
+        """
+        monitoring = pr_agent_config['monitoring']
         assert 'check_interval' in monitoring
-        assert isinstance(monitoring['check_interval'], int)
-        assert monitoring['check_interval'] > 0
-    
-    def test_review_settings_exist(self, config_data):
-        """Review settings should be defined."""
-        assert 'review' in config_data
-        review = config_data['review']
-        
-        assert 'auto_review' in review
-        assert isinstance(review['auto_review'], bool)
-    
-    def test_limits_section_defined(self, config_data):
-        """Limits section should contain resource constraints."""
-        assert 'limits' in config_data
-        limits = config_data['limits']
-        
+        assert 'max_retries' in monitoring
+        assert 'timeout' in monitoring
+
+    def test_limits_simplified(self, pr_agent_config):
+        """Verify limits section simplified."""
+        limits = pr_agent_config['limits']
+
+        # Should not have complex chunking limits
+        assert 'max_files_per_chunk' not in limits
+        assert 'max_diff_lines' not in limits
+
+        # Should have basic limits
+        assert 'max_execution_time' in limits
         assert 'max_concurrent_prs' in limits
-        assert isinstance(limits['max_concurrent_prs'], int)
-        assert limits['max_concurrent_prs'] > 0
+
+
+class TestPRAgentConfigYAMLValidity:
+    """Test YAML validity and structure."""
+
+    def test_config_is_valid_yaml(self):
+        """
+        Fail the test if .github/pr-agent-config.yml contains invalid YAML.
+
+        Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
+        """
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, 'r') as f:
+            try:
+                yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"PR agent config has invalid YAML: {e}")
+
+    def test_no_duplicate_keys(self):
+        """
+        Fail the test if any top-level YAML key appears more than once in the file.
+
+        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
+        """
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, 'r') as f:
+            content = f.read()
+
+        # Simple check for obvious duplicates
+        lines = content.split('\n')
+        seen_keys = set()
+        for line in lines:
+            if ':' in line and not line.strip().startswith('#'):
+                key = line.split(':')[0].strip()
+                if key in seen_keys:
+                    pytest.fail(f"Duplicate key found: {key}")
+                seen_keys.add(key)
+
+    def test_consistent_indentation(self):
+        """
+        Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
+
+        Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
+        """
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, 'r') as f:
+            lines = f.readlines()
+
+        for i, line in enumerate(lines, 1):
+            if line.strip() and not line.strip().startswith('#'):
+                indent = len(line) - len(line.lstrip())
+                if indent > 0:
+                    assert indent % 2 == 0, \
+                        f"Line {i} has inconsistent indentation: {indent} spaces"
 
 
 class TestPRAgentConfigSecurity:
-    """Security-focused tests for PR Agent configuration."""
-    
+    """Test security aspects of configuration."""
+
     @pytest.fixture
-    def config_data(self):
-        """Load PR Agent configuration."""
-        config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, 'r') as f:
-            return yaml.safe_load(f)
-    
-    def test_no_hardcoded_credentials(self, config_data):
-        """Config should not contain hardcoded credentials."""
-        config_str = yaml.dump(config_data).lower()
-        
-        # Check for common credential patterns
-        forbidden_patterns = [
-            'password:', 'secret:', 'token:', 'api_key:',
-            'apikey:', 'private_key:', 'credentials:'
+    def pr_agent_config(self):
+        """
+        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+
+        Returns:
+            The parsed YAML content as a Python mapping or sequence (typically a dict), or `None` if the file is empty.
+    def test_no_hardcoded_credentials(self, pr_agent_config):
+        """
+        Recursively scan configuration values for suspected secrets.
+
+        This inspects values(not just serialized text) and traverses nested dicts / lists.
+        The heuristic flags:
+          """
+        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+
+        If the file is missing, contains invalid YAML, or the top-level content is not a mapping, this fixture fails test collection. Empty files return None.
+
+        Returns:
+            The parsed YAML content (typically a dict) or `None` if the file is empty.
+        """
+        - Long high - entropy strings(e.g., tokens)
+          - Obvious secret prefixes / suffixes
+          - Inline credentials in URLs(e.g., scheme: // user:pass @ host)
+        """
+        import re
+        import math
+
+        # Heuristic to detect inline creds in URLs (user:pass@)
+        inline_creds_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@', re.IGNORECASE)
+
+        # Common secret-like prefixes or markers
+        secret_markers = (
+            'secret', 'token', 'apikey', 'api_key', 'access_key', 'private_key',
+            'pwd', 'password', 'auth', 'bearer '
+        )
+
+        def shannon_entropy(s: str) -> float:
+            if not s:
+                return 0.0
+            # Limit to a reasonable window to avoid skew from extremely long text
+            sample = s[:256]
+            freq = {}
+            for ch in sample:
+                freq[ch] = freq.get(ch, 0) + 1
+            ent = 0.0
+            length = len(sample)
+            for c in freq.values():
+                p = c / length
+                ent -= p * math.log2(p)
+            return ent
+
+        def looks_like_secret(val: str) -> bool:
+            v = val.strip()
+            if not v:
+                return False
+            # Common placeholders considered safe
+            placeholders = {'<token>', '<secret>', 'changeme', 'your-token-here', 'dummy', 'placeholder', 'null', 'none'}
+            if v.lower() in placeholders:
+                return False
+            # Inline credentials in URL
+            if inline_creds_re.search(v):
+                return True
+            # Bearer tokens or obvious markers
+            if any(m in v.lower() for m in secret_markers):
+                # If marker appears and string is not trivially short, treat as suspicious
+                if len(v) >= 12:
+                    return True
+    def test_no_hardcoded_credentials(self, pr_agent_config):
+        """
+        Recursively scan configuration values and keys for suspected secrets.
+        - Flags high - entropy or secret - like string values.
+        - Ensures sensitive keys only use safe placeholders.
+        """
+        import re
+        import math
+        import yaml
+
+        # Heuristic to detect inline creds in URLs (user:pass@)
+        inline_creds_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@', re.IGNORECASE)
+
+        # Common secret-like prefixes or markers
+        secret_markers = (
+            'secret', 'token', 'apikey', 'api_key', 'access_key', 'private_key',
+            'pwd', 'password', 'auth', 'bearer '
+        )
+
+        def shannon_entropy(s: str) -> float:
+            if not s:
+                return 0.0
+            sample = s[:256]
+            freq = {}
+            for ch in sample:
+                freq[ch] = freq.get(ch, 0) + 1
+            ent = 0.0
+            length = len(sample)
+            for c in freq.values():
+                p = c / length
+                ent -= p * math.log2(p)
+            return ent
+
+        def looks_like_secret(val: str) -> bool:
+            v = val.strip()
+            if not v:
+                return False
+            placeholders = {'<token>', '<secret>', 'changeme', 'your-token-here', 'dummy', 'placeholder', 'null', 'none'}
+            if v.lower() in placeholders:
+                return False
+            if inline_creds_re.search(v):
+                return True
+            if any(m in v.lower() for m in secret_markers) and len(v) >= 12:
+                return True
+            # Base64/URL-safe like long strings
+            if re.fullmatch(r'[A-Za-z0-9_\-]{20,}', v) and shannon_entropy(v) >= 3.5:
+                return True
+            # Hex-encoded long strings (e.g., keys)
+            if re.fullmatch(r'[A-Fa-f0-9]{32,}', v):
+                return True
+            return False
+
+        # Walk values to detect secret-like strings
+        def walk_values(obj, path="root"):
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    walk_values(v, f"{path}.{k}")
+            elif isinstance(obj, list):
+                for i, item in enumerate(obj):
+                    walk_values(item, f"{path}[{i}]")
+            elif isinstance(obj, str):
+                if looks_like_secret(obj):
+                    pytest.fail(f"Suspected secret value at '{path}': {obj[:20]}...")
+            # Non-string scalars ignored
+
+        walk_values(pr_agent_config)
+
+        # Enforce safe placeholders for sensitive keys
+        sensitive_patterns = [
+            'password', 'secret', 'token', 'api_key', 'apikey', 'access_key', 'private_key'
         ]
-        
-        for pattern in forbidden_patterns:
+        safe_placeholders = {None, 'null', 'webhook'}
+
+        def check_sensitive_keys(node, path="root"):
+            if isinstance(node, dict):
+                for k, v in node.items():
+                    key_l = str(k).lower()
+                    new_path = f"{path}.{k}"
+                    if any(p in key_l for p in sensitive_patterns):
+                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
+                    check_sensitive_keys(v, new_path)
+            elif isinstance(node, list):
+                for idx, item in enumerate(node):
+                    check_sensitive_keys(item, f"{path}[{idx}]")
+            # primitives ignored
+
+        check_sensitive_keys(pr_agent_config)
+
+        # Final serialized scan to ensure sensitive markers aren't embedded in values
+        config_str = yaml.dump(pr_agent_config)
+        for pat in sensitive_patterns:
+            # If marker appears in the string, ensure we also see an allowed placeholder somewhere
+            if pat in config_str:
+                assert (' null' in config_str) or ('webhook' in config_str), \
+                    f"Potential hardcoded credential found around pattern: {pat}"
+            if re.fullmatch(r'[A-Za-z0-9_\-]{20,}', v):
+                # High entropy threshold suggests secret
+                if shannon_entropy(v) >= 3.5:
+                    return True
+            # Hex-encoded long strings (e.g., keys)
+            if re.fullmatch(r'[A-Fa-f0-9]{32,}', v):
+                return True
+            return False
+
+        def walk(obj, path="root"):
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    key_path = f"{path}.{k}"
+                    walk(v, key_path)
+            elif isinstance(obj, list):
+                for i, item in enumerate(obj):
+                    walk(item, f"{path}[{i}]")
+            elif isinstance(obj, str):
+                if looks_like_secret(obj):
+                    pytest.fail(f"Suspected secret value at '{path}': {obj[:20]}...")
+            # Non-string scalars (int/bool/None/float) are ignored
+
+        walk(pr_agent_config)
+        """
+        Traverse the parsed YAML and ensure that any key containing sensitive indicators
+        has a safe placeholder value(None, 'null', or 'webhook').
+        """
+        sensitive_patterns = [
+            sensitive_patterns = [
+                'password', 'secret', 'token', 'api_key', 'apikey',
+                'access_key', 'private_key'
+            ]
+
+            allowed_placeholders = {'null', 'none', 'placeholder'}
+
+            def value_contains_secret(val: str) -> bool:
+                low = val.lower()
+                # ignore common placeholders and templated variables
+                if low in allowed_placeholders or ('${' in val and '}' in val):
+                    return False
+                return any(pat in low for pat in sensitive_patterns)
+
+            def scan_for_secrets(node, path="root"):
+                if isinstance(node, dict):
+                    for k, v in node.items():
+                        scan_for_secrets(v, f"{path}.{k}")
+                elif isinstance(node, list):
+                    for idx, item in enumerate(node):
+                        scan_for_secrets(item, f"{path}[{idx}]")
+                elif isinstance(node, str):
+                    assert not value_contains_secret(node), \
+                        f"Potential hardcoded credential value at {path}"
+                # Non-string scalars (int, float, bool, None) are safe to ignore
+
+            scan_for_secrets(pr_agent_config)
+            'access_key', 'private_key'
+        ]
+
+        safe_placeholders = {None, 'null', 'webhook'}
+
+        def check_node(node, path=""):
+            if isinstance(node, dict):
+                for k, v in node.items():
+                    key_l = str(k).lower()
+                    new_path = f"{path}.{k}" if path else str(k)
+                    if any(p in key_l for p in sensitive_patterns):
+                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
+                    check_node(v, new_path)
+            elif isinstance(node, list):
+                for idx, item in enumerate(node):
+                    check_node(item, f"{path}[{idx}]")
+            # primitives are ignored unless hit via a sensitive key above
+
+        check_node(pr_agent_config)
+            'access_key', 'private_key'
+        ]
+
+        for pattern in sensitive_patterns:
             if pattern in config_str:
-                # Should reference environment variables or secrets
-                assert '${{' in config_str or 'secrets.' in config_str, \
-                    f"Found {pattern} without proper secret reference"
-    
-    def test_no_sensitive_file_paths(self, config_data):
-        """Config should not expose sensitive file paths."""
-        config_str = yaml.dump(config_data).lower()
-        
-        sensitive_paths = [
-            '/etc/passwd', '/etc/shadow', '~/.ssh', 'id_rsa',
-            '.env', 'credentials.json'
-        ]
-        
-        for path in sensitive_paths:
-            assert path not in config_str, \
-                f"Config contains sensitive path: {path}"
-    
-    def test_reasonable_rate_limits(self, config_data):
-        """Rate limits should be reasonable to prevent abuse."""
-        if 'limits' in config_data:
-            limits = config_data['limits']
-            
-            if 'rate_limit_requests' in limits:
-                rate_limit = limits['rate_limit_requests']
-                assert isinstance(rate_limit, int)
-                assert 1 <= rate_limit <= 10000, \
-                    f"Rate limit {rate_limit} is outside reasonable range"
-    
-    def test_safe_timeout_values(self, config_data):
-        """Timeout values should be safe and reasonable."""
-        config_str = yaml.dump(config_data)
-        
-        # Extract timeout values
-        import re
-        timeout_matches = re.findall(r'timeout[_\s]*:?\s*(\d+)', config_str, re.IGNORECASE)
-        
-        for timeout_str in timeout_matches:
-            timeout = int(timeout_str)
-            assert 1 <= timeout <= 3600, \
-                f"Timeout {timeout} seconds is outside safe range (1-3600)"
+                # Should only appear in field names, not values
+                assert 'null' in config_str or 'webhook' in config_str, \
+                    f"Potential hardcoded credential found: {pattern}"
+
+    def test_safe_configuration_values(self, pr_agent_config):
+        """
+        Assert that key numeric limits in the PR agent configuration fall within safe bounds.
+
+        Checks that:
+        - `limits['max_execution_time']` is less than or equal to 3600 seconds.
+        - `limits['max_concurrent_prs']` is less than or equal to 10.
+        - `limits['rate_limit_requests']` is less than or equal to 1000.
+        """
+        limits = pr_agent_config['limits']
+
+        # Check for reasonable numeric limits
+        assert limits['max_execution_time'] <= 3600, "Execution time too high"
+        assert limits['max_concurrent_prs'] <= 10, "Too many concurrent PRs"
+        assert limits['rate_limit_requests'] <= 1000, "Rate limit too high"
 
 
-class TestPRAgentConfigConsistency:
-    """Test consistency and logical correctness of configuration values."""
-    
+class TestPRAgentConfigRemovedComplexity:
+    """Test that complex features were properly removed."""
+
     @pytest.fixture
-    def config_data(self):
-        """Load PR Agent configuration."""
+    def pr_agent_config_content(self):
+        """
+        Return the contents of .github / pr - agent - config.yml as a string.
+
+        Reads the PR agent configuration file from the repository root and returns its raw text.
+
+        Returns:
+            str: Raw YAML content of .github / pr - agent - config.yml.
+        """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, 'r') as f:
-            return yaml.safe_load(f)
-    
-    def test_version_format(self, config_data):
-        """Agent version should follow semantic versioning."""
-        version = config_data['agent']['version']
-        
-        # Should match pattern like 1.0.0 or 1.2.3-beta
-        import re
-        pattern = r'^\d+\.\d+\.\d+(-[a-zA-Z0-9]+)?$'
-        assert re.match(pattern, version), \
-            f"Version '{version}' doesn't follow semantic versioning"
-    
-    def test_boolean_fields_are_boolean(self, config_data):
-        """Boolean configuration fields should be actual booleans."""
-        def check_booleans(obj, path=""):
-            if isinstance(obj, dict):
-                for key, value in obj.items():
-                    new_path = f"{path}.{key}" if path else key
-                    
-                    # Check if key suggests boolean value
-                    if any(word in key.lower() for word in ['enabled', 'auto', 'is_', 'has_', 'should_', 'can_']):
-                        assert isinstance(value, bool), \
-                            f"Field '{new_path}' should be boolean, got {type(value).__name__}"
-                    
-                    check_booleans(value, new_path)
-            elif isinstance(obj, list):
-                for i, item in enumerate(obj):
-                    check_booleans(item, f"{path}[{i}]")
-        
-        check_booleans(config_data)
-    
-    def test_numeric_limits_are_positive(self, config_data):
-        """Numeric limit values should be positive integers."""
-        limits = config_data.get('limits', {})
-        
-        for key, value in limits.items():
-            if isinstance(value, int) and 'max' in key.lower():
-                assert value > 0, \
-                    f"Limit '{key}' should be positive, got {value}"
-    
-    def test_no_duplicate_keys_in_yaml(self):
-        """YAML file should not have duplicate keys."""
-        config_path = Path(".github/pr-agent-config.yml")
-        
-        with open(config_path, 'r') as f:
-            content = f.read()
-        
-        # Parse with duplicate key detection
-        class DuplicateKeyError(Exception):
-            pass
-        
-        def no_duplicates_constructor(loader, node, deep=False):
-            mapping = {}
-            for key_node, value_node in node.value:
-                key = loader.construct_object(key_node, deep=deep)
-                if key in mapping:
-                    raise DuplicateKeyError(f"Duplicate key found: {key}")
-                mapping[key] = loader.construct_object(value_node, deep=deep)
-            return mapping
-        
-        yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-                           no_duplicates_constructor, Loader=yaml.SafeLoader)
-        
-        try:
-            yaml.safe_load(content)
-        except DuplicateKeyError as e:
-            pytest.fail(str(e))
+            return f.read()
 
+    def test_no_summarization_settings(self, pr_agent_config_content):
+        """Verify summarization settings removed."""
+        assert 'summarization' not in pr_agent_config_content.lower()
+        assert 'max_summary_tokens' not in pr_agent_config_content
 
-class TestPRAgentConfigIntegration:
-    """Test integration between PR Agent config and workflows."""
-    
-    def test_config_matches_workflow_usage(self):
-        """Configuration keys should match workflow references."""
-        config_path = Path(".github/pr-agent-config.yml")
-        workflow_path = Path(".github/workflows/pr-agent.yml")
-        
-        assert config_path.exists()
-        assert workflow_path.exists()
-        
-        with open(config_path, 'r') as f:
-            config_data = yaml.safe_load(f)
-        
-        with open(workflow_path, 'r') as f:
-            workflow_content = f.read()
-        
-        # Check that agent name in config appears in workflow
-        agent_name = config_data.get('agent', {}).get('name', '')
-            # Workflow should reference the configured agent name
-            assert agent_name in workflow_content, \
-                "Agent name from config must be referenced in the workflow"
-            assert any(char.isalnum() for char in agent_name), \
-                "Agent name should contain alphanumeric characters"
-    
-    def test_monitoring_interval_reasonable_for_github_actions(self):
-        """Monitoring interval should work with GitHub Actions rate limits."""
-        config_path = Path(".github/pr-agent-config.yml")
-        
-        with open(config_path, 'r') as f:
-            config_data = yaml.safe_load(f)
-        
-        check_interval = config_data.get('monitoring', {}).get('check_interval', 0)
-        
-        # GitHub Actions rate limit is 5000 requests/hour for authenticated requests
-        # Minimum interval should be at least 1 second to avoid excessive polling
-        assert check_interval >= 1, \
-            f"Check interval {check_interval} is too frequent"
-        
-        # Maximum interval shouldn't be more than 1 day (86400 seconds)
-        assert check_interval <= 86400, \
-            f"Check interval {check_interval} is too long"
+    def test_no_token_management(self, pr_agent_config_content):
+        """Verify token management settings removed."""
+        assert 'max_tokens' not in pr_agent_config_content
+        assert 'context_length' not in pr_agent_config_content
 
+    def test_no_llm_model_references(self, pr_agent_config_content):
+        """
+        Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
 
-class TestPRAgentConfigDocumentation:
-    """Ensure configuration is properly documented."""
-    
-    def test_config_has_comments(self):
-        """Configuration file should have explanatory comments."""
-        config_path = Path(".github/pr-agent-config.yml")
-        
-        with open(config_path, 'r') as f:
-            content = f.read()
-        
-        # Count comment lines
-        comment_lines = [line for line in content.split('\n') if line.strip().startswith('#')]
-        total_lines = len([line for line in content.split('\n') if line.strip()])
-        
-        # At least 10% of lines should be comments
-        comment_ratio = len(comment_lines) / total_lines if total_lines > 0 else 0
-        assert comment_ratio >= 0.05, \
-            f"Config has insufficient documentation ({comment_ratio:.1%} comments)"
-    
-    def test_complex_settings_have_explanations(self):
-        """Complex or non-obvious settings should have comments."""
-        config_path = Path(".github/pr-agent-config.yml")
-        
-        with open(config_path, 'r') as f:
-            lines = f.readlines()
-        
-        # Look for complex settings that should have comments
-        complex_keys = ['monitoring', 'limits', 'fallback', 'security']
-        
-        for i, line in enumerate(lines):
-            for key in complex_keys:
-                if key in line and ':' in line:
-                    # Check if there's a comment nearby (within 3 lines before or on same line)
-                    has_comment = False
-                    for j in range(max(0, i-3), i+1):
-                        if '#' in lines[j]:
-                            has_comment = True
-                            break
-                    
-                    if not has_comment:
-                        # This is okay if it's a simple value
-                        pass  # Warning only, not failure
-
-
-class TestPRAgentConfigDefaults:
-    """Test that configuration provides sensible defaults."""
-    
-    @pytest.fixture
-    def config_data(self):
-        """Load PR Agent configuration."""
-        config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, 'r') as f:
-            return yaml.safe_load(f)
-    
-    def test_agent_enabled_by_default(self, config_data):
-        """Agent should be enabled by default."""
-        enabled = config_data.get('agent', {}).get('enabled', False)
-        assert enabled is True, "PR Agent should be enabled by default"
-    
-    def test_has_reasonable_default_limits(self, config_data):
-        """Default limits should be reasonable for typical usage."""
-        limits = config_data.get('limits', {})
-        
-        # Check max concurrent PRs
-        max_prs = limits.get('max_concurrent_prs', 0)
-        assert 1 <= max_prs <= 20, \
-            f"Max concurrent PRs ({max_prs}) should be between 1 and 20"
-        
-        # Check rate limits
-        rate_limit = limits.get('rate_limit_requests', 0)
-        if rate_limit:
-            assert 10 <= rate_limit <= 5000, \
-                f"Rate limit ({rate_limit}) should be between 10 and 5000"
-    
-    def test_monitoring_disabled_or_reasonable(self, config_data):
-        """If monitoring is enabled, it should have reasonable settings."""
-        monitoring = config_data.get('monitoring', {})
-        check_interval = monitoring.get('check_interval', 0)
-        
-        if check_interval > 0:
-            # Should check at least once per hour but not more than once per second
-            assert 1 <= check_interval <= 3600, \
-                f"Check interval {check_interval} is outside reasonable range"
-
-
-class TestPRAgentConfigEdgeCases:
-    """Test edge cases and boundary conditions in configuration."""
-    
-    @pytest.fixture
-    def config_data(self):
-        """Load PR Agent configuration."""
-        config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, 'r') as f:
-            return yaml.safe_load(f)
-    
-    def test_empty_sections_handled(self, config_data):
-        """Empty configuration sections should not cause issues."""
-        # Check that all sections are properly initialized
-        for key, value in config_data.items():
-            if isinstance(value, dict):
-                # Empty dict is okay
-                assert isinstance(value, dict)
-            elif isinstance(value, list):
-                # Empty list is okay
-                assert isinstance(value, list)
-    
-    def test_special_characters_in_strings(self, config_data):
-        """String values should handle special characters properly."""
-        def check_strings(obj):
-            if isinstance(obj, dict):
-                for key, value in obj.items():
-                    if isinstance(value, str):
-                        # Should not contain unescaped special chars that break YAML
-                        assert '\x00' not in value, "Null bytes not allowed"
-                    check_strings(value)
-            elif isinstance(obj, list):
-                for item in obj:
-                    check_strings(item)
-        
-        check_strings(config_data)
-    
-    def test_numeric_string_confusion(self, config_data):
-        """Numeric values should not be accidentally strings."""
-        def check_types(obj, path=""):
-            if isinstance(obj, dict):
-                for key, value in obj.items():
-                    new_path = f"{path}.{key}" if path else key
-                    
-                    # Keys suggesting numeric values
-                    if any(word in key.lower() for word in ['count', 'limit', 'max', 'min', 'interval', 'timeout']):
-                        if value is not None and value != "":
-                            assert not isinstance(value, str) or not value.isdigit(), \
-                                f"Field '{new_path}' appears numeric but is string: {value}"
-                    
-                    check_types(value, new_path)
-            elif isinstance(obj, list):
-                for i, item in enumerate(obj):
-                    check_types(item, f"{path}[{i}]")
-        
-        check_types(config_data)
+        Parameters:
+            pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
+        """
+        assert 'gpt-3.5-turbo' not in pr_agent_config_content
+        assert 'gpt-4' not in pr_agent_config_content

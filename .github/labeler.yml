@@ -1,0 +1,85 @@
+# Labeler configuration for automatic PR labeling
+# See https://github.com/actions/labeler for documentation
+
+# Documentation changes
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.md', 'docs/**/*']
+
+# GitHub workflows and configuration
+github-workflows:
+  - changed-files:
+    - any-glob-to-any-file: ['.github/**/*']
+
+# Python backend
+python:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.py', 'requirements*.txt', 'pyproject.toml', 'setup.py']
+
+# Frontend
+frontend:
+  - changed-files:
+    - any-glob-to-any-file: ['frontend/**/*', '**/*.tsx', '**/*.jsx', '**/*.css']
+
+# TypeScript/JavaScript
+typescript:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx']
+
+# API changes
+api:
+  - changed-files:
+    - any-glob-to-any-file: ['api/**/*', 'src/api/**/*']
+
+# Database
+database:
+  - changed-files:
+    - any-glob-to-any-file: ['src/data/**/*', 'migrations/**/*', '**/*database*', '**/*.sql']
+
+# Tests
+tests:
+  - changed-files:
+    - any-glob-to-any-file: ['tests/**/*', '**/*.test.*', '**/__tests__/**/*', '**/test_*.py']
+
+# Configuration
+config:
+  - changed-files:
+    - any-glob-to-any-file: ['*.yml', '*.yaml', '*.json', '*.toml', '*.ini', '.env.example']
+
+# Docker
+docker:
+  - changed-files:
+    - any-glob-to-any-file: ['**/Dockerfile*', 'docker-compose*.yml', '.dockerignore']
+
+# CI/CD
+ci-cd:
+  - changed-files:
+    - any-glob-to-any-file: ['.github/workflows/**/*', '.circleci/**/*', '.gitlab-ci.yml']
+
+# Dependencies
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: ['requirements*.txt', 'package*.json', 'yarn.lock', 'Pipfile*', 'pyproject.toml']
+
+# Security
+security:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*security*', '**/*auth*', '.github/workflows/security*.yml', '.github/workflows/*scan*.yml']
+
+# Bug fix (based on branch name or file patterns)
+bug:
+  - head-branch: ['^fix/', '^bugfix/', '^hotfix/']
+
+# Feature (based on branch name)
+feature:
+  - head-branch: ['^feat/', '^feature/']
+
+# Refactor (based on branch name)
+refactor:
+  - head-branch: ['^refactor/']
+
+# Performance
+performance:
+  - head-branch: ['^perf/', '^performance/']
+  - changed-files:
+    - any-glob-to-any-file: ['**/*performance*', '**/*optimization*', '**/*cache*']
