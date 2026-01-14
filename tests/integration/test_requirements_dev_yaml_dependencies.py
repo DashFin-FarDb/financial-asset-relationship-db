@@ -11,7 +11,7 @@ This test file validates:
 import pytest
 import re
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
 
 REQUIREMENTS_DEV_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
