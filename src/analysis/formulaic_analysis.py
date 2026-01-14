@@ -22,7 +22,10 @@ class Formula:
 
 
 class FormulaicdAnalyzer:
-    """Analyzes financial data to extract and render mathematical relationships."""
+    """Analyzes financial data to extract and render mathematical relationships.
+    
+    
+    """
 
     def __init__(self):
         self.formulas: List[Formula] = []
