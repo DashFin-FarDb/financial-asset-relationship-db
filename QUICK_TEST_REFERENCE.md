@@ -3,6 +3,7 @@
 ## Running Tests
 
 ### Basic Commands
+
 ```bash
 cd frontend && npm test                    # Run all tests
 cd frontend && npm test -- --coverage      # With coverage
@@ -10,6 +11,7 @@ cd frontend && npm test -- --watch         # Watch mode
 ```
 
 ### Run Specific Files
+
 ```bash
 cd frontend && npm test -- MetricsDashboard.test.tsx      # Metrics component
 cd frontend && npm test -- NetworkVisualization.test.tsx  # Visualization component
@@ -19,6 +21,7 @@ cd frontend && npm test -- integration/                   # Integration tests
 ```
 
 ### Run Specific Test Suites
+
 ```bash
 cd frontend && npm test -- -t "Accessibility"             # Accessibility tests
 cd frontend && npm test -- -t "Edge Cases"                # Edge case tests

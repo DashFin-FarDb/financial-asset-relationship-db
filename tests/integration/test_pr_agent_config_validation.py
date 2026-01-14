@@ -8,82 +8,25 @@ Tests the simplified PR agent configuration, ensuring:
 - Simplified configuration structure
 """
 
+from pathlib import Path
+
 import pytest
 import ruamel.yaml
 import yaml
 
-class DuplicateKeyLoader(yaml.SafeLoader):
-    """Custom YAML loader that detects duplicate keys.
-    
-    Extends SafeLoader for security. ONLY for use in test environments
-    with trusted configuration files. Not suitable for untrusted input
-    due to recursive construction without depth limits.
-    """
-    pass
-
-
-def _check_duplicate_keys(loader, node, deep=False):
-    """Check for duplicate keys in YAML mappings."""
-    loader.flatten_mapping(node)
-    mapping = {}
-    
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=deep)
-        
-        try:
-            hash(key)
-        except TypeError as e:
-            raise yaml.constructor.ConstructorError(
-                "while constructing a mapping", node.start_mark,
-                f"found unhashable key ({key!r})", key_node.start_mark
-            ) from e
-        
-        if key in mapping:
-            raise yaml.constructor.ConstructorError(
-                "while constructing a mapping", node.start_mark,
-                f"found duplicate key ({key!r})", key_node.start_mark
-            )
-        
-        value = loader.construct_object(value_node, deep=deep)
-        mapping[key] = value
-    
-    return mapping
-
-
-DuplicateKeyLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-    _check_duplicate_keys
-)
-
-
-
-def _check_duplicate_keys(loader, node):
-    """YAML mapping constructor that raises if a key is duplicated."""
-    loader.flatten_mapping(node)
-    mapping = {}
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=True)
-        if key in mapping:
-            raise yaml.constructor.ConstructorError(
-                "while constructing a mapping",
-                node.start_mark,
-                f"found duplicate key ({key})",
-                key_node.start_mark,
-            )
-        mapping[key] = loader.construct_object(value_node, deep=True)
-    return mapping
-
 
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
-    
+
     @pytest.fixture
     def pr_agent_config(self):
         """
         Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
-        
+
+        If the file is missing, contains invalid YAML, or does not contain a top-level mapping, the fixture will call pytest.fail to abort the test.
+
         Returns:
-            The parsed YAML content as a Python mapping or sequence (typically a dict), or `None` if the file is empty.
+            dict: The parsed YAML content as a Python mapping.
         """
         config_path = Path(".github/pr-agent-config.yml")
         if not config_path.exists():
@@ -105,41 +48,43 @@ class TestPRAgentConfigSimplification:
         if cfg is None or not isinstance(cfg, dict):
             pytest.fail("Config must be a YAML mapping (dict) and not empty")
         return cfg
-    
+
     def test_version_reverted_to_1_0_0(self, pr_agent_config):
         """Check that the PR agent's configured version is '1.0.0'."""
         assert pr_agent_config['agent']['version'] == '1.0.0'
-    
+
     def test_no_context_configuration(self, pr_agent_config):
         """
         Assert that the 'agent' section does not contain a 'context' key.
-        
+
         The test fails if the parsed PR agent configuration includes a 'context' key under the top-level 'agent' section.
         """
         agent_config = pr_agent_config['agent']
         assert 'context' not in agent_config
-    
+
     def test_no_chunking_settings(self, pr_agent_config):
         """
         Assert the configuration contains no chunking-related settings.
-        
+
         Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string (case-insensitive).
         """
         config_str = yaml.dump(pr_agent_config)
         assert 'chunking' not in config_str.lower()
         assert 'chunk_size' not in config_str.lower()
         assert 'overlap_tokens' not in config_str.lower()
-    
+
     def test_no_tiktoken_references(self, pr_agent_config):
         """Verify tiktoken references removed."""
         config_str = yaml.dump(pr_agent_config)
         assert 'tiktoken' not in config_str.lower()
-    
+
     def test_no_fallback_strategies(self, pr_agent_config):
-        """Verify fallback strategies removed from limits."""
+        """
+        Ensure the top-level `limits` section does not contain a `fallback` key.
+        """
         limits = pr_agent_config.get('limits', {})
         assert 'fallback' not in limits
-    
+
     def test_basic_config_structure_intact(self, pr_agent_config):
         """Verify basic configuration sections still present."""
         # Essential sections should remain
@@ -148,85 +93,41 @@ class TestPRAgentConfigSimplification:
         assert 'actions' in pr_agent_config
         assert 'quality' in pr_agent_config
         assert 'security' in pr_agent_config
-    
+
     def test_monitoring_config_present(self, pr_agent_config):
         """
-        Verify the monitoring section contains the required keys: 'check_interval', 'max_retries' and 'timeout'.
-        
+        Ensure the top-level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
+
         Parameters:
-            pr_agent_config (dict): Parsed PR agent configuration loaded from .github/pr-agent-config.yml.
+            pr_agent_config (dict): Parsed PR agent configuration mapping.
         """
         monitoring = pr_agent_config['monitoring']
         assert 'check_interval' in monitoring
         assert 'max_retries' in monitoring
         assert 'timeout' in monitoring
-    
+
     def test_limits_simplified(self, pr_agent_config):
         """Verify limits section simplified."""
         limits = pr_agent_config['limits']
-        
+
         # Should not have complex chunking limits
         assert 'max_files_per_chunk' not in limits
         assert 'max_diff_lines' not in limits
-        
+
         # Should have basic limits
         assert 'max_execution_time' in limits
         assert 'max_concurrent_prs' in limits
 
 
 class TestPRAgentConfigYAMLValidity:
-    """Test YAML validity and format."""
+    """Test YAML validity and structure."""
 
-    @staticmethod
-    def _validate_line_indentation(line: str, line_num: int) -> int:
-        """Validate indentation of a line and return the indent level.
-
-        Args:
-            line: The line to validate
-            line_num: Line number for error messages
-
-        Returns:
-            The indentation level (number of spaces)
-
-        Raises:
-            pytest.fail: If line contains tabs or inconsistent indentation
+    def test_config_is_valid_yaml(self):
         """
-        from itertools import takewhile
-        leading_whitespace = "".join(takewhile(lambda c: c == ' ' or c == '\t', line))
+        Fail the test if .github/pr-agent-config.yml contains invalid YAML.
 
-        # Check for tab characters in indentation
-        if '\t' in leading_whitespace:
-            pytest.fail(
-                f"Line {line_num}: Tab character in indentation. "
-                "YAML requires consistent space-based indentation."
-                    """
-                    config_path = Path(".github/pr-agent-config.yml")
-                    if not config_path.exists():
-                        pytest.fail(f"Config file not found: {config_path}")
-
-                    with open(config_path, 'r', encoding='utf-8') as f:
-                        try:
-                            cfg = yaml.safe_load(f)
-                        except yaml.YAMLError as e:
-                            pytest.fail(f"Invalid YAML in config: {e}")
-
-                    if cfg is None or not isinstance(cfg, dict):
-                        pytest.fail("Config must be a YAML mapping (dict) and not empty")
-
-                    return cfg
-
-        # Check for mixed spaces/inconsistent indentation
-        indent = len(leading_whitespace)
-        if indent > 0 and indent % 2 != 0:
-            pytest.fail(
-                f"Line {line_num}: Indentation of {indent} spaces is not "
-                "a multiple of 2. Use consistent 2-space indentation."
-            )
-
-        return indent
-
-    def test_valid_yaml_syntax(self):
-        """Verify config file has valid YAML syntax."""
+        Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
+        """
         config_path = Path(".github/pr-agent-config.yml")
 
         try:
@@ -281,11 +182,13 @@ class TestPRAgentConfigYAMLValidity:
                 yaml.safe_load(f)
             except yaml.YAMLError as e:
                 pytest.fail(f"PR agent config has invalid YAML: {e}")
-    
+
     def test_no_duplicate_keys(self):
-        """Verify no duplicate keys in config."""
-    def test_no_duplicate_keys(self):
-        """Verify no duplicate keys in config."""
+        """
+        Fail the test if any top-level YAML key appears more than once in the file.
+
+        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
+        """
         config_path = Path(".github/pr-agent-config.yml")
 
         with open(config_path, "r", encoding="utf-8") as f:
@@ -304,7 +207,7 @@ class TestPRAgentConfigYAMLValidity:
         with open(config_path, 'r') as f:
             content = f.read()
 
-        # Check for duplicate keys by tracking full hierarchical paths
+        # Simple check for obvious duplicates
         lines = content.split('\n')
         with open(config_path, 'r') as f:
             try:
@@ -333,22 +236,17 @@ class TestPRAgentConfigYAMLValidity:
         if duplicates:
             pytest.fail(f"Duplicate keys found at paths: {', '.join(duplicates)}")
                 key = line.split(':')[0].strip()
+                if key in seen_keys:
+                    pytest.fail(f"Duplicate key found: {key}")
+                seen_keys.add(key)
 
-                # Skip list items (only when the first non-space character is '-')
-                if line.lstrip().startswith('-'):
-                    continue
+    def test_consistent_indentation(self):
+        """
+        Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
 
-                # Normalize indentation: expand tabs to spaces to avoid mixed indent issues
-                expanded = line.expandtabs(2)
-                indent = len(expanded) - len(expanded.lstrip(' '))
-                # Ensure indentation uses only spaces (no stray tabs remain after expand)
-                if '\t' in line:
-                    pytest.fail("Tabs are not allowed for indentation in YAML config")
-                # Pop stack entries that are at same or deeper indentation
-                # (we've moved back up or sideways in the hierarchy)
-                while path_stack and path_stack[-1][0] >= indent:
-                    path_stack.pop()
-
+        Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
+        """
+        config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, 'r') as f:
             lines = f.readlines()
 
@@ -373,23 +271,31 @@ class TestPRAgentConfigYAMLValidity:
 
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
-    
+
     @pytest.fixture
     def pr_agent_config(self):
         """
         Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
-        
+
         Returns:
             The parsed YAML content as a Python mapping or sequence (typically a dict), or `None` if the file is empty.
     def test_no_hardcoded_credentials(self, pr_agent_config):
         """
         Recursively scan configuration values for suspected secrets.
 
-        This inspects values (not just serialized text) and traverses nested dicts/lists.
+        This inspects values(not just serialized text) and traverses nested dicts / lists.
         The heuristic flags:
-          - Long high-entropy strings (e.g., tokens)
-          - Obvious secret prefixes/suffixes
-          - Inline credentials in URLs (e.g., scheme://user:pass@host)
+          """
+        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+
+        If the file is missing, contains invalid YAML, or the top-level content is not a mapping, this fixture fails test collection. Empty files return None.
+
+        Returns:
+            The parsed YAML content (typically a dict) or `None` if the file is empty.
+        """
+        - Long high - entropy strings(e.g., tokens)
+          - Obvious secret prefixes / suffixes
+          - Inline credentials in URLs(e.g., scheme: // user:pass @ host)
         """
         import re
         import math
@@ -437,7 +343,7 @@ class TestPRAgentConfigSecurity:
     def test_no_hardcoded_credentials(self, pr_agent_config):
         """
         Recursively scan configuration values and keys for suspected secrets.
-        - Flags high-entropy or secret-like string values.
+        - Flags high - entropy or secret - like string values.
         - Ensures sensitive keys only use safe placeholders.
         """
         import re
@@ -554,7 +460,7 @@ class TestPRAgentConfigSecurity:
         walk(pr_agent_config)
         """
         Traverse the parsed YAML and ensure that any key containing sensitive indicators
-        has a safe placeholder value (None, 'null', or 'webhook').
+        has a safe placeholder value(None, 'null', or 'webhook').
         """
         sensitive_patterns = [
             sensitive_patterns = [
@@ -605,24 +511,24 @@ class TestPRAgentConfigSecurity:
         check_node(pr_agent_config)
             'access_key', 'private_key'
         ]
-        
+
         for pattern in sensitive_patterns:
             if pattern in config_str:
                 # Should only appear in field names, not values
                 assert 'null' in config_str or 'webhook' in config_str, \
                     f"Potential hardcoded credential found: {pattern}"
-    
+
     def test_safe_configuration_values(self, pr_agent_config):
         """
         Assert that key numeric limits in the PR agent configuration fall within safe bounds.
-        
+
         Checks that:
         - `limits['max_execution_time']` is less than or equal to 3600 seconds.
         - `limits['max_concurrent_prs']` is less than or equal to 10.
         - `limits['rate_limit_requests']` is less than or equal to 1000.
         """
         limits = pr_agent_config['limits']
-        
+
         # Check for reasonable numeric limits
         assert limits['max_execution_time'] <= 3600, "Execution time too high"
         assert limits['max_concurrent_prs'] <= 10, "Too many concurrent PRs"
@@ -631,37 +537,37 @@ class TestPRAgentConfigSecurity:
 
 class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
-    
+
     @pytest.fixture
     def pr_agent_config_content(self):
         """
-        Return the contents of .github/pr-agent-config.yml as a string.
-        
+        Return the contents of .github / pr - agent - config.yml as a string.
+
         Reads the PR agent configuration file from the repository root and returns its raw text.
-        
+
         Returns:
-            str: Raw YAML content of .github/pr-agent-config.yml.
+            str: Raw YAML content of .github / pr - agent - config.yml.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, 'r') as f:
             return f.read()
-    
+
     def test_no_summarization_settings(self, pr_agent_config_content):
         """Verify summarization settings removed."""
         assert 'summarization' not in pr_agent_config_content.lower()
         assert 'max_summary_tokens' not in pr_agent_config_content
-    
+
     def test_no_token_management(self, pr_agent_config_content):
         """Verify token management settings removed."""
         assert 'max_tokens' not in pr_agent_config_content
         assert 'context_length' not in pr_agent_config_content
-    
+
     def test_no_llm_model_references(self, pr_agent_config_content):
         """
         Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
-        
+
         Parameters:
-            pr_agent_config_content (str): Raw contents of .github/pr-agent-config.yml used for pattern checks.
+            pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
         """
         assert 'gpt-3.5-turbo' not in pr_agent_config_content
         assert 'gpt-4' not in pr_agent_config_content
