@@ -1,6 +1,8 @@
 """
 Comprehensive tests for GitHub Actions workflow files.
 
+
+
 This module validates the structure, syntax, and configuration of GitHub Actions
 workflows, ensuring they are properly formatted and free of common issues like
 duplicate keys, invalid syntax, and missing required fields.
@@ -225,6 +227,18 @@ class TestPrAgentWorkflow:
             pytest.skip("pr-agent.yml not found")
         return load_yaml_safe(workflow_path)
 
+    def _assert_valid_fetch_depth(self, step_with: Dict[str, Any]) -> None:
+        """Assert that a checkout step's `with` mapping has a valid optional `fetch-depth`."""
+        if "fetch-depth" not in step_with:
+            return
+
+        fetch_depth = step_with["fetch-depth"]
+
+        # Reject non-integer types (including strings)
+        assert isinstance(fetch_depth, int), f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
+        # Reject negative integers
+        assert fetch_depth >= 0, "fetch-depth cannot be negative"
+
     def test_pr_agent_name(self, pr_agent_workflow: Dict[str, Any]):
         """Validate that the pr-agent workflow defines a top-level `name` field."""
         assert "name" in pr_agent_workflow, "pr-agent workflow must have a descriptive 'name' field"
@@ -281,14 +295,7 @@ class TestPrAgentWorkflow:
 
         for step in checkout_steps:
             step_with = step.get("with", {})
-            # It's acceptable for fetch-depth to be omitted entirely
-            if "fetch-depth" not in step_with:
-                continue
-            fetch_depth = step_with["fetch-depth"]
-            # Reject non-integer types (including strings)
-            assert isinstance(fetch_depth, int), f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
-            # Reject negative integers
-            assert fetch_depth >= 0, "fetch-depth cannot be negative"
+            self._assert_valid_fetch_depth(step_with)
 
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """Ensure the pr-agent-trigger job includes at least one step that uses actions/setup-python."""
@@ -343,6 +350,19 @@ class TestPrAgentWorkflow:
         assert parse_step.get("id") == "parse-comments"
         assert "GITHUB_TOKEN" in parse_step.get("env", {})
         assert "gh api" in parse_step["run"]
+
+    def test_pr_agent_fetch_depth_allows_absent(self):
+        """Missing fetch-depth is permitted for checkout steps."""
+        # Test empty configuration
+        self._assert_valid_fetch_depth({})
+        # Test configuration with other parameters but no fetch-depth
+        self._assert_valid_fetch_depth({"token": "${{ secrets.GITHUB_TOKEN }}"})
+
+    def test_pr_agent_fetch_depth_rejects_invalid_values(self):
+        """Invalid fetch-depth values are rejected."""
+        for invalid in ["0", -1, 1.5, None]:
+            with pytest.raises(AssertionError):
+                self._assert_valid_fetch_depth({"fetch-depth": invalid})
 
 
 class TestWorkflowSecurity:
