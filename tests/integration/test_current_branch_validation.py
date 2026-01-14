@@ -113,34 +113,16 @@ class TestWorkflowModifications:
 
         # Should only appear in test files documenting the deletion
         if files_with_reference:
-            test_files = [f for f in files_with_reference if 'test' in f]
+            test_files = [
+                f
+                for f in files_with_reference
+                if ("tests" in Path(f).parts) or Path(f).name.startswith("test_")
+            ]
             # All references should be in test files
-            assert len(files_with_reference) == len(test_files)
-            cwd=search_root,
-            output = result.stdout or ""
-            files_with_reference = output.strip().split('\n') if output.strip() else []
-        except FileNotFoundError:
-            # Fallback: scan python files without ripgrep
-            files_with_reference = []
-            for py_file in repo_root.rglob('*.py'):
-                try:
-                    with open(py_file, 'r', encoding='utf-8', errors='ignore') as f:
-                        if 'context_chunker' in f.read():
-                            files_with_reference.append(str(py_file))
-                except OSError:
-                    continue
-    
-        if files_with_reference:
-            test_files = [f for f in files_with_reference if 'test' in f]
-            assert len(files_with_reference) == len(test_files)
-    
-    def test_labeler_config_deleted(self):
-                except OSError:
-                    continue
-    
-        if files_with_reference:
-            test_files = [f for f in files_with_reference if 'test' in f]
-            assert len(files_with_reference) == len(test_files)
+            assert len(files_with_reference) == len(test_files), (
+                "Non-test files reference 'context_chunker': "
+                f"{sorted(set(files_with_reference) - set(test_files))}"
+            )
     
     def test_labeler_config_deleted(self):
         """Labeler.yml configuration should be deleted."""
@@ -209,31 +191,6 @@ class TestPRAgentConfigSimplified:
         
         # Should not have chunking limits
         assert 'max_files_per_chunk' not in limits
-        for yaml_file in yaml_files:
-            try:
-                with open(yaml_file, 'r') as f:
-                    yaml.safe_load(f)
-            except (yaml.YAMLError, OSError, IOError) as e:
-                pytest.fail(f"Invalid or unreadable YAML in {yaml_file}: {e}")
-                    yaml.safe_load(f)
-            except yaml.YAMLError as e:
-        for yaml_file in yaml_files:
-            try:
-                with open(yaml_file, 'r') as f:
-                    yaml.safe_load(f)
-            except (yaml.YAMLError, OSError, IOError) as e:
-                pytest.fail(f"Invalid or unreadable YAML in {yaml_file}: {e}")
-                    yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in {yaml_file}: {e}")
-            try:
-                with open(yaml_file, 'r') as f:
-                    yaml.safe_load(f)
-            except (yaml.YAMLError, OSError, IOError) as e:
-                pytest.fail(f"Invalid or unreadable YAML in {yaml_file}: {e}")
-                    yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in {yaml_file}: {e}")
     
     def test_no_broken_workflow_references(self):
         """Workflows should not reference non-existent files."""
@@ -242,22 +199,6 @@ class TestPRAgentConfigSimplified:
         for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
-        
-        for summary_file in summary_files:
-            path = Path(summary_file)
-            assert path.is_file(), f"Required summary file '{summary_file}' does not exist or is not a file"
-            assert path.stat().st_size > 0, f"Summary file '{summary_file}' is empty"
-    
-    def test_no_misleading_documentation(self):
-        req_dev = Path("requirements-dev.txt")
-        
-        assert req_dev.exists()
-        
-        # File should not be empty
-        with open(req_dev, 'r') as f:
-            content = f.read().strip()
-        
-        assert len(content) > 0
 
 
 class TestDocumentationConsistency:
