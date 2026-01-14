@@ -218,8 +218,16 @@ class TestPRAgentConfigYAMLValidity:
 
     def test_valid_yaml_syntax(self):
         """Verify config file has valid YAML syntax."""
-    def test_no_duplicate_keys(self):
-        """Verify no duplicate keys in config."""
+        config_path = Path(".github/pr-agent-config.yml")
+
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            pytest.fail(f"Invalid YAML syntax: {e}")
+
+        assert config is not None
+        assert isinstance(config, dict)
         config_path = Path(".github/pr-agent-config.yml")
 
         class _NoDuplicateKeysSafeLoader(yaml.SafeLoader):
