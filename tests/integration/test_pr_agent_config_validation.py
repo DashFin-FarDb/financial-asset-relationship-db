@@ -199,7 +199,21 @@ class TestPRAgentConfigYAMLValidity:
             pytest.fail(
                 f"Line {line_num}: Tab character in indentation. "
                 "YAML requires consistent space-based indentation."
-            )
+                    """
+                    config_path = Path(".github/pr-agent-config.yml")
+                    if not config_path.exists():
+                        pytest.fail(f"Config file not found: {config_path}")
+
+                    with open(config_path, 'r', encoding='utf-8') as f:
+                        try:
+                            cfg = yaml.safe_load(f)
+                        except yaml.YAMLError as e:
+                            pytest.fail(f"Invalid YAML in config: {e}")
+
+                    if cfg is None or not isinstance(cfg, dict):
+                        pytest.fail("Config must be a YAML mapping (dict) and not empty")
+
+                    return cfg
 
         # Check for mixed spaces/inconsistent indentation
         indent = len(leading_whitespace)
