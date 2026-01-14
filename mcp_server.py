@@ -52,9 +52,7 @@ def _build_mcp_app():
     mcp = FastMCP("DashFin-Relationship-Manager")
 
     @mcp.tool()
-    def add_equity_node(
-        asset_id: str, symbol: str, name: str, sector: str, price: float
-    ) -> str:
+    def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
         """
         Validate an Equity asset and add it to the graph.
 
@@ -104,12 +102,8 @@ def _build_mcp_app():
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        prog="mcp_server.py", description="DashFin MCP server"
-    )
-    parser.add_argument(
-        "--version", action="store_true", help="Print version info and exit"
-    )
+    parser = argparse.ArgumentParser(prog="mcp_server.py", description="DashFin MCP server")
+    parser.add_argument("--version", action="store_true", help="Print version info and exit")
     args = parser.parse_args(argv)
 
     if args.version:
@@ -121,9 +115,7 @@ def main(argv: list[str] | None = None) -> int:
     except ModuleNotFoundError as e:
         # Provide a clear message for missing optional dependency when invoked via the CLI.
         missing = getattr(e, "name", None) or str(e)
-        raise SystemExit(
-            f"Missing dependency '{missing}'. Install the MCP package to run the server."
-        ) from e
+        raise SystemExit(f"Missing dependency '{missing}'. Install the MCP package to run the server.") from e
 
     mcp.run()
     return 0

@@ -66,9 +66,7 @@ try:
         print(f"Using connection string: {updated_db_url[:20]}...")
 
         # Add SSL parameters to connection
-        connection = psycopg2.connect(
-            updated_db_url, sslmode="require", sslrootcert=CERT_PATH
-        )
+        connection = psycopg2.connect(updated_db_url, sslmode="require", sslrootcert=CERT_PATH)
     else:
         print("No DATABASE_URL found, using individual parameters")
         connection = None

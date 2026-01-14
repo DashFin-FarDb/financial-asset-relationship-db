@@ -14,9 +14,7 @@ class ValidationResult:
         workflow_data (dict): Parsed YAML workflow data.
     """
 
-    def __init__(
-        self, is_valid: bool, errors: List[str], workflow_data: Dict[str, Any]
-    ):
+    def __init__(self, is_valid: bool, errors: List[str], workflow_data: Dict[str, Any]):
         """
         Initialize a ValidationResult representing the outcome of validating a workflow YAML file.
 
@@ -46,25 +44,18 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     allowed_workflow_filenames = globals().get(
         "ALLOWED_WORKFLOW_FILENAMES"
     ) or set(  # may be defined elsewhere at module scope
-        os.listdir(
-            os.environ.get("WORKFLOW_DIR")
-            or os.path.join(os.path.dirname(__file__), "workflows")
-        )
+        os.listdir(os.environ.get("WORKFLOW_DIR") or os.path.join(os.path.dirname(__file__), "workflows"))
     )  # fallback: allow only filenames present in the trusted directory
     if filename not in allowed_workflow_filenames:
         return ValidationResult(False, [f"Invalid workflow filename: {filename}"], {})
-    workflow_dir = os.environ.get("WORKFLOW_DIR") or os.path.join(
-        os.path.dirname(__file__), "workflows"
-    )
+    workflow_dir = os.environ.get("WORKFLOW_DIR") or os.path.join(os.path.dirname(__file__), "workflows")
     safe_path = os.path.join(workflow_dir, filename)
     try:
         with open(safe_path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         if data is None:
-            return ValidationResult(
-                False, ["Workflow file is empty or contains only nulls."], {}
-            )
+            return ValidationResult(False, ["Workflow file is empty or contains only nulls."], {})
         if not isinstance(data, dict):
             return ValidationResult(False, ["Workflow must be a dict"], {})
         if "jobs" not in data:
@@ -78,10 +69,6 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     except PermissionError as e:
         return ValidationResult(False, [f"Permission denied: {e}"], {})
     except IsADirectoryError as e:
-        return ValidationResult(
-            False, [f"Expected a file but found a directory: {e}"], {}
-        )
+        return ValidationResult(False, [f"Expected a file but found a directory: {e}"], {})
     except NotADirectoryError as e:
-        return ValidationResult(
-            False, [f"Invalid path component (not a directory): {e}"], {}
-        )
+        return ValidationResult(False, [f"Invalid path component (not a directory): {e}"], {})

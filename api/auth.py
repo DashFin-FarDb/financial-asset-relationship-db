@@ -18,9 +18,7 @@ from .database import execute, fetch_one, fetch_value, initialize_schema
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError(
-        "SECRET_KEY environment variable must be set before importing api.auth"
-    )
+    raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -210,9 +208,7 @@ if not user_repository.has_users():
     )
 
 
-def get_user(
-    username: str, repository: Optional[UserRepository] = None
-) -> Optional[UserInDB]:
+def get_user(username: str, repository: Optional[UserRepository] = None) -> Optional[UserInDB]:
     """
     Retrieve a user by username.
 
@@ -227,9 +223,7 @@ def get_user(
     return repo.get_user(username)
 
 
-def authenticate_user(
-    username: str, password: str, repository: Optional[UserRepository] = None
-):
+def authenticate_user(username: str, password: str, repository: Optional[UserRepository] = None):
     """
     Authenticate a username and password and return the corresponding stored user.
 
