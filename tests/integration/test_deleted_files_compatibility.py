@@ -131,20 +131,6 @@ class TestDeletedLabelerConfig:
         assert 'jobs' in data
     
     def test_no_broken_labeler_action_calls(self):
-    def test_no_broken_labeler_action_calls(self):
-        """Labeler action should not be called without proper config."""
-        label_workflow = Path(".github/workflows/label.yml")
-    
-        if label_workflow.exists():
-            import yaml
-            with open(label_workflow, 'r') as f:
-                data = yaml.safe_load(f)
-        
-            # Check if labeler action is used
-            jobs = data.get('jobs', {})
-            for job_name, job_data in jobs.items():
-                steps = job_data.get('steps', [])
-    def test_no_broken_labeler_action_calls(self):
         """Labeler action should not be called without proper config."""
         label_workflow = Path(".github/workflows/label.yml")
     
@@ -172,7 +158,8 @@ class TestDeletedLabelerConfig:
                         assert (step_if or with_config), \
                             f"Labeler action used without condition or inline config in step: {step}"
 
-                            assert has_label_patterns or has_conditional, \
+
+class TestDeletedScriptsReadme:
     """Validate that scripts README removal doesn't leave broken documentation."""
     
     def test_main_docs_dont_reference_scripts_readme(self):
@@ -225,32 +212,63 @@ class TestWorkflowConfigConsistency:
     
     def test_pr_agent_config_matches_workflow(self):
         """PR Agent config should match simplified workflow."""
-if 'chunking' not in workflow and not any('chunk' in str(key).lower() for key in workflow.keys()):
         workflow_path = Path(".github/workflows/pr-agent.yml")
+        config_path = Path(".github/pr-agent.yml")
         
-if 'chunking' not in workflow and not any('chunk' in str(key).lower() for key in workflow.keys()):
-            import yaml
-            
-            with open(config_path, 'r') as f:
-                config = yaml.safe_load(f)
-            
-            with open(workflow_path, 'r') as f:
-                workflow = yaml.safe_load(f)
-            
-            # Config should not have chunking settings if workflow doesn't use them
-            workflow_content = yaml.dump(workflow)
-            
-# Check for chunking settings using parsed structure rather than string matching
-if 'chunking' not in workflow and not any('chunk' in str(key).lower() for key in workflow.keys()):
-    assert 'chunking' not in config and not any('chunk' in str(key).lower() for key in config.keys()), \
-        "PR Agent config contains chunking settings but workflow doesn't use them"
-            
-# More comprehensive YAML structure validation
-assert isinstance(config, dict), "PR Agent config should parse to a dictionary"
-assert isinstance(workflow, dict), "PR Agent workflow should parse to a dictionary"
-            
-            # Workflow should have required jobs
-            assert 'jobs' in workflow, "PR Agent workflow should define jobs"
+        if not workflow_path.exists() or not config_path.exists():
+            pytest.skip("PR Agent workflow or config not found")
+        
+        import yaml
+        
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        with open(workflow_path, 'r') as f:
+            workflow = yaml.safe_load(f)
+        
+        # More comprehensive YAML structure validation
+        assert isinstance(config, dict), "PR Agent config should parse to a dictionary"
+        assert isinstance(workflow, dict), "PR Agent workflow should parse to a dictionary"
+        
+        # Workflow should have required jobs
+        assert 'jobs' in workflow, "PR Agent workflow should define jobs"
+        
+        # Check for chunking settings using recursive search through the entire workflow/config structure
+        def contains_chunking(obj):
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    if 'chunk' in str(k).lower():
+                        return True
+                    if contains_chunking(v):
+                        return True
+            elif isinstance(obj, list):
+                for item in obj:
+                    if contains_chunking(item):
+                        return True
+            elif isinstance(obj, str):
+                if 'chunk' in obj.lower():
+            # Extract file paths mentioned in workflow
+            import re
+            file_patterns = re.findall(r'\.github/[^\s\'"]+', content)
+            for file_path in file_patterns:
+                file_path = file_path.rstrip(',')
+                path = Path(file_path)
+                    if 'chunk' in str(k).lower():
+                        return True
+                    if contains_chunking_setting(v):
+                        return True
+            elif isinstance(obj, list):
+                for item in obj:
+                    if contains_chunking_setting(item):
+                        return True
+            elif isinstance(obj, str):
+                if 'chunk' in obj.lower():
+                    return True
+            return False
+
+        if not contains_chunking_setting(workflow):
+            assert not contains_chunking_setting(config), \
+                "PR Agent config contains chunking settings but workflow doesn't use them"
     
     def test_no_missing_config_files_referenced(self):
         """Workflows should not reference missing configuration files."""
@@ -263,7 +281,6 @@ assert isinstance(workflow, dict), "PR Agent workflow should parse to a dictiona
             
             # Extract file paths mentioned in workflow
             import re
-            file_patterns = re.findall(r'\.github/[^\s\'"]+', content)
             file_patterns = re.findall(r'\.github/[^\s\'"]+', content)
             for file_path in file_patterns:
                 file_path = file_path.rstrip(',')
