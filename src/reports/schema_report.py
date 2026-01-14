@@ -18,9 +18,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         "### Relationship Types\n"
     )
 
-    for rel_type, count in sorted(
-        metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True
-    ):
+    for rel_type, count in sorted(metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True):
         report += f"- **{rel_type}**: {count} instances\n"
 
     report += f"""
@@ -45,9 +43,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ## Top Relationships
 """
 
-    for idx, (source, target, rel_type, strength) in enumerate(
-        metrics["top_relationships"], 1
-    ):
+    for idx, (source, target, rel_type, strength) in enumerate(metrics["top_relationships"], 1):
         report += f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}\n"
 
     report += (
@@ -91,9 +87,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     if metrics["relationship_density"] > 30:
         report += "High connectivity - consider normalization"
     elif metrics["relationship_density"] > 10:
-        report += (
-            "Well-balanced relationship graph - optimal for most use cases"
-        )
+        report += "Well-balanced relationship graph - optimal for most use cases"
     else:
         report += "Sparse connections - consider adding more relationships"
 

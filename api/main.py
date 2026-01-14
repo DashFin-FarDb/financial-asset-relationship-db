@@ -593,9 +593,7 @@ async def get_all_relationships():
                 )
     except Exception as e:
         logger.exception("Error getting relationships:")
-        raise HTTPException(
-            status_code=500, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
     return relationships
 

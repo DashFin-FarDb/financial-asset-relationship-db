@@ -418,6 +418,7 @@ def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
 
     return "\n".join(summary_lines)
 
+
 def create_interface(self):
     """Creates the Gradio interface for the Financial Asset Relationship Database."""
     with gr.Blocks(title=AppConstants.TITLE):

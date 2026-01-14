@@ -312,14 +312,14 @@ class FormulaicVisualizer:
         )
 
         fig.update_layout(
-            title="📊 Formula Categories: Reliability vs Count",
-            xaxis=dict(title="Category"),
-            yaxis=dict(title="Average R-squared", side="left"),
-            yaxis2=dict(title="Number of Formulas", side="right", overlaying="y"),
-            barmode="group",
-            plot_bgcolor="white",
-            paper_bgcolor="#F8F9FA",
-            legend=dict(x=0.7, y=1),
+            title = "📊 Formula Categories: Reliability vs Count",
+            xaxis = dict(title="Category"),
+            yaxis = dict(title="Average R-squared", side="left"),
+            yaxis2 = dict(title="Number of Formulas", side="right", overlaying="y"),
+            barmode = "group",
+            plot_bgcolor = "white",
+            paper_bgcolor = "#F8F9FA",
+            legend = dict(x=0.7, y=1),
         )
 
         return fig

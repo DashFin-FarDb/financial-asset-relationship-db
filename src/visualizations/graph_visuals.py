@@ -47,7 +47,7 @@ def _is_valid_color_format(color: str) -> bool:
         return False
 
     # Hex colors
-    if re.match(r"^#(?:[0-9A-Fa-f]{3}){1,2}(?:[0-9A-Fa-f]{2})?$, color):
+    if re.match(r"^  # (?:[0-9A-Fa-f]{3}){1,2}(?:[0-9A-Fa-f]{2})?$, color):
         return True
 
     # rgb/rgba functions
@@ -225,18 +225,18 @@ def _create_node_trace(
     """Create node trace for 3D visualization with comprehensive input validation.
 
     Validates all inputs to ensure:
-    - positions is a non-empty 2D numpy array with shape (n, 3) containing finite numeric values
-    - asset_ids is a non-empty list/tuple of non-empty strings with length matching positions
-    - colors is a non-empty list/tuple of valid color strings with length matching positions
-    - hover_texts is a non-empty list/tuple of strings with length matching positions
+    - positions is a non - empty 2D numpy array with shape(n, 3) containing finite numeric values
+    - asset_ids is a non - empty list / tuple of non - empty strings with length matching positions
+    - colors is a non - empty list / tuple of valid color strings with length matching positions
+    - hover_texts is a non - empty list / tuple of strings with length matching positions
     - All arrays have consistent lengths
     - No duplicate asset IDs
 
     Args:
-        positions: NumPy array of node positions with shape (n, 3) containing finite numeric values
-        asset_ids: List of asset ID strings (must be non-empty strings, length must match positions)
-        colors: List of node colors (length must match positions)
-        hover_texts: List of hover texts (length must match positions)
+        positions: NumPy array of node positions with shape(n, 3) containing finite numeric values
+        asset_ids: List of asset ID strings(must be non - empty strings, length must match positions)
+        colors: List of node colors(length must match positions)
+        hover_texts: List of hover texts(length must match positions)
 
     Returns:
         Plotly Scatter3d trace for nodes
@@ -308,7 +308,7 @@ def _generate_dynamic_title(
     Args:
         num_assets: Number of assets in the visualization
         num_relationships: Number of relationships displayed
-        base_title: Base title text (default: "Financial Asset Network")
+        base_title: Base title text(default: "Financial Asset Network")
 
     Returns:
         Formatted title string with asset and relationship counts
@@ -326,7 +326,7 @@ def _calculate_visible_relationships(relationship_traces: List[go.Scatter3d]) ->
         relationship_traces: List of Scatter3d traces representing relationships
 
     Returns:
-        Number of visible relationships (edges) in the traces
+        Number of visible relationships(edges) in the traces
     """
     try:
         return (
@@ -354,11 +354,11 @@ def _prepare_layout_config(
     Args:
         num_assets: Number of assets in the visualization
         relationship_traces: List of relationship traces to count visible relationships
-        base_title: Base title text (default: "Financial Asset Network")
+        base_title: Base title text(default: "Financial Asset Network")
         layout_options: Optional layout customization options
 
     Returns:
-        Tuple of (dynamic_title, layout_options) ready for use with _configure_3d_layout
+        Tuple of(dynamic_title, layout_options) ready for use with _configure_3d_layout
     """
     num_relationships = _calculate_visible_relationships(relationship_traces)
     dynamic_title = _generate_dynamic_title(num_assets, num_relationships, base_title)
@@ -390,12 +390,12 @@ def _configure_3d_layout(
         fig: Target Plotly figure
         title: Title text
         options: Optional mapping to override defaults. Supported keys:
-            - width (int)
-            - height (int)
-            - gridcolor (str)
-            - bgcolor (str)
-            - legend_bgcolor (str)
-            - legend_bordercolor (str)
+            - width(int)
+            - height(int)
+            - gridcolor(str)
+            - bgcolor(str)
+            - legend_bgcolor(str)
+            - legend_bordercolor(str)
     """
     opts = options or {}
     width = int(opts.get("width", 1200))
@@ -647,7 +647,7 @@ def _collect_and_group_relationships(
     asset_ids: Iterable[str],
     relationship_filters: Optional[Dict[str, bool]] = None,
 ) -> Dict[Tuple[str, bool], List[dict]]:
-    """Collect and group relationships with directionality info in a single pass."""
+    """Collect and group relationships with directionality info in a single pass ."""
     relationship_index = _build_relationship_index(graph, asset_ids)
 
     processed_pairs: Set[Tuple[str, str, str]] = set()
@@ -717,7 +717,7 @@ def _build_hover_texts(
     rel_type: str,
     is_bidirectional: bool,
 ) -> List[Optional[str]]:
-    """Build hover text list for relationships with pre-allocation for performance."""
+    """Build hover text list for relationships with pre - allocation for performance."""
     direction_text = "↔" if is_bidirectional else "→"
 
     num_rels = len(relationships)
@@ -1000,7 +1000,7 @@ def _validate_relationship_filters(relationship_filters: Optional[Dict[str, bool
 
     Raises:
         TypeError: If relationship_filters is not None and not a dictionary
-        ValueError: If relationship_filters contains invalid keys or non-boolean
+        ValueError: If relationship_filters contains invalid keys or non - boolean
             values
     """
     if relationship_filters is None:
@@ -1049,21 +1049,21 @@ def visualize_3d_graph_with_filters(
 
     Args:
         graph: Asset relationship graph to visualize
-        show_same_sector: Show same sector relationships (default: True)
-        show_market_cap: Show market cap relationships (default: True)
-        show_correlation: Show correlation relationships (default: True)
-        show_corporate_bond: Show corporate bond relationships (default: True)
-        show_commodity_currency: Show commodity currency relationships (default: True)
-        show_income_comparison: Show income comparison relationships (default: True)
-        show_regulatory: Show regulatory relationships (default: True)
-        show_all_relationships: Master toggle to show all relationships (default: True)
-        toggle_arrows: Show directional arrows for unidirectional relationships (default: True)
+        show_same_sector: Show same sector relationships(default: True)
+        show_market_cap: Show market cap relationships(default: True)
+        show_correlation: Show correlation relationships(default: True)
+        show_corporate_bond: Show corporate bond relationships(default: True)
+        show_commodity_currency: Show commodity currency relationships(default: True)
+        show_income_comparison: Show income comparison relationships(default: True)
+        show_regulatory: Show regulatory relationships(default: True)
+        show_all_relationships: Master toggle to show all relationships(default: True)
+        toggle_arrows: Show directional arrows for unidirectional relationships(default: True)
 
     Returns:
         Plotly Figure object with 3D visualization
 
     Raises:
-        ValueError: If graph is invalid or missing required methods/attributes
+        ValueError: If graph is invalid or missing required methods / attributes
         TypeError: If filter parameters are not boolean values
     """
     # Validate graph input

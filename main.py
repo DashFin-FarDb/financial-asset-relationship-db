@@ -46,10 +46,8 @@ try:
             print("Could not retrieve table list.")
 
     except socket.gaierror:
-        print("⚠️ Network connection issue: Unable to reach Supabase "
-              "API servers.")
-        print("This is expected in test environments with "
-              "network restrictions.")
+        print("⚠️ Network connection issue: Unable to reach Supabase " "API servers.")
+        print("This is expected in test environments with " "network restrictions.")
     except Exception as query_error:
         print(f"⚠️ Query error: {query_error}")
 
