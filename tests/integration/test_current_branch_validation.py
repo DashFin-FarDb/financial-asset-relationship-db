@@ -119,7 +119,10 @@ class TestWorkflowModifications:
                 if ("tests" in Path(f).parts) or Path(f).name.startswith("test_")
             ]
             # All references should be in test files
-            assert len(files_with_reference) == len(test_files)
+            assert len(files_with_reference) == len(test_files), (
+                "Non-test files reference 'context_chunker': "
+                f"{sorted(set(files_with_reference) - set(test_files))}"
+            )
     
     def test_labeler_config_deleted(self):
         """Labeler.yml configuration should be deleted."""
