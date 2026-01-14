@@ -529,8 +529,6 @@ class TestDeletedScriptFilesVerification:
             assert len(non_ignorable) == 0, (
                 f".github/scripts directory should be empty, found: {non_ignorable}"
             )
-                f".github/scripts directory should be empty, found: {non_cache}"
-            )
 
 
 class TestWorkflowRegressionPrevention:
