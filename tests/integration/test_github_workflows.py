@@ -305,7 +305,6 @@ class TestPrAgentWorkflow:
         assert "ubuntu" in runs_on.lower(), (
             f"PR Agent trigger job should run on Ubuntu runner, got '{runs_on}'"
         )
-        )
 
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
         """Test that review job checks out the code."""
@@ -335,7 +334,6 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """Asserts the workflow's trigger job includes a setup-python step."""
-
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
