@@ -23,7 +23,7 @@ class TestWorkflowConfigurationIntegration:
             with open(workflow_file, 'r') as f:
                 try:
                     data = yaml.safe_load(f)
-                except yaml.YAMLError as e:
+                        data = yaml.safe_load(f) or {}
                     pytest.fail(f"Malformed YAML in {workflow_file.name}: {e}")
             # Check if workflow needs secrets (contains secrets.*)
             content = yaml.dump(data)
