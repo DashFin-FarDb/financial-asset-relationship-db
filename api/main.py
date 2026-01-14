@@ -21,6 +21,7 @@ from .auth import (
 )
 
 
+
 class TestWorkflowYAMLSyntax:
     """Test YAML syntax and structure validity."""
 
@@ -38,6 +39,7 @@ class TestWorkflowYAMLSyntax:
             try:
                 with open(workflow_file, "r") as f:
                     data = yaml.safe_load(f)
+
 
 def get_graph() -> AssetRelationshipGraph:
     """
