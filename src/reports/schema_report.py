@@ -5,7 +5,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """Generate schema and rules report"""
     metrics = graph.calculate_metrics()
 
-    # 
+    #
 
     report = (
         "# Financial Asset Relationship Database Schema & Rules\n\n"
