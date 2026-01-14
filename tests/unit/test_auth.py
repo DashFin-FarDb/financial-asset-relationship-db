@@ -11,7 +11,7 @@ This module tests:
 
 import os
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 from fastapi import HTTPException, status
