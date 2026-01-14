@@ -39,7 +39,11 @@ class RelationshipRecord:
 
 
 class AssetGraphRepository:
-    """Data access layer for the asset relationship graph."""
+    """
+    Data access layer for the asset relationship graph.
+
+    
+    """
 
     def __init__(self, session: Session):
         self.session = session
