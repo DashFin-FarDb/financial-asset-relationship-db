@@ -129,8 +129,10 @@ def _build_relationship_index(
         Dictionary mapping (source_id, target_id, rel_type) to strength for all relationships
 
     Raises:
-        TypeError: If graph is not an AssetRelationshipGraph instance or if data types are invalid
-        ValueError: If graph.relationships has invalid structure or malformed data
+        TypeError: If graph is not an AssetRelationshipGraph instance,
+            or if data types are invalid
+        ValueError: If graph.relationships has invalid structure or
+            malformed data
     """
     # Validate graph input
     if not isinstance(graph, AssetRelationshipGraph):
@@ -162,9 +164,11 @@ def _build_relationship_index(
         raise ValueError("Invalid input: asset_ids must contain only string values")
 
     # Thread-safe access to graph.relationships using synchronization lock
-    # This protects against concurrent modifications and ensures data consistency
+    # This protects against concurrent modifications and ensures
+    # data consistency
     with _graph_access_lock:
-        # Create a snapshot of relationships within the lock to minimize lock hold time
+        # Create a snapshot of relationships within the lock to minimize
+        # lock hold time
         # Pre-filter to only include relevant source_ids
         try:
             relevant_relationships = {
@@ -276,7 +280,9 @@ def _create_node_trace(
             f"asset_ids must be a list or tuple, got {type(asset_ids).__name__}"
         )
     if not isinstance(colors, (list, tuple)):
-        raise ValueError(f"colors must be a list or tuple, got {type(colors).__name__}")
+        raise ValueError(
+            f"colors must be a list or tuple, got {type(colors).__name__}"
+        )
     if not isinstance(hover_texts, (list, tuple)):
         raise ValueError(
             f"hover_texts must be a list or tuple, got {type(hover_texts).__name__}"
@@ -287,7 +293,8 @@ def _create_node_trace(
         raise ValueError(f"positions must have shape (n, 3), got {positions.shape}")
     if len(asset_ids) != len(colors) or len(asset_ids) != len(hover_texts):
         raise ValueError(
-            f"Length mismatch: asset_ids({len(asset_ids)}), colors({len(colors)}), "
+            f"Length mismatch: asset_ids({len(asset_ids)}), "
+            f"colors({len(colors)}), "
             f"hover_texts({len(hover_texts)}) must all be equal"
         )
     if positions.shape[0] != len(asset_ids):
@@ -462,21 +469,27 @@ def _validate_positions_array(positions: np.ndarray) -> None:
     """Validate positions array structure and values."""
     if not isinstance(positions, np.ndarray):
         raise ValueError(
-            f"Invalid graph data: positions must be a numpy array, got {type(positions).__name__}"
+            f"Invalid graph data: positions must be a numpy array, "
+            f"got {type(positions).__name__}"
         )
     if positions.ndim != 2 or positions.shape[1] != 3:
         raise ValueError(
-            f"Invalid graph data: Expected positions to be a (n, 3) numpy array, got array with shape {positions.shape}"
+            "Invalid graph data: Expected positions to be a "
+            "(n, 3) numpy array, got array with shape "
+            f"{positions.shape}"
         )
     if not np.issubdtype(positions.dtype, np.number):
         raise ValueError(
-            f"Invalid graph data: positions must contain numeric values, got dtype {positions.dtype}"
+            f"Invalid graph data: positions must contain numeric values, "
+            f"got dtype {positions.dtype}"
         )
     if not np.isfinite(positions).all():
         nan_count = int(np.isnan(positions).sum())
         inf_count = int(np.isinf(positions).sum())
         raise ValueError(
-            f"Invalid graph data: positions must contain finite values (no NaN or Inf). Found {nan_count} NaN and {inf_count} Inf"
+            "Invalid graph data: positions must contain finite values "
+            "(no NaN or Inf). "
+            f"Found {nan_count} NaN and {inf_count} Inf"
         )
 
 
@@ -484,10 +497,14 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
     """Validate asset_ids list structure and content."""
     if not isinstance(asset_ids, (list, tuple)):
         raise ValueError(
-            f"Invalid graph data: asset_ids must be a list or tuple, got {type(asset_ids).__name__}"
+            f"Invalid graph data: asset_ids must be a list or tuple, "
+            f"got {type(asset_ids).__name__}"
         )
     if not all(isinstance(a, str) and a for a in asset_ids):
-        raise ValueError("Invalid graph data: asset_ids must contain non-empty strings")
+        raise ValueError(
+            "Invalid graph data: asset_ids must contain "
+            "non-empty strings"
+        )
 
 
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
@@ -509,14 +526,18 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
             )
 
 
-def _validate_hover_texts_list(hover_texts: List[str], expected_length: int) -> None:
+def _validate_hover_texts_list(
+    hover_texts: List[str],
+    expected_length: int,
+) -> None:
     """Validate hover_texts list structure and content."""
     if (
         not isinstance(hover_texts, (list, tuple))
         or len(hover_texts) != expected_length
     ):
         raise ValueError(
-            f"Invalid graph data: hover_texts must be a list/tuple of length {expected_length}"
+            f"Invalid graph data: hover_texts must be a list/tuple of length "
+            f"{expected_length}"
         )
     if not all(isinstance(h, str) and h for h in hover_texts):
         raise ValueError(
@@ -757,7 +778,8 @@ def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
     color = REL_TYPE_COLORS[rel_type]
     if not _is_valid_color_format(color):
         logger.warning(
-            "Invalid color format for relationship type '%s': '%s'. Using default gray.",
+            "Invalid color format for relationship type '%s': '%s'. "
+            "Using default gray.",
             rel_type,
             color,
         )
@@ -1070,7 +1092,6 @@ def visualize_3d_graph_with_filters(
         "show_all_relationships": show_all_relationships,
         "toggle_arrows": toggle_arrows,
     }
-
     try:
         _validate_filter_parameters(filter_params)
     except TypeError as exc:
@@ -1095,7 +1116,8 @@ def visualize_3d_graph_with_filters(
             # Check if all filters are disabled (would result in empty visualization)
             if not any(relationship_filters.values()):
                 logger.warning(
-                    "All relationship filters are disabled. Visualization will show no relationships."
+                    "All relationship filters are disabled. "
+                    "Visualization will show no relationships."
                 )
         else:
             relationship_filters = None
@@ -1103,7 +1125,10 @@ def visualize_3d_graph_with_filters(
         logger.exception("Failed to build filter configuration: %s", exc)
         raise ValueError(f"Invalid filter configuration: {exc}") from exc
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception("Unexpected error building filter configuration: %s", exc)
+        logger.exception(
+            "Unexpected error building filter configuration: %s",
+            exc,
+        )
         raise ValueError("Failed to build filter configuration") from exc
 
     # Retrieve visualization data with error handling
@@ -1112,8 +1137,13 @@ def visualize_3d_graph_with_filters(
             graph.get_3d_visualization_data_enhanced()
         )
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception("Failed to retrieve visualization data from graph: %s", exc)
-        raise ValueError("Failed to retrieve graph visualization data") from exc
+        logger.exception(
+            "Failed to retrieve visualization data from graph: %s",
+            exc,
+        )
+        raise ValueError(
+            "Failed to retrieve graph visualization data"
+        ) from exc
 
     # Validate retrieved data
     try:
