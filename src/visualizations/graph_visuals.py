@@ -274,17 +274,23 @@ def _create_node_trace(
     # This provides early failure with clear error messages for common mistakes
     if not isinstance(positions, np.ndarray):
         raise ValueError(
-            f"positions must be a numpy array, got {type(positions).__name__}"
+            "positions must be a numpy array, got "
+            f"{type(positions).__name__}"
         )
     if not isinstance(asset_ids, (list, tuple)):
         raise ValueError(
-            f"asset_ids must be a list or tuple, got {type(asset_ids).__name__}"
+            "asset_ids must be a list or tuple, got "
+            f"{type(asset_ids).__name__}"
         )
     if not isinstance(colors, (list, tuple)):
-        raise ValueError(f"colors must be a list or tuple, got {type(colors).__name__}")
+        raise ValueError(
+            "colors must be a list or tuple, got "
+            f"{type(colors).__name__}"
+        )
     if not isinstance(hover_texts, (list, tuple)):
         raise ValueError(
-            f"hover_texts must be a list or tuple, got {type(hover_texts).__name__}"
+            "hover_texts must be a list or tuple, got "
+            f"{type(hover_texts).__name__}"
         )
 
     # Validate dimensions and alignment before detailed validation
@@ -298,7 +304,8 @@ def _create_node_trace(
         )
     if positions.shape[0] != len(asset_ids):
         raise ValueError(
-            f"positions length ({positions.shape[0]}) must match asset_ids length ({len(asset_ids)})"
+            f"positions length ({positions.shape[0]}) "
+            f"must match asset_ids length ({len(asset_ids)})"
         )
 
     # Comprehensive validation: detailed checks on content, numeric types, and finite values
@@ -308,7 +315,8 @@ def _create_node_trace(
     # Edge case validation: Ensure inputs are not empty
     if len(asset_ids) == 0:
         raise ValueError(
-            "Cannot create node trace with empty inputs (asset_ids length is 0)"
+            "Cannot create node trace with empty inputs "
+            "(asset_ids length is 0)"
         )
     return go.Scatter3d(
         x=positions[:, 0],
