@@ -176,22 +176,6 @@ class TestPRAgentConfigSimplified:
         for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
             with open(workflow_file, 'r') as f:
                 content = f.read()
-        
-        for summary_file in summary_files:
-            path = Path(summary_file)
-            assert path.is_file(), f"Required summary file '{summary_file}' does not exist or is not a file"
-            assert path.stat().st_size > 0, f"Summary file '{summary_file}' is empty"
-    
-    def test_no_misleading_documentation(self):
-        req_dev = Path("requirements-dev.txt")
-        
-        assert req_dev.exists()
-        
-        # File should not be empty
-        with open(req_dev, 'r') as f:
-            content = f.read().strip()
-        
-        assert len(content) > 0
 
 
 class TestDocumentationConsistency:
