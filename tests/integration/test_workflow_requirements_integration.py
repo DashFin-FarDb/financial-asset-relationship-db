@@ -61,7 +61,7 @@ class TestWorkflowCanInstallRequirements:
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
 
-        with open(pr_agent_file, "r") as f:
+        with open(pr_agent_file, "r", encoding="utf-8") as f:
             workflow = yaml.safe_load(f)
 
         # Check that at least one job has a step to install dependencies
@@ -86,17 +86,13 @@ class TestWorkflowCanInstallRequirements:
         )
 
     def test_workflow_installs_before_running_tests(self):
-        """
-        Assert that in pr-agent.yml each job installs dependencies before running tests.
-
-        Skips the test if pr-agent.yml is not present. For each job, if both a dependency-install step (contains 'pip install' or 'requirements') and a test step (contains 'pytest' in the run or 'test' in the step name) are found, this test asserts the install step appears earlier than the test step.
-        """
+        """Assert that in pr-agent.yml each job installs dependencies before running tests."""
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
 
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
 
-        with open(pr_agent_file, "r") as f:
+        with open(pr_agent_file, "r", encoding="utf-8") as f:
             workflow = yaml.safe_load(f)
 
         for job_name, job in workflow.get("jobs", {}).items():
@@ -129,22 +125,12 @@ class TestPyYAMLAvailability:
     """Test that PyYAML is properly configured for use in workflow tests."""
 
     def test_pyyaml_in_requirements_for_workflow_validation(self):
-        """
-        Ensure PyYAML is listed in requirements-dev.txt so workflow YAML files can be parsed for validation.
-
-        Checks that requirements-dev.txt exists and that a package whose normalized name is 'pyyaml' appears among the declared requirements (comparison is case-insensitive).
-        """
-        assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
-
-        requirements = parse_requirements(REQUIREMENTS_FILE)
-
-    def test_pyyaml_in_requirements_for_workflow_validation(self):
         """Test that PyYAML is in requirements-dev.txt for workflow validation tests."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
         requirements = parse_requirements(REQUIREMENTS_FILE)
         package_names = [pkg.lower() for pkg, _ in requirements]
-        assert "pyyaml" in package_names, (
+        assert 'pyyaml' in package_names, (
             "PyYAML must be in requirements-dev.txt because test_github_workflows.py "
             "uses it to parse and validate workflow YAML files"
         )
@@ -161,7 +147,7 @@ class TestPyYAMLAvailability:
         assert len(workflow_files) > 0, "No workflow files found to test"
 
         for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
+            with open(workflow_file, "r", encoding="utf-8") as f:
                 try:
                     content = yaml.safe_load(f)
                     assert isinstance(content, dict), f"{workflow_file.name} should parse to a dictionary"
@@ -176,7 +162,7 @@ class TestPyYAMLAvailability:
         package_names = [pkg for pkg, _ in requirements]
 
         assert "types-PyYAML" in package_names, (
-            "types-PyYAML should be in requirements-dev.txt for static type checking " "of code that uses PyYAML"
+            "types-PyYAML should be in requirements-dev.txt for static type checking of code that uses PyYAML"
         )
 
 
@@ -184,11 +170,7 @@ class TestRequirementsMatchWorkflowNeeds:
     """Test that requirements-dev.txt contains packages needed by workflows."""
 
     def test_has_pytest_for_testing(self):
-        """
-        Check that pytest is present in requirements-dev.txt for workflow tests.
-
-        Asserts the requirements-dev.txt file exists and that one of the parsed package names equals 'pytest' (case-insensitive).
-        """
+        """Check that pytest is present in requirements-dev.txt for workflow tests."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
         requirements = parse_requirements(REQUIREMENTS_FILE)
@@ -210,17 +192,13 @@ class TestRequirementsMatchWorkflowNeeds:
             assert tool in package_names, f"{tool} should be in requirements-dev.txt for code quality and testing"
 
     def test_requirements_support_python_version_in_workflow(self):
-        """
-        Check that the pr-agent workflow's declared Python version (from a `setup-python` step) is at least Python 3.8.
-
-        If the pr-agent workflow file is missing the test is skipped. The test locates the first `setup-python` step, reads its `python-version` value (if present) and asserts the major/minor version is 3.8 or greater; if no `python-version` is found the test makes no assertion.
-        """
+        """Check that the pr-agent workflow's declared Python version is at least Python 3.8."""
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
 
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
 
-        with open(pr_agent_file, "r") as f:
+        with open(pr_agent_file, "r", encoding="utf-8") as f:
             workflow = yaml.safe_load(f)
 
         # Extract Python version from workflow
