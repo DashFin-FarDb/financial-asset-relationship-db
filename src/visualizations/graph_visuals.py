@@ -280,9 +280,7 @@ def _create_node_trace(
             f"asset_ids must be a list or tuple, got {type(asset_ids).__name__}"
         )
     if not isinstance(colors, (list, tuple)):
-        raise ValueError(
-            f"colors must be a list or tuple, got {type(colors).__name__}"
-        )
+        raise ValueError(f"colors must be a list or tuple, got {type(colors).__name__}")
     if not isinstance(hover_texts, (list, tuple)):
         raise ValueError(
             f"hover_texts must be a list or tuple, got {type(hover_texts).__name__}"
@@ -501,10 +499,7 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
             f"got {type(asset_ids).__name__}"
         )
     if not all(isinstance(a, str) and a for a in asset_ids):
-        raise ValueError(
-            "Invalid graph data: asset_ids must contain "
-            "non-empty strings"
-        )
+        raise ValueError("Invalid graph data: asset_ids must contain non-empty strings")
 
 
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
@@ -1141,9 +1136,7 @@ def visualize_3d_graph_with_filters(
             "Failed to retrieve visualization data from graph: %s",
             exc,
         )
-        raise ValueError(
-            "Failed to retrieve graph visualization data"
-        ) from exc
+        raise ValueError("Failed to retrieve graph visualization data") from exc
 
     # Validate retrieved data
     try:
