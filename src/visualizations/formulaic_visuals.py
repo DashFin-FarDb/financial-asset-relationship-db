@@ -56,12 +56,7 @@ class FormulaicVisualizer:
                     labels=list(categories.keys()),
                     values=list(categories.values()),
                     hole=0.4,
-                    marker=dict(
-                        colors=[
-                            self.color_scheme.get(cat, "#CCCCCC")
-                            for cat in categories.keys()
-                        ]
-                    ),
+                    marker=dict(colors=[self.color_scheme.get(cat, "#CCCCCC") for cat in categories.keys()]),
                     textinfo="label+percent",
                     textposition="auto",
                 ),
@@ -71,25 +66,16 @@ class FormulaicVisualizer:
 
         # 2. Formula Reliability Bar Chart
         if formulas:
-            formula_names = [
-                f.name[:20] + "..." if len(f.name) > 20 else f.name
-                for f in formulas
-            ]
+            formula_names = [f.name[:20] + "..." if len(f.name) > 20 else f.name for f in formulas]
             r_squared_values = [f.r_squared for f in formulas]
-            colors = [
-                self.color_scheme.get(f.category, "#CCCCCC")
-                for f in formulas
-            ]
+            colors = [self.color_scheme.get(f.category, "#CCCCCC") for f in formulas]
 
             fig.add_trace(
                 go.Bar(
                     x=formula_names,
                     y=r_squared_values,
                     marker=dict(color=colors),
-                    text=[
-                        f"{r:.2f}"
-                        for r in r_squared_values
-                    ],
+                    text=[f"{r:.2f}" for r in r_squared_values],
                     textposition="auto",
                     name="R-squared",
                 ),
@@ -98,21 +84,13 @@ class FormulaicVisualizer:
             )
 
         # 3. Empirical Correlation Heatmap
-        correlation_matrix = empirical_relationships.get(
-            "correlation_matrix", {}
-        )
+        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
         if correlation_matrix:
             # Convert correlation matrix to heatmap format
             assets = list(
                 set(
-                    [
-                        pair.split("-")[0]
-                        for pair in correlation_matrix.keys()
-                    ]
-                    + [
-                        pair.split("-")[1]
-                        for pair in correlation_matrix.keys()
-                    ]
+                    [pair.split("-")[0] for pair in correlation_matrix.keys()]
+                    + [pair.split("-")[1] for pair in correlation_matrix.keys()]
                 )
             )
 
@@ -129,10 +107,7 @@ class FormulaicVisualizer:
                     else:
                         key1 = f"{asset1}-{asset2}"
                         key2 = f"{asset2}-{asset1}"
-                        corr = correlation_matrix.get(
-                            key1,
-                            correlation_matrix.get(key2, 0.5)
-                        )
+                        corr = correlation_matrix.get(key1, correlation_matrix.get(key2, 0.5))
                     row.append(corr)
                 z_matrix.append(row)
 
@@ -144,10 +119,7 @@ class FormulaicVisualizer:
                     colorscale="RdYlBu_r",
                     zmin=-1,
                     zmax=1,
-                    text=[
-                        [f"{val:.2f}" for val in row]
-                        for row in z_matrix
-                    ],
+                    text=[[f"{val:.2f}" for val in row] for row in z_matrix],
                     texttemplate="%{text}",
                     textfont={"size": 10},
                     colorbar=dict(title="Correlation"),
@@ -157,14 +129,10 @@ class FormulaicVisualizer:
             )
 
         # 4. Asset Class Relationships
-        asset_class_data = empirical_relationships.get(
-            "asset_class_relationships", {}
-        )
+        asset_class_data = empirical_relationships.get("asset_class_relationships", {})
         if asset_class_data:
             classes = list(asset_class_data.keys())
-            asset_counts = [
-                data["asset_count"] for data in asset_class_data.values()
-            ]
+            asset_counts = [data["asset_count"] for data in asset_class_data.values()]
 
             fig.add_trace(
                 go.Bar(
@@ -180,14 +148,10 @@ class FormulaicVisualizer:
             )
 
         # 5. Sector Analysis
-        sector_data = empirical_relationships.get(
-            "sector_relationships", {}
-        )
+        sector_data = empirical_relationships.get("sector_relationships", {})
         if sector_data:
             sectors = list(sector_data.keys())[:6]  # Limit to top 6 sectors
-            sector_counts = [
-                sector_data[sector]["asset_count"] for sector in sectors
-            ]
+            sector_counts = [sector_data[sector]["asset_count"] for sector in sectors]
 
             fig.add_trace(
                 go.Bar(
@@ -203,19 +167,13 @@ class FormulaicVisualizer:
 
         # 6. Key Formula Examples Table
         if formulas:
-            top_formulas = sorted(
-                formulas,
-                key=lambda f: f.r_squared,
-                reverse=True
-            )[:5]
+            top_formulas = sorted(formulas, key=lambda f: f.r_squared, reverse=True)[:5]
 
             table_data = {
                 "Formula": [f.name for f in top_formulas],
                 "Category": [f.category for f in top_formulas],
                 "R²": [f"{f.r_squared:.3f}" for f in top_formulas],
-                "Mathematical Expression": [
-                    f.formula for f in top_formulas
-                ],
+                "Mathematical Expression": [f.formula for f in top_formulas],
             }
 
             fig.add_trace(
@@ -278,12 +236,7 @@ class FormulaicVisualizer:
                 f"<b>Category:</b> {formula.category}<br>"
                 f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
                 "<b>Variables:</b><br>"
-                + "<br>".join(
-                    [
-                        f"• {var}: {desc}"
-                        for var, desc in formula.variables.items()
-                    ]
-                )
+                + "<br>".join([f"• {var}: {desc}" for var, desc in formula.variables.items()])
                 + f"<br><br><b>Example Calculation:</b><br>{formula.example_calculation}"
             ),
             xref="paper",
@@ -311,14 +264,14 @@ class FormulaicVisualizer:
         return fig
 
         fig.update_layout(
-            title = "📊 Formula Categories: Reliability vs Count",
-            xaxis = dict(title="Category"),
-            yaxis = dict(title="Average R-squared", side="left"),
-            yaxis2 = dict(title="Number of Formulas", side="right", overlaying="y"),
-            barmode = "group",
-            plot_bgcolor = "white",
-            paper_bgcolor = "#F8F9FA",
-            legend = dict(x=0.7, y=1),
+            title="📊 Formula Categories: Reliability vs Count",
+            xaxis=dict(title="Category"),
+            yaxis=dict(title="Average R-squared", side="left"),
+            yaxis2=dict(title="Number of Formulas", side="right", overlaying="y"),
+            barmode="group",
+            plot_bgcolor="white",
+            paper_bgcolor="#F8F9FA",
+            legend=dict(x=0.7, y=1),
         )
 
         return fig

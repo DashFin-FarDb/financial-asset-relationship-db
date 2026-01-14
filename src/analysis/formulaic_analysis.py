@@ -95,13 +95,8 @@ class FormulaicdAnalyzer:
         if self._has_dividend_stocks(graph):
             div_yield_formula = Formula(
                 name="Dividend Yield",
-                formula=(
-                    "Div_Yield = (Annual_Dividends / Price) × 100%"
-                ),
-                latex=(
-                    r"DivYield = \frac{D_{annual}}{P}"
-                    r" \times 100\%"
-                ),
+                formula=("Div_Yield = (Annual_Dividends / Price) × 100%"),
+                latex=(r"DivYield = \frac{D_{annual}}{P}" r" \times 100\%"),
                 description=("Percentage return from dividends relative to stock price"),
                 variables={
                     "Div_Yield": "Dividend Yield (%)",
@@ -231,10 +226,7 @@ class FormulaicdAnalyzer:
                 "Debt": "Total Debt ($)",
                 "Cash": "Cash and Cash Equivalents ($)",
             },
-            example_calculation=(
-                "EV calculation requires debt and cash data "
-                "(not available in current dataset)"
-            ),
+            example_calculation=("EV calculation requires debt and cash data " "(not available in current dataset)"),
             category="Valuation",
             r_squared=0.95,
         )
@@ -313,10 +305,7 @@ class FormulaicdAnalyzer:
         portfolio_variance_formula = Formula(
             name="Portfolio Variance (2-Asset)",
             formula="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
-            latex=(
-                r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + "
-                r"2w_1w_2\sigma_1\sigma_2\rho_{12}"
-            ),
+            latex=(r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + " r"2w_1w_2\sigma_1\sigma_2\rho_{12}"),
             description="Portfolio risk considering correlation between assets",
             variables={
                 "σ²_p": "Portfolio variance",
@@ -351,9 +340,7 @@ class FormulaicdAnalyzer:
                     "EUR/GBP": "Euro to British Pound exchange rate",
                     "USD/GBP": "US Dollar to British Pound exchange rate",
                 },
-                example_calculation=(
-                    self._calculate_exchange_rate_examples(graph)
-                ),
+                example_calculation=(self._calculate_exchange_rate_examples(graph)),
                 category="Currency Markets",
                 r_squared=0.99,
             )
@@ -363,22 +350,14 @@ class FormulaicdAnalyzer:
         if self._has_commodities(graph) and self._has_currencies(graph):
             commodity_currency_formula = Formula(
                 name="Commodity-Currency Relationship",
-                formula=(
-                    "Currency_Value ∝ 1/Commodity_Price "
-                    "(for commodity exporters)"
-                ),
+                formula=("Currency_Value ∝ 1/Commodity_Price " "(for commodity exporters)"),
                 latex=(r"FX_{commodity} \propto \frac{1}{P_{commodity}}"),
-                description=(
-                    "Inverse relationship between commodity prices and "
-                    "currency values"
-                ),
+                description=("Inverse relationship between commodity prices and " "currency values"),
                 variables={
                     "FX_commodity": "Currency value of commodity exporter",
                     "P_commodity": "Commodity price",
                 },
-                example_calculation=(
-                    self._calculate_commodity_currency_examples(graph)
-                ),
+                example_calculation=(self._calculate_commodity_currency_examples(graph)),
                 category="Cross-Asset",
                 r_squared=0.65,
             )
@@ -408,22 +387,13 @@ class FormulaicdAnalyzer:
             categories[category] = categories.get(category, 0) + 1
         return categories
 
-    def _generate_formula_summary(
-        self,
-        formulas: List[Formula],
-        empirical_relationships: Dict
-    ) -> Dict[str, Any]:
+    def _generate_formula_summary(self, formulas: List[Formula], empirical_relationships: Dict) -> Dict[str, Any]:
         """Generate a comprehensive summary of formulaic analysis"""
         return {
             "total_formulas": len(formulas),
-            "avg_r_squared": (
-                sum(f.r_squared for f in formulas) / len(formulas)
-                if formulas else 0
-            ),
+            "avg_r_squared": (sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0),
             "formula_categories": self._categorize_formulas(formulas),
-            "empirical_data_points": len(
-                empirical_relationships.get("correlation_matrix", {})
-            ),
+            "empirical_data_points": len(empirical_relationships.get("correlation_matrix", {})),
             "key_insights": [
                 f"Identified {len(formulas)} mathematical relationships",
                 (
