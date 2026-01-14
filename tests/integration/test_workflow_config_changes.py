@@ -689,7 +689,25 @@ class TestWorkflowErrorHandling:
     
                     if not has_timeout:
                         assert False, f"{workflow_file.name}::{job_name} has no timeout"
-    def test_workflows_handle_missing_secrets_gracefully(self):
+    def test_apisec_workflow_validates_action_handles_missing_secrets(self):
+        """Verify APISec workflow uses action version known to handle missing secrets by pinning the action."""
+        workflow_path = Path(".github/workflows/apisec-scan.yml")
+        with open(workflow_path, 'r') as f:
+            workflow = yaml.safe_load(f)
+
+        jobs = workflow.get('jobs', {})
+        apisec_job = jobs.get('Trigger_APIsec_scan', {})
+        steps = apisec_job.get('steps', [])
+
+        for step in steps:
+            uses_val = step.get('uses', '')
+            if 'apisec' in uses_val.lower():
+                assert '@' in uses_val, "APISec action should use a pinned version (e.g., @vX or @<sha>)"
+                # Optionally enforce a major version pin pattern
+                # assert re.search(r'@v?\d+(\.\d+(\.\d+)?)?$', uses_val) or re.search(r'@[0-9a-fA-F]{7,}', uses_val)
+                break
+        else:
+            pytest.fail("APISec action step not found in workflow")
         """Verify workflows handle missing secrets appropriately."""
         workflow_dir = Path(".github/workflows")
         
