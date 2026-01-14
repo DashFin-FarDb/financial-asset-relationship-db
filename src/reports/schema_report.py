@@ -79,8 +79,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 
     quality_score = min(
         1.0,
-        metrics["average_relationship_strength"]
-        + (metrics["regulatory_event_count"] / 10),
+        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
     )
     report += f"{quality_score:.1%}\n"
 

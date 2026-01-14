@@ -82,10 +82,7 @@ class FormulaicdAnalyzer:
                 name="Price-to-Earnings Ratio",
                 formula="PE = P / EPS",
                 latex=r"PE = \frac{P}{EPS}",
-                description=(
-                    "Valuation metric comparing stock price to "
-                    "earnings per share"
-                ),
+                description=("Valuation metric comparing stock price to " "earnings per share"),
                 variables={
                     "PE": "Price-to-Earnings Ratio",
                     "P": "Current Stock Price ($)",
@@ -103,10 +100,7 @@ class FormulaicdAnalyzer:
                 name="Dividend Yield",
                 formula=("Div_Yield = (Annual_Dividends / Price) × 100%"),
                 latex=(r"DivYield = \frac{D_{annual}}{P}" r" \times 100%"),
-                description=(
-                    "Percentage return from dividends relative to "
-                    "stock price"
-                ),
+                description=("Percentage return from dividends relative to " "stock price"),
                 variables={
                     "Div_Yield": "Dividend Yield (%)",
                     "D_annual": "Annual Dividends per Share ($)",
@@ -123,10 +117,7 @@ class FormulaicdAnalyzer:
             ytm_formula = Formula(
                 name=("Bond Yield-to-Maturity " "(Approximation)"),
                 formula=("YTM ≈ (C + (FV - P) / n) / " "((FV + P) / 2)"),
-                latex=(
-                    r"YTM \approx \frac{C + \frac{FV - P}{n}}"
-                    r"{\frac{FV + P}{2}}"
-                ),
+                latex=(r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"),
                 description="Approximate yield-to-maturity for bonds",
                 variables={
                     "YTM": "Yield-to-Maturity (%)",
@@ -204,9 +195,7 @@ class FormulaicdAnalyzer:
 
         return formulas
 
-    def _extract_valuation_relationships(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
+    def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """Extract valuation model relationships"""
         formulas = []
 
@@ -216,9 +205,7 @@ class FormulaicdAnalyzer:
                 name="Price-to-Book Ratio",
                 formula="P/B = Market_Price / Book_Value_per_Share",
                 latex=r"P/B = \frac{P}{BV_{per\_share}}",
-                description=(
-                    "Valuation metric comparing market price to book value"
-                ),
+                description=("Valuation metric comparing market price to book value"),
                 variables={
                     "P/B": "Price-to-Book Ratio",
                     "P": "Market Price per Share ($)",
@@ -242,10 +229,7 @@ class FormulaicdAnalyzer:
                 "Debt": "Total Debt ($)",
                 "Cash": "Cash and Cash Equivalents ($)",
             },
-            example_calculation=(
-                "EV calculation requires debt and cash data "
-                "(not available in current dataset)"
-            ),
+            example_calculation=("EV calculation requires debt and cash data " "(not available in current dataset)"),
             category="Valuation",
             r_squared=0.95,
         )
@@ -314,9 +298,7 @@ class FormulaicdAnalyzer:
                 "E(R_i)": "Expected return of asset i",
                 "n": "Number of assets",
             },
-            example_calculation=(
-                self._calculate_portfolio_return_examples(graph)
-            ),
+            example_calculation=(self._calculate_portfolio_return_examples(graph)),
             category="Portfolio Theory",
             r_squared=1.0,
         )
@@ -326,10 +308,7 @@ class FormulaicdAnalyzer:
         portfolio_variance_formula = Formula(
             name="Portfolio Variance (2-Asset)",
             formula="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
-            latex=(
-                r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + "
-                r"2w_1w_2\sigma_1\sigma_2\rho_{12}"
-            ),
+            latex=(r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + " r"2w_1w_2\sigma_1\sigma_2\rho_{12}"),
             description="Portfolio risk considering correlation between assets",
             variables={
                 "σ²_p": "Portfolio variance",
@@ -337,9 +316,7 @@ class FormulaicdAnalyzer:
                 "σ_1, σ_2": "Standard deviations of assets 1 and 2",
                 "ρ_12": "Correlation between assets 1 and 2",
             },
-            example_calculation=(
-                self._calculate_portfolio_variance_examples(graph)
-            ),
+            example_calculation=(self._calculate_portfolio_variance_examples(graph)),
             category="Portfolio Theory",
             r_squared=0.87,
         )
@@ -376,22 +353,14 @@ class FormulaicdAnalyzer:
         if self._has_commodities(graph) and self._has_currencies(graph):
             commodity_currency_formula = Formula(
                 name="Commodity-Currency Relationship",
-                formula=(
-                    "Currency_Value ∝ 1/Commodity_Price "
-                    "(for commodity exporters)"
-                ),
+                formula=("Currency_Value ∝ 1/Commodity_Price " "(for commodity exporters)"),
                 latex=(r"FX_{commodity} \propto \frac{1}{P_{commodity}}"),
-                description=(
-                    "Inverse relationship between commodity prices and "
-                    "currency values"
-                ),
+                description=("Inverse relationship between commodity prices and " "currency values"),
                 variables={
                     "FX_commodity": "Currency value of commodity exporter",
                     "P_commodity": "Commodity price",
                 },
-                example_calculation=(
-                    self._calculate_commodity_currency_examples(graph)
-                ),
+                example_calculation=(self._calculate_commodity_currency_examples(graph)),
                 category="Cross-Asset",
                 r_squared=0.65,
             )
@@ -427,18 +396,10 @@ class FormulaicdAnalyzer:
         empirical_relationships: Dict,
     ) -> Dict[str, Any]:
         """Generate a comprehensive summary of formulaic analysis"""
-        avg_corr_strength = (
-            self._calculate_avg_correlation_strength_from_empirical(
-                empirical_relationships
-            )
-        )
+        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(empirical_relationships)
         return {
             "total_formulas": len(formulas),
-            "avg_r_squared": (
-                sum(f.r_squared for f in formulas) / len(formulas)
-                if formulas
-                else 0
-            ),
+            "avg_r_squared": (sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0),
             "formula_categories": self._categorize_formulas(formulas),
             "empirical_data_points": len(
                 empirical_relationships.get(
@@ -450,14 +411,8 @@ class FormulaicdAnalyzer:
                 f"Identified {len(formulas)} mathematical relationships",
                 f"Average correlation strength: {avg_corr_strength:.2f}",
                 "Valuation models applicable to equity assets",
-                (
-                    "Portfolio theory formulas available "
-                    "for multi-asset analysis"
-                ),
-                (
-                    "Cross-asset relationships identified between "
-                    "commodities and currencies"
-                ),
+                ("Portfolio theory formulas available " "for multi-asset analysis"),
+                ("Cross-asset relationships identified between " "commodities and currencies"),
             ],
         }
 

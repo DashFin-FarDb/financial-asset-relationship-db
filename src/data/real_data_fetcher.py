@@ -379,10 +379,7 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=(
-                "10-K Filing - Increased oil reserves and sustainability "
-                "initiatives"
-            ),
+            description=("10-K Filing - Increased oil reserves and sustainability " "initiatives"),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )

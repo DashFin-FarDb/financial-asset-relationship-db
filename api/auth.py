@@ -209,6 +209,7 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
         disabled=admin_disabled,
     )
 
+
 _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
