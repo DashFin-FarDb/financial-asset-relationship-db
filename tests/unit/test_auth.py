@@ -327,8 +327,8 @@ class TestJWTOperations:
         
         # Decode to verify expiration was set
         import jwt
-        secret_key = os.getenv("SECRET_KEY")
-        decoded = jwt.decode(token, secret_key, algorithms=["HS256"])
+        from api.auth import SECRET_KEY
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         
         assert "exp" in decoded
         assert "sub" in decoded
