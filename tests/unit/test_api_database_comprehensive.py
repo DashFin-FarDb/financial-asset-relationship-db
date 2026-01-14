@@ -193,6 +193,11 @@ class TestThreadSafety:
         connections = []
 
         def get_conn():
+            """
+            Obtain a database connection and record its object identity.
+            
+            Calls the module's connection factory to get a connection and appends its `id()` value to the module-level `connections` list for later inspection. This function has no return value.
+            """
             conn = _connect()
             connections.append(id(conn))
 
