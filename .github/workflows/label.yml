@@ -17,6 +17,28 @@ jobs:
       pull-requests: write
 
     steps:
-    - uses: actions/labeler@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Check for labeler config
+      id: check-config
+      run: |
+        if [ ! -f .github/labeler.yml ]; then
+          echo "⚠️ Warning: .github/labeler.yml not found. Skipping labeler."
+          echo "config_exists=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        echo "config_exists=true" >> $GITHUB_OUTPUT
+        
+    - name: Run labeler
+      if: steps.check-config.outputs.config_exists == 'true'
+      uses: actions/labeler@v4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        
+    - name: Labeler skipped
+      if: steps.check-config.outputs.config_exists == 'false'
+      run: |
+        echo "ℹ️ Labeler was skipped because .github/labeler.yml configuration file is missing."
+        echo "To enable automatic PR labeling, create .github/labeler.yml with label rules."
+        echo "See: https://github.com/actions/labeler for documentation."
