@@ -72,14 +72,10 @@ class FormulaicVisualizer:
         # 2. Formula Reliability Bar Chart
         if formulas:
             formula_names = [
-                f.name[:20] + "..." if len(f.name) > 20 else f.name
-                for f in formulas
+                f.name[:20] + "..." if len(f.name) > 20 else f.name for f in formulas
             ]
             r_squared_values = [f.r_squared for f in formulas]
-            colors = [
-                self.color_scheme.get(f.category, "#CCCCCC")
-                for f in formulas
-            ]
+            colors = [self.color_scheme.get(f.category, "#CCCCCC") for f in formulas]
 
             fig.add_trace(
                 go.Bar(
@@ -120,8 +116,7 @@ class FormulaicVisualizer:
                         key1 = f"{asset1}-{asset2}"
                         key2 = f"{asset2}-{asset1}"
                         corr = correlation_matrix.get(
-                            key1,
-                            correlation_matrix.get(key2, 0.5)
+                            key1, correlation_matrix.get(key2, 0.5)
                         )
                     row.append(corr)
                 z_matrix.append(row)
@@ -134,10 +129,7 @@ class FormulaicVisualizer:
                     colorscale="RdYlBu_r",
                     zmin=-1,
                     zmax=1,
-                    text=[
-                        [f"{val:.2f}" for val in row]
-                        for row in z_matrix
-                    ],
+                    text=[[f"{val:.2f}" for val in row] for row in z_matrix],
                     texttemplate="%{text}",
                     textfont={"size": 10},
                     colorbar=dict(title="Correlation"),
@@ -292,7 +284,9 @@ class FormulaicVisualizer:
         empirical_relationships: Dict[str, Any],
     ) -> go.Figure:
         """Create a network graph showing asset correlations"""
-        strongest_correlations = empirical_relationships.get("strongest_correlations", [])
+        strongest_correlations = empirical_relationships.get(
+            "strongest_correlations", []
+        )
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
@@ -338,7 +332,10 @@ class FormulaicVisualizer:
         # Create positions in a circle
         n_assets = len(assets)
         angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
-        positions = {asset: (math.cos(angle), math.sin(angle)) for asset, angle in zip(assets, angles)}
+        positions = {
+            asset: (math.cos(angle), math.sin(angle))
+            for asset, angle in zip(assets, angles)
+        }
 
         # Create edge traces
         edge_traces = []
@@ -416,9 +413,7 @@ class FormulaicVisualizer:
         return fig
 
     @staticmethod
-    def create_metric_comparison_chart(
-        analysis_results: Dict[str, Any]
-    ) -> go.Figure:
+    def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
         """Create a chart comparing different metrics derived from formulas."""
         fig = go.Figure()
 
@@ -443,9 +438,8 @@ class FormulaicVisualizer:
 
         for category in category_names:
             category_formulas = categories[category]
-            avg_r_squared = (
-                sum(f.r_squared for f in category_formulas)
-                / len(category_formulas)
+            avg_r_squared = sum(f.r_squared for f in category_formulas) / len(
+                category_formulas
             )
             r_squared_by_category.append(avg_r_squared)
             formula_counts.append(len(category_formulas))
