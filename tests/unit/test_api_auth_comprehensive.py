@@ -263,7 +263,7 @@ class TestGetCurrentUser:
     @pytest.mark.asyncio
     async def test_get_current_user_with_expired_token(self):
         """Test get_current_user with expired token."""
-        exp_time = datetime.utcnow() - timedelta(minutes=10)
+        exp_time = datetime.now(timezone.utc) - timedelta(minutes=10)
         token_data = {"sub": "testuser", "exp": exp_time}
         token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
 
