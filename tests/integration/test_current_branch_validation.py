@@ -255,7 +255,13 @@ class TestPRAgentConfigSimplified:
             with open(workflow_file, 'r') as f:
                 content = f.read()
 
-
+            # Workflows should not reference deleted local files
+            assert ".github/scripts/context_chunker.py" not in content, (
+                f"Workflow {workflow_file} references deleted script '.github/scripts/context_chunker.py'"
+            )
+            assert ".github/labeler.yml" not in content, (
+                f"Workflow {workflow_file} references deleted labeler config '.github/labeler.yml'"
+            )
 class TestDocumentationConsistency:
     """Test documentation consistency with code changes."""
     
