@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 
-REQUIREMENTS_DEV_FILE = Path("requirements-dev.txt")
+REQUIREMENTS_DEV_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
 class TestPyYAMLDependencyAddition:
