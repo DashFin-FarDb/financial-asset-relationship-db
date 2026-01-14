@@ -204,6 +204,8 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
         full_name=full_name,
         disabled=disabled,
     )
+
+
 email = os.getenv("ADMIN_EMAIL")
 full_name = os.getenv("ADMIN_FULL_NAME")
 disabled = _is_truthy(os.getenv("ADMIN_DISABLED", "false"))
