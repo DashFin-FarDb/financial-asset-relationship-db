@@ -144,7 +144,7 @@ class TestPyYAMLAvailability:
 
         requirements = parse_requirements(REQUIREMENTS_FILE)
         package_names = [pkg.lower() for pkg, _ in requirements]
-        assert "pyyaml" in package_names, (
+        assert 'pyyaml' in package_names, (
             "PyYAML must be in requirements-dev.txt because test_github_workflows.py "
             "uses it to parse and validate workflow YAML files"
         )
