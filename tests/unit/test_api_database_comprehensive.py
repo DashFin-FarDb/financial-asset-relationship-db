@@ -53,7 +53,7 @@ class TestResolveSqlitePath:
 
     def test_resolve_sqlite_path_memory_slash(self):
         """Test resolving /:memory: path."""
-        path = _resolve_sqlite_path("sqlite:///memory:")
+        path = _resolve_sqlite_path("sqlite:////:memory:")
         assert path == ":memory:"
 
     def test_resolve_sqlite_path_file_uri(self):
