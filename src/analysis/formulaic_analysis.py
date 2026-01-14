@@ -353,7 +353,7 @@ class FormulaicdAnalyzer:
             exchange_rate_formula = Formula(
                 name="Exchange Rate Relationships",
                 formula="USD/EUR × EUR/GBP = USD/GBP",
-                latex=(r"\frac{USD}{EUR} \times " r"\frac{EUR}{GBP} = \frac{USD}{GBP}"),
+                latex=r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}",
                 description=("Triangular arbitrage relationship between currencies"),
                 variables={
                     "USD/EUR": "US Dollar to Euro exchange rate",
