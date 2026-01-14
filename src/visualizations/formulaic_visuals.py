@@ -257,12 +257,11 @@ class FormulaicVisualizer:
                 f"{formula.description}<br><br>"
                 f"<b>Category:</b> {formula.category}<br>"
                 f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
-                "<b>Variables:</b><br>"
-                "<br>".join(
+                + "<b>Variables:</b><br>"
+                + "<br>".join(
                     [f"• {var}: {desc}" for var, desc in formula.variables.items()]
                 )
-                f"<br><br><b>Example Calculation:</b><br>"
-                f"{formula.example_calculation}"
+                + f"<br><br><b>Example Calculation:</b><br>{formula.example_calculation}"
             ),
             xref="paper",
             yref="paper",
