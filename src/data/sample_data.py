@@ -15,11 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_sample_database() -> AssetRelationshipGraph:
-    """
-    Create expanded sample financial database with 15+ assets across all classes
-
-
-    """
+    """Create expanded sample financial database with 15+ assets across all classes"""
     try:
         logger.info("Creating expanded sample financial database")
         graph = AssetRelationshipGraph()

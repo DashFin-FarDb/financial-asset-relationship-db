@@ -374,10 +374,10 @@ class FinancialAssetApp:
         try:
             pass
         except Exception as e:
-            logger.error("Error showing formula details: %s", e)
+            logger.error(f"Error showing formula details: {e}")
             return (
                 go.Figure(),
-                gr.update(value="Error: {}".format(e), visible=True),
+                gr.update(value=f"Error: {e}", visible=True),
             )
 
     @staticmethod
@@ -390,7 +390,10 @@ class FinancialAssetApp:
             "🔍 **Formulaic Analysis Summary**",
             "",
             f"📊 **Total Formulas Identified:** {len(formulas)}",
-            (f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}"),
+            (
+                f"📈 **Average Reliability (R²):** "
+                f"{summary.get('avg_r_squared', 0):.3f}"
+            ),
             (
                 f"🔗 **Empirical Data Points:** "
                 f"{summary.get('empirical_data_points', 0)}"
@@ -415,7 +418,8 @@ class FinancialAssetApp:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
                 summary_lines.append(
-                    f"  • {corr['pair']}: {corr['correlation']:.3f} ({corr['strength']})"
+                    f"  • {corr['pair']}: {corr['correlation']:.3f} "
+                    f"({corr['strength']})"
                 )
 
         return "\n".join(summary_lines)
@@ -425,7 +429,7 @@ class FinancialAssetApp:
         Creates the Gradio interface for the Financial Asset Relationship Database.
 
         """
-        with gr.Blocks(title=AppConstants.TITLE) as demo:
+        with gr.Blocks(title=AppConstants.TITLE) as blocks:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
@@ -451,6 +455,7 @@ class FinancialAssetApp:
                             )
                         with gr.Column(scale=1):
                             layout_type = gr.Radio(
+                                
                                 label="2D Layout Type",
                                 choices=["spring", "circular", "grid"],
                                 value="spring",
@@ -577,9 +582,11 @@ class FinancialAssetApp:
                         """
                         ## Mathematical Relationships & Formulas
 
-                        This section extracts and visualizes mathematical formulas and relationships between financial variables.
-                        It includes fundamental financial ratios, correlation patterns, valuation models, and empirical relationships
-                        derived from the asset database.
+                        This section extracts and visualizes mathematical
+                        formulas and relationships between financial variables.
+                        It includes fundamental financial ratios,
+                        correlation patterns, valuation models, and empirical
+                        relationships derived from the asset database.
                         """
                     )
 

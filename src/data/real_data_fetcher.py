@@ -460,8 +460,10 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
         Dict[str, Any]: Dictionary containing:
             - "assets": list of serialized asset objects
             - "regulatory_events": list of serialized regulatory event objects
-            - "relationships": mapping from source id to a list of outgoing relationships
-            - "incoming_relationships": mapping from target id to a list of incoming relationships
+            - "relationships": mapping from source id to a list of
+              outgoing relationships
+            - "incoming_relationships": mapping from target id to a list of
+              incoming relationships
     """
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
@@ -522,11 +524,15 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
 
 def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
     """
-    Reconstructs a RegulatoryEvent from its serialized dictionary representation.
-    The input dictionary is copied and its "event_type" field is converted to the RegulatoryActivity enum before creating the RegulatoryEvent instance.
+    Reconstructs a RegulatoryEvent from its serialized dictionary
+    representation.
+    The input dictionary is copied and its "event_type" field is converted to
+    the RegulatoryActivity enum before creating the RegulatoryEvent instance.
 
     Parameters:
-        data (Dict[str, Any]): Serialized event payload — must include an "event_type" value compatible with RegulatoryActivity and the remaining fields accepted by RegulatoryEvent.
+        data (Dict[str, Any]): Serialized event payload — must include an
+            "event_type" value compatible with RegulatoryActivity and the
+            remaining fields accepted by RegulatoryEvent.
 
     Returns:
         RegulatoryEvent: The deserialized RegulatoryEvent instance.
@@ -541,7 +547,8 @@ def _deserialize_graph(payload: Dict[str, Any]) -> AssetRelationshipGraph:
     Reconstructs an AssetRelationshipGraph from a serialized payload.
 
     Parameters:
-        payload (Dict[str, Any]): Serialized graph payload containing "assets", "regulatory_events", "relationships", etc.
+        payload (Dict[str, Any]): Serialized graph payload containing the keys
+            "assets", "regulatory_events", "relationships", etc.
 
     Returns:
         AssetRelationshipGraph: Graph reconstructed from the payload.

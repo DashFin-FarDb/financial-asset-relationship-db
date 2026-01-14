@@ -8,10 +8,7 @@ from src.analysis.formulaic_analysis import Formula
 
 
 class FormulaicVisualizer:
-    """
-    Visualizes mathematical formulas and relationships from financial analysis.
-
-    """
+    """Visualizes mathematical formulas and relationships from financial analysis."""
 
     def __init__(self):
         self.color_scheme = {
@@ -280,8 +277,9 @@ class FormulaicVisualizer:
 
         return fig
 
+    @staticmethod
     def create_correlation_network(
-        self, empirical_relationships: Dict[str, Any]
+        empirical_relationships: Dict[str, Any]
     ) -> go.Figure:
         """Create a network graph visualization of asset correlations."""
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})

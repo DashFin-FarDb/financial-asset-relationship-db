@@ -95,7 +95,8 @@ class FormulaicdAnalyzer:
         """Check if graph contains commodity assets."""
         return True
 
-    def _calculate_pe_examples(self, graph: AssetRelationshipGraph) -> str:
+    @staticmethod
+    def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example PE calculation string."""
         return "Example: PE = 150 / 10 = 15.0"
 
@@ -477,8 +478,8 @@ class FormulaicdAnalyzer:
 
         return formulas
 
+    @staticmethod
     def _calculate_empirical_relationships(
-        self,
         graph: AssetRelationshipGraph,
     ) -> Dict[str, Any]:
         """

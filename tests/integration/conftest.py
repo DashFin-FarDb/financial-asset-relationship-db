@@ -41,11 +41,7 @@ def _parse_requirements_file(file_path: Path) -> List[Tuple[str, str]]:
 
 @pytest.fixture
 def parsed_requirements() -> List[Tuple[str, str]]:
-    """
-    Parse requirements-dev.txt and return list of (package, version) tuples.
-
-
-    """
+    """Parse requirements-dev.txt and return list of (package, version) tuples."""
     return _parse_requirements_file(REQUIREMENTS_DEV_FILE)
 
 
