@@ -5,13 +5,14 @@ Tests ensure that all modifications in the current branch are consistent,
 properly integrated, and don't introduce regressions.
 """
 
+from pathlib import Path
+from typing import Any, Dict, Generator, List
+
 import pytest
 import yaml
-from pathlib import Path
-from typing import Dict, Any, List, Generator
-
 
 # --- Helper Functions ---
+
 
 def _get_workflow_files() -> List[Path]:
     """Helper to retrieve all workflow files (.yml and .yaml)."""
@@ -23,7 +24,7 @@ def _get_workflow_files() -> List[Path]:
 
 def _load_yaml_safe(file_path: Path) -> Dict[str, Any]:
     """Helper to safely load YAML content."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
@@ -41,26 +42,25 @@ def _iter_uses_values(node: Any) -> Generator[str, None, None]:
 
 # --- Test Classes ---
 
+
 class TestWorkflowModifications:
-    """Test modifications to workflow files.
-    
-    
-    """
+    """Test modifications to workflow files."""
 
     def test_pr_agent_workflow_no_chunking_references(self):
         """PR agent workflow should not reference deleted chunking functionality."""
         workflow_path = Path(".github/workflows/pr-agent.yml")
-        
-        with open(workflow_path, 'r', encoding='utf-8') as f:
+
+        with open(workflow_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not reference chunking
-        assert 'context_chunker' not in content
+        assert "context_chunker" not in content
         content_lower = content.lower()
-        if 'chunking' in content_lower:
-            assert content_lower.count('chunking') == content_lower.count('# chunking'), \
-                "Found 'chunking' references outside of comments"
-        assert 'tiktoken' not in content
+        if "chunking" in content_lower:
+            assert content_lower.count("chunking") == content_lower.count(
+                "# chunking"
+            ), "Found 'chunking' references outside of comments"
+        assert "tiktoken" not in content
 
     def test_pr_agent_workflow_has_simplified_parsing(self):
         """PR agent workflow should have simplified comment parsing."""
@@ -68,12 +68,12 @@ class TestWorkflowModifications:
         data = _load_yaml_safe(workflow_path)
 
         # Should have parse-comments step
-        jobs = data.get('jobs', {})
-        trigger_job = jobs.get('pr-agent-trigger', {})
-        steps = trigger_job.get('steps', [])
+        jobs = data.get("jobs", {})
+        trigger_job = jobs.get("pr-agent-trigger", {})
+        steps = trigger_job.get("steps", [])
 
-        step_names = [step.get('name', '') for step in steps]
-        assert any('parse' in name.lower() and 'comment' in name.lower() for name in step_names)
+        step_names = [step.get("name", "") for step in steps]
+        assert any("parse" in name.lower() and "comment" in name.lower() for name in step_names)
 
     def test_apisec_workflow_no_credential_checks(self):
         """APIsec workflow should not include credential pre-check steps (simplified)."""
@@ -82,21 +82,22 @@ class TestWorkflowModifications:
 
         # Workflow should exist and be valid
         assert isinstance(data, dict)
-        assert 'jobs' in data
-        assert 'Trigger_APIsec_scan' in data['jobs']
+        assert "jobs" in data
+        assert "Trigger_APIsec_scan" in data["jobs"]
 
         # Ensure no credential pre-check steps are present
-        job = data['jobs']['Trigger_APIsec_scan']
-        steps = job.get('steps', [])
-        step_names = [str(step.get('name', '')).lower() for step in steps if isinstance(step, dict)]
-        assert not any('credential' in name or 'secret' in name for name in step_names), \
-            "Found credential pre-check steps; these should be removed in the simplified workflow"
+        job = data["jobs"]["Trigger_APIsec_scan"]
+        steps = job.get("steps", [])
+        step_names = [str(step.get("name", "")).lower() for step in steps if isinstance(step, dict)]
+        assert not any(
+            "credential" in name or "secret" in name for name in step_names
+        ), "Found credential pre-check steps; these should be removed in the simplified workflow"
 
     def test_label_workflow_simplified(self):
         """Label workflow should be simplified without config checks."""
         workflow_path = Path(".github/workflows/label.yml")
         assert workflow_path.exists(), "Expected '.github/workflows/label.yml' to exist"
-        
+
         data = _load_yaml_safe(workflow_path)
 
         # Basic validity checks
@@ -112,10 +113,7 @@ class TestWorkflowModifications:
             for step in job.get("steps", []) or []:
                 if not isinstance(step, dict):
                     continue
-                haystack = " ".join(
-                    str(step.get(k, "")).lower()
-                    for k in ("name", "uses", "run", "with")
-                )
+                haystack = " ".join(str(step.get(k, "")).lower() for k in ("name", "uses", "run", "with"))
                 assert not any(kw in haystack for kw in config_keywords), (
                     "Found config-check related logic in label workflow steps; "
                     "workflow should be simplified without config checks"
@@ -126,8 +124,8 @@ class TestWorkflowModifications:
         workflow_path = Path(".github/workflows/greetings.yml")
         data = _load_yaml_safe(workflow_path)
 
-        jobs = data.get('jobs', {})
-        greeting_job = jobs.get('greeting', {})
+        jobs = data.get("jobs", {})
+        greeting_job = jobs.get("greeting", {})
         # Ensure job exists
         assert greeting_job, "Greeting job is missing from workflow"
 
@@ -143,31 +141,28 @@ class TestWorkflowModifications:
 
 
 class TestRequirementsDevUpdates:
-    """Test requirements-dev.txt updates.
-    
-    
-    """
+    """Test requirements-dev.txt updates."""
 
     def test_requirements_dev_has_pyyaml(self):
         """Requirements-dev should include PyYAML."""
         req_path = Path("requirements-dev.txt")
-        with open(req_path, 'r', encoding='utf-8') as f:
+        with open(req_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        assert 'PyYAML' in content
-        assert 'types-PyYAML' in content
+        assert "PyYAML" in content
+        assert "types-PyYAML" in content
 
     def test_requirements_dev_valid_format(self):
         """Requirements-dev should be properly formatted."""
         req_path = Path("requirements-dev.txt")
-        with open(req_path, 'r', encoding='utf-8') as f:
+        with open(req_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         for line in lines:
             line = line.strip()
-            if line and not line.startswith('#'):
+            if line and not line.startswith("#"):
                 # Should have version specifier
-                assert '>=' in line or '==' in line or '~=' in line
+                assert ">=" in line or "==" in line or "~=" in line
 
 
 class TestPRAgentConfigSimplified:
@@ -178,32 +173,32 @@ class TestPRAgentConfigSimplified:
         config_path = Path(".github/pr-agent-config.yml")
         data = _load_yaml_safe(config_path)
 
-        version = data.get('agent', {}).get('version', '')
-        assert version == '1.0.0'
+        version = data.get("agent", {}).get("version", "")
+        assert version == "1.0.0"
 
     def test_config_no_chunking_settings(self):
         """PR Agent config should not have chunking settings."""
         config_path = Path(".github/pr-agent-config.yml")
         data = _load_yaml_safe(config_path)
 
-        agent = data.get('agent', {})
+        agent = data.get("agent", {})
         # Should not have context section
-        assert 'context' not in agent
+        assert "context" not in agent
 
-        limits = data.get('limits', {})
+        limits = data.get("limits", {})
         # Should not have chunking limits
-        assert 'max_files_per_chunk' not in limits
+        assert "max_files_per_chunk" not in limits
 
     def test_no_broken_workflow_references(self):
         """Workflows should not reference non-existent local files/actions/workflows."""
         repo_root = Path(".")
         workflow_files = _get_workflow_files()
-        
+
         if not workflow_files:
             return
 
         for workflow_file in workflow_files:
-            with open(workflow_file, "r", encoding='utf-8') as f:
+            with open(workflow_file, "r", encoding="utf-8") as f:
                 content = f.read()
                 f.seek(0)
                 data = yaml.safe_load(f) or {}
@@ -217,15 +212,14 @@ class TestPRAgentConfigSimplified:
                 local_ref = uses.split("@", 1)[0]  # strip optional @ref
                 target = (repo_root / local_ref).resolve()
 
-                assert target.exists(), (
-                    f"{workflow_file}: local 'uses' reference '{uses}' does not exist at '{local_ref}'"
-                )
+                assert (
+                    target.exists()
+                ), f"{workflow_file}: local 'uses' reference '{uses}' does not exist at '{local_ref}'"
 
                 # If directory, require action metadata
                 if target.is_dir():
                     has_action_metadata = any(
-                        (target / name).exists()
-                        for name in ("action.yml", "action.yaml", "Dockerfile")
+                        (target / name).exists() for name in ("action.yml", "action.yaml", "Dockerfile")
                     )
                     assert has_action_metadata, (
                         f"{workflow_file}: local action '{uses}' points to '{local_ref}', "
@@ -239,12 +233,12 @@ class TestPRAgentConfigSimplified:
                     )
 
             # Check 2: Workflows should not reference deleted specific local files
-            assert ".github/scripts/context_chunker.py" not in content, (
-                f"Workflow {workflow_file} references deleted script '.github/scripts/context_chunker.py'"
-            )
-            assert ".github/labeler.yml" not in content, (
-                f"Workflow {workflow_file} references deleted labeler config '.github/labeler.yml'"
-            )
+            assert (
+                ".github/scripts/context_chunker.py" not in content
+            ), f"Workflow {workflow_file} references deleted script '.github/scripts/context_chunker.py'"
+            assert (
+                ".github/labeler.yml" not in content
+            ), f"Workflow {workflow_file} references deleted labeler config '.github/labeler.yml'"
 
 
 class TestDocumentationConsistency:
@@ -252,9 +246,7 @@ class TestDocumentationConsistency:
 
     def test_summary_files_exist(self):
         """Test summary documentation files should exist."""
-        summary_files = [
-            'COMPREHENSIVE_BRANCH_TEST_GENERATION_SUMMARY.md'
-        ]
+        summary_files = ["COMPREHENSIVE_BRANCH_TEST_GENERATION_SUMMARY.md"]
 
         for summary_file in summary_files:
             path = Path(summary_file)
@@ -266,10 +258,10 @@ class TestDocumentationConsistency:
         readme = Path("README.md")
 
         if readme.exists():
-            with open(readme, 'r', encoding='utf-8') as f:
+            with open(readme, "r", encoding="utf-8") as f:
                 content = f.read().lower()
 
             # If chunking is mentioned, it should be in past tense or removed context
-            if 'chunking' in content:
+            if "chunking" in content:
                 # This is acceptable for historical documentation
                 pass
