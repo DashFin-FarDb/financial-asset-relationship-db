@@ -179,8 +179,6 @@ class TestPRAgentWorkflowSimplification:
         assert 'pull_request' in triggers
         assert 'pull_request_review' in triggers
         assert 'issue_comment' in triggers
-        # 'workflow_run' is often used for triggering from forks securely, optional but good to check if expected
-        # assert 'workflow_run' in triggers
 
     def test_permissions_preserved(self, pr_agent_workflow: Dict[str, Any]):
         """Verify workflow permissions are maintained."""
