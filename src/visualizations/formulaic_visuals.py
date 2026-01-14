@@ -235,12 +235,7 @@ class FormulaicVisualizer:
                 f"<b>Category:</b> {formula.category}<br>"
                 f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
                 "<b>Variables:</b><br>"
-                + "<br>".join(
-                    [
-                        f"• {var}: {desc}"
-                        for var, desc in formula.variables.items()
-                    ]
-                )
+                + "<br>".join([f"• {var}: {desc}" for var, desc in formula.variables.items()])
                 + "<br><br><b>Example Calculation:</b><br>"
                 + f"{formula.example_calculation}"
             ),
