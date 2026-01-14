@@ -187,18 +187,13 @@ class TestCleanupMemoryConnection:
 class TestThreadSafety:
     """Test cases for thread-safety of database connections."""
 
-    @patch("api.database.DATABASE_PATH", ":memory:")
-    def test_memory_connection_thread_safety(self):
-class TestThreadSafety:
-    """Test cases for thread-safety of database connections."""
-
     `@patch`("api.database.DATABASE_PATH", ":memory:")
     def test_memory_connection_thread_safety(self):
         """Test that memory connection is thread-safe."""
         import api.database
         # Reset shared connection before test
         api.database._MEMORY_CONNECTION = None
-        
+
         connections = []
 
         def get_conn():
@@ -213,7 +208,7 @@ class TestThreadSafety:
 
         # All connections should be the same object (same id)
         assert len(set(connections)) == 1
-        
+
         # Cleanup
         if api.database._MEMORY_CONNECTION is not None:
             api.database._MEMORY_CONNECTION.close()
