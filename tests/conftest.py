@@ -1,5 +1,6 @@
 """Pytest configuration and fixtures for the financial asset relationship
-database tests."""
+database tests.
+"""
 
 from typing import TYPE_CHECKING
 

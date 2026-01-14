@@ -639,8 +639,8 @@ def _validate_visualization_data(
      if relationship_traces:
          try:
              fig.add_traces(relationship_traces)
-        except Exception as exc:  # pylint: disable=broad-except
-            logger.exception("Failed to add relationship traces to figure: %s", exc)
+         except Exception as exc:  # pylint: disable=broad-except
+             logger.exception("Failed to add relationship traces to figure: %s", exc)
 
     # Add directional arrows for unidirectional relationships
     try:
