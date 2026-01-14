@@ -37,8 +37,10 @@ class TestGet3DVisualizationDataEnhanced:
         # Empty graph returns placeholder values per implementation
         assert len(asset_ids) == 1
         assert asset_ids == ["A"]
+        assert len(asset_ids) == 1
+        assert asset_ids == ["A"]
         assert len(colors) == 1
-        assert len(colors) == 1
+        assert isinstance(colors[0], str) and colors[0].startswith("#") and len(colors[0]) in (4, 7)
         assert isinstance(colors[0], str) and colors[0].startswith("#") and len(colors[0]) in (4, 7)
         assert len(hover) == 1
         assert asset_ids[0] in hover[0]
