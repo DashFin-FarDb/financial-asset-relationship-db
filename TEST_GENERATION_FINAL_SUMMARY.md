@@ -6,33 +6,22 @@ Generated comprehensive unit tests for all files in the current branch that lack
 
 ## New Test Files Created
 
-### 1. tests/unit/test_auth.py
-- **Lines**: 690
-- **Test Cases**: 60+
-- **Coverage**: ~95% of api/auth.py
-- **Test Classes**: 12
-  - TestIsTruthy
-  - TestPasswordHashing
-  - TestUserModels
-  - TestUserRepository
-  - TestJWTOperations
-  - TestAuthenticationFlow
-  - TestGetCurrentUser
-  - TestGetCurrentActiveUser
-  - TestEdgeCases
-  - TestSecretKeyValidation
+### 1. tests/unit/test_api_auth_comprehensive.py
+- **Purpose**: Comprehensive unit tests for `api/auth.py`
 
-### 2. tests/unit/test_real_data_fetcher.py
-- **Lines**: 575
-- **Test Cases**: 45+
-- **Coverage**: ~90% of src/data/real_data_fetcher.py
-- **Test Classes**: 7
-  - TestCacheHelpers
-  - TestRealDataFetcher
-  - TestCreateRealDatabase
-  - TestDataValidation
-  - TestErrorHandling
-  - TestIntegrationWithAssetGraph
+### 2. tests/unit/test_api_database_comprehensive.py
+- **Purpose**: Comprehensive unit tests for `api/database.py`
+
+### 3. tests/unit/test_asset_graph_simplified.py
+- **Purpose**: Tests for simplified `AssetRelationshipGraph` visualization interface
+
+### 4. tests/unit/test_auth.py
+- **Purpose**: Authentication module test suite (`api/auth.py`)
+
+### 5. tests/unit/test_real_data_fetcher.py
+- **Purpose**: Real data fetcher test suite (`src/data/real_data_fetcher.py`)
+
+> Note: Line counts and test counts should be updated to match the current repository state.
 
 ## Total Statistics
 
