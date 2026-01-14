@@ -22,6 +22,7 @@ from .auth import (
 
 
 
+
 class TestWorkflowYAMLSyntax:
     """Test YAML syntax and structure validity."""
 
@@ -38,6 +39,7 @@ class TestWorkflowYAMLSyntax:
         for workflow_file in workflow_files:
             try:
                 with open(workflow_file, "r") as f:
+
                     data = yaml.safe_load(f)
 
 
