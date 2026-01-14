@@ -1250,53 +1250,33 @@ class TestWorkflowEnvAndSecrets:
     """Tests for environment variables and secrets usage."""
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-  def test_workflow_env_vars_naming_convention(self, workflow_file: Path):
-      """
-      Assert that environment variable names in a workflow are upper-case and contain only letters, digits and underscores.
+    def test_workflow_env_vars_naming_convention(self, workflow_file: Path):
+        """
+        Assert that environment variable names in a workflow are upper-case and contain only letters, digits and underscores.
 
-      Checks the top-level `env` mapping and each job's `env` mapping in the parsed workflow YAML and fails the test if any variable name does not match the required convention (A–Z, 0–9, and underscore). The assertion messages list offending keys and their location.
+        Checks the top-level `env` mapping and each job's `env` mapping in the parsed workflow YAML and fails the test if any variable name does not match the required convention (A–Z, 0–9, and underscore). The assertion messages list offending keys and their location.
 
-      Parameters:
-          workflow_file (Path): Path to the workflow YAML file to validate.
-      """
+        Parameters:
+            workflow_file (Path): Path to the workflow YAML file to validate.
+        """
         config = load_yaml_safe(workflow_file)
 
-
-def check_env_vars(env_dict):
-    """Identify environment variable names that do not follow UPPER_CASE convention."""
-    if not isinstance(env_dict, dict):
-        return []
-    invalid = []
-    for key in env_dict:
-        # Must be entirely uppercase and contain only letters, digits, or underscores
-        if not key.isupper() or not all(c.isalnum() or c == '_' for c in key):
-            invalid.append(key)
-    return invalid
-            """Identify environment variable names that do not follow UPPER_CASE convention."""
-            if not isinstance(env_dict, dict):
-                return []
-            invalid = []
-            for key in env_dict.keys():
-                # Allow uppercase letters, digits, and underscores only
-                if not key.isupper() or not all(c.isalnum() or c == '_' for c in key):
-                    invalid.append(key)
-            return invalid
 
         # Check top-level env
         config = load_yaml_safe(workflow_file)
 
-        def check_env_vars(env_dict: Any) -> List[str]:
-            """Return env var keys that are not UPPER_CASE and [A-Z0-9_]-only."""
-            if not isinstance(env_dict, dict):
-                return []
-            invalid: List[str] = []
-            for key in env_dict.keys():
-                if not isinstance(key, str):
-                    invalid.append(str(key))
-                    continue
+    def check_env_vars(env_dict: Any) -> List[str]:
+        """Return env var keys that are not UPPER_CASE and [A-Z0-9_]-only."""
+        if not isinstance(env_dict, dict):
+            return []
+        invalid: List[str] = []
+        for key in env_dict.keys():
+            if not isinstance(key, str):
+                invalid.append(str(key))
+                continue
                 if not key.isupper() or not all(c.isalnum() or c == "_" for c in key):
-                    invalid.append(key)
-            return invalid
+                invalid.append(key)
+        return invalid
 
         # Check workflow-level env
         if "env" in config:
