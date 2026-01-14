@@ -7,7 +7,9 @@ Comprehensive unit tests have been successfully generated for `src/workflow_vali
 ## What Was Created
 
 ### Test File
+
 **File**: `tests/unit/test_workflow_validator.py`
+
 - **Lines**: 450+ lines
 - **Tests**: 27 test cases
 - **Coverage**: 100% of workflow_validator.py
@@ -16,11 +18,13 @@ Comprehensive unit tests have been successfully generated for `src/workflow_vali
 ### Test Breakdown
 
 #### 1. ValidationResult Class Tests (3 tests)
+
 - Valid result creation
 - Invalid result with errors
 - Data retention
 
 #### 2. validate_workflow Function Tests (12 tests)
+
 - Valid minimal/complex workflows
 - Missing 'jobs' key detection
 - Non-dict YAML content
@@ -33,21 +37,25 @@ Comprehensive unit tests have been successfully generated for `src/workflow_vali
 - Unicode support
 
 #### 3. Edge Cases (4 tests)
+
 - Very long workflow names
 - Deeply nested YAML structures
 - Many jobs (50+)
 - YAML anchors
 
 #### 4. Error Handling (2 tests)
+
 - Permission denied errors
 - Duplicate key handling
 
 #### 5. Integration Tests (3 tests)
+
 - pr-agent.yml validation
 - apisec-scan.yml validation
 - All project workflows validation
 
 #### 6. Data Structure Tests (3 tests)
+
 - Attribute accessibility
 - Type validation
 - Data integrity

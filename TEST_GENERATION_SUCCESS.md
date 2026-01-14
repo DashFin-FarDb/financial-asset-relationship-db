@@ -7,6 +7,7 @@ Comprehensive unit tests have been successfully generated for the workflow simpl
 ## Files Generated
 
 ### Main Test File
+
 - tests/integration/test_workflow_simplifications.py
   - Size: 624 lines
   - Test Classes: 7

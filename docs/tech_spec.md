@@ -4,12 +4,12 @@
 
 ### Document Information
 
-| Field | Value |
-|-------|-------|
+| Field        | Value                                 |
+| ------------ | ------------------------------------- |
 | Project Name | Financial Asset Relationship Database |
-| Version | 2.0 |
-| Status | Active Development |
-| Last Updated | January 2025 |
+| Version      | 2.0                                   |
+| Status       | Active Development                    |
+| Last Updated | January 2025                          |
 
 ---
 
@@ -27,6 +27,7 @@ The Financial Asset Relationship Database is a comprehensive visualization syste
 ### 1.2 Scope
 
 This specification covers:
+
 - System architecture and component design
 - Data models and relationship types
 - API specifications
@@ -39,15 +40,14 @@ This specification covers:
 
 ### 2.1 High-Level Architecture
 
-
 ### 2.2 Component Overview
 
-| Component | Technology | Port | Purpose |
-|-----------|------------|------|---------|
-| Gradio UI | Python/Gradio | 7860 | Interactive data science interface |
-| Next.js Frontend | React/TypeScript | 3000 | Modern web application |
-| FastAPI Backend | Python/FastAPI | 8000 | REST API services |
-| Database | Supabase/PostgreSQL | - | Persistent data storage |
+| Component        | Technology          | Port | Purpose                            |
+| ---------------- | ------------------- | ---- | ---------------------------------- |
+| Gradio UI        | Python/Gradio       | 7860 | Interactive data science interface |
+| Next.js Frontend | React/TypeScript    | 3000 | Modern web application             |
+| FastAPI Backend  | Python/FastAPI      | 8000 | REST API services                  |
+| Database         | Supabase/PostgreSQL | -    | Persistent data storage            |
 
 ---
 
@@ -55,23 +55,23 @@ This specification covers:
 
 ### 3.1 Asset Classes
 
-| Class | Description | Key Attributes |
-|-------|-------------|----------------|
-| Equity | Stock/share instruments | P/E ratio, dividend yield, EPS, sector |
-| Bond | Fixed income securities | Yield, duration, credit rating, issuer |
-| Commodity | Raw materials/futures | Contract specifications, spot price |
-| Currency | Foreign exchange pairs | Exchange rate, base/quote currency |
+| Class     | Description             | Key Attributes                         |
+| --------- | ----------------------- | -------------------------------------- |
+| Equity    | Stock/share instruments | P/E ratio, dividend yield, EPS, sector |
+| Bond      | Fixed income securities | Yield, duration, credit rating, issuer |
+| Commodity | Raw materials/futures   | Contract specifications, spot price    |
+| Currency  | Foreign exchange pairs  | Exchange rate, base/quote currency     |
 
 ### 3.2 Relationship Types
 
-| Relationship | Direction | Description |
-|--------------|-----------|-------------|
-| `same_sector` | Bidirectional | Assets in same industry sector |
-| `corporate_bond_to_equity` | Directional | Corporate bond issued by equity company |
-| `commodity_exposure` | Directional | Equity company exposed to commodity price |
-| `currency_risk` | Directional | Asset with FX exposure |
-| `income_comparison` | Bidirectional | Dividend vs bond yield comparison |
-| `event_impact` | Directional | Regulatory event affecting assets |
+| Relationship               | Direction     | Description                               |
+| -------------------------- | ------------- | ----------------------------------------- |
+| `same_sector`              | Bidirectional | Assets in same industry sector            |
+| `corporate_bond_to_equity` | Directional   | Corporate bond issued by equity company   |
+| `commodity_exposure`       | Directional   | Equity company exposed to commodity price |
+| `currency_risk`            | Directional   | Asset with FX exposure                    |
+| `income_comparison`        | Bidirectional | Dividend vs bond yield comparison         |
+| `event_impact`             | Directional   | Regulatory event affecting assets         |
 
 ### 3.3 Relationship Strength
 
@@ -116,7 +116,7 @@ GET  /api/health              - Health check endpoint
 ```json
 {
   "status": "success",
-  "data": { },
+  "data": {},
   "timestamp": "2025-01-12T00:00:00Z"
 }
 ```
@@ -127,33 +127,33 @@ GET  /api/health              - Health check endpoint
 
 ### 5.1 Backend
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Python | 3.10+ | Runtime environment |
-| FastAPI | 0.109+ | REST API framework |
-| Uvicorn | 0.27+ | ASGI server |
-| Pydantic | v2 | Data validation |
-| NumPy | 1.26+ | Numerical computing |
-| Pandas | 2.1+ | Data analysis |
+| Technology | Version | Purpose             |
+| ---------- | ------- | ------------------- |
+| Python     | 3.10+   | Runtime environment |
+| FastAPI    | 0.109+  | REST API framework  |
+| Uvicorn    | 0.27+   | ASGI server         |
+| Pydantic   | v2      | Data validation     |
+| NumPy      | 1.26+   | Numerical computing |
+| Pandas     | 2.1+    | Data analysis       |
 
 ### 5.2 Frontend
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Next.js | 14 | React framework |
-| React | 18 | UI library |
-| TypeScript | 5 | Type safety |
-| Tailwind CSS | 3 | Styling |
-| Plotly.js | Latest | 3D visualization |
+| Technology   | Version | Purpose          |
+| ------------ | ------- | ---------------- |
+| Next.js      | 14      | React framework  |
+| React        | 18      | UI library       |
+| TypeScript   | 5       | Type safety      |
+| Tailwind CSS | 3       | Styling          |
+| Plotly.js    | Latest  | 3D visualization |
 
 ### 5.3 Infrastructure
 
-| Technology | Purpose |
-|------------|---------|
-| Vercel | Frontend hosting |
-| Supabase | Database (PostgreSQL) |
-| Docker | Containerization |
-| GitHub Actions | CI/CD |
+| Technology     | Purpose               |
+| -------------- | --------------------- |
+| Vercel         | Frontend hosting      |
+| Supabase       | Database (PostgreSQL) |
+| Docker         | Containerization      |
+| GitHub Actions | CI/CD                 |
 
 ---
 
@@ -182,11 +182,11 @@ GET  /api/health              - Health check endpoint
 
 ### 7.1 Response Time Targets
 
-| Operation | Target |
-|-----------|--------|
-| API response | < 200ms |
-| 3D visualization load | < 2s |
-| Graph computation | < 500ms |
+| Operation             | Target  |
+| --------------------- | ------- |
+| API response          | < 200ms |
+| 3D visualization load | < 2s    |
+| Graph computation     | < 500ms |
 
 ### 7.2 Scalability
 
@@ -200,15 +200,16 @@ GET  /api/health              - Health check endpoint
 
 ### 8.1 Environments
 
-| Environment | URL | Purpose |
-|-------------|-----|---------|
-| Development | localhost | Local development |
-| Staging | staging.* | Pre-production testing |
-| Production | *.vercel.app | Live deployment |
+| Environment | URL           | Purpose                |
+| ----------- | ------------- | ---------------------- |
+| Development | localhost     | Local development      |
+| Staging     | staging.\*    | Pre-production testing |
+| Production  | \*.vercel.app | Live deployment        |
 
 ### 8.2 Configuration
 
 Environment variables required:
+
 - `SUPABASE_URL` - Database URL
 - `SUPABASE_KEY` - Database API key
 - `DATABASE_URL` - Direct PostgreSQL connection (optional)
@@ -219,11 +220,11 @@ Environment variables required:
 
 ### 9.1 Test Levels
 
-| Level | Coverage Target | Tools |
-|-------|-----------------|-------|
-| Unit | 80% | pytest |
-| Integration | Key flows | pytest |
-| Frontend | Components | Jest |
+| Level       | Coverage Target | Tools  |
+| ----------- | --------------- | ------ |
+| Unit        | 80%             | pytest |
+| Integration | Key flows       | pytest |
+| Frontend    | Components      | Jest   |
 
 ### 9.2 Quality Gates
 
@@ -261,7 +262,7 @@ Environment variables required:
 
 ### B. Change Log
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 2.0 | Jan 2025 | Added Next.js frontend, FastAPI backend |
-| 1.0 | Initial | Original Gradio-only implementation |
+| Version | Date     | Changes                                 |
+| ------- | -------- | --------------------------------------- |
+| 2.0     | Jan 2025 | Added Next.js frontend, FastAPI backend |
+| 1.0     | Initial  | Original Gradio-only implementation     |

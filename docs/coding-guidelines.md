@@ -44,11 +44,11 @@ This document establishes the coding standards and best practices for all contri
 
 We follow PEP 8 with these modifications:
 
-| Rule | Standard | Our Modification |
-|------|----------|-----------------|
-| Line length | 79 chars | **120 chars** |
-| Indentation | 4 spaces | 4 spaces |
-| Quotes | Either | **Double quotes preferred** |
+| Rule        | Standard | Our Modification            |
+| ----------- | -------- | --------------------------- |
+| Line length | 79 chars | **120 chars**               |
+| Indentation | 4 spaces | 4 spaces                    |
+| Quotes      | Either   | **Double quotes preferred** |
 
 ### Code Formatting
 
@@ -291,34 +291,34 @@ Within each file:
 
 ### Python
 
-| Element | Convention | Example |
-|---------|------------|---------|
-| Variables | snake_case | `asset_count` |
-| Functions | snake_case | `calculate_metrics()` |
-| Classes | PascalCase | `AssetRelationshipGraph` |
-| Constants | UPPER_SNAKE | `MAX_RELATIONSHIPS` |
-| Private | _leading | `_internal_method()` |
-| Modules | snake_case | `asset_graph.py` |
+| Element   | Convention  | Example                  |
+| --------- | ----------- | ------------------------ |
+| Variables | snake_case  | `asset_count`            |
+| Functions | snake_case  | `calculate_metrics()`    |
+| Classes   | PascalCase  | `AssetRelationshipGraph` |
+| Constants | UPPER_SNAKE | `MAX_RELATIONSHIPS`      |
+| Private   | \_leading   | `_internal_method()`     |
+| Modules   | snake_case  | `asset_graph.py`         |
 
 ### TypeScript
 
-| Element | Convention | Example |
-|---------|------------|---------|
-| Variables | camelCase | `assetCount` |
-| Functions | camelCase | `calculateMetrics()` |
-| Classes | PascalCase | `AssetService` |
-| Interfaces | PascalCase | `AssetData` |
-| Constants | UPPER_SNAKE | `MAX_RETRIES` |
-| Components | PascalCase | `AssetCard.tsx` |
+| Element    | Convention  | Example              |
+| ---------- | ----------- | -------------------- |
+| Variables  | camelCase   | `assetCount`         |
+| Functions  | camelCase   | `calculateMetrics()` |
+| Classes    | PascalCase  | `AssetService`       |
+| Interfaces | PascalCase  | `AssetData`          |
+| Constants  | UPPER_SNAKE | `MAX_RETRIES`        |
+| Components | PascalCase  | `AssetCard.tsx`      |
 
 ### Git Branches
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Feature | feature/description | `feature/add-currency-support` |
-| Bugfix | bugfix/description | `bugfix/fix-chart-render` |
-| Docs | docs/description | `docs/update-api-guide` |
-| Refactor | refactor/description | `refactor/simplify-graph` |
+| Type     | Pattern              | Example                        |
+| -------- | -------------------- | ------------------------------ |
+| Feature  | feature/description  | `feature/add-currency-support` |
+| Bugfix   | bugfix/description   | `bugfix/fix-chart-render`      |
+| Docs     | docs/description     | `docs/update-api-guide`        |
+| Refactor | refactor/description | `refactor/simplify-graph`      |
 
 ---
 
@@ -356,11 +356,11 @@ Each major directory should have a README explaining:
 
 ### Coverage Targets
 
-| Category | Minimum |
-|----------|---------|
-| Unit tests | 80% |
-| Integration | Key flows |
-| Frontend | Component tests |
+| Category    | Minimum         |
+| ----------- | --------------- |
+| Unit tests  | 80%             |
+| Integration | Key flows       |
+| Frontend    | Component tests |
 
 ### Test Naming
 
@@ -412,6 +412,7 @@ Refs: #<issue-number>
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation
@@ -484,9 +485,10 @@ Recommended VS Code extensions:
 
 ---
 
-*Last Updated: January 2025*
+_Last Updated: January 2025_
 
 See also:
+
 - [AI_RULES.md](../AI_RULES.md) - Tech stack and library guidelines
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution process
 - [tech_spec.md](tech_spec.md) - Technical specification

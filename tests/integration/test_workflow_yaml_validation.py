@@ -4,7 +4,7 @@ Comprehensive validation tests for GitHub workflow YAML files.
 This module tests the structure, syntax, and best practices of all
 GitHub Actions workflow files, with special focus on recent changes:
 - Simplified greetings workflow
-- Simplified labeler workflow  
+- Simplified labeler workflow
 - Simplified APIsec scan workflow
 - Simplified PR agent workflow
 
@@ -17,20 +17,19 @@ Tests cover:
 """
 
 
+from pathlib import Path
+from typing import Any, Dict, List
+
 import pytest
 import yaml
-from pathlib import Path
-from typing import Dict, Any, List
 
 
 class TestWorkflowYAMLSyntax:
     """Test YAML syntax and basic structure of workflow files."""
-    
+
     @pytest.fixture
     def workflows_dir(self) -> Path:
         """Get the workflows directory path."""
-
-
 
         workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
         try:
@@ -42,11 +41,12 @@ class TestWorkflowYAMLSyntax:
         except Exception as e:
             pytest.fail(f"Error accessing workflows directory {workflows_dir}: {e}")
         return workflows_dir
+
     @pytest.fixture
     def workflow_files(self, workflows_dir: Path) -> List[Path]:
         """Get all workflow YAML files."""
         return list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
-    
+
     def test_all_workflows_are_valid_yaml(self, workflow_files: List[Path]):
         """Test that all workflow files contain valid YAML."""
         for workflow_file in workflow_files:
@@ -61,13 +61,13 @@ class TestWorkflowYAMLSyntax:
             missing_keys = required_keys - set(data.keys())
             assert not missing_keys, f"{workflow_file.name} missing required keys: {missing_keys}"
             )
-    
+
     def test_workflow_names_are_descriptive(self, workflow_files: List[Path]):
         """Test that workflow names are descriptive and not empty."""
         for workflow_file in workflow_files:
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
-            
+
             name = data.get('name', '')
             assert name and len(name) > 3, (
                 f"{workflow_file.name} has empty or too short name: '{name}'"
@@ -75,23 +75,23 @@ class TestWorkflowYAMLSyntax:
             assert not name.isupper(), (
                 f"{workflow_file.name} name should not be all uppercase: '{name}'"
             )
-    
+
     def test_no_duplicate_keys_in_yaml(self, workflow_files: List[Path]):
         """Test that YAML files don't have duplicate keys within the same object.
-        
+
         Note: This is a simplified check that may not catch all duplicates due to
-        the complexity of YAML syntax (multiline strings, flow syntax, etc.). 
+        the complexity of YAML syntax (multiline strings, flow syntax, etc.).
         It primarily checks for obvious duplicates that would cause issues.
         """
         import re
-        
+
         for workflow_file in workflow_files:
             # Use PyYAML's safer duplicate key detection via custom constructor
             def no_duplicates_constructor(loader, node, deep=False):
                 """Check for duplicate keys during YAML loading."""
         def test_no_duplicate_keys_in_yaml(self, workflow_files: List[Path]):
             """Test that YAML files don't have duplicate keys within the same object.
-    
+
             Uses a custom SafeLoader to reliably detect duplicates during parsing.
             """
             import yaml

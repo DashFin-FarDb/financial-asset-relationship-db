@@ -7,4 +7,5 @@ Comprehensive unit tests have been successfully generated for all workflow simpl
 ## Files Created
 
 ### 1. Test File
+
 - tests/integration/test_workflow_simplifications.py

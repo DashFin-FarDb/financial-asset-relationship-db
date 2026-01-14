@@ -33,21 +33,21 @@ DashFin (Financial Asset Relationship Database) is a comprehensive visualization
 
 ### Key Features
 
-| Feature | Description |
-|---------|-------------|
+| Feature                  | Description                                      |
+| ------------------------ | ------------------------------------------------ |
 | 3D Network Visualization | Interactive graph showing asset interconnections |
-| Cross-Asset Analysis | Automatic relationship discovery |
-| Real-time Metrics | Network statistics and strength analysis |
-| Dual Interface | Gradio UI + Modern Next.js frontend |
-| REST API | Programmatic access to all features |
+| Cross-Asset Analysis     | Automatic relationship discovery                 |
+| Real-time Metrics        | Network statistics and strength analysis         |
+| Dual Interface           | Gradio UI + Modern Next.js frontend              |
+| REST API                 | Programmatic access to all features              |
 
 ### Version History
 
-| Version | Release | Highlights |
-|---------|---------|------------|
-| v2.0 | Jan 2025 | Next.js frontend, FastAPI backend, Supabase integration |
-| v1.5 | 2024 | Enhanced visualizations, regulatory events |
-| v1.0 | 2024 | Initial Gradio implementation |
+| Version | Release  | Highlights                                              |
+| ------- | -------- | ------------------------------------------------------- |
+| v2.0    | Jan 2025 | Next.js frontend, FastAPI backend, Supabase integration |
+| v1.5    | 2024     | Enhanced visualizations, regulatory events              |
+| v1.0    | 2024     | Initial Gradio implementation                           |
 
 ---
 
@@ -89,6 +89,7 @@ Access at: `http://localhost:7860`
 ```
 
 Access:
+
 - Frontend: `http://localhost:3000`
 - API: `http://localhost:8000`
 - API Docs: `http://localhost:8000/docs`
@@ -103,72 +104,77 @@ Access:
 
 Equity assets represent ownership in companies. Key attributes:
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| symbol | string | Trading symbol (e.g., AAPL) |
-| sector | string | Industry sector |
-| pe_ratio | float | Price-to-earnings ratio |
-| dividend_yield | float | Annual dividend yield |
-| eps | float | Earnings per share |
+| Attribute      | Type   | Description                 |
+| -------------- | ------ | --------------------------- |
+| symbol         | string | Trading symbol (e.g., AAPL) |
+| sector         | string | Industry sector             |
+| pe_ratio       | float  | Price-to-earnings ratio     |
+| dividend_yield | float  | Annual dividend yield       |
+| eps            | float  | Earnings per share          |
 
 #### Bonds
 
 Fixed income instruments with defined terms:
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| symbol | string | Bond identifier |
-| issuer | string | Issuing entity |
-| yield_rate | float | Annual yield |
-| duration | float | Interest rate sensitivity |
-| credit_rating | string | Credit quality rating |
+| Attribute     | Type   | Description               |
+| ------------- | ------ | ------------------------- |
+| symbol        | string | Bond identifier           |
+| issuer        | string | Issuing entity            |
+| yield_rate    | float  | Annual yield              |
+| duration      | float  | Interest rate sensitivity |
+| credit_rating | string | Credit quality rating     |
 
 #### Commodities
 
 Physical goods and their derivatives:
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| symbol | string | Commodity code |
+| Attribute      | Type   | Description                              |
+| -------------- | ------ | ---------------------------------------- |
+| symbol         | string | Commodity code                           |
 | commodity_type | string | Category (precious metals, energy, etc.) |
-| contract_unit | string | Trading unit specification |
+| contract_unit  | string | Trading unit specification               |
 
 #### Currencies
 
 Foreign exchange pairs:
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| symbol | string | Currency pair (e.g., EUR/USD) |
-| base_currency | string | Base currency |
-| quote_currency | string | Quote currency |
-| exchange_rate | float | Current rate |
+| Attribute      | Type   | Description                   |
+| -------------- | ------ | ----------------------------- |
+| symbol         | string | Currency pair (e.g., EUR/USD) |
+| base_currency  | string | Base currency                 |
+| quote_currency | string | Quote currency                |
+| exchange_rate  | float  | Current rate                  |
 
 ### Relationship Types
 
 The system automatically discovers and categorizes relationships:
 
 #### Same Sector
+
 - **Type**: Bidirectional
 - **Strength**: Based on sector alignment
 - **Example**: AAPL ↔ MSFT (both Technology)
 
 #### Corporate Bond to Equity
+
 - **Type**: Directional
 - **Strength**: Based on issuer match
 - **Example**: AAPL Bond → AAPL Stock
 
 #### Commodity Exposure
+
 - **Type**: Directional
 - **Strength**: Based on business exposure
 - **Example**: Gold → Mining Company
 
 #### Currency Risk
+
 - **Type**: Directional
 - **Strength**: Based on revenue geography
 - **Example**: EUR/USD → European Company
 
 #### Income Comparison
+
 - **Type**: Bidirectional
 - **Strength**: Based on yield similarity
 - **Example**: High-yield Bond ↔ Dividend Stock
@@ -177,12 +183,12 @@ The system automatically discovers and categorizes relationships:
 
 Strength values range from 0.0 to 1.0:
 
-| Range | Interpretation |
-|-------|----------------|
-| 0.8 - 1.0 | Strong relationship |
+| Range     | Interpretation        |
+| --------- | --------------------- |
+| 0.8 - 1.0 | Strong relationship   |
 | 0.5 - 0.8 | Moderate relationship |
-| 0.2 - 0.5 | Weak relationship |
-| 0.0 - 0.2 | Minimal relationship |
+| 0.2 - 0.5 | Weak relationship     |
+| 0.0 - 0.2 | Minimal relationship  |
 
 ---
 
@@ -295,23 +301,23 @@ financial-asset-relationship-db/
 
 ### Endpoints Summary
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Health check |
-| GET | `/api/assets` | List all assets |
-| GET | `/api/assets/{id}` | Get asset by ID |
-| GET | `/api/relationships` | List relationships |
-| GET | `/api/visualization` | Get graph data |
-| GET | `/api/metrics` | Get network metrics |
+| Method | Endpoint             | Description         |
+| ------ | -------------------- | ------------------- |
+| GET    | `/api/health`        | Health check        |
+| GET    | `/api/assets`        | List all assets     |
+| GET    | `/api/assets/{id}`   | Get asset by ID     |
+| GET    | `/api/relationships` | List relationships  |
+| GET    | `/api/visualization` | Get graph data      |
+| GET    | `/api/metrics`       | Get network metrics |
 
 ### Response Codes
 
-| Code | Meaning |
-|------|---------|
-| 200 | Success |
-| 400 | Bad request |
-| 404 | Not found |
-| 500 | Server error |
+| Code | Meaning      |
+| ---- | ------------ |
+| 200  | Success      |
+| 400  | Bad request  |
+| 404  | Not found    |
+| 500  | Server error |
 
 ---
 
@@ -398,4 +404,4 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for development guidelines.
 
 ---
 
-*Last Updated: January 2025*
+_Last Updated: January 2025_
