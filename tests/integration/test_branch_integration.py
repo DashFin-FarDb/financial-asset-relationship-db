@@ -238,7 +238,7 @@ class TestRemovedFilesIntegration:
             
             lines = content.splitlines()
                 for line in lines:
-                    if removed in line and not line.strip().startswith('#'):
+                for removed in removed_files:
                         pytest.fail(f"{wf_file} references removed file {removed}")
     
     def test_label_workflow_doesnt_need_labeler_config(self):
