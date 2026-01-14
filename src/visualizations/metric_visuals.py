@@ -6,8 +6,13 @@ import plotly.graph_objects as go
 from src.logic.asset_graph import AssetRelationshipGraph
 
 
-def visualize_metrics(graph: AssetRelationshipGraph) -> Tuple[go.Figure, go.Figure, go.Figure]:
-    """Create visualizations of graph metrics"""
+def visualize_metrics(
+    graph: AssetRelationshipGraph,
+) -> Tuple[go.Figure, go.Figure, go.Figure]:
+    """
+    Create visualizations of graph metrics.
+
+    """
     metrics = graph.calculate_metrics()
 
     # Asset class distribution
