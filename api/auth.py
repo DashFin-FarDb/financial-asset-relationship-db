@@ -191,6 +191,8 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
 username = os.getenv("ADMIN_USERNAME")
 password = os.getenv("ADMIN_PASSWORD")
 if not username or not password:
+
+
 def _seed_credentials_from_env(repository: UserRepository) -> None:
     """
     Seed an administrative user into the repository from environment variables.
@@ -215,6 +217,7 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
         full_name=full_name,
         disabled=disabled,
     )
+
 
 hashed_password = get_password_hash(password)
 email = os.getenv("ADMIN_EMAIL")
