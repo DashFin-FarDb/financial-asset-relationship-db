@@ -236,10 +236,10 @@ def _build_relationship_index(
                 ) from exc
 
             # Add to index if target is in asset_ids_set
-            if target_id in asset_ids_set:
-                relationship_index[(source_id, target_id, rel_type)] = strength_float
+           if target_id in asset_ids_set:
+               relationship_index[(source_id, target_id, rel_type)] = strength_float
 
-    return relationship_index
+   return relationship_index
 
 
 def _create_node_trace(
@@ -261,8 +261,10 @@ def _create_node_trace(
       length matching positions
 
     Args:
-        positions: NumPy array of node positions with shape(n, 3) containing finite numeric values
-        asset_ids: List of asset ID strings(must be non-empty strings, length must match positions)
+        positions: NumPy array of node positions with shape(n, 3)
+            containing finite numeric values
+        asset_ids: List of asset ID strings (must be non-empty strings,
+            length must match positions)
         colors: List of node colors(length must match positions)
         hover_texts: List of hover texts(length must match positions)
 
@@ -774,7 +776,8 @@ def _build_hover_texts(
 
 def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
     """Get line style configuration for a relationship
-    with color validation."""
+    with color validation.
+    """
     color = REL_TYPE_COLORS[rel_type]
     if not _is_valid_color_format(color):
         logger.warning(

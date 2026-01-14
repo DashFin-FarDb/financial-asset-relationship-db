@@ -371,7 +371,7 @@ class FinancialAssetApp:
         try:
             pass
         except Exception as e:
-            logger.error(f"Error showing formula details: {e}")
+            logger.error("Error showing formula details: %s", e)
             return (
                 go.Figure(),
                 gr.update(value=f"Error: {e}", visible=True),
@@ -423,7 +423,7 @@ class FinancialAssetApp:
         Creates the Gradio interface for the Financial Asset Relationship Database.
 
         """
-        with gr.Blocks(title=AppConstants.TITLE) as blocks:
+        with gr.Blocks(title=AppConstants.TITLE):
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
@@ -449,6 +449,7 @@ class FinancialAssetApp:
                             )
                         with gr.Column(scale=1):
                             layout_type = gr.Radio(
+                                
                                 label="2D Layout Type",
                                 choices=["spring", "circular", "grid"],
                                 value="spring",

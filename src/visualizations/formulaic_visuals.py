@@ -453,6 +453,7 @@ class FormulaicVisualizer:
                 yaxis="y",
                 offsetgroup=1,
             )
+        )
 
         fig.update_layout(
             title="Formula Reliability Distribution by Category",
