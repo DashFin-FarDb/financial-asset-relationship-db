@@ -20,7 +20,7 @@ print("Supabase URL:", SUPABASE_URL)
 print("Supabase Key:", SUPABASE_KEY[:5] + "..." if SUPABASE_KEY else "Not found")
 print("Certificate path:", CERT_PATH)
 
-# 
+#
 
 # Try Supabase API connection
 try:
