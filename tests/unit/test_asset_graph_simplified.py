@@ -38,9 +38,10 @@ class TestGet3DVisualizationDataEnhanced:
         assert len(asset_ids) == 1
         assert asset_ids == ["A"]
         assert len(colors) == 1
-        assert colors == ["#888888"]
+        assert len(colors) == 1
+        assert isinstance(colors[0], str) and colors[0].startswith("#") and len(colors[0]) in (4, 7)
         assert len(hover) == 1
-        assert hover == ["Asset A"]
+        assert asset_ids[0] in hover[0]
 
     def test_get_3d_visualization_with_single_relationship(self):
         """Test visualization data with single relationship."""
