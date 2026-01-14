@@ -10,10 +10,7 @@
  */
 
 import axios from "axios";
-import type {
-  Metrics,
-  VisualizationData,
-} from "../../app/types/api";
+import type { Metrics, VisualizationData } from "../../app/types/api";
 import {
   mockAssets,
   mockAsset,
