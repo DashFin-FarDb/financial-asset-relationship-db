@@ -106,9 +106,9 @@ class UserRepository:
         *,
         username: str,
         hashed_password: str,
-        email: Optional[str] = None,
-        full_name: Optional[str] = None,
-        disabled: bool = False,
+        user_email: Optional[str] = None,
+        user_full_name: Optional[str] = None,
+        is_disabled: bool = False,
     ) -> None:
         """
         Create or update a user credential record in the repository.
@@ -120,9 +120,9 @@ class UserRepository:
         Parameters:
             username (str): Unique identifier for the user.
             hashed_password (str): Password hash; must already be hashed.
-            email (Optional[str]): User email address, if available.
-            full_name (Optional[str]): User's full name, if available.
-            disabled (bool): Whether the user account is disabled (inactive).
+            user_email (Optional[str]): User email address, if available.
+            user_full_name (Optional[str]): User's full name, if available.
+            is_disabled (bool): Whether the user account is disabled (inactive).
         """
 
         execute(
@@ -143,10 +143,10 @@ class UserRepository:
             """,
             (
                 username,
-                email,
-                full_name,
+                user_email,
+                user_full_name,
                 hashed_password,
-                1 if disabled else 0,
+                1 if is_disabled else 0,
             ),
         )
 
@@ -184,7 +184,11 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     """
     Seed an administrative user into the repository from environment variables.
 
-    If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that user in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME and ADMIN_DISABLED (interpreted as a truthy flag). The provided password is stored hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, no changes are made.
+    If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that
+    user in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME and
+    ADMIN_DISABLED (interpreted as a truthy flag). The provided password is
+    stored hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, no
+    changes are made.
     """
 
     username = os.getenv("ADMIN_USERNAME")
@@ -193,62 +197,49 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
         return
 
     hashed_password = get_password_hash(password)
-    email = os.getenv("ADMIN_EMAIL")
-    full_name = os.getenv("ADMIN_FULL_NAME")
-    disabled = _is_truthy(os.getenv("ADMIN_DISABLED", "false"))
+    admin_email = os.getenv("ADMIN_EMAIL")
+    admin_full_name = os.getenv("ADMIN_FULL_NAME")
+    admin_disabled = _is_truthy(os.getenv("ADMIN_DISABLED", "false"))
 
     repository.create_or_update_user(
         username=username,
         hashed_password=hashed_password,
-        email=email,
-        full_name=full_name,
-        disabled=disabled,
+        email=admin_email,
+        full_name=admin_full_name,
+        disabled=admin_disabled,
     )
-
-
-email = os.getenv("ADMIN_EMAIL")
-full_name = os.getenv("ADMIN_FULL_NAME")
-disabled = _is_truthy(os.getenv("ADMIN_DISABLED", "false"))
-
-repository.create_or_update_user(
-    username=username,
-    hashed_password=hashed_password,
-    email=email,
-    full_name=full_name,
-    disabled=disabled,
-)
-
 
 _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME and " "ADMIN_PASSWORD or pre-populate the database."
+        "No user credentials available. Provide ADMIN_USERNAME "
+        "and ADMIN_PASSWORD or pre-populate the database."
     )
 
 
-def get_user(
-    username: str,
-    repository: Optional[UserRepository] = None,
-) -> Optional[UserInDB]:
-    """
-    Retrieve a user by username.
+ def get_user(
+     username: str,
+     repository: Optional[UserRepository] = None,
+ ) -> Optional[UserInDB]:
+     """
+     Retrieve a user by username.
 
-    Parameters:
-        repository (Optional[UserRepository]): Repository to query;
-            if omitted the module-level `user_repository` is used.
+     Parameters:
+         repository (Optional[UserRepository]): Repository to query;
+             if omitted the module-level `user_repository` is used.
 
-    Returns:
-        Optional[UserInDB]: The matching UserInDB instance, or `None` if no
-            user exists with that username.
-    """
+     Returns:
+         Optional[UserInDB]: The matching UserInDB instance, or `None` if no
+             user exists with that username.
+     """
 
-    repo = repository or user_repository
-    return repo.get_user(username)
+     repo = repository or user_repository
+     return repo.get_user(username)
 
 
-def authenticate_user(
-    username: str,
+ def authenticate_user(
+     username: str,
     password: str,
     repository: Optional[UserRepository] = None,
 ):

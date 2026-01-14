@@ -24,7 +24,10 @@ def _get_database_url() -> str:
 
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set " "before using the database")
+        raise ValueError(
+            "DATABASE_URL environment variable must be set "
+            "before using the database"
+        )
     return database_url
 
 

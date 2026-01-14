@@ -113,50 +113,50 @@ def _create_2d_relationship_traces(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> List[go.Scatter]:
-        """Create 2D relationship traces with filtering.
+    """Create 2D relationship traces with filtering.
 
-        Args:
-            graph: Asset relationship graph
-            positions: Dictionary mapping asset IDs to (x, y) positions
-            asset_ids: List of asset IDs
-       show_same_sector: Show same sector relationships
-       show_market_cap: Show market cap relationships
-       show_correlation: Show correlation relationships
-       show_corporate_bond: Show corporate bond relationships
-       show_commodity_currency: Show commodity currency relationships
-       show_income_comparison: Show income comparison relationships
-       show_regulatory: Show regulatory relationships
-       show_all_relationships: Master toggle to show all relationships
+    Args:
+        graph: Asset relationship graph
+        positions: Dictionary mapping asset IDs to (x, y) positions
+        asset_ids: List of asset IDs
+        show_same_sector: Show same sector relationships
+        show_market_cap: Show market cap relationships
+        show_correlation: Show correlation relationships
+        show_corporate_bond: Show corporate bond relationships
+        show_commodity_currency: Show commodity currency relationships
+        show_income_comparison: Show income comparison relationships
+        show_regulatory: Show regulatory relationships
+        show_all_relationships: Master toggle to show all relationships
 
-   Returns:
-       List of Plotly Scatter traces for relationships
-   """
-   if not asset_ids or not positions:
-       return []
+    Returns:
+        List of Plotly Scatter traces for relationships
+    """
+    if not asset_ids or not positions:
+        return []
 
-   traces = []
-   asset_id_set = set(asset_ids)
+    traces = []
+    asset_id_set = set(asset_ids)
 
-   # Group relationships by type
-   relationship_groups = {}
+    # Group relationships by type
+    relationship_groups = {}
 
-   for source_id in asset_ids:
-       if source_id not in graph.relationships:
-           continue
+    for source_id in asset_ids:
+        if source_id not in graph.relationships:
+            continue
 
-       for target_id, rel_type, strength in graph.relationships[source_id]:
-           # Skip if target not in positions
-           if target_id not in positions or target_id not in asset_id_set:
-               continue
+        for target_id, rel_type, strength in graph.relationships[source_id]:
+            # Skip if target not in positions
+            if target_id not in positions or target_id not in asset_id_set:
+                continue
 
-           # Apply filters
-           if relationship_filters and rel_type in relationship_filters:
-               if not relationship_filters[rel_type]:
-                   continue
+            # Apply filters
+            if relationship_filters and rel_type in relationship_filters:
+                if not relationship_filters[rel_type]:
+                    continue
 
-           # Group by relationship type
-           if rel_type not in relationship_groups:
-               relationship_groups[rel_type] = []
+            # Group by relationship type
+            if rel_type not in relationship_groups:
+                relationship_groups[rel_type] = []
 
            relationship_groups[rel_type].append({"source_id": source_id, "target_id": target_id, "strength": strength})
 
