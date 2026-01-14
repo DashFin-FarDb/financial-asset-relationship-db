@@ -13,7 +13,9 @@ class ValidationResult:
         workflow_data (dict): Parsed YAML workflow data.
     """
 
-    def __init__(self, is_valid: bool, errors: List[str], workflow_data: Dict[str, Any]):
+    def __init__(
+        self, is_valid: bool, errors: List[str], workflow_data: Dict[str, Any]
+    ):
         """
         Initialize a ValidationResult representing the outcome of validating a workflow YAML file.
 
@@ -44,7 +46,9 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
             data = yaml.safe_load(f)
 
         if data is None:
-            return ValidationResult(False, ["Workflow file is empty or contains only nulls."], {})
+            return ValidationResult(
+                False, ["Workflow file is empty or contains only nulls."], {}
+            )
         if not isinstance(data, dict):
             return ValidationResult(False, ["Workflow must be a dict"], data)
         if "jobs" not in data:
@@ -58,8 +62,12 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     except PermissionError as e:
         return ValidationResult(False, [f"Permission denied: {e}"], {})
     except IsADirectoryError as e:
-        return ValidationResult(False, [f"Expected a file but found a directory: {e}"], {})
+        return ValidationResult(
+            False, [f"Expected a file but found a directory: {e}"], {}
+        )
     except NotADirectoryError as e:
-        return ValidationResult(False, [f"Invalid path component (not a directory): {e}"], {})
+        return ValidationResult(
+            False, [f"Invalid path component (not a directory): {e}"], {}
+        )
     except UnicodeDecodeError as e:
         return ValidationResult(False, [f"Invalid file encoding: {e}"], {})

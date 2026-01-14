@@ -47,7 +47,9 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 requirements.append((req.name, str(req.specifier)))
             except Exception as e:
                 # Surface unparseable requirement lines to avoid masking issues
-                raise ValueError(f"Failed to parse requirement line: '{line}'. Error: {e}") from e
+                raise ValueError(
+                    f"Failed to parse requirement line: '{line}'. Error: {e}"
+                ) from e
     return requirements
 
 
@@ -73,7 +75,11 @@ class TestWorkflowCanInstallRequirements:
                 step_name = step.get("name", "").lower()
 
                 # Look for pip install or requirements file installation
-                if "pip install" in run_cmd.lower() or "requirements" in run_cmd.lower() or "requirements" in step_name:
+                if (
+                    "pip install" in run_cmd.lower()
+                    or "requirements" in run_cmd.lower()
+                    or "requirements" in step_name
+                ):
                     has_install_step = True
                     break
 
@@ -142,7 +148,9 @@ class TestPyYAMLAvailability:
         except ImportError:
             pytest.skip("PyYAML not installed in test environment")
 
-        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(
+            WORKFLOWS_DIR.glob("*.yaml")
+        )
 
         assert len(workflow_files) > 0, "No workflow files found to test"
 
@@ -150,7 +158,9 @@ class TestPyYAMLAvailability:
             with open(workflow_file, "r", encoding="utf-8") as f:
                 try:
                     content = yaml.safe_load(f)
-                    assert isinstance(content, dict), f"{workflow_file.name} should parse to a dictionary"
+                    assert isinstance(content, dict), (
+                        f"{workflow_file.name} should parse to a dictionary"
+                    )
                 except yaml.YAMLError as e:
                     pytest.fail(f"PyYAML failed to parse {workflow_file.name}: {e}")
 
@@ -161,9 +171,9 @@ class TestPyYAMLAvailability:
         requirements = parse_requirements(REQUIREMENTS_FILE)
         package_names = [pkg for pkg, _ in requirements]
 
-        assert (
-            "types-PyYAML" in package_names
-        ), "types-PyYAML should be in requirements-dev.txt for static type checking of code that uses PyYAML"
+        assert "types-PyYAML" in package_names, (
+            "types-PyYAML should be in requirements-dev.txt for static type checking of code that uses PyYAML"
+        )
 
 
 class TestRequirementsMatchWorkflowNeeds:
@@ -176,7 +186,9 @@ class TestRequirementsMatchWorkflowNeeds:
         requirements = parse_requirements(REQUIREMENTS_FILE)
         package_names = [pkg.lower() for pkg, _ in requirements]
 
-        assert "pytest" in package_names, "pytest must be in requirements-dev.txt as workflows run pytest for testing"
+        assert "pytest" in package_names, (
+            "pytest must be in requirements-dev.txt as workflows run pytest for testing"
+        )
 
     def test_has_required_dev_tools(self):
         """Test that essential development tools are in requirements."""
@@ -189,7 +201,9 @@ class TestRequirementsMatchWorkflowNeeds:
         essential_tools = ["pytest", "flake8", "black", "mypy"]
 
         for tool in essential_tools:
-            assert tool in package_names, f"{tool} should be in requirements-dev.txt for code quality and testing"
+            assert tool in package_names, (
+                f"{tool} should be in requirements-dev.txt for code quality and testing"
+            )
 
     def test_requirements_support_python_version_in_workflow(self):
         """Check that the pr-agent workflow's declared Python version is at least Python 3.8."""
@@ -218,6 +232,6 @@ class TestRequirementsMatchWorkflowNeeds:
                 major = int(version_parts[0])
                 minor = int(version_parts[1])
 
-                assert (major > 3) or (
-                    major == 3 and minor >= 8
-                ), f"Workflow uses Python {python_version}, but requires 3.8+ for modern tooling"
+                assert (major > 3) or (major == 3 and minor >= 8), (
+                    f"Workflow uses Python {python_version}, but requires 3.8+ for modern tooling"
+                )

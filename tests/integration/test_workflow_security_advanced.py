@@ -70,11 +70,11 @@ class TestWorkflowInjectionPrevention:
                                 assert '"' in run_command or "'" in run_command, \
                                     f"Unquoted context variable in {workflow['path']} " \
                                     f"job '{job_name}' step {step_idx}: {match}"
-    
+
     def test_no_eval_with_user_input(self, all_workflows):
         """Verify workflows don't use eval with user-controllable input."""
         dangerous_commands = ['eval', 'exec', 'source']
-        
+
         for workflow in all_workflows:
             jobs = workflow['content'].get('jobs', {})
             for job_name, job_config in jobs.items():
@@ -88,11 +88,11 @@ class TestWorkflowInjectionPrevention:
                                 assert 'github.event' not in run_command, \
                                     f"Dangerous {dangerous_cmd} with user input in " \
                                     f"{workflow['path']} job '{job_name}' step {step_idx}"
-    
+
     def test_script_injection_prevention_in_pr_title_body(self, all_workflows):
         """
         Ensure workflow run steps do not directly interpolate pull request, issue, or comment title/body into script content.
-        
+
         Checks for occurrences of these GitHub context paths in a step's `run` text: `github.event.pull_request.title`, `github.event.pull_request.body`, `github.event.issue.title`, `github.event.issue.body`, and `github.event.comment.body`. If any are present the test requires the value be supplied via environment variables (e.g., `env:` or `ENV`) and fails if direct interpolation is detected.
         """
         dangerous_refs = [
@@ -102,7 +102,7 @@ class TestWorkflowInjectionPrevention:
             'github.event.issue.body',
             'github.event.comment.body',
         ]
-        
+
         for workflow in all_workflows:
             jobs = workflow['content'].get('jobs', {})
             for job_name, job_config in jobs.items():
@@ -117,7 +117,7 @@ class TestWorkflowInjectionPrevention:
                                     f"Direct interpolation of {dangerous_ref} in " \
                                     f"{workflow['path']} job '{job_name}' step {step_idx}. " \
                                     f"Use environment variables instead."
-    
+
     def test_no_curl_with_unvalidated_input(self, all_workflows):
         """Verify curl commands don't use unvalidated user input."""
         for workflow in all_workflows:
@@ -137,12 +137,12 @@ class TestWorkflowInjectionPrevention:
 
 class TestWorkflowSecretHandling:
     """Tests for proper secret handling in workflows."""
-    
+
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
         """
         Load and parse all GitHub Actions workflow YAML files from .github/workflows.
-        
+
         Returns:
             workflows (List[Dict[str, Any]]): A list where each item is a dict with keys:
                 - 'path' (Path): filesystem path to the workflow file
@@ -160,17 +160,17 @@ class TestWorkflowSecretHandling:
                     'raw': content
                 })
         return workflows
-    
+
     def test_secrets_not_echoed_in_logs(self, all_workflows):
         """
         Scan each workflow's raw YAML for `secrets.NAME` references and assert that no line containing a secret reference invokes `echo`, `print`, or `printf`, which would expose the secret in logs.
         """
         for workflow in all_workflows:
             raw_content = workflow['raw']
-            
+
             # Find all references to secrets
             secret_refs = re.findall(r'secrets\.\w+', raw_content)
-            
+
             for secret_ref in secret_refs:
                 # Check if this secret is used in echo/print commands
                 lines = raw_content.split('\n')
@@ -179,7 +179,7 @@ class TestWorkflowSecretHandling:
                         # Should not be in echo, print, or printf
                         assert not re.search(r'(echo|print|printf)\s+.*' + re.escape(secret_ref), line, re.IGNORECASE), \
                             f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
-    
+
     def test_secrets_not_in_artifact_uploads(self, all_workflows):
         """Verify secrets are not uploaded as artifacts."""
         for workflow in all_workflows:
@@ -193,7 +193,7 @@ class TestWorkflowSecretHandling:
                         assert 'secrets.' not in step_str, \
                             f"Secret reference in artifact upload: {workflow['path']} " \
                             f"job '{job_name}' step {step_idx}"
-    
+
     def test_secrets_not_in_pr_comments(self, all_workflows):
         """Verify secrets are not posted in PR comments."""
         for workflow in all_workflows:
@@ -207,20 +207,20 @@ class TestWorkflowSecretHandling:
                             assert 'secrets.' not in script_content, \
                                 f"Secret may be exposed in PR comment: {workflow['path']} " \
                                 f"job '{job_name}' step {step_idx}"
-    
+
     def test_sensitive_env_vars_marked_as_secrets(self, all_workflows):
         """
         Ensure environment variables with sensitive names reference repository secrets.
-        
+
         Scans job-level and step-level environment variable names for sensitive keywords
         such as PASSWORD, TOKEN, API_KEY, SECRET, PRIVATE_KEY, CREDENTIALS, and AUTH,
         and asserts that their values reference `secrets.` to avoid hard-coded secrets.
         """
         sensitive_patterns = [
-            'PASSWORD', 'TOKEN', 'API_KEY', 'SECRET', 
+            'PASSWORD', 'TOKEN', 'API_KEY', 'SECRET',
             'PRIVATE_KEY', 'CREDENTIALS', 'AUTH'
         ]
-        
+
         for workflow in all_workflows:
             jobs = workflow['content'].get('jobs', {})
             for job_name, job_config in jobs.items():
@@ -232,7 +232,7 @@ class TestWorkflowSecretHandling:
                         assert 'secrets.' in str(env_value), \
                             f"Sensitive env var {env_name} should use secrets in " \
                             f"{workflow['path']} job '{job_name}'"
-                
+
                 # Check step-level env
                 steps = job_config.get('steps', [])
                 for step_idx, step in enumerate(steps):
@@ -246,12 +246,12 @@ class TestWorkflowSecretHandling:
 
 class TestWorkflowPermissionsHardening:
     """Tests for workflow permissions and least privilege."""
-    
+
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
         """
         Load and parse all GitHub Actions workflow YAML files from .github/workflows.
-        
+
         Returns:
             workflows (List[Dict[str, Any]]): A list where each item is a dictionary with:
                 - 'path' (Path): Path to the workflow file.
@@ -266,23 +266,23 @@ class TestWorkflowPermissionsHardening:
                     'content': yaml.safe_load(f)
                 })
         return workflows
-    
+
     def test_workflows_define_explicit_permissions(self, all_workflows):
         """Verify workflows explicitly define permissions."""
         for workflow in all_workflows:
             assert 'permissions' in workflow['content'], \
                 f"Workflow {workflow['path']} should explicitly define permissions"
-    
+
     def test_default_permissions_are_restrictive(self, all_workflows):
         """Verify default permissions follow least privilege."""
         for workflow in all_workflows:
             permissions = workflow['content'].get('permissions', {})
-            
+
             # If permissions is a string, it should be 'read-all' or 'none'
             if isinstance(permissions, str):
                 assert permissions in ['read-all', 'none'], \
                     f"Workflow {workflow['path']} has overly permissive default: {permissions}"
-            
+
             # If permissions is a dict, check defaults
             elif isinstance(permissions, dict):
                 # Most permissions should be read or none by default
@@ -290,23 +290,23 @@ class TestWorkflowPermissionsHardening:
                 for perm_name, perm_value in permissions.items():
                     if perm_value == 'write':
                         default_write_perms.append(perm_name)
-                
+
                 # Only specific permissions should have write by default
                 allowed_write_perms = {'contents', 'pull-requests', 'issues', 'checks'}
                 unexpected_write = set(default_write_perms) - allowed_write_perms
-                
+
                 assert len(unexpected_write) == 0, \
                     f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
-    
+
     def test_no_workflows_with_write_all_permission(self, all_workflows):
         """Verify no workflow uses 'write-all' permission."""
         for workflow in all_workflows:
             permissions = workflow['content'].get('permissions', {})
-            
+
             if isinstance(permissions, str):
                 assert permissions != 'write-all', \
                     f"Workflow {workflow['path']} uses dangerous 'write-all' permission"
-    
+
     def test_third_party_actions_use_commit_sha(self, all_workflows):
         """Verify third-party actions are pinned to commit SHA."""
         for workflow in all_workflows:
@@ -316,32 +316,33 @@ class TestWorkflowPermissionsHardening:
                 for step_idx, step in enumerate(steps):
                     if 'uses' in step:
                         action = step['uses']
-                        
+
                         # Skip GitHub official actions
                         if action.startswith('actions/'):
                             continue
-                        
+
                         # Third-party actions should use full commit SHA
                         if '@' in action:
                             version = action.split('@')[1]
                             # Enforce 40-character hex string (commit SHA)
                             assert re.match(r'^[a-f0-9]{40}$', version), \
-                                def test_third_party_actions_pinned_to_sha(self, all_workflows):
-                                    """Verify third-party actions are pinned to a full commit SHA."""
-                                    for workflow in all_workflows:
-                                        jobs = workflow['content'].get('jobs', {})
-                                        for job_name, job_config in jobs.items():
-                                            steps = job_config.get('steps', [])
-                                            for step in steps:
-                                                action = step.get('uses', '')
-                                                if not action:
-                                                    continue
-                                                # Skip local actions
-                                                if action.startswith('./') or action.startswith('.\\'):
+                                    def test_third_party_actions_pinned_to_sha(self, all_workflows):
+                                """Verify third-party actions are pinned to a full commit SHA."""
+                                for workflow in all_workflows:
+                                    jobs = workflow['content'].get('jobs', {})
+                                    for job_name, job_config in jobs.items():
+                                        steps = job_config.get('steps', [])
+                                        for step in steps:
+                                            action = step.get('uses', '')
+                                            if not action:
+                                                continue
+                                            # Skip local actions
+                                            if action.startswith('./') or action.startswith('.\\'):
+
                         def test_third_party_actions_pinned_to_commit_sha(self, all_workflows):
                             """
                             Ensure third-party actions referenced with '@' are pinned to a 40-character lowercase hex commit SHA.
-                            
+
                             Asserts that any step `uses` value containing an `@` refers to a full commit SHA (40 lowercase hexadecimal characters) rather than a branch or tag.
                             """
                             for workflow in all_workflows:
@@ -361,19 +362,20 @@ class TestWorkflowPermissionsHardening:
                                                 f"job '{job_name}' must be pinned to a commit SHA for security"
                                             )
 
+
 class TestWorkflowSupplyChainSecurity:
     """Tests for supply chain security in workflows."""
-    
+
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
         """
         Collects GitHub Actions workflow files from .github/workflows.
-        
+
         Parses each *.yml file found in that directory and returns a list of descriptors for each workflow. Each descriptor is a dict with:
         - 'path': Path object pointing to the workflow file,
         - 'content': the YAML-parsed content (via yaml.safe_load),
         - 'raw': the file contents as a raw string.
-        
+
         Returns:
             workflows (List[Dict[str, Any]]): List of workflow descriptors as described above.
         """
@@ -387,19 +389,19 @@ class TestWorkflowSupplyChainSecurity:
                     'raw': f.read()
                 })
         return workflows
-    
+
     def test_no_arbitrary_code_execution_from_artifacts(self, all_workflows):
         """Verify workflows don't execute code from downloaded artifacts."""
         for workflow in all_workflows:
             jobs = workflow['content'].get('jobs', {})
             for job_name, job_config in jobs.items():
                 steps = job_config.get('steps', [])
-                
+
                 has_download_artifact = False
                 for step_idx, step in enumerate(steps):
                     if 'actions/download-artifact' in step.get('uses', ''):
                         has_download_artifact = True
-                    
+
                     # If we've downloaded artifacts, check subsequent steps
                     if has_download_artifact and 'run' in step:
                         run_command = step['run']
@@ -412,22 +414,22 @@ class TestWorkflowSupplyChainSecurity:
                             assert not re.search(pattern, run_command), \
                                 f"Potential code execution from artifact in {workflow['path']} " \
                                 f"job '{job_name}' step {step_idx}"
-    
+
     def test_no_insecure_downloads(self, all_workflows):
         """Verify no insecure HTTP downloads in workflows."""
         for workflow in all_workflows:
             raw_content = workflow['raw']
-            
+
             # Check for http:// (not https://) downloads
             insecure_downloads = re.findall(r'(curl|wget|download)\s+[^\s]*http://[^\s]+', raw_content, re.IGNORECASE)
-            
+
             assert len(insecure_downloads) == 0, \
                 f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
-    
+
     def test_pip_installs_use_hash_verification(self, all_workflows):
         """
         Ensure pip installs that reference requirements files do not use insecure HTTP package indexes.
-        
+
         Checks run steps containing both "pip install" and "requirements" and fails if the command uses an insecure --extra-index-url with an http:// URL.
         """
         for workflow in all_workflows:
@@ -437,7 +439,7 @@ class TestWorkflowSupplyChainSecurity:
                 for step_idx, step in enumerate(steps):
                     if 'run' in step:
                         run_command = step['run']
-                        
+
                         # If installing requirements file, suggest hash mode
                         if 'pip install' in run_command and 'requirements' in run_command:
                             # This is informational - hash mode is optional but recommended
@@ -449,12 +451,12 @@ class TestWorkflowSupplyChainSecurity:
 
 class TestWorkflowIsolationAndSandboxing:
     """Tests for workflow isolation and sandboxing."""
-    
+
     @pytest.fixture
     def all_workflows(self) -> List[Dict[str, Any]]:
         """
         Load and parse all GitHub Actions workflow YAML files from .github/workflows.
-        
+
         Returns:
             workflows (List[Dict[str, Any]]): A list where each item is a dictionary with:
                 - 'path' (Path): Path to the workflow file.
@@ -469,32 +471,32 @@ class TestWorkflowIsolationAndSandboxing:
                     'content': yaml.safe_load(f)
                 })
         return workflows
-    
+
     def test_pull_request_workflows_use_safe_checkout(self, all_workflows):
         """
         Ensure workflows triggered by pull_request_target explicitly specify the checkout ref.
-        
+
         When a workflow is triggered by `pull_request_target`, every `actions/checkout` step in each job must include a `with: ref` setting to avoid checking out an unintended ref.
         """
         for workflow in all_workflows:
             triggers = workflow['content'].get('on', {}) or workflow['content'].get('"on"', {})
-            
+
             # If triggered by pull_request_target, must use explicit ref
             if 'pull_request_target' in triggers:
                 jobs = workflow['content'].get('jobs', {})
                 for job_name, job_config in jobs.items():
                     steps = job_config.get('steps', [])
                     checkout_steps = [s for s in steps if 'actions/checkout' in s.get('uses', '')]
-                    
+
                     for checkout_step in checkout_steps:
                         # Must explicitly set ref for pull_request_target
                         assert 'with' in checkout_step and 'ref' in checkout_step.get('with', {}), \
                             f"pull_request_target must use explicit checkout ref in {workflow['path']} job '{job_name}'"
-    
+
     def test_workflows_dont_persist_credentials(self, all_workflows):
         """
         Ensure workflow checkout steps do not persist Git credentials.
-        
+
         Asserts that when a step uses `actions/checkout` and specifies `persist-credentials` it is set to `False`. If not, the test fails and reports the workflow path, job name, and step index.
         """
         for workflow in all_workflows:
@@ -509,11 +511,11 @@ class TestWorkflowIsolationAndSandboxing:
                             assert with_config['persist-credentials'] is False, \
                                 f"Credentials should not persist in {workflow['path']} " \
                                 f"job '{job_name}' step {step_idx}"
-    
+
     def test_container_jobs_use_trusted_images(self, all_workflows):
         """
         Ensure workflow jobs that declare a container use images from trusted registries or a small whitelist of official images.
-        
+
         Checks each workflow's jobs for a `container` field and validates that the image string is either hosted on a trusted registry (e.g., Docker Hub official namespace, GHCR, MCR) or matches a known official image name. Raises AssertionError when an untrusted container image is encountered, including the workflow path, job name, and offending image.
         """
         trusted_registries = [
@@ -521,7 +523,7 @@ class TestWorkflowIsolationAndSandboxing:
             'ghcr.io/',            # GitHub Container Registry
             'mcr.microsoft.com/',  # Microsoft Container Registry
         ]
-        
+
         for workflow in all_workflows:
             jobs = workflow['content'].get('jobs', {})
             for job_name, job_config in jobs.items():
@@ -529,11 +531,11 @@ class TestWorkflowIsolationAndSandboxing:
                     container_image = job_config['container']
                     if isinstance(container_image, dict):
                         container_image = container_image.get('image', '')
-                    
+
                     # Should use a trusted registry or official image
                     is_trusted = any(container_image.startswith(registry) for registry in trusted_registries)
                     is_official = ':' in container_image and '/' not in container_image.split(':')[0]
-                    
+
                     assert is_trusted or is_official, \
                         f"Untrusted container image in {workflow['path']} job '{job_name}': {container_image}"
 

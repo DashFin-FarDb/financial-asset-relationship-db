@@ -199,7 +199,9 @@ jobs:
             try:
                 result = validate_workflow(f.name)
                 assert result.is_valid is False
-                assert "Workflow file is empty or contains only nulls." in result.errors[0]
+                assert (
+                    "Workflow file is empty or contains only nulls." in result.errors[0]
+                )
             finally:
                 Path(f.name).unlink()
 
@@ -245,7 +247,9 @@ jobs:
 
     def test_workflow_with_unicode(self):
         """Test workflow with Unicode characters"""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".yml", delete=False, encoding="utf-8"
+        ) as f:
             f.write(
                 """
 name: "Test with emojis"
@@ -314,7 +318,10 @@ jobs:
     def test_workflow_with_many_jobs(self):
         """Test workflow with many jobs"""
         jobs = "\n".join(
-            [f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo {i}" for i in range(50)]
+            [
+                f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo {i}"
+                for i in range(50)
+            ]
         )
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
@@ -401,24 +408,38 @@ class TestIntegrationWithActualWorkflows:
 
     def test_validate_actual_pr_agent_workflow(self):
         """Test validation of actual pr-agent.yml if it exists"""
-        workflow_path = Path(__file__).parent.parent.parent / ".github" / "workflows" / "pr-agent.yml"
+        workflow_path = (
+            Path(__file__).parent.parent.parent
+            / ".github"
+            / "workflows"
+            / "pr-agent.yml"
+        )
 
         if not workflow_path.exists():
             pytest.skip("pr-agent.yml not found")
 
         result = validate_workflow(str(workflow_path))
-        assert result.is_valid is True, f"pr-agent.yml validation failed: {result.errors}"
+        assert result.is_valid is True, (
+            f"pr-agent.yml validation failed: {result.errors}"
+        )
         assert "jobs" in result.workflow_data
 
     def test_validate_actual_apisec_workflow(self):
         """Test validation of actual apisec-scan.yml if it exists"""
-        workflow_path = Path(__file__).parent.parent.parent / ".github" / "workflows" / "apisec-scan.yml"
+        workflow_path = (
+            Path(__file__).parent.parent.parent
+            / ".github"
+            / "workflows"
+            / "apisec-scan.yml"
+        )
 
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml not found")
 
         result = validate_workflow(str(workflow_path))
-        assert result.is_valid is True, f"apisec-scan.yml validation failed: {result.errors}"
+        assert result.is_valid is True, (
+            f"apisec-scan.yml validation failed: {result.errors}"
+        )
 
     def test_validate_all_project_workflows(self):
         """Test validation of all workflows in the project"""
@@ -427,7 +448,9 @@ class TestIntegrationWithActualWorkflows:
         if not workflows_dir.exists():
             pytest.skip(".github/workflows directory not found")
 
-        workflow_files = list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml"))
+        workflow_files = list(workflows_dir.glob("*.yml")) + list(
+            workflows_dir.glob("*.yaml")
+        )
 
         if not workflow_files:
             pytest.skip("No workflow files found")
@@ -761,7 +784,11 @@ class TestWorkflowValidatorSecurityScenarios:
 
     def test_workflow_with_suspicious_filenames(self):
         """Test workflow validation with suspicious filename patterns"""
-        suspicious_names = ["../../../etc/passwd.yml", "workflow;rm -rf /.yml", "workflow`whoami`.yml"]
+        suspicious_names = [
+            "../../../etc/passwd.yml",
+            "workflow;rm -rf /.yml",
+            "workflow`whoami`.yml",
+        ]
 
         for name in suspicious_names:
             # These should fail because file doesn't exist
@@ -865,7 +892,9 @@ jobs:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("name: Test\non: push\njobs:\n")
             for i in range(100):
-                f.write(f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo test\n")
+                f.write(
+                    f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo test\n"
+                )
             f.flush()
 
             try:

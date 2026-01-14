@@ -24,7 +24,9 @@ class TestContextChunkerRemoval:
     def test_context_chunker_file_does_not_exist(self):
         """context_chunker.py should no longer exist."""
         context_chunker = SCRIPTS_DIR / "context_chunker.py"
-        assert not context_chunker.exists(), "context_chunker.py should have been removed"
+        assert not context_chunker.exists(), (
+            "context_chunker.py should have been removed"
+        )
 
     def test_scripts_readme_does_not_exist(self):
         """Scripts README documenting chunker should be removed."""
@@ -37,7 +39,9 @@ class TestContextChunkerRemoval:
 
         for py_file in python_files:
             # Skip test files and cache
-            if "__pycache__" in str(py_file) or "test_context_chunker_removal" in str(py_file):
+            if "__pycache__" in str(py_file) or "test_context_chunker_removal" in str(
+                py_file
+            ):
                 continue
 
             try:
@@ -46,9 +50,12 @@ class TestContextChunkerRemoval:
 
                 # Check for imports
                 import_pattern = re.compile(
-                    r"^\s*(?:from\s+context_chunker\b|import\s+context_chunker\b)", re.MULTILINE
+                    r"^\s*(?:from\s+context_chunker\b|import\s+context_chunker\b)",
+                    re.MULTILINE,
                 )
-                assert not import_pattern.search(content), f"{py_file} imports context_chunker"
+                assert not import_pattern.search(content), (
+                    f"{py_file} imports context_chunker"
+                )
             except (IOError, OSError):
                 # Skip files that can't be read due to I/O issues
                 pass
@@ -60,15 +67,20 @@ class TestContextChunkerRemoval:
         if not WORKFLOWS_DIR.exists():
             pytest.skip("Workflows directory not found")
 
-        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(
+            WORKFLOWS_DIR.glob("*.yaml")
+        )
 
         for workflow_file in workflow_files:
             with open(workflow_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            assert "context_chunker.py" not in content, f"{workflow_file.name} references context_chunker.py"
+            assert "context_chunker.py" not in content, (
+                f"{workflow_file.name} references context_chunker.py"
+            )
             assert (
-                "context_chunker" not in content.lower() and "context chunker" not in content.lower()
+                "context_chunker" not in content.lower()
+                and "context chunker" not in content.lower()
             ), f"{workflow_file.name} may reference context chunking functionality"
 
 
@@ -87,7 +99,9 @@ class TestConfigurationCleanup:
 
         # Check that there are no dangling references to the removed script
         lower_content = content.lower()
-        assert "context_chunker" not in lower_content, "PR agent config still references context_chunker script"
+        assert "context_chunker" not in lower_content, (
+            "PR agent config still references context_chunker script"
+        )
 
     def test_pr_agent_config_version_updated(self):
         """PR agent config version should match the expected agent version."""
@@ -104,9 +118,13 @@ class TestConfigurationCleanup:
 
         config = yaml.safe_load(content)
 
-        assert "agent" in config and "version" in config["agent"], "PR agent config must define agent.version"
+        assert "agent" in config and "version" in config["agent"], (
+            "PR agent config must define agent.version"
+        )
         version = config["agent"]["version"]
-        assert version == "1.1.0", f"PR agent config version should be 1.1.0, found {version}"
+        assert version == "1.1.0", (
+            f"PR agent config version should be 1.1.0, found {version}"
+        )
 
 
 class TestWorkflowSimplification:
@@ -123,8 +141,12 @@ class TestWorkflowSimplification:
             content = f.read()
 
         # Should not have chunking-related steps
-        assert "Fetch PR Context with Chunking" not in content, "PR agent workflow still has chunking step"
-        assert "context_chunker" not in content, "PR agent workflow still references context_chunker"
+        assert "Fetch PR Context with Chunking" not in content, (
+            "PR agent workflow still has chunking step"
+        )
+        assert "context_chunker" not in content, (
+            "PR agent workflow still references context_chunker"
+        )
 
     def test_pr_agent_workflow_no_duplicate_setup(self):
         """PR agent workflow should not have duplicate setup steps."""
@@ -138,14 +160,18 @@ class TestWorkflowSimplification:
 
         # Count occurrences of "Setup Python"
         setup_python_count = content.count("name: Setup Python")
-        assert setup_python_count == 1, f"PR agent workflow has {setup_python_count} 'Setup Python' steps (should be 1)"
+        assert setup_python_count == 1, (
+            f"PR agent workflow has {setup_python_count} 'Setup Python' steps (should be 1)"
+        )
 
     def test_no_pyyaml_installation_for_chunking(self):
         """Workflows should not install PyYAML for chunking purposes."""
         if not WORKFLOWS_DIR.exists():
             pytest.skip("Workflows directory not found")
 
-        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(
+            WORKFLOWS_DIR.glob("*.yaml")
+        )
 
         for workflow_file in workflow_files:
             with open(workflow_file, "r", encoding="utf-8") as f:
@@ -153,9 +179,9 @@ class TestWorkflowSimplification:
 
             # If PyYAML is installed, it shouldn't be for context chunking
             if "pyyaml" in content.lower():
-                assert (
-                    "context chunker" not in content.lower()
-                ), f"{workflow_file.name} installs PyYAML for context chunking"
+                assert "context chunker" not in content.lower(), (
+                    f"{workflow_file.name} installs PyYAML for context chunking"
+                )
 
 
 class TestDependenciesCleanup:
@@ -172,10 +198,14 @@ class TestDependenciesCleanup:
             content = f.read()
 
         # PyYAML should be present (for other purposes)
-        assert "PyYAML" in content or "pyyaml" in content.lower(), "PyYAML should still be in requirements-dev.txt"
+        assert "PyYAML" in content or "pyyaml" in content.lower(), (
+            "PyYAML should still be in requirements-dev.txt"
+        )
 
         # tiktoken should not be present (was only for chunking)
-        assert "tiktoken" not in content.lower(), "tiktoken should be removed from requirements-dev.txt"
+        assert "tiktoken" not in content.lower(), (
+            "tiktoken should be removed from requirements-dev.txt"
+        )
 
 
 class TestDocumentationUpdates:
@@ -197,7 +227,9 @@ class TestDocumentationUpdates:
 
             # Should not have extensive chunking documentation
             chunking_mentions = content.lower().count("chunk")
-            assert chunking_mentions < 5, f"{doc_file.name} still has extensive chunking documentation"
+            assert chunking_mentions < 5, (
+                f"{doc_file.name} still has extensive chunking documentation"
+            )
 
 
 class TestNoRegressionOfFixes:
@@ -216,7 +248,10 @@ class TestNoRegressionOfFixes:
             def construct_mapping(self, node, deep=False):
                 if not isinstance(node, yaml.MappingNode):
                     raise yaml.constructor.ConstructorError(
-                        None, None, f"expected a mapping node, but found {node.id}", node.start_mark
+                        None,
+                        None,
+                        f"expected a mapping node, but found {node.id}",
+                        node.start_mark,
                     )
 
                 mapping = {}
@@ -247,7 +282,9 @@ class TestNoRegressionOfFixes:
         if not WORKFLOWS_DIR.exists():
             pytest.skip("Workflows directory not found")
 
-        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(
+            WORKFLOWS_DIR.glob("*.yaml")
+        )
 
         for workflow_file in workflow_files:
             with open(workflow_file, "r", encoding="utf-8") as f:
@@ -256,12 +293,16 @@ class TestNoRegressionOfFixes:
             for i, line in enumerate(lines, 1):
                 if line.strip() and not line.strip().startswith("#"):
                     # Check for tabs
-                    assert "\t" not in line, f"{workflow_file.name}:{i} uses tabs instead of spaces"
+                    assert "\t" not in line, (
+                        f"{workflow_file.name}:{i} uses tabs instead of spaces"
+                    )
 
                     # Check indentation
                     leading_spaces = len(line) - len(line.lstrip(" "))
                     if leading_spaces > 0:
-                        assert leading_spaces % 2 == 0, f"{workflow_file.name}:{i} has odd indentation"
+                        assert leading_spaces % 2 == 0, (
+                            f"{workflow_file.name}:{i} has odd indentation"
+                        )
 
 
 class TestCleanCodebase:
@@ -283,13 +324,17 @@ class TestCleanCodebase:
                 content = f.read()
 
             # Look for comment lines mentioning chunking
-            comment_lines = [line for line in content.split("\n") if line.strip().startswith("#")]
-            chunking_comments = [line for line in comment_lines if "chunk" in line.lower()]
+            comment_lines = [
+                line for line in content.split("\n") if line.strip().startswith("#")
+            ]
+            chunking_comments = [
+                line for line in comment_lines if "chunk" in line.lower()
+            ]
 
             # Should have minimal or no chunking comments
-            assert (
-                len(chunking_comments) == 0
-            ), f"{file_path.name} has {len(chunking_comments)} comment(s) about chunking"
+            assert len(chunking_comments) == 0, (
+                f"{file_path.name} has {len(chunking_comments)} comment(s) about chunking"
+            )
 
     def test_labeler_yml_removed(self):
         """labeler.yml should be removed."""
@@ -306,7 +351,9 @@ class TestCleanCodebase:
                 content = f.read()
 
             # Should not have the credential check step
-            assert "Check for APIsec credentials" not in content, "apisec-scan workflow still has credential check"
+            assert "Check for APIsec credentials" not in content, (
+                "apisec-scan workflow still has credential check"
+            )
 
         # Check that label workflow is simplified
         label_workflow = WORKFLOWS_DIR / "label.yml"
@@ -316,7 +363,9 @@ class TestCleanCodebase:
                 content = f.read()
 
             # Should not have config check steps
-            assert "Check for labeler config" not in content, "label workflow still has config check"
+            assert "Check for labeler config" not in content, (
+                "label workflow still has config check"
+            )
 
 
 if __name__ == "__main__":

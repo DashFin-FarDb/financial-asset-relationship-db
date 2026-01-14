@@ -42,7 +42,9 @@ class TestYAMLSyntaxAndStructure:
 
     def test_yaml_files_use_consistent_indentation(self):
         """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(
+            Path(".github").rglob("*.yaml")
+        )
         indentation_errors = []
 
         for yaml_file in yaml_files:
@@ -82,7 +84,9 @@ class TestYAMLSyntaxAndStructure:
                     continue
 
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |"):
+                if line[0] == " " and not line.startswith(
+                    "  " * (leading_spaces // 2 + 1) + "- |"
+                ):
                     if leading_spaces % 2 != 0:
                         indentation_errors.append(
                             f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
@@ -90,7 +94,9 @@ class TestYAMLSyntaxAndStructure:
 
             # Reset flags per file (handled by reinitialization each loop)
 
-        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
+            indentation_errors
+        )
 
     def test_no_duplicate_keys_in_yaml(self):
         """
@@ -101,9 +107,13 @@ class TestYAMLSyntaxAndStructure:
         try:
             from ruamel.yaml import YAML
         except ImportError:
-            pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
+            pytest.skip(
+                "ruamel.yaml not installed; skip strict duplicate key detection"
+            )
 
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(
+            Path(".github").rglob("*.yaml")
+        )
         parser = YAML(typ="safe")
         parse_errors = []
 
@@ -114,7 +124,9 @@ class TestYAMLSyntaxAndStructure:
             except Exception as e:
                 parse_errors.append(f"{yaml_file}: {e}")
 
-        assert not parse_errors, "Duplicate keys or YAML errors detected:\n" + "\n".join(parse_errors)
+        assert not parse_errors, (
+            "Duplicate keys or YAML errors detected:\n" + "\n".join(parse_errors)
+        )
 
 
 class TestWorkflowSchemaCompliance:
@@ -143,19 +155,25 @@ class TestWorkflowSchemaCompliance:
 
         for workflow in all_workflows:
             for key in required_keys:
-                assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
+                assert key in workflow["content"], (
+                    f"Workflow {workflow['path']} missing required key: {key}"
+                )
 
     def test_workflow_triggers_valid_format(self, all_workflows):
         """Verify workflow triggers use valid format."""
         for workflow in all_workflows:
             # Check for 'on' or '"on"' key
             has_trigger = "on" in workflow["content"]
-            assert has_trigger, f"Workflow {workflow['path']} missing trigger ('on' key)"
+            assert has_trigger, (
+                f"Workflow {workflow['path']} missing trigger ('on' key)"
+            )
 
             triggers = workflow["content"].get("on") or workflow["content"].get('"on"')
 
             # Triggers can be: string, list, or dict
-            assert isinstance(triggers, (str, list, dict)), f"Workflow {workflow['path']} has invalid trigger format"
+            assert isinstance(triggers, (str, list, dict)), (
+                f"Workflow {workflow['path']} has invalid trigger format"
+            )
 
     def test_job_definitions_valid(self, all_workflows):
         """
@@ -179,13 +197,15 @@ class TestWorkflowSchemaCompliance:
                 has_runs_on = "runs-on" in job_config
                 has_uses = "uses" in job_config  # For reusable workflows
 
-                assert has_runs_on or has_uses, f"Job '{job_id}' in {workflow['path']} missing 'runs-on' or 'uses'"
+                assert has_runs_on or has_uses, (
+                    f"Job '{job_id}' in {workflow['path']} missing 'runs-on' or 'uses'"
+                )
 
                 # If has steps, must be a list
                 if "steps" in job_config:
-                    assert isinstance(
-                        job_config["steps"], list
-                    ), f"Job '{job_id}' steps must be a list in {workflow['path']}"
+                    assert isinstance(job_config["steps"], list), (
+                        f"Job '{job_id}' steps must be a list in {workflow['path']}"
+                    )
 
     def test_step_definitions_valid(self, all_workflows):
         """
@@ -208,12 +228,14 @@ class TestWorkflowSchemaCompliance:
                     has_run = "run" in step
 
                     assert has_uses or has_run, (
-                        f"Step {step_idx} in job '{job_id}' of {workflow['path']} " f"must have 'uses' or 'run'"
+                        f"Step {step_idx} in job '{job_id}' of {workflow['path']} "
+                        f"must have 'uses' or 'run'"
                     )
 
                     # Steps should not have both uses and run
                     assert not (has_uses and has_run), (
-                        f"Step {step_idx} in job '{job_id}' of {workflow['path']} " f"cannot have both 'uses' and 'run'"
+                        f"Step {step_idx} in job '{job_id}' of {workflow['path']} "
+                        f"cannot have both 'uses' and 'run'"
                     )
 
 
@@ -274,7 +296,9 @@ class TestConfigurationEdgeCases:
         if "version" in agent_config:
             version = agent_config["version"]
             # Should match semver pattern: X.Y.Z
-            assert re.match(r"^\d+\.\d+\.\d+$", version), f"Version should follow semver (X.Y.Z): {version}"
+            assert re.match(r"^\d+\.\d+\.\d+$", version), (
+                f"Version should follow semver (X.Y.Z): {version}"
+            )
 
     def test_empty_or_null_values_handled(self):
         """
@@ -306,7 +330,9 @@ class TestConfigurationEdgeCases:
                         # Critical keys should not be null
                         critical_keys = ["name", "runs-on", "uses", "run"]
                         if key in critical_keys:
-                            assert value is not None, f"Critical key '{current_path}' is null in {yaml_file}"
+                            assert value is not None, (
+                                f"Critical key '{current_path}' is null in {yaml_file}"
+                            )
 
                         check_nulls(value, current_path)
                 elif isinstance(obj, list):
@@ -340,7 +366,9 @@ class TestConfigurationConsistency:
         # All should use same Python version
         if python_versions:
             unique_versions = set(python_versions.values())
-            assert len(unique_versions) == 1, f"Inconsistent Python versions across workflows: {python_versions}"
+            assert len(unique_versions) == 1, (
+                f"Inconsistent Python versions across workflows: {python_versions}"
+            )
 
     def test_node_version_consistent_across_workflows(self):
         """Verify Node.js version is consistent across all workflows."""
@@ -363,7 +391,9 @@ class TestConfigurationConsistency:
         # All should use same Node version
         if node_versions:
             unique_versions = set(node_versions.values())
-            assert len(unique_versions) == 1, f"Inconsistent Node versions across workflows: {node_versions}"
+            assert len(unique_versions) == 1, (
+                f"Inconsistent Node versions across workflows: {node_versions}"
+            )
 
     def test_checkout_action_version_consistent(self):
         """
@@ -393,7 +423,9 @@ class TestConfigurationConsistency:
         if checkout_versions:
             unique_versions = set(checkout_versions.values())
             # Allow v3 and v4, but should be mostly consistent
-            assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
+            assert len(unique_versions) <= 2, (
+                f"Too many different checkout versions: {checkout_versions}"
+            )
 
 
 class TestDefaultValueHandling:
@@ -432,8 +464,12 @@ class TestDefaultValueHandling:
             for job_id, job_config in jobs.items():
                 if "timeout-minutes" in job_config:
                     timeout = job_config["timeout-minutes"]
-                    assert isinstance(timeout, int), f"Timeout should be integer in {workflow_file} job '{job_id}'"
-                    assert 1 <= timeout <= 360, f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    assert isinstance(timeout, int), (
+                        f"Timeout should be integer in {workflow_file} job '{job_id}'"
+                    )
+                    assert 1 <= timeout <= 360, (
+                        f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    )
 
 
 if __name__ == "__main__":

@@ -59,7 +59,9 @@ class TestPRAgentConfigStructure:
     def test_config_has_monitoring_section(self, config):
         """Configuration should have a 'monitoring' section."""
         assert "monitoring" in config, "Missing 'monitoring' section"
-        assert isinstance(config["monitoring"], dict), "'monitoring' should be a dictionary"
+        assert isinstance(config["monitoring"], dict), (
+            "'monitoring' should be a dictionary"
+        )
 
 
 class TestPRAgentSettings:
@@ -81,7 +83,9 @@ class TestPRAgentSettings:
         import re
 
         semver_pattern = r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?$"
-        assert re.match(semver_pattern, version), f"Version '{version}' should follow semantic versioning (X.Y.Z)"
+        assert re.match(semver_pattern, version), (
+            f"Version '{version}' should follow semantic versioning (X.Y.Z)"
+        )
 
     def test_agent_enabled_is_boolean(self, config):
         """Agent enabled flag should be a boolean."""
@@ -93,8 +97,12 @@ class TestPRAgentSettings:
         check_interval = config.get("monitoring", {}).get("check_interval")
 
         if check_interval is not None:
-            assert isinstance(check_interval, int), "check_interval should be an integer"
-            assert 60 <= check_interval <= 3600, "check_interval should be between 60s (1 min) and 3600s (1 hour)"
+            assert isinstance(check_interval, int), (
+                "check_interval should be an integer"
+            )
+            assert 60 <= check_interval <= 3600, (
+                "check_interval should be between 60s (1 min) and 3600s (1 hour)"
+            )
 
 
 class TestAutoResponseSettings:
@@ -103,17 +111,27 @@ class TestAutoResponseSettings:
     def test_auto_response_section_exists(self, config):
         """Auto-response section should exist if configured."""
         if "auto_response" in config:
-            assert isinstance(config["auto_response"], dict), "'auto_response' should be a dictionary"
+            assert isinstance(config["auto_response"], dict), (
+                "'auto_response' should be a dictionary"
+            )
 
     def test_enabled_events_are_valid(self, config):
         """Enabled events should be valid GitHub event types."""
         auto_response = config.get("auto_response", {})
         enabled_events = auto_response.get("enabled_events", [])
 
-        valid_events = {"pull_request_review", "pull_request", "issue_comment", "push", "pull_request_review_comment"}
+        valid_events = {
+            "pull_request_review",
+            "pull_request",
+            "issue_comment",
+            "push",
+            "pull_request_review_comment",
+        }
 
         for event in enabled_events:
-            assert event in valid_events, f"Invalid event type '{event}'. Must be one of {valid_events}"
+            assert event in valid_events, (
+                f"Invalid event type '{event}'. Must be one of {valid_events}"
+            )
 
     def test_triggers_are_valid_regex(self, config):
         """Trigger patterns should be valid regular expressions."""
@@ -142,7 +160,9 @@ class TestActionsConfiguration:
 
         for action_name, action_config in actions.items():
             assert isinstance(action_name, str), "Action name should be a string"
-            assert isinstance(action_config, dict), f"Action '{action_name}' config should be a dictionary"
+            assert isinstance(action_config, dict), (
+                f"Action '{action_name}' config should be a dictionary"
+            )
 
     def test_action_enabled_flags(self, config):
         """Action enabled flags should be booleans."""
@@ -150,7 +170,9 @@ class TestActionsConfiguration:
 
         for action_name, action_config in actions.items():
             if "enabled" in action_config:
-                assert isinstance(action_config["enabled"], bool), f"Action '{action_name}' enabled should be a boolean"
+                assert isinstance(action_config["enabled"], bool), (
+                    f"Action '{action_name}' enabled should be a boolean"
+                )
 
     def test_action_commands_are_strings(self, config):
         """Action commands should be non-empty strings."""
@@ -159,8 +181,12 @@ class TestActionsConfiguration:
         for action_name, action_config in actions.items():
             if "command" in action_config:
                 command = action_config["command"]
-                assert isinstance(command, str), f"Action '{action_name}' command should be a string"
-                assert len(command) > 0, f"Action '{action_name}' command should not be empty"
+                assert isinstance(command, str), (
+                    f"Action '{action_name}' command should be a string"
+                )
+                assert len(command) > 0, (
+                    f"Action '{action_name}' command should not be empty"
+                )
 
 
 class TestCodeReviewSettings:
@@ -183,7 +209,9 @@ class TestCodeReviewSettings:
             valid_levels = {"low", "medium", "high", "critical"}
 
             for level in levels:
-                assert level in valid_levels, f"Invalid review level '{level}'. Must be one of {valid_levels}"
+                assert level in valid_levels, (
+                    f"Invalid review level '{level}'. Must be one of {valid_levels}"
+                )
 
     def test_file_patterns_are_valid_glob(self, config):
         """File patterns should be valid glob patterns."""
@@ -211,16 +239,24 @@ class TestLimitsConfiguration:
         max_concurrent = config.get("limits", {}).get("max_concurrent_prs")
 
         if max_concurrent is not None:
-            assert isinstance(max_concurrent, int), "max_concurrent_prs should be an integer"
-            assert 1 <= max_concurrent <= 100, "max_concurrent_prs should be between 1 and 100"
+            assert isinstance(max_concurrent, int), (
+                "max_concurrent_prs should be an integer"
+            )
+            assert 1 <= max_concurrent <= 100, (
+                "max_concurrent_prs should be between 1 and 100"
+            )
 
     def test_rate_limit_requests_reasonable(self, config):
         """Rate limit for requests should be reasonable."""
         rate_limit = config.get("limits", {}).get("rate_limit_requests")
 
         if rate_limit is not None:
-            assert isinstance(rate_limit, int), "rate_limit_requests should be an integer"
-            assert 10 <= rate_limit <= 1000, "rate_limit_requests should be between 10 and 1000 per hour"
+            assert isinstance(rate_limit, int), (
+                "rate_limit_requests should be an integer"
+            )
+            assert 10 <= rate_limit <= 1000, (
+                "rate_limit_requests should be between 10 and 1000 per hour"
+            )
 
 
 class TestSecuritySettings:
@@ -242,7 +278,9 @@ class TestSecuritySettings:
 
         for pattern in secret_patterns:
             matches = re.findall(pattern, config_str, re.IGNORECASE)
-            assert len(matches) == 0, f"Potential hardcoded secret found matching pattern: {pattern}"
+            assert len(matches) == 0, (
+                f"Potential hardcoded secret found matching pattern: {pattern}"
+            )
 
     def test_no_sensitive_paths(self, config):
         """Configuration should not reference sensitive file paths."""
@@ -256,7 +294,9 @@ class TestSecuritySettings:
         ]
 
         for pattern in sensitive_patterns:
-            assert pattern not in config_str, f"Sensitive path pattern '{pattern}' found in configuration"
+            assert pattern not in config_str, (
+                f"Sensitive path pattern '{pattern}' found in configuration"
+            )
 
     def test_secure_defaults(self, config):
         """Security-sensitive options should have secure defaults."""
@@ -265,7 +305,9 @@ class TestSecuritySettings:
         if "enabled" in debug:
             # In production, debug should typically be false
             # But we'll just check it's a boolean
-            assert isinstance(debug["enabled"], bool), "debug.enabled should be a boolean"
+            assert isinstance(debug["enabled"], bool), (
+                "debug.enabled should be a boolean"
+            )
 
 
 class TestNotificationSettings:
@@ -277,10 +319,18 @@ class TestNotificationSettings:
 
         if "channels" in notifications:
             channels = notifications["channels"]
-            valid_channels = {"github_comment", "github_status", "slack", "email", "webhook"}
+            valid_channels = {
+                "github_comment",
+                "github_status",
+                "slack",
+                "email",
+                "webhook",
+            }
 
             for channel in channels:
-                assert channel in valid_channels, f"Invalid notification channel '{channel}'"
+                assert channel in valid_channels, (
+                    f"Invalid notification channel '{channel}'"
+                )
 
     def test_notification_on_events_valid(self, config):
         """Notification events should be valid."""
@@ -314,14 +364,18 @@ class TestDebugConfiguration:
             log_level = debug["log_level"]
             valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
 
-            assert log_level.upper() in valid_levels, f"Invalid log level '{log_level}'. Must be one of {valid_levels}"
+            assert log_level.upper() in valid_levels, (
+                f"Invalid log level '{log_level}'. Must be one of {valid_levels}"
+            )
 
     def test_verbose_mode_is_boolean(self, config):
         """Verbose mode should be a boolean if specified."""
         debug = config.get("debug", {})
 
         if "verbose" in debug:
-            assert isinstance(debug["verbose"], bool), "debug.verbose should be a boolean"
+            assert isinstance(debug["verbose"], bool), (
+                "debug.verbose should be a boolean"
+            )
 
 
 class TestConfigurationConsistency:
@@ -339,7 +393,10 @@ class TestConfigurationConsistency:
         def _construct_mapping(loader, node, deep=False):
             if not isinstance(node, yaml.MappingNode):
                 raise yaml.constructor.ConstructorError(
-                    None, None, f"expected a mapping node, but found {node.id}", node.start_mark
+                    None,
+                    None,
+                    f"expected a mapping node, but found {node.id}",
+                    node.start_mark,
                 )
 
             mapping = {}
@@ -370,7 +427,9 @@ class TestConfigurationConsistency:
     def test_all_sections_are_dictionaries(self, config):
         """Top-level sections should all be dictionaries."""
         for key, value in config.items():
-            if value is not None and not isinstance(value, (dict, list, str, int, bool, float)):
+            if value is not None and not isinstance(
+                value, (dict, list, str, int, bool, float)
+            ):
                 pytest.fail(f"Section '{key}' has unexpected type: {type(value)}")
 
     def test_config_is_not_empty(self, config):
@@ -385,7 +444,9 @@ class TestBestPractices:
     def test_has_version_field(self, config):
         """Configuration should have version information for tracking."""
         agent = config.get("agent", {})
-        assert "version" in agent, "Configuration should include version for tracking changes"
+        assert "version" in agent, (
+            "Configuration should include version for tracking changes"
+        )
 
     def test_has_monitoring_enabled(self, config):
         """Monitoring should be configured for production use."""
@@ -400,7 +461,9 @@ class TestBestPractices:
         if "check_interval" in monitoring:
             interval = monitoring["check_interval"]
             # Should check at least once an hour, but not more than once a minute
-            assert 60 <= interval <= 3600, "check_interval should be between 1 minute and 1 hour"
+            assert 60 <= interval <= 3600, (
+                "check_interval should be between 1 minute and 1 hour"
+            )
 
     def test_config_is_documented(self):
         """Configuration file should have comments explaining sections."""
@@ -411,12 +474,16 @@ class TestBestPractices:
         assert "#" in content, "Configuration should include comments for documentation"
 
         # Count comment lines
-        comment_lines = [line for line in content.split("\n") if line.strip().startswith("#")]
+        comment_lines = [
+            line for line in content.split("\n") if line.strip().startswith("#")
+        ]
         total_lines = len([line for line in content.split("\n") if line.strip()])
 
         # At least 10% of lines should be comments
         comment_ratio = len(comment_lines) / max(total_lines, 1)
-        assert comment_ratio >= 0.05, f"Configuration should have adequate comments (found {comment_ratio:.1%})"
+        assert comment_ratio >= 0.05, (
+            f"Configuration should have adequate comments (found {comment_ratio:.1%})"
+        )
 
 
 class TestEdgeCases:
@@ -427,16 +494,22 @@ class TestEdgeCases:
         # If a section exists but is empty, it should be a dict or list
         for key, value in config.items():
             if value == {}:
-                assert isinstance(value, dict), f"Empty section '{key}' should be a dictionary"
+                assert isinstance(value, dict), (
+                    f"Empty section '{key}' should be a dictionary"
+                )
             elif value == []:
-                assert isinstance(value, list), f"Empty section '{key}' should be a list"
+                assert isinstance(value, list), (
+                    f"Empty section '{key}' should be a list"
+                )
 
     def test_no_excessively_long_values(self, config):
         """Configuration values should not be excessively long."""
 
         def check_length(obj, path=""):
             if isinstance(obj, str):
-                assert len(obj) <= 10000, f"String at '{path}' is excessively long ({len(obj)} chars)"
+                assert len(obj) <= 10000, (
+                    f"String at '{path}' is excessively long ({len(obj)} chars)"
+                )
             elif isinstance(obj, dict):
                 for k, v in obj.items():
                     check_length(v, f"{path}.{k}" if path else k)

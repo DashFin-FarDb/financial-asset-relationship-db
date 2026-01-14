@@ -35,19 +35,32 @@ class TestWorkflowRequirementsConsistency:
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#"):
-                        pkg_name = line.split("==")[0].split(">=")[0].split("[")[0].strip().lower()
+                        pkg_name = (
+                            line.split("==")[0]
+                            .split(">=")[0]
+                            .split("[")[0]
+                            .strip()
+                            .lower()
+                        )
                         packages.add(pkg_name)
         except FileNotFoundError:
             pytest.fail(f"requirements-dev.txt not found at {req_path}")
         except Exception as e:
-            pytest.fail(f"Failed to read or parse requirements-dev.txt at {req_path}: {e}")
+            pytest.fail(
+                f"Failed to read or parse requirements-dev.txt at {req_path}: {e}"
+            )
 
         return packages
 
     @pytest.fixture
     def pr_agent_workflow(self) -> Dict[str, Any]:
         """Load PR agent workflow."""
-        workflow_path = Path(__file__).parent.parent.parent / ".github" / "workflows" / "pr-agent.yml"
+        workflow_path = (
+            Path(__file__).parent.parent.parent
+            / ".github"
+            / "workflows"
+            / "pr-agent.yml"
+        )
         try:
             with open(workflow_path, "r") as f:
                 return yaml.safe_load(f)
@@ -63,17 +76,23 @@ class TestWorkflowRequirementsConsistency:
 
     def test_tiktoken_removed_from_requirements(self, requirements_dev: Set[str]):
         """Test that tiktoken has been removed as part of simplification."""
-        assert (
-            "tiktoken" not in requirements_dev
-        ), "tiktoken should be removed from requirements as part of simplification"
+        assert "tiktoken" not in requirements_dev, (
+            "tiktoken should be removed from requirements as part of simplification"
+        )
 
-    def test_pr_agent_workflow_doesnt_install_tiktoken(self, pr_agent_workflow: Dict[str, Any]):
+    def test_pr_agent_workflow_doesnt_install_tiktoken(
+        self, pr_agent_workflow: Dict[str, Any]
+    ):
         """Test that PR agent workflow no longer tries to install tiktoken."""
         workflow_str = str(pr_agent_workflow).lower()
 
-        assert "tiktoken" not in workflow_str, "PR agent workflow should not reference tiktoken after simplification"
+        assert "tiktoken" not in workflow_str, (
+            "PR agent workflow should not reference tiktoken after simplification"
+        )
 
-    def test_workflow_python_version_consistency(self, pr_agent_workflow: Dict[str, Any]):
+    def test_workflow_python_version_consistency(
+        self, pr_agent_workflow: Dict[str, Any]
+    ):
         """Test that Python version in workflow is consistent."""
         jobs = pr_agent_workflow.get("jobs", {})
         for job_name, job_config in jobs.items():
@@ -87,11 +106,13 @@ class TestWorkflowRequirementsConsistency:
 
             # All Python versions in a job should match
             if len(python_versions) > 1:
-                assert (
-                    len(set(python_versions)) == 1
-                ), f"Job '{job_name}' has inconsistent Python versions: {python_versions}"
+                assert len(set(python_versions)) == 1, (
+                    f"Job '{job_name}' has inconsistent Python versions: {python_versions}"
+                )
 
-    def test_workflow_installs_python_dependencies(self, pr_agent_workflow: Dict[str, Any]):
+    def test_workflow_installs_python_dependencies(
+        self, pr_agent_workflow: Dict[str, Any]
+    ):
         """Test that workflow installs Python dependencies correctly.
 
         Allows exceptions for jobs that intentionally do not install dependencies.
@@ -118,7 +139,9 @@ class TestWorkflowRequirementsConsistency:
 
             # If Python is setup, dependencies should be installed unless explicitly allowed
             if has_python_setup and job_name not in allowed_without_deps:
-                assert has_dep_install, f"Job '{job_name}' sets up Python but doesn't install dependencies"
+                assert has_dep_install, (
+                    f"Job '{job_name}' sets up Python but doesn't install dependencies"
+                )
 
 
 class TestSimplificationConsistency:
@@ -126,43 +149,63 @@ class TestSimplificationConsistency:
 
     def test_no_context_chunker_script_references(self):
         """Test that references to deleted context_chunker.py are removed."""
-        pr_agent_path = Path(__file__).parent.parent.parent / ".github" / "workflows" / "pr-agent.yml"
+        pr_agent_path = (
+            Path(__file__).parent.parent.parent
+            / ".github"
+            / "workflows"
+            / "pr-agent.yml"
+        )
 
         with open(pr_agent_path, "r") as f:
             content = f.read()
 
-        assert "context_chunker.py" not in content, "PR agent workflow should not reference deleted context_chunker.py"
+        assert "context_chunker.py" not in content, (
+            "PR agent workflow should not reference deleted context_chunker.py"
+        )
 
     def test_simplified_greetings_messages(self):
         """Test that greetings workflow has simplified messages."""
-        greetings_path = Path(__file__).parent.parent.parent / ".github" / "workflows" / "greetings.yml"
+        greetings_path = (
+            Path(__file__).parent.parent.parent
+            / ".github"
+            / "workflows"
+            / "greetings.yml"
+        )
 
         with open(greetings_path, "r") as f:
             data = yaml.safe_load(f)
 
         jobs = data.get("jobs") or {}
-        assert isinstance(jobs, dict) and jobs, "greetings.yml is missing 'jobs' section"
+        assert isinstance(jobs, dict) and jobs, (
+            "greetings.yml is missing 'jobs' section"
+        )
 
         greeting_job = jobs.get("greeting") or {}
-        assert isinstance(greeting_job, dict) and greeting_job, "greetings.yml is missing 'jobs.greeting' section"
+        assert isinstance(greeting_job, dict) and greeting_job, (
+            "greetings.yml is missing 'jobs.greeting' section"
+        )
 
         steps = greeting_job.get("steps") or []
-        assert isinstance(steps, list) and steps, "greetings.yml 'jobs.greeting.steps' is missing or empty"
+        assert isinstance(steps, list) and steps, (
+            "greetings.yml 'jobs.greeting.steps' is missing or empty"
+        )
 
         for step in steps:
             if "uses" in step and "first-interaction" in step.get("uses", ""):
                 with_section = step.get("with") or {}
-                assert (
-                    isinstance(with_section, dict) and with_section
-                ), "first-interaction step is missing 'with' section"
+                assert isinstance(with_section, dict) and with_section, (
+                    "first-interaction step is missing 'with' section"
+                )
 
                 issue_msg = with_section.get("issue-message")
                 pr_msg = with_section.get("pr-message")
 
-                assert (
-                    isinstance(issue_msg, str) and issue_msg
-                ), "first-interaction 'issue-message' is missing or not a string"
-                assert isinstance(pr_msg, str) and pr_msg, "first-interaction 'pr-message' is missing or not a string"
+                assert isinstance(issue_msg, str) and issue_msg, (
+                    "first-interaction 'issue-message' is missing or not a string"
+                )
+                assert isinstance(pr_msg, str) and pr_msg, (
+                    "first-interaction 'pr-message' is missing or not a string"
+                )
 
                 # Messages should be simplified (not multi-paragraph)
                 assert len(issue_msg) < 200, "Issue message should be simplified"

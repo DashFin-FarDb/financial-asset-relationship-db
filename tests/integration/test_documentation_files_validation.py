@@ -41,7 +41,11 @@ class TestDocumentationFilesValidation:
         Returns:
             List[Path]: List of markdown file paths found directly under `doc_root`, excluding `README.md` and `LICENSE.md`.
         """
-        return [f for f in doc_root.glob("*.md") if f.name not in ["README.md", "LICENSE.md"]]
+        return [
+            f
+            for f in doc_root.glob("*.md")
+            if f.name not in ["README.md", "LICENSE.md"]
+        ]
 
     def test_all_markdown_files_exist(self, markdown_files: List[Path]):
         """Verify that markdown files exist and are readable."""
@@ -61,7 +65,9 @@ class TestDocumentationFilesValidation:
         for md_file in markdown_files:
             content = md_file.read_text(encoding="utf-8")
             assert len(content.strip()) > 0, f"File {md_file.name} is empty"
-            assert len(content) > 100, f"File {md_file.name} is suspiciously short ({len(content)} chars)"
+            assert len(content) > 100, (
+                f"File {md_file.name} is suspiciously short ({len(content)} chars)"
+            )
 
     def test_markdown_has_proper_headings(self, markdown_files: List[Path]):
         """
@@ -86,7 +92,9 @@ class TestDocumentationFilesValidation:
             # First heading should be level 1 (# Title)
             if headings:
                 first_level = len(headings[0][0])
-                assert first_level == 1, f"File {md_file.name} first heading is not level 1"
+                assert first_level == 1, (
+                    f"File {md_file.name} first heading is not level 1"
+                )
 
     def test_code_blocks_have_language_identifiers(self, markdown_files: List[Path]):
         """
@@ -104,9 +112,9 @@ class TestDocumentationFilesValidation:
             if code_blocks:
                 empty_blocks = [i for i, lang in enumerate(code_blocks) if not lang]
                 # Allow some blocks without language (like plain text examples)
-                assert (
-                    len(empty_blocks) < len(code_blocks) * 0.5
-                ), f"File {md_file.name} has too many code blocks without language identifiers"
+                assert len(empty_blocks) < len(code_blocks) * 0.5, (
+                    f"File {md_file.name} has too many code blocks without language identifiers"
+                )
 
     def test_markdown_tables_are_properly_formatted(self, markdown_files: List[Path]):
         """Verify that markdown tables have consistent column counts."""
@@ -132,7 +140,7 @@ class TestDocumentationFilesValidation:
                             continue
 
                         assert columns == table_column_count, (
-                            f"File {md_file.name} line {i+1}: inconsistent table columns "
+                            f"File {md_file.name} line {i + 1}: inconsistent table columns "
                             f"(expected {table_column_count}, got {columns})"
                         )
                 else:
@@ -159,12 +167,18 @@ class TestDocumentationFilesValidation:
                 # For internal file links, verify the file exists
                 target_path = (md_file.parent / link_url).resolve()
                 # Allow links to common files that might exist
-                if target_path.name in ["LICENSE", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md"]:
+                if target_path.name in [
+                    "LICENSE",
+                    "CONTRIBUTING.md",
+                    "CODE_OF_CONDUCT.md",
+                ]:
                     continue
 
                 # If it's a .md file, it should exist
                 if link_url.endswith(".md"):
-                    assert target_path.exists(), f"File {md_file.name} links to non-existent file: {link_url}"
+                    assert target_path.exists(), (
+                        f"File {md_file.name} links to non-existent file: {link_url}"
+                    )
 
     def test_no_trailing_whitespace(self, markdown_files: List[Path]):
         """
@@ -186,7 +200,9 @@ class TestDocumentationFilesValidation:
                     bad_lines.append(i)
 
             # Allow a small number of trailing whitespace issues
-            assert len(bad_lines) < 5, f"File {md_file.name} has trailing whitespace on lines: {bad_lines[:10]}"
+            assert len(bad_lines) < 5, (
+                f"File {md_file.name} has trailing whitespace on lines: {bad_lines[:10]}"
+            )
 
     def test_test_summary_files_have_required_sections(self, doc_root: Path):
         """
@@ -207,7 +223,9 @@ class TestDocumentationFilesValidation:
 
             # Should contain at least 2 of the required keywords
             found_keywords = sum(1 for kw in required_keywords if kw in content)
-            assert found_keywords >= 2, f"File {summary_file.name} doesn't appear to be a proper test summary"
+            assert found_keywords >= 2, (
+                f"File {summary_file.name} doesn't appear to be a proper test summary"
+            )
 
     def test_test_reference_files_have_examples(self, doc_root: Path):
         """
@@ -224,11 +242,14 @@ class TestDocumentationFilesValidation:
             content = ref_file.read_text(encoding="utf-8")
 
             # Should contain code blocks
-            assert "```" in content, f"Reference file {ref_file.name} should contain code examples"
+            assert "```" in content, (
+                f"Reference file {ref_file.name} should contain code examples"
+            )
 
             # Should contain commands or usage examples
             assert any(
-                keyword in content.lower() for keyword in ["pytest", "npm test", "run", "command"]
+                keyword in content.lower()
+                for keyword in ["pytest", "npm test", "run", "command"]
             ), f"Reference file {ref_file.name} should contain usage examples"
 
 
@@ -246,7 +267,9 @@ class TestMarkdownContentQuality:
         doc_root = Path(__file__).parent.parent.parent
         return list(doc_root.glob("TEST_GENERATION*.md"))
 
-    def test_test_generation_files_have_statistics(self, test_generation_files: List[Path]):
+    def test_test_generation_files_have_statistics(
+        self, test_generation_files: List[Path]
+    ):
         """
         Require that each TEST_GENERATION*.md file contains at least three statistics-related keywords.
 
@@ -262,7 +285,9 @@ class TestMarkdownContentQuality:
 
             # Should contain at least 3 statistics-related keywords
             found_stats = sum(1 for kw in stats_keywords if kw in content)
-            assert found_stats >= 3, f"File {gen_file.name} should contain test statistics"
+            assert found_stats >= 3, (
+                f"File {gen_file.name} should contain test statistics"
+            )
 
     def test_comprehensive_files_are_actually_comprehensive(self):
         """
@@ -277,13 +302,15 @@ class TestMarkdownContentQuality:
             content = comp_file.read_text(encoding="utf-8")
 
             # Comprehensive files should be substantial (> 5KB)
-            assert (
-                len(content) > 5000
-            ), f"File {comp_file.name} marked as comprehensive but is only {len(content)} chars"
+            assert len(content) > 5000, (
+                f"File {comp_file.name} marked as comprehensive but is only {len(content)} chars"
+            )
 
             # Should have multiple major sections (## headings)
             major_sections = len(re.findall(r"^##\s+", content, re.MULTILINE))
-            assert major_sections >= 5, f"File {comp_file.name} should have at least 5 major sections"
+            assert major_sections >= 5, (
+                f"File {comp_file.name} should have at least 5 major sections"
+            )
 
     def test_quick_reference_files_are_concise(self):
         """Verify quick reference files are actually quick/concise."""
@@ -294,10 +321,14 @@ class TestMarkdownContentQuality:
             content = quick_file.read_text(encoding="utf-8")
 
             # Quick reference should be concise (< 10KB)
-            assert len(content) < 10000, f"File {quick_file.name} marked as quick reference but is {len(content)} chars"
+            assert len(content) < 10000, (
+                f"File {quick_file.name} marked as quick reference but is {len(content)} chars"
+            )
 
             # Should have code examples (practical reference)
-            assert "```" in content, f"Quick reference {quick_file.name} should have code examples"
+            assert "```" in content, (
+                f"Quick reference {quick_file.name} should have code examples"
+            )
 
 
 class TestDocumentationConsistency:
@@ -351,4 +382,6 @@ class TestDocumentationConsistency:
                 full_path = doc_root / test_path
 
                 # File should exist
-                assert full_path.exists(), f"Summary {summary.name} references non-existent test: {test_path}"
+                assert full_path.exists(), (
+                    f"Summary {summary.name} references non-existent test: {test_path}"
+                )

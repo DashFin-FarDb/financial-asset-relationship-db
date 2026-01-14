@@ -34,7 +34,10 @@ class TestRequirementsDevChanges:
 
         Performs a case-insensitive check of the provided requirements content to ensure PyYAML is present.
         """
-        assert "pyyaml" in requirements_dev_content.lower() or "PyYAML" in requirements_dev_content
+        assert (
+            "pyyaml" in requirements_dev_content.lower()
+            or "PyYAML" in requirements_dev_content
+        )
 
     def test_pyyaml_has_version_specifier(self, requirements_dev_content):
         """
@@ -47,19 +50,34 @@ class TestRequirementsDevChanges:
         """
         lines = requirements_dev_content.split("\n")
         # Ignore commented lines so we don't pick up commented-out examples
-        pyyaml_line = next((l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")), None)
+        pyyaml_line = next(
+            (
+                l
+                for l in lines
+                if "pyyaml" in l.lower() and not l.strip().startswith("#")
+            ),
+            None,
+        )
 
         assert pyyaml_line is not None
         # Find all non-comment lines containing 'pyyaml'
-        pyyaml_lines = [l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")]
+        pyyaml_lines = [
+            l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")
+        ]
         # Assert exactly one active PyYAML requirement exists
-        assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
+        assert len(pyyaml_lines) == 1, (
+            f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
+        )
         pyyaml_line = pyyaml_lines[0]
         # Strip inline comments and whitespace before checking version specifier
         pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
-        assert any(op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"])
+        assert any(
+            op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"]
+        )
         pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
-        assert any(op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"])
+        assert any(
+            op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"]
+        )
 
     def test_no_duplicate_packages(self, requirements_dev_content):
         """
@@ -74,14 +92,20 @@ class TestRequirementsDevChanges:
         """
         import re
 
-        lines = [l.strip() for l in requirements_dev_content.split("\n") if l.strip() and not l.strip().startswith("#")]
+        lines = [
+            l.strip()
+            for l in requirements_dev_content.split("\n")
+            if l.strip() and not l.strip().startswith("#")
+        ]
 
         # Split on any common version operator to reliably extract the package name
         from packaging.requirements import Requirement
 
         package_names = [Requirement(l).name.lower() for l in lines]
 
-        assert len(package_names) == len(set(package_names)), "Duplicate packages found in requirements-dev.txt"
+        assert len(package_names) == len(set(package_names)), (
+            "Duplicate packages found in requirements-dev.txt"
+        )
 
     def test_requirements_format_valid(self, requirements_dev_content):
         """
@@ -168,16 +192,24 @@ class TestRequirementsDependencyCompatibility:
 class TestRequirementsInstallability:
     """Test that requirements can be installed."""
 
-    @pytest.mark.skipif(not Path("requirements-dev.txt").exists(), reason="requirements-dev.txt not found")
+    @pytest.mark.skipif(
+        not Path("requirements-dev.txt").exists(),
+        reason="requirements-dev.txt not found",
+    )
     def test_requirements_dev_syntax_valid(self):
         """Verify requirements-dev.txt has valid pip syntax."""
         # Use pip to check syntax without installing
         result = subprocess.run(
-            ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"], capture_output=True, text=True
+            ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"],
+            capture_output=True,
+            text=True,
         )
 
         # Should not have syntax errors
-        assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
+        assert (
+            "error" not in result.stderr.lower()
+            or "requirement already satisfied" in result.stdout.lower()
+        )
 
 
 class TestRequirementsDocumentation:
@@ -195,7 +227,9 @@ class TestRequirementsDocumentation:
 
         # Should have at least some comments explaining purpose
         comment_lines = [l for l in lines if l.strip().startswith("#")]
-        assert len(comment_lines) >= 1, "requirements-dev.txt should have explanatory comments"
+        assert len(comment_lines) >= 1, (
+            "requirements-dev.txt should have explanatory comments"
+        )
 
     def test_pyyaml_purpose_documented(self):
         """Verify PyYAML addition has comment explaining purpose."""
@@ -211,6 +245,7 @@ class TestRequirementsDocumentation:
                 context = "\n".join(lines[max(0, i - 3) : i + 1])
                 # Should have some context about YAML parsing or workflows
                 assert any(
-                    keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]
+                    keyword in context.lower()
+                    for keyword in ["yaml", "workflow", "config", "parse"]
                 ), "PyYAML should have explanatory comment"
                 break

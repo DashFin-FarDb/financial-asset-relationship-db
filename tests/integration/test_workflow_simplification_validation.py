@@ -70,9 +70,12 @@ class TestPRAgentWorkflowSimplification:
         setup_python_steps = [
             step
             for step in job["steps"]
-            if "setup" in step.get("name", "").lower() and "python" in step.get("name", "").lower()
+            if "setup" in step.get("name", "").lower()
+            and "python" in step.get("name", "").lower()
         ]
-        assert len(setup_python_steps) == 1, "Should have exactly one 'Setup Python' step"
+        assert len(setup_python_steps) == 1, (
+            "Should have exactly one 'Setup Python' step"
+        )
 
     def test_no_context_chunking_logic(self, pr_agent_workflow: Dict[str, Any]):
         """Verify that context chunking logic has been removed."""
@@ -103,7 +106,9 @@ class TestPRAgentWorkflowSimplification:
         assert "chunked" not in script.lower() and "chunk" not in script.lower()
         assert "CONTEXT_SIZE" not in script
 
-    def test_no_pyyaml_installation_in_dependencies(self, pr_agent_workflow: Dict[str, Any]):
+    def test_no_pyyaml_installation_in_dependencies(
+        self, pr_agent_workflow: Dict[str, Any]
+    ):
         """Verify PyYAML installation has been removed from workflow."""
         job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         install_step = None
@@ -175,7 +180,9 @@ class TestPRAgentWorkflowSimplification:
         assert "action_items" in script
         assert "GITHUB_OUTPUT" in script
 
-    def test_pr_agent_still_triggered_on_events(self, pr_agent_workflow: Dict[str, Any]):
+    def test_pr_agent_still_triggered_on_events(
+        self, pr_agent_workflow: Dict[str, Any]
+    ):
         """Verify PR agent workflow still triggers on correct events."""
         triggers = pr_agent_workflow.get("on", {})
 
@@ -347,7 +354,9 @@ class TestWorkflowConsistency:
 
     def test_all_workflows_valid_yaml(self):
         """Verify all workflow files are still valid YAML."""
-        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+        workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(
+            WORKFLOWS_DIR.glob("*.yaml")
+        )
 
         for wf_file in workflow_files:
             with open(wf_file, "r", encoding="utf-8") as f:
@@ -356,7 +365,9 @@ class TestWorkflowConsistency:
                     yaml.safe_load(content)
                 except yaml.YAMLError as e:
                     lines_preview = "\n".join(content.splitlines()[:10])
-                    pytest.fail(f"Invalid YAML in {wf_file.name}: {e}\nFirst 10 lines:\n{lines_preview}")
+                    pytest.fail(
+                        f"Invalid YAML in {wf_file.name}: {e}\nFirst 10 lines:\n{lines_preview}"
+                    )
 
     def test_no_broken_references(self, pr_agent_workflow: Dict[str, Any]):
         """Verify no steps reference removed features."""
@@ -405,7 +416,9 @@ class TestRemovedFilesNotReferenced:
     def test_no_scripts_readme_references(self):
         """Verify no references to removed scripts README."""
         # Check all workflow files
-        for wf_file in list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml")):
+        for wf_file in list(WORKFLOWS_DIR.glob("*.yml")) + list(
+            WORKFLOWS_DIR.glob("*.yaml")
+        ):
             with open(wf_file, "r", encoding="utf-8") as f:
                 content = f.read()
                 assert ".github/scripts/README.md" not in content
@@ -447,13 +460,15 @@ class TestRequirementsDevUpdates:
                     continue
 
                 # Basic PEP 508 version specifier check
-                has_version = any(op in line for op in [">=", "==", "~=", "!=", "<", "<=", ">"])
+                has_version = any(
+                    op in line for op in [">=", "==", "~=", "!=", "<", "<=", ">"]
+                )
                 # Handle extras syntax and file/URL requirements
                 is_complex_req = "[" in line or "://" in line or "@" in line
 
-                assert (
-                    has_version or is_complex_req
-                ), f"Requirement '{line}' should have a version specifier or be a complex dependency"
+                assert has_version or is_complex_req, (
+                    f"Requirement '{line}' should have a version specifier or be a complex dependency"
+                )
 
 
 class TestEdgeCases:

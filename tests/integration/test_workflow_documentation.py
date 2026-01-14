@@ -73,7 +73,11 @@ class TestDocumentationStructure:
         Parameters:
             section_headers (List[str]): List of markdown header lines to search; matching is case-insensitive and looks for headers containing the words "generated" or "file".
         """
-        generated = [h for h in section_headers if "generated" in h.lower() or "file" in h.lower()]
+        generated = [
+            h
+            for h in section_headers
+            if "generated" in h.lower() or "file" in h.lower()
+        ]
         assert len(generated) > 0, "Should have a section about generated files"
 
     def test_has_running_section(self, section_headers: List[str]):
@@ -95,6 +99,6 @@ class TestDocumentationStructure:
         Parameters:
             section_headers (List[str]): Extracted markdown header lines from the document (for example, lines beginning with `#`).
         """
-        assert (
-            len(section_headers) >= 5
-        ), f"Document should have at least 5 major sections, found {len(section_headers)}"
+        assert len(section_headers) >= 5, (
+            f"Document should have at least 5 major sections, found {len(section_headers)}"
+        )

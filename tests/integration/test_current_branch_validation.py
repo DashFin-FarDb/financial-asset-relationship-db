@@ -73,7 +73,9 @@ class TestWorkflowModifications:
         steps = trigger_job.get("steps", [])
 
         step_names = [step.get("name", "") for step in steps]
-        assert any("parse" in name.lower() and "comment" in name.lower() for name in step_names)
+        assert any(
+            "parse" in name.lower() and "comment" in name.lower() for name in step_names
+        )
 
     def test_apisec_workflow_no_credential_checks(self):
         """APIsec workflow should not include credential pre-check steps (simplified)."""
@@ -88,10 +90,16 @@ class TestWorkflowModifications:
         # Ensure no credential pre-check steps are present
         job = data["jobs"]["Trigger_APIsec_scan"]
         steps = job.get("steps", [])
-        step_names = [str(step.get("name", "")).lower() for step in steps if isinstance(step, dict)]
+        step_names = [
+            str(step.get("name", "")).lower()
+            for step in steps
+            if isinstance(step, dict)
+        ]
         assert not any(
             "credential" in name or "secret" in name for name in step_names
-        ), "Found credential pre-check steps; these should be removed in the simplified workflow"
+        ), (
+            "Found credential pre-check steps; these should be removed in the simplified workflow"
+        )
 
     def test_label_workflow_simplified(self):
         """Label workflow should be simplified without config checks."""
@@ -101,19 +109,33 @@ class TestWorkflowModifications:
         data = _load_yaml_safe(workflow_path)
 
         # Basic validity checks
-        assert isinstance(data, dict), "Expected label workflow YAML to parse into a dict"
+        assert isinstance(data, dict), (
+            "Expected label workflow YAML to parse into a dict"
+        )
         jobs = data.get("jobs", {})
-        assert isinstance(jobs, dict) and jobs, "Expected label workflow to define at least one job"
+        assert isinstance(jobs, dict) and jobs, (
+            "Expected label workflow to define at least one job"
+        )
 
         # Ensure no config-check logic remains in steps (name/uses/run)
-        config_keywords = ("config", "pr-agent-config", "validate", "validation", "check config", "config check")
+        config_keywords = (
+            "config",
+            "pr-agent-config",
+            "validate",
+            "validation",
+            "check config",
+            "config check",
+        )
         for job in jobs.values():
             if not isinstance(job, dict):
                 continue
             for step in job.get("steps", []) or []:
                 if not isinstance(step, dict):
                     continue
-                haystack = " ".join(str(step.get(k, "")).lower() for k in ("name", "uses", "run", "with"))
+                haystack = " ".join(
+                    str(step.get(k, "")).lower()
+                    for k in ("name", "uses", "run", "with")
+                )
                 assert not any(kw in haystack for kw in config_keywords), (
                     "Found config-check related logic in label workflow steps; "
                     "workflow should be simplified without config checks"
@@ -212,14 +234,15 @@ class TestPRAgentConfigSimplified:
                 local_ref = uses.split("@", 1)[0]  # strip optional @ref
                 target = (repo_root / local_ref).resolve()
 
-                assert (
-                    target.exists()
-                ), f"{workflow_file}: local 'uses' reference '{uses}' does not exist at '{local_ref}'"
+                assert target.exists(), (
+                    f"{workflow_file}: local 'uses' reference '{uses}' does not exist at '{local_ref}'"
+                )
 
                 # If directory, require action metadata
                 if target.is_dir():
                     has_action_metadata = any(
-                        (target / name).exists() for name in ("action.yml", "action.yaml", "Dockerfile")
+                        (target / name).exists()
+                        for name in ("action.yml", "action.yaml", "Dockerfile")
                     )
                     assert has_action_metadata, (
                         f"{workflow_file}: local action '{uses}' points to '{local_ref}', "
@@ -233,12 +256,12 @@ class TestPRAgentConfigSimplified:
                     )
 
             # Check 2: Workflows should not reference deleted specific local files
-            assert (
-                ".github/scripts/context_chunker.py" not in content
-            ), f"Workflow {workflow_file} references deleted script '.github/scripts/context_chunker.py'"
-            assert (
-                ".github/labeler.yml" not in content
-            ), f"Workflow {workflow_file} references deleted labeler config '.github/labeler.yml'"
+            assert ".github/scripts/context_chunker.py" not in content, (
+                f"Workflow {workflow_file} references deleted script '.github/scripts/context_chunker.py'"
+            )
+            assert ".github/labeler.yml" not in content, (
+                f"Workflow {workflow_file} references deleted labeler config '.github/labeler.yml'"
+            )
 
 
 class TestDocumentationConsistency:
@@ -250,7 +273,9 @@ class TestDocumentationConsistency:
 
         for summary_file in summary_files:
             path = Path(summary_file)
-            assert path.is_file(), f"Required summary file '{summary_file}' does not exist"
+            assert path.is_file(), (
+                f"Required summary file '{summary_file}' does not exist"
+            )
             assert path.stat().st_size > 0, f"Summary file '{summary_file}' is empty"
 
     def test_no_misleading_documentation(self):

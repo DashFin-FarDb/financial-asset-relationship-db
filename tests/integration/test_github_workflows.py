@@ -80,7 +80,9 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
             mapping[key] = loader.construct_object(value_node, deep=False)
         return mapping
 
-    DuplicateKeySafeLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, constructor_with_dup_check)
+    DuplicateKeySafeLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, constructor_with_dup_check
+    )
 
     try:
         yaml.load(content, Loader=DuplicateKeySafeLoader)
@@ -99,7 +101,9 @@ class TestWorkflowSyntax:
         try:
             load_yaml_safe(workflow_file)
         except yaml.YAMLError as e:
-            pytest.fail(f"Workflow {workflow_file.name} contains invalid YAML syntax: {e}")
+            pytest.fail(
+                f"Workflow {workflow_file.name} contains invalid YAML syntax: {e}"
+            )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_duplicate_keys(self, workflow_file: Path):
@@ -130,14 +134,20 @@ class TestWorkflowStructure:
         config = load_yaml_safe(workflow_file)
         assert "name" in config, f"Workflow {workflow_file.name} missing 'name' field"
         assert config["name"], f"Workflow {workflow_file.name} has empty 'name' field"
-        assert isinstance(config["name"], str), f"Workflow {workflow_file.name} 'name' must be a string"
+        assert isinstance(config["name"], str), (
+            f"Workflow {workflow_file.name} 'name' must be a string"
+        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_has_triggers(self, workflow_file: Path):
         """Validate that a workflow YAML defines a top-level "on" trigger."""
         config = load_yaml_safe(workflow_file)
-        assert isinstance(config, dict), f"Workflow {workflow_file.name} did not load to a mapping"
-        assert "on" in config, f"Workflow {workflow_file.name} missing trigger configuration ('on' field)"
+        assert isinstance(config, dict), (
+            f"Workflow {workflow_file.name} did not load to a mapping"
+        )
+        assert "on" in config, (
+            f"Workflow {workflow_file.name} missing trigger configuration ('on' field)"
+        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_has_jobs(self, workflow_file: Path):
@@ -145,8 +155,12 @@ class TestWorkflowStructure:
         config = load_yaml_safe(workflow_file)
         assert "jobs" in config, f"Workflow {workflow_file.name} missing 'jobs' field"
         assert config["jobs"], f"Workflow {workflow_file.name} has empty 'jobs' field"
-        assert isinstance(config["jobs"], dict), f"Workflow {workflow_file.name} 'jobs' must be a dictionary"
-        assert len(config["jobs"]) > 0, f"Workflow {workflow_file.name} must define at least one job"
+        assert isinstance(config["jobs"], dict), (
+            f"Workflow {workflow_file.name} 'jobs' must be a dictionary"
+        )
+        assert len(config["jobs"]) > 0, (
+            f"Workflow {workflow_file.name} must define at least one job"
+        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_jobs_have_steps(self, workflow_file: Path):
@@ -155,15 +169,17 @@ class TestWorkflowStructure:
         jobs = config.get("jobs", {})
 
         for job_name, job_config in jobs.items():
-            assert (
-                "steps" in job_config or "uses" in job_config
-            ), f"Job '{job_name}' in {workflow_file.name} must have 'steps' or 'uses'"
+            assert "steps" in job_config or "uses" in job_config, (
+                f"Job '{job_name}' in {workflow_file.name} must have 'steps' or 'uses'"
+            )
 
             if "steps" in job_config:
-                assert job_config["steps"], f"Job '{job_name}' in {workflow_file.name} has empty 'steps'"
-                assert isinstance(
-                    job_config["steps"], list
-                ), f"Job '{job_name}' in {workflow_file.name} 'steps' must be a list"
+                assert job_config["steps"], (
+                    f"Job '{job_name}' in {workflow_file.name} has empty 'steps'"
+                )
+                assert isinstance(job_config["steps"], list), (
+                    f"Job '{job_name}' in {workflow_file.name} 'steps' must be a list"
+                )
 
 
 class TestWorkflowActions:
@@ -191,7 +207,12 @@ class TestWorkflowActions:
                     )
                     # Disallow floating branches like @main or @master
                     ref = action.split("@", 1)[1].strip()
-                    assert ref and ref.lower() not in {"main", "master", "latest", "stable"}, (
+                    assert ref and ref.lower() not in {
+                        "main",
+                        "master",
+                        "latest",
+                        "stable",
+                    }, (
                         f"Step {idx} in job '{job_name}' of {workflow_file.name} "
                         f"uses a floating branch '{ref}' for action '{action}'. Use a tagged release or commit SHA."
                     )
@@ -235,15 +256,20 @@ class TestPrAgentWorkflow:
         fetch_depth = step_with["fetch-depth"]
 
         # Reject non-integer types (including strings)
-        assert isinstance(fetch_depth, int), f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
+        assert isinstance(fetch_depth, int), (
+            f"fetch-depth should be an integer, got {type(fetch_depth).__name__}"
+        )
         # Reject negative integers
         assert fetch_depth >= 0, "fetch-depth cannot be negative"
 
     def test_pr_agent_name(self, pr_agent_workflow: Dict[str, Any]):
         """Validate that the pr-agent workflow defines a top-level `name` field."""
-        assert "name" in pr_agent_workflow, "pr-agent workflow must have a descriptive 'name' field"
+        assert "name" in pr_agent_workflow, (
+            "pr-agent workflow must have a descriptive 'name' field"
+        )
         assert (
-            isinstance(pr_agent_workflow["name"], str) and pr_agent_workflow["name"].strip()
+            isinstance(pr_agent_workflow["name"], str)
+            and pr_agent_workflow["name"].strip()
         ), "pr-agent workflow 'name' field must be a non-empty string"
 
     def test_pr_agent_triggers_on_pull_request(self, pr_agent_workflow: Dict[str, Any]):
@@ -260,13 +286,19 @@ class TestPrAgentWorkflow:
         else:
             normalized = set()
 
-        assert "pull_request" in normalized, "pr-agent workflow must trigger on pull_request events"
+        assert "pull_request" in normalized, (
+            "pr-agent workflow must trigger on pull_request events"
+        )
 
     def test_pr_agent_has_trigger_job(self, pr_agent_workflow: Dict[str, Any]):
         """Assert that the pr-agent workflow defines a top-level job named "pr-agent-trigger"."""
         jobs = pr_agent_workflow.get("jobs", {})
-        assert "pr-agent-trigger" in jobs, "pr-agent workflow must define the 'pr-agent-trigger' job"
-        assert isinstance(jobs["pr-agent-trigger"], dict), "'pr-agent-trigger' job must be a mapping"
+        assert "pr-agent-trigger" in jobs, (
+            "pr-agent workflow must define the 'pr-agent-trigger' job"
+        )
+        assert isinstance(jobs["pr-agent-trigger"], dict), (
+            "'pr-agent-trigger' job must be a mapping"
+        )
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
         """Ensure the pr-agent trigger job runs on a supported Ubuntu runner."""
@@ -283,7 +315,9 @@ class TestPrAgentWorkflow:
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
-        checkout_steps = [s for s in steps if s.get("uses", "").startswith("actions/checkout")]
+        checkout_steps = [
+            s for s in steps if s.get("uses", "").startswith("actions/checkout")
+        ]
         assert len(checkout_steps) > 0, "Review job must check out the repository"
 
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
@@ -291,7 +325,9 @@ class TestPrAgentWorkflow:
         trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = trigger_job.get("steps", [])
 
-        checkout_steps = [s for s in steps if s.get("uses", "").startswith("actions/checkout")]
+        checkout_steps = [
+            s for s in steps if s.get("uses", "").startswith("actions/checkout")
+        ]
 
         for step in checkout_steps:
             step_with = step.get("with", {})
@@ -302,7 +338,9 @@ class TestPrAgentWorkflow:
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
-        python_steps = [s for s in steps if s.get("uses", "").startswith("actions/setup-python")]
+        python_steps = [
+            s for s in steps if s.get("uses", "").startswith("actions/setup-python")
+        ]
         assert len(python_steps) > 0, "pr-agent-trigger job must set up Python"
 
     def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
@@ -310,12 +348,18 @@ class TestPrAgentWorkflow:
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
-        python_steps = [s for s in steps if s.get("uses", "").startswith("actions/setup-python")]
+        python_steps = [
+            s for s in steps if s.get("uses", "").startswith("actions/setup-python")
+        ]
 
         for step in python_steps:
             step_with = step.get("with", {})
-            assert "python-version" in step_with, "Python setup should specify a version"
-            assert step_with["python-version"] == "3.11", "Python version should be 3.11"
+            assert "python-version" in step_with, (
+                "Python setup should specify a version"
+            )
+            assert step_with["python-version"] == "3.11", (
+                "Python version should be 3.11"
+            )
 
     def test_pr_agent_no_duplicate_step_names(self, pr_agent_workflow: Dict[str, Any]):
         """Fail the test if the "pr-agent-trigger" job contains duplicate step names."""
@@ -332,7 +376,8 @@ class TestPrAgentWorkflow:
                 seen.add(name)
 
         assert not duplicate_names, (
-            f"Found duplicate step names: {duplicate_names}. " "Each step should have a unique name."
+            f"Found duplicate step names: {duplicate_names}. "
+            "Each step should have a unique name."
         )
 
     def test_pr_agent_parse_comments_step(self, pr_agent_workflow: Dict[str, Any]):
@@ -400,7 +445,10 @@ class TestWorkflowSecurity:
             for step in steps:
                 step_with = step.get("with", {})
                 for key, value in step_with.items():
-                    if any(sensitive in key.lower() for sensitive in ["token", "password", "key", "secret"]):
+                    if any(
+                        sensitive in key.lower()
+                        for sensitive in ["token", "password", "key", "secret"]
+                    ):
                         if isinstance(value, str):
                             assert value.startswith("${{") or value == "", (
                                 f"Sensitive field '{key}' in {workflow_file.name} "
@@ -420,7 +468,9 @@ class TestWorkflowSecurity:
 
         for pattern in secret_logging_patterns:
             matches = re.findall(pattern, content, re.IGNORECASE)
-            assert len(matches) == 0, f"{workflow_file.name}: Potential secret logging detected"
+            assert len(matches) == 0, (
+                f"{workflow_file.name}: Potential secret logging detected"
+            )
 
 
 class TestWorkflowInjectionSecurity:
@@ -439,7 +489,9 @@ class TestWorkflowInjectionSecurity:
 
         for pattern in unsafe_patterns:
             matches = re.findall(pattern, content, re.IGNORECASE)
-            assert len(matches) == 0, f"{workflow_file.name}: Potential injection vulnerability via {pattern}"
+            assert len(matches) == 0, (
+                f"{workflow_file.name}: Potential injection vulnerability via {pattern}"
+            )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_no_script_injection_in_run_commands(self, workflow_file: Path):
@@ -455,9 +507,9 @@ class TestWorkflowInjectionSecurity:
                     # Check for dangerous eval/exec patterns
                     dangerous_patterns = ["eval ", "exec(", "``"]
                     for pattern in dangerous_patterns:
-                        assert (
-                            pattern not in str(run_cmd).lower()
-                        ), f"Dangerous pattern '{pattern}' in {workflow_file.name}, job {job_name}, step {idx}"
+                        assert pattern not in str(run_cmd).lower(), (
+                            f"Dangerous pattern '{pattern}' in {workflow_file.name}, job {job_name}, step {idx}"
+                        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_no_curl_with_user_input(self, workflow_file: Path):
@@ -491,10 +543,15 @@ class TestWorkflowMaintainability:
                     # Allow unnamed steps for very common actions
                     common_actions = ["actions/checkout", "actions/setup-"]
                     if not any(step["uses"].startswith(a) for a in common_actions):
-                        unnamed_steps.append(f"Step {idx}: {step.get('uses', 'unknown')}")
+                        unnamed_steps.append(
+                            f"Step {idx}: {step.get('uses', 'unknown')}"
+                        )
 
             if unnamed_steps:
-                print(f"\nWarning: {workflow_file.name} job '{job_name}' has " f"{len(unnamed_steps)} unnamed steps.")
+                print(
+                    f"\nWarning: {workflow_file.name} job '{job_name}' has "
+                    f"{len(unnamed_steps)} unnamed steps."
+                )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_reasonable_size(self, workflow_file: Path):
@@ -503,7 +560,9 @@ class TestWorkflowMaintainability:
         if file_size > 10240:
             print(f"\nWarning: {workflow_file.name} is {file_size} bytes.")
 
-        assert file_size < 51200, f"Workflow {workflow_file.name} is too large ({file_size} bytes). "
+        assert file_size < 51200, (
+            f"Workflow {workflow_file.name} is too large ({file_size} bytes). "
+        )
 
 
 class TestWorkflowEdgeCases:
@@ -517,19 +576,25 @@ class TestWorkflowEdgeCases:
     def test_at_least_one_workflow_exists(self):
         """Test that at least one workflow file exists."""
         workflow_files = get_workflow_files()
-        assert len(workflow_files) > 0, "No workflow files found in .github/workflows directory"
+        assert len(workflow_files) > 0, (
+            "No workflow files found in .github/workflows directory"
+        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_file_extension(self, workflow_file: Path):
         """Verify that a workflow file uses the .yml or .yaml extension."""
-        assert workflow_file.suffix in [".yml", ".yaml"], f"Workflow file {workflow_file.name} has invalid extension."
+        assert workflow_file.suffix in [".yml", ".yaml"], (
+            f"Workflow file {workflow_file.name} has invalid extension."
+        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_tabs(self, workflow_file: Path):
         """Ensure the workflow YAML file contains no tab characters."""
         with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
-        assert "\t" not in content, f"Workflow {workflow_file.name} contains tab characters."
+        assert "\t" not in content, (
+            f"Workflow {workflow_file.name} contains tab characters."
+        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_consistent_indentation(self, workflow_file: Path):
@@ -547,7 +612,9 @@ class TestWorkflowEdgeCases:
         if indentation_levels:
             inconsistent = [level for level in indentation_levels if level % 2 != 0]
             if inconsistent:
-                print(f"FORMATTING: Workflow {workflow_file.name} has inconsistent indentation.")
+                print(
+                    f"FORMATTING: Workflow {workflow_file.name} has inconsistent indentation."
+                )
 
 
 class TestWorkflowStepConfiguration:
@@ -565,7 +632,8 @@ class TestWorkflowStepConfiguration:
                 if "working-directory" in step:
                     working_dir = step["working-directory"]
                     assert not working_dir.startswith("/"), (
-                        f"Step {idx} in job '{job_name}' of {workflow_file.name} " f"uses absolute path: {working_dir}"
+                        f"Step {idx} in job '{job_name}' of {workflow_file.name} "
+                        f"uses absolute path: {working_dir}"
                     )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
@@ -579,7 +647,9 @@ class TestWorkflowStepConfiguration:
             step_ids = [s.get("id") for s in steps if "id" in s]
             id_counts = Counter(step_ids)
             duplicates = [sid for sid, count in id_counts.items() if count > 1]
-            assert not duplicates, f"Job '{job_name}' in {workflow_file.name} has duplicate step IDs: {duplicates}"
+            assert not duplicates, (
+                f"Job '{job_name}' in {workflow_file.name} has duplicate step IDs: {duplicates}"
+            )
 
 
 class TestWorkflowEnvAndSecrets:
@@ -606,13 +676,17 @@ class TestWorkflowEnvAndSecrets:
         # Check workflow-level env
         if "env" in config:
             invalid = check_env_vars(config["env"])
-            assert not invalid, f"Workflow {workflow_file.name} has invalid env vars: {invalid}"
+            assert not invalid, (
+                f"Workflow {workflow_file.name} has invalid env vars: {invalid}"
+            )
 
         # Check job-level env
         for job_name, job_config in config.get("jobs", {}).items():
             if isinstance(job_config, dict) and "env" in job_config:
                 invalid = check_env_vars(job_config["env"])
-                assert not invalid, f"Job '{job_name}' in {workflow_file.name} has invalid env vars: {invalid}"
+                assert not invalid, (
+                    f"Job '{job_name}' in {workflow_file.name} has invalid env vars: {invalid}"
+                )
 
 
 class TestTestSuiteCompleteness:
@@ -631,11 +705,15 @@ class TestTestSuiteCompleteness:
         """Assert the test module contains a comprehensive number of test classes."""
         current_module = sys.modules[__name__]
         test_classes = [
-            name for name, obj in inspect.getmembers(current_module) if inspect.isclass(obj) and name.startswith("Test")
+            name
+            for name, obj in inspect.getmembers(current_module)
+            if inspect.isclass(obj) and name.startswith("Test")
         ]
 
         # Should have many test classes (approx 15+)
-        assert len(test_classes) >= 10, f"Should have substantial test classes, found {len(test_classes)}"
+        assert len(test_classes) >= 10, (
+            f"Should have substantial test classes, found {len(test_classes)}"
+        )
 
 
 class TestRequirementsDevValidation:
@@ -665,7 +743,9 @@ class TestRequirementsDevValidation:
 
             if "=" in line:
                 parts = line.split("==")
-                assert len(parts) <= 2, f"Line {line_num}: Multiple == in requirement: {line}"
+                assert len(parts) <= 2, (
+                    f"Line {line_num}: Multiple == in requirement: {line}"
+                )
 
     def test_requirements_dev_pyyaml_present(self):
         """Ensure requirements-dev.txt contains PyYAML."""
@@ -676,7 +756,9 @@ class TestRequirementsDevValidation:
         with open(req_file, "r") as f:
             content = f.read().lower()
 
-        assert "pyyaml" in content or "yaml" in content, "PyYAML should be in requirements-dev.txt for workflow tests"
+        assert "pyyaml" in content or "yaml" in content, (
+            "PyYAML should be in requirements-dev.txt for workflow tests"
+        )
 
     def test_no_conflicting_dependencies(self):
         """Verify there are no package version conflicts between requirements-dev.txt and requirements.txt."""
@@ -756,4 +838,6 @@ class TestRemovedFilesCleanup:
 
             removed_refs = ["context_chunker.py", ".github/scripts/context_chunker.py"]
             for ref in removed_refs:
-                assert ref not in workflow_str, f"{workflow_file.name} still references removed script: {ref}"
+                assert ref not in workflow_str, (
+                    f"{workflow_file.name} still references removed script: {ref}"
+                )

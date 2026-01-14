@@ -40,7 +40,9 @@ class TestWorkflowConfigurationIntegration:
 
             if "secrets." in content or "GITHUB_TOKEN" in content:
                 # Should have permissions defined
-                assert "permissions" in data, f"{workflow_file.name} uses secrets but doesn't declare permissions"
+                assert "permissions" in data, (
+                    f"{workflow_file.name} uses secrets but doesn't declare permissions"
+                )
 
     def test_workflow_dependencies_available(self):
         """Workflows should only depend on available actions and tools."""
@@ -59,7 +61,9 @@ class TestWorkflowConfigurationIntegration:
                         # Action format: owner/repo@version
                         if "@" in uses and "/" in uses:
                             # Valid action reference
-                            assert len(uses.split("@")) == 2, f"{workflow_file.name} has malformed action: {uses}"
+                            assert len(uses.split("@")) == 2, (
+                                f"{workflow_file.name} has malformed action: {uses}"
+                            )
 
                     run = step.get("run", "")
                     if run:
@@ -98,7 +102,9 @@ class TestWorkflowConfigurationIntegration:
                             python_versions.add(version)
 
         # Should use consistent Python versions (allow 2-3 different versions max)
-        assert len(python_versions) <= 3, f"Too many different Python versions used: {python_versions}"
+        assert len(python_versions) <= 3, (
+            f"Too many different Python versions used: {python_versions}"
+        )
 
     def test_consistent_node_versions(self):
         """Node.js versions should be consistent across workflows."""
@@ -120,7 +126,9 @@ class TestWorkflowConfigurationIntegration:
                             node_versions.add(version)
 
         # Should use consistent Node versions
-        assert len(node_versions) <= 2, f"Too many different Node versions used: {node_versions}"
+        assert len(node_versions) <= 2, (
+            f"Too many different Node versions used: {node_versions}"
+        )
 
 
 class TestRequirementsConsistency:
@@ -194,7 +202,9 @@ class TestRequirementsConsistency:
             # Check for duplicates
             pkg_counts = Counter(packages)
             duplicates = [pkg for pkg, count in pkg_counts.items() if count > 1]
-            assert not duplicates, f"{req_file} has duplicate packages: {set(duplicates)}"
+            assert not duplicates, (
+                f"{req_file} has duplicate packages: {set(duplicates)}"
+            )
 
 
 class TestDocumentationConsistency:
@@ -219,10 +229,15 @@ class TestDocumentationConsistency:
 
                 # Check if it's in a "removed" or "deprecated" section
                 for line_num, line in lines_with_chunking:
-                    context_lines = content.split("\n")[max(0, line_num - 5) : line_num + 5]
+                    context_lines = content.split("\n")[
+                        max(0, line_num - 5) : line_num + 5
+                    ]
                     context_text = " ".join(context_lines).lower()
 
-                    if "removed" not in context_text and "deprecated" not in context_text:
+                    if (
+                        "removed" not in context_text
+                        and "deprecated" not in context_text
+                    ):
                         # Might still have it, which is okay if historical
                         pass
 
@@ -235,7 +250,11 @@ class TestDocumentationConsistency:
                 f.read()
 
             # Should mention the deletions (soft requirement)
-            removed_items = ["context_chunker", "labeler.yml", ".github/scripts/README.md"]
+            removed_items = [
+                "context_chunker",
+                "labeler.yml",
+                ".github/scripts/README.md",
+            ]
 
             # At least one deletion should be documented
             # (This is a documentation quality check, not strict requirement)
@@ -254,7 +273,9 @@ class TestDocumentationConsistency:
 
             for link_text, link_target in links:
                 # Skip external links
-                if link_target.startswith("http://") or link_target.startswith("https://"):
+                if link_target.startswith("http://") or link_target.startswith(
+                    "https://"
+                ):
                     continue
 
                 # Skip anchors
@@ -303,7 +324,9 @@ class TestGitHubActionsEcosystem:
             for trigger in triggers:
                 # If workflow A triggers workflow B, B should not trigger A
                 if trigger in workflow_triggers:
-                    assert workflow not in workflow_triggers[trigger], f"Circular dependency: {workflow} <-> {trigger}"
+                    assert workflow not in workflow_triggers[trigger], (
+                        f"Circular dependency: {workflow} <-> {trigger}"
+                    )
 
     def test_workflow_naming_convention(self):
         """Workflows should follow consistent naming conventions."""
@@ -319,7 +342,9 @@ class TestGitHubActionsEcosystem:
         # Check for consistency
         for filename, workflow_name in workflow_names:
             # Name should be descriptive
-            assert len(workflow_name) > 5, f"{filename} has too short name: {workflow_name}"
+            assert len(workflow_name) > 5, (
+                f"{filename} has too short name: {workflow_name}"
+            )
 
             # File name should somewhat match workflow name
             # (This is a soft check)
@@ -331,7 +356,9 @@ class TestGitHubActionsEcosystem:
         workflow_count = len(workflow_files)
 
         # More than 20 workflows might be hard to maintain
-        assert workflow_count <= 25, f"Too many workflows ({workflow_count}), consider consolidation"
+        assert workflow_count <= 25, (
+            f"Too many workflows ({workflow_count}), consider consolidation"
+        )
 
     def test_all_workflows_documented(self):
         """All workflows should be documented somewhere."""
@@ -350,7 +377,8 @@ class TestGitHubActionsEcosystem:
         # Each workflow should be mentioned somewhere
         for workflow in workflows:
             workflow_mentioned = (
-                workflow.lower() in all_docs_content or workflow.replace("-", " ").lower() in all_docs_content
+                workflow.lower() in all_docs_content
+                or workflow.replace("-", " ").lower() in all_docs_content
             )
 
             # This is a soft requirement (not all workflows need docs)

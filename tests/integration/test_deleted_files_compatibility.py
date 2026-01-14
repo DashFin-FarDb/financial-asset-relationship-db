@@ -36,12 +36,14 @@ class TestDeletedContextChunker:
                 content = f.read()
 
             # Should not reference context_chunker
-            assert "context_chunker" not in content, f"{workflow_file.name} still references deleted context_chunker.py"
+            assert "context_chunker" not in content, (
+                f"{workflow_file.name} still references deleted context_chunker.py"
+            )
 
             # Should not reference the scripts directory for chunking
-            assert (
-                ".github/scripts/context_chunker" not in content
-            ), f"{workflow_file.name} references deleted chunker script"
+            assert ".github/scripts/context_chunker" not in content, (
+                f"{workflow_file.name} references deleted chunker script"
+            )
 
     def test_workflows_dont_depend_on_chunking_functionality(self):
         """Workflows should work without chunking functionality."""
@@ -52,16 +54,26 @@ class TestDeletedContextChunker:
                 content = f.read()
 
             # Should not have chunking-related logic
-            problematic_terms = ["chunk_size", "token_count", "tiktoken", "context_overflow", "summarization"]
+            problematic_terms = [
+                "chunk_size",
+                "token_count",
+                "tiktoken",
+                "context_overflow",
+                "summarization",
+            ]
 
             for term in problematic_terms:
                 if term in content:
                     # Check if it's in a comment (acceptable) or actual code
                     lines_with_term = [
-                        line for line in content.split("\n") if term in line and not line.strip().startswith("#")
+                        line
+                        for line in content.split("\n")
+                        if term in line and not line.strip().startswith("#")
                     ]
 
-                    assert len(lines_with_term) == 0, f"PR agent workflow still has chunking logic: {term}"
+                    assert len(lines_with_term) == 0, (
+                        f"PR agent workflow still has chunking logic: {term}"
+                    )
 
     def test_no_python_dependencies_for_chunking(self):
         """Requirements should not include chunking dependencies if unused."""
@@ -75,7 +87,9 @@ class TestDeletedContextChunker:
             # Fail if chunking-only deps linger in dev requirements
             forbidden_packages = ("tiktoken",)
             for pkg in forbidden_packages:
-                assert pkg not in content, f"requirements-dev.txt should not include {pkg} if chunking is unused"
+                assert pkg not in content, (
+                    f"requirements-dev.txt should not include {pkg} if chunking is unused"
+                )
 
     def test_scripts_directory_exists_or_empty(self):
         """Scripts directory should either not exist or not be referenced."""
@@ -83,7 +97,9 @@ class TestDeletedContextChunker:
 
         if scripts_dir.exists():
             # If it exists, should not contain chunker
-            assert not (scripts_dir / "context_chunker.py").exists(), "context_chunker.py should be deleted"
+            assert not (scripts_dir / "context_chunker.py").exists(), (
+                "context_chunker.py should be deleted"
+            )
 
             # README about chunking should be gone
             readme = scripts_dir / "README.md"
@@ -91,7 +107,9 @@ class TestDeletedContextChunker:
                 with open(readme, "r") as f:
                     content = f.read()
 
-                assert "chunking" not in content.lower(), "Scripts README still documents chunking"
+                assert "chunking" not in content.lower(), (
+                    "Scripts README still documents chunking"
+                )
 
 
 class TestDeletedLabelerConfig:
@@ -109,9 +127,9 @@ class TestDeletedLabelerConfig:
             # Or should have graceful handling
             if "labeler.yml" in content:
                 # Should check for existence before using
-                assert (
-                    "exists" in content or "check" in content
-                ), "Label workflow references labeler.yml without checking existence"
+                assert "exists" in content or "check" in content, (
+                    "Label workflow references labeler.yml without checking existence"
+                )
 
     def test_labeler_yml_deleted(self):
         """Labeler configuration file should be deleted."""
@@ -156,9 +174,9 @@ class TestDeletedLabelerConfig:
                         with_config = step.get("with", {})
 
                         # If using labeler, enforce proper handling
-                        assert (
-                            step_if or with_config
-                        ), f"Labeler action used without condition or inline config in step: {step}"
+                        assert step_if or with_config, (
+                            f"Labeler action used without condition or inline config in step: {step}"
+                        )
 
 
 class TestDeletedScriptsReadme:
@@ -166,7 +184,12 @@ class TestDeletedScriptsReadme:
 
     def test_main_docs_dont_reference_scripts_readme(self):
         """Main documentation should not reference deleted scripts README."""
-        doc_files = ["README.md", "CONTRIBUTING.md", "ARCHITECTURE.md", ".github/copilot-pr-agent.md"]
+        doc_files = [
+            "README.md",
+            "CONTRIBUTING.md",
+            "ARCHITECTURE.md",
+            ".github/copilot-pr-agent.md",
+        ]
 
         for doc_file in doc_files:
             doc_path = Path(doc_file)
@@ -175,7 +198,9 @@ class TestDeletedScriptsReadme:
                     content = f.read()
 
                 # Should not link to deleted README
-                assert ".github/scripts/README.md" not in content, f"{doc_file} references deleted scripts README"
+                assert ".github/scripts/README.md" not in content, (
+                    f"{doc_file} references deleted scripts README"
+                )
 
     def test_no_orphaned_script_documentation(self):
         """Should not have documentation for deleted scripts."""
@@ -188,18 +213,22 @@ class TestDeletedScriptsReadme:
             # If mentions chunking, should not be primary documentation
             if "context_chunker" in content or "Context Chunking" in content:
                 # Should be in historical/changelog context, not instructions
-                lines_with_chunker = [line for line in content.split("\n") if "context_chunker" in line.lower()]
+                lines_with_chunker = [
+                    line
+                    for line in content.split("\n")
+                    if "context_chunker" in line.lower()
+                ]
 
                 # Acceptable in changelogs or summaries
                 if doc_file.name not in ["CHANGELOG.md", "CHANGELOG_BRANCH_CLEANUP.md"]:
                     # Should not have installation/usage instructions
                     for line in lines_with_chunker:
-                        assert (
-                            "pip install" not in line
-                        ), f"{doc_file.name} has installation instructions for deleted script"
-                        assert (
-                            "python .github/scripts/context_chunker" not in line
-                        ), f"{doc_file.name} has usage instructions for deleted script"
+                        assert "pip install" not in line, (
+                            f"{doc_file.name} has installation instructions for deleted script"
+                        )
+                        assert "python .github/scripts/context_chunker" not in line, (
+                            f"{doc_file.name} has usage instructions for deleted script"
+                        )
 
 
 class TestWorkflowConfigConsistency:
@@ -238,15 +267,17 @@ class TestWorkflowConfigConsistency:
 
         # More comprehensive YAML structure validation
         assert isinstance(config, dict), "PR Agent config should parse to a dictionary"
-        assert isinstance(workflow, dict), "PR Agent workflow should parse to a dictionary"
+        assert isinstance(workflow, dict), (
+            "PR Agent workflow should parse to a dictionary"
+        )
 
         # Workflow should have required jobs
         assert "jobs" in workflow, "PR Agent workflow should define jobs"
 
         if not self._contains_chunking_settings(workflow):
-            assert not self._contains_chunking_settings(
-                config
-            ), "PR Agent config contains chunking settings but workflow doesn't use them"
+            assert not self._contains_chunking_settings(config), (
+                "PR Agent config contains chunking settings but workflow doesn't use them"
+            )
 
     def test_no_missing_config_files_referenced(self):
         """Workflows should not reference missing configuration files."""
@@ -267,14 +298,16 @@ class TestWorkflowConfigConsistency:
                 # File should exist or be in conditional/comment
                 if not path.exists():
                     # Check if it's in a comment
-                    lines_with_path = [line for line in content.split("\n") if str(file_path) in line]
+                    lines_with_path = [
+                        line for line in content.split("\n") if str(file_path) in line
+                    ]
 
                     for line in lines_with_path:
                         if not line.strip().startswith("#"):
                             # Should have error handling or conditional
-                            assert (
-                                "if" in line.lower() or "exists" in line.lower()
-                            ), f"{workflow_file.name} references missing file: {file_path}"
+                            assert "if" in line.lower() or "exists" in line.lower(), (
+                                f"{workflow_file.name} references missing file: {file_path}"
+                            )
 
 
 class TestBackwardCompatibility:
@@ -295,9 +328,9 @@ class TestBackwardCompatibility:
                 # Should not reference deleted scripts or configs
                 for key, value in job_env.items():
                     if isinstance(value, str):
-                        assert (
-                            "context_chunker" not in value
-                        ), f"{workflow_file.name} env var {key} references deleted script"
+                        assert "context_chunker" not in value, (
+                            f"{workflow_file.name} env var {key} references deleted script"
+                        )
 
     def test_action_inputs_valid(self):
         """Action inputs should not reference deleted files or features."""
@@ -315,9 +348,9 @@ class TestBackwardCompatibility:
                     for key, value in with_data.items():
                         if isinstance(value, str):
                             # Should not reference deleted files
-                            assert (
-                                ".github/scripts/context_chunker" not in value
-                            ), f"{workflow_file.name} step references deleted script"
-                            assert (
-                                "labeler.yml" not in value
-                            ), f"{workflow_file.name} step references deleted labeler config"
+                            assert ".github/scripts/context_chunker" not in value, (
+                                f"{workflow_file.name} step references deleted script"
+                            )
+                            assert "labeler.yml" not in value, (
+                                f"{workflow_file.name} step references deleted labeler config"
+                            )

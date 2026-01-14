@@ -54,7 +54,9 @@ class TestWorkflowYAMLSyntax:
                 with open(workflow_file, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
                 assert data is not None, f"{workflow_file.name} is empty"
-                assert isinstance(data, dict), f"{workflow_file.name} should be a dictionary"
+                assert isinstance(data, dict), (
+                    f"{workflow_file.name} should be a dictionary"
+                )
             except yaml.YAMLError as e:
                 pytest.fail(f"Invalid YAML in {workflow_file.name}: {e}")
 
@@ -64,7 +66,9 @@ class TestWorkflowYAMLSyntax:
             with open(workflow_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            assert "\t" not in content, f"{workflow_file.name} contains tabs (should use spaces for indentation)"
+            assert "\t" not in content, (
+                f"{workflow_file.name} contains tabs (should use spaces for indentation)"
+            )
 
     def test_workflows_use_consistent_indentation(self, workflow_files):
         """Workflow files should use consistent indentation (2 spaces)."""
@@ -77,9 +81,9 @@ class TestWorkflowYAMLSyntax:
                     # Count leading spaces
                     leading_spaces = len(line) - len(line.lstrip(" "))
                     if leading_spaces > 0:
-                        assert (
-                            leading_spaces % 2 == 0
-                        ), f"{workflow_file.name}:{i} has odd indentation ({leading_spaces} spaces)"
+                        assert leading_spaces % 2 == 0, (
+                            f"{workflow_file.name}:{i} has odd indentation ({leading_spaces} spaces)"
+                        )
 
     def test_workflows_have_no_trailing_whitespace(self, workflow_files):
         """Workflow files should not have trailing whitespace."""
@@ -128,11 +132,17 @@ class TestWorkflowGitHubActionsSchema:
             # 'on' can be string, list, or dict
             trigger = data["on"]
             if isinstance(trigger, str):
-                assert trigger in valid_triggers, f"{filename} has invalid trigger: {trigger}"
+                assert trigger in valid_triggers, (
+                    f"{filename} has invalid trigger: {trigger}"
+                )
             elif isinstance(trigger, list):
-                assert all(t in valid_triggers for t in trigger), f"{filename} has invalid triggers in list"
+                assert all(t in valid_triggers for t in trigger), (
+                    f"{filename} has invalid triggers in list"
+                )
             elif isinstance(trigger, dict):
-                assert any(k in valid_triggers for k in trigger.keys()), f"{filename} has no valid triggers in dict"
+                assert any(k in valid_triggers for k in trigger.keys()), (
+                    f"{filename} has no valid triggers in dict"
+                )
 
     def test_workflows_have_jobs(self, workflow_data):
         """All workflows should define at least one job."""
@@ -147,7 +157,9 @@ class TestWorkflowGitHubActionsSchema:
             jobs = data.get("jobs", {})
 
             for job_name, job_data in jobs.items():
-                assert "runs-on" in job_data, f"{filename} job '{job_name}' missing 'runs-on'"
+                assert "runs-on" in job_data, (
+                    f"{filename} job '{job_name}' missing 'runs-on'"
+                )
 
                 runs_on = job_data["runs-on"]
                 valid_runners = [
@@ -167,9 +179,9 @@ class TestWorkflowGitHubActionsSchema:
                 if isinstance(runs_on, str):
                     # Can be expression or literal
                     if not runs_on.startswith("${{"):
-                        assert any(
-                            runner in runs_on for runner in valid_runners
-                        ), f"{filename} job '{job_name}' has invalid runs-on: {runs_on}"
+                        assert any(runner in runs_on for runner in valid_runners), (
+                            f"{filename} job '{job_name}' has invalid runs-on: {runs_on}"
+                        )
 
     def test_jobs_have_steps_or_uses(self, workflow_data):
         """Jobs should have either steps or uses (for reusable workflows)."""
@@ -180,11 +192,17 @@ class TestWorkflowGitHubActionsSchema:
                 has_steps = "steps" in job_data
                 has_uses = "uses" in job_data
 
-                assert has_steps or has_uses, f"{filename} job '{job_name}' has neither 'steps' nor 'uses'"
+                assert has_steps or has_uses, (
+                    f"{filename} job '{job_name}' has neither 'steps' nor 'uses'"
+                )
 
                 if has_steps:
-                    assert isinstance(job_data["steps"], list), f"{filename} job '{job_name}' steps should be a list"
-                    assert len(job_data["steps"]) > 0, f"{filename} job '{job_name}' has empty steps"
+                    assert isinstance(job_data["steps"], list), (
+                        f"{filename} job '{job_name}' steps should be a list"
+                    )
+                    assert len(job_data["steps"]) > 0, (
+                        f"{filename} job '{job_name}' has empty steps"
+                    )
 
 
 class TestWorkflowSecurity:
@@ -231,9 +249,9 @@ class TestWorkflowSecurity:
                                 for idx in range(m.start(), m.end()):
                                     masked[idx] = " "
                             remaining = "".join(masked)
-                            assert (
-                                pattern not in remaining
-                            ), f"{workflow_file.name}:{i} may contain hardcoded secret outside secrets.* reference: {pattern}"
+                            assert pattern not in remaining, (
+                                f"{workflow_file.name}:{i} may contain hardcoded secret outside secrets.* reference: {pattern}"
+                            )
                         else:
                             pytest.fail(
                                 f"{workflow_file.name}:{i} may contain hardcoded secret without secrets.* reference: {pattern}"
@@ -247,7 +265,9 @@ class TestWorkflowSecurity:
 
             # Check if triggered by pull_request
             triggers = data.get("on", {})
-            if "pull_request" in triggers or (isinstance(triggers, list) and "pull_request" in triggers):
+            if "pull_request" in triggers or (
+                isinstance(triggers, list) and "pull_request" in triggers
+            ):
                 # Look for checkout actions
                 jobs = data.get("jobs", {})
                 for job_name, job_data in jobs.items():
@@ -258,8 +278,14 @@ class TestWorkflowSecurity:
                             with_data = step.get("with", {})
                             ref = with_data.get("ref", "")
                             # Fix for catastrophic syntax error in original file:
-                            if ref and "head" in ref.lower() and "sha" not in ref.lower():
-                                warnings.warn(f"{workflow_file.name} checks out PR HEAD (potential security risk)")
+                            if (
+                                ref
+                                and "head" in ref.lower()
+                                and "sha" not in ref.lower()
+                            ):
+                                warnings.warn(
+                                    f"{workflow_file.name} checks out PR HEAD (potential security risk)"
+                                )
 
     def test_restricted_permissions(self, workflow_files):
         """Workflows should use minimal required permissions."""
@@ -273,7 +299,9 @@ class TestWorkflowSecurity:
             # If permissions defined, shouldn't be 'write-all'
             if permissions:
                 if isinstance(permissions, str):
-                    assert permissions != "write-all", f"{workflow_file.name} uses write-all permissions (too broad)"
+                    assert permissions != "write-all", (
+                        f"{workflow_file.name} uses write-all permissions (too broad)"
+                    )
                 elif isinstance(permissions, dict):
                     # Check individual permissions
                     for scope, level in permissions.items():
@@ -300,7 +328,10 @@ class TestWorkflowBestPractices:
                     if uses:
                         # Should not use @main or @master
                         if "@main" in uses or "@master" in uses:
-                            warnings.warn(f"{filename} job '{job_name}' step {i} " f"uses unstable version: {uses}")
+                            warnings.warn(
+                                f"{filename} job '{job_name}' step {i} "
+                                f"uses unstable version: {uses}"
+                            )
 
     def test_steps_have_names(self, workflow_data):
         """Steps should have descriptive names."""
@@ -310,11 +341,15 @@ class TestWorkflowBestPractices:
             for job_name, job_data in jobs.items():
                 steps = job_data.get("steps", [])
 
-                unnamed_steps = [i for i, step in enumerate(steps) if "name" not in step]
+                unnamed_steps = [
+                    i for i, step in enumerate(steps) if "name" not in step
+                ]
 
                 # Allow a few unnamed steps, but not too many
                 unnamed_ratio = len(unnamed_steps) / len(steps) if steps else 0
-                assert unnamed_ratio < 0.5, f"{filename} job '{job_name}' has too many unnamed steps"
+                assert unnamed_ratio < 0.5, (
+                    f"{filename} job '{job_name}' has too many unnamed steps"
+                )
 
     def test_timeouts_defined(self, workflow_data):
         """Long-running jobs should have timeouts."""
@@ -327,7 +362,10 @@ class TestWorkflowBestPractices:
                 # If job has many steps or installs dependencies, should have timeout
                 if len(steps) > 5:
                     if "timeout-minutes" not in job_data:
-                        warnings.warn(f"{filename} job '{job_name}' has many steps " f"but no timeout defined")
+                        warnings.warn(
+                            f"{filename} job '{job_name}' has many steps "
+                            f"but no timeout defined"
+                        )
 
 
 class TestWorkflowCrossPlatform:
@@ -359,7 +397,8 @@ class TestWorkflowCrossPlatform:
                             for cmd in unix_commands:
                                 if cmd in run_command:
                                     warnings.warn(
-                                        f"{filename} job '{job_name}' uses Unix command " f"'{cmd}' on Windows"
+                                        f"{filename} job '{job_name}' uses Unix command "
+                                        f"'{cmd}' on Windows"
                                     )
 
     def test_path_separators(self, workflow_data):
@@ -374,7 +413,10 @@ class TestWorkflowCrossPlatform:
                     run_command = step.get("run", "")
 
                     # Check for Windows-style paths (backslashes)
-                    if "\\" in run_command and "windows" not in str(job_data.get("runs-on", "")).lower():
+                    if (
+                        "\\" in run_command
+                        and "windows" not in str(job_data.get("runs-on", "")).lower()
+                    ):
                         # Might be legitimate (escaped chars), so just warn
                         pass
 
@@ -392,12 +434,16 @@ class TestWorkflowMaintainability:
 
             lines = content.split("\n")
             comment_lines = [l for l in lines if l.strip().startswith("#")]
-            code_lines = [l for l in lines if l.strip() and not l.strip().startswith("#")]
+            code_lines = [
+                l for l in lines if l.strip() and not l.strip().startswith("#")
+            ]
 
             if len(code_lines) > 20:
                 # Large workflows should have comments
                 comment_ratio = len(comment_lines) / len(code_lines)
-                assert comment_ratio >= 0.05, f"{workflow_file.name} is large but has few comments"
+                assert comment_ratio >= 0.05, (
+                    f"{workflow_file.name} is large but has few comments"
+                )
 
     def test_complex_expressions_explained(self):
         """Complex expressions should have explanatory comments."""
