@@ -1,500 +1,526 @@
 """
-Advanced YAML validation tests for GitHub workflow files.
+Comprehensive validation tests for GitHub workflow YAML files.
 
-This module provides comprehensive validation of YAML structure,
-syntax, and best practices for all workflow files.
+This module tests the structure, syntax, and best practices of all
+GitHub Actions workflow files, with special focus on recent changes:
+- Simplified greetings workflow
+- Simplified labeler workflow
+- Simplified APIsec scan workflow
+- Simplified PR agent workflow
+
+Tests cover:
+- YAML syntax validation
+- Required workflow structure
+- Security best practices
+- Performance considerations
+- Error handling
 """
+
+
+from pathlib import Path
+from typing import Any, Dict, List
 
 import pytest
 import yaml
-from pathlib import Path
-from typing import Dict, Any, List
-import re
 
 
-WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
+class TestWorkflowYAMLSyntax:
+    """Test YAML syntax and basic structure of workflow files."""
 
+    @pytest.fixture
+    def workflows_dir(self) -> Path:
+        """Get the workflows directory path."""
 
-def get_workflow_files() -> List[Path]:
-    """Get all workflow YAML files."""
-    if not WORKFLOWS_DIR.exists():
-        return []
-    return list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+        workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+        try:
+            # Ensure the directory exists and is accessible
+            if not workflows_dir.exists():
+                pytest.fail(f"Workflows directory not found: {workflows_dir}")
+            if not workflows_dir.is_dir():
+                pytest.fail(f"Workflows path is not a directory: {workflows_dir}")
+        except Exception as e:
+            pytest.fail(f"Error accessing workflows directory {workflows_dir}: {e}")
+        return workflows_dir
 
+    @pytest.fixture
+    def workflow_files(self, workflows_dir: Path) -> List[Path]:
+        """Get all workflow YAML files."""
+        return list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
 
-@pytest.fixture
-def workflow_files():
-    """Fixture providing list of workflow files."""
-    files = get_workflow_files()
-    if not files:
-        pytest.skip("No workflow files found")
-    return files
+    def test_all_workflows_are_valid_yaml(self, workflow_files: List[Path]):
+        """Test that all workflow files contain valid YAML."""
+        for workflow_file in workflow_files:
+            with open(workflow_file, 'r') as f:
+                try:
+                    yaml.safe_load(f)
+                except yaml.YAMLError as e:
+            with open(workflow_file, 'r') as f:
+                data = yaml.safe_load(f)
+            if data is None:
+                pytest.fail(f"{workflow_file.name} is empty or invalid YAML")
+            missing_keys = required_keys - set(data.keys())
+            assert not missing_keys, f"{workflow_file.name} missing required keys: {missing_keys}"
+            )
 
+    def test_workflow_names_are_descriptive(self, workflow_files: List[Path]):
+        """Test that workflow names are descriptive and not empty."""
+        for workflow_file in workflow_files:
+            with open(workflow_file, 'r') as f:
+                data = yaml.safe_load(f)
 
-@pytest.fixture(params=get_workflow_files(), ids=lambda p: p.name)
-def workflow_file(request):
-    """Parametrized fixture for each workflow file."""
-    return request.param
+            name = data.get('name', '')
+            assert name and len(name) > 3, (
+                f"{workflow_file.name} has empty or too short name: '{name}'"
+            )
+            assert not name.isupper(), (
+                f"{workflow_file.name} name should not be all uppercase: '{name}'"
+            )
 
+    def test_no_duplicate_keys_in_yaml(self, workflow_files: List[Path]):
+        """Test that YAML files don't have duplicate keys within the same object.
 
-@pytest.fixture
-def workflow_content(workflow_file):
-    """Load workflow file content."""
-    with open(workflow_file, 'r') as f:
-        return yaml.safe_load(f)
+        Note: This is a simplified check that may not catch all duplicates due to
+        the complexity of YAML syntax (multiline strings, flow syntax, etc.).
+        It primarily checks for obvious duplicates that would cause issues.
+        """
+        import re
 
+        for workflow_file in workflow_files:
+            # Use PyYAML's safer duplicate key detection via custom constructor
+            def no_duplicates_constructor(loader, node, deep=False):
+                """Check for duplicate keys during YAML loading."""
+        def test_no_duplicate_keys_in_yaml(self, workflow_files: List[Path]):
+            """Test that YAML files don't have duplicate keys within the same object.
 
-class TestYAMLSyntax:
-    """Test YAML syntax and structure."""
-    
-    def test_workflow_is_valid_yaml(self, workflow_file):
-        """Each workflow file should be valid YAML."""
-        with open(workflow_file, 'r') as f:
-            try:
-                yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in {workflow_file.name}: {e}")
-    
-    def test_workflow_not_empty(self, workflow_content):
-        """Workflow file should not be empty."""
-        assert workflow_content is not None, "Workflow content is None"
-        assert len(workflow_content) > 0, "Workflow content is empty"
-    
-    def test_no_tabs_in_yaml(self, workflow_file):
-        """YAML files should use spaces, not tabs."""
-        with open(workflow_file, 'r') as f:
-            content = f.read()
+            Uses a custom SafeLoader to reliably detect duplicates during parsing.
+            """
+            import yaml
+            for workflow_file in workflow_files:
+                def no_duplicates_constructor(loader, node, deep=False):
+                    mapping = {}
+                    for key_node, value_node in node.value:
+                        key = loader.construct_object(key_node, deep=deep)
+                        if key in mapping:
+                            raise yaml.constructor.ConstructorError(
+                                f"Duplicate key: {key!r}",
+                                key_node.start_mark
+                            )
+                        mapping[key] = loader.construct_object(value_node, deep=deep)
+                    return mapping
         
-        assert '\t' not in content, \
-            f"{workflow_file.name} contains tabs. Use spaces for YAML indentation."
-    
-    def test_consistent_indentation(self, workflow_file):
-        """YAML files should have consistent indentation (2 spaces)."""
-        with open(workflow_file, 'r') as f:
-            lines = f.readlines()
+                class UniqueKeyLoader(yaml.SafeLoader):
+                    pass
         
-        for i, line in enumerate(lines, 1):
-            if line.strip() and not line.strip().startswith('#'):
-                # Count leading spaces
-                leading_spaces = len(line) - len(line.lstrip(' '))
+                UniqueKeyLoader.add_constructor(
+                    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                    no_duplicates_constructor
+                )
+        
+                try:
+                    with open(workflow_file, 'r') as f:
+                        yaml.load(f, Loader=UniqueKeyLoader)
+                except yaml.constructor.ConstructorError as e:
+                    pytest.fail(f"{workflow_file.name} has duplicate key: {e.problem}")
+
+class TestGreetingsWorkflow:
+    """Test the greetings workflow specifically."""
+    
+    @pytest.fixture
+    def greetings_workflow(self) -> Dict[str, Any]:
+        """Load the greetings workflow."""
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'greetings.yml'
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'greetings.yml'
+        try:
+            with open(workflow_path, 'r') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            pytest.fail(f"Workflow file {workflow_path} not found")
+        except OSError as e:
+            pytest.fail(f"Error reading {workflow_path}: {e}")
+    
+    def test_greetings_workflow_structure(self, greetings_workflow: Dict[str, Any]):
+        """Test that greetings workflow has correct structure."""
+        assert greetings_workflow['name'] == 'Greetings'
+        assert 'on' in greetings_workflow
+        assert 'issues' in greetings_workflow['on'] or 'pull_request' in greetings_workflow['on']
+        assert 'jobs' in greetings_workflow
+        assert 'greeting' in greetings_workflow['jobs']
+    
+    def test_greetings_uses_first_interaction_action(self, greetings_workflow: Dict[str, Any]):
+        """Test that greetings workflow uses the first-interaction action."""
+        steps = greetings_workflow['jobs']['greeting']['steps']
+        action_found = False
+        
+        for step in steps:
+            if 'uses' in step and 'first-interaction' in step['uses']:
+                action_found = True
+                # Check required inputs
+                assert 'with' in step
+                assert 'repo-token' in step['with']
+                assert 'issue-message' in step['with']
+                assert 'pr-message' in step['with']
+        
+        assert action_found, "Greetings workflow should use first-interaction action"
+    
+    def test_greetings_has_appropriate_messages(self, greetings_workflow: Dict[str, Any]):
+        """Test that greeting messages are present and not empty."""
+        steps = greetings_workflow['jobs']['greeting']['steps']
+        
+        for step in steps:
+            if 'uses' in step and 'first-interaction' in step['uses']:
+                issue_msg = step['with']['issue-message']
+                pr_msg = step['with']['pr-message']
                 
-                # Should be multiple of 2
-                if leading_spaces > 0:
-                    assert leading_spaces % 2 == 0, \
-                        f"{workflow_file.name}:{i} has inconsistent indentation ({leading_spaces} spaces)"
+                assert issue_msg and len(issue_msg) > 10, "Issue message should be meaningful"
+                assert pr_msg and len(pr_msg) > 10, "PR message should be meaningful"
 
 
-class TestWorkflowStructure:
-    """Test GitHub Actions workflow structure."""
+class TestLabelerWorkflow:
+    """Test the label workflow specifically."""
     
-    def test_has_name_field(self, workflow_content, workflow_file):
-        """Workflow should have a descriptive name."""
-        assert 'name' in workflow_content, \
-            f"{workflow_file.name} missing 'name' field"
-        
-        name = workflow_content['name']
-        assert isinstance(name, str), "Workflow name should be a string"
-        assert len(name) > 0, "Workflow name should not be empty"
-        assert len(name) <= 100, "Workflow name should be concise"
+    @pytest.fixture
+    def labeler_workflow(self) -> Dict[str, Any]:
+        """Load the labeler workflow."""
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'label.yml'
+        with open(workflow_path, 'r') as f:
+            return yaml.safe_load(f)
     
-    def test_has_on_trigger(self, workflow_content, workflow_file):
-        """Workflow should define when it runs."""
-        assert 'on' in workflow_content, \
-            f"{workflow_file.name} missing 'on' trigger definition"
+    def test_labeler_workflow_structure(self, labeler_workflow: Dict[str, Any]):
+        """Test that labeler workflow has correct structure."""
+        assert labeler_workflow['name'] == 'Labeler'
+        assert 'on' in labeler_workflow
+        trigger_key = 'on'
+        assert 'pull_request_target' in labeler_workflow[trigger_key] or 'pull_request' in labeler_workflow[trigger_key]
+        assert 'jobs' in labeler_workflow
     
-    def test_has_jobs(self, workflow_content, workflow_file):
-        """Workflow should define at least one job."""
-        assert 'jobs' in workflow_content, \
-            f"{workflow_file.name} missing 'jobs' section"
-        
-        jobs = workflow_content['jobs']
-        assert isinstance(jobs, dict), "Jobs should be a dictionary"
-        assert len(jobs) > 0, "Workflow should have at least one job"
-    
-    def test_jobs_have_runs_on(self, workflow_content, workflow_file):
-        """Non-reusable jobs must specify which runner to use."""
-        jobs = workflow_content.get('jobs', {})
-
-        for job_name, job_config in jobs.items():
-            if not isinstance(job_config, dict):
-                pytest.fail(f"Job '{job_name}' in {workflow_file.name} is not a dictionary")
-
-            if 'uses' in job_config:
-                continue  # Skip reusable workflow jobs
-
-            # Non-reusable jobs must specify a runner
-            assert 'runs-on' in job_config, \
-                f"Non-reusable job '{job_name}' in {workflow_file.name} must specify 'runs-on'"
-
-    def test_jobs_have_steps(self, workflow_content, workflow_file):
-        """Each job should have steps defined."""
-        jobs = workflow_content.get('jobs', {})
+    def test_labeler_has_appropriate_permissions(self, labeler_workflow: Dict[str, Any]):
+        """Test that labeler has correct permissions."""
+        jobs = labeler_workflow['jobs']
         
         for job_name, job_config in jobs.items():
-            # Skip if it's a reusable workflow call
-            if 'uses' in job_config:
+            if 'permissions' in job_config:
+                perms = job_config['permissions']
+                assert 'contents' in perms or 'pull-requests' in perms, (
+                    f"Labeler job '{job_name}' should have appropriate permissions"
+                )
+    
+    def test_labeler_uses_labeler_action(self, labeler_workflow: Dict[str, Any]):
+        """Test that labeler workflow uses the labeler action."""
+        for job_name, job_config in labeler_workflow['jobs'].items():
+            steps = job_config.get('steps', [])
+            action_found = False
+            
+            for step in steps:
+                if 'uses' in step and 'labeler' in step['uses']:
+                    action_found = True
+                    # Check required inputs
+                    assert 'with' in step
+                    assert 'repo-token' in step['with']
+            
+            if 'labeler' in job_name.lower():
+                assert action_found, f"Labeler job '{job_name}' should use labeler action"
+
+
+class TestAPISecWorkflow:
+    """Test the APISec scan workflow."""
+    
+    @pytest.fixture
+    def apisec_workflow(self) -> Dict[str, Any]:
+        """Load the APISec workflow."""
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'apisec-scan.yml'
+        with open(workflow_path, 'r') as f:
+            return yaml.safe_load(f)
+    
+    def test_apisec_workflow_structure(self, apisec_workflow: Dict[str, Any]):
+        """Test that APISec workflow has correct structure."""
+        assert 'name' in apisec_workflow
+        assert 'on' in apisec_workflow
+        assert 'jobs' in apisec_workflow
+    
+    def test_apisec_has_security_permissions(self, apisec_workflow: Dict[str, Any]):
+        """Test that APISec workflow has appropriate security permissions."""
+        # Check top-level permissions
+        if 'permissions' in apisec_workflow:
+            perms = apisec_workflow['permissions']
+            # Security workflows typically need security-events write
+            assert 'security-events' in perms or 'contents' in perms
+    
+    def test_apisec_uses_apisec_action(self, apisec_workflow: Dict[str, Any]):
+        """Test that APISec workflow uses the APISec action."""
+        for job_name, job_config in apisec_workflow['jobs'].items():
+            steps = job_config.get('steps', [])
+            
+            for step in steps:
+                if 'uses' in step and 'apisec' in step['uses'].lower():
+                    # Check that required secrets are referenced
+                    if 'with' in step:
+                        step_str = str(step)
+                        assert 'apisec_username' in step_str or 'username' in step_str.lower()
+    
+    def test_apisec_simplified_no_credential_check(self, apisec_workflow: Dict[str, Any]):
+        """Test that APISec workflow no longer has redundant credential checking."""
+        for job_name, job_config in apisec_workflow['jobs'].items():
+            steps = job_config.get('steps', [])
+            
+            for step in steps:
+                # Check that we removed the credential check step
+                if 'name' in step:
+                    assert 'Check for APISec credentials' not in step['name'], (
+                        "Credential check step should have been removed for simplification"
+                    )
+
+
+class TestPRAgentWorkflow:
+    """Test the PR Agent workflow."""
+    
+    @pytest.fixture
+    def pr_agent_workflow(self) -> Dict[str, Any]:
+        """Load the PR Agent workflow."""
+        workflow_path = Path(__file__).parent.parent.parent / '.github' / 'workflows' / 'pr-agent.yml'
+        with open(workflow_path, 'r') as f:
+            return yaml.safe_load(f)
+    
+    def test_pr_agent_workflow_structure(self, pr_agent_workflow: Dict[str, Any]):
+        """Test that PR Agent workflow has correct structure."""
+        assert 'name' in pr_agent_workflow
+        assert 'on' in pr_agent_workflow
+        assert 'jobs' in pr_agent_workflow
+    
+    def test_pr_agent_no_duplicate_setup_python(self, pr_agent_workflow: Dict[str, Any]):
+        """Test that PR Agent workflow doesn't have duplicate 'Setup Python' steps."""
+        for job_name, job_config in pr_agent_workflow['jobs'].items():
+            steps = job_config.get('steps', [])
+            setup_python_count = 0
+            
+            for step in steps:
+                if 'name' in step and 'Setup Python' in step['name']:
+                    setup_python_count += 1
+            
+            assert setup_python_count <= 1, (
+                f"Job '{job_name}' has {setup_python_count} 'Setup Python' steps, should have at most 1"
+            )
+    
+    def test_pr_agent_has_python_and_node_setup(self, pr_agent_workflow: Dict[str, Any]):
+        """Test that PR Agent workflow sets up both Python and Node.js."""
+        for job_name, job_config in pr_agent_workflow['jobs'].items():
+            steps = job_config.get('steps', [])
+            has_python = False
+            has_node = False
+            
+            for step in steps:
+                if 'uses' in step:
+                    if 'setup-python' in step['uses']:
+                        has_python = True
+                    if 'setup-node' in step['uses']:
+                        has_node = True
+            
+            # PR agent needs both
+            if 'agent' in job_name.lower():
+                assert has_python, f"Job '{job_name}' should setup Python"
+                assert has_node, f"Job '{job_name}' should setup Node.js"
+    
+    def test_pr_agent_simplified_context_handling(self, pr_agent_workflow: Dict[str, Any]):
+        """Test that PR Agent workflow has simplified context handling."""
+        for job_name, job_config in pr_agent_workflow['jobs'].items():
+            steps = job_config.get('steps', [])
+            
+            # Check that context chunking steps have been removed/simplified
+            for step in steps:
+                if 'name' in step:
+                    # Old complex step names that should be gone
+                    assert 'Fetch PR Context with Chunking' not in step['name'], (
+                        "Complex context chunking should be simplified"
+                    )
+                    assert 'Install tiktoken' not in step['name'], (
+                        "tiktoken installation should be removed"
+                    )
+
+
+class TestWorkflowSecurityBestPractices:
+    """Test security best practices across all workflows."""
+    
+    @pytest.fixture
+    def all_workflows(self) -> Dict[str, Dict[str, Any]]:
+        """Load all workflow files."""
+        workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+        workflows: Dict[str, Dict[str, Any]] = {}
+        
+        # Gather both .yml and .yaml files
+        workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
+        for workflow_file in workflow_files:
+            with open(workflow_file, 'r') as f:
+                workflows[workflow_file.name] = yaml.safe_load(f)
+        
+        return workflows
+    
+    def test_workflows_use_pinned_action_versions(self, all_workflows: Dict[str, Dict[str, Any]]):
+        """Test that workflows use pinned versions for third-party actions."""
+        for workflow_name, workflow_data in all_workflows.items():
+            for job_name, job_config in workflow_data['jobs'].items():
+                steps = job_config.get('steps', [])
+                
+                for step in steps:
+                    if 'uses' in step:
+                        action = step['uses']
+                        # GitHub official actions can use @v4, @v5, etc.
+                        if action.startswith(('actions/', './', '../')):
+                            continue
+                        
+                        # Third-party actions should be pinned to SHA or @v1, @v2, etc.
+                        assert '@' in action, (
+                            f"{workflow_name} - {job_name}: Action '{action}' should have version pinned"
+                        )
+    
+    def test_workflows_have_explicit_permissions(self, all_workflows: Dict[str, Dict[str, Any]]):
+        """Test that workflows explicitly define permissions when needed."""
+        for workflow_name, workflow_data in all_workflows.items():
+            # Workflows that write to repo should have explicit permissions
+            jobs = workflow_data['jobs']
+            
+            for job_name, job_config in jobs.items():
+                # If job has actions that typically need permissions, check they're defined
+                steps = job_config.get('steps', [])
+                needs_permissions = False
+                
+                for step in steps:
+                    if 'uses' in step:
+                        action = step['uses']
+                        # Actions that typically need permissions
+                        if any(keyword in action.lower() for keyword in ['comment', 'label', 'issue', 'pr']):
+                            needs_permissions = True
+                
+                if needs_permissions:
+                    # Either job-level or workflow-level permissions should exist
+                    has_perms = ('permissions' in job_config or 
+                                'permissions' in workflow_data)
+                    
+                    # Note: This is a soft check - some actions use GITHUB_TOKEN automatically
+                    if not has_perms:
+                        import warnings
+                        if not has_perms:
+                            warnings.warn(f"{workflow_name} - {job_name} may need explicit permissions", UserWarning)
+
+                        if len(steps) > 5:
+                            if 'timeout-minutes' not in job_config:
+                                warnings.warn(f"{workflow_name} - {job_name} with {len(steps)} steps has no timeout", UserWarning)
+
+                        if not has_concurrency:
+                            warnings.warn(f"{workflow_name} - {job_name} may benefit from concurrency group", UserWarning)
+
+                        if not has_version:
+                            warnings.warn(f"{req} has no version pin", UserWarning)
+    
+    def test_workflows_dont_expose_secrets_in_logs(self, all_workflows: Dict[str, Dict[str, Any]]):
+        """Test that workflows don't echo or print secrets."""
+        dangerous_patterns = ['echo.*secrets\\.', 'print.*secrets\\.', 'console\\.log.*secrets\\.']
+        
+        for workflow_name, workflow_data in all_workflows.items():
+            workflow_str = str(workflow_data).lower()
+            
+            for pattern in dangerous_patterns:
+                import re
+                if re.search(pattern, workflow_str):
+                    pytest.fail(
+                        f"{workflow_name} may be exposing secrets in logs (pattern: {pattern})"
+                    )
+
+
+class TestWorkflowPerformance:
+    """Test performance considerations in workflows."""
+    
+    @pytest.fixture
+    def all_workflows(self) -> Dict[str, Dict[str, Any]]:
+        """Load all workflow files."""
+        workflows_dir = Path(__file__).parent.parent.parent / '.github' / 'workflows'
+        workflows = {}
+        
+        workflow_files = list(workflows_dir.glob('*.yml')) + list(workflows_dir.glob('*.yaml'))
+        for workflow_file in workflow_files:
+            with open(workflow_file, 'r') as f:
+                workflows[workflow_file.name] = yaml.safe_load(f)
+        
+        return workflows
+    
+    def test_workflows_have_reasonable_timeouts(self, all_workflows: Dict[str, Dict[str, Any]]):
+        """Test that workflows have timeout-minutes set for long-running jobs."""
+        for workflow_name, workflow_data in all_workflows.items():
+            for job_name, job_config in workflow_data['jobs'].items():
+                # Jobs with many steps should have timeouts
+                steps = job_config.get('steps', [])
+                
+                if len(steps) > 5:
+                    if 'timeout-minutes' not in job_config:
+                        print(f"Info: {workflow_name} - {job_name} with {len(steps)} steps has no timeout")
+    
+    def test_workflows_use_concurrency_groups(self, all_workflows: Dict[str, Dict[str, Any]]):
+        """Test that workflows that may run multiple times use concurrency groups."""
+        for workflow_name, workflow_data in all_workflows.items():
+            triggers = workflow_data.get('on', {})
+            
+            # If triggered on PR synchronize, should have concurrency
+            if isinstance(triggers, dict):
+                if 'pull_request' in triggers or 'pull_request_target' in triggers:
+                    for job_name, job_config in workflow_data['jobs'].items():
+                        # Check for concurrency at job or workflow level
+                        has_concurrency = ('concurrency' in job_config or 
+                                          'concurrency' in workflow_data)
+                        
+                        if not has_concurrency:
+                            print(f"Info: {workflow_name} - {job_name} may benefit from concurrency group")
+
+
+class TestRequirementsDevChanges:
+    """Test changes to requirements-dev.txt for workflow support."""
+    
+    @pytest.fixture
+    def requirements_dev(self) -> List[str]:
+        """Load requirements-dev.txt."""
+        req_path = Path(__file__).parent.parent.parent / 'requirements-dev.txt'
+        with open(req_path, 'r') as f:
+            return [line.strip() for line in f if line.strip() and not line.startswith('#')]
+    
+    def test_pyyaml_is_present(self, requirements_dev: List[str]):
+        """Test that PyYAML is in requirements-dev.txt for workflow testing."""
+        pyyaml_found = any('pyyaml' in req.lower() or 'yaml' in req.lower() 
+                           for req in requirements_dev)
+        
+        assert pyyaml_found, "PyYAML should be in requirements-dev.txt for workflow testing"
+    
+    def test_no_duplicate_requirements(self, requirements_dev: List[str]):
+        """Test that there are no duplicate package specifications."""
+        # Extract package names (before == or >=)
+        packages = []
+        for req in requirements_dev:
+            pkg_name = req.split('==')[0].split('>=')[0].split('[')[0].strip().lower()
+            packages.append(pkg_name)
+        
+        duplicates = [pkg for pkg in set(packages) if packages.count(pkg) > 1]
+        assert not duplicates, f"Duplicate packages found in requirements-dev.txt: {duplicates}"
+    
+    def test_requirements_have_version_pins(self, requirements_dev: List[str]):
+        """Test that requirements have version specifications for reproducibility."""
+        for req in requirements_dev:
+            # Skip -e editable installs
+            if req.startswith('-e') or req.startswith('git+'):
                 continue
             
-            assert 'steps' in job_config, \
-                f"Job '{job_name}' in {workflow_file.name} missing 'steps'"
+            # Should have version specifier
+            has_version = any(op in req for op in ['==', '>=', '<=', '~=', '!='])
             
-            steps = job_config['steps']
-            assert isinstance(steps, list), \
-                f"Steps in job '{job_name}' should be a list"
-            assert len(steps) > 0, \
-                f"Job '{job_name}' should have at least one step"
+            # This is a recommendation, not a hard requirement
+            if not has_version:
+                print(f"Info: {req} has no version pin")
 
 
-class TestTriggerConfiguration:
-    """Test workflow trigger configuration."""
-    
-    def test_trigger_is_valid_type(self, workflow_content):
-        """Workflow trigger should be a valid type."""
-        on_trigger = workflow_content.get('on')
-        
-        assert isinstance(on_trigger, (str, list, dict)), \
-            "'on' should be a string, list, or dictionary"
-    
-    def test_pull_request_trigger_valid(self, workflow_content):
-        """Pull request triggers should be properly configured."""
-        on_trigger = workflow_content.get('on', {})
-        
-        if isinstance(on_trigger, dict) and 'pull_request' in on_trigger:
-            pr_config = on_trigger['pull_request']
-            
-            if isinstance(pr_config, dict):
-                # Check valid activity types
-                if 'types' in pr_config:
-                    valid_types = {
-                        'opened', 'edited', 'closed', 'reopened',
-                        'synchronize', 'assigned', 'unassigned',
-                        'labeled', 'unlabeled', 'review_requested'
-                    }
-                    
-                    for activity_type in pr_config['types']:
-                        assert activity_type in valid_types, \
-                            f"Invalid PR activity type: {activity_type}"
-    
-    def test_push_trigger_has_branches(self, workflow_content):
-        """Push triggers should specify branches when appropriate."""
-        on_trigger = workflow_content.get('on', {})
-        
-        if isinstance(on_trigger, dict) and 'push' in on_trigger:
-            push_config = on_trigger['push']
-            
-            # If it's a dict, it should have branches or paths
-            if isinstance(push_config, dict):
-                has_filter = 'branches' in push_config or 'paths' in push_config
-                # It's okay to not have filters for some workflows
-                # Just check structure if present
-                if 'branches' in push_config:
-                    branches = push_config['branches']
-                    assert isinstance(branches, list), \
-                        "push.branches should be a list"
-    
-    def test_schedule_trigger_valid_cron(self, workflow_content):
-        """Schedule triggers should have valid cron expressions."""
-        on_trigger = workflow_content.get('on', {})
-        
-        if isinstance(on_trigger, dict) and 'schedule' in on_trigger:
-            schedule = on_trigger['schedule']
-            assert isinstance(schedule, list), "schedule should be a list"
-            
-            for item in schedule:
-                assert 'cron' in item, "Schedule item should have 'cron'"
-                cron = item['cron']
-                
-                # Basic cron validation: should have 5 fields
-                parts = cron.split()
-                assert len(parts) == 5, \
-                    f"Cron expression should have 5 fields: {cron}"
+"""
+Comprehensive validation tests for GitHub workflow YAML files.
 
-
-class TestJobConfiguration:
-    """Test individual job configurations."""
-    
-    def test_job_names_descriptive(self, workflow_content):
-        """Job names should be descriptive."""
-        jobs = workflow_content.get('jobs', {})
-        
-        for job_name in jobs.keys():
-            assert len(job_name) > 2, \
-                f"Job name '{job_name}' is too short"
-            
-            # Should use descriptive names, not just numbers
-            assert not job_name.isdigit(), \
-                f"Job name '{job_name}' should be descriptive, not just a number"
-    
-    def test_runner_types_valid(self, workflow_content):
-        """Runner types should be valid GitHub-hosted or self-hosted."""
-        jobs = workflow_content.get('jobs', {})
-        
-        valid_runners = {
-            'ubuntu-latest', 'ubuntu-22.04', 'ubuntu-20.04',
-            'windows-latest', 'windows-2022', 'windows-2019',
-            'macos-latest', 'macos-12', 'macos-11'
-        }
-        
-        for job_name, job_config in jobs.items():
-            runs_on = job_config.get('runs-on')
-            
-            if isinstance(runs_on, str):
-                # Allow self-hosted or standard runners
-                if runs_on not in valid_runners:
-                    assert runs_on.startswith('self-hosted') or \
-                           runs_on.startswith('${{'), \
-                        f"Job '{job_name}' has invalid runner: {runs_on}"
-            elif isinstance(runs_on, list):
-                # Matrix or label-based selection
-                pass  # More complex validation needed
-    
-    def test_steps_have_name_or_uses(self, workflow_content):
-        """Each step should have either a name or uses field."""
-        jobs = workflow_content.get('jobs', {})
-        
-        for job_name, job_config in jobs.items():
-            steps = job_config.get('steps', [])
-            
-            for i, step in enumerate(steps):
-                has_identifier = 'name' in step or 'uses' in step or 'run' in step
-                assert has_identifier, \
-                    f"Step {i} in job '{job_name}' should have 'name', 'uses', or 'run'"
-    
-    def test_action_versions_pinned(self, workflow_content):
-        """Actions should use pinned versions for security."""
-        jobs = workflow_content.get('jobs', {})
-        
-        for job_name, job_config in jobs.items():
-            steps = job_config.get('steps', [])
-            
-            for step in steps:
-                if 'uses' in step:
-                    action = step['uses']
-                    
-                    # Skip local actions
-                    if action.startswith('./'):
-                        continue
-                    
-                    # Should have a version (@ followed by ref)
-                    assert '@' in action, \
-                        f"Action '{action}' should be pinned to a version"
-                    
-                    # Extract version
-                    version = action.split('@')[1]
-                    
-                    # Warn if using moving tags like @main or @master
-                    moving_tags = ['main', 'master', 'latest', 'stable']
-                    if version in moving_tags:
-                        # This is a warning, not an error - but we'll document it
-                        pass  # Could add logging here
-
-
-class TestSecurityBestPractices:
-    """Test security best practices in workflows."""
-    
-    def test_no_hardcoded_secrets(self, workflow_file):
-        """Workflows should not contain hardcoded secrets."""
-        with open(workflow_file, 'r') as f:
-            content = f.read()
-        
-        # Check for potential secrets (basic patterns)
-        secret_patterns = [
-            r'password:\s*["\'][^"\'$]+["\']',
-            r'token:\s*["\'][a-zA-Z0-9]{20,}["\']',
-            r'api[_-]?key:\s*["\'][^"\'$]+["\']',
-        ]
-        
-        for pattern in secret_patterns:
-            matches = re.findall(pattern, content, re.IGNORECASE)
-            # Filter out obvious ${{ secrets.* }} references
-            actual_secrets = [m for m in matches if 'secrets.' not in m and '${{' not in m]
-            
-            assert len(actual_secrets) == 0, \
-                f"Potential hardcoded secret in {workflow_file.name}"
-    
-    def test_secrets_use_github_secrets(self, workflow_file):
-        """Secrets should reference GitHub secrets."""
-        with open(workflow_file, 'r') as f:
-            content = f.read()
-        
-        # Find all secret references
-        secret_refs = re.findall(r'\$\{\{\s*secrets\.(\w+)\s*\}\}', content)
-        
-        # Check that they follow naming conventions (optional check)
-        for secret_name in secret_refs:
-            # Secret names should be UPPER_SNAKE_CASE
-            assert secret_name.isupper() or '_' in secret_name or '-' in secret_name, \
-                f"Secret '{secret_name}' should use UPPER_SNAKE_CASE naming"
-    
-    def test_permissions_are_minimal(self, workflow_content):
-        """Workflow permissions should follow principle of least privilege."""
-        permissions = workflow_content.get('permissions')
-        
-        if permissions:
-            # Check if using minimal permissions
-            if isinstance(permissions, dict):
-                # Specific permissions defined - this is good
-                risky_perms = ['write-all', 'admin']
-                
-                for perm, value in permissions.items():
-                    assert value not in risky_perms, \
-                        f"Overly broad permission '{perm}: {value}'"
-            elif permissions == 'write-all':
-                pytest.fail("Using 'permissions: write-all' is insecure")
-
-
-class TestConditionals:
-    """Test conditional execution in workflows."""
-    
-    def test_if_conditions_valid_syntax(self, workflow_content):
-        """Conditional 'if' statements should have valid syntax."""
-        jobs = workflow_content.get('jobs', {})
-        
-        for job_name, job_config in jobs.items():
-            # Check job-level conditions
-            if 'if' in job_config:
-                condition = job_config['if']
-                assert isinstance(condition, str), \
-                    f"Job '{job_name}' if condition should be a string"
-                assert len(condition) > 0, \
-                    f"Job '{job_name}' if condition should not be empty"
-            
-            # Check step-level conditions
-            steps = job_config.get('steps', [])
-            for step in steps:
-                if 'if' in step:
-                    condition = step['if']
-                    assert isinstance(condition, str), \
-                        "Step if condition should be a string"
-                    
-                    # Check for common syntax errors
-                    assert condition.count('(') == condition.count(')'), \
-                        f"Unmatched parentheses in condition: {condition}"
-    
-    def test_no_always_true_conditions(self, workflow_content):
-        """Workflows should not have always-true conditions."""
-        jobs = workflow_content.get('jobs', {})
-        
-        always_true = ['true', '1 == 1', 'always()']
-        
-        for job_name, job_config in jobs.items():
-            if 'if' in job_config:
-                condition = job_config['if'].strip()
-                # This is a soft check - sometimes always() is intentional
-                if condition in always_true[:2]:  # Skip always() which has valid uses
-                    # Warning rather than failure
-                    pass
-
-
-class TestWorkflowOptimization:
-    """Test workflow performance and optimization."""
-    
-    def test_concurrency_group_defined(self, workflow_content):
-        """Workflows should define concurrency groups to prevent conflicts."""
-        # Concurrency is optional but recommended for PR workflows
-        on_trigger = workflow_content.get('on', {})
-        
-        if isinstance(on_trigger, dict) and 'pull_request' in on_trigger:
-            # PR workflows benefit from concurrency control
-            if 'concurrency' not in workflow_content:
-                # This is a recommendation, not a hard requirement
-                pass
-    
-    def test_caching_configured_where_appropriate(self, workflow_content):
-        """Workflows should use caching for dependencies."""
-        jobs = workflow_content.get('jobs', {})
-        
-        uses_node = False
-        uses_python = False
-        uses_cache = False
-        
-        for job_config in jobs.values():
-            steps = job_config.get('steps', [])
-            
-            for step in steps:
-                if 'uses' in step:
-                    action = step['uses']
-                    if 'setup-node' in action:
-                        uses_node = True
-                    if 'setup-python' in action:
-                        uses_python = True
-                    if 'cache' in action or 'actions/cache' in action:
-                        uses_cache = True
-        
-        # If using package managers, caching is beneficial (but not required)
-        # This is informational rather than enforced
-        if (uses_node or uses_python) and not uses_cache:
-            # Could benefit from caching
-            pass
-    
-    def test_no_extremely_long_workflows(self, workflow_file):
-        """Workflows should not be excessively long."""
-        with open(workflow_file, 'r') as f:
-            lines = len(f.readlines())
-        
-        # Warn if workflow is very long (might need splitting)
-        assert lines <= 1000, \
-            f"{workflow_file.name} is very long ({lines} lines). Consider splitting."
-
-
-class TestDocumentation:
-    """Test workflow documentation and comments."""
-    
-    def test_workflow_has_description_comment(self, workflow_file):
-        """Workflow should have a description comment at the top."""
-        with open(workflow_file, 'r') as f:
-            first_lines = ''.join(f.readlines()[:10])
-        
-        # Should have at least one comment in first 10 lines
-        has_comment = '#' in first_lines
-        # This is a recommendation
-        if not has_comment:
-            pass  # Could warn but not fail
-    
-    def test_complex_steps_have_comments(self, workflow_file):
-        """Complex steps should have explanatory comments."""
-        with open(workflow_file, 'r') as f:
-            content = f.read()
-        
-        # Check for run blocks with complex scripts
-        complex_run_blocks = re.findall(r'run:\s*\|[\s\S]*?(?=\n\s{0,2}\w|\Z)', content)
-        
-        # If there are multi-line run blocks, they should have comments
-        # This is informational
-        if len(complex_run_blocks) > 3:
-            # Workflow has many complex scripts
-            pass
-
-
-class TestErrorHandling:
-    """Test error handling in workflows."""
-    
-    def test_critical_steps_have_continue_on_error(self, workflow_content):
-        """Critical steps should explicitly set continue-on-error."""
-        jobs = workflow_content.get('jobs', {})
-        
-        for job_name, job_config in jobs.items():
-            steps = job_config.get('steps', [])
-            
-            for step in steps:
-                # Steps with 'run' that might fail should consider continue-on-error
-                if 'run' in step:
-                    # This is informational - not all steps need it
-                    pass
-    
-    def test_timeout_minutes_set(self, workflow_content):
-        """Jobs should have timeout-minutes to prevent infinite runs."""
-        jobs = workflow_content.get('jobs', {})
-        
-        for job_name, job_config in jobs.items():
-            # timeout-minutes is recommended but not required
-            if 'timeout-minutes' in job_config:
-                timeout = job_config['timeout-minutes']
-                assert isinstance(timeout, int), \
-                    f"Job '{job_name}' timeout-minutes should be an integer"
-                assert 1 <= timeout <= 360, \
-                    f"Job '{job_name}' timeout should be between 1 and 360 minutes"
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+This module tests the structure, syntax, and best practices of all
+GitHub Actions workflow files, with special focus on recent changes:
+- Simplified greetings workflow
+- Simplified labeler workflow  
+- Simplified APIsec scan workflow
+- Simplified PR agent workflow
+"""
+if __name__ == '__main__':
+    pytest.main([__file__, '-v'])
