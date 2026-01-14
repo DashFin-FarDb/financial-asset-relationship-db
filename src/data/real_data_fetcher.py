@@ -60,11 +60,12 @@ class RealDataFetcher:
         Create an AssetRelationshipGraph populated with real financial data.
         Load from cache when available, otherwise fetch live data (if network
         is enabled), and fall back to the provided factory or sample data on
-        network disablement or fetch failure. Persist the freshly built graph
-        to cache when possible.
+        network disablement or fetch failure.
+        Persist the freshly built graph to cache when possible.
 
         Returns:
-            graph (AssetRelationshipGraph): The constructed graph containing assets, regulatory events and relationships.
+            graph (AssetRelationshipGraph): The constructed graph containing
+                assets, regulatory events and relationships.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -136,11 +137,15 @@ class RealDataFetcher:
 
     def _fallback(self) -> AssetRelationshipGraph:
         """
-        Selects a fallback AssetRelationshipGraph to use when real data cannot be fetched.
-        If a `fallback_factory` was provided to the instance, this calls it and returns its result; otherwise it constructs and returns the built-in sample database.
+        Selects a fallback AssetRelationshipGraph to use when real data cannot be
+        fetched.
+        If a `fallback_factory` was provided to the instance, this calls it and
+        returns its result; otherwise it constructs and returns the built-
+        in sample database.
 
         Returns:
-            An `AssetRelationshipGraph` instance either from the provided fallback factory or from the module sample dataset.
+            An `AssetRelationshipGraph` instance either from the provided
+            fallback factory or from the module sample dataset.
         """
         if self.fallback_factory is not None:
             return self.fallback_factory()
@@ -400,15 +405,19 @@ class RealDataFetcher:
 
 def create_real_database() -> AssetRelationshipGraph:
     """
-    Builds an AssetRelationshipGraph populated with market data, falling back to sample data when necessary.
+    Builds an AssetRelationshipGraph populated with market data, falling back to
+    sample data when necessary.
 
-    Creates or loads a graph containing assets, regulatory events and their relationships by attempting to:
+    Creates or loads a graph containing assets, regulatory events and their
+    relationships by attempting to:
     - load a cached graph if available,
     - fetch real market data when network access is enabled,
     - otherwise fall back to a provided or built sample dataset.
 
     Returns:
-        AssetRelationshipGraph: The constructed graph populated with assets, regulatory events and relationship mappings; the content may come from the cache, a real-data fetch, or the sample fallback.
+        AssetRelationshipGraph: The constructed graph populated with assets,
+        regulatory events and relationship mappings; the content may come from the
+        cache, a real-data fetch, or the sample fallback.
     """
     fetcher = RealDataFetcher()
     return fetcher.create_real_database()
@@ -416,13 +425,16 @@ def create_real_database() -> AssetRelationshipGraph:
 
 def _enum_to_value(value: Any) -> Any:
     """
-    Convert an Enum instance to its underlying value; return the input unchanged otherwise.
+    Convert an Enum instance to its underlying value.
+    Return the input unchanged otherwise.
 
     Parameters:
-        value (Any): The value to normalise. If `value` is an `Enum` member its `.value` is returned.
+        value (Any): The value to normalise.
+            If `value` is an `Enum` member its `.value` is returned.
 
     Returns:
-        Any: The underlying value of the `Enum` member if applicable, otherwise the original `value`.
+        Any: The underlying value of the `Enum` member if applicable, otherwise the
+            original `value`.
     """
     from enum import Enum
 
@@ -431,14 +443,16 @@ def _enum_to_value(value: Any) -> Any:
 
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
-    Serialize a dataclass instance into a JSON-friendly dictionary with enum values converted.
+    Serialize a dataclass instance into a JSON-friendly dictionary
+    with enum values converted.
 
     Parameters:
         obj (Any): A dataclass instance (e.g. Asset or subclass) to serialize.
 
     Returns:
-        Dict[str, Any]: A mapping of field names to values where Enum members are replaced by their `.value`,
-        and an additional "__type__" key containing the dataclass's class name.
+        Dict[str, Any]: A mapping of field names to values where
+        Enum members are replaced by their `.value`, and an additional
+        "__type__" key containing the dataclass's class name.
     """
     data = asdict(obj)
     serialized = {key: _enum_to_value(val) for key, val in data.items()}
@@ -497,10 +511,12 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     Deserialize a dictionary representation of an asset back into an Asset instance.
 
     Parameters:
-        data (Dict[str, Any]): Dictionary containing asset data with a "__type__" key indicating the asset subclass.
+        data (Dict[str, Any]): Dictionary containing asset data
+            with a "__type__" key indicating the asset subclass.
 
     Returns:
-        Asset: An Asset instance (or subclass like Equity, Bond, etc.) constructed from the provided data.
+        Asset: An Asset instance (or subclass like Equity, Bond, etc.)
+            constructed from the provided data.
     """
     data = dict(data)  # Make a copy to avoid modifying the original
     type_name = data.pop("__type__", "Asset")
@@ -591,8 +607,10 @@ def _save_to_cache(graph: AssetRelationshipGraph, path: Path) -> None:
     """
     Persist an AssetRelationshipGraph to a JSON file at the given filesystem path.
 
-    The function serialises the provided graph to JSON (UTF-8, pretty-printed with two-space indentation),
-    creates parent directories if necessary, and overwrites any existing file at the path.
+    The function serialises the provided graph to JSON
+    (UTF-8, pretty-printed with two-space indentation),
+    creates parent directories if necessary,
+    and overwrites any existing file at the path.
 
     Parameters:
         graph (AssetRelationshipGraph): The graph to persist.

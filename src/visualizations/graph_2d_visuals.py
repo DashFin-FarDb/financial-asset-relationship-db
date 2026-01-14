@@ -1,8 +1,10 @@
 """
 2D graph visualization module for financial asset relationships.
 
-This module provides 2D visualization capabilities for asset relationship graphs,
-including multiple layout algorithms (spring, circular, grid) and relationship filtering.
+This module provides 2D visualization capabilities for asset relationship
+graphs,
+including multiple layout algorithms (spring, circular, grid) and
+relationship filtering.
 
 
 """

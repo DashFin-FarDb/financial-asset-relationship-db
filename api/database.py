@@ -32,18 +32,23 @@ def _get_database_url() -> str:
 
 def _resolve_sqlite_path(url: str) -> str:
     """
-    Resolve a SQLite URL to either a filesystem path or the special in-memory indicator.
+    Resolve a SQLite URL to either a filesystem path or the special
+    in-memory indicator.
 
-    Accepts SQLite URLs with schemes like `sqlite:///relative.db`, `sqlite:////absolute/path.db`
-    and `sqlite:///:memory:`. Percent-encodings in the URL path are decoded before resolution.
-    For in-memory URLs (`:memory:` or `/:memory:`) the literal string `":memory:"` is returned.
-    URI-style memory databases like `sqlite:///file::memory:?cache=shared` are returned as-is.
+    Accepts SQLite URLs with schemes like `sqlite:///relative.db`,
+    `sqlite:////absolute/path.db`, and `sqlite:///:memory:`.
+    Percent-encodings in the URL path are decoded before resolution.
+    For in-memory URLs (`:memory:` or `/:memory:`)
+    the literal string `":memory:"` is returned.
+    URI-style memory databases like `sqlite:///file::memory:?cache=shared`
+    are returned as-is.
 
     Parameters:
         url (str): SQLite URL to resolve.
 
     Returns:
-        str: Filesystem path for file-based URLs, or the literal string `":memory:"` for in-memory databases,
+        str: Filesystem path for file-based URLs,
+             or the literal string `":memory:"` for in-memory databases,
              or the original path for URI-style memory databases.
     """
     parsed = urlparse(url)
@@ -117,12 +122,17 @@ def _connect() -> sqlite3.Connection:
     """
     Open a configured SQLite connection for the module's database path.
 
-
-
-    Returns a persistent shared connection when the configured database is in-memory; for file-backed databases, returns a new connection instance. The connection has type detection enabled (PARSE_DECLTYPES), allows use from multiple threads (check_same_thread=False) and uses sqlite3.Row for rows. When the database path is a URI beginning with "file:" the connection is opened with URI handling enabled.
+    
+    Returns a persistent shared connection when the configured database is
+    in-memory; for file-backed databases, returns a new connection instance.
+    The connection has type detection enabled (PARSE_DECLTYPES), allows use from
+    multiple threads (check_same_thread=False) and uses sqlite3.Row for rows.
+    When the database path is a URI beginning with "file:" the connection is
+    opened with URI handling enabled.
 
     Returns:
-        sqlite3.Connection: A sqlite3 connection to the configured DATABASE_PATH (shared for in-memory, new per call for file-backed).
+        sqlite3.Connection: A sqlite3 connection to the configured
+            DATABASE_PATH (shared for in-memory, new per call for file-backed).
     """
     global _MEMORY_CONNECTION
 
@@ -154,10 +164,12 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     """
     Provide a context-managed SQLite connection for the configured database.
 
-    For file-backed databases the connection is closed when the context exits; for in-memory databases the shared connection is kept open.
+    For file-backed databases the connection is closed when the context exits;
+    for in-memory databases the shared connection is kept open.
 
     Returns:
-        sqlite3.Connection: The SQLite connection — closed on context exit for file-backed databases, kept open for in-memory databases.
+        sqlite3.Connection: The SQLite connection — closed on context exit for
+            file-backed databases, kept open for in-memory databases.
     """
     connection = _connect()
     try:
@@ -180,11 +192,13 @@ atexit.register(_cleanup_memory_connection)
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
-    Execute a SQL write statement and commit the transaction using the module's managed SQLite connection.
+    Execute a SQL write statement and commit the transaction using the module's
+    managed SQLite connection.
 
     Parameters:
         query (str): SQL statement to execute.
-        parameters (tuple | list | None): Sequence of values to bind to the statement; use `None` or an empty sequence if there are no parameters.
+        parameters (tuple | list | None): Sequence of values to bind to the statement;
+            use `None` or an empty sequence if there are no parameters.
     """
     with get_connection() as connection:
         connection.execute(query, parameters or ())
@@ -197,10 +211,12 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
 
     Parameters:
         query (str): SQL statement to execute.
-        parameters (tuple | list | None): Optional sequence of parameters to bind into the query.
+        parameters (tuple | list | None): Optional sequence of parameters
+            to bind into the query.
 
     Returns:
-        sqlite3.Row | None: The first row of the result set as a `sqlite3.Row`, or `None` if the query returned no rows.
+        sqlite3.Row | None: The first row of the result set
+            as a `sqlite3.Row`, or `None` if the query returned no rows.
     """
     with get_connection() as connection:
         cursor = connection.execute(query, parameters or ())
@@ -213,7 +229,8 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
 
     Parameters:
         query (str): SQL query to execute; may include parameter placeholders.
-        parameters (tuple | list | None): Sequence of parameters for the query placeholders.
+        parameters (tuple | list | None): Sequence of parameters for the query
+            placeholders.
 
     Returns:
         The first column value if a row is returned, `None` otherwise.

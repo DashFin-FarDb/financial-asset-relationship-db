@@ -68,10 +68,11 @@ def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> Dict[Tuple[str, str, str], float]:
-    """Build optimized relationship index for O(1) lookups with pre-filtering and thread safety.
+    """Build optimized relationship index for O(1) lookups with pre-filtering and
+    thread safety.
 
-    This function consolidates relationship data into a single index structure
-    that can be efficiently queried for:
+    This function consolidates relationship data into a single index structure that
+    can be efficiently queried for:
     - Checking if a relationship exists (O(1) lookup)
     - Getting relationship strength (O(1) lookup)
     - Detecting bidirectional relationships (O(1) reverse lookup)
@@ -84,55 +85,69 @@ def _build_relationship_index(
 
     Thread Safety:
     ==============
-    This function uses a reentrant lock (RLock) to protect concurrent access to graph.relationships
-    within this module. However, true thread safety requires coordination across the entire codebase.
+    This function uses a reentrant lock (RLock) to protect concurrent access to
+    graph.relationships within this module. However, true thread safety requires
+    coordination across the entire codebase.
 
     Implementation:
-    - Uses threading.RLock (_graph_access_lock) to synchronize access to graph.relationships
-    - The lock is reentrant, allowing the same thread to acquire it multiple times safely
-    - Creates a snapshot of relationships within the lock to minimize lock hold time
+    - Uses threading.RLock (_graph_access_lock) to synchronize access to
+      graph.relationships
+    - The lock is reentrant, allowing the same thread to acquire it multiple
+      times safely
+    - Creates a snapshot of relationships within the lock to minimize lock hold
+      time
 
     Thread safety guarantees (with conditions):
-    ✓ SAFE: Multiple threads calling visualization functions in this module concurrently
+    ✓ SAFE: Multiple threads calling visualization functions in this module
+      concurrently
     ✓ SAFE: Concurrent calls to this function with the same graph object
-    ⚠ CONDITIONAL: Concurrent modifications to graph.relationships are only safe if:
-      - All code that modifies graph.relationships uses the same _graph_access_lock, OR
-      - The graph object is treated as immutable after creation (recommended approach)
+    ⚠ CONDITIONAL: Concurrent modifications to graph.relationships are only safe
+      if:
+      - All code that modifies graph.relationships uses the same
+        _graph_access_lock, OR
+      - The graph object is treated as immutable after creation (recommended
+        approach)
 
     Recommended usage patterns for thread safety:
-    1. PREFERRED: Treat graph objects as immutable after creation. Build the graph completely
-       before passing it to visualization functions. This eliminates the need for locking.
+    1. PREFERRED: Treat graph objects as immutable after creation. Build the graph
+       completely before passing it to visualization functions. This eliminates the
+       need for locking.
     2. ALTERNATIVE: If you must modify graph.relationships concurrently, ensure all
-       modification code acquires _graph_access_lock before accessing graph.relationships.
-       This requires coordination across your entire codebase.
+       modification code acquires _graph_access_lock before accessing
+       graph.relationships. This requires coordination across your entire codebase.
 
-    Note: The AssetRelationshipGraph class itself does not implement any locking mechanisms.
-    Thread safety for modifications must be managed by the calling code. If other parts of
-    your application modify graph.relationships without using _graph_access_lock, race
-    conditions may occur.
+    Note: The AssetRelationshipGraph class itself does not implement any locking
+    mechanisms. Thread safety for modifications must be managed by the calling
+    code. If other parts of your application modify graph.relationships without
+    using _graph_access_lock, race conditions may occur.
 
     Error Handling (addresses review feedback):
     ===========================================
     This function implements comprehensive error handling to ensure robustness:
     - Validates that graph is an AssetRelationshipGraph instance
-    - Validates that graph.relationships exists and is a properly formatted dictionary
+    - Validates that graph.relationships exists and is a properly formatted
+      dictionary
     - Validates that asset_ids is iterable and contains only strings
     - Validates each relationship tuple has the correct structure (3 elements)
-    - Validates data types for target_id (string), rel_type (string), and strength (numeric)
-    - Provides detailed error messages indicating the exact location and nature of any issues
+    - Validates data types for target_id (string), rel_type (string), and
+      strength (numeric)
+    - Provides detailed error messages indicating the exact location and nature
+      of any issues
 
     Args:
         graph: The asset relationship graph
-        asset_ids: Iterable of asset IDs to include (will be converted to a set for O(1) membership tests)
+        asset_ids: Iterable of asset IDs to include (will be converted to a set
+            for O(1) membership tests)
 
     Returns:
-        Dictionary mapping (source_id, target_id, rel_type) to strength for all relationships
+        Dictionary mapping (source_id, target_id, rel_type) to strength for all
+        relationships
 
     Raises:
-        TypeError: If graph is not an AssetRelationshipGraph instance,
-            or if data types are invalid
-        ValueError: If graph.relationships has invalid structure or
-            malformed data
+        TypeError: If graph is not an AssetRelationshipGraph instance, or if data
+            types are invalid
+        ValueError: If graph.relationships has invalid structure or malformed
+            data
     """
     # Validate graph input
     if not isinstance(graph, AssetRelationshipGraph):
@@ -272,7 +287,8 @@ def _create_node_trace(
         Plotly Scatter3d trace for nodes
 
     Raises:
-        ValueError: If input parameters are invalid, have mismatched dimensions, or contain invalid data
+        ValueError: If input parameters are invalid,
+            have mismatched dimensions, or contain invalid data
     """
     # Input validation: Perform basic type checks before delegating to comprehensive validator
     # This provides early failure with clear error messages for common mistakes
@@ -345,10 +361,12 @@ def _generate_dynamic_title(
     num_relationships: int,
     base_title: str = "Financial Asset Network",
 ) -> str:
-    """Generate a dynamic title for the visualization based on asset and relationship counts.
+    """Generate a dynamic title for the visualization based on asset
+    and relationship counts.
 
-    This function creates a consistent title format across different visualization contexts,
-    improving modularity and making it easier to customize titles without modifying core logic.
+    This function creates a consistent title format
+    across different visualization contexts, improving modularity
+    and making it easier to customize titles without modifying core logic.
 
     Args:
         num_assets: Number of assets in the visualization
@@ -390,17 +408,20 @@ def _prepare_layout_config(
 ) -> Tuple[str, Dict[str, object]]:
     """Prepare layout configuration with dynamic title based on visualization data.
 
-    This function separates layout configuration logic from the main visualization function,
-    improving modularity and making it easier to customize layouts in different contexts.
+    This function separates layout configuration logic from the main
+    visualization function, improving modularity and making it easier to
+    customize layouts in different contexts.
 
     Args:
         num_assets: Number of assets in the visualization
-        relationship_traces: List of relationship traces to count visible relationships
-        base_title: Base title text(default: "Financial Asset Network")
+        relationship_traces: List of relationship traces to count visible
+            relationships
+        base_title: Base title text (default: "Financial Asset Network")
         layout_options: Optional layout customization options
 
     Returns:
-        Tuple of(dynamic_title, layout_options) ready for use with _configure_3d_layout
+        Tuple of (dynamic_title, layout_options) ready for use with
+            _configure_3d_layout
     """
     num_relationships = _calculate_visible_relationships(relationship_traces)
     dynamic_title = _generate_dynamic_title(num_assets, num_relationships, base_title)
@@ -568,6 +589,7 @@ def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
         raise ValueError(f"Invalid graph data: duplicate asset_ids detected: {dup_str}")
 
 
+
 def _validate_visualization_data(
     positions: np.ndarray,
     asset_ids: List[str],
@@ -590,33 +612,34 @@ def _validate_visualization_data(
     _validate_asset_ids_uniqueness(asset_ids)
 
 
-def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
-    """Create enhanced 3D visualization of asset relationship graph with improved relationship visibility"""
-    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-        graph, "get_3d_visualization_data_enhanced"
-    ):
-        raise ValueError("Invalid graph data provided")
+ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
+     """Create enhanced 3D visualization of asset relationship graph
+     with improved relationship visibility"""
+     if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
+         graph, "get_3d_visualization_data_enhanced"
+     ):
+         raise ValueError("Invalid graph data provided")
 
-    positions, asset_ids, colors, hover_texts = (
-        graph.get_3d_visualization_data_enhanced()
-    )
+     positions, asset_ids, colors, hover_texts = (
+         graph.get_3d_visualization_data_enhanced()
+     )
 
-    # Validate visualization data to prevent runtime errors
-    _validate_visualization_data(positions, asset_ids, colors, hover_texts)
+     # Validate visualization data to prevent runtime errors
+     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
-    fig = go.Figure()
+     fig = go.Figure()
 
-    # Create separate traces for different relationship types and directions
-    try:
-        relationship_traces = _create_relationship_traces(graph, positions, asset_ids)
-    except Exception as exc:  # pylint: disable=broad-except
-        logger.exception("Failed to create relationship traces: %s", exc)
-        relationship_traces = []
+     # Create separate traces for different relationship types and directions
+     try:
+         relationship_traces = _create_relationship_traces(graph, positions, asset_ids)
+     except Exception as exc:  # pylint: disable=broad-except
+         logger.exception("Failed to create relationship traces: %s", exc)
+         relationship_traces = []
 
-    # Batch add traces
-    if relationship_traces:
-        try:
-            fig.add_traces(relationship_traces)
+     # Batch add traces
+     if relationship_traces:
+         try:
+             fig.add_traces(relationship_traces)
         except Exception as exc:  # pylint: disable=broad-except
             logger.exception("Failed to add relationship traces to figure: %s", exc)
 
@@ -978,7 +1001,8 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
     """Validate that all filter parameters are boolean values.
 
     Args:
-        filter_params: Dictionary mapping filter parameter names to their boolean values.
+        filter_params: Dictionary mapping filter parameter names to
+            their boolean values.
             Expected keys:
                 show_same_sector,
                 show_market_cap,
@@ -991,7 +1015,8 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
                 toggle_arrows
 
     Raises:
-        TypeError: If any parameter is not a boolean or if filter_params is not a dictionary
+        TypeError: If any parameter is not a boolean or if filter_params is not
+            a dictionary
     """
     if not isinstance(filter_params, dict):
         raise TypeError(

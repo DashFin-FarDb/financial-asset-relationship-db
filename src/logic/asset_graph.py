@@ -34,7 +34,10 @@ class AssetRelationshipGraph:
         self.regulatory_events.append(event)
 
     def build_relationships(self) -> None:
-        """Automatically discover relationships between assets based on business rules."""
+        """
+        Automatically discover relationships between assets
+        based on business rules.
+        """
         self.relationships = {}
 
         asset_ids = list(self.assets.keys())

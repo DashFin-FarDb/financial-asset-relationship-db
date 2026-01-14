@@ -1,4 +1,5 @@
-"""Pytest configuration and fixtures for the financial asset relationship database tests."""
+"""Pytest configuration and fixtures for the financial asset relationship
+database tests."""
 
 from typing import TYPE_CHECKING
 
@@ -17,13 +18,13 @@ from src.models.financial_models import (
 
 
 @pytest.fixture
-def empty_graph():
+ def empty_graph():
     """Provide an empty AssetRelationshipGraph."""
     return AssetRelationshipGraph()
 
 
 @pytest.fixture
-def sample_equity():
+ def sample_equity():
     """Provide a sample Equity asset."""
     return Equity(
         id="AAPL",
@@ -165,7 +166,9 @@ def dividend_stock():
     Provide a sample Equity representing a dividend-paying stock for tests.
 
     Returns:
-        Equity: An Equity instance configured for testing with id "DIV_STOCK", symbol "DIVS", sector "Utilities", price 100.0, dividend_yield 0.04 and other common financial fields populated.
+        Equity: An Equity instance configured for testing with id "DIV_STOCK",
+            symbol "DIVS", sector "Utilities", price 100.0,
+            dividend_yield 0.04 and other common financial fields populated.
     """
     return Equity(
         id="DIV_STOCK",

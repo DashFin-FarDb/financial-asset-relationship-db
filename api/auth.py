@@ -54,10 +54,12 @@ def _is_truthy(value: str | None) -> bool:
     Determine whether a string value represents a truthy boolean.
 
     Parameters:
-        value (str | None): Input string to evaluate; recognised truthy forms are "true", "1", "yes" and "on" (case-insensitive).
+        value (str | None): Input string to evaluate; recognised truthy forms are
+            "true", "1", "yes" and "on" (case-insensitive).
 
     Returns:
-        bool: True if `value` matches a recognised truthy form, False otherwise.
+        bool: True if `value` matches a recognised truthy form,
+            False otherwise.
     """
     return False if not value else value.lower() in ("true", "1", "yes", "on")
 
@@ -264,8 +266,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     Create a JWT access token that includes an expiry (`exp`) claim.
 
     Parameters:
-        data (dict): Claims to include in the token payload. The function will add or overwrite the `exp` claim.
-        expires_delta (Optional[timedelta]): Time span after which the token expires; if omitted the token expires in 15 minutes.
+        data (dict):
+            Claims to include in the token payload.
+            The function will add or overwrite the `exp` claim.
+        expires_delta (Optional[timedelta]):
+            Time span after which the token expires; if omitted the token
+            expires in 15 minutes.
 
     Returns:
         str: Encoded JWT as a compact string.
@@ -285,13 +291,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     Return the user represented by the provided JWT.
 
 
-
     Returns:
         User: The User model corresponding to the token's subject.
 
     Raises:
         HTTPException: 401 with detail "Token has expired" if the token has expired.
-        HTTPException: 401 with detail "Could not validate credentials" if the token is invalid, missing the subject, or no matching user is found.
+        HTTPException: 401 with detail "Could not validate credentials"
+            if the token is invalid,
+            missing the subject, or no matching user is found.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -325,7 +332,8 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     Get the currently authenticated active user.
 
     Raises:
-        HTTPException: 400 with detail "Inactive user" if the user's account is disabled.
+        HTTPException: 400 with detail "Inactive user" if the user's account is
+        disabled.
 
     Returns:
         The authenticated user's public profile as a `User` instance.

@@ -61,7 +61,8 @@ def _build_mcp_app():
         Validate an Equity asset and add it to the graph.
 
         If the graph exposes an `add_asset` method, the asset is added.
-        Otherwise, this tool performs validation only (no persistent changes).
+        Otherwise, this tool performs validation only
+        (no persistent changes).
 
         Returns:
             Success message or 'Validation Error: <message>'.
