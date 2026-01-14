@@ -170,8 +170,7 @@ class TestGetConnection:
 class TestCleanupMemoryConnection:
     """Test cases for _cleanup_memory_connection function."""
 
-    @patch("api.database._MEMORY_CONNECTION")
-    def test_cleanup_closes_memory_connection(self, mock_conn):
+    def test_cleanup_closes_memory_connection(self):
         """Test that cleanup closes the memory connection."""
         mock_connection = MagicMock(spec=sqlite3.Connection)
         with patch("api.database._MEMORY_CONNECTION", mock_connection):
