@@ -90,7 +90,31 @@ class TestWorkflowModifications:
         """Label workflow should be simplified without config checks."""
         workflow_path = Path(".github/workflows/label.yml")
         assert workflow_path.exists(), "Expected '.github/workflows/label.yml' to exist"
-    
+
+        with open(workflow_path, "r") as f:
+          data = yaml.safe_load(f)
+
+        # Basic validity checks
+        assert isinstance(data, dict), "Expected label workflow YAML to parse into a dict"
+        jobs = data.get("jobs", {})
+        assert isinstance(jobs, dict) and jobs, "Expected label workflow to define at least one job"
+
+        # Ensure no config-check logic remains in steps (name/uses/run)
+        config_keywords = ("config", "pr-agent-config", "validate", "validation", "check config", "config check")
+        for job in jobs.values():
+          if not isinstance(job, dict):
+            continue
+          for step in job.get("steps", []) or []:
+            if not isinstance(step, dict):
+              continue
+            haystack = " ".join(
+              str(step.get(k, "")).lower()
+              for k in ("name", "uses", "run", "with")
+            )
+            assert not any(kw in haystack for kw in config_keywords), (
+              "Found config-check related logic in label workflow steps; "
+              "workflow should be simplified without config checks"
+            )
     def test_greetings_workflow_simplified(self):
         """Greetings workflow should have simplified messages."""
         workflow_path = Path(".github/workflows/greetings.yml")
