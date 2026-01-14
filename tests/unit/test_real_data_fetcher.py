@@ -148,12 +148,32 @@ class TestRealDataFetcher:
 
     @pytest.fixture
     def fetcher(self):
-        """Fixture providing RealDataFetcher instance."""
+        """
+        Provide a RealDataFetcher instance for tests.
+        
+        Returns:
+            RealDataFetcher: A freshly constructed RealDataFetcher to use in unit tests.
+        """
         return RealDataFetcher()
 
     @pytest.fixture
     def mock_ticker_data(self):
-        """Fixture providing mock ticker data."""
+        """
+        Provides a sample ticker data dictionary for tests representing Apple (AAPL).
+        
+        Returns:
+            dict: Mock ticker data with keys:
+                - symbol: Stock symbol (e.g., "AAPL")
+                - longName: Full company name
+                - sector: Business sector
+                - marketCap: Market capitalization in smallest currency units
+                - currency: Currency code (uppercase)
+                - currentPrice: Current trading price
+                - fiftyTwoWeekHigh: 52-week high price
+                - fiftyTwoWeekLow: 52-week low price
+                - volume: Current trading volume
+                - averageVolume: Average trading volume
+        """
         return {
             'symbol': 'AAPL',
             'longName': 'Apple Inc.',
@@ -224,6 +244,18 @@ class TestRealDataFetcher:
     def test_fetch_multiple_stocks_partial_failure(self, mock_ticker, fetcher, mock_ticker_data):
         """Test fetching multiple stocks with some failures."""
         def ticker_side_effect(symbol):
+            """
+            Create a Mock Ticker-like object for the given symbol, raising for 'INVALID'.
+            
+            Parameters:
+                symbol (str): Ticker symbol to simulate; the special value 'INVALID' triggers an error.
+            
+            Returns:
+                Mock: A Mock instance with its `info` attribute set to `mock_ticker_data`.
+            
+            Raises:
+                Exception: Raised with message "Not found" when `symbol` is 'INVALID'.
+            """
             if symbol == 'INVALID':
                 raise Exception("Not found")
             mock_instance = Mock()
@@ -362,6 +394,12 @@ class TestDataValidation:
 
     @pytest.fixture
     def fetcher(self):
+        """
+        Provides a new RealDataFetcher instance for use in tests.
+        
+        Returns:
+            RealDataFetcher: a fresh instance configured for unit testing.
+        """
         return RealDataFetcher()
 
     def test_validate_price_data(self, fetcher):
@@ -410,6 +448,12 @@ class TestErrorHandling:
 
     @pytest.fixture
     def fetcher(self):
+        """
+        Provides a new RealDataFetcher instance for use in tests.
+        
+        Returns:
+            RealDataFetcher: a fresh instance configured for unit testing.
+        """
         return RealDataFetcher()
 
     @patch('src.data.real_data_fetcher.yf.Ticker')

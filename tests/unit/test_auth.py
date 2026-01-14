@@ -189,7 +189,12 @@ class TestUserRepository:
 
     @pytest.fixture
     def user_repo(self):
-        """Fixture providing UserRepository instance."""
+        """
+        Provide a fresh UserRepository instance for tests.
+        
+        Returns:
+            repo (UserRepository): A new UserRepository instance for use in a test.
+        """
         return UserRepository()
 
     @patch('api.auth.fetch_one')
@@ -348,7 +353,12 @@ class TestAuthenticationFlow:
 
     @pytest.fixture
     def mock_user(self):
-        """Fixture providing a mock user."""
+        """
+        Provides a mock UserInDB for tests.
+        
+        Returns:
+            UserInDB: A mock user with username "testuser", email "test@example.com", full_name "Test User", a hashed password for "correctpassword", and disabled set to False.
+        """
         return UserInDB(
             username="testuser",
             email="test@example.com",
@@ -404,7 +414,12 @@ class TestGetCurrentUser:
 
     @pytest.fixture
     def valid_token(self):
-        """Fixture providing a valid JWT token."""
+        """
+        Provide a JWT access token with the subject "testuser".
+        
+        Returns:
+            token (str): A JWT access token string whose `sub` claim equals "testuser".
+        """
         data = {"sub": "testuser"}
         return create_access_token(data)
 
@@ -417,7 +432,12 @@ class TestGetCurrentUser:
 
     @pytest.fixture
     def mock_user(self):
-        """Fixture providing a mock user."""
+        """
+        Create a mock UserInDB instance for tests.
+        
+        Returns:
+            UserInDB: A user with username "testuser", email "test@example.com", hashed_password "hashed", and disabled=False.
+        """
         return UserInDB(
             username="testuser",
             email="test@example.com",
@@ -487,7 +507,12 @@ class TestGetCurrentActiveUser:
 
     @pytest.fixture
     def disabled_user(self):
-        """Fixture providing a disabled user."""
+        """
+        Provides a disabled User model instance for tests.
+        
+        Returns:
+            User: A User with username "disableduser", email "disabled@example.com", and `disabled` set to True.
+        """
         return User(
             username="disableduser",
             email="disabled@example.com",
