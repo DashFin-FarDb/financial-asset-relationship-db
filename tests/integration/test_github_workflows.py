@@ -1269,7 +1269,8 @@ def check_env_vars(env_dict):
                 return []
             invalid = []
             for key in env_dict.keys():
-                if not key.isupper() or not key.replace("_", "").isalnum():
+                # Allow uppercase letters, digits, and underscores only
+                if not key.isupper() or not all(c.isalnum() or c == '_' for c in key):
                     invalid.append(key)
             return invalid
 
