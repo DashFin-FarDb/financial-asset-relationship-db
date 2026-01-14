@@ -194,7 +194,61 @@ class TestPRAgentConfigSimplified:
         assert 'max_files_per_chunk' not in limits
     
     def test_no_broken_workflow_references(self):
-        """Workflows should not reference non-existent files."""
+        """Workflows should not reference non-existent local files/actions/workflows.
+
+        Validates local `uses:` references such as:
+        - `uses: ./.github/actions/my-action`
+        - `uses: ./.github/workflows/reusable.yml`
+        """
+        workflow_dir = Path(".github/workflows")
+        repo_root = Path(".")
+
+        workflow_files = list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))
+        assert workflow_files, "No workflow files found to validate"
+
+        def iter_uses_values(node):
+            """Yield all `uses:` values found anywhere in a parsed YAML structure."""
+            if isinstance(node, dict):
+                for k, v in node.items():
+                    if k == "uses" and isinstance(v, str):
+                        yield v
+                    yield from iter_uses_values(v)
+            elif isinstance(node, list):
+                for item in node:
+                    yield from iter_uses_values(item)
+
+        for workflow_file in workflow_files:
+            with open(workflow_file, "r") as f:
+                data = yaml.safe_load(f) or {}
+
+            for uses in iter_uses_values(data):
+                # Only validate local references; ignore `owner/repo@ref` etc.
+                if not uses.startswith("./"):
+                    continue
+
+                local_ref = uses.split("@", 1)[0]  # strip optional @ref
+                target = (repo_root / local_ref).resolve()
+
+                assert target.exists(), (
+                    f"{workflow_file}: local 'uses' reference '{uses}' does not exist at '{local_ref}'"
+                )
+
+                # If it's a directory, treat it as a local action and require action metadata.
+                if target.is_dir():
+                    has_action_metadata = any(
+                        (target / name).exists()
+                        for name in ("action.yml", "action.yaml", "Dockerfile")
+                    )
+                    assert has_action_metadata, (
+                        f"{workflow_file}: local action '{uses}' points to '{local_ref}', "
+                        "but no action.yml/action.yaml/Dockerfile was found"
+                    )
+                else:
+                    # If it's a file, it should be a reusable workflow YAML.
+                    assert target.suffix in (".yml", ".yaml"), (
+                        f"{workflow_file}: local file reference '{uses}' points to '{local_ref}', "
+                        "but it is not a .yml/.yaml file"
+                    )
         workflow_dir = Path(".github/workflows")
         
         for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
