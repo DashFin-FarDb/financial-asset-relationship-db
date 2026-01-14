@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timedelta
-from typing import Optional, Union
+from typing import Optional
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -19,7 +19,9 @@ from .models import UserInDB
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
+    raise ValueError(
+        "SECRET_KEY environment variable must be set before importing api.auth"
+    )
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -71,7 +73,6 @@ class UserRepository:
         Returns:
             `UserInDB` for the matching username, `None` if no such user exists.
         """
-
         row = fetch_one(
             """
             SELECT username, email, full_name, hashed_password, disabled
@@ -98,7 +99,6 @@ class UserRepository:
         Returns:
             `True` if at least one user credential exists, `False` otherwise.
         """
-
         return fetch_value("SELECT 1 FROM user_credentials LIMIT 1") is not None
 
     @staticmethod
@@ -124,7 +124,6 @@ class UserRepository:
             user_full_name (Optional[str]): User's full name, if available.
             is_disabled (bool): Whether the user account is disabled (inactive).
         """
-
         execute(
             """
             INSERT INTO user_credentials (
@@ -162,7 +161,6 @@ def verify_password(plain_password, hashed_password):
     Returns:
         `True` if the plaintext password matches the hashed password, `False` otherwise.
     """
-
     return pwd_context.verify(plain_password, hashed_password)
 
 
@@ -176,7 +174,6 @@ def get_password_hash(password):
     Returns:
         str: The hashed password.
     """
-
     return pwd_context.hash(password)
 
 
@@ -190,7 +187,6 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     stored hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, no
     changes are made.
     """
-
     username = os.getenv("ADMIN_USERNAME")
     password = os.getenv("ADMIN_PASSWORD")
     if not username or not password:
@@ -214,7 +210,8 @@ _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME " "and ADMIN_PASSWORD or pre-populate the database."
+        "No user credentials available. Provide ADMIN_USERNAME "
+        "and ADMIN_PASSWORD or pre-populate the database."
     )
 
 
@@ -233,7 +230,6 @@ def get_user(
         Optional[UserInDB]: The matching UserInDB instance, or `None` if no
             user exists with that username.
     """
-
     repo = repository or user_repository
     return repo.get_user(username)
 
@@ -242,7 +238,7 @@ def authenticate_user(
     username: str,
     password: str,
     repository: Optional[UserRepository] = None,
-) -> Union[UserInDB, bool]:
+) -> UserInDB | bool:
     """
     Authenticate a username and password and return the corresponding stored user.
 
@@ -255,7 +251,6 @@ def authenticate_user(
     Returns:
         UserInDB when authentication succeeds, `False` otherwise.
     """
-
     user = get_user(username, repository=repository)
     if not user:
         return False
@@ -275,12 +270,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     Returns:
         str: Encoded JWT as a compact string.
     """
-
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -290,7 +284,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     """
     Return the user represented by the provided JWT.
 
-
+    
 
     Returns:
         User: The User model corresponding to the token's subject.
@@ -299,7 +293,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         HTTPException: 401 with detail "Token has expired" if the token has expired.
         HTTPException: 401 with detail "Could not validate credentials" if the token is invalid, missing the subject, or no matching user is found.
     """
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -337,7 +330,6 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     Returns:
         The authenticated user's public profile as a `User` instance.
     """
-
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
