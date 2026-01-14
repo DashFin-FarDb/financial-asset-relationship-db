@@ -24,7 +24,12 @@ class TestWorkflowEnvironmentVariables:
     
     @pytest.fixture
     def pr_agent_workflow(self) -> Dict[str, Any]:
-        """Load pr-agent.yml workflow."""
+        """
+        Load and parse the pr-agent GitHub Actions workflow file.
+        
+        Returns:
+            dict: Parsed YAML content of .github/workflows/pr-agent.yml.
+        """
         with open(WORKFLOWS_DIR / "pr-agent.yml", 'r') as f:
             return yaml.safe_load(f)
     
@@ -47,7 +52,11 @@ class TestWorkflowEnvironmentVariables:
                 f"Found removed env var '{env_var}' in simplified workflow"
     
     def test_action_items_env_var_exists(self, pr_agent_workflow: Dict[str, Any]):
-        """Verify ACTION_ITEMS environment variable is properly used."""
+        """
+        Ensure the workflow's parse-comments step produces an `action_items` output.
+        
+        Asserts that the `pr-agent-trigger` job contains a step whose name includes both "parse" and "comment", and that the step's run script sets an `action_items` output by containing the text `action_items=`.
+        """
         job = pr_agent_workflow['jobs']['pr-agent-trigger']
         
         # Find the parse comments step
@@ -77,7 +86,12 @@ class TestWorkflowEnvironmentVariables:
                     f"Step '{step_name}' uses gh api but doesn't set GITHUB_TOKEN"
     
     def test_step_outputs_referenced_correctly(self, pr_agent_workflow: Dict[str, Any]):
-        """Verify step outputs are referenced with correct syntax."""
+        """
+        Ensure workflow expressions that reference step outputs use kebab-case step IDs and snake_case output names.
+        
+        Parameters:
+            pr_agent_workflow (Dict[str, Any]): Parsed GitHub Actions workflow content (loaded from YAML).
+        """
         workflow_str = yaml.dump(pr_agent_workflow)
         
         # Find all step output references
@@ -99,12 +113,21 @@ class TestWorkflowStepDependencies:
     
     @pytest.fixture
     def pr_agent_workflow(self) -> Dict[str, Any]:
-        """Load pr-agent.yml workflow."""
+        """
+        Load and parse the pr-agent GitHub Actions workflow file.
+        
+        Returns:
+            dict: Parsed YAML content of .github/workflows/pr-agent.yml.
+        """
         with open(WORKFLOWS_DIR / "pr-agent.yml", 'r') as f:
             return yaml.safe_load(f)
     
     def test_checkout_before_any_code_operations(self, pr_agent_workflow: Dict[str, Any]):
-        """Verify checkout happens before any code operations."""
+        """
+        Verify the workflow's checkout step precedes any code-related operations.
+        
+        Asserts that a checkout step exists in the 'pr-agent-trigger' job and that it appears before the first step which runs code commands such as 'pip install', 'npm install', 'pytest', or 'flake8'.
+        """
         job = pr_agent_workflow['jobs']['pr-agent-trigger']
         steps = job['steps']
         
@@ -202,7 +225,12 @@ class TestWorkflowErrorHandling:
     
     @pytest.fixture
     def pr_agent_workflow(self) -> Dict[str, Any]:
-        """Load pr-agent.yml workflow."""
+        """
+        Load and parse the pr-agent GitHub Actions workflow file.
+        
+        Returns:
+            dict: Parsed YAML content of .github/workflows/pr-agent.yml.
+        """
         with open(WORKFLOWS_DIR / "pr-agent.yml", 'r') as f:
             return yaml.safe_load(f)
     
@@ -249,13 +277,23 @@ class TestWorkflowSimplificationRegression:
     
     @pytest.fixture
     def pr_agent_workflow(self) -> Dict[str, Any]:
-        """Load pr-agent.yml workflow."""
+        """
+        Load and parse the pr-agent GitHub Actions workflow file.
+        
+        Returns:
+            dict: Parsed YAML content of .github/workflows/pr-agent.yml.
+        """
         with open(WORKFLOWS_DIR / "pr-agent.yml", 'r') as f:
             return yaml.safe_load(f)
     
     @pytest.fixture
     def apisec_workflow(self) -> Dict[str, Any]:
-        """Load apisec-scan.yml workflow."""
+        """
+        Load and return the parsed apisec-scan GitHub Actions workflow.
+        
+        Returns:
+            workflow (Dict[str, Any]): Dictionary representation of .github/workflows/apisec-scan.yml loaded from YAML.
+        """
         with open(WORKFLOWS_DIR / "apisec-scan.yml", 'r') as f:
             return yaml.safe_load(f)
     
@@ -318,13 +356,23 @@ class TestWorkflowConfigIntegration:
     
     @pytest.fixture
     def pr_agent_workflow(self) -> Dict[str, Any]:
-        """Load pr-agent.yml workflow."""
+        """
+        Load and parse the pr-agent GitHub Actions workflow file.
+        
+        Returns:
+            dict: Parsed YAML content of .github/workflows/pr-agent.yml.
+        """
         with open(WORKFLOWS_DIR / "pr-agent.yml", 'r') as f:
             return yaml.safe_load(f)
     
     @pytest.fixture
     def pr_agent_config(self) -> Dict[str, Any]:
-        """Load pr-agent-config.yml."""
+        """
+        Load and parse the repository's pr-agent-config.yml into a dictionary.
+        
+        Returns:
+            config (Dict[str, Any]): Parsed YAML content of the pr-agent-config.yml file.
+        """
         with open(CONFIG_FILE, 'r') as f:
             return yaml.safe_load(f)
     
@@ -345,7 +393,15 @@ class TestWorkflowConfigIntegration:
             "Agent section should not have 'context' configuration"
     
     def test_config_quality_standards_still_defined(self, pr_agent_config: Dict[str, Any]):
-        """Verify quality standards remain after simplification."""
+        """
+        Assert the repository configuration still defines quality standards for Python and TypeScript.
+        
+        Parameters:
+        	pr_agent_config (Dict[str, Any]): Parsed contents of pr-agent-config.yml.
+        
+        Raises:
+        	AssertionError: If the `quality` key is missing or does not include `python` or `typescript`.
+        """
         assert 'quality' in pr_agent_config, \
             "Quality standards should still be defined"
         
@@ -354,7 +410,15 @@ class TestWorkflowConfigIntegration:
         assert 'typescript' in quality, "TypeScript quality standards should exist"
     
     def test_workflow_uses_config_quality_standards(self, pr_agent_workflow: Dict[str, Any], pr_agent_config: Dict[str, Any]):
-        """Verify workflow respects quality standards from config."""
+        """
+        Verify the workflow for the 'pr-agent-trigger' job uses Python quality tools specified in the configuration.
+        
+        Checks the `quality.python` section of `pr_agent_config` for optional `linter` and `formatter` entries and asserts that each specified tool appears in the serialized job definition.
+        
+        Parameters:
+            pr_agent_workflow (Dict[str, Any]): Parsed workflow YAML; must contain a `jobs.pr-agent-trigger` job.
+            pr_agent_config (Dict[str, Any]): Parsed configuration YAML; may include `quality.python` with `linter` and/or `formatter` keys.
+        """
         quality = pr_agent_config.get('quality', {})
         python_quality = quality.get('python', {})
         
@@ -379,7 +443,12 @@ class TestWorkflowPermissions:
     
     @pytest.fixture
     def pr_agent_workflow(self) -> Dict[str, Any]:
-        """Load pr-agent.yml workflow."""
+        """
+        Load and parse the pr-agent GitHub Actions workflow file.
+        
+        Returns:
+            dict: Parsed YAML content of .github/workflows/pr-agent.yml.
+        """
         with open(WORKFLOWS_DIR / "pr-agent.yml", 'r') as f:
             return yaml.safe_load(f)
     
@@ -408,7 +477,12 @@ class TestWorkflowConcurrency:
     
     @pytest.fixture
     def apisec_workflow(self) -> Dict[str, Any]:
-        """Load apisec-scan.yml workflow."""
+        """
+        Load and return the parsed apisec-scan GitHub Actions workflow.
+        
+        Returns:
+            workflow (Dict[str, Any]): Dictionary representation of .github/workflows/apisec-scan.yml loaded from YAML.
+        """
         with open(WORKFLOWS_DIR / "apisec-scan.yml", 'r') as f:
             return yaml.safe_load(f)
     
@@ -434,12 +508,24 @@ class TestGreetingsWorkflowSimplification:
     
     @pytest.fixture
     def greetings_workflow(self) -> Dict[str, Any]:
-        """Load greetings.yml workflow."""
+        """
+        Load and parse the GitHub Actions greetings workflow from greetings.yml.
+        
+        Returns:
+            workflow (Dict[str, Any]): Parsed YAML content of .github/workflows/greetings.yml as a Python dictionary.
+        """
         with open(WORKFLOWS_DIR / "greetings.yml", 'r') as f:
             return yaml.safe_load(f)
     
     def test_greetings_uses_simple_messages(self, greetings_workflow: Dict[str, Any]):
-        """Verify greetings workflow uses simple placeholder messages."""
+        """
+        Assert that the greetings workflow uses short, plain-text placeholder messages for issues and pull requests.
+        
+        Checks that the step `jobs.greeting.steps[0].with.issue-message` and `pr-message` are under 100 characters and do not contain Markdown bold markers (`**`).
+        
+        Parameters:
+            greetings_workflow (Dict[str, Any]): Parsed GitHub Actions workflow YAML as a dictionary.
+        """
         job = greetings_workflow['jobs']['greeting']
         step = job['steps'][0]
         
@@ -464,7 +550,12 @@ class TestLabelWorkflowSimplification:
     
     @pytest.fixture
     def label_workflow(self) -> Dict[str, Any]:
-        """Load label.yml workflow."""
+        """
+        Load and return the parsed content of the label workflow.
+        
+        Returns:
+            workflow (Dict[str, Any]): Parsed YAML content of .github/workflows/label.yml as a dictionary.
+        """
         with open(WORKFLOWS_DIR / "label.yml", 'r') as f:
             return yaml.safe_load(f)
     

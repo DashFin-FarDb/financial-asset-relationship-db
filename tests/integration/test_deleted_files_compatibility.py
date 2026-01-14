@@ -59,7 +59,11 @@ class TestDeletedContextChunker:
                         f"PR agent workflow still has chunking logic: {term}"
     
     def test_no_python_dependencies_for_chunking(self):
-        """Requirements should not include chunking dependencies if unused."""
+        """
+        Ensure development requirements do not list chunking-specific packages.
+        
+        If a requirements-dev.txt file exists, asserts it does not contain chunking-only packages (for example, "tiktoken"). Raises an assertion identifying the offending package if any are present.
+        """
         req_dev = Path("requirements-dev.txt")
 
         if req_dev.exists():
@@ -72,7 +76,11 @@ class TestDeletedContextChunker:
             for pkg in forbidden_packages:
                 assert pkg not in content, f"requirements-dev.txt should not include {pkg} if chunking is unused"
     def test_scripts_directory_exists_or_empty(self):
-        """Scripts directory should either not exist or not be referenced."""
+        """
+        Ensure the .github/scripts directory either does not exist or contains no references to the deleted context_chunker.
+        
+        If the directory exists, assert that .github/scripts/context_chunker.py is absent and, if .github/scripts/README.md exists, that its content does not mention "chunking" (case-insensitive).
+        """
         scripts_dir = Path(".github/scripts")
         
         if scripts_dir.exists():
@@ -182,7 +190,15 @@ class TestDeletedScriptsReadme:
                     f"{doc_file} references deleted scripts README"
     
     def test_no_orphaned_script_documentation(self):
-        """Should not have documentation for deleted scripts."""
+        """
+        Ensure repository Markdown files do not contain usage or installation instructions for the deleted context_chunker script.
+        
+        Scans all top-level `*.md` files and, if a file mentions `context_chunker` (case-insensitive) or "Context Chunking", asserts that:
+        - Such mentions are allowed only in changelog files named `CHANGELOG.md` or `CHANGELOG_BRANCH_CLEANUP.md`.
+        - Non-changelog files do not include installation lines like `pip install` or usage examples like `python .github/scripts/context_chunker`.
+        
+        Raises an assertion failure identifying the offending file and line when forbidden instructions are present.
+        """
         doc_files = list(Path('.').glob('*.md'))
         
         for doc_file in doc_files:
@@ -258,11 +274,25 @@ class TestWorkflowConfigConsistency:
                     if contains_chunking_setting(v):
                         return True
             elif isinstance(obj, list):
-                for item in obj:
+                """
+            Check whether a nested data structure contains any key or string value with the substring "chunk" (case-insensitive).
+            
+            Parameters:
+                obj: The value to inspect; may be a dict, list, string, or nested combination thereof.
+            
+            Returns:
+                `true` if any dictionary key or string value in `obj` contains "chunk" (case-insensitive), `false` otherwise.
+            """
+            for item in obj:
                     if contains_chunking_setting(item):
                         return True
             elif isinstance(obj, str):
-                if 'chunk' in obj.lower():
+                """
+        Assert structural compatibility between the PR Agent workflow and its simplified config.
+        
+        Reads .github/workflows/pr-agent.yml and .github/pr-agent.yml (skips the test if either is missing), parses both as YAML, and verifies that each parses to a dictionary and that the workflow defines jobs. Also checks that the presence or absence of chunking-related settings is consistent between the workflow and the config.
+        """
+        if 'chunk' in obj.lower():
                     return True
             return False
 
@@ -271,7 +301,11 @@ class TestWorkflowConfigConsistency:
                 "PR Agent config contains chunking settings but workflow doesn't use them"
     
     def test_no_missing_config_files_referenced(self):
-        """Workflows should not reference missing configuration files."""
+        """
+        Ensure workflow files do not reference missing repository configuration files.
+        
+        For every YAML workflow in .github/workflows, any referenced path under `.github/` must either exist, appear only in commented lines, or be guarded on the same line by an existence/conditional check (contains `if` or `exists`). If a referenced `.github/...` path is missing and appears in an uncommented line without such guarding, the test fails with an assertion identifying the workflow and missing path.
+        """
         workflow_dir = Path(".github/workflows")
         
         for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
@@ -309,7 +343,11 @@ class TestBackwardCompatibility:
     """Test that removal doesn't break backward compatibility."""
     
     def test_environment_variables_still_valid(self):
-        """Environment variables should still be valid after deletions."""
+        """
+        Ensure workflow environment variables do not reference deleted context_chunker.
+        
+        Iterates all YAML workflow files in .github/workflows and asserts that no job-level environment variable value contains the string "context_chunker", raising an assertion with the workflow filename and variable name if a reference is found.
+        """
         workflows = list(Path(".github/workflows").glob("*.yml")) + list(Path(".github/workflows").glob("*.yaml"))
         
         for workflow_file in workflows:

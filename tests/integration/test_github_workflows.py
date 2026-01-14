@@ -1252,10 +1252,10 @@ class TestWorkflowEnvAndSecrets:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
   def test_workflow_env_vars_naming_convention(self, workflow_file: Path):
       """
-      Assert that environment variable names in a workflow are upper-case and contain only letters, digits and underscores.
-
-      Checks the top-level `env` mapping and each job's `env` mapping in the parsed workflow YAML and fails the test if any variable name does not match the required convention (A–Z, 0–9, and underscore). The assertion messages list offending keys and their location.
-
+      Validate that environment variable names in a workflow use only uppercase letters, digits, and underscores.
+      
+      Examines the top-level `env` mapping and each job's `env` mapping in the parsed workflow YAML and fails the test if any variable name does not match the required convention (A–Z, 0–9, and underscore). The failure message lists offending variable names and their locations.
+      
       Parameters:
           workflow_file (Path): Path to the workflow YAML file to validate.
       """
@@ -2215,7 +2215,11 @@ class TestWorkflowYAMLStructureValidation:
     """Additional YAML structure validation tests."""
 
     def test_all_workflows_have_unique_job_names(self):
-        """Test that each workflow file has unique job names within it."""
+        """
+        Ensure each workflow file contains uniquely named jobs.
+        
+        Checks that the .github/workflows directory exists; for every `.yml` and `.yaml` file it loads the YAML (failing the test on parse errors) and verifies that the top-level `jobs` mapping, if present, has no duplicate job names. On failure reports the workflow filename and the duplicated job names.
+        """
         workflow_dir = Path(".github/workflows")
         assert workflow_dir.exists(), "Workflows directory not found"
         
@@ -2382,9 +2386,9 @@ class TestWorkflowSecurityEnhancements:
 
     def test_workflows_setup_actions_pinned_to_major(self):
         """
-        Verify setup actions in workflow files are pinned to a major version or a full commit SHA.
+        Ensure actions in the `actions/` namespace are pinned to a major version or a full commit SHA.
         
-        Scans YAML files under .github/workflows and asserts that any step using an action from the `actions/` namespace includes either a major-version tag like `@v1`, `@v2`, etc., or a full 40-character commit SHA; fails with the workflow filename and job name when an action is unpinned.
+        Scans YAML files in .github/workflows and fails if any `uses` reference to an `actions/...` action does not include a major-version tag such as `@v1` or a full 40-character commit SHA; failure messages include the workflow filename and job name.
         """
         workflow_dir = Path(".github/workflows")
         assert workflow_dir.exists(), "Workflows directory not found"
@@ -2993,4 +2997,3 @@ class TestRemovedFilesCleanup:
             for ref in removed_refs:
                 assert ref not in workflow_str, \
                     f"{workflow_path} still references removed script: {ref}"
-

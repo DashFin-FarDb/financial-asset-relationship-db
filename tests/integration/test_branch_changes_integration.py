@@ -337,7 +337,11 @@ class TestGitHubActionsEcosystem:
             pass
     
     def test_reasonable_workflow_count(self):
-        """Should not have too many workflows (maintainability)."""
+        """
+        Enforces an upper limit on the number of GitHub workflow files in .github/workflows.
+        
+        Fails if there are more than 25 workflow files, suggesting consolidation to preserve maintainability.
+        """
         workflow_dir = Path(".github/workflows")
         workflow_count = len(list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")))
         
@@ -346,7 +350,11 @@ class TestGitHubActionsEcosystem:
             f"Too many workflows ({workflow_count}), consider consolidation"
     
     def test_all_workflows_documented(self):
-        """All workflows should be documented somewhere."""
+        """
+        Check that workflow filenames (without extension) appear in repository Markdown documentation.
+        
+        Searches .github/workflows for YAML workflow files, collects their stems, and scans Markdown files in the repository root and .github for occurrences of each workflow identifier (exact stem or hyphen-to-space variant). This is a soft check that records/documentation coverage but does not enforce a failure. 
+        """
         workflow_dir = Path(".github/workflows")
         workflows = [f.stem for f in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))]
         

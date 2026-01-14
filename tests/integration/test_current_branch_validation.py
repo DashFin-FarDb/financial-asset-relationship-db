@@ -150,7 +150,11 @@ class TestRequirementsDevUpdates:
         assert 'types-PyYAML' in content
     
     def test_requirements_dev_valid_format(self):
-        """Requirements-dev should be properly formatted."""
+        """
+        Assert that every non-empty, non-comment line in requirements-dev.txt contains a package version specifier.
+        
+        Checks that each relevant line includes one of the supported version operators: '>=', '==', or '~='.
+        """
         req_path = Path("requirements-dev.txt")
         
         with open(req_path, 'r') as f:
@@ -177,7 +181,11 @@ class TestPRAgentConfigSimplified:
         assert version == '1.0.0'
     
     def test_config_no_chunking_settings(self):
-        """PR Agent config should not have chunking settings."""
+        """
+        Check that the PR Agent config contains no chunking-related settings.
+        
+        Verifies that the parsed `.github/pr-agent-config.yml` has no `context` key under `agent` and no `max_files_per_chunk` key under the top-level `limits`.
+        """
         config_path = Path(".github/pr-agent-config.yml")
         
         with open(config_path, 'r') as f:
@@ -194,11 +202,15 @@ class TestPRAgentConfigSimplified:
         assert 'max_files_per_chunk' not in limits
     
     def test_no_broken_workflow_references(self):
-        """Workflows should not reference non-existent local files/actions/workflows.
-
-        Validates local `uses:` references such as:
-        - `uses: ./.github/actions/my-action`
-        - `uses: ./.github/workflows/reusable.yml`
+        """
+        Ensure workflow files do not reference missing local actions, reusable workflows, or deleted files.
+        
+        Checks each YAML workflow in .github/workflows for `uses:` values that begin with `./` and:
+        - Verifies the referenced path exists.
+        - If the reference is a directory, requires one of: `action.yml`, `action.yaml`, or `Dockerfile`.
+        - If the reference is a file, requires a `.yml` or `.yaml` suffix.
+        
+        Also asserts no workflow content contains the deleted paths `.github/scripts/context_chunker.py` or `.github/labeler.yml`.
         """
         workflow_dir = Path(".github/workflows")
         repo_root = Path(".")
@@ -207,7 +219,15 @@ class TestPRAgentConfigSimplified:
         assert workflow_files, "No workflow files found to validate"
 
         def iter_uses_values(node):
-            """Yield all `uses:` values found anywhere in a parsed YAML structure."""
+            """
+            Finds and yields all `uses` values from a parsed YAML structure.
+            
+            Parameters:
+                node (Any): Parsed YAML node to search (may be a dict, list, or scalar).
+            
+            Returns:
+                str: Each `uses` value found in the structure.
+            """
             if isinstance(node, dict):
                 for k, v in node.items():
                     if k == "uses" and isinstance(v, str):
@@ -266,7 +286,11 @@ class TestDocumentationConsistency:
     """Test documentation consistency with code changes."""
     
     def test_summary_files_exist(self):
-        """Test summary documentation files should exist."""
+        """
+        Verify required branch-summary documentation files exist and are non-empty.
+        
+        Asserts that each listed summary file is a regular file and its size is greater than zero.
+        """
         summary_files = [
             'COMPREHENSIVE_BRANCH_TEST_GENERATION_SUMMARY.md'
         ]

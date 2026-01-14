@@ -18,7 +18,12 @@ CONFIG_FILE = Path(__file__).parent.parent.parent / ".github" / "pr-agent-config
 
 @pytest.fixture
 def pr_agent_workflow() -> Dict[str, Any]:
-    """Load the pr-agent.yml workflow file."""
+    """
+    Load and parse the pr-agent.yml GitHub Actions workflow.
+    
+    Returns:
+        workflow (dict): Parsed YAML content of pr-agent.yml as a dictionary.
+    """
     workflow_path = WORKFLOWS_DIR / "pr-agent.yml"
     with open(workflow_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
@@ -26,14 +31,26 @@ def pr_agent_workflow() -> Dict[str, Any]:
 
 @pytest.fixture
 def pr_agent_config() -> Dict[str, Any]:
-    """Load the pr-agent-config.yml configuration file."""
+    """
+    Load and parse the PR agent YAML configuration.
+    
+    Parses the YAML content of CONFIG_FILE and returns the resulting mapping.
+    
+    Returns:
+        config (dict): Parsed configuration mapping from CONFIG_FILE.
+    """
     with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
 
 
 @pytest.fixture
 def apisec_workflow() -> Dict[str, Any]:
-    """Load the apisec-scan.yml workflow file."""
+    """
+    Load and parse the apisec-scan.yml workflow file.
+    
+    Returns:
+        workflow (Dict[str, Any]): Parsed YAML mapping representing the workflow file.
+    """
     workflow_path = WORKFLOWS_DIR / "apisec-scan.yml"
     with open(workflow_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
@@ -41,7 +58,12 @@ def apisec_workflow() -> Dict[str, Any]:
 
 @pytest.fixture
 def greetings_workflow() -> Dict[str, Any]:
-    """Load the greetings.yml workflow file."""
+    """
+    Load and parse the greetings GitHub Actions workflow.
+    
+    Returns:
+        dict: Parsed contents of the .github/workflows/greetings.yml file as a dictionary reflecting the YAML structure.
+    """
     workflow_path = WORKFLOWS_DIR / "greetings.yml"
     with open(workflow_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
@@ -49,7 +71,12 @@ def greetings_workflow() -> Dict[str, Any]:
 
 @pytest.fixture
 def label_workflow() -> Dict[str, Any]:
-    """Load the label.yml workflow file."""
+    """
+    Load and parse the .github/workflows/label.yml workflow file.
+    
+    Returns:
+        dict: The parsed YAML content of the label workflow as a dictionary.
+    """
     workflow_path = WORKFLOWS_DIR / "label.yml"
     with open(workflow_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
@@ -94,7 +121,11 @@ def label_workflow() -> Dict[str, Any]:
         assert 'CONTEXT_SIZE' not in script
     
     def test_no_pyyaml_installation_in_dependencies(self, pr_agent_workflow: Dict[str, Any]):
-        """Verify PyYAML installation has been removed from workflow."""
+        """
+        Ensure the "Install Python dependencies" step does not install PyYAML or tiktoken.
+        
+        Asserts the step exists in the `pr-agent-trigger` job and that its `run` script contains no case-insensitive references to "pyyaml" or "tiktoken".
+        """
         job = pr_agent_workflow['jobs']['pr-agent-trigger']
         install_step = None
         
@@ -187,7 +218,11 @@ class TestPRAgentConfigSimplification:
         assert 'fallback' not in limits
     
     def test_core_config_preserved(self, pr_agent_config: Dict[str, Any]):
-        """Verify essential configuration remains."""
+        """
+        Validate that the PR agent configuration contains required top-level keys and that the agent identity and enabled flag are correct.
+        
+        Checks for the presence of `agent`, `monitoring`, `comment_parsing`, and `actions` keys, and verifies the agent's `name` is "Financial DB PR Agent" and `enabled` is True.
+        """
         assert 'agent' in pr_agent_config
         assert 'monitoring' in pr_agent_config
         assert 'comment_parsing' in pr_agent_config
@@ -199,7 +234,12 @@ class TestPRAgentConfigSimplification:
         assert agent['enabled'] is True
     
     def test_monitoring_settings_intact(self, pr_agent_config: Dict[str, Any]):
-        """Verify monitoring configuration is unchanged."""
+        """
+        Assert that the `monitoring` section of the PR agent config contains the required keys.
+        
+        Parameters:
+            pr_agent_config (dict): Parsed PR agent configuration containing a `monitoring` mapping.
+        """
         monitoring = pr_agent_config['monitoring']
         assert 'check_interval' in monitoring
         assert 'max_retries' in monitoring
@@ -238,7 +278,12 @@ class TestAPISecWorkflowSimplification:
         assert 'APIsec scan' in step_names
     
     def test_workflow_triggers_unchanged(self, apisec_workflow: Dict[str, Any]):
-        """Verify workflow triggers remain the same."""
+        """
+        Assert that the APIsec workflow defines the required triggers: `push`, `pull_request`, and `schedule`.
+        
+        Parameters:
+            apisec_workflow (dict): Parsed YAML of the APIsec workflow file to inspect for the `on` triggers.
+        """
         assert 'on' in apisec_workflow
         triggers = apisec_workflow['on']
         
@@ -251,7 +296,14 @@ class TestGreetingsWorkflowSimplification:
     """Test suite for the simplified Greetings workflow."""
     
     def test_simple_messages_only(self, greetings_workflow: Dict[str, Any]):
-        """Verify custom welcome messages have been replaced with simple ones."""
+        """
+        Ensure the greeting job's first-interaction messages are short and plain.
+        
+        Checks that the step using `first-interaction` in the `greeting` job provides `issue-message` and `pr-message` values shorter than 100 characters and that they do not contain markdown headings (`##`) or bold formatting (`**`).
+        
+        Parameters:
+            greetings_workflow (Dict[str, Any]): Parsed YAML of the greetings workflow.
+        """
         job = greetings_workflow['jobs']['greeting']
         
         for step in job['steps']:
@@ -282,7 +334,14 @@ class TestLabelWorkflowSimplification:
         assert 'Labeler skipped' not in step_names
     
     def test_no_conditional_labeler(self, label_workflow: Dict[str, Any]):
-        """Verify labeler step no longer has conditional execution."""
+        """
+        Ensure the label job's labeler step is not conditionally executed.
+        
+        Asserts that no step using the labeler action in the `label` job contains an `if` key.
+        
+        Parameters:
+            label_workflow (Dict[str, Any]): Parsed YAML of the label workflow (label.yml).
+        """
         job = label_workflow['jobs']['label']
         
         for step in job['steps']:
@@ -291,7 +350,12 @@ class TestLabelWorkflowSimplification:
                 assert 'if' not in step
     
     def test_no_checkout_step(self, label_workflow: Dict[str, Any]):
-        """Verify unnecessary checkout step has been removed."""
+        """
+        Checks that the label job does not include a "Checkout repository" step.
+        
+        Parameters:
+            label_workflow (Dict[str, Any]): Parsed workflow dictionary for the label workflow (from workflows/label.yml).
+        """
         job = label_workflow['jobs']['label']
         step_names = [step.get('name', '') for step in job['steps']]
         
@@ -357,7 +421,9 @@ class TestRemovedFilesNotReferenced:
     """Test suite ensuring removed files are not referenced anywhere."""
     
     def test_no_labeler_yml_references(self, pr_agent_workflow: Dict[str, Any]):
-        """Verify no references to removed labeler.yml."""
+        """
+        Ensure the PR agent workflow does not reference the removed `labeler.yml` file.
+        """
         workflow_str = yaml.dump(pr_agent_workflow)
         assert 'labeler.yml' not in workflow_str
     
@@ -367,7 +433,11 @@ class TestRemovedFilesNotReferenced:
         assert 'context_chunker' not in workflow_str
     
     def test_no_scripts_readme_references(self):
-        """Verify no references to removed scripts README."""
+        """
+        Ensure no workflow file references '.github/scripts/README.md'.
+        
+        Checks all YAML workflow files in the workflows directory and fails if any contain the path '.github/scripts/README.md'.
+        """
         # Check all workflow files
         for wf_file in list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml")):
             with open(wf_file, 'r', encoding='utf-8') as f:
@@ -379,7 +449,11 @@ class TestRequirementsDevUpdates:
     """Test suite for requirements-dev.txt updates."""
     
     def test_pyyaml_added(self):
-        """Verify PyYAML has been added to requirements-dev.txt."""
+        """
+        Verify requirements-dev.txt contains the explicit PyYAML development dependencies.
+        
+        Asserts that the file includes 'PyYAML>=6.0' and 'types-PyYAML>=6.0.0'.
+        """
         req_file = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         
         with open(req_file, 'r', encoding='utf-8') as f:
@@ -389,7 +463,11 @@ class TestRequirementsDevUpdates:
         assert 'types-PyYAML>=6.0.0' in content
     
     def test_pyyaml_not_in_main_requirements(self):
-        """Verify PyYAML is only in dev requirements, not main."""
+        """
+        Ensure PyYAML is not listed in the main requirements.txt.
+        
+        If a requirements.txt file exists at the repository root, read its contents and assert that it does not reference PyYAML (case-insensitive).
+        """
         req_file = Path(__file__).parent.parent.parent / "requirements.txt"
         
         if req_file.exists():
@@ -401,7 +479,11 @@ class TestRequirementsDevUpdates:
             assert 'PyYAML' not in content and 'pyyaml' not in content.lower()
     
     def test_all_dev_requirements_have_versions(self):
-        """Verify all dev requirements have version specifiers."""
+        """
+        Ensure every dependency in requirements-dev.txt has a version specifier or is a complex dependency.
+        
+        Recognizes PEP 508-style version operators (>=, ==, ~=, !=, <, <=, >). Treats a requirement as "complex" if it uses extras (e.g., package[extra]), a URL (contains '://'), or a direct reference (contains '@'). Fails the test with the offending requirement line if neither condition is met.
+        """
         req_file = Path(__file__).parent.parent.parent / "requirements-dev.txt"
             # Basic PEP 508 version specifier check
             has_version = any(op in line for op in ['>=', '==', '~=', '!=', '<', '<=', '>'])
@@ -431,7 +513,12 @@ class TestRequirementsDevUpdates:
         assert 'issues' in permissions
     
     def test_essential_environment_preserved(self, pr_agent_workflow: Dict[str, Any]):
-        """Verify essential environment variables are still set."""
+        """
+        Assert that the Parse PR Review Comments step includes the GITHUB_TOKEN environment variable.
+        
+        Parameters:
+            pr_agent_workflow (dict): Parsed GitHub Actions workflow for the PR agent (loaded YAML as a dict).
+        """
         job = pr_agent_workflow['jobs']['pr-agent-trigger']
         
         for step in job['steps']:
@@ -444,7 +531,11 @@ class TestEdgeCases:
     """Test edge cases in simplified workflows."""
     
     def test_empty_action_items_handling(self, pr_agent_workflow: Dict[str, Any]):
-        """Verify workflow handles empty action items gracefully."""
+        """
+        Assert the Parse PR Review Comments step provides a fallback when action items are empty.
+        
+        Checks the 'Parse PR Review Comments' step script and verifies it contains a fallback token such as 'general_improvements' or an 'echo' command to handle empty action items.
+        """
         job = pr_agent_workflow['jobs']['pr-agent-trigger']
         parse_step = None
         

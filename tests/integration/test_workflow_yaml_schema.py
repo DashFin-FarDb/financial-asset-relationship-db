@@ -21,12 +21,24 @@ class TestWorkflowYAMLSyntax:
     
     @pytest.fixture
     def workflow_files(self):
-        """Get all workflow YAML files."""
+        """
+        Collect all GitHub Actions workflow files from the .github/workflows directory.
+        
+        Returns:
+            list[pathlib.Path]: Paths to files matching `*.yml` or `*.yaml` within `.github/workflows`.
+        """
         workflow_dir = Path(".github/workflows")
         return list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))
     
     def test_all_workflows_are_valid_yaml(self, workflow_files):
-        """All workflow files should be valid YAML."""
+        """
+        Validate that workflow files are valid, non-empty YAML dictionaries.
+        
+        Asserts that at least one workflow file is present. For each file, attempts to parse it with yaml.safe_load, asserts the parsed content is not None and is a mapping (dict). If parsing raises a YAML error the test fails with a pytest.fail including the parser message.
+        
+        Parameters:
+            workflow_files: Iterable[Path] — collection of workflow file paths to validate.
+        """
         assert len(workflow_files) > 0, "No workflow files found"
         
         for workflow_file in workflow_files:
@@ -39,7 +51,15 @@ class TestWorkflowYAMLSyntax:
                 pytest.fail(f"Invalid YAML in {workflow_file.name}: {e}")
     
     def test_workflows_have_no_tabs(self, workflow_files):
-        """Workflow files should use spaces, not tabs."""
+        """
+        Ensure workflow YAML files use spaces for indentation instead of tab characters.
+        
+        Parameters:
+            workflow_files (Iterable[pathlib.Path]): Iterable of paths to workflow files under .github/workflows.
+        
+        Raises:
+            AssertionError: If any workflow file contains a tab character.
+        """
         for workflow_file in workflow_files:
             with open(workflow_file, 'r') as f:
                 content = f.read()
@@ -48,7 +68,11 @@ class TestWorkflowYAMLSyntax:
                 f"{workflow_file.name} contains tabs (should use spaces for indentation)"
     
     def test_workflows_use_consistent_indentation(self, workflow_files):
-        """Workflow files should use consistent indentation (2 spaces)."""
+        """
+        Ensure non-empty, non-comment lines use indentation in two-space increments.
+        
+        Checks each workflow file and asserts if any line's leading space count is not a multiple of two, reporting the file name and line number on failure.
+        """
         for workflow_file in workflow_files:
             with open(workflow_file, 'r') as f:
                 lines = f.readlines()
@@ -77,7 +101,12 @@ class TestWorkflowGitHubActionsSchema:
     
     @pytest.fixture
     def workflow_data(self):
-        """Load all workflow files as structured data."""
+        """
+        Load GitHub Actions workflow YAML files from .github/workflows into a mapping keyed by filename.
+        
+        Returns:
+            workflows (dict): Mapping from workflow filename (str) to the parsed YAML content as Python objects (e.g., dict, list, primitives).
+        """
         workflow_dir = Path(".github/workflows")
         workflows = {}
         
@@ -88,14 +117,22 @@ class TestWorkflowGitHubActionsSchema:
         return workflows
     
     def test_workflows_have_name(self, workflow_data):
-        """All workflows should have a name field."""
+        """
+        Ensure each workflow defines a non-empty string `name` field.
+        
+        Asserts that each parsed workflow mapping contains a 'name' key and that its value is a string with length greater than zero.
+        """
         for filename, data in workflow_data.items():
             assert 'name' in data, f"{filename} missing 'name' field"
             assert isinstance(data['name'], str), f"{filename} name should be string"
             assert len(data['name']) > 0, f"{filename} name is empty"
     
     def test_workflows_have_trigger(self, workflow_data):
-        """All workflows should have at least one trigger."""
+        """
+        Validate that each workflow defines a valid `on` trigger.
+        
+        Checks that the top-level `on` key is present and is one of the accepted forms: a string, a list, or a dict containing at least one recognized GitHub Actions trigger name (for example: `push`, `pull_request`, `workflow_dispatch`, `schedule`, `repository_dispatch`). The test fails with the workflow filename when the `on` key is missing or contains invalid trigger names.
+        """
         valid_triggers = {
             'on', 'push', 'pull_request', 'workflow_dispatch',
             'schedule', 'issues', 'issue_comment', 'pull_request_review',
@@ -118,14 +155,27 @@ class TestWorkflowGitHubActionsSchema:
                     f"{filename} has no valid triggers in dict"
     
     def test_workflows_have_jobs(self, workflow_data):
-        """All workflows should define at least one job."""
+        """
+        Ensure each workflow defines a non-empty `jobs` mapping.
+        
+        Parameters:
+            workflow_data (dict): Mapping of workflow filename to parsed YAML data (dict).
+        
+        Raises:
+            AssertionError: If a workflow is missing the `jobs` section, if `jobs` is not a mapping, or if no jobs are defined.
+        """
         for filename, data in workflow_data.items():
             assert 'jobs' in data, f"{filename} missing 'jobs' section"
             assert isinstance(data['jobs'], dict), f"{filename} jobs should be dict"
             assert len(data['jobs']) > 0, f"{filename} has no jobs defined"
     
     def test_jobs_have_runs_on(self, workflow_data):
-        """All jobs should specify runs-on."""
+        """
+        Ensure every job declares a `runs-on` runner and that string runner values either are expressions or match a common supported runner label.
+        
+        Parameters:
+        	workflow_data (dict): Mapping of workflow filename to its parsed YAML content; each value is a dict representing the workflow data.
+        """
         for filename, data in workflow_data.items():
             jobs = data.get('jobs', {})
             
@@ -147,7 +197,11 @@ class TestWorkflowGitHubActionsSchema:
                             f"{filename} job '{job_name}' has invalid runs-on: {runs_on}"
     
     def test_jobs_have_steps_or_uses(self, workflow_data):
-        """Jobs should have either steps or uses (for reusable workflows)."""
+        """
+        Ensure each job defines either `steps` or `uses` (for reusable workflows).
+        
+        Assert that if `steps` is present, it is a non-empty list.
+        """
         for filename, data in workflow_data.items():
             jobs = data.get('jobs', {})
             
@@ -170,12 +224,21 @@ class TestWorkflowSecurity:
     
     @pytest.fixture
     def workflow_files(self):
-        """Get all workflow files."""
+        """
+        Collect all workflow YAML files located in the .github/workflows directory.
+        
+        Returns:
+            list[pathlib.Path]: Paths to files with `.yml` or `.yaml` extensions found in `.github/workflows`.
+        """
         workflow_dir = Path(".github/workflows")
         return list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))
     
     def test_no_hardcoded_secrets(self, workflow_files):
-        """Workflows should not contain hardcoded secrets."""
+        """
+        Scan workflow files for likely hardcoded secrets and fail if any are found.
+        
+        Checks non-comment lines for common secret indicators (e.g., GitHub token prefixes like `ghp_`, AWS key prefixes like `AKIA`, or private key markers such as `-----BEGIN RSA PRIVATE KEY`). Occurrences that are fully contained inside a `secrets.*` expression (e.g., `${{ secrets.MY_SECRET }}`) are treated as valid references; occurrences outside such secret references cause the test to fail with a filename and line number.
+        """
         dangerous_patterns = [
             'ghp_', 'github_pat_', 'gho_', 'ghu_', 'ghs_', 'ghr_',  # GitHub tokens
             'AKIA', 'ASIA',  # AWS keys
@@ -214,7 +277,11 @@ class TestWorkflowSecurity:
                             )
     
     def test_pull_request_safe_checkout(self, workflow_files):
-        """PR workflows should checkout safely (not HEAD of PR)."""
+        """
+        Ensure pull-request-triggered workflows do not checkout the PR branch HEAD without pinning to a commit SHA or merge ref.
+        
+        Scans workflows that trigger on `pull_request` and fails if an `actions/checkout` step specifies a `ref` that indicates a HEAD reference (e.g., contains "head") without also including a commit SHA or other safe pinning.
+        """
         for workflow_file in workflow_files:
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
@@ -246,7 +313,11 @@ from typing import Dict, Any, List
 
     
     def test_restricted_permissions(self, workflow_files):
-        """Workflows should use minimal required permissions."""
+        """
+        Ensure workflows do not request overly broad permissions.
+        
+        Asserts that if a workflow defines top-level `permissions` as a string it is not the broad value `"write-all"`. If `permissions` is a mapping, individual scopes with the level `"write"` are treated as warnings (non-fatal) and should be justified in nearby comments.
+        """
         for workflow_file in workflow_files:
             with open(workflow_file, 'r') as f:
                 data = yaml.safe_load(f)
@@ -272,7 +343,14 @@ class TestWorkflowBestPractices:
     
     @pytest.fixture
     def workflow_data(self):
-        """Load all workflow files."""
+        """
+        Collect parsed YAML data for all workflow files in .github/workflows.
+        
+        Searches the .github/workflows directory for files with .yml and .yaml extensions and loads each file with yaml.safe_load. Returns a mapping from filename (base name) to the parsed YAML content; values may be a dict, list, scalar, or None depending on the file contents.
+            
+        Returns:
+            workflows (dict): Mapping of workflow filename to parsed YAML content.
+        """
         workflow_dir = Path(".github/workflows")
         workflows = {}
         
@@ -317,7 +395,14 @@ class TestWorkflowBestPractices:
                     f"{filename} job '{job_name}' has too many unnamed steps"
     
     def test_timeouts_defined(self, workflow_data):
-        """Long-running jobs should have timeouts."""
+        """
+        Warn when jobs that appear long-running lack a timeout.
+        
+        For each workflow in `workflow_data`, if a job has more than 5 steps and does not define `timeout-minutes`, a warning is emitted identifying the workflow file and job name.
+        
+        Parameters:
+            workflow_data (dict): Mapping from workflow filename to parsed YAML data (dict).
+        """
         for filename, data in workflow_data.items():
             jobs = data.get('jobs', {})
             
@@ -339,7 +424,14 @@ class TestWorkflowCrossPlatform:
     
     @pytest.fixture
     def workflow_data(self):
-        """Load workflow data."""
+        """
+        Load all GitHub Actions workflow files from .github/workflows and parse them into Python objects.
+        
+        Scans .github/workflows for files with .yml and .yaml extensions and parses each file with yaml.safe_load.
+        
+        Returns:
+            dict[str, Any]: Mapping from workflow filename to the parsed YAML content (typically a dict).
+        """
         workflow_dir = Path(".github/workflows")
         workflows = {}
         
@@ -350,7 +442,11 @@ class TestWorkflowCrossPlatform:
         return workflows
     
     def test_shell_script_compatibility(self, workflow_data):
-        """Shell scripts should be compatible with runner OS."""
+        """
+        Warns when steps use Unix-specific commands on Windows runners.
+        
+        Scans each workflow job and emits a warning if a step running on a Windows runner uses a Unix-style shell and its `run` command contains common Unix utilities such as `grep`, `sed`, `awk`, or `find`.
+        """
         for filename, data in workflow_data.items():
             jobs = data.get('jobs', {})
             
@@ -376,7 +472,11 @@ class TestWorkflowCrossPlatform:
                                     )
     
     def test_path_separators(self, workflow_data):
-        """File paths should use forward slashes for cross-platform compatibility."""
+        """
+        Ensure run commands use forward slashes to avoid Windows-specific path separators on non-Windows runners.
+        
+        For each workflow job step, scans the `run` command for backslashes and issues a warning if a backslash is present while the job's `runs-on` does not indicate a Windows runner. Legitimate uses of backslashes (e.g., escaped characters) are tolerated and do not cause a test failure.
+        """
         for filename, data in workflow_data.items():
             jobs = data.get('jobs', {})
             
@@ -396,7 +496,11 @@ class TestWorkflowMaintainability:
     """Test workflow maintainability and documentation."""
     
     def test_workflows_have_comments(self):
-        """Workflows should have explanatory comments."""
+        """
+        Ensure workflow files in .github/workflows contain explanatory comments.
+        
+        Scans all `.yml` and `.yaml` files under `.github/workflows`, counts non-empty non-comment lines (code lines) and comment lines. If a file has more than 20 code lines, asserts that comment lines are at least 5% of code lines and fails with "<filename> is large but has few comments" when the ratio is below that threshold.
+        """
         workflow_dir = Path(".github/workflows")
         
         for workflow_file in list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml")):
