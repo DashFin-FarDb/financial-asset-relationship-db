@@ -5,21 +5,22 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """Generate schema and rules report"""
     metrics = graph.calculate_metrics()
 
-    report = """# Financial Asset Relationship Database Schema & Rules
+    report = (
+        "# Financial Asset Relationship Database Schema & Rules\n\n"
+        "## Schema Overview\n\n"
+        "### Entity Types\n"
+        "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS\n"
+        "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating\n"
+        "3. **Commodity** - Physical assets with contracts and delivery dates\n"
+        "4. **Currency** - FX pairs or single-currency proxies with exchange\n"
+        "   rates and policy links\n"
+        "5. **Regulatory Events** - Corporate actions and SEC filings\n\n"
+        "### Relationship Types\n"
+    )
 
-## Schema Overview
-
-### Entity Types
-1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS
-2. **Bond** - Fixed income with yield, coupon, maturity, credit rating
-3. **Commodity** - Physical assets with contracts and delivery dates
-4. **Currency** - FX pairs or single-currency proxies with exchange rates and policy links
-5. **Regulatory Events** - Corporate actions and SEC filings
-
-### Relationship Types
-"""
-
-    for rel_type, count in sorted(metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True):
+    for rel_type, count in sorted(
+        metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True
+    ):
         report += f"- **{rel_type}**: {count} instances\n"
 
     report += f"""
@@ -44,49 +45,65 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ## Top Relationships
 """
 
-    for idx, (source, target, rel_type, strength) in enumerate(metrics["top_relationships"], 1):
+    for idx, (source, target, rel_type, strength) in enumerate(
+        metrics["top_relationships"], 1
+    ):
         report += f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}\n"
 
-    report += """
+    report += (
+        "\n"
+        "## Business Rules & Constraints\n\n"
+        "### Cross-Asset Rules\n"
+        "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company equity\n"
+        "   (directional)\n"
+        "2. **Sector Affinity**: Assets in same sector have baseline relationship strength\n"
+        "   of 0.7 (bidirectional)\n"
+        "3. **Currency Exposure**: Non-USD assets link to their native currency asset\n"
+        "   when available\n"
+        "4. **Income Linkage**: Equity dividends compared to bond yields using similarity\n"
+        "   score\n"
+        "5. **Commodity Exposure**: Energy equities link to crude oil; miners link to metal\n"
+        "   commodities\n\n"
+        "### Regulatory Rules\n"
+        "1. **Event Propagation**: Earnings events impact related bond and currency\n"
+        "   assets\n"
+        "2. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
+        "3. **Related Assets**: Each event automatically creates relationships to\n"
+        "   impacted securities\n\n"
+        "### Valuation Rules\n"
+        "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield indicates\n"
+        "   relative value\n"
+        "2. **Sector Rotation**: Commodity prices trigger evaluation of sector\n"
+        "   exposure\n"
+        "3. **Currency Adjustment**: All cross-border assets adjusted for FX\n"
+        "   exposure\n\n"
+        "## Schema Optimization Metrics\n\n"
+        "### Data Quality Score: "
+    )
 
-## Business Rules & Constraints
-
-### Cross-Asset Rules
-1. **Corporate Bond Linkage**: Corporate bonds link to issuing company equity (directional)
-2. **Sector Affinity**: Assets in same sector have baseline relationship strength of 0.7 (bidirectional)
-3. **Currency Exposure**: Non-USD assets link to their native currency asset when available
-4. **Income Linkage**: Equity dividends compared to bond yields using similarity score
-5. **Commodity Exposure**: Energy equities link to crude oil; miners link to metal commodities
-
-### Regulatory Rules
-1. **Event Propagation**: Earnings events impact related bond and currency assets
-2. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)
-3. **Related Assets**: Each event automatically creates relationships to impacted securities
-
-### Valuation Rules
-1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield indicates relative value
-2. **Sector Rotation**: Commodity prices trigger evaluation of sector exposure
-3. **Currency Adjustment**: All cross-border assets adjusted for FX exposure
-
-## Schema Optimization Metrics
-
-### Data Quality Score: """
-
-    quality_score = min(1.0, metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10))
+    quality_score = min(
+        1.0,
+        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+    )
     report += f"{quality_score:.1%}\n"
 
     report += "\n### Recommendation: "
     if metrics["relationship_density"] > 30:
         report += "High connectivity - consider normalization"
     elif metrics["relationship_density"] > 10:
-        report += "Well-balanced relationship graph - optimal for most use cases"
+        report += (
+            "Well-balanced relationship graph - optimal for most use cases"
+        )
     else:
         report += "Sparse connections - consider adding more relationships"
 
     report += "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
     report += "- Relationship strengths normalized to 0-1 range\n"
     report += "- Impact scores on -1 to +1 scale for comparability\n"
-    report += "- Relationship directionality: some types are bidirectional (e.g., same_sector, income_comparison);\n"
-    report += "  others are directional\n"
+    report += (
+        "- Relationship directionality: some types are bidirectional (e.g., same_sector,\n"
+        "  income_comparison);\n"
+        "  others are directional\n"
+    )
 
     return report

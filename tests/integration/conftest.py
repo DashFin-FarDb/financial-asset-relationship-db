@@ -25,7 +25,11 @@ def all_workflows() -> List[dict]:
     Returns:
         List[dict]: A list of dictionaries containing 'path', 'content', and 'raw' keys.
     """
-    workflow_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
+    workflow_dir = (
+        Path(__file__).parent.parent.parent
+        / ".github"
+        / "workflows"
+    )
     workflows = []
     if workflow_dir.exists():
         for workflow_file in workflow_dir.glob("*.y*ml"):
@@ -34,7 +38,13 @@ def all_workflows() -> List[dict]:
                     raw = f.read()
                     content = yaml.safe_load(raw)
                     if isinstance(content, dict):
-                        workflows.append({"path": workflow_file, "content": content, "raw": raw})
+                        workflows.append(
+                            {
+                                "path": workflow_file,
+                                "content": content,
+                                "raw": raw,
+                            }
+                        )
             except Exception:
                 continue
     return workflows

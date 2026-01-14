@@ -14,7 +14,9 @@ from sqlalchemy.pool import StaticPool
 Base = declarative_base()
 
 
-DEFAULT_DATABASE_URL = os.getenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///./asset_graph.db")
+DEFAULT_DATABASE_URL = os.getenv(
+    "ASSET_GRAPH_DATABASE_URL", "sqlite:///./asset_graph.db"
+)
 
 
 def create_engine_from_url(url: Optional[str] = None) -> Engine:
@@ -44,7 +46,9 @@ def init_db(engine: Engine) -> None:
 
 
 @contextmanager
-def session_scope(session_factory: Callable[[], Session]) -> Generator[Session, None, None]:
+def session_scope(
+    session_factory: Callable[[], Session],
+) -> Generator[Session, None, None]:
     """Provide a transactional scope around a series of operations."""
 
     session = session_factory()

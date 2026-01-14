@@ -46,8 +46,10 @@ try:
             print("Could not retrieve table list.")
 
     except socket.gaierror:
-        print("⚠️ Network connection issue: Unable to reach Supabase API servers.")
-        print("This is expected in test environments with network restrictions.")
+        print("⚠️ Network connection issue: Unable to reach Supabase "
+              "API servers.")
+        print("This is expected in test environments with "
+              "network restrictions.")
     except Exception as query_error:
         print(f"⚠️ Query error: {query_error}")
 
@@ -66,7 +68,11 @@ try:
         print(f"Using connection string: {updated_db_url[:20]}...")
 
         # Add SSL parameters to connection
-        connection = psycopg2.connect(updated_db_url, sslmode="require", sslrootcert=CERT_PATH)
+        connection = psycopg2.connect(
+            updated_db_url,
+            sslmode="require",
+            sslrootcert=CERT_PATH,
+        )
     else:
         print("No DATABASE_URL found, using individual parameters")
         connection = None

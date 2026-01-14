@@ -35,9 +35,20 @@ class RealDataFetcher:
         Initialise the RealDataFetcher with optional cache, fallback and network controls.
 
         Parameters:
-            cache_path (Optional[str]): Path to a JSON cache file to load a previously persisted AssetRelationshipGraph from and to save the constructed graph to. If omitted, no file-based caching is used.
-            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]): Callable that returns a fallback AssetRelationshipGraph to use when network access is disabled or real-data fetch fails. If omitted, the module's bundled sample dataset is used as a fallback.
-            enable_network (bool): Controls whether network access is permitted for fetching live data. When False, the fetcher will not attempt network calls and will use the fallback dataset.
+            cache_path (Optional[str]): Path to a JSON cache file to load a
+                previously persisted AssetRelationshipGraph
+                from and to save the constructed graph to.
+                If omitted, no file-based caching is used.
+            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
+                Callable that returns a fallback AssetRelationshipGraph to use
+                when network access is disabled or real-data fetch fails.
+                If omitted, the module's bundled sample dataset is used
+                as a fallback.
+            enable_network (bool):
+                Controls whether network access is permitted
+                for fetching live data.
+                When False, the fetcher will not attempt network calls
+                and will use the fallback dataset.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -134,10 +145,13 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """
-        Fetches current market data for a predefined set of major equities and returns them as Equity objects.
+        Fetches current market data for a predefined set of major equities and
+        returns them as Equity objects.
 
         Returns:
-            List[Equity]: Equity instances populated with market fields including id, symbol, name, asset_class, sector, price, market_cap, pe_ratio, dividend_yield, earnings_per_share and book_value.
+            List[Equity]: Equity instances populated with market fields including
+                id, symbol, name, asset_class, sector, price, market_cap,
+                pe_ratio, dividend_yield, earnings_per_share and book_value.
         """
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
@@ -173,7 +187,12 @@ class RealDataFetcher:
                     book_value=info.get("bookValue"),
                 )
                 equities.append(equity)
-                logger.info("Fetched price for %s (%s): %s", symbol, name, current_price)
+                logger.info(
+                    "Fetched price for %s (%s): %s",
+                    symbol,
+                    name,
+                    current_price,
+                )
 
             except Exception as e:
                 logger.error("Failed to fetch data for %s: %s", symbol, e)
@@ -187,8 +206,18 @@ class RealDataFetcher:
         # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
         bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
-            "LQD": ("iShares iBoxx $ Investment Grade Corporate Bond ETF", "Corporate", None, "A"),
-            "HYG": ("iShares iBoxx $ High Yield Corporate Bond ETF", "Corporate", None, "BB"),
+            "LQD": (
+                "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+                "Corporate",
+                None,
+                "A",
+            ),
+            "HYG": (
+                "iShares iBoxx $ High Yield Corporate Bond ETF",
+                "Corporate",
+                None,
+                "BB",
+            ),
         }
 
         bonds = []
@@ -211,7 +240,9 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=info.get("yield", 0.03),  # Default 3% if not available
+                    yield_to_maturity=info.get(
+                        "yield", 0.03
+                    ),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
@@ -249,7 +280,11 @@ class RealDataFetcher:
 
                 # Calculate simple volatility from recent data
                 hist_week = ticker.history(period="5d")
-                volatility = float(hist_week["Close"].pct_change().std()) if len(hist_week) > 1 else 0.20
+                volatility = (
+                    float(hist_week["Close"].pct_change().std())
+                    if len(hist_week) > 1
+                    else 0.20
+                )
 
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
@@ -263,7 +298,12 @@ class RealDataFetcher:
                     volatility=volatility,
                 )
                 commodities.append(commodity)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+                logger.info(
+                    "Fetched %s: %s at $%.2f",
+                    symbol,
+                    name,
+                    current_price
+                )
 
             except Exception as e:
                 logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
@@ -302,7 +342,8 @@ class RealDataFetcher:
                     price=current_rate,
                     exchange_rate=current_rate,
                     country=country,
-                    central_bank_rate=0.02,  # Approximate - would need separate API for real rates
+                    # Approximate - would need separate API for real rates
+                    central_bank_rate=0.02,
                 )
                 currencies.append(currency)
                 logger.info("Fetched %s: %s at %.4f", symbol, name, current_rate)
@@ -349,7 +390,10 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description="10-K Filing - Increased oil reserves and sustainability initiatives",
+            description=(
+                "10-K Filing - Increased oil reserves and sustainability "
+                "initiatives"
+            ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -421,22 +465,37 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
         Dict[str, Any]: Dictionary containing:
             - "assets": list of serialized asset objects
             - "regulatory_events": list of serialized regulatory event objects
-            - "relationships": mapping from source id to a list of outgoing relationships, each with `target`, `relationship_type` and `strength`
-            - "incoming_relationships": mapping from target id to a list of incoming relationships, each with `source`, `relationship_type` and `strength`
+            - "relationships": mapping from source id to a list of outgoing
+              relationships, each with
+              `target`, `relationship_type` and `strength`
+            - "incoming_relationships": mapping from target id to a list of incoming
+              relationships, each with
+              `source`, `relationship_type` and `strength`
     """
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+        "regulatory_events": [
+            _serialize_dataclass(event)
+            for event in graph.regulatory_events
+        ],
         "relationships": {
             source: [
-                {"target": target, "relationship_type": rel_type, "strength": strength}
+                {
+                    "target": target,
+                    "relationship_type": rel_type,
+                    "strength": strength,
+                }
                 for target, rel_type, strength in rels
             ]
             for source, rels in graph.relationships.items()
         },
         "incoming_relationships": {
             target: [
-                {"source": source, "relationship_type": rel_type, "strength": strength}
+                {
+                    "source": source,
+                    "relationship_type": rel_type,
+                    "strength": strength,
+                }
                 for source, rel_type, strength in rels
             ]
             for target, rels in graph.incoming_relationships.items()

@@ -18,7 +18,10 @@ from .database import execute, fetch_one, fetch_value, initialize_schema
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
+    raise ValueError(
+        "SECRET_KEY environment variable must be set "
+        "before importing api.auth"
+    )
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -43,9 +46,6 @@ class User(BaseModel):
     email: Optional[str] = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
-
-
-class UserInDB(User):
     hashed_password: str
 
 
@@ -115,7 +115,9 @@ class UserRepository:
         """
         Create or update a user credential record in the repository.
 
-        Performs an upsert into the user_credentials table using the provided fields so the record for `username` is inserted or updated.
+        Performs an upsert into the user_credentials table using the
+        provided fields so the record for `username` is inserted or
+        updated.
 
         Parameters:
             username (str): Unique identifier for the user.
@@ -127,7 +129,13 @@ class UserRepository:
 
         execute(
             """
-            INSERT INTO user_credentials (username, email, full_name, hashed_password, disabled)
+            INSERT INTO user_credentials (
+                username,
+                email,
+                full_name,
+                hashed_password,
+                disabled
+            )
             VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(username) DO UPDATE SET
                 email=excluded.email,
@@ -204,7 +212,8 @@ _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME and ADMIN_PASSWORD or pre-populate the database."
+        "No user credentials available. Provide ADMIN_USERNAME and "
+        "ADMIN_PASSWORD or pre-populate the database."
     )
 
 
@@ -213,10 +222,12 @@ def get_user(username: str, repository: Optional[UserRepository] = None) -> Opti
     Retrieve a user by username.
 
     Parameters:
-        repository (Optional[UserRepository]): Repository to query; if omitted the module-level `user_repository` is used.
+        repository (Optional[UserRepository]): Repository to query; if omitted the
+            module-level `user_repository` is used.
 
     Returns:
-        Optional[UserInDB]: The matching UserInDB instance, or `None` if no user exists with that username.
+        Optional[UserInDB]: The matching UserInDB instance, or `None` if no
+            user exists with that username.
     """
 
     repo = repository or user_repository
@@ -230,7 +241,8 @@ def authenticate_user(username: str, password: str, repository: Optional[UserRep
     Parameters:
         username (str): Username to authenticate.
         password (str): Plaintext password to verify.
-        repository (Optional[UserRepository]): Repository to query for the user; if omitted the module-level repository is used.
+        repository (Optional[UserRepository]): Repository to query for the user; if
+            omitted the module-level repository is used.
 
     Returns:
         UserInDB when authentication succeeds, `False` otherwise.

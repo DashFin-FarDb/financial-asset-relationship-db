@@ -147,70 +147,71 @@ def _create_2d_relationship_traces(
         }
     else:
         relationship_filters = None
+   traces = []
+   asset_id_set = set(asset_ids)
 
-    traces = []
-    asset_id_set = set(asset_ids)
+   # Group relationships by type
+   relationship_groups = {}
 
-    # Group relationships by type
-    relationship_groups = {}
+   for source_id in asset_ids:
+       if source_id not in graph.relationships:
+           continue
 
-    for source_id in asset_ids:
-        if source_id not in graph.relationships:
-            continue
+       for target_id, rel_type, strength in graph.relationships[source_id]:
+           # Skip if target not in positions
+           if target_id not in positions or target_id not in asset_id_set:
+               continue
 
-        for target_id, rel_type, strength in graph.relationships[source_id]:
-            # Skip if target not in positions
-            if target_id not in positions or target_id not in asset_id_set:
-                continue
+           # Apply filters
+           if relationship_filters and rel_type in relationship_filters:
+               if not relationship_filters[rel_type]:
+                   continue
 
-            # Apply filters
-            if relationship_filters and rel_type in relationship_filters:
-                if not relationship_filters[rel_type]:
-                    continue
+           # Group by relationship type
+           if rel_type not in relationship_groups:
+               relationship_groups[rel_type] = []
 
-            # Group by relationship type
-            if rel_type not in relationship_groups:
-                relationship_groups[rel_type] = []
+           relationship_groups[rel_type].append({"source_id": source_id, "target_id": target_id, "strength": strength})
 
-            relationship_groups[rel_type].append({"source_id": source_id, "target_id": target_id, "strength": strength})
+   # Create traces for each relationship type
+   for rel_type, relationships in relationship_groups.items():
+       if not relationships:
+           continue
 
-    # Create traces for each relationship type
-    for rel_type, relationships in relationship_groups.items():
-        if not relationships:
-            continue
+       edges_x = []
+       edges_y = []
+       hover_texts = []
 
-        edges_x = []
-        edges_y = []
-        hover_texts = []
+       for rel in relationships:
+           source_pos = positions[rel["source_id"]]
+           target_pos = positions[rel["target_id"]]
 
-        for rel in relationships:
-            source_pos = positions[rel["source_id"]]
-            target_pos = positions[rel["target_id"]]
+           edges_x.extend([source_pos[0], target_pos[0], None])
+           edges_y.extend([source_pos[1], target_pos[1], None])
 
-            edges_x.extend([source_pos[0], target_pos[0], None])
-            edges_y.extend([source_pos[1], target_pos[1], None])
+           hover_text = (
+               f"{rel['source_id']} → {rel['target_id']}<br>"
+               f"Type: {rel_type}<br>"
+               f"Strength: {rel['strength']:.2f}"
+           )
+           hover_texts.extend([hover_text, hover_text, None])
 
-            hover_text = (
-                f"{rel['source_id']} → {rel['target_id']}<br>" f"Type: {rel_type}<br>Strength: {rel['strength']:.2f}"
-            )
-            hover_texts.extend([hover_text, hover_text, None])
+       color = REL_TYPE_COLORS.get(rel_type, "#888888")
+       trace_name = rel_type.replace("_", " ").title()
 
-        color = REL_TYPE_COLORS.get(rel_type, "#888888")
-        trace_name = rel_type.replace("_", " ").title()
+       trace = go.Scatter(
+           x=edges_x,
+           y=edges_y,
+           mode="lines",
+           line=dict(color=color, width=2),
+           hovertext=hover_texts,
+           hoverinfo="text",
+           name=trace_name,
+           showlegend=True,
+       )
+       traces.append(trace)
 
-        trace = go.Scatter(
-            x=edges_x,
-            y=edges_y,
-            mode="lines",
-            line=dict(color=color, width=2),
-            hovertext=hover_texts,
-            hoverinfo="text",
-            name=trace_name,
-            showlegend=True,
-        )
-        traces.append(trace)
-
-    return traces
+   return traces
 
 
 def visualize_2d_graph(
@@ -268,7 +269,10 @@ def visualize_2d_graph(
         if hasattr(graph, "get_3d_visualization_data_enhanced"):
             positions_3d_array, asset_ids_ordered, _, _ = graph.get_3d_visualization_data_enhanced()
             # Convert array to dictionary
-            positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
+            positions_3d = {
+                asset_ids_ordered[i]: tuple(positions_3d_array[i])
+                for i in range(len(asset_ids_ordered))
+            }
             positions = _create_spring_layout_2d(positions_3d, asset_ids)
         else:
             # Fallback to circular if 3D data not available
@@ -326,7 +330,14 @@ def visualize_2d_graph(
     hover_texts = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        hover_text = f"{asset_id}<br>Class: {asset.asset_class.value if hasattr(asset.asset_class, 'value') else asset.asset_class}"
+        hover_text = (
+            f"{asset_id}<br>Class: "
+            + (
+                asset.asset_class.value
+                if hasattr(asset.asset_class, "value")
+                else str(asset.asset_class)
+            )
+        )
         hover_texts.append(hover_text)
 
     node_trace = go.Scatter(

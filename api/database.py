@@ -24,7 +24,10 @@ def _get_database_url() -> str:
 
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set before using the database")
+        raise ValueError(
+            "DATABASE_URL environment variable must be set "
+            "before using the database"
+        )
     return database_url
 
 
@@ -90,12 +93,15 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 def _is_memory_db(path: str | None = None) -> bool:
     """
-    Determine whether the given or configured database refers to an in-memory SQLite database.
+    Determine whether the given or configured database refers to an in-memory
+    SQLite database.
 
     Parameters:
-        path (str | None): Optional database path or URI to evaluate. If omitted, the configured DATABASE_PATH is used.
+        path (str | None): Optional database path or URI to evaluate.
+        If omitted, the configured DATABASE_PATH is used.
     Returns:
-        True if the path (or configured database) is an in-memory SQLite database (for example ":memory:" or a URI like "file::memory:?cache=shared"), False otherwise.
+        True if the path (or configured database) is an in-memory SQLite database.
+        For example, ":memory:" or "file::memory:?cache=shared", False otherwise.
     """
 
     target = DATABASE_PATH if path is None else path

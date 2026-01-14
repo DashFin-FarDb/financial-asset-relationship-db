@@ -90,7 +90,13 @@ def sample_regulatory_event():
 
 
 @pytest.fixture
-def populated_graph(sample_equity, sample_bond, sample_commodity, sample_currency, sample_regulatory_event):
+def populated_graph(
+    sample_equity,
+    sample_bond,
+    sample_commodity,
+    sample_currency,
+    sample_regulatory_event,
+):
     """Provide a populated AssetRelationshipGraph with 4 assets and 1 event."""
     graph = AssetRelationshipGraph()
     graph.add_asset(sample_equity)

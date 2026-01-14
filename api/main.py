@@ -21,7 +21,13 @@ from src.data.real_data_fetcher import RealDataFetcher
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass
 
-from .auth import Token, User, authenticate_user, create_access_token, get_current_active_user
+from .auth import (
+    Token,
+    User,
+    authenticate_user,
+    create_access_token,
+    get_current_active_user,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -178,7 +184,10 @@ ENV = os.getenv("ENV", "development").lower()
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+):
     """
     Create a JWT access token for a user authenticated with a username and password.
 
@@ -199,13 +208,19 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=access_token_expires,
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
+async def read_users_me(
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+):
     """
     Retrieve the currently authenticated user.
 
@@ -487,7 +502,9 @@ async def get_asset_detail(asset_id: str):
         asset_id (str): Identifier of the asset whose details are requested.
 
     Returns:
-        AssetResponse: Detailed asset information as defined in the AssetResponse model, including core fields and an `additional_fields` map containing any asset-specific attributes that are present and non-null.
+        AssetResponse: Detailed asset information as defined in the AssetResponse
+            model, including core fields and an `additional_fields` map containing any
+            asset-specific attributes that are present and non-null.
 
     Raises:
         HTTPException: 404 if the asset is not found.
@@ -519,7 +536,8 @@ async def get_asset_relationships(asset_id: str):
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
 
     Returns:
-        List[RelationshipResponse]: Outgoing relationship records for the asset (each with source_id, target_id, relationship_type, and strength).
+        List[RelationshipResponse]: Outgoing relationship records for the asset (each
+            with source_id, target_id, relationship_type, and strength).
 
     Raises:
         HTTPException: 404 if the asset is not found; 500 for unexpected errors.
@@ -536,7 +554,10 @@ async def get_asset_relationships(asset_id: str):
             for target_id, rel_type, strength in g.relationships[asset_id]:
                 relationships.append(
                     RelationshipResponse(
-                        source_id=asset_id, target_id=target_id, relationship_type=rel_type, strength=strength
+                        source_id=asset_id,
+                        target_id=target_id,
+                        relationship_type=rel_type,
+                        strength=strength,
                     )
                 )
     except Exception as e:
@@ -553,7 +574,8 @@ async def get_all_relationships():
     List all directed relationships in the initialized asset graph.
 
     Returns:
-        List[RelationshipResponse]: List of relationships where each item contains `source_id`, `target_id`, `relationship_type`, and `strength`.
+        List[RelationshipResponse]: List of relationships where each item contains
+            `source_id`, `target_id`, `relationship_type`, and `strength`.
     """
     try:
         g = get_graph()
@@ -563,12 +585,17 @@ async def get_all_relationships():
             for target_id, rel_type, strength in rels:
                 relationships.append(
                     RelationshipResponse(
-                        source_id=source_id, target_id=target_id, relationship_type=rel_type, strength=strength
+                        source_id=source_id,
+                        target_id=target_id,
+                        relationship_type=rel_type,
+                        strength=strength,
                     )
                 )
     except Exception as e:
         logger.exception("Error getting relationships:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500, detail=str(e)
+        ) from e
 
     return relationships
 
