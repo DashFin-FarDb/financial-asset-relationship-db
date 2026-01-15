@@ -50,14 +50,14 @@ class TestMergifyConfiguration:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
-        tshirt_rule = next(
-            (r for r in rules if "t-shirt" in r.get("name", "").lower()), None
-        )
+        tshirt_rules = [r for r in rules if "t-shirt" in r.get("name", "").lower()]
 
-        assert tshirt_rule is not None, "T-shirt size rule not found"
-        assert "name" in tshirt_rule
-        assert "conditions" in tshirt_rule
-        assert "actions" in tshirt_rule
+        assert tshirt_rules, "T-shirt size rules not found"
+
+        for rule in tshirt_rules:
+            assert "name" in rule
+            assert "conditions" in rule
+            assert "actions" in rule
 
     def test_tshirt_rule_has_valid_conditions(self):
         """Test that t-shirt size rule has valid conditions."""
