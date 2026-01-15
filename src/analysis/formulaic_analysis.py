@@ -420,7 +420,7 @@ class FormulaicdAnalyzer:
             empirical_relationships
         )
         return {
-        if not isinstance(empirical_relationships, dict):
+            if not isinstance(empirical_relationships, dict):
             empirical_relationships = {}
 
             "avg_r_squared": sum(f.r_squared for f in formulas) / len(formulas)
