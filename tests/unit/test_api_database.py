@@ -50,11 +50,14 @@ class TestDatabaseURLConfiguration:
     def test_missing_database_url_raises_error(self):
         """Test that missing DATABASE_URL raises ValueError."""
         from api import database as db_module
-        
+
         # Need to reload the module to trigger the error
-        with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
+        with pytest.raises(
+            ValueError, match="DATABASE_URL environment variable must be set"
+        ):
             # Import will fail due to module-level check
             import importlib
+
             importlib.reload(db_module)
 
 
@@ -154,25 +157,25 @@ class TestConnectionManagement:
         with patch("api.database.DATABASE_PATH", ":memory:"):
             with get_connection() as conn1:
                 conn1_id = id(conn1)
-            
+
             with get_connection() as conn2:
                 conn2_id = id(conn2)
-            
+
             # Should be same connection for memory DB
             assert conn1_id == conn2_id
 
     def test_file_connection_is_new_each_time(self, tmp_path):
         """Test that file-based connections are new each time."""
         db_file = tmp_path / "test.db"
-        
+
         with patch("api.database.DATABASE_PATH", str(db_file)):
             with patch("api.database._is_memory_db", return_value=False):
                 with get_connection() as conn1:
                     conn1_id = id(conn1)
-                
+
                 with get_connection() as conn2:
                     conn2_id = id(conn2)
-                
+
                 # Should be different connections for file DB
                 assert conn1_id != conn2_id
 
@@ -196,9 +199,9 @@ class TestQueryExecution:
         mock_context.__enter__ = Mock(return_value=mock_conn)
         mock_context.__exit__ = Mock(return_value=False)
         mock_get_conn.return_value = mock_context
-        
+
         execute("CREATE TABLE test (id INTEGER)")
-        
+
         mock_conn.execute.assert_called_once()
         mock_conn.commit.assert_called_once()
 
@@ -210,9 +213,9 @@ class TestQueryExecution:
         mock_context.__enter__ = Mock(return_value=mock_conn)
         mock_context.__exit__ = Mock(return_value=False)
         mock_get_conn.return_value = mock_context
-        
+
         execute("INSERT INTO test VALUES (?)", ("value",))
-        
+
         assert mock_conn.execute.called
         call_args = mock_conn.execute.call_args[0]
         assert len(call_args) == 2
@@ -229,9 +232,9 @@ class TestQueryExecution:
         mock_context.__enter__ = Mock(return_value=mock_conn)
         mock_context.__exit__ = Mock(return_value=False)
         mock_get_conn.return_value = mock_context
-        
+
         result = fetch_one("SELECT * FROM test")
-        
+
         assert result == mock_row
 
     @patch("api.database.get_connection")
@@ -245,9 +248,9 @@ class TestQueryExecution:
         mock_context.__enter__ = Mock(return_value=mock_conn)
         mock_context.__exit__ = Mock(return_value=False)
         mock_get_conn.return_value = mock_context
-        
+
         result = fetch_one("SELECT * FROM test WHERE id = ?", (999,))
-        
+
         assert result is None
 
     @patch("api.database.get_connection")
@@ -263,9 +266,9 @@ class TestQueryExecution:
         mock_context.__enter__ = Mock(return_value=mock_conn)
         mock_context.__exit__ = Mock(return_value=False)
         mock_get_conn.return_value = mock_context
-        
+
         result = fetch_value("SELECT COUNT(*) FROM test")
-        
+
         assert result == 42
 
     @patch("api.database.get_connection")
@@ -279,9 +282,9 @@ class TestQueryExecution:
         mock_context.__enter__ = Mock(return_value=mock_conn)
         mock_context.__exit__ = Mock(return_value=False)
         mock_get_conn.return_value = mock_context
-        
+
         result = fetch_value("SELECT id FROM test WHERE id = ?", (999,))
-        
+
         assert result is None
 
 
@@ -292,11 +295,11 @@ class TestSchemaInitialization:
     def test_initialize_schema_creates_table(self, mock_execute):
         """Test that initialize_schema creates user_credentials table."""
         initialize_schema()
-        
+
         mock_execute.assert_called_once()
         call_args = mock_execute.call_args[0]
         sql = call_args[0]
-        
+
         assert "CREATE TABLE IF NOT EXISTS user_credentials" in sql
         assert "username TEXT UNIQUE NOT NULL" in sql
         assert "hashed_password TEXT NOT NULL" in sql
@@ -305,18 +308,18 @@ class TestSchemaInitialization:
     def test_initialize_schema_all_columns_present(self, mock_execute):
         """Test that all required columns are in schema."""
         initialize_schema()
-        
+
         sql = mock_execute.call_args[0][0]
-        
+
         required_columns = [
             "id INTEGER PRIMARY KEY AUTOINCREMENT",
             "username",
             "email",
             "full_name",
             "hashed_password",
-            "disabled"
+            "disabled",
         ]
-        
+
         for column in required_columns:
             assert column in sql, f"Missing column: {column}"
 
@@ -332,9 +335,9 @@ class TestEdgeCases:
             mock_context.__enter__ = Mock(return_value=mock_conn)
             mock_context.__exit__ = Mock(return_value=False)
             mock_get_conn.return_value = mock_context
-            
+
             execute("SELECT 1", [])
-            
+
             # Should still work with empty list
             assert mock_conn.execute.called
 
@@ -349,9 +352,9 @@ class TestEdgeCases:
             mock_context.__enter__ = Mock(return_value=mock_conn)
             mock_context.__exit__ = Mock(return_value=False)
             mock_get_conn.return_value = mock_context
-            
+
             result = fetch_one("SELECT 1", None)
-            
+
             # Should handle None parameters
             assert result is None
 
@@ -364,21 +367,21 @@ class TestEdgeCases:
     def test_memory_connection_thread_safety(self):
         """Test that memory connection lock is used."""
         import threading
-        
+
         with patch("api.database.DATABASE_PATH", ":memory:"):
             # Simulate concurrent access
             results = []
-            
+
             def access_connection():
                 with get_connection() as conn:
                     results.append(id(conn))
-            
+
             threads = [threading.Thread(target=access_connection) for _ in range(5)]
             for t in threads:
                 t.start()
             for t in threads:
                 t.join()
-            
+
             # All should get the same connection
             assert all(r == results[0] for r in results)
 
@@ -411,18 +414,21 @@ class TestConnectionPooling:
     def test_memory_connection_cleanup_on_exit(self):
         """Test that cleanup function is registered."""
         import atexit
-        
+
         # Verify cleanup is registered
         from api.database import _cleanup_memory_connection
-        assert _cleanup_memory_connection in [func for func, args, kwargs in atexit._exithandlers]
+
+        assert _cleanup_memory_connection in [
+            func for func, args, kwargs in atexit._exithandlers
+        ]
 
     @patch("api.database._MEMORY_CONNECTION")
     def test_cleanup_closes_memory_connection(self, mock_conn):
         """Test that cleanup closes memory connection."""
         from api.database import _cleanup_memory_connection
-        
+
         mock_conn.close = Mock()
         _cleanup_memory_connection()
-        
+
         # Cleanup should attempt to close if connection exists
         # (Implementation detail may vary)
