@@ -123,4 +123,4 @@ pytest tests/integration/test_github_workflows.py tests/integration/test_pr_agen
 
 ---
 
-Generated: 2024
+Generated: 2026
