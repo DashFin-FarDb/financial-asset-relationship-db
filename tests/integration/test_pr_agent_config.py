@@ -398,12 +398,13 @@ class TestPRAgentConfigDocumentation:
                 assert has_comment, \
                     f"Section '{section}' should have explanatory comments"
 
+
 class TestPRAgentConfigEdgeCases:
     """Test suite for edge cases in PR agent configuration."""
     
     def test_config_version_is_semantic(self):
+        """Test that version follows semantic versioning."""
         config = load_pr_agent_config()
-        config = load_config()
         version = config.get('agent', {}).get('version', '')
         
         # Should match semver pattern (X.Y.Z)
@@ -415,7 +416,7 @@ class TestPRAgentConfigEdgeCases:
     
     def test_config_has_no_version_1_1_references(self):
         """Test that config doesn't reference removed 1.1.0 features."""
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+        with open(PR_AGENT_CONFIG_PATH, 'r', encoding='utf-8') as f:
             content = f.read()
         
         # Should not mention version 1.1.0 (rolled back to 1.0.0)
@@ -425,7 +426,7 @@ class TestPRAgentConfigEdgeCases:
     
     def test_config_monitoring_intervals_are_reasonable(self):
         """Test that monitoring intervals are within reasonable bounds."""
-        config = load_config()
+        config = load_pr_agent_config()
         monitoring = config.get('monitoring', {})
         
         # Check check_interval (30 minutes = 1800 seconds)
@@ -447,7 +448,7 @@ class TestPRAgentConfigEdgeCases:
     
     def test_config_max_retries_is_reasonable(self):
         """Test that max_retries is set to a reasonable value."""
-        config = load_config()
+        config = load_pr_agent_config()
         max_retries = config.get('monitoring', {}).get('max_retries', 0)
         
         assert 1 <= max_retries <= 10, (
@@ -456,7 +457,7 @@ class TestPRAgentConfigEdgeCases:
     
     def test_config_coverage_thresholds_are_valid(self):
         """Test that code coverage thresholds are valid percentages."""
-        config = load_config()
+        config = load_pr_agent_config()
         quality = config.get('quality', {})
         
         python_cov = quality.get('python', {}).get('min_coverage', 0)
@@ -475,7 +476,7 @@ class TestPRAgentConfigEdgeCases:
     
     def test_config_max_line_length_matches_quality_settings(self):
         """Test that max_line_length is consistent with linter settings."""
-        config = load_config()
+        config = load_pr_agent_config()
         max_line_length = config.get('quality', {}).get('general', {}).get('max_line_length', 0)
         
         # Should match black's default (88) or be close
@@ -486,7 +487,7 @@ class TestPRAgentConfigEdgeCases:
     
     def test_config_priority_keywords_are_comprehensive(self):
         """Test that priority keywords cover common review scenarios."""
-        config = load_config()
+        config = load_pr_agent_config()
         priorities = config.get('comment_parsing', {}).get('priority_keywords', {})
         
         assert 'high' in priorities, "Should have 'high' priority keywords"
@@ -500,7 +501,7 @@ class TestPRAgentConfigEdgeCases:
     
     def test_config_triggers_are_strings(self):
         """Test that all triggers are string values."""
-        config = load_config()
+        config = load_pr_agent_config()
         triggers = config.get('comment_parsing', {}).get('triggers', [])
         
         assert isinstance(triggers, list), "triggers should be a list"
@@ -512,7 +513,7 @@ class TestPRAgentConfigEdgeCases:
     
     def test_config_ignore_patterns_are_valid(self):
         """Test that ignore patterns are valid strings."""
-        config = load_config()
+        config = load_pr_agent_config()
         patterns = config.get('comment_parsing', {}).get('ignore_patterns', [])
         
         assert isinstance(patterns, list), "ignore_patterns should be a list"
@@ -520,6 +521,7 @@ class TestPRAgentConfigEdgeCases:
             assert isinstance(pattern, str), (
                 f"All ignore patterns should be strings, found {type(pattern)}"
             )
+
 
 
 class TestPRAgentConfigSimplificationValidation:
