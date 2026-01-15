@@ -52,9 +52,7 @@ class TestDatabaseURLConfiguration:
         from api import database as db_module
 
         # Need to reload the module to trigger the error
-        with pytest.raises(
-            ValueError, match="DATABASE_URL environment variable must be set"
-        ):
+        with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
             # Import will fail due to module-level check
             import importlib
 
@@ -418,9 +416,7 @@ class TestConnectionPooling:
         # Verify cleanup is registered
         from api.database import _cleanup_memory_connection
 
-        assert _cleanup_memory_connection in [
-            func for func, args, kwargs in atexit._exithandlers
-        ]
+        assert _cleanup_memory_connection in [func for func, args, kwargs in atexit._exithandlers]
 
     @patch("api.database._MEMORY_CONNECTION")
     def test_cleanup_closes_memory_connection(self, mock_conn):

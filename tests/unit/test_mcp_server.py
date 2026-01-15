@@ -180,9 +180,7 @@ class TestAddEquityNodeTool:
         _build_mcp_app()
 
         # Call with negative price
-        result = tool_func(
-            asset_id="TEST", symbol="TST", name="Test", sector="Test", price=-100.0
-        )
+        result = tool_func(asset_id="TEST", symbol="TST", name="Test", sector="Test", price=-100.0)
 
         assert "Validation Error" in result or "error" in result.lower()
 
@@ -203,9 +201,7 @@ class TestAddEquityNodeTool:
         _build_mcp_app()
 
         # Call with empty symbol
-        result = tool_func(
-            asset_id="TEST", symbol="", name="Test", sector="Test", price=100.0
-        )
+        result = tool_func(asset_id="TEST", symbol="", name="Test", sector="Test", price=100.0)
 
         # Should validate and potentially error
         assert isinstance(result, str)
@@ -323,10 +319,7 @@ class TestMainFunction:
         with pytest.raises(SystemExit) as exc_info:
             main([])
 
-        assert (
-            "mcp" in str(exc_info.value).lower()
-            or "missing dependency" in str(exc_info.value).lower()
-        )
+        assert "mcp" in str(exc_info.value).lower() or "missing dependency" in str(exc_info.value).lower()
 
     def test_main_help_flag(self):
         """Test --help flag."""
@@ -356,9 +349,7 @@ class TestEdgeCases:
 
         _build_mcp_app()
 
-        result = tool_func(
-            asset_id="TEST", symbol="TST", name="Test 公司", sector="Tech", price=100.0
-        )
+        result = tool_func(asset_id="TEST", symbol="TST", name="Test 公司", sector="Tech", price=100.0)
 
         assert isinstance(result, str)
 
@@ -379,9 +370,7 @@ class TestEdgeCases:
         _build_mcp_app()
 
         long_name = "A" * 1000
-        result = tool_func(
-            asset_id="TEST", symbol="TST", name=long_name, sector="Tech", price=100.0
-        )
+        result = tool_func(asset_id="TEST", symbol="TST", name=long_name, sector="Tech", price=100.0)
 
         assert isinstance(result, str)
 
@@ -405,9 +394,7 @@ class TestEdgeCases:
 
         _build_mcp_app()
 
-        result = tool_func(
-            asset_id="TEST", symbol="TST", name="Test", sector="Tech", price=100.0
-        )
+        result = tool_func(asset_id="TEST", symbol="TST", name="Test", sector="Tech", price=100.0)
 
         # Should indicate validation-only mode
         assert "validated" in result.lower() or "not supported" in result.lower()
