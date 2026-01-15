@@ -3,28 +3,29 @@ Integration tests validating all branch changes work together cohesively.
 
 Tests cross-cutting concerns:
 1. Workflow changes are consistent across all files
-2. Dependencies are compatible with workflow needs  
+2. Dependencies are compatible with workflow needs
 3. Removed files don't break existing functionality
 4. Overall branch maintains system integrity
 """
 
-import pytest
-import yaml
 import re
 from pathlib import Path
 from typing import Dict, List, Set
 
+import pytest
+import yaml
+
 
 class TestWorkflowConsistency:
     """Test consistency across all modified workflows."""
-    
+
     @pytest.fixture
     def all_workflows(self) -> Dict[str, Dict]:
         """
         Load a fixed set of GitHub Actions workflow files and parse each existing file's YAML content.
-        
+
         Only files from the internal list are considered; files that are not present are omitted from the result.
-        
+
         Returns:
             dict: Mapping from workflow file path (str) to the parsed YAML content (dict) for each workflow file that exists.
         """
@@ -52,7 +53,7 @@ class TestWorkflowConsistency:
             ".github/workflows/label.yml",
             ".github/workflows/greetings.yml",
         ]
-        
+
         workflows = {}
         for wf_file in workflow_files:
             path = Path(wf_file)
@@ -61,20 +62,20 @@ class TestWorkflowConsistency:
                     loaded = yaml.safe_load(f)
                     # Ensure we always store a dict to avoid NoneType errors in tests
                     workflows[wf_file] = loaded if isinstance(loaded, dict) else {}
-        
+
         return workflows
-    
+
     def test_all_workflows_use_consistent_action_versions(self, all_workflows):
         """
-        Assert that actions referenced across workflows use a single version.
-        
-        Scans each workflow's jobs and steps to collect action usages and their referenced versions, and prints a warning for any action used with more than one version. A difference between versions for `actions/checkout` (for example v4 vs v5) is permitted and will not trigger a warning.
-        
+        Ensure actions referenced across workflows are used with a single version.
+
+        Scans the provided workflows' jobs and steps to detect actions specified with explicit versions and reports when the same action appears with multiple different versions. Differences between `actions/checkout` major versions (e.g., v4 vs v5) are allowed and will be ignored.
+
         Parameters:
-            all_workflows (dict): Mapping from workflow file path (str) to parsed YAML content (dict) for that workflow.
+            all_workflows (dict): Mapping from workflow file path (str) to parsed YAML content (dict).
         """
         action_versions = {}
-        
+
         for wf_file, workflow in all_workflows.items():
             for job_name, job in workflow.get('jobs', {}).items():
                 for step in job.get('steps', []):
@@ -82,13 +83,13 @@ class TestWorkflowConsistency:
                     if uses and '@' in uses:
                         action_name = uses.split('@')[0]
                         action_version = uses.split('@')[1]
-                        
+
                         if action_name not in action_versions:
                             action_versions[action_name] = {}
                         if action_version not in action_versions[action_name]:
                             action_versions[action_name][action_version] = []
                         action_versions[action_name][action_version].append(wf_file)
-        
+
         # Check for inconsistencies
         for action, versions in action_versions.items():
             if len(versions) > 1:
@@ -97,29 +98,29 @@ class TestWorkflowConsistency:
                     continue
                 # Warn if same action uses different versions
                 print(f"Warning: {action} uses multiple versions: {list(versions.keys())}")
-    
+
     def test_all_workflows_use_github_token_consistently(self, all_workflows):
         """
         Check that workflows use the approved GITHUB_TOKEN syntax.
-        
+
         Asserts that any occurrence of `GITHUB_TOKEN` or `github.token` in a workflow is expressed as `secrets.GITHUB_TOKEN` or `${{ github.token }}`; failures include the workflow file path in the message.
-        
+
         Parameters:
             all_workflows (dict): Mapping of workflow file path to parsed YAML content.
         """
         for wf_file, workflow in all_workflows.items():
             workflow_str = yaml.dump(workflow)
-            
+
             if 'GITHUB_TOKEN' in workflow_str or 'github.token' in workflow_str:
                 # Should use secrets.GITHUB_TOKEN format
-                assert 'secrets.GITHUB_TOKEN' in workflow_str or \
-                       '${{ github.token }}' in workflow_str, \
+                assert 'secrets.GITHUB_TOKEN' in workflow_str
+                       or '${{ github.token }}' in workflow_str,
                     f"{wf_file}: GITHUB_TOKEN should use proper syntax"
-    
+
     def test_simplified_workflows_have_fewer_steps(self, all_workflows):
         """
         Verify that designated simplified workflows limit each job to at most three steps.
-        
+
         Parameters:
             all_workflows (dict): Mapping from workflow file path to its parsed YAML content; only workflows present in the mapping are checked.
         """
@@ -128,62 +129,62 @@ class TestWorkflowConsistency:
             ".github/workflows/label.yml",
             ".github/workflows/greetings.yml",
         ]
-        
+
         for wf_file in simplified:
             if wf_file in all_workflows:
                 workflow = all_workflows[wf_file]
                 for job_name, job in workflow.get('jobs', {}).items():
                     steps = job.get('steps', [])
                     # Simplified workflows should have minimal steps
-                    assert len(steps) <= 3, \
+                    assert len(steps) <= 3,
                         f"{wf_file}:{job_name} should be simplified (has {len(steps)} steps)"
 
 
 class TestDependencyWorkflowIntegration:
     """Test that dependencies support workflow needs."""
-    
+
     def test_pyyaml_supports_workflow_parsing(self):
         """Verify PyYAML can parse all workflow files."""
         try:
             import yaml
         except ImportError:
             pytest.skip("PyYAML not installed")
-        
+
         workflow_dir = Path(".github/workflows")
         if not workflow_dir.exists():
             pytest.skip("Workflows directory not found")
-        
+
         workflow_files = list(workflow_dir.glob("*.yml"))
-        
+
         for wf_file in workflow_files:
             try:
                 with open(wf_file, 'r') as f:
                     workflow = yaml.safe_load(f)
-                
+
                 assert workflow is not None, f"Failed to parse {wf_file}"
                 assert isinstance(workflow, dict), f"{wf_file} should parse to dict"
             except yaml.YAMLError as e:
                 pytest.fail(f"PyYAML failed to parse {wf_file}: {e}")
-    
+
     def test_requirements_support_workflow_test_needs(self):
         """
         Ensure development requirements include packages needed to run the workflow tests.
-        
+
         Checks that requirements-dev.txt (case-insensitive) contains both `pytest` and `PyYAML`.
         """
         with open('requirements-dev.txt', 'r') as f:
             content = f.read().lower()
-        
+
         # Should have pytest for running these tests
         assert 'pytest' in content, "pytest required for workflow tests"
-        
+
         # Should have PyYAML for parsing workflows
         assert 'pyyaml' in content, "PyYAML required for workflow validation"
 
 
 class TestRemovedFilesIntegration:
     """Test that removed files don't break functionality."""
-    
+
     def test_workflows_dont_reference_removed_scripts(self):
         """Verify workflows don't reference deleted files."""
         removed_files = [
@@ -191,12 +192,12 @@ class TestRemovedFilesIntegration:
             '.github/scripts/README.md',
             '.github/labeler.yml',
         ]
-        
+
         workflow_files = [
             ".github/workflows/pr-agent.yml",
             ".github/workflows/label.yml",
         ]
-        
+
         for wf_file in workflow_files:
             path = Path(wf_file)
             if not path.exists():
@@ -204,53 +205,53 @@ class TestRemovedFilesIntegration:
                 continue
             with open(path, 'r') as f:
                 content = f.read()
-            
+
             for removed in removed_files:
-                assert removed not in content, \
+                assert removed not in content,
                     f"{wf_file} references removed file {removed}"
-    
+
     def test_label_workflow_doesnt_need_labeler_config(self):
         """
-        Check that the label workflow does not require a separate labeler configuration file.
-        
-        Asserts that the first step of the `label` job uses `actions/labeler` and that it either does not provide a `config-path` or, if `config-path` is present, it equals `.github/labeler.yml`.
+        Verify the label workflow does not require an external labeler configuration file.
+
+        Checks that .github/workflows/label.yml (if present) defines the `label` job's first step using `actions/labeler`, and that the step either omits `config-path` or sets it to `.github/labeler.yml`. Skips the test if label.yml is missing.
         """
         label_path = Path(".github/workflows/label.yml")
         if not label_path.exists():
             pytest.skip("label.yml not present; skipping label workflow checks")
         # Proceed: the existing test body will open and parse the file; this early guard avoids FileNotFoundError/KeyError.
             workflow = yaml.safe_load(f)
-        
+
         # Should use actions/labeler which has default config
         steps = workflow['jobs']['label']['steps']
         labeler_step = steps[0]
-        
+
         assert 'actions/labeler' in labeler_step['uses']
-        
+
         # Should not require config-path or similar
         with_config = labeler_step.get('with', {})
         assert 'config-path' not in with_config or with_config.get('config-path') == '.github/labeler.yml'
-    
+
     def test_pr_agent_workflow_self_contained(self):
         """Verify PR agent workflow doesn't depend on removed components."""
         with open(".github/workflows/pr-agent.yml", 'r') as f:
             content = f.read()
-        
+
         # Should not reference chunking components
         assert 'context_chunker' not in content
         assert 'chunking' not in content.lower() or 'no chunking' in content.lower()
-        
+
         # Should not have complex context management
         assert 'fetch-context' not in content
 
 
 class TestWorkflowSecurityConsistency:
     """Test security practices are consistent across workflows."""
-    
+
     def test_all_workflows_avoid_pr_injection(self):
         """
         Scan all workflow YAMLs for patterns that may allow PR title or body content to be injected into shell or command contexts.
-        
+
         Searches files under .github/workflows for uses of pull request or issue title/body in contexts that could enable injection (for example, piping into shell commands or usage within command substitution) and fails the test on any definite matches.
         """
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
@@ -264,26 +265,28 @@ class TestWorkflowSecurityConsistency:
             for pattern in dangerous:
                 matches = re.findall(pattern, content)
                 if matches:
-                    pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
-        return
+    def test_all_workflows_avoid_pr_injection(self):
+        """Verify no workflows have PR title/body injection risks."""
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
-        
+
         for wf_file in workflow_files:
             with open(wf_file, 'r') as f:
                 content = f.read()
-            
+
             # Look for potentially dangerous patterns
             dangerous = [
                 r'\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|',
                 r'\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|',
                 r'\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(',
             ]
-            
-            for pattern in dangerous:
-                matches = re.findall(pattern, content)
+            for pattern in broadened_patterns:
+                matches = re.findall(pattern, raw_content)
                 if matches:
-                    print(f"Potential injection risk in {wf_file}: {matches}")
-    
+                    injection_risks.append(f"{wf_file}: raw usage matches {pattern}: {matches}")
+
+        assert not injection_risks, (
+            "Potential PR injection risks found:\n" + "\n".join(injection_risks)
+        )
     def test_workflows_use_appropriate_checkout_refs(self):
         """
         Verify workflows triggered by pull_request_target specify a safe checkout reference.
@@ -343,7 +346,14 @@ class TestBranchCoherence:
                     f"{wf_file} should be simplified (has {line_count} lines, expected <={max_lines})"
     
     def test_removed_complexity_not_referenced(self):
-        """Verify removed complexity isn't referenced elsewhere."""
+        """
+        Assert that removed complexity indicators are not referenced in workflow files.
+        
+        Scans all YAML files under .github/workflows for the feature names
+        'context_chunking', 'tiktoken', 'summarization', 'max_tokens', and 'chunk_size'.
+        If any of these names appear in a non-comment line of a workflow file, the test
+        fails with a message identifying the file and the offending feature.
+        """
         complex_features = [
             'context_chunking',
             'tiktoken',
@@ -368,7 +378,11 @@ class TestBranchCoherence:
                             pytest.fail(f"{wf_file} still references removed feature: {feature}")
     
     def test_branch_reduces_dependencies_on_external_config(self):
-        """Verify branch reduces dependency on external config files."""
+        """
+        Verify the branch no longer depends on removed external configuration and limits workflow references to external files.
+        
+        Asserts that .github/labeler.yml and .github/scripts/context_chunker.py do not exist, and that each workflow file under .github/workflows contains at most one run step referencing paths that include ".github/" or "scripts/".
+        """
         # labeler.yml was removed - workflows should work without it
         assert not Path(".github/labeler.yml").exists()
         
@@ -400,9 +414,9 @@ class TestBranchQuality:
     
     def test_all_modified_workflows_parse_successfully(self):
         """
-        Assert that at least one workflow file exists and that every YAML workflow in .github/workflows parses to a mapping containing a 'jobs' key.
+        Assert at least one workflow exists and each YAML file in .github/workflows parses to a mapping containing a 'jobs' key.
         
-        Raises an assertion failure if no workflow files are present or if any file fails to parse or does not produce a dict-like value with a 'jobs' entry.
+        Raises an assertion failure if no workflow files are found, if a file fails to parse into a mapping, or if the parsed workflow does not contain a 'jobs' entry.
         """
         workflow_dir = Path(".github/workflows")
         workflow_files = list(workflow_dir.glob("*.yml"))
@@ -449,7 +463,12 @@ class TestBranchQuality:
                         f"{file_path} contains merge conflict marker: {marker}"
     
     def test_consistent_indentation_across_workflows(self):
-        """Verify all workflows use 2-space indentation consistently."""
+        """
+        Check that every workflow YAML file uses consistent 2-space indentation.
+        
+        For each non-empty line that begins with a space, the number of leading spaces must be a multiple of two.
+        If a line violates this rule, the test asserts with a message identifying the workflow file and line number.
+        """
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
         
         for wf_file in workflow_files:
