@@ -309,7 +309,7 @@ class TestMergifyEdgeCases:
         assert config1 == config2, "YAML parses differently on multiple attempts"
 
 
-class TestMergifyEdgeCases:
+class TestMergifyAdditionalEdgeCases:
     """Additional edge case tests for Mergify configuration."""
 
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
