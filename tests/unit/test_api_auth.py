@@ -17,7 +17,7 @@ from unittest.mock import Mock, patch
 import jwt
 import pytest
 from fastapi import HTTPException
-from jwt import ExpiredSignatureError, InvalidTokenError
+from jwt import InvalidTokenError
 
 from api.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
