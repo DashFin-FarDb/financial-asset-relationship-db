@@ -37,15 +37,14 @@ knowledge_base:
     documents:
       - tech_spec.md
       - DashFin-financial-asset-relationship-db-wiki-v2.md
-    filePatterns:
-      - tech_spec.md
-      - DashFin-financial-asset-relationship-db-wiki-v2.md
+      - ARCHITECTURE.md
 
   code_guidelines:
     enabled: true
     filePatterns:
-      - tech_spec.md
-      - DashFin-financial-asset-relationship-db-wiki-v2.md
+      - AI_RULES.md
+      - CONTRIBUTING.md
+      - CODE_OF_CONDUCT.md
 
 issue_enrichment:
   auto_enrich:
