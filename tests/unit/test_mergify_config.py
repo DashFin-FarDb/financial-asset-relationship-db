@@ -203,6 +203,7 @@ class TestMergifyConfiguration:
                             "size/M",
                             "size/L",
                             "size/XL",
+                            "size/XXL",
                         ]
                         assert label in valid_sizes, f"Invalid size label: {label}"
 
