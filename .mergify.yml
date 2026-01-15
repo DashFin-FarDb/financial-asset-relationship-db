@@ -6,8 +6,14 @@ pull_request_rules:
       - "#modified-lines < 10"
     actions:
       label:
-        toggle:
+        add:
           - size/XS
+        remove:
+          - size/S
+          - size/M
+          - size/L
+          - size/XL
+          - size/XXL
 
   - name: Assign S t-shirt size to PR
     description: Assign a t-shirt size label to a pull request based on the number
