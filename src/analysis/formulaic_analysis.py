@@ -419,7 +419,7 @@ class FormulaicdAnalyzer:
         # Guard clause to ensure empirical_relationships is a dict
         if not isinstance(empirical_relationships, dict):
             empirical_relationships = {}
-        
+
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
             empirical_relationships
         )

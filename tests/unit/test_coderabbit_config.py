@@ -67,14 +67,18 @@ class TestCodeRabbitConfiguration:
         top_level_keys = []
         for line in content.split("\n"):
             stripped = line.lstrip()
-            if stripped and not stripped.startswith("#") and not stripped.startswith("-"):
+            if (
+                stripped
+                and not stripped.startswith("#")
+                and not stripped.startswith("-")
+            ):
                 if ":" in stripped and not stripped.startswith(" "):
                     key = stripped.split(":")[0].strip()
                     top_level_keys.append(key)
 
         # Check for duplicates
         duplicates = [k for k in set(top_level_keys) if top_level_keys.count(k) > 1]
-        
+
         if duplicates:
             pytest.skip(
                 f"Known issue: Duplicate top-level keys found: {duplicates}. "
@@ -87,7 +91,7 @@ class TestCodeRabbitConfiguration:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
-        
+
         # Check if auto_review is properly nested under reviews
         # Note: Due to duplicate sections, YAML will only keep the last one
         if "auto_review" in reviews:
@@ -101,7 +105,7 @@ class TestCodeRabbitConfiguration:
             config = yaml.safe_load(f)
 
         kb = config.get("knowledge_base", {})
-        
+
         if "mcp" in kb:
             mcp = kb["mcp"]
             assert isinstance(mcp, dict), "MCP must be a dictionary"
@@ -113,7 +117,7 @@ class TestCodeRabbitConfiguration:
             config = yaml.safe_load(f)
 
         kb = config.get("knowledge_base", {})
-        
+
         if "code_guidelines" in kb:
             guidelines = kb["code_guidelines"]
             assert isinstance(guidelines, dict), "code_guidelines must be a dictionary"
@@ -124,14 +128,18 @@ class TestCodeRabbitConfiguration:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
-        
+
         if "labeling_instructions" in reviews:
             instructions = reviews["labeling_instructions"]
-            assert isinstance(instructions, list), "labeling_instructions must be a list"
-            
+            assert isinstance(instructions, list), (
+                "labeling_instructions must be a list"
+            )
+
             for instruction in instructions:
                 assert "label" in instruction, "Each instruction must have a label"
-                assert "instructions" in instruction, "Each instruction must have instructions text"
+                assert "instructions" in instruction, (
+                    "Each instruction must have instructions text"
+                )
 
     def test_file_size_is_reasonable(self):
         """Test that .coderabbit.yaml file size is reasonable."""
@@ -147,7 +155,9 @@ class TestCodeRabbitConfiguration:
             config = yaml.safe_load(f)
 
         if "early_access" in config:
-            assert isinstance(config["early_access"], bool), "early_access must be boolean"
+            assert isinstance(config["early_access"], bool), (
+                "early_access must be boolean"
+            )
 
     def test_inheritance_setting(self):
         """Test that inheritance setting is properly configured."""
@@ -155,7 +165,9 @@ class TestCodeRabbitConfiguration:
             config = yaml.safe_load(f)
 
         if "inheritance" in config:
-            assert isinstance(config["inheritance"], bool), "inheritance must be boolean"
+            assert isinstance(config["inheritance"], bool), (
+                "inheritance must be boolean"
+            )
 
     def test_schema_reference_in_comment(self):
         """Test that file includes schema reference in comments."""
@@ -187,7 +199,7 @@ class TestCodeRabbitReviewsConfiguration:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
-        
+
         if "request_changes_workflow" in reviews:
             assert isinstance(reviews["request_changes_workflow"], bool)
 
@@ -197,7 +209,7 @@ class TestCodeRabbitReviewsConfiguration:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
-        
+
         if "high_level_summary_in_walkthrough" in reviews:
             assert isinstance(reviews["high_level_summary_in_walkthrough"], bool)
 
@@ -207,7 +219,7 @@ class TestCodeRabbitReviewsConfiguration:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
-        
+
         if "auto_apply_labels" in reviews:
             assert isinstance(reviews["auto_apply_labels"], bool)
 
@@ -217,7 +229,7 @@ class TestCodeRabbitReviewsConfiguration:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
-        
+
         if "auto_assign_reviewers" in reviews:
             assert isinstance(reviews["auto_assign_reviewers"], bool)
 
@@ -234,7 +246,7 @@ class TestCodeRabbitKnowledgeBaseConfiguration:
 
         kb = config.get("knowledge_base", {})
         mcp = kb.get("mcp", {})
-        
+
         if "usage" in mcp:
             assert mcp["usage"] in ["enabled", "disabled", "optional"]
 
@@ -245,7 +257,7 @@ class TestCodeRabbitKnowledgeBaseConfiguration:
 
         kb = config.get("knowledge_base", {})
         mcp = kb.get("mcp", {})
-        
+
         # Should have either 'documents' or 'filePatterns'
         if mcp:
             has_config = "documents" in mcp or "filePatterns" in mcp
@@ -259,7 +271,7 @@ class TestCodeRabbitKnowledgeBaseConfiguration:
 
         kb = config.get("knowledge_base", {})
         guidelines = kb.get("code_guidelines", {})
-        
+
         if "enabled" in guidelines:
             assert isinstance(guidelines["enabled"], bool)
 
@@ -270,7 +282,7 @@ class TestCodeRabbitKnowledgeBaseConfiguration:
 
         kb = config.get("knowledge_base", {})
         guidelines = kb.get("code_guidelines", {})
-        
+
         if "filePatterns" in guidelines:
             assert isinstance(guidelines["filePatterns"], list)
             assert len(guidelines["filePatterns"]) > 0

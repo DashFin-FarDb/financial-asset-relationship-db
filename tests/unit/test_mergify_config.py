@@ -39,7 +39,9 @@ class TestMergifyConfiguration:
             config = yaml.safe_load(f)
 
         assert "pull_request_rules" in config, "Missing pull_request_rules key"
-        assert isinstance(config["pull_request_rules"], list), "pull_request_rules must be a list"
+        assert isinstance(config["pull_request_rules"], list), (
+            "pull_request_rules must be a list"
+        )
         assert len(config["pull_request_rules"]) > 0, "pull_request_rules is empty"
 
     def test_tshirt_size_rule_exists(self):
@@ -48,7 +50,9 @@ class TestMergifyConfiguration:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
-        tshirt_rule = next((r for r in rules if "t-shirt" in r.get("name", "").lower()), None)
+        tshirt_rule = next(
+            (r for r in rules if "t-shirt" in r.get("name", "").lower()), None
+        )
 
         assert tshirt_rule is not None, "T-shirt size rule not found"
         assert "name" in tshirt_rule
@@ -61,7 +65,9 @@ class TestMergifyConfiguration:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
-        tshirt_rule = next((r for r in rules if "t-shirt" in r.get("name", "").lower()), None)
+        tshirt_rule = next(
+            (r for r in rules if "t-shirt" in r.get("name", "").lower()), None
+        )
 
         conditions = tshirt_rule.get("conditions", [])
         assert isinstance(conditions, list), "Conditions must be a list"
@@ -79,7 +85,9 @@ class TestMergifyConfiguration:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
-        tshirt_rule = next((r for r in rules if "t-shirt" in r.get("name", "").lower()), None)
+        tshirt_rule = next(
+            (r for r in rules if "t-shirt" in r.get("name", "").lower()), None
+        )
 
         actions = tshirt_rule.get("actions", {})
         assert "label" in actions, "Missing label action"
@@ -95,7 +103,9 @@ class TestMergifyConfiguration:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
-        tshirt_rule = next((r for r in rules if "t-shirt" in r.get("name", "").lower()), None)
+        tshirt_rule = next(
+            (r for r in rules if "t-shirt" in r.get("name", "").lower()), None
+        )
 
         labels = tshirt_rule["actions"]["label"]["toggle"]
         assert "size/L" in labels, "size/L label not in toggle list"
@@ -106,7 +116,9 @@ class TestMergifyConfiguration:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
-        tshirt_rule = next((r for r in rules if "t-shirt" in r.get("name", "").lower()), None)
+        tshirt_rule = next(
+            (r for r in rules if "t-shirt" in r.get("name", "").lower()), None
+        )
 
         conditions = tshirt_rule.get("conditions", [])
 
@@ -133,7 +145,9 @@ class TestMergifyConfiguration:
 
         assert min_threshold is not None, "Could not extract minimum threshold"
         assert max_threshold is not None, "Could not extract maximum threshold"
-        assert min_threshold < max_threshold, f"Min threshold ({min_threshold}) must be less than max ({max_threshold})"
+        assert min_threshold < max_threshold, (
+            f"Min threshold ({min_threshold}) must be less than max ({max_threshold})"
+        )
         assert min_threshold >= 0, "Min threshold must be non-negative"
 
     def test_all_rules_have_required_fields(self):
@@ -148,8 +162,12 @@ class TestMergifyConfiguration:
             assert isinstance(rule["name"], str), f"Rule {idx} name must be string"
             assert len(rule["name"]) > 0, f"Rule {idx} name is empty"
 
-            assert "conditions" in rule, f"Rule {idx} ({rule.get('name')}) missing conditions"
-            assert isinstance(rule["conditions"], list), f"Rule {idx} conditions must be list"
+            assert "conditions" in rule, (
+                f"Rule {idx} ({rule.get('name')}) missing conditions"
+            )
+            assert isinstance(rule["conditions"], list), (
+                f"Rule {idx} conditions must be list"
+            )
 
             assert "actions" in rule, f"Rule {idx} ({rule.get('name')}) missing actions"
             assert isinstance(rule["actions"], dict), f"Rule {idx} actions must be dict"
@@ -161,7 +179,9 @@ class TestMergifyConfiguration:
 
         # Check for common YAML/Mergify issues
         assert content.strip(), "File is empty or whitespace only"
-        assert not content.startswith(" "), "File starts with indentation (invalid YAML)"
+        assert not content.startswith(" "), (
+            "File starts with indentation (invalid YAML)"
+        )
         assert "pull_request_rules:" in content, "Missing pull_request_rules section"
 
     def test_label_format_follows_convention(self):
@@ -198,7 +218,9 @@ class TestMergifyRuleLogic:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
-        size_l_rule = next((r for r in rules if "size/L" in str(r.get("actions", {}))), None)
+        size_l_rule = next(
+            (r for r in rules if "size/L" in str(r.get("actions", {}))), None
+        )
 
         assert size_l_rule is not None, "size/L rule not found"
 
@@ -263,9 +285,9 @@ class TestMergifyEdgeCases:
 
             # If both min and max are specified, min should be less than max
             if min_values and max_values:
-                assert all(
-                    m < mx for m in min_values for mx in max_values
-                ), f"Conflicting conditions in rule {rule.get('name')}: min >= max"
+                assert all(m < mx for m in min_values for mx in max_values), (
+                    f"Conflicting conditions in rule {rule.get('name')}: min >= max"
+                )
 
     def test_file_size_is_reasonable(self):
         """Test that .mergify.yml file size is reasonable."""
@@ -301,7 +323,9 @@ class TestMergifyEdgeCases:
 
         for rule in rules:
             if "t-shirt" in rule.get("name", "").lower():
-                toggle_labels = rule.get("actions", {}).get("label", {}).get("toggle", [])
+                toggle_labels = (
+                    rule.get("actions", {}).get("label", {}).get("toggle", [])
+                )
                 size_labels.extend(toggle_labels)
 
         # Check for duplicates
@@ -323,7 +347,9 @@ class TestMergifyEdgeCases:
                         thresholds.append(str(cond))
 
         # Should have both >= and < conditions
-        assert any(">=" in t for t in thresholds), "Missing minimum threshold conditions"
+        assert any(">=" in t for t in thresholds), (
+            "Missing minimum threshold conditions"
+        )
         assert any("<" in t for t in thresholds), "Missing maximum threshold conditions"
 
     def test_actions_are_properly_formatted(self):
@@ -335,12 +361,18 @@ class TestMergifyEdgeCases:
 
         for rule in rules:
             actions = rule.get("actions", {})
-            assert isinstance(actions, dict), f"Actions must be dict in rule {rule.get('name')}"
+            assert isinstance(actions, dict), (
+                f"Actions must be dict in rule {rule.get('name')}"
+            )
 
             if "label" in actions:
                 label_action = actions["label"]
                 assert isinstance(label_action, dict), "Label action must be dict"
-                assert "toggle" in label_action or "add" in label_action or "remove" in label_action
+                assert (
+                    "toggle" in label_action
+                    or "add" in label_action
+                    or "remove" in label_action
+                )
 
     def test_rule_names_are_descriptive(self):
         """Test that all rule names are descriptive and meaningful."""
@@ -387,7 +419,9 @@ class TestMergifyEdgeCases:
             if line and not line.startswith("#"):
                 leading_spaces = len(line) - len(line.lstrip(" "))
                 if leading_spaces > 0:
-                    indentations.add(leading_spaces % 2)  # Check if using 2-space indent
+                    indentations.add(
+                        leading_spaces % 2
+                    )  # Check if using 2-space indent
 
         # Should consistently use 2-space indentation
         assert len(indentations) <= 1, "Inconsistent indentation found"
