@@ -402,7 +402,7 @@ class TestPRAgentConfigEdgeCases:
     """Test suite for edge cases in PR agent configuration."""
     
     def test_config_version_is_semantic(self):
-        """Test that version follows semantic versioning."""
+        config = load_pr_agent_config()
         config = load_config()
         version = config.get('agent', {}).get('version', '')
         
