@@ -99,6 +99,11 @@ class TestMergifyConfiguration:
                 f"Missing label operation in rule {rule.get('name')}"
             )
 
+
+            assert any(k in label_action for k in ("toggle", "add", "remove")), (
+                f"Missing label operation in rule {rule.get('name')}"
+            )
+
             if "toggle" in label_action:
                 assert isinstance(label_action["toggle"], list), "Toggle must be a list"
                 assert len(label_action["toggle"]) > 0, "Toggle list is empty"
