@@ -21,8 +21,8 @@ permissions:
   contents: read
 
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  # This workflow contains a single job called "security-scan"
+  security-scan:
     # The type of runner that the job will run on - Ubuntu is required as Docker is leveraged for the action
     permissions:
       contents: read # for actions/checkout to fetch code
