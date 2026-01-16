@@ -71,7 +71,9 @@ class TestMergifyConfiguration:
         for rule in tshirt_rules:
             conditions = rule.get("conditions", [])
             assert isinstance(conditions, list), "Conditions must be a list"
-            assert len(conditions) > 0, f"Conditions list is empty in {rule.get('name')}"
+            assert len(conditions) > 0, (
+                f"Conditions list is empty in {rule.get('name')}"
+            )
             assert any("#modified-lines" in str(c) for c in conditions), (
                 f"Missing #modified-lines condition in {rule.get('name')}"
             )
