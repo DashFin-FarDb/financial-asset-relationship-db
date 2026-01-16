@@ -140,8 +140,12 @@ class FinancialAssetApp:
         try:
             logger.info("Initializing with real financial data from Yahoo Finance")
             self.graph = create_real_database()
-            logger.info("Database initialized with %s real assets", len(self.graph.assets))
-            logger.info("Initialized sample database with %s assets", len(self.graph.assets))
+            logger.info(
+                "Database initialized with %s real assets", len(self.graph.assets)
+            )
+            logger.info(
+                "Initialized sample database with %s assets", len(self.graph.assets)
+            )
         except Exception as e:
             logger.error("%s: %s", AppConstants.INITIAL_GRAPH_ERROR, e)
             # Depending on desired behavior, could set self.graph to an empty graph
