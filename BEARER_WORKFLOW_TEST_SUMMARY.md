@@ -137,16 +137,6 @@ Generated comprehensive unit tests for the Bearer security scanning GitHub Actio
 
 ## Usage
 
-```bash
-# Run all Bearer workflow tests
-pytest tests/integration/test_bearer_workflow.py -v
-
-# Run specific test class
-pytest tests/integration/test_bearer_workflow.py::TestBearerWorkflowSecurity -v
-
-# Run with coverage
-pytest tests/integration/test_bearer_workflow.py --cov=.github/workflows --cov-report=term-missing
-```
 
 ## Test Design Principles
 
