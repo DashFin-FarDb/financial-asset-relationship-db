@@ -96,7 +96,7 @@ class TestThreadSafeGraph:
 class TestMCPAppBuilding:
     """Test MCP application building."""
 
-    @patch("mcp_server.FastMCP")
+    @patch("mcp.server.fastmcp.FastMCP")
     def test_build_mcp_app_creates_app(self, mock_fastmcp):
         """Test that _build_mcp_app creates FastMCP instance."""
         mock_instance = Mock()
@@ -107,7 +107,7 @@ class TestMCPAppBuilding:
         mock_fastmcp.assert_called_once_with("DashFin-Relationship-Manager")
         assert app == mock_instance
 
-    @patch("mcp_server.FastMCP")
+    @patch("mcp.server.fastmcp.FastMCP")
     def test_build_mcp_app_registers_tools(self, mock_fastmcp):
         """Test that tools are registered."""
         mock_mcp = Mock()
@@ -118,8 +118,7 @@ class TestMCPAppBuilding:
         # Should have registered tool decorator
         assert mock_mcp.tool.called
 
-    @patch("mcp_server.FastMCP")
-    def test_build_mcp_app_registers_resources(self, mock_fastmcp):
+    @patch("mcp.server.fastmcp.FastMCP")
         """Test that resources are registered."""
         mock_mcp = Mock()
         mock_fastmcp.return_value = mock_mcp
