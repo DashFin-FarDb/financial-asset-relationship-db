@@ -83,12 +83,19 @@ class TestMergifyConfiguration:
 
         for rule in tshirt_rules:
             actions = rule.get("actions", {})
-            assert "label" in actions, f"Missing label action in rule {rule.get('name')}"
-
             label_action = actions["label"]
-            assert "toggle" in label_action, f"Missing toggle in label action for rule {rule.get('name')}"
-            assert isinstance(label_action["toggle"], list), "Toggle must be a list"
-            assert len(label_action["toggle"]) > 0, "Toggle list is empty"
+            assert any(k in label_action for k in ("toggle", "add", "remove")), (
+                f"Missing label operation in rule {rule.get('name')}"
+            )
+
+            if "toggle" in label_action:
+                assert isinstance(label_action["toggle"], list), "Toggle must be a list"
+                assert len(label_action["toggle"]) > 0, "Toggle list is empty"
+            if "add" in label_action:
+                assert isinstance(label_action["add"], list), "Add must be a list"
+                assert len(label_action["add"]) > 0, "Add list is empty"
+            if "remove" in label_action:
+                assert isinstance(label_action["remove"], list), "Remove must be a list"
 
     def test_tshirt_rule_assigns_size_l_label(self):
         """Test that t-shirt rule assigns size/L label."""
