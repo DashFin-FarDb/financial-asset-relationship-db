@@ -99,10 +99,12 @@ def _is_memory_db(path: str | None = None) -> bool:
 
     Parameters:
         path (str | None): Optional database path or URI to evaluate.
-        If omitted, the configured DATABASE_PATH is used.
+            If omitted, the configured DATABASE_PATH is used.
+
     Returns:
-        True if the path (or configured database) is an in-memory SQLite database.
-        For example, ":memory:" or "file::memory:?cache=shared", False otherwise.
+        bool: True if the path (or configured database) is an in-memory SQLite
+        database. For example, ":memory:" or "file::memory:?cache=shared",
+        False otherwise.
     """
     target = DATABASE_PATH if path is None else path
     if target == ":memory:":
@@ -111,11 +113,9 @@ def _is_memory_db(path: str | None = None) -> bool:
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
     parsed = urlparse(target)
     if parsed.scheme == "file" and (
-def _is_memory_db(target: str) -> bool:
-    """Check if target is an in-memory database URI."""
-    # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
-    parsed=urlparse(target)
-    if parsed.scheme == "file" and (":memory:" in parsed.path or ":memory:" in parsed.query):
+        ":memory:" in parsed.path or ":memory:" in parsed.query
+    ):
+
         return True
     return False
 
