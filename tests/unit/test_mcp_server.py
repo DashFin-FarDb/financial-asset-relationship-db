@@ -121,14 +121,13 @@ class TestMCPAppBuilding:
     @patch("mcp.server.fastmcp.FastMCP")
     def test_build_mcp_app_registers_resources(self, mock_fastmcp):
         """Test that resources are registered."""
+        mock_mcp = Mock()
+        mock_fastmcp.return_value = mock_mcp
 
-    mock_mcp = Mock()
-    mock_fastmcp.return_value = mock_mcp
+        _build_mcp_app()
 
-    _build_mcp_app()
-
-    # Should have registered resource decorator
-    assert mock_mcp.resource.called
+        # Should have registered resource decorator
+        assert mock_mcp.resource.called
 
 
 class TestAddEquityNodeTool:
