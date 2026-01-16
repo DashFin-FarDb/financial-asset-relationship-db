@@ -399,9 +399,7 @@ class FormulaicdAnalyzer:
         """Calculate empirical relationships from the asset graph."""
         asset_data = self._extract_asset_data(graph)
         correlation_matrix = self._calculate_correlation_matrix(asset_data)
-        strongest_correlations = self._find_strongest_correlations(
-            correlation_matrix, asset_data
-        )
+        strongest_correlations = self._find_strongest_correlations(correlation_matrix, asset_data)
         sector_stats = self._calculate_sector_relationships(graph)
         class_stats = self._calculate_asset_class_relationships(graph)
 
