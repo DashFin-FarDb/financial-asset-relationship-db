@@ -25,6 +25,7 @@ class _ThreadSafeGraph:
             if callable(attr):
 
                 def _wrapped(*args, **kwargs):
+                    """Call the attr function with the given arguments in a locked context."""
                     with self._lock:
                         return attr(*args, **kwargs)
 
@@ -41,14 +42,7 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 
 
 def _build_mcp_app():
-    """
-    Build and return the FastMCP app.
-
-
-
-    Kept in a function so importing this module (or running `--help`) does not
-    require the optional `mcp` dependency to be importable.
-    """
+    """Build and return the FastMCP app."""
     from mcp.server.fastmcp import FastMCP  # local import (lazy)
 
     mcp = FastMCP("DashFin-Relationship-Manager")
@@ -57,16 +51,7 @@ def _build_mcp_app():
     def add_equity_node(
         asset_id: str, symbol: str, name: str, sector: str, price: float
     ) -> str:
-        """
-        Validate an Equity asset and add it to the graph.
-
-        If the graph exposes an `add_asset` method, the asset is added.
-        Otherwise, this tool performs validation only
-        (no persistent changes).
-
-        Returns:
-            Success message or 'Validation Error: <message>'.
-        """
+        """Validate an Equity asset and add it to the graph if possible."""
         try:
             # Uses existing Equity dataclass for post-init validation.
             new_equity = Equity(
@@ -95,7 +80,7 @@ def _build_mcp_app():
 
     @mcp.resource("graph://data/3d-layout")
     def get_3d_layout() -> str:
-        """Provide current 3D visualization data for AI spatial reasoning as JSON."""
+        """Return current 3D visualization data as JSON."""
         positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
         return json.dumps(
             {
@@ -110,6 +95,7 @@ def _build_mcp_app():
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the DashFin MCP server."""
     parser = argparse.ArgumentParser(
         prog="mcp_server.py",
         description="DashFin MCP server",
