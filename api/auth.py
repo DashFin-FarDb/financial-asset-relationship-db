@@ -19,9 +19,7 @@ from .models import UserInDB
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError(
-        "SECRET_KEY environment variable must be set before importing api.auth"
-    )
+    raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -108,7 +106,7 @@ class UserRepository:
         is_disabled: bool = False,
     ) -> None:
         """Create or update a user credential record in the repository.
-        
+
         Args:
             username (str): Unique identifier for the user.
             hashed_password (str): Password hash; must already be hashed.
@@ -153,10 +151,10 @@ def verify_password(plain_password, hashed_password):
 
 def get_password_hash(password):
     """Hash a plaintext password.
-    
+
     Args:
         password (str): Plaintext password to hash.
-    
+
     Returns:
         str: The hashed password.
     """
@@ -188,8 +186,7 @@ _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME "
-        "and ADMIN_PASSWORD or pre-populate the database."
+        "No user credentials available. Provide ADMIN_USERNAME " "and ADMIN_PASSWORD or pre-populate the database."
     )
 
 
@@ -251,13 +248,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """async def get_current_user(token: str = Depends(oauth2_scheme)):
-    
+
     Retrieve the user associated with the provided JWT.  This function decodes the
     JWT using a specified secret key and algorithm to extract the username from the
     token's subject.  It raises an HTTPException if the token is expired or
     invalid, or if the user cannot be found.  The function relies on the get_user
     function to retrieve the user model corresponding to the username.
-    
+
     Args:
         token (str): The JWT token used to authenticate the user.
     """

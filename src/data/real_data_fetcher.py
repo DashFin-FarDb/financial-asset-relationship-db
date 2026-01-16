@@ -57,7 +57,7 @@ class RealDataFetcher:
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """Create an AssetRelationshipGraph populated with real financial data.
-        
+
         This function attempts to load an AssetRelationshipGraph from a cache if
         available. If the cache is not accessible and network fetching is enabled, it
         fetches live financial data from various sources, including equities, bonds,
@@ -65,7 +65,7 @@ class RealDataFetcher:
         builds relationships between the assets. If the cache path is specified, it
         attempts to persist the constructed graph to cache. In case of any failures
         during data fetching or caching, it falls back to a predefined sample dataset.
-        
+
         Returns:
             AssetRelationshipGraph: The constructed graph containing assets, regulatory events, and relationships.
         """
@@ -74,14 +74,10 @@ class RealDataFetcher:
                 logger.info("Loading asset graph from cache at %s", self.cache_path)
                 return _load_from_cache(self.cache_path)
             except Exception:
-                logger.exception(
-                    "Failed to load cached dataset; proceeding with standard fetch"
-                )
+                logger.exception("Failed to load cached dataset; proceeding with standard fetch")
 
         if not self.enable_network:
-            logger.info(
-                "Network fetching disabled. Using fallback dataset if available."
-            )
+            logger.info("Network fetching disabled. Using fallback dataset if available.")
             return self._fallback()
 
         logger.info("Creating database with real financial data from Yahoo Finance")
@@ -113,16 +109,12 @@ class RealDataFetcher:
 
                 try:
                     cache_dir = os.path.dirname(self.cache_path)
-                    with tempfile.NamedTemporaryFile(
-                        "wb", dir=cache_dir, delete=False
-                    ) as tmp_file:
+                    with tempfile.NamedTemporaryFile("wb", dir=cache_dir, delete=False) as tmp_file:
                         tmp_path = tmp_file.name
                         _save_to_cache(graph, Path(tmp_path))
                     os.replace(tmp_path, self.cache_path)
                 except Exception:
-                    logger.exception(
-                        "Failed to persist dataset cache to %s", self.cache_path
-                    )
+                    logger.exception("Failed to persist dataset cache to %s", self.cache_path)
 
             logger.info(
                 "Real database created with %s assets and %s relationships",
@@ -183,9 +175,7 @@ class RealDataFetcher:
                     book_value=info.get("bookValue"),
                 )
                 equities.append(equity)
-                logger.info(
-                    "Fetched price for %s (%s): %s", symbol, name, current_price
-                )
+                logger.info("Fetched price for %s (%s): %s", symbol, name, current_price)
 
             except Exception as e:
                 logger.error("Failed to fetch data for %s: %s", symbol, e)
@@ -233,9 +223,7 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=info.get(
-                        "yield", 0.03
-                    ),  # Default 3% if not available
+                    yield_to_maturity=info.get("yield", 0.03),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
@@ -273,11 +261,7 @@ class RealDataFetcher:
 
                 # Calculate simple volatility from recent data
                 hist_week = ticker.history(period="5d")
-                volatility = (
-                    float(hist_week["Close"].pct_change().std())
-                    if len(hist_week) > 1
-                    else 0.20
-                )
+                volatility = float(hist_week["Close"].pct_change().std()) if len(hist_week) > 1 else 0.20
 
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
@@ -377,9 +361,7 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=(
-                "10-K Filing - Increased oil reserves and sustainability initiatives"
-            ),
+            description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -433,7 +415,7 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """Serialize an AssetRelationshipGraph into a JSON-serialisable dictionary.
-    
+
     This function converts the provided AssetRelationshipGraph into a  dictionary
     format suitable for JSON serialization. It extracts and  serializes the assets,
     regulatory events, and relationships, including  both outgoing and incoming
@@ -443,9 +425,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [
-            _serialize_dataclass(event) for event in graph.regulatory_events
-        ],
+        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
         "relationships": {
             source: [
                 {
@@ -473,10 +453,10 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
 
 def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     """Deserialize a dictionary representation of an asset into an Asset instance.
-    
+
     Args:
         data (Dict[str, Any]): Dictionary containing asset data with a "__type__" key.
-    
+
     Returns:
         Asset: An Asset instance constructed from the provided data.
     """
@@ -499,12 +479,12 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
 
 def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
     """Reconstructs a RegulatoryEvent from its serialized dictionary representation.
-    
+
     Args:
         data (Dict[str, Any]): Serialized event payload must include an
             "event_type" value compatible with RegulatoryActivity and the
             remaining fields accepted by RegulatoryEvent.
-    
+
     Returns:
         RegulatoryEvent: The deserialized RegulatoryEvent instance.
     """
@@ -515,13 +495,13 @@ def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
 
 def _deserialize_graph(payload: Dict[str, Any]) -> AssetRelationshipGraph:
     """Reconstructs an AssetRelationshipGraph from a serialized payload.
-    
+
     This function takes a serialized graph payload and reconstructs an
     AssetRelationshipGraph by deserializing assets, regulatory events,  and
     relationships. It iterates through the provided data, creating  assets and
     events, and establishing relationships based on the  specified parameters in
     the payload.
-    
+
     Args:
         payload (Dict[str, Any]): Serialized graph payload containing the keys
             "assets", "regulatory_events", "relationships", etc.
@@ -565,7 +545,7 @@ def _load_from_cache(path: Path) -> AssetRelationshipGraph:
 
 def _save_to_cache(graph: AssetRelationshipGraph, path: Path) -> None:
     """Persist an AssetRelationshipGraph to a JSON file at the given path.
-    
+
     Args:
         graph (AssetRelationshipGraph): The graph to persist.
         path (Path): Filesystem path where the JSON representation will be written.

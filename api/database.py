@@ -16,15 +16,13 @@ def _get_database_url() -> str:
     """Retrieve the DATABASE_URL environment variable."""
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        raise ValueError(
-            "DATABASE_URL environment variable must be set before using the database"
-        )
+        raise ValueError("DATABASE_URL environment variable must be set before using the database")
     return database_url
 
 
 def _resolve_sqlite_path(url: str) -> str:
     """Resolve a SQLite URL to a filesystem path or the in-memory indicator.
-    
+
     This function accepts SQLite URLs with various schemes, including
     `sqlite:///relative.db`, `sqlite:////absolute/path.db`, and
     `sqlite:///:memory:`. It decodes percent-encodings in the URL path  before
@@ -32,7 +30,7 @@ def _resolve_sqlite_path(url: str) -> str:
     style memory databases are returned as-is.  The function also handles the
     normalization of paths based on their  leading slashes to determine if they are
     absolute or relative.
-    
+
     Args:
         url (str): SQLite URL to resolve.
     """
@@ -79,13 +77,13 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 def _is_memory_db(path: str | None = None) -> bool:
     """Determine if the specified database is an in-memory SQLite database.
-    
+
     This function checks whether the provided database path or the configured
     DATABASE_PATH refers to an in-memory SQLite database. It evaluates the  path
     against the literal ":memory:" and also supports URI-style memory  databases,
     such as "file::memory:?cache=shared", by parsing the URI  and checking its
     scheme and query parameters.
-    
+
     Args:
         path (str | None): Optional database path or URI to evaluate.
     """
@@ -95,9 +93,7 @@ def _is_memory_db(path: str | None = None) -> bool:
 
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
     parsed = urlparse(target)
-    if parsed.scheme == "file" and (
-        parsed.path == ":memory:" or ":memory:" in parsed.query
-    ):
+    if parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query):
         return True
 
     return False
@@ -168,7 +164,7 @@ atexit.register(_cleanup_memory_connection)
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:
     """Execute a SQL write statement and commit the transaction.
-    
+
     Args:
         query (str): SQL statement to execute.
         parameters (tuple | list | None): Sequence of values to bind to the statement;
@@ -181,11 +177,11 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
 
 def fetch_one(query: str, parameters: tuple | list | None = None):
     """Retrieve the first row produced by an SQL query.
-    
+
     Args:
         query (str): SQL statement to execute.
         parameters (tuple | list | None): Optional sequence of parameters to bind into the query.
-    
+
     Returns:
         sqlite3.Row | None: The first row of the result set as a `sqlite3.Row`, or
             `None` if the query returned no rows.

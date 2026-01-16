@@ -16,16 +16,16 @@ logger = logging.getLogger(__name__)
 
 def create_sample_database() -> AssetRelationshipGraph:
     """Create an expanded sample financial database with diverse asset classes.
-    
+
     This function initializes an AssetRelationshipGraph and populates it with a
     variety of assets, including equities, bonds, commodities, and currencies. It
     also adds regulatory events that may impact these assets and builds the
     relationships between them. The function logs the creation process and the
     number of assets and relationships established in the graph.
-    
+
     Returns:
         AssetRelationshipGraph: The constructed graph containing all assets and their relationships.
-    
+
     Raises:
         Exception: If there is an error during the creation of the sample database.
     """
@@ -362,8 +362,7 @@ def create_sample_database() -> AssetRelationshipGraph:
             relationship_count,
         )
         logger.info(
-            "Asset classes covered: Equity (%s), Fixed Income (%s), "
-            "Commodity (%s), Currency (%s)",
+            "Asset classes covered: Equity (%s), Fixed Income (%s), " "Commodity (%s), Currency (%s)",
             len([a for a in all_assets if a.asset_class == AssetClass.EQUITY]),
             len([a for a in all_assets if a.asset_class == AssetClass.FIXED_INCOME]),
             len([a for a in all_assets if a.asset_class == AssetClass.COMMODITY]),
