@@ -394,6 +394,8 @@ class FormulaicdAnalyzer:
                 ("Cross-asset relationships identified between " "commodities and currencies"),
             ],
         }
+
+    def _calculate_empirical_relationships(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
         """Calculate empirical relationships from the asset graph."""
         asset_data = self._extract_asset_data(graph)
         correlation_matrix = self._calculate_correlation_matrix(asset_data)
