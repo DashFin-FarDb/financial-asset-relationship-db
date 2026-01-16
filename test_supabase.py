@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 from supabase import Client, create_client
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +22,9 @@ def test_supabase_connection():
     supabase_key = os.getenv("SUPABASE_KEY")
 
     if not supabase_url or not supabase_key:
-        logger.error("Missing Supabase credentials. Please set SUPABASE_URL and SUPABASE_KEY environment variables.")
+        logger.error(
+            "Missing Supabase credentials. Please set SUPABASE_URL and SUPABASE_KEY environment variables."
+        )
         return False
 
     try:
