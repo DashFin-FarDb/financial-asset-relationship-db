@@ -320,6 +320,19 @@ class FormulaicVisualizer:
 
         # Create positions in a circle
         n_assets = len(assets)
+        if n_assets == 0:
+            fig = go.Figure()
+            fig.add_annotation(
+                text="No correlation data available",
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=0.5,
+                showarrow=False,
+                font=dict(size=16),
+            )
+            fig.update_layout(title="Asset Correlation Network")
+            return fig
         angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
         positions = {asset: (math.cos(angle), math.sin(angle)) for asset, angle in zip(assets, angles)}
 
