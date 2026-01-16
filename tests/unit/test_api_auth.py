@@ -175,7 +175,9 @@ class TestUserRepository:
     def test_create_or_update_user_disabled(self, mock_execute):
         """Test creating a disabled user."""
         repo = UserRepository()
-        repo.create_or_update_user(username="disableduser", hashed_password="hashed_pwd", is_disabled=True)
+        repo.create_or_update_user(
+            username="disableduser", hashed_password="hashed_pwd", is_disabled=True
+        )
 
         call_args = mock_execute.call_args[0]
         assert call_args[1][4] == 1  # disabled flag
@@ -199,7 +201,9 @@ class TestAuthentication:
     @patch("api.auth.verify_password")
     def test_authenticate_user_success(self, mock_verify, mock_get_user):
         """Test successful user authentication."""
-        mock_user = UserInDB(username="testuser", hashed_password="hashed_pwd", disabled=False)
+        mock_user = UserInDB(
+            username="testuser", hashed_password="hashed_pwd", disabled=False
+        )
         mock_get_user.return_value = mock_user
         mock_verify.return_value = True
 
@@ -222,7 +226,9 @@ class TestAuthentication:
     @patch("api.auth.verify_password")
     def test_authenticate_user_wrong_password(self, mock_verify, mock_get_user):
         """Test authentication with wrong password."""
-        mock_user = UserInDB(username="testuser", hashed_password="hashed_pwd", disabled=False)
+        mock_user = UserInDB(
+            username="testuser", hashed_password="hashed_pwd", disabled=False
+        )
         mock_get_user.return_value = mock_user
         mock_verify.return_value = False
 
@@ -234,7 +240,9 @@ class TestAuthentication:
     @patch("api.auth.verify_password")
     def test_authenticate_disabled_user(self, mock_verify, mock_get_user):
         """Test authentication of disabled user."""
-        mock_user = UserInDB(username="testuser", hashed_password="hashed_pwd", disabled=True)
+        mock_user = UserInDB(
+            username="testuser", hashed_password="hashed_pwd", disabled=True
+        )
         mock_get_user.return_value = mock_user
         mock_verify.return_value = True
 
@@ -311,7 +319,9 @@ class TestGetCurrentUser:
     @patch("api.auth.get_user")
     async def test_get_current_user_valid_token(self, mock_get_user):
         """Test get_current_user with valid token."""
-        mock_user = UserInDB(username="testuser", hashed_password="hashed_pwd", disabled=False)
+        mock_user = UserInDB(
+            username="testuser", hashed_password="hashed_pwd", disabled=False
+        )
         mock_get_user.return_value = mock_user
 
         # Create valid token

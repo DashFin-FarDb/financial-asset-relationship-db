@@ -67,7 +67,11 @@ class TestCodeRabbitConfiguration:
         top_level_keys = []
         for line in content.split("\n"):
             stripped = line.lstrip()
-            if stripped and not stripped.startswith("#") and not stripped.startswith("-"):
+            if (
+                stripped
+                and not stripped.startswith("#")
+                and not stripped.startswith("-")
+            ):
                 if ":" in stripped and not stripped.startswith(" "):
                     key = stripped.split(":")[0].strip()
                     top_level_keys.append(key)
@@ -127,11 +131,15 @@ class TestCodeRabbitConfiguration:
 
         if "labeling_instructions" in reviews:
             instructions = reviews["labeling_instructions"]
-            assert isinstance(instructions, list), "labeling_instructions must be a list"
+            assert isinstance(instructions, list), (
+                "labeling_instructions must be a list"
+            )
 
             for instruction in instructions:
                 assert "label" in instruction, "Each instruction must have a label"
-                assert "instructions" in instruction, "Each instruction must have instructions text"
+                assert "instructions" in instruction, (
+                    "Each instruction must have instructions text"
+                )
 
     def test_file_size_is_reasonable(self):
         """Test that .coderabbit.yaml file size is reasonable."""
@@ -147,7 +155,9 @@ class TestCodeRabbitConfiguration:
             config = yaml.safe_load(f)
 
         if "early_access" in config:
-            assert isinstance(config["early_access"], bool), "early_access must be boolean"
+            assert isinstance(config["early_access"], bool), (
+                "early_access must be boolean"
+            )
 
     def test_inheritance_setting(self):
         """Test that inheritance setting is properly configured."""
@@ -155,7 +165,9 @@ class TestCodeRabbitConfiguration:
             config = yaml.safe_load(f)
 
         if "inheritance" in config:
-            assert isinstance(config["inheritance"], bool), "inheritance must be boolean"
+            assert isinstance(config["inheritance"], bool), (
+                "inheritance must be boolean"
+            )
 
     def test_schema_reference_in_comment(self):
         """Test that file includes schema reference in comments."""
