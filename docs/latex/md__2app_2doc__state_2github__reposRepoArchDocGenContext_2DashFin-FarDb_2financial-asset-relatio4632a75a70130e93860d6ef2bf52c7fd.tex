@@ -1,0 +1,580 @@
+\chapter{Vercel Deployment Checklist}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd}\index{Vercel Deployment Checklist@{Vercel Deployment Checklist}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5623}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5623}%
+
+
+Use this checklist to ensure a smooth deployment to Vercel.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5624}{}\doxysection{\texorpdfstring{Pre-\/\+Deployment Checklist}{Pre-\/\+Deployment Checklist}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5624}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5625}{}\doxysubsection{\texorpdfstring{1. Code Preparation}{1. Code Preparation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5625}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] All code is committed to your Git repository
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\ttfamily .gitignore} excludes build artifacts and dependencies
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] No sensitive data or secrets in code
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Environment variables are documented in {\ttfamily .env.\+example}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5626}{}\doxysubsection{\texorpdfstring{2. Local Testing}{2. Local Testing}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5626}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Backend API runs successfully\+: {\ttfamily python -\/m uvicorn \doxylink{namespaceapi_1_1main}{api.\+main}\+:app -\/-\/port 8000}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Frontend builds without errors\+: {\ttfamily cd frontend \&\& npm run build}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] All API endpoints return valid responses
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] 3D visualization renders correctly
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] No console errors in browser
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5627}{}\doxysubsection{\texorpdfstring{3. Configuration Files}{3. Configuration Files}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5627}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\ttfamily vercel.\+json} exists in project root
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\ttfamily frontend/package.\+json} is properly configured
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\ttfamily frontend/next.\+config.\+js} has correct settings
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\ttfamily requirements.\+txt} includes all Python dependencies
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5628}{}\doxysubsection{\texorpdfstring{4. Dependencies Check}{4. Dependencies Check}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5628}
+Python dependencies (requirements.\+txt)\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] fastapi\texorpdfstring{$>$}{>}=0.\+104.\+0
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] uvicorn\mbox{[}standard\mbox{]}\texorpdfstring{$>$}{>}=0.\+24.\+0
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] pydantic\texorpdfstring{$>$}{>}=2.\+4.\+0
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] gradio\texorpdfstring{$>$}{>}=4.\+0.\+0
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] plotly\texorpdfstring{$>$}{>}=5.\+0.\+0
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] numpy\texorpdfstring{$>$}{>}=1.\+21.\+0
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] yfinance\texorpdfstring{$>$}{>}=0.\+2.\+0
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] pandas\texorpdfstring{$>$}{>}=1.\+5.\+0
+\end{DoxyItemize}
+
+Frontend dependencies (frontend/package.\+json)\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] react and react-\/dom
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] next
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] typescript
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] tailwindcss
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] plotly.\+js and react-\/plotly.\+js
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] axios
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5629}{}\doxysection{\texorpdfstring{Deployment Steps}{Deployment Steps}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5629}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5630}{}\doxysubsection{\texorpdfstring{Option 1\+: Deploy via Git\+Hub Integration (Recommended)}{Option 1\+: Deploy via Git\+Hub Integration (Recommended)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5630}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5631}{}\doxysubsubsection{\texorpdfstring{Step 1\+: Push to Git\+Hub}{Step 1\+: Push to Git\+Hub}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5631}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Ensure\ all\ changes\ are\ committed}
+\DoxyCodeLine{git\ status}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Push\ to\ your\ repository}
+\DoxyCodeLine{git\ push\ origin\ main\ \ \#\ or\ your\ branch\ name}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5632}{}\doxysubsubsection{\texorpdfstring{Step 2\+: Connect to Vercel}{Step 2\+: Connect to Vercel}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5632}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Go to \href{https://vercel.com}{\texttt{ vercel.\+com}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Sign up or log in
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Click "{}\+New Project"{}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Import your Git\+Hub repository
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Vercel will auto-\/detect Next.\+js
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5633}{}\doxysubsubsection{\texorpdfstring{Step 3\+: Configure Project Settings}{Step 3\+: Configure Project Settings}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5633}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\bfseries{Framework Preset}}\+: Next.\+js
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\bfseries{Root Directory}}\+: Leave as {\ttfamily .} (default)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\bfseries{Build Command}}\+: Leave default
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\bfseries{Output Directory}}\+: Leave default
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5634}{}\doxysubsubsection{\texorpdfstring{Step 4\+: Set Environment Variables}{Step 4\+: Set Environment Variables}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5634}
+In the Vercel dashboard, add\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\ttfamily NEXT\+\_\+\+PUBLIC\+\_\+\+API\+\_\+\+URL} = {\ttfamily \href{https://your-project.vercel.app}{\texttt{ https\+://your-\/project.\+vercel.\+app}}}
+\begin{DoxyItemize}
+\item Note\+: Use your actual Vercel deployment URL
+\item This will be available after first deployment
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5635}{}\doxysubsubsection{\texorpdfstring{Step 5\+: Deploy}{Step 5\+: Deploy}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5635}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Click "{}\+Deploy"{}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Wait for build to complete (2-\/5 minutes)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check deployment logs for errors
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5636}{}\doxysubsubsection{\texorpdfstring{Step 6\+: Update API URL}{Step 6\+: Update API URL}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5636}
+After first deployment\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Copy your Vercel project URL (e.\+g., {\ttfamily \href{https://your-project.vercel.app}{\texttt{ https\+://your-\/project.\+vercel.\+app}}})
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Update {\ttfamily NEXT\+\_\+\+PUBLIC\+\_\+\+API\+\_\+\+URL} in environment variables
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Redeploy if necessary
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5637}{}\doxysubsection{\texorpdfstring{Option 2\+: Deploy via Vercel CLI}{Option 2\+: Deploy via Vercel CLI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5637}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5638}{}\doxysubsubsection{\texorpdfstring{Step 1\+: Install Vercel CLI}{Step 1\+: Install Vercel CLI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5638}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ install\ -\/g\ vercel}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5639}{}\doxysubsubsection{\texorpdfstring{Step 2\+: Login}{Step 2\+: Login}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5639}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{vercel\ login}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5640}{}\doxysubsubsection{\texorpdfstring{Step 3\+: Deploy from Project Root}{Step 3\+: Deploy from Project Root}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5640}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ From\ the\ project\ root\ directory}
+\DoxyCodeLine{vercel}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Follow\ the\ prompts:}
+\DoxyCodeLine{\#\ -\/\ Set\ up\ and\ deploy?\ Yes}
+\DoxyCodeLine{\#\ -\/\ Which\ scope?\ Your\ account}
+\DoxyCodeLine{\#\ -\/\ Link\ to\ existing\ project?\ No\ (for\ first\ deployment)}
+\DoxyCodeLine{\#\ -\/\ Project\ name?\ Your\ choice}
+\DoxyCodeLine{\#\ -\/\ Directory?\ ./\ (current\ directory)}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5641}{}\doxysubsubsection{\texorpdfstring{Step 4\+: Set Environment Variables}{Step 4\+: Set Environment Variables}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5641}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Set\ production\ environment\ variable}
+\DoxyCodeLine{vercel\ env\ add\ NEXT\_PUBLIC\_API\_URL\ production}
+\DoxyCodeLine{\#\ Enter:\ https://your-\/project.vercel.app}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5642}{}\doxysubsubsection{\texorpdfstring{Step 5\+: Deploy to Production}{Step 5\+: Deploy to Production}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5642}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{vercel\ -\/-\/prod}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5643}{}\doxysection{\texorpdfstring{Post-\/\+Deployment Checklist}{Post-\/\+Deployment Checklist}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5643}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5644}{}\doxysubsection{\texorpdfstring{1. Verify Deployment}{1. Verify Deployment}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5644}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Open deployed URL in browser
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check that frontend loads without errors
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Verify API health\+: {\ttfamily \href{https://your-project.vercel.app/api/health}{\texttt{ https\+://your-\/project.\+vercel.\+app/api/health}}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Test API docs\+: {\ttfamily \href{https://your-project.vercel.app/docs}{\texttt{ https\+://your-\/project.\+vercel.\+app/docs}}}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5645}{}\doxysubsection{\texorpdfstring{2. Test Functionality}{2. Test Functionality}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5645}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] 3D Visualization tab loads and displays graph
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Metrics tab shows correct statistics
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Asset Explorer tab displays and filters work
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] No CORS errors in browser console
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] All interactive features work
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5646}{}\doxysubsection{\texorpdfstring{3. Performance Check}{3. Performance Check}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5646}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Page load time is acceptable (\texorpdfstring{$<$}{<} 3 seconds)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] API responses are fast (\texorpdfstring{$<$}{<} 2 seconds)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] 3D visualization renders smoothly
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] No memory leaks or errors
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5647}{}\doxysubsection{\texorpdfstring{4. Mobile Testing}{4. Mobile Testing}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5647}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Open site on mobile device
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check responsive layout
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Test touch interactions
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Verify visualization works on mobile
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5648}{}\doxysection{\texorpdfstring{Troubleshooting}{Troubleshooting}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5648}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5649}{}\doxysubsection{\texorpdfstring{Common Issues and Solutions}{Common Issues and Solutions}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5649}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5650}{}\doxysubsubsection{\texorpdfstring{Issue 1\+: Build Failed}{Issue 1\+: Build Failed}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5650}
+{\bfseries{Error}}\+: Build command failed {\bfseries{Solution}}\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check build logs in Vercel dashboard
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Verify all dependencies are in package.\+json
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Test build locally\+: {\ttfamily cd frontend \&\& npm run build}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check for Type\+Script errors
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Ensure Node.\+js version is compatible (18+)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5651}{}\doxysubsubsection{\texorpdfstring{Issue 2\+: API Not Found (404)}{Issue 2\+: API Not Found (404)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5651}
+{\bfseries{Error}}\+: {\ttfamily /api/} routes return 404 {\bfseries{Solution}}\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Verify {\ttfamily vercel.\+json} is in project root
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check route configuration in vercel.\+json
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Ensure {\ttfamily \doxylink{api_2main_8py}{api/main.\+py}} exists
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check Python version compatibility
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5652}{}\doxysubsubsection{\texorpdfstring{Issue 3\+: CORS Errors}{Issue 3\+: CORS Errors}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5652}
+{\bfseries{Error}}\+: CORS policy errors in browser {\bfseries{Solution}}\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check CORS configuration in {\ttfamily \doxylink{api_2main_8py}{api/main.\+py}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add Vercel domain to allowed origins
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Verify {\ttfamily NEXT\+\_\+\+PUBLIC\+\_\+\+API\+\_\+\+URL} is set correctly
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{\#\ In\ api/main.py}}
+\DoxyCodeLine{app.add\_middleware(}
+\DoxyCodeLine{\ \ \ \ CORSMiddleware,}
+\DoxyCodeLine{\ \ \ \ allow\_origins=[\textcolor{stringliteral}{"{}https://*.vercel.app"{}},\ \textcolor{stringliteral}{"{}https://your-\/domain.com"{}}],}
+\DoxyCodeLine{\ \ \ \ allow\_credentials=\textcolor{keyword}{True},}
+\DoxyCodeLine{\ \ \ \ allow\_methods=[\textcolor{stringliteral}{"{}*"{}}],}
+\DoxyCodeLine{\ \ \ \ allow\_headers=[\textcolor{stringliteral}{"{}*"{}}],}
+\DoxyCodeLine{)}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5653}{}\doxysubsubsection{\texorpdfstring{Issue 4\+: Environment Variables Not Working}{Issue 4\+: Environment Variables Not Working}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5653}
+{\bfseries{Error}}\+: API\+\_\+\+URL is undefined {\bfseries{Solution}}\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Verify variable name starts with {\ttfamily NEXT\+\_\+\+PUBLIC\+\_\+}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Set in Vercel dashboard (Settings → Environment Variables)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Redeploy after adding variables
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check variable is accessed correctly in code
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5654}{}\doxysubsubsection{\texorpdfstring{Issue 5\+: Python Dependencies Not Found}{Issue 5\+: Python Dependencies Not Found}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5654}
+{\bfseries{Error}}\+: Module not found errors {\bfseries{Solution}}\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Verify {\ttfamily requirements.\+txt} includes all dependencies
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check Python version in Vercel settings
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Use compatible package versions
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check Vercel Python runtime logs
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5655}{}\doxysubsubsection{\texorpdfstring{Issue 6\+: Lambda Size Exceeded}{Issue 6\+: Lambda Size Exceeded}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5655}
+{\bfseries{Error}}\+: Deployment exceeds size limit {\bfseries{Solution}}\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Increase {\ttfamily max\+Lambda\+Size} in vercel.\+json
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Remove unused dependencies
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Use lighter alternatives where possible
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Consider serverless-\/friendly packages
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}builds"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ "{}src"{}:\ "{}api/main.py"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}use"{}:\ "{}@vercel/python"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}config"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}maxLambdaSize"{}:\ "{}50mb"{}}
+\DoxyCodeLine{\ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ ]}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5656}{}\doxysection{\texorpdfstring{Continuous Deployment}{Continuous Deployment}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5656}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5657}{}\doxysubsection{\texorpdfstring{Automatic Deployments}{Automatic Deployments}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5657}
+Once connected to Git\+Hub\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Every push to main branch triggers deployment
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Pull requests create preview deployments
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Failed builds prevent deployment
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5658}{}\doxysubsection{\texorpdfstring{Branch Deployments}{Branch Deployments}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5658}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\bfseries{Production}}\+: Deploy from {\ttfamily main} branch
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\bfseries{Staging}}\+: Deploy from {\ttfamily develop} branch (optional)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] {\bfseries{Preview}}\+: Automatic for all PRs
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5659}{}\doxysection{\texorpdfstring{Monitoring}{Monitoring}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5659}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5660}{}\doxysubsection{\texorpdfstring{Vercel Dashboard}{Vercel Dashboard}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5660}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check deployment status regularly
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Monitor function execution times
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Review error logs
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Check bandwidth usage
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5661}{}\doxysubsection{\texorpdfstring{Analytics}{Analytics}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5661}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Enable Vercel Analytics (optional)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Monitor page views
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Track performance metrics
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Review user behavior
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5662}{}\doxysection{\texorpdfstring{Security}{Security}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5662}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5663}{}\doxysubsection{\texorpdfstring{Best Practices}{Best Practices}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5663}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Never commit secrets to Git
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Use environment variables for sensitive data
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Enable HTTPS (automatic on Vercel)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Set up proper CORS policies
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Regular dependency updates
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Monitor for security vulnerabilities
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5664}{}\doxysubsection{\texorpdfstring{Access Control}{Access Control}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5664}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Limit Vercel project access to team members
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Use separate production/staging environments
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Rotate secrets regularly
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Review access logs
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5665}{}\doxysection{\texorpdfstring{Backup Plan}{Backup Plan}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5665}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5666}{}\doxysubsection{\texorpdfstring{Rollback Procedure}{Rollback Procedure}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5666}
+If deployment fails or has issues\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Go to Vercel dashboard
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Navigate to Deployments
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Find previous working deployment
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Click "{}\+Promote to Production"{}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5667}{}\doxysubsection{\texorpdfstring{Local Fallback}{Local Fallback}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5667}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Keep Gradio UI as fallback\+: {\ttfamily python \doxylink{app_8py}{app.\+py}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Document how to switch between UIs
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Maintain both deployment methods
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5668}{}\doxysection{\texorpdfstring{Resources}{Resources}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5668}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5669}{}\doxysubsection{\texorpdfstring{Documentation Links}{Documentation Links}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5669}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] \href{https://vercel.com/docs}{\texttt{ Vercel Documentation}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] \href{https://nextjs.org/docs/deployment}{\texttt{ Next.\+js Deployment}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] \href{https://fastapi.tiangolo.com/deployment/}{\texttt{ Fast\+API Deployment}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Project-\/specific\+: \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT}{DEPLOYMENT.md}{0}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5670}{}\doxysubsection{\texorpdfstring{Support Channels}{Support Channels}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5670}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Vercel Support\+: \href{mailto:support@vercel.com}{\texttt{ support@vercel.\+com}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Vercel Community\+: Discord/\+Forum
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Git\+Hub Issues\+: For project-\/specific issues
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5671}{}\doxysection{\texorpdfstring{Final Checks}{Final Checks}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5671}
+Before going live\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] All tests pass
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Documentation is up to date
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Team members can access deployment
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Monitoring is set up
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Backup plan is documented
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Users are notified of new deployment
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5673}{}\doxysection{\texorpdfstring{Quick Reference Commands}{Quick Reference Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_autotoc_md5673}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Test\ locally}
+\DoxyCodeLine{./run-\/dev.sh\ \ \#\ or\ run-\/dev.bat\ on\ Windows}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Build\ frontend}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ run\ build}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Test\ API}
+\DoxyCodeLine{python\ test\_api.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Deploy\ to\ Vercel}
+\DoxyCodeLine{vercel\ -\/-\/prod}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ View\ logs}
+\DoxyCodeLine{vercel\ logs}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ List\ deployments}
+\DoxyCodeLine{vercel\ ls}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Deployment Complete?}} 🎉
+
+If all items are checked and deployment is successful, congratulations! Your Financial Asset Relationship Database is now live on Vercel.
+
+For maintenance and updates, see \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT}{DEPLOYMENT.md}{0}. 

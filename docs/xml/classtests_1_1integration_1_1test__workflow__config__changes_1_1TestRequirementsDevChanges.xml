@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_config_changes::TestRequirementsDevChanges</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_1ab800a0e27710be8736c6628d2c7e621d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestRequirementsDevChanges.test_requirements_file_exists</definition>
+        <argsstring>()</argsstring>
+        <name>test_requirements_file_exists</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestRequirementsDevChanges.test_requirements_file_exists</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify requirements-dev.txt exists.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="315" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="315" bodyend="319"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_1ade2e64b843551da9decdbd84e51b4e6f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestRequirementsDevChanges.test_pyyaml_dependency_added</definition>
+        <argsstring>()</argsstring>
+        <name>test_pyyaml_dependency_added</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestRequirementsDevChanges.test_pyyaml_dependency_added</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify PyYAML dependency is in requirements-dev.txt.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="321" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="321" bodyend="328"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_1afc0b87005064c947bde7f1aa0d3145a3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestRequirementsDevChanges.test_pyyaml_version_pinned</definition>
+        <argsstring>()</argsstring>
+        <name>test_pyyaml_version_pinned</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestRequirementsDevChanges.test_pyyaml_version_pinned</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify PyYAML has version constraint.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="330" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="330" bodyend="342"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_1ad1c5fe888b0d22094b798750cee955aa" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestRequirementsDevChanges.test_no_duplicate_dependencies</definition>
+        <argsstring>()</argsstring>
+        <name>test_no_duplicate_dependencies</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestRequirementsDevChanges.test_no_duplicate_dependencies</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that requirements-dev.txt contains no duplicate package entries.
+
+Ignores blank lines and comments, normalizes package names to lowercase and strips version specifiers (e.g., ==, &gt;=, &lt;=, ~=, &gt;, &lt;), and asserts there are no duplicate package names; on failure, reports the duplicated package names.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="344" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="344" bodyend="364"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for requirements-dev.txt changes.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_config_changes.TestRequirementsDevChanges</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="311" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="311" bodyend="364"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_1ad1c5fe888b0d22094b798750cee955aa" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestRequirementsDevChanges</scope><name>test_no_duplicate_dependencies</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_1ade2e64b843551da9decdbd84e51b4e6f" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestRequirementsDevChanges</scope><name>test_pyyaml_dependency_added</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_1afc0b87005064c947bde7f1aa0d3145a3" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestRequirementsDevChanges</scope><name>test_pyyaml_version_pinned</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_1ab800a0e27710be8736c6628d2c7e621d" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestRequirementsDevChanges</scope><name>test_requirements_file_exists</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

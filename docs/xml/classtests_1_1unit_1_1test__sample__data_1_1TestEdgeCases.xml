@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__sample__data_1_1TestEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_sample_data::TestEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestEdgeCases_1a18a77a8b99aba3d9ba378f85b44a0a29" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestEdgeCases.test_sample_database_handles_metrics_calculation</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_handles_metrics_calculation</name>
+        <qualifiedname>tests.unit.test_sample_data.TestEdgeCases.test_sample_database_handles_metrics_calculation</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database can calculate metrics without error.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="381" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="381" bodyend="388"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestEdgeCases_1ab5dda183be68217f6d1bc7babd6aaf03" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestEdgeCases.test_sample_database_can_be_serialized</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_can_be_serialized</name>
+        <qualifiedname>tests.unit.test_sample_data.TestEdgeCases.test_sample_database_can_be_serialized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database structure supports serialization.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="390" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="390" bodyend="400"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases in sample data generation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_sample_data.TestEdgeCases</label>
+        <link refid="classtests_1_1unit_1_1test__sample__data_1_1TestEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="377" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="377" bodyend="400"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestEdgeCases_1ab5dda183be68217f6d1bc7babd6aaf03" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestEdgeCases</scope><name>test_sample_database_can_be_serialized</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestEdgeCases_1a18a77a8b99aba3d9ba378f85b44a0a29" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestEdgeCases</scope><name>test_sample_database_handles_metrics_calculation</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

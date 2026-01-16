@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1unit_1_1test__api" kind="namespace" language="Python">
+    <compoundname>tests::unit::test_api</compoundname>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestAssetDetailEndpoint" prot="public">tests::unit::test_api::TestAssetDetailEndpoint</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint" prot="public">tests::unit::test_api::TestAssetsEndpoint</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestConcurrency" prot="public">tests::unit::test_api::TestConcurrency</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestCORSValidation" prot="public">tests::unit::test_api::TestCORSValidation</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestEdgeCases" prot="public">tests::unit::test_api::TestEdgeCases</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestMetadataEndpoints" prot="public">tests::unit::test_api::TestMetadataEndpoints</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestMetricsEndpoint" prot="public">tests::unit::test_api::TestMetricsEndpoint</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback" prot="public">tests::unit::test_api::TestRealDataFetcherFallback</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestRelationshipsEndpoint" prot="public">tests::unit::test_api::TestRelationshipsEndpoint</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestResponseValidation" prot="public">tests::unit::test_api::TestResponseValidation</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestRootAndHealth" prot="public">tests::unit::test_api::TestRootAndHealth</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api_1_1TestVisualizationEndpoint" prot="public">tests::unit::test_api::TestVisualizationEndpoint</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetests_1_1unit_1_1test__api_1a8f94fb628cce5cb8c6406937fdb8ca14" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::unit::test_api.TEST_ORIGIN_HTTP_LOCALHOST</definition>
+        <argsstring></argsstring>
+        <name>TEST_ORIGIN_HTTP_LOCALHOST</name>
+        <qualifiedname>tests.unit.test_api.TEST_ORIGIN_HTTP_LOCALHOST</qualifiedname>
+        <initializer>=  &quot;http://localhost:3000&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="25" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetests_1_1unit_1_1test__api_1a864fb7cb46556eeae0f3424a44e7463c" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::unit::test_api.TEST_ORIGIN_HTTP_LOOPBACK</definition>
+        <argsstring></argsstring>
+        <name>TEST_ORIGIN_HTTP_LOOPBACK</name>
+        <qualifiedname>tests.unit.test_api.TEST_ORIGIN_HTTP_LOOPBACK</qualifiedname>
+        <initializer>=  &quot;http://127.0.0.1:8000&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="26" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetests_1_1unit_1_1test__api_1a0f7a671530ecc7d9319c250c10afb6ed" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::unit::test_api.TEST_ORIGIN_HTTPS_LOCALHOST</definition>
+        <argsstring></argsstring>
+        <name>TEST_ORIGIN_HTTPS_LOCALHOST</name>
+        <qualifiedname>tests.unit.test_api.TEST_ORIGIN_HTTPS_LOCALHOST</qualifiedname>
+        <initializer>=  &quot;https://localhost:3000&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="27" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetests_1_1unit_1_1test__api_1a36379f828fd09885a54507766e874219" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::unit::test_api.TEST_ORIGIN_HTTPS_LOOPBACK</definition>
+        <argsstring></argsstring>
+        <name>TEST_ORIGIN_HTTPS_LOOPBACK</name>
+        <qualifiedname>tests.unit.test_api.TEST_ORIGIN_HTTPS_LOOPBACK</qualifiedname>
+        <initializer>=  &quot;https://127.0.0.1:8000&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="28" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetests_1_1unit_1_1test__api_1a34ddc2c3a0546eebad39bc9ceff9643b" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::unit::test_api.TEST_ORIGIN_FTP_LOCALHOST</definition>
+        <argsstring></argsstring>
+        <name>TEST_ORIGIN_FTP_LOCALHOST</name>
+        <qualifiedname>tests.unit.test_api.TEST_ORIGIN_FTP_LOCALHOST</qualifiedname>
+        <initializer>=  &quot;ftp://localhost:3000&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="29" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="29" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.client</definition>
+        <argsstring>()</argsstring>
+        <name>client</name>
+        <qualifiedname>tests.unit.test_api.client</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a test client for the FastAPI app.
+
+Note: TestClient uses internal ASGI transport, not actual network requests.
+The base_url is only used for URL construction in tests, not for real HTTP calls.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="33" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="33" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.mock_graph</definition>
+        <argsstring>()</argsstring>
+        <name>mock_graph</name>
+        <qualifiedname>tests.unit.test_api.mock_graph</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a mock graph with sample data.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="44" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="44" bodyend="111"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive unit tests for FastAPI backend.
+
+This module tests all API endpoints including:
+- Health checks and root endpoint
+- Asset retrieval with filtering
+- Asset details and relationships
+- Metrics calculation
+- Visualization data generation
+- CORS configuration
+- Error handling and edge cases
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

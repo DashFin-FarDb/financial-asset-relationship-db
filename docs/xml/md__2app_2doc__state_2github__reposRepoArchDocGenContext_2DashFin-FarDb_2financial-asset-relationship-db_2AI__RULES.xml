@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AI__RULES" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AI__RULES</compoundname>
+    <title>AI Rules for Financial Application Development</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AI__RULES_1autotoc_md87"/></para>
+<para>This document outlines the core technologies and best practices for developing and maintaining the Financial Asset Relationship Network application.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AI__RULES_1autotoc_md88">
+<title>Tech Stack Overview</title><para>The application suite is built primarily with Python, leveraging specialized libraries for data handling, visualization, and web interface creation.</para>
+<para><itemizedlist>
+<listitem><para><bold>Python:</bold> The foundational programming language for all application logic, data processing, and backend operations.</para>
+</listitem><listitem><para><bold>Gradio:</bold> Employed for creating user-friendly web interfaces for machine learning models or data science demos, as seen in the &quot;Financial Asset Relationship Network&quot; for visualizing complex graph structures and exploring asset relationships.</para>
+</listitem><listitem><para><bold>Pandas:</bold> The go-to library for all data manipulation, analysis, and structuring of tabular data (DataFrames). It&apos;s essential for preparing data for display and calculations.</para>
+</listitem><listitem><para><bold>NumPy:</bold> Utilized for high-performance numerical operations, array computations, and statistical functions, particularly in graph algorithms and data generation.</para>
+</listitem><listitem><para><bold>Plotly (plotly.graph_objects, plotly.express, plotly.subplots):</bold> The exclusive library for generating all interactive charts, graphs, and visualizations across the Gradio application. This includes candlestick charts, bar charts, pie charts, gauges, and 3D network visualizations.</para>
+</listitem><listitem><para><bold>yfinance:</bold> Dedicated to fetching real-time and historical financial market data, including stock prices, company information, and news.</para>
+</listitem><listitem><para><bold>dataclasses &amp; enum:</bold> Python&apos;s built-in modules for defining structured data models (e.g., <computeroutput>Asset</computeroutput>, <computeroutput>Equity</computeroutput>, <computeroutput>Bond</computeroutput>) and enumerations (e.g., <computeroutput>AssetClass</computeroutput>, <computeroutput>RegulatoryActivity</computeroutput>), ensuring type safety and clear data definitions.</para>
+</listitem><listitem><para><bold>datetime:</bold> Used for handling and formatting dates and times, crucial for financial data timelines and event management.</para>
+</listitem><listitem><para><bold>json:</bold> Employed for serializing and deserializing data, particularly for displaying structured information within the Gradio interface.</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AI__RULES_1autotoc_md89">
+<title>Library Usage Rules</title><para>To maintain consistency, performance, and readability, adhere to the following guidelines for library usage:</para>
+<para><itemizedlist>
+<listitem><para><bold>Web Application Frameworks:</bold><itemizedlist>
+<listitem><para>Use <bold>Gradio</bold> for interactive demonstrations of complex models, graph visualizations, or schema exploration where a tabbed interface and direct input/output components are beneficial.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Data Manipulation:</bold><itemizedlist>
+<listitem><para>Always use <bold>Pandas</bold> DataFrames for any tabular data processing, filtering, aggregation, and transformation.</para>
+</listitem><listitem><para>For low-level numerical operations, array manipulations, or statistical functions, <bold>NumPy</bold> should be used.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Charting and Visualization:</bold><itemizedlist>
+<listitem><para><bold>Plotly</bold> is the sole library for all graphical representations. This ensures a consistent interactive experience and visual style. Avoid other charting libraries.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Financial Data Acquisition:</bold><itemizedlist>
+<listitem><para><bold>yfinance</bold> is the standard for retrieving public financial market data. Do not implement custom scraping or use other external financial APIs unless explicitly required and approved.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Data Modeling:</bold><itemizedlist>
+<listitem><para>Define all structured data objects using <bold>dataclasses</bold> for clarity and maintainability.</para>
+</listitem><listitem><para>Use <bold>enum</bold> for any fixed sets of choices or categories (e.g., asset classes, event types).</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Date and Time Handling:</bold><itemizedlist>
+<listitem><para>Utilize the <bold>datetime</bold> module for parsing, formatting, and performing operations on dates and times.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Structured Output:</bold><itemizedlist>
+<listitem><para>When displaying complex data structures in the UI, especially in Gradio, use <bold>json</bold> for clear, formatted output.</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AI__RULES_1autotoc_md90">
+<title>Directory and File Naming Conventions</title><para><itemizedlist>
+<listitem><para><bold>Directory Names:</bold> All directory names MUST be all lower-case (e.g., <computeroutput>src/pages</computeroutput>, <computeroutput>src/components</computeroutput>, <computeroutput>src/utils</computeroutput>).</para>
+</listitem><listitem><para><bold>File Names:</bold> File names may use mixed-case (e.g., <computeroutput>AssetRelationshipGraph.py</computeroutput>).</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AI__RULES_1autotoc_md91">
+<title>Coding Guidelines</title><para><itemizedlist>
+<listitem><para><bold>Modularity:</bold> Create small, focused files and components. Aim for components that are 100 lines of code or less. Refactor large files when necessary.</para>
+</listitem><listitem><para><bold>Readability:</bold> Write clean, well-commented code. Use meaningful variable and function names.</para>
+</listitem><listitem><para><bold>Consistency:</bold> Adhere to the existing coding style and conventions of the project.</para>
+</listitem><listitem><para><bold>Completeness:</bold> All implemented features must be fully functional with complete code; avoid placeholders or partial implementations.</para>
+</listitem><listitem><para><bold>Error Handling:</bold> Do not use <computeroutput>try/catch</computeroutput> blocks for general error handling unless specifically requested. Allow errors to propagate for easier debugging and system-level error management.</para>
+</listitem><listitem><para><bold>Simplicity:</bold> Prioritize simple and elegant solutions over overly complex or over-engineered designs. Focus on the user&apos;s request and make the minimum necessary changes.</para>
+</listitem><listitem><para><bold>Responsiveness:</bold> Always generate responsive designs for web interfaces.</para>
+</listitem><listitem><para><bold>User Feedback:</bold> Use toast components or similar UI elements to inform the user about important events or actions. </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/AI_RULES.md"/>
+  </compounddef>
+</doxygen>

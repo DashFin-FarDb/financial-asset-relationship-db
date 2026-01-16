@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__dev__scripts_1_1TestDocumentationFiles" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_dev_scripts::TestDocumentationFiles</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestDocumentationFiles_1a8344236a8a358260811f2cc10f18e526" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestDocumentationFiles.test_documentation_exists</definition>
+        <argsstring>(doc_file)</argsstring>
+        <name>test_documentation_exists</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestDocumentationFiles.test_documentation_exists</qualifiedname>
+        <param>
+          <type>doc_file</type>
+          <defname>doc_file</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that key documentation files exist.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="116" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="116" bodyend="119"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestDocumentationFiles_1aa31f92057673af8d83d28af60eb696c3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestDocumentationFiles.test_readme_has_quick_start</definition>
+        <argsstring>()</argsstring>
+        <name>test_readme_has_quick_start</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestDocumentationFiles.test_readme_has_quick_start</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test README contains quick start section.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="121" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="121" bodyend="129"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that documentation files exist and are properly structured.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_dev_scripts.TestDocumentationFiles</label>
+        <link refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestDocumentationFiles"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="100" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="100" bodyend="129"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestDocumentationFiles_1a8344236a8a358260811f2cc10f18e526" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestDocumentationFiles</scope><name>test_documentation_exists</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestDocumentationFiles_1aa31f92057673af8d83d28af60eb696c3" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestDocumentationFiles</scope><name>test_readme_has_quick_start</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

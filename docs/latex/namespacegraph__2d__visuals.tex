@@ -1,0 +1,193 @@
+\doxysection{graph\+\_\+2d\+\_\+visuals Namespace Reference}
+\hypertarget{namespacegraph__2d__visuals}{}\label{namespacegraph__2d__visuals}\index{graph\_2d\_visuals@{graph\_2d\_visuals}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__2d__visuals_a64cb4091385f11e59bcd0eb6e77c8a3f}{\+\_\+create\+\_\+circular\+\_\+layout}} (List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__2d__visuals_aefa05cca95437bedcafcfcc83c332614}{\+\_\+create\+\_\+grid\+\_\+layout}} (List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__2d__visuals_a165b9e325029f53ba7ca0bf8605a40aa}{\+\_\+create\+\_\+spring\+\_\+layout\+\_\+2d}} (Dict\mbox{[}str, Tuple\mbox{[}float, float, float\mbox{]}\mbox{]} positions\+\_\+3d, List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+List\mbox{[}go.\+Scatter\mbox{]} \mbox{\hyperlink{namespacegraph__2d__visuals_a3c29db703c3db7f334f690de7193b3d0}{\+\_\+create\+\_\+2d\+\_\+relationship\+\_\+traces}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} positions, List\mbox{[}str\mbox{]} asset\+\_\+ids, bool show\+\_\+same\+\_\+sector=True, bool show\+\_\+market\+\_\+cap=True, bool show\+\_\+correlation=True, bool show\+\_\+corporate\+\_\+bond=True, bool show\+\_\+commodity\+\_\+currency=True, bool show\+\_\+income\+\_\+comparison=True, bool show\+\_\+regulatory=True, bool show\+\_\+all\+\_\+relationships=False)
+\item 
+go.\+Figure \mbox{\hyperlink{namespacegraph__2d__visuals_a97a7e05141b23b017dab24618910c8c8}{visualize\+\_\+2d\+\_\+graph}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, str layout\+\_\+type="{}spring"{}, bool show\+\_\+same\+\_\+sector=True, bool show\+\_\+market\+\_\+cap=True, bool show\+\_\+correlation=True, bool show\+\_\+corporate\+\_\+bond=True, bool show\+\_\+commodity\+\_\+currency=True, bool show\+\_\+income\+\_\+comparison=True, bool show\+\_\+regulatory=True, bool show\+\_\+all\+\_\+relationships=False)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacegraph__2d__visuals_afab3541f0c20f4ecbf3218007e938fd3}{logger}} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\item 
+dict \mbox{\hyperlink{namespacegraph__2d__visuals_abcc8c998067dec6d248acf8c62293914}{REL\+\_\+\+TYPE\+\_\+\+COLORS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}2D graph visualization module for financial asset relationships.
+
+This module provides 2D visualization capabilities for asset relationship
+graphs,
+including multiple layout algorithms (spring, circular, grid) and
+relationship filtering.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacegraph__2d__visuals_a3c29db703c3db7f334f690de7193b3d0}\index{graph\_2d\_visuals@{graph\_2d\_visuals}!\_create\_2d\_relationship\_traces@{\_create\_2d\_relationship\_traces}}
+\index{\_create\_2d\_relationship\_traces@{\_create\_2d\_relationship\_traces}!graph\_2d\_visuals@{graph\_2d\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_create\_2d\_relationship\_traces()}{\_create\_2d\_relationship\_traces()}}
+{\footnotesize\ttfamily \label{namespacegraph__2d__visuals_a3c29db703c3db7f334f690de7193b3d0} 
+ List\mbox{[}go.\+Scatter\mbox{]} graph\+\_\+2d\+\_\+visuals.\+\_\+create\+\_\+2d\+\_\+relationship\+\_\+traces (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{, }\item[{Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]}}]{positions}{, }\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{, }\item[{bool }]{show\+\_\+same\+\_\+sector}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+market\+\_\+cap}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+correlation}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+corporate\+\_\+bond}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+commodity\+\_\+currency}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+income\+\_\+comparison}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+regulatory}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+all\+\_\+relationships}{ = {\ttfamily False}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Create 2D relationship traces with filtering.
+
+Args:
+    graph: Asset relationship graph
+    positions: Dictionary mapping asset IDs to (x, y) positions
+    asset_ids: List of asset IDs
+    show_same_sector: Show same sector relationships
+    show_market_cap: Show market cap relationships
+    show_correlation: Show correlation relationships
+    show_corporate_bond: Show corporate bond relationships
+    show_commodity_currency: Show commodity currency relationships
+    show_income_comparison: Show income comparison relationships
+    show_regulatory: Show regulatory relationships
+    show_all_relationships: Master toggle to show all relationships
+
+Returns:
+    List of Plotly Scatter traces for relationships
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__2d__visuals_a3c29db703c3db7f334f690de7193b3d0_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__2d__visuals_a64cb4091385f11e59bcd0eb6e77c8a3f}\index{graph\_2d\_visuals@{graph\_2d\_visuals}!\_create\_circular\_layout@{\_create\_circular\_layout}}
+\index{\_create\_circular\_layout@{\_create\_circular\_layout}!graph\_2d\_visuals@{graph\_2d\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_create\_circular\_layout()}{\_create\_circular\_layout()}}
+{\footnotesize\ttfamily \label{namespacegraph__2d__visuals_a64cb4091385f11e59bcd0eb6e77c8a3f} 
+ Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} graph\+\_\+2d\+\_\+visuals.\+\_\+create\+\_\+circular\+\_\+layout (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Create circular layout for 2D visualization.
+
+Args:
+    asset_ids: List of asset IDs to position
+
+Returns:
+    Dictionary mapping asset IDs to (x, y) positions on a unit circle
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__2d__visuals_a64cb4091385f11e59bcd0eb6e77c8a3f_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__2d__visuals_aefa05cca95437bedcafcfcc83c332614}\index{graph\_2d\_visuals@{graph\_2d\_visuals}!\_create\_grid\_layout@{\_create\_grid\_layout}}
+\index{\_create\_grid\_layout@{\_create\_grid\_layout}!graph\_2d\_visuals@{graph\_2d\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_create\_grid\_layout()}{\_create\_grid\_layout()}}
+{\footnotesize\ttfamily \label{namespacegraph__2d__visuals_aefa05cca95437bedcafcfcc83c332614} 
+ Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} graph\+\_\+2d\+\_\+visuals.\+\_\+create\+\_\+grid\+\_\+layout (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Create grid layout for 2D visualization.
+
+Args:
+    asset_ids: List of asset IDs to position
+
+Returns:
+    Dictionary mapping asset IDs to (x, y) positions in a grid
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__2d__visuals_aefa05cca95437bedcafcfcc83c332614_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__2d__visuals_a165b9e325029f53ba7ca0bf8605a40aa}\index{graph\_2d\_visuals@{graph\_2d\_visuals}!\_create\_spring\_layout\_2d@{\_create\_spring\_layout\_2d}}
+\index{\_create\_spring\_layout\_2d@{\_create\_spring\_layout\_2d}!graph\_2d\_visuals@{graph\_2d\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_create\_spring\_layout\_2d()}{\_create\_spring\_layout\_2d()}}
+{\footnotesize\ttfamily \label{namespacegraph__2d__visuals_a165b9e325029f53ba7ca0bf8605a40aa} 
+ Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} graph\+\_\+2d\+\_\+visuals.\+\_\+create\+\_\+spring\+\_\+layout\+\_\+2d (\begin{DoxyParamCaption}\item[{Dict\mbox{[}str, Tuple\mbox{[}float, float, float\mbox{]}\mbox{]}}]{positions\+\_\+3d}{, }\item[{List\mbox{[}str\mbox{]} }]{asset\+\_\+ids}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Convert 3D spring layout positions to 2D by dropping z-coordinate.
+
+Args:
+    positions_3d: Dictionary mapping asset IDs to (x, y, z) positions
+    asset_ids: List of asset IDs
+
+Returns:
+    Dictionary mapping asset IDs to (x, y) positions
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__2d__visuals_a165b9e325029f53ba7ca0bf8605a40aa_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__2d__visuals_a97a7e05141b23b017dab24618910c8c8}\index{graph\_2d\_visuals@{graph\_2d\_visuals}!visualize\_2d\_graph@{visualize\_2d\_graph}}
+\index{visualize\_2d\_graph@{visualize\_2d\_graph}!graph\_2d\_visuals@{graph\_2d\_visuals}}
+\doxysubsubsection{\texorpdfstring{visualize\_2d\_graph()}{visualize\_2d\_graph()}}
+{\footnotesize\ttfamily \label{namespacegraph__2d__visuals_a97a7e05141b23b017dab24618910c8c8} 
+ go.\+Figure graph\+\_\+2d\+\_\+visuals.\+visualize\+\_\+2d\+\_\+graph (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{, }\item[{str }]{layout\+\_\+type}{ = {\ttfamily "{}spring"{}}, }\item[{bool }]{show\+\_\+same\+\_\+sector}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+market\+\_\+cap}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+correlation}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+corporate\+\_\+bond}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+commodity\+\_\+currency}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+income\+\_\+comparison}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+regulatory}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+all\+\_\+relationships}{ = {\ttfamily False}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create 2D visualization of asset relationship graph.
+
+Args:
+    graph: Asset relationship graph to visualize
+    layout_type: Layout algorithm to use ('spring', 'circular', 'grid')
+    show_same_sector: Show same sector relationships
+    show_market_cap: Show market cap relationships
+    show_correlation: Show correlation relationships
+    show_corporate_bond: Show corporate bond relationships
+    show_commodity_currency: Show commodity currency relationships
+    show_income_comparison: Show income comparison relationships
+    show_regulatory: Show regulatory relationships
+    show_all_relationships: Master toggle to show all relationships
+
+Returns:
+    Plotly Figure object with 2D visualization
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__2d__visuals_a97a7e05141b23b017dab24618910c8c8_cgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacegraph__2d__visuals_afab3541f0c20f4ecbf3218007e938fd3}\index{graph\_2d\_visuals@{graph\_2d\_visuals}!logger@{logger}}
+\index{logger@{logger}!graph\_2d\_visuals@{graph\_2d\_visuals}}
+\doxysubsubsection{\texorpdfstring{logger}{logger}}
+{\footnotesize\ttfamily \label{namespacegraph__2d__visuals_afab3541f0c20f4ecbf3218007e938fd3} 
+graph\+\_\+2d\+\_\+visuals.\+logger = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)}
+
+\Hypertarget{namespacegraph__2d__visuals_abcc8c998067dec6d248acf8c62293914}\index{graph\_2d\_visuals@{graph\_2d\_visuals}!REL\_TYPE\_COLORS@{REL\_TYPE\_COLORS}}
+\index{REL\_TYPE\_COLORS@{REL\_TYPE\_COLORS}!graph\_2d\_visuals@{graph\_2d\_visuals}}
+\doxysubsubsection{\texorpdfstring{REL\_TYPE\_COLORS}{REL\_TYPE\_COLORS}}
+{\footnotesize\ttfamily \label{namespacegraph__2d__visuals_abcc8c998067dec6d248acf8c62293914} 
+dict graph\+\_\+2d\+\_\+visuals.\+REL\+\_\+\+TYPE\+\_\+\+COLORS}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ =\ \ \{}
+\DoxyCodeLine{00002\ \ \ \ \ \textcolor{stringliteral}{"{}same\_sector"{}}:\ \textcolor{stringliteral}{"{}\#FF6B6B"{}},}
+\DoxyCodeLine{00003\ \ \ \ \ \textcolor{stringliteral}{"{}market\_cap\_similar"{}}:\ \textcolor{stringliteral}{"{}\#4ECDC4"{}},}
+\DoxyCodeLine{00004\ \ \ \ \ \textcolor{stringliteral}{"{}correlation"{}}:\ \textcolor{stringliteral}{"{}\#45B7D1"{}},}
+\DoxyCodeLine{00005\ \ \ \ \ \textcolor{stringliteral}{"{}corporate\_bond\_to\_equity"{}}:\ \textcolor{stringliteral}{"{}\#96CEB4"{}},}
+\DoxyCodeLine{00006\ \ \ \ \ \textcolor{stringliteral}{"{}commodity\_currency"{}}:\ \textcolor{stringliteral}{"{}\#FFEAA7"{}},}
+\DoxyCodeLine{00007\ \ \ \ \ \textcolor{stringliteral}{"{}income\_comparison"{}}:\ \textcolor{stringliteral}{"{}\#DDA0DD"{}},}
+\DoxyCodeLine{00008\ \ \ \ \ \textcolor{stringliteral}{"{}regulatory\_impact"{}}:\ \textcolor{stringliteral}{"{}\#FFA07A"{}},}
+\DoxyCodeLine{00009\ \}}
+
+\end{DoxyCode}

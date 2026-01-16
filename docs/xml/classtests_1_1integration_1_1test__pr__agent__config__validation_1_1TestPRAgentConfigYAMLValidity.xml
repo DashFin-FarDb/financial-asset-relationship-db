@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigYAMLValidity</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_1a2677eeac89e344f78141c230ae966807" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigYAMLValidity.test_config_is_valid_yaml</definition>
+        <argsstring>()</argsstring>
+        <name>test_config_is_valid_yaml</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigYAMLValidity.test_config_is_valid_yaml</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Fail the test if .github/pr-agent-config.yml contains invalid YAML.
+
+Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="126" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="126" bodyend="138"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_1a21af673178bb0327bafb09988827b4a8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigYAMLValidity.test_no_duplicate_keys</definition>
+        <argsstring>()</argsstring>
+        <name>test_no_duplicate_keys</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigYAMLValidity.test_no_duplicate_keys</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Fail the test if any top-level YAML key appears more than once in the file.
+
+Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first &apos;:&apos; as the key; the test fails if a key is encountered more than once.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="140" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="140" bodyend="159"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_1a789d5832250a4c09d436706419dbd987" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigYAMLValidity.test_consistent_indentation</definition>
+        <argsstring>()</argsstring>
+        <name>test_consistent_indentation</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigYAMLValidity.test_consistent_indentation</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
+
+Raises an AssertionError indicating the line number when a line&apos;s leading spaces are not a multiple of two.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="161" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="161" bodyend="179"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test YAML validity and structure.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigYAMLValidity</label>
+        <link refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="122" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="122" bodyend="179"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_1a2677eeac89e344f78141c230ae966807" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigYAMLValidity</scope><name>test_config_is_valid_yaml</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_1a789d5832250a4c09d436706419dbd987" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigYAMLValidity</scope><name>test_consistent_indentation</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_1a21af673178bb0327bafb09988827b4a8" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigYAMLValidity</scope><name>test_no_duplicate_keys</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

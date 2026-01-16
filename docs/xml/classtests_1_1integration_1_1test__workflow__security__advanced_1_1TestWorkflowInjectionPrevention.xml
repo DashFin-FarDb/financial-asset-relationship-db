@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowInjectionPrevention" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_security_advanced::TestWorkflowInjectionPrevention</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowInjectionPrevention_1a430d79df66c60eae8762a999eb921b6e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_security_advanced.TestWorkflowInjectionPrevention.test_no_unquoted_github_context_in_run_commands</definition>
+        <argsstring>(all_workflows)</argsstring>
+        <name>test_no_unquoted_github_context_in_run_commands</name>
+        <qualifiedname>tests.integration.test_workflow_security_advanced.TestWorkflowInjectionPrevention.test_no_unquoted_github_context_in_run_commands</qualifiedname>
+        <param>
+          <type>all_workflows</type>
+          <defname>all_workflows</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure GitHub context variables in &apos;run&apos; steps are enclosed in quotes.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" line="20" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" bodystart="20" bodyend="51"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowInjectionPrevention_1abc26d7d31de0a7485462209a0adcc50a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_security_advanced.TestWorkflowInjectionPrevention.test_no_eval_with_user_input</definition>
+        <argsstring>(all_workflows)</argsstring>
+        <name>test_no_eval_with_user_input</name>
+        <qualifiedname>tests.integration.test_workflow_security_advanced.TestWorkflowInjectionPrevention.test_no_eval_with_user_input</qualifiedname>
+        <param>
+          <type>all_workflows</type>
+          <defname>all_workflows</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify workflows don&apos;t use eval with user-controllable input.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" line="53" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" bodystart="53" bodyend="72"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for preventing injection attacks in workflows.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_security_advanced.TestWorkflowInjectionPrevention</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowInjectionPrevention"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" line="16" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" bodystart="16" bodyend="72"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowInjectionPrevention_1abc26d7d31de0a7485462209a0adcc50a" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_security_advanced::TestWorkflowInjectionPrevention</scope><name>test_no_eval_with_user_input</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowInjectionPrevention_1a430d79df66c60eae8762a999eb921b6e" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_security_advanced::TestWorkflowInjectionPrevention</scope><name>test_no_unquoted_github_context_in_run_commands</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

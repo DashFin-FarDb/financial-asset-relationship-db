@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseMetrics" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_sample_data::TestSampleDatabaseMetrics</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseMetrics_1a3652ce345db3acaee26a19015711aebd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseMetrics.test_sample_database_has_sufficient_density</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_has_sufficient_density</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseMetrics.test_sample_database_has_sufficient_density</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database has reasonable relationship density.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="313" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="313" bodyend="322"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseMetrics_1af40d62e5591e52090d08a964431a04b3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseMetrics.test_sample_database_metrics_structure</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_metrics_structure</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseMetrics.test_sample_database_metrics_structure</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that metrics have expected structure.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="324" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="324" bodyend="335"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseMetrics_1a504ae20881b4e9064acade8ff5c83fd3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseMetrics.test_asset_class_distribution_matches_assets</definition>
+        <argsstring>()</argsstring>
+        <name>test_asset_class_distribution_matches_assets</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseMetrics.test_asset_class_distribution_matches_assets</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that asset class distribution matches actual assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="337" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="337" bodyend="353"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for sample database metrics.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_sample_data.TestSampleDatabaseMetrics</label>
+        <link refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseMetrics"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="309" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="309" bodyend="353"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseMetrics_1a504ae20881b4e9064acade8ff5c83fd3" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseMetrics</scope><name>test_asset_class_distribution_matches_assets</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseMetrics_1a3652ce345db3acaee26a19015711aebd" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseMetrics</scope><name>test_sample_database_has_sufficient_density</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseMetrics_1af40d62e5591e52090d08a964431a04b3" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseMetrics</scope><name>test_sample_database_metrics_structure</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="dir_c4847b0870ecd40b9cfc6d71d4528995" kind="dir">
+    <compoundname>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests</compoundname>
+    <innerdir refid="dir_af8d33c2b670b859062a09d48b711fa1">/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration</innerdir>
+    <innerdir refid="dir_b7c6e98c9d578990c88a84a623abf3dc">/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit</innerdir>
+    <innerfile refid="tests_2____init_____8py">__init__.py</innerfile>
+    <innerfile refid="tests_2conftest_8py">conftest.py</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Comprehensive test suite for the Financial Asset Relationship Database Next.js integration.</para>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/README.md_1autotoc_md5571">
+<title>Test Files Created</title><para><orderedlist>
+<listitem><para><bold><ref refid="tests_2unit_2test__api_8py" kindref="compound">tests/unit/test_api.py</ref></bold> - Backend API tests (50+ test cases)</para>
+</listitem><listitem><para><bold><ref refid="test__dev__scripts_8py" kindref="compound">tests/unit/test_dev_scripts.py</ref></bold> - Configuration validation tests</para>
+</listitem><listitem><para><bold><ref refid="test__api__integration_8py" kindref="compound">tests/integration/test_api_integration.py</ref></bold> - Integration tests</para>
+</listitem><listitem><para><bold>frontend/app/lib/<computeroutput>__tests__</computeroutput>/api.test.ts</bold> - Frontend API client tests</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/README.md_1autotoc_md5572">
+<title>Running Tests</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/README.md_1autotoc_md5573">
+<title>Backend (Python)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">pytest<sp/>--cov=api<sp/>--cov=src<sp/>-v</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/README.md_1autotoc_md5574">
+<title>Frontend (TypeScript)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/README.md_1autotoc_md5575">
+<title>Coverage</title><para><itemizedlist>
+<listitem><para>88+ test methods across all new code</para>
+</listitem><listitem><para>All 10 API endpoints tested</para>
+</listitem><listitem><para>CORS, error handling, edge cases covered </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,11 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$classBase.html" title=" " alt="" coords="5,84,60,109"/>
+<area shape="rect" id="Node000001" href="$classdb__models_1_1AssetORM.html" title=" " alt="" coords="149,5,313,31"/>
+<area shape="poly" id="edge2_Node000000_Node000001" title=" " alt="" coords="56,73,80,55,107,40,147,26,149,31,109,44,83,59,60,77"/>
+<area shape="rect" id="Node000002" href="$classdb__models_1_1AssetRelationshipORM.html" title=" " alt="" coords="108,55,353,80"/>
+<area shape="poly" id="edge3_Node000000_Node000002" title=" " alt="" coords="73,88,144,77,145,83,74,93"/>
+<area shape="rect" id="Node000003" href="$classdb__models_1_1RegulatoryEventAssetORM.html" title=" " alt="" coords="128,105,333,145"/>
+<area shape="poly" id="edge4_Node000000_Node000003" title=" " alt="" coords="74,100,128,108,128,113,74,105"/>
+<area shape="rect" id="Node000004" href="$classdb__models_1_1RegulatoryEventORM.html" title=" " alt="" coords="113,169,349,195"/>
+<area shape="poly" id="edge5_Node000000_Node000004" title=" " alt="" coords="58,117,82,137,109,154,144,167,142,172,107,159,78,142,54,121"/>
+</map>

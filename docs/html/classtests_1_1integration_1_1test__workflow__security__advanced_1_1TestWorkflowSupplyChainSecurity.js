@@ -1,0 +1,5 @@
+var classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowSupplyChainSecurity =
+[
+    [ "test_no_insecure_downloads", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowSupplyChainSecurity.html#a7cb06e43d7d77704d1b426843de0d523", null ],
+    [ "test_third_party_actions_pinned_to_commit_sha", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowSupplyChainSecurity.html#a6b5aaf935d8c40aec9443cf27a1c01f8", null ]
+];

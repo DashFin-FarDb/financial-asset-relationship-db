@@ -1,0 +1,212 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classdb__models_1_1RegulatoryEventORM" kind="class" language="Python" prot="public">
+    <compoundname>db_models::RegulatoryEventORM</compoundname>
+    <basecompoundref refid="classBase" prot="public" virt="non-virtual">Base</basecompoundref>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classdb__models_1_1RegulatoryEventORM_1a72d65276f3888033389074ec95529754" prot="private" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str db_models.RegulatoryEventORM::__tablename__</definition>
+        <argsstring></argsstring>
+        <name>__tablename__</name>
+        <qualifiedname>db_models.RegulatoryEventORM.__tablename__</qualifiedname>
+        <initializer>=  &quot;regulatory_events&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="106" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="106" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classdb__models_1_1RegulatoryEventORM_1ae63222de69d03f6e79edbaaff2e58c20" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.RegulatoryEventORM::id</definition>
+        <argsstring></argsstring>
+        <name>id</name>
+        <qualifiedname>db_models.RegulatoryEventORM.id</qualifiedname>
+        <initializer>=  mapped_column(String, primary_key=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="108" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1RegulatoryEventORM_1a3bd9a3c254080c578e3b875c102bd1f7" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.RegulatoryEventORM::asset_id</definition>
+        <argsstring></argsstring>
+        <name>asset_id</name>
+        <qualifiedname>db_models.RegulatoryEventORM.asset_id</qualifiedname>
+        <initializer>=  mapped_column(
+        ForeignKey(&quot;assets.id&quot;, ondelete=&quot;CASCADE&quot;), nullable=False
+    )</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="109" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1RegulatoryEventORM_1a1247c1080716f99aae96d4d2f913df1f" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.RegulatoryEventORM::event_type</definition>
+        <argsstring></argsstring>
+        <name>event_type</name>
+        <qualifiedname>db_models.RegulatoryEventORM.event_type</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="112" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="112" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1RegulatoryEventORM_1aac7d9b8ef5c6fbf59b0a1c7bc6516f3b" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.RegulatoryEventORM::date</definition>
+        <argsstring></argsstring>
+        <name>date</name>
+        <qualifiedname>db_models.RegulatoryEventORM.date</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="113" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1RegulatoryEventORM_1a1a9a3232334de323d309e37a636f941d" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.RegulatoryEventORM::description</definition>
+        <argsstring></argsstring>
+        <name>description</name>
+        <qualifiedname>db_models.RegulatoryEventORM.description</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="114" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1RegulatoryEventORM_1a839cae393f06004d8cfb8e50e157fea3" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.RegulatoryEventORM::impact_score</definition>
+        <argsstring></argsstring>
+        <name>impact_score</name>
+        <qualifiedname>db_models.RegulatoryEventORM.impact_score</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="115" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="115" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1RegulatoryEventORM_1a12dcafd0ff0c8c0a79c2a74c743d5ed2" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.RegulatoryEventORM::asset</definition>
+        <argsstring></argsstring>
+        <name>asset</name>
+        <qualifiedname>db_models.RegulatoryEventORM.asset</qualifiedname>
+        <initializer>=  relationship(
+        &quot;AssetORM&quot;, back_populates=&quot;regulatory_events&quot;
+    )</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="117" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1RegulatoryEventORM_1a158f42945e1854443b5ab4ed4ddb2488" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.RegulatoryEventORM::related_assets</definition>
+        <argsstring></argsstring>
+        <name>related_assets</name>
+        <qualifiedname>db_models.RegulatoryEventORM.related_assets</qualifiedname>
+        <initializer>=  relationship(
+        &quot;RegulatoryEventAssetORM&quot;, back_populates=&quot;event&quot;, cascade=&quot;all, delete-orphan&quot;
+    )</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="120" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="120" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Persistent regulatory event.</verbatim> </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>Base</label>
+        <link refid="classBase"/>
+      </node>
+      <node id="1">
+        <label>db_models.RegulatoryEventORM</label>
+        <link refid="classdb__models_1_1RegulatoryEventORM"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>Base</label>
+        <link refid="classBase"/>
+      </node>
+      <node id="4">
+        <label>Mapped</label>
+      </node>
+      <node id="1">
+        <label>db_models.RegulatoryEventORM</label>
+        <link refid="classdb__models_1_1RegulatoryEventORM"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>-__tablename__</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>+asset</edgelabel>
+          <edgelabel>+asset_id</edgelabel>
+          <edgelabel>+date</edgelabel>
+          <edgelabel>+description</edgelabel>
+          <edgelabel>+event_type</edgelabel>
+          <edgelabel>+id</edgelabel>
+          <edgelabel>+impact_score</edgelabel>
+          <edgelabel>+related_assets</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>str</label>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="103" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="103" bodyend="124"/>
+    <listofallmembers>
+      <member refid="classdb__models_1_1RegulatoryEventORM_1a72d65276f3888033389074ec95529754" prot="private" virt="non-virtual"><scope>db_models::RegulatoryEventORM</scope><name>__tablename__</name></member>
+      <member refid="classdb__models_1_1RegulatoryEventORM_1a12dcafd0ff0c8c0a79c2a74c743d5ed2" prot="public" virt="non-virtual"><scope>db_models::RegulatoryEventORM</scope><name>asset</name></member>
+      <member refid="classdb__models_1_1RegulatoryEventORM_1a3bd9a3c254080c578e3b875c102bd1f7" prot="public" virt="non-virtual"><scope>db_models::RegulatoryEventORM</scope><name>asset_id</name></member>
+      <member refid="classdb__models_1_1RegulatoryEventORM_1aac7d9b8ef5c6fbf59b0a1c7bc6516f3b" prot="public" virt="non-virtual"><scope>db_models::RegulatoryEventORM</scope><name>date</name></member>
+      <member refid="classdb__models_1_1RegulatoryEventORM_1a1a9a3232334de323d309e37a636f941d" prot="public" virt="non-virtual"><scope>db_models::RegulatoryEventORM</scope><name>description</name></member>
+      <member refid="classdb__models_1_1RegulatoryEventORM_1a1247c1080716f99aae96d4d2f913df1f" prot="public" virt="non-virtual"><scope>db_models::RegulatoryEventORM</scope><name>event_type</name></member>
+      <member refid="classdb__models_1_1RegulatoryEventORM_1ae63222de69d03f6e79edbaaff2e58c20" prot="public" virt="non-virtual"><scope>db_models::RegulatoryEventORM</scope><name>id</name></member>
+      <member refid="classdb__models_1_1RegulatoryEventORM_1a839cae393f06004d8cfb8e50e157fea3" prot="public" virt="non-virtual"><scope>db_models::RegulatoryEventORM</scope><name>impact_score</name></member>
+      <member refid="classdb__models_1_1RegulatoryEventORM_1a158f42945e1854443b5ab4ed4ddb2488" prot="public" virt="non-virtual"><scope>db_models::RegulatoryEventORM</scope><name>related_assets</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

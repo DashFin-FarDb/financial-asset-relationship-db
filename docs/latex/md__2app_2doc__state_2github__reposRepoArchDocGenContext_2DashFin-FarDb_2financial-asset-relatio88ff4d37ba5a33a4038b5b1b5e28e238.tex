@@ -1,0 +1,211 @@
+\chapter{Complete Test Quick Reference}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238}\index{Complete Test Quick Reference@{Complete Test Quick Reference}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md507}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md507}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md508}{}\doxysection{\texorpdfstring{All Tests in Current Branch}{All Tests in Current Branch}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md508}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md509}{}\doxysubsection{\texorpdfstring{Python Integration Tests (tests/integration/)}{Python Integration Tests (tests/integration/)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md509}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ ALL\ integration\ tests}
+\DoxyCodeLine{pytest\ tests/integration/\ -\/v}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ With\ coverage\ report}
+\DoxyCodeLine{pytest\ tests/integration/\ -\/-\/cov\ -\/-\/cov-\/report=html}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ specific\ test\ file}
+\DoxyCodeLine{pytest\ tests/integration/test\_documentation\_files\_validation.py\ -\/v}
+\DoxyCodeLine{pytest\ tests/integration/test\_modified\_config\_files\_validation.py\ -\/v}
+\DoxyCodeLine{pytest\ tests/integration/test\_github\_workflows.py\ -\/v}
+\DoxyCodeLine{pytest\ tests/integration/test\_pr\_agent\_config\_validation.py\ -\/v}
+\DoxyCodeLine{pytest\ tests/integration/test\_branch\_integration.py\ -\/v}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ specific\ test\ class}
+\DoxyCodeLine{pytest\ tests/integration/test\_documentation\_files\_validation.py::TestDocumentationFilesValidation\ -\/v}
+\DoxyCodeLine{pytest\ tests/integration/test\_modified\_config\_files\_validation.py::TestPRAgentConfigChanges\ -\/v}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ tests\ matching\ pattern}
+\DoxyCodeLine{pytest\ -\/k\ "{}validation"{}\ tests/integration/\ -\/v}
+\DoxyCodeLine{pytest\ -\/k\ "{}config"{}\ tests/integration/\ -\/v}
+\DoxyCodeLine{pytest\ -\/k\ "{}documentation"{}\ tests/integration/\ -\/v}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md510}{}\doxysubsection{\texorpdfstring{Frontend Tests (frontend/\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}tests\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}/)}{Frontend Tests (frontend/\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}tests\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}/)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md510}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ ALL\ frontend\ tests}
+\DoxyCodeLine{npm\ test}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ with\ coverage}
+\DoxyCodeLine{npm\ test\ -\/-\/\ -\/-\/coverage}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ specific\ test\ file}
+\DoxyCodeLine{npm\ test\ -\/-\/\ app/page.test.tsx}
+\DoxyCodeLine{npm\ test\ -\/-\/\ components/NetworkVisualization.test.tsx}
+\DoxyCodeLine{npm\ test\ -\/-\/\ lib/api.test.ts}
+\DoxyCodeLine{npm\ test\ -\/-\/\ test-\/utils.test.ts}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Watch\ mode\ for\ development}
+\DoxyCodeLine{npm\ test\ -\/-\/\ -\/-\/watch}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Update\ snapshots\ if\ needed}
+\DoxyCodeLine{npm\ test\ -\/-\/\ -\/-\/updateSnapshot}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md511}{}\doxysubsection{\texorpdfstring{Quick Validation Commands}{Quick Validation Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md511}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Validate\ ALL\ Python\ code\ (linting\ +\ tests)}
+\DoxyCodeLine{pytest\ tests/\ -\/-\/cov\ \&\&\ \(\backslash\)}
+\DoxyCodeLine{python\ -\/m\ flake8\ src/\ api/\ tests/\ \&\&\ \(\backslash\)}
+\DoxyCodeLine{python\ -\/m\ black\ -\/-\/check\ src/\ api/\ tests/}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Validate\ ALL\ Frontend\ code\ (linting\ +\ tests\ +\ type\ check)}
+\DoxyCodeLine{cd\ frontend\ \&\&\ \(\backslash\)}
+\DoxyCodeLine{npm\ run\ lint\ \&\&\ \(\backslash\)}
+\DoxyCodeLine{npm\ run\ type-\/check\ \&\&\ \(\backslash\)}
+\DoxyCodeLine{npm\ test\ -\/-\/\ -\/-\/coverage}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Full\ project\ validation\ (Python\ +\ Frontend)}
+\DoxyCodeLine{pytest\ tests/\ -\/-\/cov\ \&\&\ cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ -\/-\/coverage}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md512}{}\doxysection{\texorpdfstring{Test Coverage by Category}{Test Coverage by Category}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md512}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md513}{}\doxysubsection{\texorpdfstring{Documentation Tests (15 tests)}{Documentation Tests (15 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md513}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pytest\ tests/integration/test\_documentation\_files\_validation.py\ -\/v}
+
+\end{DoxyCode}
+
+
+Validates\+:
+
+
+\begin{DoxyItemize}
+\item Markdown file structure
+\item Code block formatting
+\item Table consistency
+\item Link validity
+\item Content quality
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md514}{}\doxysubsection{\texorpdfstring{Configuration Tests (26 tests)}{Configuration Tests (26 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md514}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pytest\ tests/integration/test\_modified\_config\_files\_validation.py\ -\/v}
+
+\end{DoxyCode}
+
+
+Validates\+:
+
+
+\begin{DoxyItemize}
+\item PR Agent config changes
+\item Workflow simplifications
+\item Deleted files impact
+\item Requirements updates
+\item .gitignore changes
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md515}{}\doxysubsection{\texorpdfstring{Workflow Tests (50+ tests)}{Workflow Tests (50+ tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md515}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pytest\ tests/integration/test\_github\_workflows.py\ -\/v}
+
+\end{DoxyCode}
+
+
+Validates\+:
+
+
+\begin{DoxyItemize}
+\item All Git\+Hub Actions workflows
+\item YAML syntax and structure
+\item Security best practices
+\item Action versions
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md516}{}\doxysubsection{\texorpdfstring{Integration Tests (16 tests)}{Integration Tests (16 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md516}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pytest\ tests/integration/test\_branch\_integration.py\ -\/v}
+
+\end{DoxyCode}
+
+
+Validates\+:
+
+
+\begin{DoxyItemize}
+\item Cross-\/workflow consistency
+\item Dependency-\/workflow integration
+\item Branch coherence
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md517}{}\doxysubsection{\texorpdfstring{Frontend Component Tests (100+ tests)}{Frontend Component Tests (100+ tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md517}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test}
+
+\end{DoxyCode}
+
+
+Validates\+:
+
+
+\begin{DoxyItemize}
+\item React components
+\item API client
+\item Test utilities
+\item Integration scenarios
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md518}{}\doxysection{\texorpdfstring{CI/\+CD Commands}{CI/\+CD Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md518}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md519}{}\doxysubsection{\texorpdfstring{Git\+Hub Actions (Automated)}{Git\+Hub Actions (Automated)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md519}
+These run automatically on push/\+PR\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/\ pytest\ tests/\ -\/v\ -\/-\/cov}
+\DoxyCodeLine{-\/\ cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ -\/-\/coverage}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md520}{}\doxysubsection{\texorpdfstring{Pre-\/commit Validation}{Pre-\/commit Validation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md520}
+Before committing\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Python}
+\DoxyCodeLine{python\ -\/m\ pytest\ tests/\ -\/-\/cov}
+\DoxyCodeLine{python\ -\/m\ flake8\ src/\ api/\ tests/}
+\DoxyCodeLine{python\ -\/m\ black\ src/\ api/\ tests/}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Frontend}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{npm\ run\ lint}
+\DoxyCodeLine{npm\ run\ type-\/check}
+\DoxyCodeLine{npm\ test\ -\/-\/\ -\/-\/coverage}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md521}{}\doxysection{\texorpdfstring{Useful Test Flags}{Useful Test Flags}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md521}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md522}{}\doxysubsection{\texorpdfstring{pytest flags}{pytest flags}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md522}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/v\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Verbose\ output}
+\DoxyCodeLine{-\/-\/cov\ \ \ \ \ \ \ \ \ \ \ \#\ Coverage\ report}
+\DoxyCodeLine{-\/-\/cov-\/report=html\ \ \#\ HTML\ coverage\ report}
+\DoxyCodeLine{-\/k\ PATTERN\ \ \ \ \ \ \#\ Run\ tests\ matching\ pattern}
+\DoxyCodeLine{-\/m\ MARKER\ \ \ \ \ \ \ \#\ Run\ tests\ with\ marker}
+\DoxyCodeLine{-\/x\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Stop\ on\ first\ failure}
+\DoxyCodeLine{-\/-\/maxfail=N\ \ \ \ \ \#\ Stop\ after\ N\ failures}
+\DoxyCodeLine{-\/-\/tb=short\ \ \ \ \ \ \#\ Short\ traceback\ format}
+\DoxyCodeLine{-\/-\/collect-\/only\ \ \#\ Show\ tests\ without\ running}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md523}{}\doxysubsection{\texorpdfstring{Jest/npm test flags}{Jest/npm test flags}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md523}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/-\/coverage\ \ \ \ \ \ \#\ Coverage\ report}
+\DoxyCodeLine{-\/-\/watch\ \ \ \ \ \ \ \ \ \#\ Watch\ mode}
+\DoxyCodeLine{-\/-\/watchAll\ \ \ \ \ \ \#\ Watch\ all\ files}
+\DoxyCodeLine{-\/-\/verbose\ \ \ \ \ \ \ \#\ Verbose\ output}
+\DoxyCodeLine{-\/-\/silent\ \ \ \ \ \ \ \ \#\ Suppress\ output}
+\DoxyCodeLine{-\/-\/updateSnapshot\ \ \#\ Update\ snapshots}
+\DoxyCodeLine{-\/-\/testNamePattern\ \ \#\ Run\ tests\ matching\ pattern}
+\DoxyCodeLine{-\/-\/onlyChanged\ \ \ \#\ Only\ test\ changed\ files}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md524}{}\doxysection{\texorpdfstring{Test File Locations}{Test File Locations}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_autotoc_md524}

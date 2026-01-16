@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__documentation__validation_1_1TestEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_documentation_validation::TestEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestEdgeCases_1a63122d7af71c086b31be0f63349a9a85" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestEdgeCases.test_handles_special_characters</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_handles_special_characters</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestEdgeCases.test_handles_special_characters</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document handles special characters properly.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="330" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="330" bodyend="336"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestEdgeCases_1a2b19f369e8d3dd75ea43013e078c21db" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestEdgeCases.test_utf8_encoding</definition>
+        <argsstring>()</argsstring>
+        <name>test_utf8_encoding</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestEdgeCases.test_utf8_encoding</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file is properly UTF-8 encoded.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="338" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="338" bodyend="345"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestEdgeCases_1a1efcfa72d40a8c34913a12ca7af8581d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestEdgeCases.test_consistent_line_endings</definition>
+        <argsstring>()</argsstring>
+        <name>test_consistent_line_endings</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestEdgeCases.test_consistent_line_endings</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file uses consistent line endings.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="347" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="347" bodyend="357"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for edge cases.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_documentation_validation.TestEdgeCases</label>
+        <link refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="326" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="326" bodyend="357"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestEdgeCases_1a1efcfa72d40a8c34913a12ca7af8581d" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestEdgeCases</scope><name>test_consistent_line_endings</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestEdgeCases_1a63122d7af71c086b31be0f63349a9a85" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestEdgeCases</scope><name>test_handles_special_characters</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestEdgeCases_1a2b19f369e8d3dd75ea43013e078c21db" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestEdgeCases</scope><name>test_utf8_encoding</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

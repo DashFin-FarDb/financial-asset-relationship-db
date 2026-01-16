@@ -1,0 +1,192 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a48d64ac903f416416d01393be6b8a03f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_does_nothing_when_cov_plugin_available</definition>
+        <argsstring>()</argsstring>
+        <name>test_does_nothing_when_cov_plugin_available</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_does_nothing_when_cov_plugin_available</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that no filtering occurs when pytest-cov is available.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="58" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="58" bodyend="70"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a3362897d8d01b7dde74eb739339d36d4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_flag_with_value</definition>
+        <argsstring>()</argsstring>
+        <name>test_removes_cov_flag_with_value</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_flag_with_value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that --cov with separate value is removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="72" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="72" bodyend="83"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a6c38ba0736c1591881c980aa9c1662ea" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_report_flag_with_value</definition>
+        <argsstring>()</argsstring>
+        <name>test_removes_cov_report_flag_with_value</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_report_flag_with_value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that --cov-report with separate value is removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="85" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="85" bodyend="96"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a2ebe1f60aa7c2202c6318400c2d98538" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_flag_with_equals_syntax</definition>
+        <argsstring>()</argsstring>
+        <name>test_removes_cov_flag_with_equals_syntax</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_flag_with_equals_syntax</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that --cov=value is removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="98" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="98" bodyend="108"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a71de15d3113281e24c0cb3c013270bd3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_report_flag_with_equals_syntax</definition>
+        <argsstring>()</argsstring>
+        <name>test_removes_cov_report_flag_with_equals_syntax</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_report_flag_with_equals_syntax</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that --cov-report=type is removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="110" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="110" bodyend="120"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a3b81785cc186963377ae286b8281e7e1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_multiple_coverage_flags</definition>
+        <argsstring>()</argsstring>
+        <name>test_removes_multiple_coverage_flags</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_multiple_coverage_flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that multiple coverage flags are all removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="122" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="122" bodyend="142"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1ad74bcea2c2ad70645a6ebf0f2c318d7d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_preserves_other_flags</definition>
+        <argsstring>()</argsstring>
+        <name>test_preserves_other_flags</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_preserves_other_flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that non-coverage flags are preserved.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="144" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="144" bodyend="156"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a8f111009e8b2e0fe37b5f45ae5bb403a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_handles_empty_args_list</definition>
+        <argsstring>()</argsstring>
+        <name>test_handles_empty_args_list</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_handles_empty_args_list</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that empty args list is handled correctly.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="158" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="158" bodyend="168"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a0c145922f69b91a3fb6f17d933728880" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_handles_args_with_only_coverage_flags</definition>
+        <argsstring>()</argsstring>
+        <name>test_handles_args_with_only_coverage_flags</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_handles_args_with_only_coverage_flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that args with only coverage flags become empty.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="170" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="170" bodyend="180"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a99cf3217e502f06af8f96ed9ca3fe128" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_modifies_args_in_place</definition>
+        <argsstring>()</argsstring>
+        <name>test_modifies_args_in_place</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_modifies_args_in_place</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the function modifies the args list in place.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="182" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="182" bodyend="196"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for pytest_load_initial_conftests hook.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_root_conftest.TestPytestLoadInitialConftests</label>
+        <link refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="54" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="54" bodyend="196"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a48d64ac903f416416d01393be6b8a03f" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_does_nothing_when_cov_plugin_available</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a0c145922f69b91a3fb6f17d933728880" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_handles_args_with_only_coverage_flags</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a8f111009e8b2e0fe37b5f45ae5bb403a" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_handles_empty_args_list</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a99cf3217e502f06af8f96ed9ca3fe128" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_modifies_args_in_place</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1ad74bcea2c2ad70645a6ebf0f2c318d7d" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_preserves_other_flags</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a2ebe1f60aa7c2202c6318400c2d98538" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_removes_cov_flag_with_equals_syntax</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a3362897d8d01b7dde74eb739339d36d4" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_removes_cov_flag_with_value</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a71de15d3113281e24c0cb3c013270bd3" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_removes_cov_report_flag_with_equals_syntax</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a6c38ba0736c1591881c980aa9c1662ea" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_removes_cov_report_flag_with_value</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a3b81785cc186963377ae286b8281e7e1" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestPytestLoadInitialConftests</scope><name>test_removes_multiple_coverage_flags</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

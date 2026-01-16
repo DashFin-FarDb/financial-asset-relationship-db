@@ -1,0 +1,103 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_graph_visuals::DummyGraph</compoundname>
+    <basecompoundref refid="classAssetRelationshipGraph" prot="public" virt="non-virtual">AssetRelationshipGraph</basecompoundref>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph_1a2faaed0772a6a4900df573465da2d330" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>tests.unit.test_graph_visuals.DummyGraph::relationships</definition>
+        <argsstring></argsstring>
+        <name>relationships</name>
+        <qualifiedname>tests.unit.test_graph_visuals.DummyGraph.relationships</qualifiedname>
+        <initializer>=  relationships</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_visuals.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_visuals.py" bodystart="18" bodyend="-1"/>
+        <referencedby refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph_1a25af08f29d3eb1cd89e97ddf65b5d908" compoundref="test__graph__visuals_8py" startline="20" endline="29">tests.unit.test_graph_visuals.DummyGraph.get_3d_visualization_data_enhanced</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph_1aaca7dcb53f1935e2b5aacaf629c3e4d7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_visuals.DummyGraph.__init__</definition>
+        <argsstring>(self, relationships)</argsstring>
+        <name>__init__</name>
+        <qualifiedname>tests.unit.test_graph_visuals.DummyGraph.__init__</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph_1a2faaed0772a6a4900df573465da2d330" kindref="member">relationships</ref></type>
+          <defname>relationships</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_visuals.py" line="16" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_visuals.py" bodystart="16" bodyend="19"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph_1a25af08f29d3eb1cd89e97ddf65b5d908" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_visuals.DummyGraph.get_3d_visualization_data_enhanced</definition>
+        <argsstring>(self)</argsstring>
+        <name>get_3d_visualization_data_enhanced</name>
+        <qualifiedname>tests.unit.test_graph_visuals.DummyGraph.get_3d_visualization_data_enhanced</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_visuals.py" line="20" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_visuals.py" bodystart="20" bodyend="29"/>
+        <references refid="classasset__graph_1_1AssetRelationshipGraph_1a971621902401e635c323426965f3cd39" compoundref="asset__graph_8py" startline="24">asset_graph.AssetRelationshipGraph.relationships</references>
+        <references refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph_1a2faaed0772a6a4900df573465da2d330" compoundref="test__graph__visuals_8py" startline="18">tests.unit.test_graph_visuals.DummyGraph.relationships</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>AssetRelationshipGraph</label>
+        <link refid="classAssetRelationshipGraph"/>
+      </node>
+      <node id="1">
+        <label>tests.unit.test_graph_visuals.DummyGraph</label>
+        <link refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>AssetRelationshipGraph</label>
+        <link refid="classAssetRelationshipGraph"/>
+      </node>
+      <node id="1">
+        <label>tests.unit.test_graph_visuals.DummyGraph</label>
+        <link refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_visuals.py" line="15" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_visuals.py" bodystart="15" bodyend="29"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph_1aaca7dcb53f1935e2b5aacaf629c3e4d7" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_visuals::DummyGraph</scope><name>__init__</name></member>
+      <member refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph_1a25af08f29d3eb1cd89e97ddf65b5d908" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_visuals::DummyGraph</scope><name>get_3d_visualization_data_enhanced</name></member>
+      <member refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph_1a2faaed0772a6a4900df573465da2d330" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_visuals::DummyGraph</scope><name>relationships</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

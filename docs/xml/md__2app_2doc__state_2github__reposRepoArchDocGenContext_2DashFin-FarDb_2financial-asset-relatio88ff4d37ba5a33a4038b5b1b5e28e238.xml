@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2COMPLETE__TEST__QUICK__REFERENCE</compoundname>
+    <title>Complete Test Quick Reference</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md507"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md508">
+<title>All Tests in Current Branch</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md509">
+<title>Python Integration Tests (tests/integration/)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>ALL<sp/>integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>With<sp/>coverage<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/<sp/>--cov<sp/>--cov-report=html</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_documentation_files_validation.py<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_modified_config_files_validation.py<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_pr_agent_config_validation.py<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_branch_integration.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>class</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_documentation_files_validation.py::TestDocumentationFilesValidation<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_modified_config_files_validation.py::TestPRAgentConfigChanges<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests<sp/>matching<sp/>pattern</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-k<sp/>&quot;validation&quot;<sp/>tests/integration/<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-k<sp/>&quot;config&quot;<sp/>tests/integration/<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-k<sp/>&quot;documentation&quot;<sp/>tests/integration/<sp/>-v</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md510">
+<title>Frontend Tests (frontend/**tests**/)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>ALL<sp/>frontend<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>app/page.test.tsx</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>components/NetworkVisualization.test.tsx</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>lib/api.test.ts</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>test-utils.test.ts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Watch<sp/>mode<sp/>for<sp/>development</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>--watch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Update<sp/>snapshots<sp/>if<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>--updateSnapshot</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md511">
+<title>Quick Validation Commands</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Validate<sp/>ALL<sp/>Python<sp/>code<sp/>(linting<sp/>+<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/<sp/>--cov<sp/>&amp;&amp;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>flake8<sp/>src/<sp/>api/<sp/>tests/<sp/>&amp;&amp;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>black<sp/>--check<sp/>src/<sp/>api/<sp/>tests/</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Validate<sp/>ALL<sp/>Frontend<sp/>code<sp/>(linting<sp/>+<sp/>tests<sp/>+<sp/>type<sp/>check)</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>lint<sp/>&amp;&amp;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>type-check<sp/>&amp;&amp;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Full<sp/>project<sp/>validation<sp/>(Python<sp/>+<sp/>Frontend)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/<sp/>--cov<sp/>&amp;&amp;<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md512">
+<title>Test Coverage by Category</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md513">
+<title>Documentation Tests (15 tests)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">pytest<sp/>tests/integration/test_documentation_files_validation.py<sp/>-v</highlight></codeline>
+</programlisting></para>
+<para>Validates:</para>
+<para><itemizedlist>
+<listitem><para>Markdown file structure</para>
+</listitem><listitem><para>Code block formatting</para>
+</listitem><listitem><para>Table consistency</para>
+</listitem><listitem><para>Link validity</para>
+</listitem><listitem><para>Content quality</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md514">
+<title>Configuration Tests (26 tests)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">pytest<sp/>tests/integration/test_modified_config_files_validation.py<sp/>-v</highlight></codeline>
+</programlisting></para>
+<para>Validates:</para>
+<para><itemizedlist>
+<listitem><para>PR Agent config changes</para>
+</listitem><listitem><para>Workflow simplifications</para>
+</listitem><listitem><para>Deleted files impact</para>
+</listitem><listitem><para>Requirements updates</para>
+</listitem><listitem><para>.gitignore changes</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md515">
+<title>Workflow Tests (50+ tests)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py<sp/>-v</highlight></codeline>
+</programlisting></para>
+<para>Validates:</para>
+<para><itemizedlist>
+<listitem><para>All GitHub Actions workflows</para>
+</listitem><listitem><para>YAML syntax and structure</para>
+</listitem><listitem><para>Security best practices</para>
+</listitem><listitem><para>Action versions</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md516">
+<title>Integration Tests (16 tests)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">pytest<sp/>tests/integration/test_branch_integration.py<sp/>-v</highlight></codeline>
+</programlisting></para>
+<para>Validates:</para>
+<para><itemizedlist>
+<listitem><para>Cross-workflow consistency</para>
+</listitem><listitem><para>Dependency-workflow integration</para>
+</listitem><listitem><para>Branch coherence</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md517">
+<title>Frontend Component Tests (100+ tests)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test</highlight></codeline>
+</programlisting></para>
+<para>Validates:</para>
+<para><itemizedlist>
+<listitem><para>React components</para>
+</listitem><listitem><para>API client</para>
+</listitem><listitem><para>Test utilities</para>
+</listitem><listitem><para>Integration scenarios</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md518">
+<title>CI/CD Commands</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md519">
+<title>GitHub Actions (Automated)</title><para>These run automatically on push/PR:</para>
+<para><programlisting filename=".yaml"><codeline><highlight class="normal">-<sp/>pytest<sp/>tests/<sp/>-v<sp/>--cov</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md520">
+<title>Pre-commit Validation</title><para>Before committing:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Python</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>pytest<sp/>tests/<sp/>--cov</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>flake8<sp/>src/<sp/>api/<sp/>tests/</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>black<sp/>src/<sp/>api/<sp/>tests/</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Frontend</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>lint</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>type-check</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md521">
+<title>Useful Test Flags</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md522">
+<title>pytest flags</title><para><programlisting filename=".bash"><codeline><highlight class="normal">-v<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">--cov<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Coverage<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">--cov-report=html<sp/><sp/>#<sp/>HTML<sp/>coverage<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">-k<sp/>PATTERN<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Run<sp/>tests<sp/>matching<sp/>pattern</highlight></codeline>
+<codeline><highlight class="normal">-m<sp/>MARKER<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Run<sp/>tests<sp/>with<sp/>marker</highlight></codeline>
+<codeline><highlight class="normal">-x<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Stop<sp/>on<sp/>first<sp/>failure</highlight></codeline>
+<codeline><highlight class="normal">--maxfail=N<sp/><sp/><sp/><sp/><sp/>#<sp/>Stop<sp/>after<sp/>N<sp/>failures</highlight></codeline>
+<codeline><highlight class="normal">--tb=short<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Short<sp/>traceback<sp/>format</highlight></codeline>
+<codeline><highlight class="normal">--collect-only<sp/><sp/>#<sp/>Show<sp/>tests<sp/>without<sp/>running</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md523">
+<title>Jest/npm test flags</title><para><programlisting filename=".bash"><codeline><highlight class="normal">--coverage<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Coverage<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">--watch<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Watch<sp/>mode</highlight></codeline>
+<codeline><highlight class="normal">--watchAll<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Watch<sp/>all<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">--verbose<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">--silent<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Suppress<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">--updateSnapshot<sp/><sp/>#<sp/>Update<sp/>snapshots</highlight></codeline>
+<codeline><highlight class="normal">--testNamePattern<sp/><sp/>#<sp/>Run<sp/>tests<sp/>matching<sp/>pattern</highlight></codeline>
+<codeline><highlight class="normal">--onlyChanged<sp/><sp/><sp/>#<sp/>Only<sp/>test<sp/>changed<sp/>files</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238_1autotoc_md524">
+<title>Test File Locations</title></sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/COMPLETE_TEST_QUICK_REFERENCE.md"/>
+  </compounddef>
+</doxygen>

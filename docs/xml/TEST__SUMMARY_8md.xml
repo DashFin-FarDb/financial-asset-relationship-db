@@ -1,0 +1,157 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="TEST__SUMMARY_8md" kind="file" language="Markdown">
+    <compoundname>TEST_SUMMARY.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Unit<sp/>Test<sp/>Generation<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>summarizes<sp/>the<sp/>comprehensive<sp/>unit<sp/>tests<sp/>generated<sp/>for<sp/>the<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database<sp/>Next.js<sp/>integration.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Generated<sp/>comprehensive<sp/>test<sp/>coverage<sp/>for<sp/>the<sp/>new<sp/>FastAPI<sp/>backend<sp/>(`api/main.py`)<sp/>and<sp/>frontend<sp/>TypeScript<sp/>code<sp/>added<sp/>in<sp/>this<sp/>branch.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Files<sp/>Generated</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Python<sp/>Backend<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>`tests/unit/test_api_main.py`<sp/>(609<sp/>lines,<sp/>22KB)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**9<sp/>Test<sp/>Classes**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**43<sp/>Test<sp/>Methods**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Coverage<sp/>Areas:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**TestValidateOrigin**<sp/>(8<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>HTTP<sp/>localhost<sp/>validation<sp/>in<sp/>development/production</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>HTTPS<sp/>localhost<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Vercel<sp/>deployment<sp/>URL<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Valid/invalid<sp/>HTTPS<sp/>domain<sp/>patterns</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Invalid<sp/>URL<sp/>schemes</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Malformed<sp/>URLs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**TestGetGraph**<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Graph<sp/>initialization<sp/>on<sp/>first<sp/>call</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Singleton<sp/>pattern<sp/>verification</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Thread-safe<sp/>double-check<sp/>locking</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**TestPydanticModels**<sp/>(5<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>AssetResponse<sp/>model<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Optional<sp/>fields<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>RelationshipResponse<sp/>model</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>MetricsResponse<sp/>model</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>VisualizationDataResponse<sp/>model</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**TestAPIEndpoints**<sp/>(15<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Root<sp/>endpoint</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Health<sp/>check<sp/>endpoint</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Get<sp/>all<sp/>assets<sp/>(with/without<sp/>filters)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Filter<sp/>by<sp/>asset<sp/>class</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Filter<sp/>by<sp/>sector</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Combined<sp/>filters</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Asset<sp/>detail<sp/>retrieval</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Asset<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>All<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Network<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>3D<sp/>visualization<sp/>data</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Asset<sp/>classes<sp/>metadata</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Sectors<sp/>metadata</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">5.<sp/>**TestErrorHandling**<sp/>(5<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Server<sp/>error<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Metrics<sp/>calculation<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Invalid<sp/>HTTP<sp/>methods<sp/>(405)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>404<sp/>responses</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">6.<sp/>**TestCORSConfiguration**<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>CORS<sp/>headers<sp/>present</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Development<sp/>origins<sp/>allowed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">7.<sp/>**TestAdditionalFields**<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Equity-specific<sp/>fields</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Bond-specific<sp/>fields</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">8.<sp/>**TestVisualizationDataProcessing**<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Coordinate<sp/>type<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Node<sp/>default<sp/>values</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Edge<sp/>default<sp/>values</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">9.<sp/>**TestIntegrationScenarios**<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Full<sp/>asset<sp/>exploration<sp/>workflow</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Visualization<sp/>and<sp/>metrics<sp/>workflow</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Progressive<sp/>filter<sp/>refinement</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>TypeScript<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>`frontend/app/lib/__tests__/api.test.ts`<sp/>(8KB)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**12<sp/>Test<sp/>Suites**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**18<sp/>Test<sp/>Cases**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Coverage<sp/>Areas:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**API<sp/>Configuration**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Axios<sp/>instance<sp/>creation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Base<sp/>URL<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Environment<sp/>variable<sp/>usage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Health<sp/>Check**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Successful<sp/>health<sp/>check</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Error<sp/>handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Asset<sp/>Retrieval**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Fetch<sp/>all<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Filter<sp/>by<sp/>asset<sp/>class</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Filter<sp/>by<sp/>sector</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Multiple<sp/>filters</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Asset<sp/>detail<sp/>by<sp/>ID</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>404<sp/>handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Relationships**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Asset<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>All<sp/>relationships</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">5.<sp/>**Metrics<sp/>&amp;<sp/>Visualization**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Network<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Visualization<sp/>data</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">6.<sp/>**Metadata**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Asset<sp/>classes</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Sectors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">7.<sp/>**Error<sp/>Handling**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Network<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>HTTP<sp/>errors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Infrastructure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>`frontend/jest.config.js`<sp/>(826<sp/>bytes)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Next.js-aware<sp/>Jest<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>jsdom<sp/>test<sp/>environment</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Module<sp/>name<sp/>mapping</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Coverage<sp/>collection<sp/>settings</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>`frontend/jest.setup.js`<sp/>(657<sp/>bytes)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Testing<sp/>Library<sp/>jest-dom<sp/>setup</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>window.matchMedia<sp/>mock</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>IntersectionObserver<sp/>mock</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>`TESTING.md`<sp/>(1.3KB)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Quick<sp/>start<sp/>guide</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Test<sp/>execution<sp/>commands</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Coverage<sp/>areas<sp/>summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Updated<sp/>Configuration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>`requirements.txt`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Added<sp/>testing<sp/>dependencies:</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TEST_SUMMARY.md"/>
+  </compounddef>
+</doxygen>

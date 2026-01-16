@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__schema__report_1_1TestMultipleGenerations" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_schema_report::TestMultipleGenerations</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestMultipleGenerations_1a2a5c2f07f3b8ffcd3dfd19ffb81f9194" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestMultipleGenerations.test_consistent_output_for_same_graph</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_consistent_output_for_same_graph</name>
+        <qualifiedname>tests.unit.test_schema_report.TestMultipleGenerations.test_consistent_output_for_same_graph</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that multiple generations produce consistent output.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="441" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="441" bodyend="447"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestMultipleGenerations_1a5ede0e7aca4fad07302391260db7f1d5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestMultipleGenerations.test_different_output_for_modified_graph</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_different_output_for_modified_graph</name>
+        <qualifiedname>tests.unit.test_schema_report.TestMultipleGenerations.test_different_output_for_modified_graph</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that output changes when graph is modified.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="449" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="449" bodyend="460"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for multiple report generations.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_schema_report.TestMultipleGenerations</label>
+        <link refid="classtests_1_1unit_1_1test__schema__report_1_1TestMultipleGenerations"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="437" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="437" bodyend="460"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestMultipleGenerations_1a2a5c2f07f3b8ffcd3dfd19ffb81f9194" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestMultipleGenerations</scope><name>test_consistent_output_for_same_graph</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestMultipleGenerations_1a5ede0e7aca4fad07302391260db7f1d5" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestMultipleGenerations</scope><name>test_different_output_for_modified_graph</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

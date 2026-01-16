@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_yaml_config_validation::TestYAMLSyntaxAndStructure</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_1a689a4abed1c6d20d76093c50e0a1baef" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_yaml_config_validation.TestYAMLSyntaxAndStructure.test_all_yaml_files_parse_successfully</definition>
+        <argsstring>()</argsstring>
+        <name>test_all_yaml_files_parse_successfully</name>
+        <qualifiedname>tests.integration.test_yaml_config_validation.TestYAMLSyntaxAndStructure.test_all_yaml_files_parse_successfully</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify all YAML files have valid syntax.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" line="24" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" bodystart="24" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_1ad3351bf67fb72132cd877e9ad1d2d84f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_yaml_config_validation.TestYAMLSyntaxAndStructure.test_yaml_files_use_consistent_indentation</definition>
+        <argsstring>()</argsstring>
+        <name>test_yaml_files_use_consistent_indentation</name>
+        <qualifiedname>tests.integration.test_yaml_config_validation.TestYAMLSyntaxAndStructure.test_yaml_files_use_consistent_indentation</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure YAML files use consistent 2-space indentation, respecting block scalars.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" line="45" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" bodystart="45" bodyend="96"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_1a70bbcfee9af23a8b27e62ceac9fa2e49" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_yaml_config_validation.TestYAMLSyntaxAndStructure.test_no_duplicate_keys_in_yaml</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_no_duplicate_keys_in_yaml</name>
+        <qualifiedname>tests.integration.test_yaml_config_validation.TestYAMLSyntaxAndStructure.test_no_duplicate_keys_in_yaml</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that no YAML files under .github contain duplicate keys by loading each file with ruamel.yaml&apos;s strict parser.
+
+Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml (typ=&quot;safe&quot;). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate-key errors are collected and cause the test to fail with a consolidated error message.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" line="97" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" bodystart="97" bodyend="121"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for YAML syntax and structural validity.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_yaml_config_validation.TestYAMLSyntaxAndStructure</label>
+        <link refid="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" line="20" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" bodystart="20" bodyend="121"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_1a689a4abed1c6d20d76093c50e0a1baef" prot="public" virt="non-virtual"><scope>tests::integration::test_yaml_config_validation::TestYAMLSyntaxAndStructure</scope><name>test_all_yaml_files_parse_successfully</name></member>
+      <member refid="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_1a70bbcfee9af23a8b27e62ceac9fa2e49" prot="public" virt="non-virtual"><scope>tests::integration::test_yaml_config_validation::TestYAMLSyntaxAndStructure</scope><name>test_no_duplicate_keys_in_yaml</name></member>
+      <member refid="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_1ad3351bf67fb72132cd877e9ad1d2d84f" prot="public" virt="non-virtual"><scope>tests::integration::test_yaml_config_validation::TestYAMLSyntaxAndStructure</scope><name>test_yaml_files_use_consistent_indentation</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

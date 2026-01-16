@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifactsAdvanced" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowOutputsAndArtifactsAdvanced</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifactsAdvanced_1a7d6398ba1e640afb9eb6ac28da2dc4f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifactsAdvanced.test_job_outputs_reference_valid_steps</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_job_outputs_reference_valid_steps</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifactsAdvanced.test_job_outputs_reference_valid_steps</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that job outputs reference steps that have IDs.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2780" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2780" bodyend="2798"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifactsAdvanced_1a02e1470ad1c8f0862204bd3b92cc3f88" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifactsAdvanced.test_artifacts_have_reasonable_retention</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_artifacts_have_reasonable_retention</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifactsAdvanced.test_artifacts_have_reasonable_retention</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that artifact retention is reasonable.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2800" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2800" bodyend="2815"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for workflow outputs and artifacts.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifactsAdvanced</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifactsAdvanced"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2776" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2776" bodyend="2815"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifactsAdvanced_1a02e1470ad1c8f0862204bd3b92cc3f88" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowOutputsAndArtifactsAdvanced</scope><name>test_artifacts_have_reasonable_retention</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifactsAdvanced_1a7d6398ba1e640afb9eb6ac28da2dc4f1" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowOutputsAndArtifactsAdvanced</scope><name>test_job_outputs_reference_valid_steps</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

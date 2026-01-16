@@ -1,0 +1,236 @@
+\chapter{Branch Cleanup Quick Reference}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08}\index{Branch Cleanup Quick Reference@{Branch Cleanup Quick Reference}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md275}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md275}%
+
+
+Quick commands and procedures for maintaining a clean repository.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md276}{}\doxysection{\texorpdfstring{🚀 Quick Start}{🚀 Quick Start}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md276}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ the\ automated\ cleanup\ script}
+\DoxyCodeLine{chmod\ +x\ cleanup-\/branches.sh}
+\DoxyCodeLine{./cleanup-\/branches.sh}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md277}{}\doxysection{\texorpdfstring{📋 Common Commands}{📋 Common Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md277}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md278}{}\doxysubsection{\texorpdfstring{View Branches}{View Branches}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md278}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ List\ all\ local\ branches}
+\DoxyCodeLine{git\ branch\ -\/a}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ List\ branches\ with\ last\ commit\ info}
+\DoxyCodeLine{git\ branch\ -\/vv}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ List\ remote\ branches}
+\DoxyCodeLine{git\ branch\ -\/r}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Show\ merged\ branches}
+\DoxyCodeLine{git\ branch\ -\/-\/merged\ main}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Show\ unmerged\ branches}
+\DoxyCodeLine{git\ branch\ -\/-\/no-\/merged\ main}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md279}{}\doxysubsection{\texorpdfstring{Delete Branches}{Delete Branches}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md279}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Delete\ local\ branch\ (safe\ -\/\ only\ if\ merged)}
+\DoxyCodeLine{git\ branch\ -\/d\ branch-\/name}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Force\ delete\ local\ branch\ (use\ with\ caution)}
+\DoxyCodeLine{git\ branch\ -\/D\ branch-\/name}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Delete\ remote\ branch}
+\DoxyCodeLine{git\ push\ origin\ -\/-\/delete\ branch-\/name}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Delete\ multiple\ local\ branches}
+\DoxyCodeLine{git\ branch\ -\/-\/merged\ main\ |\ grep\ -\/v\ "{}\string^\(\backslash\)*"{}\ |\ grep\ -\/v\ "{}main"{}\ |\ xargs\ -\/r\ git\ branch\ -\/d}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md280}{}\doxysubsection{\texorpdfstring{Cleanup Remote References}{Cleanup Remote References}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md280}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Remove\ stale\ remote-\/tracking\ branches}
+\DoxyCodeLine{git\ fetch\ -\/-\/prune}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Or\ use\ the\ shorthand}
+\DoxyCodeLine{git\ fetch\ -\/p}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Remove\ all\ remote-\/tracking\ branches\ that\ no\ longer\ exist}
+\DoxyCodeLine{git\ remote\ prune\ origin}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md281}{}\doxysubsection{\texorpdfstring{Check Branch Status}{Check Branch Status}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md281}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Show\ branches\ and\ their\ tracking\ status}
+\DoxyCodeLine{git\ branch\ -\/vv}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Show\ last\ commit\ date\ for\ each\ branch}
+\DoxyCodeLine{git\ for-\/each-\/ref\ -\/-\/sort=-\/committerdate\ refs/heads/\ -\/-\/format='\%(committerdate:short)\ \%(refname:short)'}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Find\ branches\ older\ than\ 90\ days}
+\DoxyCodeLine{git\ for-\/each-\/ref\ -\/-\/sort=-\/committerdate\ refs/heads/\ -\/-\/format='\%(committerdate:short)\ \%(refname:short)'\ |\ awk\ '\$1\ <\ "{}'\$(date\ -\/d\ '90\ days\ ago'\ +\%Y-\/\%m-\/\%d)'"{}'}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md282}{}\doxysection{\texorpdfstring{🔍 Branch Analysis}{🔍 Branch Analysis}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md282}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md283}{}\doxysubsection{\texorpdfstring{Check if Branch is Merged}{Check if Branch is Merged}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md283}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Check\ if\ branch\ is\ merged\ into\ main}
+\DoxyCodeLine{git\ branch\ -\/-\/merged\ main\ |\ grep\ branch-\/name}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ commits\ unique\ to\ branch}
+\DoxyCodeLine{git\ log\ main..branch-\/name\ -\/-\/oneline}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ if\ branch\ has\ unique\ commits}
+\DoxyCodeLine{git\ cherry\ -\/v\ main\ branch-\/name}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md284}{}\doxysubsection{\texorpdfstring{Find Stale Branches}{Find Stale Branches}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md284}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Branches\ with\ no\ commits\ in\ last\ 90\ days}
+\DoxyCodeLine{for\ branch\ in\ \$(git\ branch\ |\ sed\ 's/\string^..//');\ do}
+\DoxyCodeLine{\ \ \ \ if\ [\ "{}\$branch"{}\ !=\ "{}main"{}\ ];\ then}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ last\_commit=\$(git\ log\ -\/1\ -\/-\/format=\%ci\ "{}\$branch"{})}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ echo\ "{}\$branch:\ \$last\_commit"{}}
+\DoxyCodeLine{\ \ \ \ fi}
+\DoxyCodeLine{done}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md285}{}\doxysection{\texorpdfstring{⚠️ Safety Checks}{⚠️ Safety Checks}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md285}
+Before deleting any branch\+:
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Verify it\textquotesingle{}s merged}}\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ branch\ -\/-\/merged\ main\ |\ grep\ branch-\/name}
+
+\end{DoxyCode}
+
+\item {\bfseries{Check for unique commits}}\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ log\ main..branch-\/name}
+
+\end{DoxyCode}
+
+\item {\bfseries{Ensure no active work}}\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ log\ -\/1\ branch-\/name}
+
+\end{DoxyCode}
+
+\item {\bfseries{Check PR status}} on Git\+Hub
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md286}{}\doxysection{\texorpdfstring{🤖 Automated Workflow}{🤖 Automated Workflow}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md286}
+The repository includes an automated workflow that runs weekly\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Location}}\+: {\ttfamily .github/workflows/branch-\/cleanup.\+yml}
+\item {\bfseries{Schedule}}\+: Every Monday at 9 AM UTC
+\item {\bfseries{Manual trigger}}\+: Actions tab → "{}\+Branch Cleanup Report"{} → "{}\+Run workflow"{}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md287}{}\doxysection{\texorpdfstring{📝 Branch Naming Conventions}{📝 Branch Naming Conventions}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md287}
+Use descriptive branch names\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily feature/description} -\/ New features
+\item {\ttfamily fix/description} -\/ Bug fixes
+\item {\ttfamily docs/description} -\/ Documentation updates
+\item {\ttfamily refactor/description} -\/ Code refactoring
+\item {\ttfamily test/description} -\/ Test additions/updates
+\item {\ttfamily chore/description} -\/ Maintenance tasks
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md288}{}\doxysection{\texorpdfstring{🎯 Best Practices}{🎯 Best Practices}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md288}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md289}{}\doxysubsection{\texorpdfstring{For Contributors}{For Contributors}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md289}
+
+\begin{DoxyEnumerate}
+\item ✅ Create branches from {\ttfamily main}
+\item ✅ Keep branches short-\/lived (\texorpdfstring{$<$}{<} 2 weeks)
+\item ✅ Sync with main regularly
+\item ✅ Delete after merge
+\item ✅ Use descriptive names
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md290}{}\doxysubsection{\texorpdfstring{For Maintainers}{For Maintainers}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md290}
+
+\begin{DoxyEnumerate}
+\item ✅ Review PRs promptly
+\item ✅ Merge or close stale PRs
+\item ✅ Delete merged branches
+\item ✅ Run cleanup script monthly
+\item ✅ Monitor branch count
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md291}{}\doxysection{\texorpdfstring{🔧 Troubleshooting}{🔧 Troubleshooting}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md291}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md292}{}\doxysubsection{\texorpdfstring{Branch Won\textquotesingle{}t Delete}{Branch Won\textquotesingle{}t Delete}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md292}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ If\ branch\ has\ unmerged\ commits}
+\DoxyCodeLine{git\ branch\ -\/D\ branch-\/name\ \ \#\ Force\ delete\ (careful!)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ If\ remote\ branch\ won't\ delete}
+\DoxyCodeLine{git\ push\ origin\ -\/-\/delete\ branch-\/name\ -\/-\/force}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md293}{}\doxysubsection{\texorpdfstring{Restore Deleted Branch}{Restore Deleted Branch}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md293}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Find\ the\ commit\ SHA}
+\DoxyCodeLine{git\ reflog}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Recreate\ branch}
+\DoxyCodeLine{git\ branch\ branch-\/name\ <commit-\/sha>}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md294}{}\doxysubsection{\texorpdfstring{Sync Fork with Upstream}{Sync Fork with Upstream}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md294}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Add\ upstream\ remote\ (if\ not\ already\ added)}
+\DoxyCodeLine{git\ remote\ add\ upstream\ https://github.com/original/repo.git}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Fetch\ upstream\ changes}
+\DoxyCodeLine{git\ fetch\ upstream}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Merge\ upstream\ main\ into\ your\ main}
+\DoxyCodeLine{git\ checkout\ main}
+\DoxyCodeLine{git\ merge\ upstream/main}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Push\ to\ your\ fork}
+\DoxyCodeLine{git\ push\ origin\ main}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md295}{}\doxysection{\texorpdfstring{📊 Repository Health Metrics}{📊 Repository Health Metrics}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md295}
+Target metrics for a healthy repository\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Total branches}}\+: \texorpdfstring{$<$}{<} 10
+\item {\bfseries{Stale branches}} (90+ days)\+: 0
+\item {\bfseries{Merged but not deleted}}\+: 0
+\item {\bfseries{Open PRs}}\+: \texorpdfstring{$<$}{<} 5
+\item {\bfseries{Average branch age}}\+: \texorpdfstring{$<$}{<} 30 days
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md296}{}\doxysection{\texorpdfstring{🔗 Related Documentation}{🔗 Related Documentation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md296}
+
+\begin{DoxyItemize}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.md}{0} -\/ Detailed analysis
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538}{BRANCH\+\_\+\+CLEANUP\+\_\+\+SUMMARY.md}{0} -\/ Executive summary
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING}{CONTRIBUTING.md}{0} -\/ Full contributing guidelines
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md297}{}\doxysection{\texorpdfstring{💡 Tips}{💡 Tips}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_autotoc_md297}
+
+\begin{DoxyItemize}
+\item Use {\ttfamily git fetch -\/-\/prune} regularly to clean up remote references
+\item Enable "{}\+Automatically delete head branches"{} in Git\+Hub repository settings
+\item Set up branch protection rules for {\ttfamily main}
+\item Use the automated workflow to stay informed
+\item Review branches monthly, not just when they become a problem
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Quick Help}}\+: Run {\ttfamily ./cleanup-\/branches.sh} for an interactive cleanup session 

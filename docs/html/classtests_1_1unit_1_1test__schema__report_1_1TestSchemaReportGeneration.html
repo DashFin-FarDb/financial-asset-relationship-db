@@ -1,0 +1,566 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: tests.unit.test_schema_report.TestSchemaReportGeneration Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">tests.unit.test_schema_report.TestSchemaReportGeneration Class Reference</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+Collaboration diagram for tests.unit.test_schema_report.TestSchemaReportGeneration:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration__coll__graph.svg" width="268" height="591"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a333975e4f66a82b36ac1a3472f59766e" id="r_a333975e4f66a82b36ac1a3472f59766e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a333975e4f66a82b36ac1a3472f59766e">test_generate_report_returns_string</a> (populated_graph)</td></tr>
+<tr class="separator:a333975e4f66a82b36ac1a3472f59766e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac001fcb4c4e9053a6b115346e1ddf5c0" id="r_ac001fcb4c4e9053a6b115346e1ddf5c0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac001fcb4c4e9053a6b115346e1ddf5c0">test_report_contains_title</a> (populated_graph)</td></tr>
+<tr class="separator:ac001fcb4c4e9053a6b115346e1ddf5c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ba2874e1c3d707f5b373ee95d85d307" id="r_a7ba2874e1c3d707f5b373ee95d85d307"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ba2874e1c3d707f5b373ee95d85d307">test_report_contains_schema_overview</a> (populated_graph)</td></tr>
+<tr class="separator:a7ba2874e1c3d707f5b373ee95d85d307"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a893c338858e51bd77df2cf4b629af9ed" id="r_a893c338858e51bd77df2cf4b629af9ed"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a893c338858e51bd77df2cf4b629af9ed">test_report_lists_entity_types</a> (populated_graph)</td></tr>
+<tr class="separator:a893c338858e51bd77df2cf4b629af9ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b492517360248f0c3bda747904a1f17" id="r_a5b492517360248f0c3bda747904a1f17"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5b492517360248f0c3bda747904a1f17">test_report_contains_relationship_types</a> (populated_graph)</td></tr>
+<tr class="separator:a5b492517360248f0c3bda747904a1f17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a034b4dd4cc6cd522e911b8d48a02cc18" id="r_a034b4dd4cc6cd522e911b8d48a02cc18"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a034b4dd4cc6cd522e911b8d48a02cc18">test_report_contains_calculated_metrics</a> (populated_graph)</td></tr>
+<tr class="separator:a034b4dd4cc6cd522e911b8d48a02cc18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a674d922a9a661cd2e8d04012701b6d71" id="r_a674d922a9a661cd2e8d04012701b6d71"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a674d922a9a661cd2e8d04012701b6d71">test_report_includes_total_assets</a> (populated_graph)</td></tr>
+<tr class="separator:a674d922a9a661cd2e8d04012701b6d71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1f1e4e66db8a07a54d71db07359eeec" id="r_ae1f1e4e66db8a07a54d71db07359eeec"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae1f1e4e66db8a07a54d71db07359eeec">test_report_includes_relationship_metrics</a> (populated_graph)</td></tr>
+<tr class="separator:ae1f1e4e66db8a07a54d71db07359eeec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76274e77ff9158c708556566757d0ccc" id="r_a76274e77ff9158c708556566757d0ccc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a76274e77ff9158c708556566757d0ccc">test_report_includes_asset_class_distribution</a> (populated_graph)</td></tr>
+<tr class="separator:a76274e77ff9158c708556566757d0ccc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f6256557394e4feb04a03fa84af4434" id="r_a5f6256557394e4feb04a03fa84af4434"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5f6256557394e4feb04a03fa84af4434">test_report_includes_business_rules</a> (populated_graph)</td></tr>
+<tr class="separator:a5f6256557394e4feb04a03fa84af4434"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a20f11819e9ce09d025cc43218cb41a44" id="r_a20f11819e9ce09d025cc43218cb41a44"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a20f11819e9ce09d025cc43218cb41a44">test_report_includes_regulatory_rules</a> (populated_graph)</td></tr>
+<tr class="separator:a20f11819e9ce09d025cc43218cb41a44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1867ec4e3f45bd4ac27925e65950823b" id="r_a1867ec4e3f45bd4ac27925e65950823b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1867ec4e3f45bd4ac27925e65950823b">test_report_includes_valuation_rules</a> (populated_graph)</td></tr>
+<tr class="separator:a1867ec4e3f45bd4ac27925e65950823b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80edbd0e7869b5464e072bafaed8d8e2" id="r_a80edbd0e7869b5464e072bafaed8d8e2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a80edbd0e7869b5464e072bafaed8d8e2">test_report_includes_optimization_metrics</a> (populated_graph)</td></tr>
+<tr class="separator:a80edbd0e7869b5464e072bafaed8d8e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac88616853f135b18d2bdbc3cf9bbafd" id="r_aac88616853f135b18d2bdbc3cf9bbafd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aac88616853f135b18d2bdbc3cf9bbafd">test_report_includes_recommendations</a> (populated_graph)</td></tr>
+<tr class="separator:aac88616853f135b18d2bdbc3cf9bbafd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac90ab5fbe412dd5d06c3213341b24022" id="r_ac90ab5fbe412dd5d06c3213341b24022"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac90ab5fbe412dd5d06c3213341b24022">test_report_includes_implementation_notes</a> (populated_graph)</td></tr>
+<tr class="separator:ac90ab5fbe412dd5d06c3213341b24022"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><pre class="fragment">Test cases for schema report generation.</pre> </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a333975e4f66a82b36ac1a3472f59766e" name="a333975e4f66a82b36ac1a3472f59766e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a333975e4f66a82b36ac1a3472f59766e">&#9670;&#160;</a></span>test_generate_report_returns_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_generate_report_returns_string </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that generate_schema_report returns a string.</pre> 
+</div>
+</div>
+<a id="a034b4dd4cc6cd522e911b8d48a02cc18" name="a034b4dd4cc6cd522e911b8d48a02cc18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a034b4dd4cc6cd522e911b8d48a02cc18">&#9670;&#160;</a></span>test_report_contains_calculated_metrics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_calculated_metrics </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report contains calculated metrics section.</pre> 
+</div>
+</div>
+<a id="a5b492517360248f0c3bda747904a1f17" name="a5b492517360248f0c3bda747904a1f17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b492517360248f0c3bda747904a1f17">&#9670;&#160;</a></span>test_report_contains_relationship_types()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_relationship_types </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report contains relationship types section.</pre> 
+</div>
+</div>
+<a id="a7ba2874e1c3d707f5b373ee95d85d307" name="a7ba2874e1c3d707f5b373ee95d85d307"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ba2874e1c3d707f5b373ee95d85d307">&#9670;&#160;</a></span>test_report_contains_schema_overview()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_schema_overview </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report contains schema overview section.</pre> 
+</div>
+</div>
+<a id="ac001fcb4c4e9053a6b115346e1ddf5c0" name="ac001fcb4c4e9053a6b115346e1ddf5c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac001fcb4c4e9053a6b115346e1ddf5c0">&#9670;&#160;</a></span>test_report_contains_title()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_title </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report contains main title.</pre> 
+</div>
+</div>
+<a id="a76274e77ff9158c708556566757d0ccc" name="a76274e77ff9158c708556566757d0ccc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76274e77ff9158c708556566757d0ccc">&#9670;&#160;</a></span>test_report_includes_asset_class_distribution()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_asset_class_distribution </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report includes asset class distribution.</pre> 
+</div>
+</div>
+<a id="a5f6256557394e4feb04a03fa84af4434" name="a5f6256557394e4feb04a03fa84af4434"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f6256557394e4feb04a03fa84af4434">&#9670;&#160;</a></span>test_report_includes_business_rules()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_business_rules </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report includes business rules section.</pre> 
+</div>
+</div>
+<a id="ac90ab5fbe412dd5d06c3213341b24022" name="ac90ab5fbe412dd5d06c3213341b24022"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac90ab5fbe412dd5d06c3213341b24022">&#9670;&#160;</a></span>test_report_includes_implementation_notes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_implementation_notes </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report includes implementation notes.</pre> 
+</div>
+</div>
+<a id="a80edbd0e7869b5464e072bafaed8d8e2" name="a80edbd0e7869b5464e072bafaed8d8e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80edbd0e7869b5464e072bafaed8d8e2">&#9670;&#160;</a></span>test_report_includes_optimization_metrics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_optimization_metrics </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report includes schema optimization metrics.</pre> 
+</div>
+</div>
+<a id="aac88616853f135b18d2bdbc3cf9bbafd" name="aac88616853f135b18d2bdbc3cf9bbafd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac88616853f135b18d2bdbc3cf9bbafd">&#9670;&#160;</a></span>test_report_includes_recommendations()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_recommendations </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report includes recommendations.</pre> 
+</div>
+</div>
+<a id="a20f11819e9ce09d025cc43218cb41a44" name="a20f11819e9ce09d025cc43218cb41a44"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a20f11819e9ce09d025cc43218cb41a44">&#9670;&#160;</a></span>test_report_includes_regulatory_rules()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_regulatory_rules </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report includes regulatory rules.</pre> 
+</div>
+</div>
+<a id="ae1f1e4e66db8a07a54d71db07359eeec" name="ae1f1e4e66db8a07a54d71db07359eeec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae1f1e4e66db8a07a54d71db07359eeec">&#9670;&#160;</a></span>test_report_includes_relationship_metrics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_relationship_metrics </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report includes relationship metrics.</pre> 
+</div>
+</div>
+<a id="a674d922a9a661cd2e8d04012701b6d71" name="a674d922a9a661cd2e8d04012701b6d71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a674d922a9a661cd2e8d04012701b6d71">&#9670;&#160;</a></span>test_report_includes_total_assets()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_total_assets </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report includes total assets metric.</pre> 
+</div>
+</div>
+<a id="a1867ec4e3f45bd4ac27925e65950823b" name="a1867ec4e3f45bd4ac27925e65950823b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1867ec4e3f45bd4ac27925e65950823b">&#9670;&#160;</a></span>test_report_includes_valuation_rules()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_valuation_rules </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report includes valuation rules.</pre> 
+</div>
+</div>
+<a id="a893c338858e51bd77df2cf4b629af9ed" name="a893c338858e51bd77df2cf4b629af9ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a893c338858e51bd77df2cf4b629af9ed">&#9670;&#160;</a></span>test_report_lists_entity_types()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_lists_entity_types </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>populated_graph</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that report lists all entity types.</pre> 
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
+<li>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/<a class="el" href="test__schema__report_8py.html">test_schema_report.py</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacetests.html">tests</a></li><li class="navelem"><a class="el" href="namespacetests_1_1unit.html">unit</a></li><li class="navelem"><a class="el" href="namespacetests_1_1unit_1_1test__schema__report.html">test_schema_report</a></li><li class="navelem"><a class="el" href="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration.html">TestSchemaReportGeneration</a></li>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

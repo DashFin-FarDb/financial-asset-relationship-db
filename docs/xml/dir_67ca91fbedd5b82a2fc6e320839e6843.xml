@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="dir_67ca91fbedd5b82a2fc6e320839e6843" kind="dir">
+    <compoundname>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis</compoundname>
+    <innerfile refid="src_2analysis_2____init_____8py">__init__.py</innerfile>
+    <innerfile refid="formulaic__analysis_8py">formulaic_analysis.py</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/"/>
+  </compounddef>
+</doxygen>

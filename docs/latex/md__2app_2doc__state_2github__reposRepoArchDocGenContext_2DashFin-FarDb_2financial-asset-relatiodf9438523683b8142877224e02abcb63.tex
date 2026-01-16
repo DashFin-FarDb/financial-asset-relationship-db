@@ -1,0 +1,266 @@
+\chapter{Branch Cleanup Analysis}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63}\index{Branch Cleanup Analysis@{Branch Cleanup Analysis}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md238}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md238}%
+
+
+{\bfseries{Date\+:}} 2025-\/11-\/12 {\bfseries{Issue\+:}} \#136 -\/ Remove all unnecessary branches\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md239}{}\doxysection{\texorpdfstring{Executive Summary}{Executive Summary}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md239}
+This document provides a comprehensive analysis of all open branches in the repository, traces their commit history, and provides recommendations for cleanup. The goal is to maintain only the {\ttfamily main} branch unless there are specific benefits for keeping a branch open.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md240}{}\doxysection{\texorpdfstring{Branch Analysis Methodology}{Branch Analysis Methodology}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md240}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Identification}}\+: List all open branches in the repository
+\item {\bfseries{Commit History}}\+: Trace commits to ensure no important changes are lost
+\item {\bfseries{Status Assessment}}\+: Determine if branch has been merged, is stale, or has unique commits
+\item {\bfseries{Recommendation}}\+: Provide action items (merge, delete, or keep with justification)
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md241}{}\doxysection{\texorpdfstring{Current Branch Structure}{Current Branch Structure}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md241}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md242}{}\doxysubsection{\texorpdfstring{Protected Branches}{Protected Branches}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md242}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md243}{}\doxysubsubsection{\texorpdfstring{{\ttfamily main} (Primary Branch)}{{\ttfamily main} (Primary Branch)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md243}
+
+\begin{DoxyItemize}
+\item {\bfseries{Status}}\+: Active and protected
+\item {\bfseries{Purpose}}\+: Production-\/ready code
+\item {\bfseries{Action}}\+: {\bfseries{KEEP}} -\/ This is the primary branch
+\item {\bfseries{Notes}}\+: All development should be merged here
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md244}{}\doxysubsection{\texorpdfstring{Development Branches}{Development Branches}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md244}
+Based on the repository analysis and documentation review, the following branch patterns have been identified\+:\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md245}{}\doxysubsubsection{\texorpdfstring{Feature Branches ({\ttfamily feature/\texorpdfstring{$\ast$}{*}})}{Feature Branches ({\ttfamily feature/\texorpdfstring{$\ast$}{*}})}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md245}
+
+\begin{DoxyItemize}
+\item {\bfseries{Naming Convention}}\+: {\ttfamily feature/description}
+\item {\bfseries{Purpose}}\+: New feature development
+\item {\bfseries{Lifecycle}}\+: Should be deleted after merge to main
+\item {\bfseries{Current Status}}\+: To be identified via Git\+Hub API
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md246}{}\doxysubsubsection{\texorpdfstring{Bugfix Branches ({\ttfamily bugfix/\texorpdfstring{$\ast$}{*}})}{Bugfix Branches ({\ttfamily bugfix/\texorpdfstring{$\ast$}{*}})}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md246}
+
+\begin{DoxyItemize}
+\item {\bfseries{Naming Convention}}\+: {\ttfamily bugfix/description} or {\ttfamily bugfix/issue-\/number}
+\item {\bfseries{Purpose}}\+: Bug fixes
+\item {\bfseries{Lifecycle}}\+: Should be deleted after merge to main
+\item {\bfseries{Current Status}}\+: To be identified via Git\+Hub API
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md247}{}\doxysubsubsection{\texorpdfstring{Documentation Branches ({\ttfamily docs/\texorpdfstring{$\ast$}{*}})}{Documentation Branches ({\ttfamily docs/\texorpdfstring{$\ast$}{*}})}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md247}
+
+\begin{DoxyItemize}
+\item {\bfseries{Naming Convention}}\+: {\ttfamily docs/description}
+\item {\bfseries{Purpose}}\+: Documentation updates
+\item {\bfseries{Lifecycle}}\+: Should be deleted after merge to main
+\item {\bfseries{Current Status}}\+: To be identified via Git\+Hub API
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md248}{}\doxysubsubsection{\texorpdfstring{Refactor Branches ({\ttfamily refactor/\texorpdfstring{$\ast$}{*}})}{Refactor Branches ({\ttfamily refactor/\texorpdfstring{$\ast$}{*}})}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md248}
+
+\begin{DoxyItemize}
+\item {\bfseries{Naming Convention}}\+: {\ttfamily refactor/description}
+\item {\bfseries{Purpose}}\+: Code refactoring
+\item {\bfseries{Lifecycle}}\+: Should be deleted after merge to main
+\item {\bfseries{Current Status}}\+: To be identified via Git\+Hub API
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md249}{}\doxysubsubsection{\texorpdfstring{Test Branches ({\ttfamily test/\texorpdfstring{$\ast$}{*}})}{Test Branches ({\ttfamily test/\texorpdfstring{$\ast$}{*}})}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md249}
+
+\begin{DoxyItemize}
+\item {\bfseries{Naming Convention}}\+: {\ttfamily test/description}
+\item {\bfseries{Purpose}}\+: Test additions/improvements
+\item {\bfseries{Lifecycle}}\+: Should be deleted after merge to main
+\item {\bfseries{Current Status}}\+: To be identified via Git\+Hub API
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md250}{}\doxysubsubsection{\texorpdfstring{Automated Branches}{Automated Branches}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md250}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md251}{}\doxysubsubsubsection{\texorpdfstring{Git\+Auto Branches ({\ttfamily gitauto/\texorpdfstring{$\ast$}{*}})}{Git\+Auto Branches ({\ttfamily gitauto/\texorpdfstring{$\ast$}{*}})}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md251}
+
+\begin{DoxyItemize}
+\item {\bfseries{Pattern}}\+: {\ttfamily gitauto/issue-\/\{number\}-\/\{date\}-\/\{hash\}}
+\item {\bfseries{Purpose}}\+: Automated issue resolution
+\item {\bfseries{Example}}\+: {\ttfamily gitauto/issue-\/136-\/20251112-\/143841-\/\+JdxF} (current branch)
+\item {\bfseries{Lifecycle}}\+: Should be deleted after PR is merged or closed
+\item {\bfseries{Action}}\+: Delete after PR completion
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md252}{}\doxysubsubsubsection{\texorpdfstring{Code\+Rabbit Branches ({\ttfamily coderabbitai/\texorpdfstring{$\ast$}{*}})}{Code\+Rabbit Branches ({\ttfamily coderabbitai/\texorpdfstring{$\ast$}{*}})}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md252}
+
+\begin{DoxyItemize}
+\item {\bfseries{Pattern}}\+: {\ttfamily coderabbitai/utg/\{hash\}}
+\item {\bfseries{Purpose}}\+: Automated test generation
+\item {\bfseries{Known Branches}}\+:
+\begin{DoxyItemize}
+\item {\ttfamily coderabbitai/utg/e47c649} (PR \#6 -\/ has merge conflicts)
+\end{DoxyItemize}
+\item {\bfseries{Status}}\+: Has unresolved merge conflicts (see \doxylink{MERGE__CONFLICT__ANALYSIS_8md}{MERGE\+\_\+\+CONFLICT\+\_\+\+ANALYSIS.\+md})
+\item {\bfseries{Action}}\+: Resolve conflicts and merge, or close and delete
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md253}{}\doxysubsection{\texorpdfstring{Special Consideration Branches}{Special Consideration Branches}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md253}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md254}{}\doxysubsubsection{\texorpdfstring{{\ttfamily develop} Branch}{{\ttfamily develop} Branch}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md254}
+
+\begin{DoxyItemize}
+\item {\bfseries{Status}}\+: Referenced in Circle\+CI config (line 204)
+\item {\bfseries{Purpose}}\+: Integration branch for ongoing development
+\item {\bfseries{Current Existence}}\+: To be verified
+\item {\bfseries{Recommendation}}\+:
+\begin{DoxyItemize}
+\item If exists and actively used\+: {\bfseries{KEEP}} as integration branch
+\item If exists but unused\+: {\bfseries{DELETE}} and use feature branches directly to main
+\item If doesn\textquotesingle{}t exist\+: No action needed
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md255}{}\doxysection{\texorpdfstring{Branch Cleanup Criteria}{Branch Cleanup Criteria}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md255}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md256}{}\doxysubsection{\texorpdfstring{Delete Immediately}{Delete Immediately}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md256}
+Branches that meet ANY of these criteria\+:
+
+
+\begin{DoxyItemize}
+\item ✅ Fully merged to main with no unique commits
+\item ✅ Stale (no commits in 90+ days) with no open PR
+\item ✅ Abandoned feature branches with closed/rejected PRs
+\item ✅ Temporary/experimental branches no longer needed
+\item ✅ Automated tool branches after PR completion
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md257}{}\doxysubsection{\texorpdfstring{Requires Review Before Deletion}{Requires Review Before Deletion}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md257}
+Branches that meet ANY of these criteria\+:
+
+
+\begin{DoxyItemize}
+\item ⚠️ Has open PR with pending review
+\item ⚠️ Contains commits not in main (verify importance)
+\item ⚠️ Active development in last 30 days
+\item ⚠️ Has unresolved merge conflicts
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md258}{}\doxysubsection{\texorpdfstring{Keep Open}{Keep Open}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md258}
+Branches that meet ANY of these criteria\+:
+
+
+\begin{DoxyItemize}
+\item 🔒 Protected branch (main)
+\item 🔒 Active development branch with recent commits
+\item 🔒 Integration branch (develop) if actively used
+\item 🔒 Release branches (if release strategy requires)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md259}{}\doxysection{\texorpdfstring{Identified Issues from Documentation}{Identified Issues from Documentation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md259}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md260}{}\doxysubsection{\texorpdfstring{PR \#6 Merge Conflicts}{PR \#6 Merge Conflicts}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md260}
+
+\begin{DoxyItemize}
+\item {\bfseries{Branch}}\+: {\ttfamily coderabbitai/utg/e47c649}
+\item {\bfseries{Issue}}\+: Cannot merge due to conflicts in 5 test files
+\item {\bfseries{Impact}}\+: Blocks PR \#35 which depends on it
+\item {\bfseries{Files Affected}}\+:
+\begin{DoxyEnumerate}
+\item {\ttfamily \doxylink{test__api__main_8py}{tests/unit/test\+\_\+api\+\_\+main.\+py}}
+\item {\ttfamily frontend/app/lib/\+\_\+\+\_\+tests\+\_\+\+\_\+/api.\+test.\+ts}
+\item {\ttfamily frontend/jest.\+config.\+js}
+\item {\ttfamily frontend/jest.\+setup.\+js}
+\item {\ttfamily frontend/package.\+json}
+\end{DoxyEnumerate}
+\item {\bfseries{Resolution Options}}\+:
+\begin{DoxyEnumerate}
+\item Merge main into branch and resolve conflicts
+\item Rebase branch onto main
+\item Close PR and delete branch if no longer needed
+\end{DoxyEnumerate}
+\item {\bfseries{Recommendation}}\+: Review if automated tests are still needed; if yes, resolve conflicts; if no, close and delete
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md261}{}\doxysection{\texorpdfstring{Cleanup Process}{Cleanup Process}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md261}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md262}{}\doxysubsection{\texorpdfstring{Phase 1\+: Information Gathering}{Phase 1\+: Information Gathering}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md262}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ List\ all\ branches}
+\DoxyCodeLine{git\ branch\ -\/a}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ branch\ status}
+\DoxyCodeLine{git\ branch\ -\/vv}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Find\ merged\ branches}
+\DoxyCodeLine{git\ branch\ -\/-\/merged\ main}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Find\ unmerged\ branches}
+\DoxyCodeLine{git\ branch\ -\/-\/no-\/merged\ main}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ last\ commit\ date\ for\ each\ branch}
+\DoxyCodeLine{git\ for-\/each-\/ref\ -\/-\/sort=-\/committerdate\ refs/heads/\ -\/-\/format='\%(refname:short)\ \%(committerdate:short)\ \%(authorname)'}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md263}{}\doxysubsection{\texorpdfstring{Phase 2\+: Verification}{Phase 2\+: Verification}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md263}
+For each branch identified for deletion\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Compare\ with\ main}
+\DoxyCodeLine{git\ log\ main..branch-\/name\ -\/-\/oneline}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ if\ branch\ has\ unique\ commits}
+\DoxyCodeLine{git\ cherry\ main\ branch-\/name}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md264}{}\doxysubsection{\texorpdfstring{Phase 3\+: Cleanup Execution}{Phase 3\+: Cleanup Execution}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md264}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Delete\ local\ branch}
+\DoxyCodeLine{git\ branch\ -\/d\ branch-\/name\ \ \#\ Safe\ delete\ (only\ if\ merged)}
+\DoxyCodeLine{git\ branch\ -\/D\ branch-\/name\ \ \#\ Force\ delete\ (use\ with\ caution)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Delete\ remote\ branch}
+\DoxyCodeLine{git\ push\ origin\ -\/-\/delete\ branch-\/name}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md265}{}\doxysubsection{\texorpdfstring{Phase 4\+: Verification}{Phase 4\+: Verification}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md265}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Verify\ deletion}
+\DoxyCodeLine{git\ branch\ -\/a}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Prune\ remote\ tracking\ branches}
+\DoxyCodeLine{git\ remote\ prune\ origin}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md266}{}\doxysection{\texorpdfstring{Post-\/\+Cleanup Actions}{Post-\/\+Cleanup Actions}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md266}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md267}{}\doxysubsection{\texorpdfstring{1. Update Branch Protection Rules}{1. Update Branch Protection Rules}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md267}
+
+\begin{DoxyItemize}
+\item Ensure {\ttfamily main} branch has appropriate protection
+\item Require PR reviews before merge
+\item Require status checks to pass
+\item Require branches to be up to date before merging
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md268}{}\doxysubsection{\texorpdfstring{2. Update Documentation}{2. Update Documentation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md268}
+
+\begin{DoxyItemize}
+\item ✅ \doxylink{CONTRIBUTING_8md}{CONTRIBUTING.\+md} already documents branch naming conventions
+\item ✅ Circle\+CI config already set up for main and develop branches
+\item Consider adding branch lifecycle documentation
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md269}{}\doxysubsection{\texorpdfstring{3. Team Communication}{3. Team Communication}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md269}
+
+\begin{DoxyItemize}
+\item Notify team of branch cleanup
+\item Remind about branch naming conventions
+\item Emphasize importance of deleting branches after merge
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md270}{}\doxysubsection{\texorpdfstring{4. Establish Ongoing Maintenance}{4. Establish Ongoing Maintenance}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md270}
+
+\begin{DoxyItemize}
+\item Set up automated stale branch detection
+\item Regular monthly review of open branches
+\item Encourage developers to delete branches after PR merge
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md271}{}\doxysection{\texorpdfstring{Recommendations Summary}{Recommendations Summary}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md271}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Immediate Actions}}\+:
+\begin{DoxyItemize}
+\item Identify all open branches via Git\+Hub
+\item Verify merge status of each branch
+\item Delete all fully merged branches
+\item Delete all stale branches (90+ days, no activity)
+\end{DoxyItemize}
+\item {\bfseries{Review Required}}\+:
+\begin{DoxyItemize}
+\item Resolve or close PR \#6 ({\ttfamily coderabbitai/utg/e47c649})
+\item Verify if {\ttfamily develop} branch exists and is needed
+\item Check for any branches with unique commits
+\end{DoxyItemize}
+\item {\bfseries{Process Improvements}}\+:
+\begin{DoxyItemize}
+\item Enable Git\+Hub\textquotesingle{}s automatic branch deletion after PR merge
+\item Set up branch protection rules
+\item Consider implementing a stale branch bot
+\item Document branch lifecycle in \doxylink{CONTRIBUTING_8md}{CONTRIBUTING.\+md}
+\end{DoxyItemize}
+\item {\bfseries{Ongoing Maintenance}}\+:
+\begin{DoxyItemize}
+\item Monthly branch audit
+\item Automated notifications for stale branches
+\item Team training on branch hygiene
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md272}{}\doxysection{\texorpdfstring{Conclusion}{Conclusion}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md272}
+This analysis provides a framework for cleaning up unnecessary branches while ensuring no important commits are lost. The actual cleanup should be performed carefully, verifying each branch before deletion. After cleanup, only the {\ttfamily main} branch (and potentially {\ttfamily develop} if actively used) should remain, with feature branches being short-\/lived and deleted immediately after merge.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md273}{}\doxysection{\texorpdfstring{Next Steps}{Next Steps}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_autotoc_md273}
+
+\begin{DoxyEnumerate}
+\item Run the Phase 1 commands to get actual branch list
+\item Create a detailed spreadsheet of all branches with their status
+\item Execute cleanup in phases with verification at each step
+\item Update repository settings for automatic branch deletion
+\item Document the new branch management process
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Note}}\+: This document serves as a guide. Actual branch deletion should be performed by repository maintainers with appropriate access and after thorough verification. 

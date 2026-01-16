@@ -1,0 +1,194 @@
+\doxysection{tests.\+integration.\+test\+\_\+requirements\+\_\+dev Namespace Reference}
+\hypertarget{namespacetests_1_1integration_1_1test__requirements__dev}{}\label{namespacetests_1_1integration_1_1test__requirements__dev}\index{tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation}{Test\+Comprehensive\+Package\+Validation}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence}{Test\+Development\+Tools\+Presence}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling}{Test\+Edge\+Cases\+And\+Error\+Handling}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestFileOrganization}{Test\+File\+Organization}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization}{Test\+File\+Structure\+And\+Organization}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency}{Test\+Package\+Consistency}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing}{Test\+Package\+Naming\+And\+Casing}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem}{Test\+Pytest\+Ecosystem}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration}{Test\+Py\+YAMLIntegration}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages}{Test\+Required\+Packages}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists}{Test\+Requirements\+File\+Exists}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileFormat}{Test\+Requirements\+File\+Format}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices}{Test\+Security\+Best\+Practices}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges}{Test\+Specific\+Changes}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestTypeStubConsistency}{Test\+Type\+Stub\+Consistency}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionConstraintValidation}{Test\+Version\+Constraint\+Validation}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications}{Test\+Version\+Specifications}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__requirements__dev_a0e99790ad4cd3ca0e45a21b27b42e0c1}{parsed\+\_\+requirements}} ()
+\item 
+str \mbox{\hyperlink{namespacetests_1_1integration_1_1test__requirements__dev_a597cde3f54d87654fdd6023724cffbc4}{\+\_\+extract\+\_\+package\+\_\+name}} (str line, Requirement req)
+\item 
+str \mbox{\hyperlink{namespacetests_1_1integration_1_1test__requirements__dev_af93939058281d84f82ef7de8476489d7}{\+\_\+normalize\+\_\+specifier}} (str specifier\+\_\+str)
+\item 
+tuple \mbox{\hyperlink{namespacetests_1_1integration_1_1test__requirements__dev_a1d98458011c778690270b664e89e9d0d}{\+\_\+parse\+\_\+single\+\_\+requirement}} (str line)
+\item 
+List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__requirements__dev_a28656bbba69e63a658555ed6989a9a1b}{parse\+\_\+requirements}} (Path file\+\_\+path)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{namespacetests_1_1integration_1_1test__requirements__dev_a32289b3f4166f09591fea4e6cfc29ea6}{REQUIREMENTS\+\_\+\+FILE}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent / "{}requirements-\/dev.\+txt"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for requirements-dev.txt development dependencies file.
+
+This test suite validates that the development dependencies file is properly
+formatted, contains required packages, and has valid version specifications.
+
+Note: Bandit B101 (assert_used) is suppressed for this test file as assert
+statements are the standard and required pattern in pytest test files.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetests_1_1integration_1_1test__requirements__dev_a597cde3f54d87654fdd6023724cffbc4}\index{tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}!\_extract\_package\_name@{\_extract\_package\_name}}
+\index{\_extract\_package\_name@{\_extract\_package\_name}!tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}}
+\doxysubsubsection{\texorpdfstring{\_extract\_package\_name()}{\_extract\_package\_name()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__requirements__dev_a597cde3f54d87654fdd6023724cffbc4} 
+ str tests.\+integration.\+test\+\_\+requirements\+\_\+dev.\+\_\+extract\+\_\+package\+\_\+name (\begin{DoxyParamCaption}\item[{str}]{line}{, }\item[{Requirement}]{req}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Extract the package name from a requirement line, preserving original casing.
+
+Args:
+    line: The raw requirement line from the file.
+    req: The parsed Requirement object.
+
+Returns:
+    The package name as written in the requirements file.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1integration_1_1test__requirements__dev_a597cde3f54d87654fdd6023724cffbc4_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacetests_1_1integration_1_1test__requirements__dev_af93939058281d84f82ef7de8476489d7}\index{tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}!\_normalize\_specifier@{\_normalize\_specifier}}
+\index{\_normalize\_specifier@{\_normalize\_specifier}!tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}}
+\doxysubsubsection{\texorpdfstring{\_normalize\_specifier()}{\_normalize\_specifier()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__requirements__dev_af93939058281d84f82ef7de8476489d7} 
+ str tests.\+integration.\+test\+\_\+requirements\+\_\+dev.\+\_\+normalize\+\_\+specifier (\begin{DoxyParamCaption}\item[{str}]{specifier\+\_\+str}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Normalize a version specifier string by removing spaces around commas.
+
+Args:
+    specifier_str: The version specifier string to normalize.
+
+Returns:
+    The normalized specifier string.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1integration_1_1test__requirements__dev_af93939058281d84f82ef7de8476489d7_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacetests_1_1integration_1_1test__requirements__dev_a1d98458011c778690270b664e89e9d0d}\index{tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}!\_parse\_single\_requirement@{\_parse\_single\_requirement}}
+\index{\_parse\_single\_requirement@{\_parse\_single\_requirement}!tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}}
+\doxysubsubsection{\texorpdfstring{\_parse\_single\_requirement()}{\_parse\_single\_requirement()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__requirements__dev_a1d98458011c778690270b664e89e9d0d} 
+ tuple tests.\+integration.\+test\+\_\+requirements\+\_\+dev.\+\_\+parse\+\_\+single\+\_\+requirement (\begin{DoxyParamCaption}\item[{str}]{line}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Parse a single requirement line into (package, version_spec) tuple.
+
+Args:
+    line: A stripped, non-empty, non-comment line from the requirements file.
+
+Returns:
+    A tuple of (package_name, version_specifier) or None if parsing fails.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1integration_1_1test__requirements__dev_a1d98458011c778690270b664e89e9d0d_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacetests_1_1integration_1_1test__requirements__dev_a28656bbba69e63a658555ed6989a9a1b}\index{tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}!parse\_requirements@{parse\_requirements}}
+\index{parse\_requirements@{parse\_requirements}!tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}}
+\doxysubsubsection{\texorpdfstring{parse\_requirements()}{parse\_requirements()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__requirements__dev_a28656bbba69e63a658555ed6989a9a1b} 
+ List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} tests.\+integration.\+test\+\_\+requirements\+\_\+dev.\+parse\+\_\+requirements (\begin{DoxyParamCaption}\item[{Path}]{file\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse requirements file and return list of (package, version_spec) tuples.
+Examples:
+    Input line: "requests>=2.25.0"
+    Output: ("requests", ">=2.25.0")
+
+    Input line: "pytest>=6.0,<7.0 # testing framework"
+    Output: ("pytest", ">=6.0,<7.0")
+
+    Input line: "pandas"
+    Output: ("pandas", "")
+
+    Input line: "package[extra1,extra2]>=1.0"
+    Output: ("package", ">=1.0")
+Raises:
+    ValueError: If a requirement line is malformed.
+    OSError: If the requirements file could not be opened or read.
+...
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1integration_1_1test__requirements__dev_a28656bbba69e63a658555ed6989a9a1b_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacetests_1_1integration_1_1test__requirements__dev_a0e99790ad4cd3ca0e45a21b27b42e0c1}\index{tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}!parsed\_requirements@{parsed\_requirements}}
+\index{parsed\_requirements@{parsed\_requirements}!tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}}
+\doxysubsubsection{\texorpdfstring{parsed\_requirements()}{parsed\_requirements()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__requirements__dev_a0e99790ad4cd3ca0e45a21b27b42e0c1} 
+ List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} tests.\+integration.\+test\+\_\+requirements\+\_\+dev.\+parsed\+\_\+requirements (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse requirements file and return list of (package, version_spec) tuples.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1integration_1_1test__requirements__dev_a0e99790ad4cd3ca0e45a21b27b42e0c1_cgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetests_1_1integration_1_1test__requirements__dev_a32289b3f4166f09591fea4e6cfc29ea6}\index{tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}!REQUIREMENTS\_FILE@{REQUIREMENTS\_FILE}}
+\index{REQUIREMENTS\_FILE@{REQUIREMENTS\_FILE}!tests.integration.test\_requirements\_dev@{tests.integration.test\_requirements\_dev}}
+\doxysubsubsection{\texorpdfstring{REQUIREMENTS\_FILE}{REQUIREMENTS\_FILE}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__requirements__dev_a32289b3f4166f09591fea4e6cfc29ea6} 
+str tests.\+integration.\+test\+\_\+requirements\+\_\+dev.\+REQUIREMENTS\+\_\+\+FILE = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent / "{}requirements-\/dev.\+txt"{}}
+

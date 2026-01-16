@@ -1,0 +1,321 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacegraph__2d__visuals" kind="namespace" language="Python">
+    <compoundname>graph_2d_visuals</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacegraph__2d__visuals_1afab3541f0c20f4ecbf3218007e938fd3" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>graph_2d_visuals.logger</definition>
+        <argsstring></argsstring>
+        <name>logger</name>
+        <qualifiedname>graph_2d_visuals.logger</qualifiedname>
+        <initializer>=  logging.getLogger(__name__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" line="20" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacegraph__2d__visuals_1abcc8c998067dec6d248acf8c62293914" prot="public" static="no" mutable="no">
+        <type>dict</type>
+        <definition>dict graph_2d_visuals.REL_TYPE_COLORS</definition>
+        <argsstring></argsstring>
+        <name>REL_TYPE_COLORS</name>
+        <qualifiedname>graph_2d_visuals.REL_TYPE_COLORS</qualifiedname>
+        <initializer>=  {
+    &quot;same_sector&quot;: &quot;#FF6B6B&quot;,
+    &quot;market_cap_similar&quot;: &quot;#4ECDC4&quot;,
+    &quot;correlation&quot;: &quot;#45B7D1&quot;,
+    &quot;corporate_bond_to_equity&quot;: &quot;#96CEB4&quot;,
+    &quot;commodity_currency&quot;: &quot;#FFEAA7&quot;,
+    &quot;income_comparison&quot;: &quot;#DDA0DD&quot;,
+    &quot;regulatory_impact&quot;: &quot;#FFA07A&quot;,
+}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" line="23" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" bodystart="23" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacegraph__2d__visuals_1a64cb4091385f11e59bcd0eb6e77c8a3f" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Tuple[float, float]]</type>
+        <definition> Dict[str, Tuple[float, float]] graph_2d_visuals._create_circular_layout</definition>
+        <argsstring>(List[str] asset_ids)</argsstring>
+        <name>_create_circular_layout</name>
+        <qualifiedname>graph_2d_visuals._create_circular_layout</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create circular layout for 2D visualization.
+
+Args:
+    asset_ids: List of asset IDs to position
+
+Returns:
+    Dictionary mapping asset IDs to (x, y) positions on a unit circle
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" line="34" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" bodystart="34" bodyend="57"/>
+        <referencedby refid="namespacegraph__2d__visuals_1a97a7e05141b23b017dab24618910c8c8" compoundref="graph__2d__visuals_8py" startline="236" endline="421">visualize_2d_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__2d__visuals_1aefa05cca95437bedcafcfcc83c332614" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Tuple[float, float]]</type>
+        <definition> Dict[str, Tuple[float, float]] graph_2d_visuals._create_grid_layout</definition>
+        <argsstring>(List[str] asset_ids)</argsstring>
+        <name>_create_grid_layout</name>
+        <qualifiedname>graph_2d_visuals._create_grid_layout</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create grid layout for 2D visualization.
+
+Args:
+    asset_ids: List of asset IDs to position
+
+Returns:
+    Dictionary mapping asset IDs to (x, y) positions in a grid
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" line="58" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" bodystart="58" bodyend="81"/>
+        <referencedby refid="namespacegraph__2d__visuals_1a97a7e05141b23b017dab24618910c8c8" compoundref="graph__2d__visuals_8py" startline="236" endline="421">visualize_2d_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__2d__visuals_1a165b9e325029f53ba7ca0bf8605a40aa" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Tuple[float, float]]</type>
+        <definition> Dict[str, Tuple[float, float]] graph_2d_visuals._create_spring_layout_2d</definition>
+        <argsstring>(Dict[str, Tuple[float, float, float]] positions_3d, List[str] asset_ids)</argsstring>
+        <name>_create_spring_layout_2d</name>
+        <qualifiedname>graph_2d_visuals._create_spring_layout_2d</qualifiedname>
+        <param>
+          <type>Dict]</type>
+          <declname>positions_3d</declname>
+          <array>[str, Tuple[float, float, float]</array>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Convert 3D spring layout positions to 2D by dropping z-coordinate.
+
+Args:
+    positions_3d: Dictionary mapping asset IDs to (x, y, z) positions
+    asset_ids: List of asset IDs
+
+Returns:
+    Dictionary mapping asset IDs to (x, y) positions
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" line="82" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" bodystart="84" bodyend="107"/>
+        <referencedby refid="namespacegraph__2d__visuals_1a97a7e05141b23b017dab24618910c8c8" compoundref="graph__2d__visuals_8py" startline="236" endline="421">visualize_2d_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__2d__visuals_1a3c29db703c3db7f334f690de7193b3d0" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[go.Scatter]</type>
+        <definition> List[go.Scatter] graph_2d_visuals._create_2d_relationship_traces</definition>
+        <argsstring>(AssetRelationshipGraph graph, Dict[str, Tuple[float, float]] positions, List[str] asset_ids, bool show_same_sector=True, bool show_market_cap=True, bool show_correlation=True, bool show_corporate_bond=True, bool show_commodity_currency=True, bool show_income_comparison=True, bool show_regulatory=True, bool show_all_relationships=False)</argsstring>
+        <name>_create_2d_relationship_traces</name>
+        <qualifiedname>graph_2d_visuals._create_2d_relationship_traces</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <param>
+          <type>Dict]</type>
+          <declname>positions</declname>
+          <array>[str, Tuple[float, float]</array>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_same_sector</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_market_cap</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_correlation</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_corporate_bond</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_commodity_currency</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_income_comparison</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_regulatory</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_all_relationships</declname>
+          <defval>False</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create 2D relationship traces with filtering.
+
+Args:
+    graph: Asset relationship graph
+    positions: Dictionary mapping asset IDs to (x, y) positions
+    asset_ids: List of asset IDs
+    show_same_sector: Show same sector relationships
+    show_market_cap: Show market cap relationships
+    show_correlation: Show correlation relationships
+    show_corporate_bond: Show corporate bond relationships
+    show_commodity_currency: Show commodity currency relationships
+    show_income_comparison: Show income comparison relationships
+    show_regulatory: Show regulatory relationships
+    show_all_relationships: Master toggle to show all relationships
+
+Returns:
+    List of Plotly Scatter traces for relationships
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" line="108" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" bodystart="120" bodyend="224"/>
+        <referencedby refid="namespacegraph__2d__visuals_1a97a7e05141b23b017dab24618910c8c8" compoundref="graph__2d__visuals_8py" startline="236" endline="421">visualize_2d_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__2d__visuals_1a97a7e05141b23b017dab24618910c8c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>go.Figure</type>
+        <definition> go.Figure graph_2d_visuals.visualize_2d_graph</definition>
+        <argsstring>(AssetRelationshipGraph graph, str layout_type=&quot;spring&quot;, bool show_same_sector=True, bool show_market_cap=True, bool show_correlation=True, bool show_corporate_bond=True, bool show_commodity_currency=True, bool show_income_comparison=True, bool show_regulatory=True, bool show_all_relationships=False)</argsstring>
+        <name>visualize_2d_graph</name>
+        <qualifiedname>graph_2d_visuals.visualize_2d_graph</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>layout_type</declname>
+          <defval>&quot;spring&quot;</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_same_sector</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_market_cap</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_correlation</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_corporate_bond</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_commodity_currency</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_income_comparison</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_regulatory</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_all_relationships</declname>
+          <defval>False</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create 2D visualization of asset relationship graph.
+
+Args:
+    graph: Asset relationship graph to visualize
+    layout_type: Layout algorithm to use (&apos;spring&apos;, &apos;circular&apos;, &apos;grid&apos;)
+    show_same_sector: Show same sector relationships
+    show_market_cap: Show market cap relationships
+    show_correlation: Show correlation relationships
+    show_corporate_bond: Show corporate bond relationships
+    show_commodity_currency: Show commodity currency relationships
+    show_income_comparison: Show income comparison relationships
+    show_regulatory: Show regulatory relationships
+    show_all_relationships: Master toggle to show all relationships
+
+Returns:
+    Plotly Figure object with 2D visualization
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" line="225" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" bodystart="236" bodyend="421"/>
+        <references refid="namespacegraph__2d__visuals_1a3c29db703c3db7f334f690de7193b3d0" compoundref="graph__2d__visuals_8py" startline="120" endline="224">_create_2d_relationship_traces</references>
+        <references refid="namespacegraph__2d__visuals_1a64cb4091385f11e59bcd0eb6e77c8a3f" compoundref="graph__2d__visuals_8py" startline="34" endline="57">_create_circular_layout</references>
+        <references refid="namespacegraph__2d__visuals_1aefa05cca95437bedcafcfcc83c332614" compoundref="graph__2d__visuals_8py" startline="58" endline="81">_create_grid_layout</references>
+        <references refid="namespacegraph__2d__visuals_1a165b9e325029f53ba7ca0bf8605a40aa" compoundref="graph__2d__visuals_8py" startline="84" endline="107">_create_spring_layout_2d</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>2D graph visualization module for financial asset relationships.
+
+This module provides 2D visualization capabilities for asset relationship
+graphs,
+including multiple layout algorithms (spring, circular, grid) and
+relationship filtering.
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

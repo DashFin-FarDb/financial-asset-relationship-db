@@ -1,0 +1,17 @@
+<map id="BaseModel" name="BaseModel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="471,5,557,71"/>
+<area shape="rect" id="Node000002" href="$classapi_1_1auth_1_1Token.html" title=" " alt="" coords="5,139,113,204"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="457,46,388,53,304,67,214,89,127,121,95,141,93,136,125,116,212,84,303,62,387,48,457,40"/>
+<area shape="rect" id="Node000003" href="$classapi_1_1auth_1_1TokenData.html" title=" " alt="" coords="138,139,277,204"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="458,58,377,85,290,121,254,141,252,136,288,116,375,80,457,53"/>
+<area shape="rect" id="Node000004" href="$classapi_1_1auth_1_1User.html" title=" " alt="" coords="301,119,402,224"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="465,81,416,121,404,130,401,126,412,117,462,77"/>
+<area shape="rect" id="Node000005" href="$classapi_1_1main_1_1AssetResponse.html" title=" " alt="" coords="427,119,601,224"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="517,85,517,118,511,118,511,85"/>
+<area shape="rect" id="Node000006" href="$classapi_1_1main_1_1MetricsResponse.html" title=" " alt="" coords="626,129,813,214"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="571,72,655,126,653,131,568,77"/>
+<area shape="rect" id="Node000007" href="$classapi_1_1main_1_1RelationshipResponse.html" title=" " alt="" coords="837,139,1055,204"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="572,49,689,76,826,116,878,136,876,141,824,121,688,82,570,54"/>
+<area shape="rect" id="Node000008" href="$classapi_1_1main_1_1VisualizationDataResponse.html" title=" " alt="" coords="1080,121,1271,221"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="571,39,667,46,792,60,930,82,1068,116,1081,120,1079,125,1067,121,929,88,791,65,667,51,571,45"/>
+</map>

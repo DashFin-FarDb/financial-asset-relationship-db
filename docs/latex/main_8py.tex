@@ -1,0 +1,30 @@
+\doxysection{/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/main.py File Reference}
+\hypertarget{main_8py}{}\label{main_8py}\index{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/main.py@{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/main.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacemain}{main}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacemain_ac7c3e724888f8970185b6700a5e23480}{main.\+DATABASE\+\_\+\+URL}} = os.\+getenv("{}DATABASE\+\_\+\+URL"{})
+\item 
+\mbox{\hyperlink{namespacemain_a6ae7a142738d3da435d6a12acac9cee9}{main.\+SUPABASE\+\_\+\+URL}} = os.\+getenv("{}SUPABASE\+\_\+\+URL"{})
+\item 
+\mbox{\hyperlink{namespacemain_a8448f75dbb0a13e3f93f6159aced604d}{main.\+SUPABASE\+\_\+\+KEY}} = os.\+getenv("{}SUPABASE\+\_\+\+KEY"{})
+\item 
+\mbox{\hyperlink{namespacemain_ab2fc4beca5ea50467e02d215a5f83c97}{main.\+CERT\+\_\+\+PATH}} = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}prod-\/ca-\/2021.crt"{})
+\item 
+Client \mbox{\hyperlink{namespacemain_ae85c3b07de28b8cfd2db3c505539bf7b}{main.\+supabase}} = create\+\_\+client(\mbox{\hyperlink{namespacemain_a6ae7a142738d3da435d6a12acac9cee9}{SUPABASE\+\_\+\+URL}}, \mbox{\hyperlink{namespacemain_a8448f75dbb0a13e3f93f6159aced604d}{SUPABASE\+\_\+\+KEY}})
+\item 
+Client \mbox{\hyperlink{namespacemain_a3deb03c0fa62bbd5a94d0a2a9a82122c}{main.\+response}} = supabase.\+table("{}transactions"{}).select("{}\texorpdfstring{$\ast$}{*}"{}).limit(1).execute()
+\item 
+\mbox{\hyperlink{namespacemain_a3e16089d2114f551b9d0c3cef0192abc}{main.\+updated\+\_\+db\+\_\+url}} = \mbox{\hyperlink{namespacemain_ac7c3e724888f8970185b6700a5e23480}{DATABASE\+\_\+\+URL}}
+\item 
+\mbox{\hyperlink{namespacemain_accdd965a6793cbd3ef392b9d0dd07144}{main.\+connection}}
+\item 
+\mbox{\hyperlink{namespacemain_aca1fa5ef8f4afcee47fccb54716d59be}{main.\+cursor}} = connection.\+cursor()
+\item 
+\mbox{\hyperlink{namespacemain_af5054e7cee59f93add27ee4d97cb586a}{main.\+result}} = cursor.\+fetchone()
+\end{DoxyCompactItemize}

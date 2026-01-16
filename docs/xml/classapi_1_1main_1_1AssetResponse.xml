@@ -1,0 +1,106 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classapi_1_1main_1_1AssetResponse" kind="class" language="Python" prot="public">
+    <compoundname>api::main::AssetResponse</compoundname>
+    <basecompoundref refid="classBaseModel" prot="public" virt="non-virtual">BaseModel</basecompoundref>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classapi_1_1main_1_1AssetResponse_1a4a331115de6b11260de69dd808031e93" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional api.main.AssetResponse::market_cap</definition>
+        <argsstring></argsstring>
+        <name>market_cap</name>
+        <qualifiedname>api.main.AssetResponse.market_cap</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="403" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="403" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapi_1_1main_1_1AssetResponse_1a710231842254e51dac82c9c23045b3ad" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str api.main.AssetResponse::currency</definition>
+        <argsstring></argsstring>
+        <name>currency</name>
+        <qualifiedname>api.main.AssetResponse.currency</qualifiedname>
+        <initializer>=  &quot;USD&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="404" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="404" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapi_1_1main_1_1AssetResponse_1a850667a2d252413a6cc4e2577e9c2011" prot="public" static="yes" mutable="no">
+        <type>dict</type>
+        <definition>dict api.main.AssetResponse::additional_fields</definition>
+        <argsstring></argsstring>
+        <name>additional_fields</name>
+        <qualifiedname>api.main.AssetResponse.additional_fields</qualifiedname>
+        <initializer>=  {}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="405" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="405" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>BaseModel</label>
+        <link refid="classBaseModel"/>
+      </node>
+      <node id="1">
+        <label>api.main.AssetResponse</label>
+        <link refid="classapi_1_1main_1_1AssetResponse"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>BaseModel</label>
+        <link refid="classBaseModel"/>
+      </node>
+      <node id="3">
+        <label>Optional</label>
+      </node>
+      <node id="1">
+        <label>api.main.AssetResponse</label>
+        <link refid="classapi_1_1main_1_1AssetResponse"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>+market_cap</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>+currency</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>+additional_fields</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>dict</label>
+      </node>
+      <node id="4">
+        <label>str</label>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="396" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="396" bodyend="407"/>
+    <listofallmembers>
+      <member refid="classapi_1_1main_1_1AssetResponse_1a850667a2d252413a6cc4e2577e9c2011" prot="public" virt="non-virtual"><scope>api::main::AssetResponse</scope><name>additional_fields</name></member>
+      <member refid="classapi_1_1main_1_1AssetResponse_1a710231842254e51dac82c9c23045b3ad" prot="public" virt="non-virtual"><scope>api::main::AssetResponse</scope><name>currency</name></member>
+      <member refid="classapi_1_1main_1_1AssetResponse_1a4a331115de6b11260de69dd808031e93" prot="public" virt="non-virtual"><scope>api::main::AssetResponse</scope><name>market_cap</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

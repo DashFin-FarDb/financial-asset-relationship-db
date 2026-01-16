@@ -1,0 +1,6 @@
+var classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds =
+[
+    [ "test_has_pytest_for_testing", "classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds.html#aa0cb39ebc4f7da267f685a92cbb46187", null ],
+    [ "test_has_required_dev_tools", "classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds.html#ac0cd765798b9060489b4174d6030f6bb", null ],
+    [ "test_requirements_support_python_version_in_workflow", "classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds.html#ab7e8e269ab340d2b02f26c493fabfdd2", null ]
+];

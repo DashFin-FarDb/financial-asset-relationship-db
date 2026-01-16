@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_workflow_validator::TestValidationResultBehavior</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior_1acef7abe92ce266eb6bd828248fbe8a09" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidationResultBehavior.test_validation_result_with_multiple_errors</definition>
+        <argsstring>()</argsstring>
+        <name>test_validation_result_with_multiple_errors</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidationResultBehavior.test_validation_result_with_multiple_errors</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test ValidationResult with multiple error messages</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="748" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="748" bodyend="755"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior_1a289d601de2e9a15a1dc43d1d17cc975c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidationResultBehavior.test_validation_result_with_empty_error_list</definition>
+        <argsstring>()</argsstring>
+        <name>test_validation_result_with_empty_error_list</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidationResultBehavior.test_validation_result_with_empty_error_list</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test valid ValidationResult with empty error list</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="757" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="757" bodyend="763"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior_1af19c997e3f5f7bf809aae4e490b2cfad" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidationResultBehavior.test_validation_result_preserves_complex_workflow_data</definition>
+        <argsstring>()</argsstring>
+        <name>test_validation_result_preserves_complex_workflow_data</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidationResultBehavior.test_validation_result_preserves_complex_workflow_data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that ValidationResult preserves complex nested workflow data</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="765" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="765" bodyend="781"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior_1afe623caea22532db17dac91ca557e059" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidationResultBehavior.test_validation_result_error_message_types</definition>
+        <argsstring>()</argsstring>
+        <name>test_validation_result_error_message_types</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidationResultBehavior.test_validation_result_error_message_types</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that error messages can be various string types</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="783" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="783" bodyend="795"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test ValidationResult behavior and edge cases</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_workflow_validator.TestValidationResultBehavior</label>
+        <link refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="744" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="744" bodyend="795"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior_1afe623caea22532db17dac91ca557e059" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidationResultBehavior</scope><name>test_validation_result_error_message_types</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior_1af19c997e3f5f7bf809aae4e490b2cfad" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidationResultBehavior</scope><name>test_validation_result_preserves_complex_workflow_data</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior_1a289d601de2e9a15a1dc43d1d17cc975c" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidationResultBehavior</scope><name>test_validation_result_with_empty_error_list</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior_1acef7abe92ce266eb6bd828248fbe8a09" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidationResultBehavior</scope><name>test_validation_result_with_multiple_errors</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

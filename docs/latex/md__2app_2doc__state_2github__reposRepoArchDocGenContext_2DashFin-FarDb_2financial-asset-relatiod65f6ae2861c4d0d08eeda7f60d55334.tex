@@ -1,0 +1,46 @@
+\chapter{Open PRs Resolution Analysis}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334}\index{Open PRs Resolution Analysis@{Open PRs Resolution Analysis}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3382}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3382}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3383}{}\doxysection{\texorpdfstring{Summary}{Summary}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3383}
+Generated on\+: 2025-\/12-\/08 Total Open PRs\+: 43\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3384}{}\doxysection{\texorpdfstring{Successfully Merged PRs}{Successfully Merged PRs}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3384}
+
+\begin{DoxyItemize}
+\item {\bfseries{PR \#239}}\+: Align pr-\/agent workflow tests with trigger job key -\/ ✅ MERGED
+\item {\bfseries{PR \#254}}\+: Fix pr-\/agent workflow parsing and dev requirements formatting -\/ ✅ MERGED
+\item {\bfseries{PR \#322}}\+: Remove duplicated empty test causing Indentation\+Error -\/ ✅ MERGED
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3385}{}\doxysection{\texorpdfstring{PRs with Unrelated Histories (Cannot be merged)}{PRs with Unrelated Histories (Cannot be merged)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3385}
+These PRs have branches with completely unrelated Git histories and cannot be merged into main\+:
+
+
+\begin{DoxyItemize}
+\item PR \#181 (patch branch)
+\item PR \#286 (codex/fix-\/env-\/var-\/naming-\/test-\/issue)
+\item PR \#395 (copilot/sub-\/pr-\/394)
+\item Many others
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3386}{}\doxysubsection{\texorpdfstring{Root Cause}{Root Cause}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3386}
+The branches were created from different base commits or imported from external sources, causing Git to reject merges with "{}fatal\+: refusing to merge unrelated histories"{}.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3387}{}\doxysection{\texorpdfstring{PRs Targeting Non-\/existent Files}{PRs Targeting Non-\/existent Files}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3387}
+Many PRs attempt to modify files that don\textquotesingle{}t exist in the main branch\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{test__pr__agent__config__validation_8py}{tests/integration/test\+\_\+pr\+\_\+agent\+\_\+config\+\_\+validation.\+py}}
+\item Various test and documentation files
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3388}{}\doxysection{\texorpdfstring{Recommended Actions}{Recommended Actions}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3388}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3389}{}\doxysubsection{\texorpdfstring{1. Close Stale PRs}{1. Close Stale PRs}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3389}
+PRs older than 30 days with unrelated histories or targeting non-\/existent files should be closed with explanation.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3390}{}\doxysubsection{\texorpdfstring{2. Recreate Valid Changes}{2. Recreate Valid Changes}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3390}
+If any PR contains valid changes\+:
+
+
+\begin{DoxyItemize}
+\item Cherry-\/pick the changes into a new branch from main
+\item Create a fresh PR with proper history
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3391}{}\doxysubsection{\texorpdfstring{3. Consolidate Duplicate PRs}{3. Consolidate Duplicate PRs}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3391}
+Many PRs have similar titles and goals. Consolidate these into single PRs.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3392}{}\doxysection{\texorpdfstring{Next Steps}{Next Steps}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_autotoc_md3392}
+
+\begin{DoxyEnumerate}
+\item Review each PR individually
+\item Close PRs that cannot be merged
+\item Extract and recreate valid changes in fresh branches
+\item Update documentation to prevent future unrelated history issues 
+\end{DoxyEnumerate}

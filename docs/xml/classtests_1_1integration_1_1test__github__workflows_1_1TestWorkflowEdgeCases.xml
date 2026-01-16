@@ -1,0 +1,155 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1ab187900cabd62ef1fb64ff69d21dd109" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_directory_exists</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_directory_exists</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_directory_exists</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that .github/workflows directory exists.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="573" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="573" bodyend="577"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1aeffab4253aba3a0f5b161f2cf0b03d99" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_at_least_one_workflow_exists</definition>
+        <argsstring>()</argsstring>
+        <name>test_at_least_one_workflow_exists</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_at_least_one_workflow_exists</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that at least one workflow file exists.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="579" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="579" bodyend="585"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a1d334a0bab9d1d69c23a0ae302fc70ad" compoundref="test__github__workflows_8py" startline="52" endline="64">tests.integration.test_github_workflows.get_workflow_files</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1ae91b3905c5a272679a75f07dfcd47490" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_file_extension</definition>
+        <argsstring>(Path workflow_file)</argsstring>
+        <name>test_workflow_file_extension</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_file_extension</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify that a workflow file uses the .yml or .yaml extension.
+
+Parameters:
+    workflow_file (Path): Path to the workflow file being tested.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="588" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="588" bodyend="601"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1a3c8a521c3f62fea100681c6a45826be0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_encoding</definition>
+        <argsstring>(Path workflow_file)</argsstring>
+        <name>test_workflow_encoding</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_encoding</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow files use UTF-8 encoding.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="604" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="604" bodyend="613"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1a02cc2ea6d38f421a8c72ec90b64c0ff7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_no_tabs</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_no_tabs</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_no_tabs</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure the workflow YAML file contains no tab characters.
+
+Fails the test if any tab character is present, because YAML indentation must use spaces rather than tabs.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="615" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="615" bodyend="627"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1ac35835f8c00a916ee81f3f0bafc03767" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_consistent_indentation</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_consistent_indentation</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowEdgeCases.test_workflow_consistent_indentation</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure all non-empty, non-comment lines in the workflow file use indentation in multiples of two spaces.
+
+This test checks the leading-space count of significant lines and fails if any line&apos;s indentation is not a multiple of 2.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="629" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="629" bodyend="655"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for edge cases and error conditions.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowEdgeCases</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="569" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="569" bodyend="655"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1aeffab4253aba3a0f5b161f2cf0b03d99" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowEdgeCases</scope><name>test_at_least_one_workflow_exists</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1ac35835f8c00a916ee81f3f0bafc03767" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowEdgeCases</scope><name>test_workflow_consistent_indentation</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1ab187900cabd62ef1fb64ff69d21dd109" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowEdgeCases</scope><name>test_workflow_directory_exists</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1a3c8a521c3f62fea100681c6a45826be0" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowEdgeCases</scope><name>test_workflow_encoding</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1ae91b3905c5a272679a75f07dfcd47490" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowEdgeCases</scope><name>test_workflow_file_extension</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_1a02cc2ea6d38f421a8c72ec90b64c0ff7" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowEdgeCases</scope><name>test_workflow_no_tabs</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

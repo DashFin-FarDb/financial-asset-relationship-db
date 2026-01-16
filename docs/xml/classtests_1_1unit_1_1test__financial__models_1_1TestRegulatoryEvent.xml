@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_financial_models::TestRegulatoryEvent</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent_1a6436cc68fe3230f715cdf180228ab239" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_financial_models.TestRegulatoryEvent.test_event_creation</definition>
+        <argsstring>(sample_regulatory_event)</argsstring>
+        <name>test_event_creation</name>
+        <qualifiedname>tests.unit.test_financial_models.TestRegulatoryEvent.test_event_creation</qualifiedname>
+        <param>
+          <type>sample_regulatory_event</type>
+          <defname>sample_regulatory_event</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test creating a valid regulatory event.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" line="191" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" bodystart="191" bodyend="197"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent_1a292bea3dfce0ba1f00fbe9c3f8721c81" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_financial_models.TestRegulatoryEvent.test_event_invalid_impact_score</definition>
+        <argsstring>()</argsstring>
+        <name>test_event_invalid_impact_score</name>
+        <qualifiedname>tests.unit.test_financial_models.TestRegulatoryEvent.test_event_invalid_impact_score</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that impact score outside [-1, 1] raises ValueError.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" line="199" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" bodystart="199" bodyend="212"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent_1a4406504862dd337bcfe06db4048da899" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_financial_models.TestRegulatoryEvent.test_event_invalid_date</definition>
+        <argsstring>()</argsstring>
+        <name>test_event_invalid_date</name>
+        <qualifiedname>tests.unit.test_financial_models.TestRegulatoryEvent.test_event_invalid_date</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that invalid date format raises ValueError.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" line="214" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" bodystart="214" bodyend="225"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent_1a87d2f514599f40b50cefeec747a734a2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_financial_models.TestRegulatoryEvent.test_event_empty_description</definition>
+        <argsstring>()</argsstring>
+        <name>test_event_empty_description</name>
+        <qualifiedname>tests.unit.test_financial_models.TestRegulatoryEvent.test_event_empty_description</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that empty description raises ValueError.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" line="227" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" bodystart="227" bodyend="238"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for the RegulatoryEvent class.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_financial_models.TestRegulatoryEvent</label>
+        <link refid="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" line="187" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_financial_models.py" bodystart="187" bodyend="238"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent_1a6436cc68fe3230f715cdf180228ab239" prot="public" virt="non-virtual"><scope>tests::unit::test_financial_models::TestRegulatoryEvent</scope><name>test_event_creation</name></member>
+      <member refid="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent_1a87d2f514599f40b50cefeec747a734a2" prot="public" virt="non-virtual"><scope>tests::unit::test_financial_models::TestRegulatoryEvent</scope><name>test_event_empty_description</name></member>
+      <member refid="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent_1a4406504862dd337bcfe06db4048da899" prot="public" virt="non-virtual"><scope>tests::unit::test_financial_models::TestRegulatoryEvent</scope><name>test_event_invalid_date</name></member>
+      <member refid="classtests_1_1unit_1_1test__financial__models_1_1TestRegulatoryEvent_1a292bea3dfce0ba1f00fbe9c3f8721c81" prot="public" virt="non-virtual"><scope>tests::unit::test_financial_models::TestRegulatoryEvent</scope><name>test_event_invalid_impact_score</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

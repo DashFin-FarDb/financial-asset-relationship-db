@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1integration" kind="namespace" language="Python">
+    <compoundname>tests::integration</compoundname>
+    <innernamespace refid="namespacetests_1_1integration_1_1conftest">tests::integration::conftest</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__api__integration">tests::integration::test_api_integration</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__branch__integration">tests::integration::test_branch_integration</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__debricked__workflow">tests::integration::test_debricked_workflow</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__documentation__files__validation">tests::integration::test_documentation_files_validation</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__documentation__validation">tests::integration::test_documentation_validation</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__github__workflows">tests::integration::test_github_workflows</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__github__workflows__helpers">tests::integration::test_github_workflows_helpers</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__modified__config__files__validation">tests::integration::test_modified_config_files_validation</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__pr__agent__config__validation">tests::integration::test_pr_agent_config_validation</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__pr__agent__workflow__specific">tests::integration::test_pr_agent_workflow_specific</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__repository">tests::integration::test_repository</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__requirements">tests::integration::test_requirements</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__requirements__dev">tests::integration::test_requirements_dev</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__requirements__pyyaml">tests::integration::test_requirements_pyyaml</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__requirements__validation">tests::integration::test_requirements_validation</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__workflow__changes__validation">tests::integration::test_workflow_changes_validation</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__workflow__config__changes">tests::integration::test_workflow_config_changes</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__workflow__documentation">tests::integration::test_workflow_documentation</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__workflow__requirements__integration">tests::integration::test_workflow_requirements_integration</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__workflow__security__advanced">tests::integration::test_workflow_security_advanced</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__workflow__yaml__validation">tests::integration::test_workflow_yaml_validation</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__yaml__config__validation">tests::integration::test_yaml_config_validation</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/__init__.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

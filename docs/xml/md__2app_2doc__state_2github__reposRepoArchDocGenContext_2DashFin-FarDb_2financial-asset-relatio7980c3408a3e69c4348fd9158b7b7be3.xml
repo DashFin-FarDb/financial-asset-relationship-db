@@ -1,0 +1,218 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SCRIPT__ERROR__HANDLING</compoundname>
+    <title>Script Error Handling Documentation</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3571"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3572">
+<title>Overview</title><para>Both PR cleanup scripts now include comprehensive error handling to address code review feedback.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3573">
+<title>Error Checks Implemented</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3574">
+<title>close_unmergeable_prs.sh</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3575">
+<title>Prerequisites Validation</title><para><itemizedlist>
+<listitem><para>✅ <bold>GitHub CLI (<computeroutput>gh</computeroutput>) installation check</bold><itemizedlist>
+<listitem><para>Verifies <computeroutput>gh</computeroutput> command is available</para>
+</listitem><listitem><para>Exits with clear error message if missing</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>✅ <bold>GitHub authentication check</bold><itemizedlist>
+<listitem><para>Validates user is logged in via <computeroutput>gh auth status</computeroutput></para>
+</listitem><listitem><para>Prevents API call failures</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>✅ <bold>jq installation check</bold><itemizedlist>
+<listitem><para>Ensures JSON parsing tool is available</para>
+</listitem><listitem><para>Required for processing PR data</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3576">
+<title>Operation Error Handling</title><para><itemizedlist>
+<listitem><para>✅ <bold>API call failures</bold><itemizedlist>
+<listitem><para>Catches errors from <computeroutput>gh pr list</computeroutput></para>
+</listitem><listitem><para>Handles JSON parsing errors from <computeroutput>jq</computeroutput></para>
+</listitem><listitem><para>Exits with descriptive error messages</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>✅ <bold>Empty results handling</bold><itemizedlist>
+<listitem><para>Checks if conflicting_prs.txt is empty or missing</para>
+</listitem><listitem><para>Provides clear &quot;No conflicting PRs found&quot; message</para>
+</listitem><listitem><para>Prevents confusion from silent failures</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>✅ <bold>Per-PR error handling</bold><itemizedlist>
+<listitem><para>Individual PR view failures don&apos;t stop the script</para>
+</listitem><listitem><para>Errors logged to stderr for problematic PRs</para>
+</listitem><listitem><para>Script continues processing remaining PRs</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>✅ <bold>Cleanup</bold><itemizedlist>
+<listitem><para>Removes temporary file <computeroutput>/tmp/conflicting_prs.txt</computeroutput></para>
+</listitem><listitem><para>Prevents stale data from affecting subsequent runs</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3577">
+<title>close_unmergeable_prs_script.sh</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3578">
+<title>Prerequisites Validation</title><para><itemizedlist>
+<listitem><para>✅ <bold>GitHub CLI (<computeroutput>gh</computeroutput>) installation check</bold></para>
+</listitem><listitem><para>✅ <bold>GitHub authentication check</bold></para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3579">
+<title>Input Validation</title><para><itemizedlist>
+<listitem><para>✅ <bold>Missing PR number check</bold><itemizedlist>
+<listitem><para>Validates PR argument is provided</para>
+</listitem><listitem><para>Shows usage message if missing</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>✅ <bold>PR number format validation</bold><itemizedlist>
+<listitem><para>Ensures PR number is numeric (positive integer)</para>
+</listitem><listitem><para>Prevents invalid API calls</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3580">
+<title>Operation Error Handling</title><para><itemizedlist>
+<listitem><para>✅ <bold>PR close operation failure</bold><itemizedlist>
+<listitem><para>Catches <computeroutput>gh pr close</computeroutput> command failures</para>
+</listitem><listitem><para>Handles invalid PR numbers</para>
+</listitem><listitem><para>Handles permission errors</para>
+</listitem><listitem><para>Provides clear error messages</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>✅ <bold>Success confirmation</bold><itemizedlist>
+<listitem><para>Displays &quot;Successfully closed PR #XXX&quot; on success</para>
+</listitem><listitem><para>Clear feedback for successful operations</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3581">
+<title>Error Message Standards</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3582">
+<title>stderr Usage</title><para>All error messages are directed to stderr (<computeroutput>&gt;&amp;2</computeroutput>) following best practices:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">echo<sp/>&quot;Error:<sp/>message&quot;<sp/>&gt;&amp;2</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3583">
+<title>Exit Codes</title><para><itemizedlist>
+<listitem><para><computeroutput>0</computeroutput> - Success or no PRs found</para>
+</listitem><listitem><para><computeroutput>1</computeroutput> - Error (missing tool, auth failure, operation failure)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3584">
+<title>Error Message Format</title><para><programlisting><codeline><highlight class="normal">Error:<sp/>[Clear<sp/>description<sp/>of<sp/>what<sp/>went<sp/>wrong]</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3585">
+<title>Testing</title><para>Run the included test script to verify error handling:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">bash<sp/>test_scripts.sh</highlight></codeline>
+</programlisting></para>
+<para>Expected output:</para>
+<para><programlisting><codeline><highlight class="normal">✅<sp/>gh<sp/>CLI<sp/>detected<sp/>successfully</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>Correctly<sp/>requires<sp/>PR<sp/>number</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>Correctly<sp/>validates<sp/>numeric<sp/>PR<sp/>number</highlight></codeline>
+<codeline><highlight class="normal">All<sp/>error<sp/>handling<sp/>tests<sp/>passed!<sp/>✅</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3586">
+<title>Usage Examples</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3587">
+<title>Safe execution of close_unmergeable_prs.sh</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Script<sp/>will:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>1.<sp/>Check<sp/>for<sp/>gh<sp/>CLI<sp/>and<sp/>jq</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>2.<sp/>Verify<sp/>authentication</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>3.<sp/>Safely<sp/>handle<sp/>empty<sp/>results</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>4.<sp/>Continue<sp/>on<sp/>individual<sp/>PR<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>5.<sp/>Clean<sp/>up<sp/>temporary<sp/>files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">bash<sp/>close_unmergeable_prs.sh</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3588">
+<title>Safe execution of close_unmergeable_prs_script.sh</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Valid<sp/>usage</highlight></codeline>
+<codeline><highlight class="normal">bash<sp/>close_unmergeable_prs_script.sh<sp/>123</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Invalid<sp/>usage<sp/>(caught<sp/>by<sp/>validation)</highlight></codeline>
+<codeline><highlight class="normal">bash<sp/>close_unmergeable_prs_script.sh<sp/>abc<sp/><sp/>#<sp/>Error:<sp/>must<sp/>be<sp/>numeric</highlight></codeline>
+<codeline><highlight class="normal">bash<sp/>close_unmergeable_prs_script.sh<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Error:<sp/>missing<sp/>PR<sp/>number</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3589">
+<title>Code Review Feedback Addressed</title><para><table rows="8" cols="3"><row>
+<entry thead="yes"><para>Review Comment   </para>
+</entry><entry thead="yes"><para>Implementation   </para>
+</entry><entry thead="yes"><para>Status    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Check gh pr list errors   </para>
+</entry><entry thead="no"><para>Added error check + exit on failure   </para>
+</entry><entry thead="no"><para>✅    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Check jq command errors   </para>
+</entry><entry thead="no"><para>Added error check + exit on failure   </para>
+</entry><entry thead="no"><para>✅    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Verify file exists/non-empty   </para>
+</entry><entry thead="no"><para>Added check before loop   </para>
+</entry><entry thead="no"><para>✅    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Check gh CLI installation   </para>
+</entry><entry thead="no"><para>Added at script start   </para>
+</entry><entry thead="no"><para>✅    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Verify gh authentication   </para>
+</entry><entry thead="no"><para>Added at script start   </para>
+</entry><entry thead="no"><para>✅    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Handle gh pr close errors   </para>
+</entry><entry thead="no"><para>Added error check + feedback   </para>
+</entry><entry thead="no"><para>✅    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Validate PR number   </para>
+</entry><entry thead="no"><para>Added numeric validation   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry></row>
+</table>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_1autotoc_md3590">
+<title>Benefits</title><para><orderedlist>
+<listitem><para><bold>No silent failures</bold> - All errors reported clearly</para>
+</listitem><listitem><para><bold>Early detection</bold> - Prerequisites checked before operations</para>
+</listitem><listitem><para><bold>Clear feedback</bold> - Users know exactly what went wrong</para>
+</listitem><listitem><para><bold>Graceful degradation</bold> - Per-PR errors don&apos;t stop batch processing</para>
+</listitem><listitem><para><bold>Clean execution</bold> - Temporary files cleaned up automatically</para>
+</listitem><listitem><para><bold>Better UX</bold> - Success/failure clearly communicated</para>
+</listitem></orderedlist>
+</para>
+<para><hruler/>
+</para>
+<para>Generated with <ulink url="https://continue.dev">Continue</ulink> Co-authored by: mohavro &amp; Continue </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/SCRIPT_ERROR_HANDLING.md"/>
+  </compounddef>
+</doxygen>

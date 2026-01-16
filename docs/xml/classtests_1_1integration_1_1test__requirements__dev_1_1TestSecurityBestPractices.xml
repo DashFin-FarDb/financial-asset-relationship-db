@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestSecurityBestPractices</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices_1a2c86c8b559cd8d6ae81c9eb011b3b184" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.TestSecurityBestPractices.requirements</definition>
+        <argsstring>(self, parsed_requirements)</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestSecurityBestPractices.requirements</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get parsed requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="788" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="788" bodyend="791"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices_1adf180f0d82655bcf2835ba1ac7395e16" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestSecurityBestPractices.test_no_very_old_package_versions</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_no_very_old_package_versions</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestSecurityBestPractices.test_no_very_old_package_versions</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that packages don&apos;t use very old major versions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="793" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="793" bodyend="807"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices_1ad6b88205c7932ffb01e160fb85ad53b8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestSecurityBestPractices.test_critical_packages_pinned</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_critical_packages_pinned</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestSecurityBestPractices.test_critical_packages_pinned</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that critical security-related packages have minimum versions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="809" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="809" bodyend="822"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test security best practices in dependency management.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestSecurityBestPractices</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="784" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="784" bodyend="822"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices_1a2c86c8b559cd8d6ae81c9eb011b3b184" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestSecurityBestPractices</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices_1ad6b88205c7932ffb01e160fb85ad53b8" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestSecurityBestPractices</scope><name>test_critical_packages_pinned</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices_1adf180f0d82655bcf2835ba1ac7395e16" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestSecurityBestPractices</scope><name>test_no_very_old_package_versions</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

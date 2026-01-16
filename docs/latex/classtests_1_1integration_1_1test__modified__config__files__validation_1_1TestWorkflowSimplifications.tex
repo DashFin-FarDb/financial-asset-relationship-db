@@ -1,0 +1,84 @@
+\doxysection{tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Workflow\+Simplifications Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications}{}\label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications}\index{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Workflow\+Simplifications\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=284pt]{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a9025b50a1eaf6e3120597c55be67150e}{test\+\_\+pr\+\_\+agent\+\_\+workflow\+\_\+simplified}} (self, Path \mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a0eab25e600ec11120450531aa6f064be}{workflows\+\_\+dir}})
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_aa272ac679cd01cf33cf4ba097e4122c8}{test\+\_\+apisec\+\_\+workflow\+\_\+no\+\_\+conditional\+\_\+skip}} (self, Path \mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a0eab25e600ec11120450531aa6f064be}{workflows\+\_\+dir}})
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a29264f2d45a11747ada8b9d79f1e2b9c}{test\+\_\+label\+\_\+workflow\+\_\+simplified}} (self, Path \mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a0eab25e600ec11120450531aa6f064be}{workflows\+\_\+dir}})
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a425fbe47e68fff75b07d6b6b6d447d09}{test\+\_\+greetings\+\_\+workflow\+\_\+simple\+\_\+messages}} (self, Path \mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a0eab25e600ec11120450531aa6f064be}{workflows\+\_\+dir}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+Path \mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a0eab25e600ec11120450531aa6f064be}{workflows\+\_\+dir}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Validate simplifications made to GitHub workflows.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_aa272ac679cd01cf33cf4ba097e4122c8}\index{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}!test\_apisec\_workflow\_no\_conditional\_skip@{test\_apisec\_workflow\_no\_conditional\_skip}}
+\index{test\_apisec\_workflow\_no\_conditional\_skip@{test\_apisec\_workflow\_no\_conditional\_skip}!tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}}
+\doxysubsubsection{\texorpdfstring{test\_apisec\_workflow\_no\_conditional\_skip()}{test\_apisec\_workflow\_no\_conditional\_skip()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_aa272ac679cd01cf33cf4ba097e4122c8} 
+tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Workflow\+Simplifications.\+test\+\_\+apisec\+\_\+workflow\+\_\+no\+\_\+conditional\+\_\+skip (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflows\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
+
+Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != ''`).
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a425fbe47e68fff75b07d6b6b6d447d09}\index{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}!test\_greetings\_workflow\_simple\_messages@{test\_greetings\_workflow\_simple\_messages}}
+\index{test\_greetings\_workflow\_simple\_messages@{test\_greetings\_workflow\_simple\_messages}!tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}}
+\doxysubsubsection{\texorpdfstring{test\_greetings\_workflow\_simple\_messages()}{test\_greetings\_workflow\_simple\_messages()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a425fbe47e68fff75b07d6b6b6d447d09} 
+tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Workflow\+Simplifications.\+test\+\_\+greetings\+\_\+workflow\+\_\+simple\+\_\+messages (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflows\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify greetings workflow has simple placeholder messages.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a29264f2d45a11747ada8b9d79f1e2b9c}\index{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}!test\_label\_workflow\_simplified@{test\_label\_workflow\_simplified}}
+\index{test\_label\_workflow\_simplified@{test\_label\_workflow\_simplified}!tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}}
+\doxysubsubsection{\texorpdfstring{test\_label\_workflow\_simplified()}{test\_label\_workflow\_simplified()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a29264f2d45a11747ada8b9d79f1e2b9c} 
+tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Workflow\+Simplifications.\+test\+\_\+label\+\_\+workflow\+\_\+simplified (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflows\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Validate that the label workflow uses a simplified configuration.
+
+Asserts that .github/workflows/label.yml exists and does not contain the substring 'check-config' (case-insensitive) nor the exact text 'labeler.yml not found'.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a9025b50a1eaf6e3120597c55be67150e}\index{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}!test\_pr\_agent\_workflow\_simplified@{test\_pr\_agent\_workflow\_simplified}}
+\index{test\_pr\_agent\_workflow\_simplified@{test\_pr\_agent\_workflow\_simplified}!tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}}
+\doxysubsubsection{\texorpdfstring{test\_pr\_agent\_workflow\_simplified()}{test\_pr\_agent\_workflow\_simplified()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a9025b50a1eaf6e3120597c55be67150e} 
+tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Workflow\+Simplifications.\+test\+\_\+pr\+\_\+agent\+\_\+workflow\+\_\+simplified (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflows\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Validate that the PR Agent GitHub Actions workflow has been simplified.
+
+Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python dependency installation that references `requirements.txt`.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a0eab25e600ec11120450531aa6f064be}\index{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}!workflows\_dir@{workflows\_dir}}
+\index{workflows\_dir@{workflows\_dir}!tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications@{tests.integration.test\_modified\_config\_files\_validation.TestWorkflowSimplifications}}
+\doxysubsubsection{\texorpdfstring{workflows\_dir()}{workflows\_dir()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_a0eab25e600ec11120450531aa6f064be} 
+ Path tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Workflow\+Simplifications.\+workflows\+\_\+dir (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Get workflows directory.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__modified__config__files__validation_8py}{test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+py}}\end{DoxyCompactItemize}

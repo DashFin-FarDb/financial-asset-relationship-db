@@ -1,0 +1,82 @@
+\doxysection{workflow\+\_\+validator.\+Validation\+Result Class Reference}
+\hypertarget{classworkflow__validator_1_1ValidationResult}{}\label{classworkflow__validator_1_1ValidationResult}\index{workflow\_validator.ValidationResult@{workflow\_validator.ValidationResult}}
+
+
+Collaboration diagram for workflow\+\_\+validator.\+Validation\+Result\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=235pt]{classworkflow__validator_1_1ValidationResult__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classworkflow__validator_1_1ValidationResult_a261458f6edc3776f2d744522ceae6d40}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, bool \mbox{\hyperlink{classworkflow__validator_1_1ValidationResult_a2b7a62a82e5e9f311c0fa519bf0838f3}{is\+\_\+valid}}, List\mbox{[}str\mbox{]} \mbox{\hyperlink{classworkflow__validator_1_1ValidationResult_afe231928a88e85166b1e43164af21285}{errors}}, Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{classworkflow__validator_1_1ValidationResult_ae47f4046ac8335fd0e986521edf76422}{workflow\+\_\+data}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classworkflow__validator_1_1ValidationResult_a2b7a62a82e5e9f311c0fa519bf0838f3}{is\+\_\+valid}} = is\+\_\+valid
+\item 
+\mbox{\hyperlink{classworkflow__validator_1_1ValidationResult_afe231928a88e85166b1e43164af21285}{errors}} = errors
+\item 
+\mbox{\hyperlink{classworkflow__validator_1_1ValidationResult_ae47f4046ac8335fd0e986521edf76422}{workflow\+\_\+data}} = workflow\+\_\+data
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Represents the result of validating a workflow YAML file.
+
+Attributes:
+    is_valid (bool): True when the workflow passed validation, False otherwise.
+    errors (list[str]): List of error messages describing validation failures.
+    workflow_data (dict): Parsed YAML workflow data.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classworkflow__validator_1_1ValidationResult_a261458f6edc3776f2d744522ceae6d40}\index{workflow\_validator.ValidationResult@{workflow\_validator.ValidationResult}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!workflow\_validator.ValidationResult@{workflow\_validator.ValidationResult}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classworkflow__validator_1_1ValidationResult_a261458f6edc3776f2d744522ceae6d40} 
+workflow\+\_\+validator.\+Validation\+Result.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{bool}]{is\+\_\+valid}{, }\item[{List\mbox{[}str\mbox{]}}]{errors}{, }\item[{Dict\mbox{[}str, Any\mbox{]}}]{workflow\+\_\+data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Initialize a ValidationResult representing the outcome of validating a
+workflow YAML file.
+
+Parameters:
+    is_valid (bool): True when validation passed, False when one or
+        more validation checks failed.
+    errors (List[str]): Human-readable error messages describing
+        validation failures; empty when is_valid is True.
+    workflow_data (Dict[str, Any]): The parsed workflow data structure
+        from the YAML file (may be empty or partial on failure).
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classworkflow__validator_1_1ValidationResult_afe231928a88e85166b1e43164af21285}\index{workflow\_validator.ValidationResult@{workflow\_validator.ValidationResult}!errors@{errors}}
+\index{errors@{errors}!workflow\_validator.ValidationResult@{workflow\_validator.ValidationResult}}
+\doxysubsubsection{\texorpdfstring{errors}{errors}}
+{\footnotesize\ttfamily \label{classworkflow__validator_1_1ValidationResult_afe231928a88e85166b1e43164af21285} 
+workflow\+\_\+validator.\+Validation\+Result.\+errors = errors}
+
+\Hypertarget{classworkflow__validator_1_1ValidationResult_a2b7a62a82e5e9f311c0fa519bf0838f3}\index{workflow\_validator.ValidationResult@{workflow\_validator.ValidationResult}!is\_valid@{is\_valid}}
+\index{is\_valid@{is\_valid}!workflow\_validator.ValidationResult@{workflow\_validator.ValidationResult}}
+\doxysubsubsection{\texorpdfstring{is\_valid}{is\_valid}}
+{\footnotesize\ttfamily \label{classworkflow__validator_1_1ValidationResult_a2b7a62a82e5e9f311c0fa519bf0838f3} 
+workflow\+\_\+validator.\+Validation\+Result.\+is\+\_\+valid = is\+\_\+valid}
+
+\Hypertarget{classworkflow__validator_1_1ValidationResult_ae47f4046ac8335fd0e986521edf76422}\index{workflow\_validator.ValidationResult@{workflow\_validator.ValidationResult}!workflow\_data@{workflow\_data}}
+\index{workflow\_data@{workflow\_data}!workflow\_validator.ValidationResult@{workflow\_validator.ValidationResult}}
+\doxysubsubsection{\texorpdfstring{workflow\_data}{workflow\_data}}
+{\footnotesize\ttfamily \label{classworkflow__validator_1_1ValidationResult_ae47f4046ac8335fd0e986521edf76422} 
+workflow\+\_\+validator.\+Validation\+Result.\+workflow\+\_\+data = workflow\+\_\+data}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/src/\mbox{\hyperlink{workflow__validator_8py}{workflow\+\_\+validator.\+py}}\end{DoxyCompactItemize}

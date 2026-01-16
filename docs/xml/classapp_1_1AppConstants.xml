@@ -1,0 +1,520 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classapp_1_1AppConstants" kind="class" language="Python" prot="public">
+    <compoundname>app::AppConstants</compoundname>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a6bf81ce9a58c075f76624f1a306a65dc" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::TITLE</definition>
+        <argsstring></argsstring>
+        <name>TITLE</name>
+        <qualifiedname>app.AppConstants.TITLE</qualifiedname>
+        <initializer>=  &quot;Financial Asset Relationship Database Visualization&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="31" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a672b2b6ad116267a54219ef5215dc60b" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::MARKDOWN_HEADER</definition>
+        <argsstring></argsstring>
+        <name>MARKDOWN_HEADER</name>
+        <qualifiedname>app.AppConstants.MARKDOWN_HEADER</qualifiedname>
+        <initializer>=  &quot;&quot;&quot;
+    # 🏦 Financial Asset Relationship Network
+
+    A comprehensive 3D visualization of interconnected financial
+    assets across all major classes:
+    **Equities, Bonds, Commodities, Currencies, and Regulatory
+    Events**
+    &quot;&quot;&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="32" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1ad42cca69dd7e3e3062697847789f00aa" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::TAB_3D_VISUALIZATION</definition>
+        <argsstring></argsstring>
+        <name>TAB_3D_VISUALIZATION</name>
+        <qualifiedname>app.AppConstants.TAB_3D_VISUALIZATION</qualifiedname>
+        <initializer>=  &quot;3D Network Visualization&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="40" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="40" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a2454973881a56712f9b2445369659e29" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::TAB_METRICS_ANALYTICS</definition>
+        <argsstring></argsstring>
+        <name>TAB_METRICS_ANALYTICS</name>
+        <qualifiedname>app.AppConstants.TAB_METRICS_ANALYTICS</qualifiedname>
+        <initializer>=  &quot;Metrics &amp; Analytics&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="41" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a1da6c7c1e9dc6d4fa06f61a9c49bde80" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::TAB_SCHEMA_RULES</definition>
+        <argsstring></argsstring>
+        <name>TAB_SCHEMA_RULES</name>
+        <qualifiedname>app.AppConstants.TAB_SCHEMA_RULES</qualifiedname>
+        <initializer>=  &quot;Schema &amp; Rules&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="42" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1ab05c7f9aab33e14a517ed6edeb42e98e" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::TAB_ASSET_EXPLORER</definition>
+        <argsstring></argsstring>
+        <name>TAB_ASSET_EXPLORER</name>
+        <qualifiedname>app.AppConstants.TAB_ASSET_EXPLORER</qualifiedname>
+        <initializer>=  &quot;Asset Explorer&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="43" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1acd706a58b189d9e1ef9f578f1d6cf2d0" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::TAB_DOCUMENTATION</definition>
+        <argsstring></argsstring>
+        <name>TAB_DOCUMENTATION</name>
+        <qualifiedname>app.AppConstants.TAB_DOCUMENTATION</qualifiedname>
+        <initializer>=  &quot;Documentation&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="44" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a24d199164606751854515136d304055d" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::ERROR_LABEL</definition>
+        <argsstring></argsstring>
+        <name>ERROR_LABEL</name>
+        <qualifiedname>app.AppConstants.ERROR_LABEL</qualifiedname>
+        <initializer>=  &quot;Error&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="45" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="45" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1afa65a328f7cd7e6b219525ccbe3f08c4" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::REFRESH_BUTTON_LABEL</definition>
+        <argsstring></argsstring>
+        <name>REFRESH_BUTTON_LABEL</name>
+        <qualifiedname>app.AppConstants.REFRESH_BUTTON_LABEL</qualifiedname>
+        <initializer>=  &quot;Refresh Visualization&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="46" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1ade45ff5c995f55e12d57909104a43598" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::GENERATE_SCHEMA_BUTTON_LABEL</definition>
+        <argsstring></argsstring>
+        <name>GENERATE_SCHEMA_BUTTON_LABEL</name>
+        <qualifiedname>app.AppConstants.GENERATE_SCHEMA_BUTTON_LABEL</qualifiedname>
+        <initializer>=  &quot;Generate Schema Report&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="47" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a6324a639a845e73f06787f897da7b62a" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::SELECT_ASSET_LABEL</definition>
+        <argsstring></argsstring>
+        <name>SELECT_ASSET_LABEL</name>
+        <qualifiedname>app.AppConstants.SELECT_ASSET_LABEL</qualifiedname>
+        <initializer>=  &quot;Select Asset&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="48" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a4946ece6099be7c7a6ac1ef84985def7" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::ASSET_DETAILS_LABEL</definition>
+        <argsstring></argsstring>
+        <name>ASSET_DETAILS_LABEL</name>
+        <qualifiedname>app.AppConstants.ASSET_DETAILS_LABEL</qualifiedname>
+        <initializer>=  &quot;Asset Details&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="49" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1ac9c19a8226a3aec0137d6b465a73955b" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::RELATED_ASSETS_LABEL</definition>
+        <argsstring></argsstring>
+        <name>RELATED_ASSETS_LABEL</name>
+        <qualifiedname>app.AppConstants.RELATED_ASSETS_LABEL</qualifiedname>
+        <initializer>=  &quot;Related Assets&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="50" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a22cca3a70bbc25cda2e07fb6776ba9e0" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::NETWORK_STATISTICS_LABEL</definition>
+        <argsstring></argsstring>
+        <name>NETWORK_STATISTICS_LABEL</name>
+        <qualifiedname>app.AppConstants.NETWORK_STATISTICS_LABEL</qualifiedname>
+        <initializer>=  &quot;Network Statistics&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="51" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1aaaf5798fbb34c3ce453a21fee4a2d020" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::SCHEMA_REPORT_LABEL</definition>
+        <argsstring></argsstring>
+        <name>SCHEMA_REPORT_LABEL</name>
+        <qualifiedname>app.AppConstants.SCHEMA_REPORT_LABEL</qualifiedname>
+        <initializer>=  &quot;Schema Report&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="52" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="52" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1aba30e74ca2c4c903479d330d6340839e" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::INITIAL_GRAPH_ERROR</definition>
+        <argsstring></argsstring>
+        <name>INITIAL_GRAPH_ERROR</name>
+        <qualifiedname>app.AppConstants.INITIAL_GRAPH_ERROR</qualifiedname>
+        <initializer>=  &quot;Failed to create sample database&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="53" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a89680ace08988bd75918c9c2f9b5990f" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::REFRESH_OUTPUTS_ERROR</definition>
+        <argsstring></argsstring>
+        <name>REFRESH_OUTPUTS_ERROR</name>
+        <qualifiedname>app.AppConstants.REFRESH_OUTPUTS_ERROR</qualifiedname>
+        <initializer>=  &quot;Error refreshing outputs&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="54" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a1b452e02bdcadc271a29e56b51e37175" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::APP_START_INFO</definition>
+        <argsstring></argsstring>
+        <name>APP_START_INFO</name>
+        <qualifiedname>app.AppConstants.APP_START_INFO</qualifiedname>
+        <initializer>=  &quot;Starting Financial Asset Relationship Database application&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="55" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1acea8334c4893e5ea1ff1506143873dbe" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::APP_LAUNCH_INFO</definition>
+        <argsstring></argsstring>
+        <name>APP_LAUNCH_INFO</name>
+        <qualifiedname>app.AppConstants.APP_LAUNCH_INFO</qualifiedname>
+        <initializer>=  &quot;Launching Gradio interface&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="56" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a41215a4ef48a88d64868d44a0f8c2035" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::APP_START_ERROR</definition>
+        <argsstring></argsstring>
+        <name>APP_START_ERROR</name>
+        <qualifiedname>app.AppConstants.APP_START_ERROR</qualifiedname>
+        <initializer>=  &quot;Failed to start application&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="57" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1ac25d3b5c91bfa3f3b959796035ae5a51" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::INTERACTIVE_3D_GRAPH_MD</definition>
+        <argsstring></argsstring>
+        <name>INTERACTIVE_3D_GRAPH_MD</name>
+        <qualifiedname>app.AppConstants.INTERACTIVE_3D_GRAPH_MD</qualifiedname>
+        <initializer>=  &quot;&quot;&quot;
+    ## Interactive 3D Network Graph
+
+    Explore the relationships between financial assets in three dimensions.
+    Each node represents an asset, and edges show the strength and type of
+    relationships between them.
+
+    **Asset Colors:**
+    - 🔵 Blue: Equities (Stocks)
+    - 🟢 Green: Fixed Income (Bonds)
+    - 🟠 Orange: Commodities
+    - 🔴 Red: Currencies
+    - 🟣 Purple: Derivatives
+    &quot;&quot;&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="60" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="60" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a5b55d1b0ae311ae8321c2b154022efef" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::NETWORK_METRICS_ANALYSIS_MD</definition>
+        <argsstring></argsstring>
+        <name>NETWORK_METRICS_ANALYSIS_MD</name>
+        <qualifiedname>app.AppConstants.NETWORK_METRICS_ANALYSIS_MD</qualifiedname>
+        <initializer>=  &quot;&quot;&quot;
+    ## Network Metrics &amp; Analytics
+
+    Comprehensive analysis of asset relationships, distributions, and
+    regulatory event impacts.
+    &quot;&quot;&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="75" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1aba91fc8c5c65bfb6eb75a27368a108ed" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::SCHEMA_RULES_GUIDE_MD</definition>
+        <argsstring></argsstring>
+        <name>SCHEMA_RULES_GUIDE_MD</name>
+        <qualifiedname>app.AppConstants.SCHEMA_RULES_GUIDE_MD</qualifiedname>
+        <initializer>=  &quot;&quot;&quot;
+    ## Database Schema &amp; Business Rules
+
+    View the automatically generated schema documentation including
+    relationship types, business rules, and validation constraints.
+    &quot;&quot;&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="82" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="82" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a2d28f9894c90eb3e7cae00f8df3a323c" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::DETAILED_ASSET_INFO_MD</definition>
+        <argsstring></argsstring>
+        <name>DETAILED_ASSET_INFO_MD</name>
+        <qualifiedname>app.AppConstants.DETAILED_ASSET_INFO_MD</qualifiedname>
+        <initializer>=  &quot;&quot;&quot;
+    ## Asset Explorer
+
+    Select any asset to view detailed information including financial
+    metrics, relationships, and connected assets.
+    &quot;&quot;&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="89" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1ae6198db3b7b78a9b32d6258310f6652b" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::DOC_MARKDOWN</definition>
+        <argsstring></argsstring>
+        <name>DOC_MARKDOWN</name>
+        <qualifiedname>app.AppConstants.DOC_MARKDOWN</qualifiedname>
+        <initializer>=  &quot;&quot;&quot;
+    ## Documentation &amp; Help
+
+    ### Quick Start
+    1. **3D Visualization**: Explore the interactive network graph
+    2. **Metrics**: View quantitative analysis of relationships
+    3. **Schema**: Understand the data model and business rules
+    4. **Explorer**: Drill down into individual asset details
+
+    ### Features
+    - **Cross-Asset Analysis**: Automatic relationship discovery
+    - **Regulatory Integration**: Corporate events impact modeling
+    - **Real-time Metrics**: Network statistics and strength analysis
+    - **Deterministic Layout**: Consistent 3D positioning across sessions
+
+    ### Asset Classes
+    - Equities, Bonds, Commodities, Currencies, Derivatives
+    - Relationship types: sector affinity, corporate links, currency exposure, regulatory events
+
+    For technical details, see the GitHub repository documentation.
+    &quot;&quot;&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="96" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1AppConstants_1a0a6bd65a56dc3d3bb6c40445f7ca513d" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str app.AppConstants::NETWORK_STATISTICS_TEXT</definition>
+        <argsstring></argsstring>
+        <name>NETWORK_STATISTICS_TEXT</name>
+        <qualifiedname>app.AppConstants.NETWORK_STATISTICS_TEXT</qualifiedname>
+        <initializer>=  &quot;&quot;&quot;Network Statistics:
+
+Total Assets: {total_assets}
+Total Relationships: {total_relationships}
+Average Relationship Strength: {average_relationship_strength:.3f}
+Relationship Density: {relationship_density:.2f}%
+Regulatory Events: {regulatory_event_count}
+
+Asset Class Distribution:
+{asset_class_distribution}
+
+Top Relationships:
+&quot;&quot;&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="118" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="118" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>app.AppConstants</label>
+        <link refid="classapp_1_1AppConstants"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>+APP_LAUNCH_INFO</edgelabel>
+          <edgelabel>+APP_START_ERROR</edgelabel>
+          <edgelabel>+APP_START_INFO</edgelabel>
+          <edgelabel>+ASSET_DETAILS_LABEL</edgelabel>
+          <edgelabel>+DETAILED_ASSET_INFO_MD</edgelabel>
+          <edgelabel>+DOC_MARKDOWN</edgelabel>
+          <edgelabel>+ERROR_LABEL</edgelabel>
+          <edgelabel>+GENERATE_SCHEMA_BUTTON_LABEL</edgelabel>
+          <edgelabel>+INITIAL_GRAPH_ERROR</edgelabel>
+          <edgelabel>+INTERACTIVE_3D_GRAPH_MD</edgelabel>
+          <edgelabel>...</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>str</label>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="30" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="30" bodyend="132"/>
+    <listofallmembers>
+      <member refid="classapp_1_1AppConstants_1acea8334c4893e5ea1ff1506143873dbe" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>APP_LAUNCH_INFO</name></member>
+      <member refid="classapp_1_1AppConstants_1a41215a4ef48a88d64868d44a0f8c2035" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>APP_START_ERROR</name></member>
+      <member refid="classapp_1_1AppConstants_1a1b452e02bdcadc271a29e56b51e37175" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>APP_START_INFO</name></member>
+      <member refid="classapp_1_1AppConstants_1a4946ece6099be7c7a6ac1ef84985def7" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>ASSET_DETAILS_LABEL</name></member>
+      <member refid="classapp_1_1AppConstants_1a2d28f9894c90eb3e7cae00f8df3a323c" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>DETAILED_ASSET_INFO_MD</name></member>
+      <member refid="classapp_1_1AppConstants_1ae6198db3b7b78a9b32d6258310f6652b" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>DOC_MARKDOWN</name></member>
+      <member refid="classapp_1_1AppConstants_1a24d199164606751854515136d304055d" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>ERROR_LABEL</name></member>
+      <member refid="classapp_1_1AppConstants_1ade45ff5c995f55e12d57909104a43598" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>GENERATE_SCHEMA_BUTTON_LABEL</name></member>
+      <member refid="classapp_1_1AppConstants_1aba30e74ca2c4c903479d330d6340839e" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>INITIAL_GRAPH_ERROR</name></member>
+      <member refid="classapp_1_1AppConstants_1ac25d3b5c91bfa3f3b959796035ae5a51" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>INTERACTIVE_3D_GRAPH_MD</name></member>
+      <member refid="classapp_1_1AppConstants_1a672b2b6ad116267a54219ef5215dc60b" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>MARKDOWN_HEADER</name></member>
+      <member refid="classapp_1_1AppConstants_1a5b55d1b0ae311ae8321c2b154022efef" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>NETWORK_METRICS_ANALYSIS_MD</name></member>
+      <member refid="classapp_1_1AppConstants_1a22cca3a70bbc25cda2e07fb6776ba9e0" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>NETWORK_STATISTICS_LABEL</name></member>
+      <member refid="classapp_1_1AppConstants_1a0a6bd65a56dc3d3bb6c40445f7ca513d" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>NETWORK_STATISTICS_TEXT</name></member>
+      <member refid="classapp_1_1AppConstants_1afa65a328f7cd7e6b219525ccbe3f08c4" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>REFRESH_BUTTON_LABEL</name></member>
+      <member refid="classapp_1_1AppConstants_1a89680ace08988bd75918c9c2f9b5990f" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>REFRESH_OUTPUTS_ERROR</name></member>
+      <member refid="classapp_1_1AppConstants_1ac9c19a8226a3aec0137d6b465a73955b" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>RELATED_ASSETS_LABEL</name></member>
+      <member refid="classapp_1_1AppConstants_1aaaf5798fbb34c3ce453a21fee4a2d020" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>SCHEMA_REPORT_LABEL</name></member>
+      <member refid="classapp_1_1AppConstants_1aba91fc8c5c65bfb6eb75a27368a108ed" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>SCHEMA_RULES_GUIDE_MD</name></member>
+      <member refid="classapp_1_1AppConstants_1a6324a639a845e73f06787f897da7b62a" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>SELECT_ASSET_LABEL</name></member>
+      <member refid="classapp_1_1AppConstants_1ad42cca69dd7e3e3062697847789f00aa" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>TAB_3D_VISUALIZATION</name></member>
+      <member refid="classapp_1_1AppConstants_1ab05c7f9aab33e14a517ed6edeb42e98e" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>TAB_ASSET_EXPLORER</name></member>
+      <member refid="classapp_1_1AppConstants_1acd706a58b189d9e1ef9f578f1d6cf2d0" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>TAB_DOCUMENTATION</name></member>
+      <member refid="classapp_1_1AppConstants_1a2454973881a56712f9b2445369659e29" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>TAB_METRICS_ANALYTICS</name></member>
+      <member refid="classapp_1_1AppConstants_1a1da6c7c1e9dc6d4fa06f61a9c49bde80" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>TAB_SCHEMA_RULES</name></member>
+      <member refid="classapp_1_1AppConstants_1a6bf81ce9a58c075f76624f1a306a65dc" prot="public" virt="non-virtual"><scope>app::AppConstants</scope><name>TITLE</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

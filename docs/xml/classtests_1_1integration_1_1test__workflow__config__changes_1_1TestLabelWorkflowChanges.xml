@@ -1,0 +1,170 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_config_changes::TestLabelWorkflowChanges</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1af02978b59fb72185625f5722ece87991" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.label_workflow</definition>
+        <argsstring>(self)</argsstring>
+        <name>label_workflow</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.label_workflow</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load and parse the label GitHub Actions workflow file.
+
+Returns:
+    workflow (dict): Parsed contents of `.github/workflows/label.yml` as a dictionary.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="247" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="247" bodyend="257"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1a3f8b6ee1fd61948e4ae50047c6b238b9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_workflow_syntax_valid</definition>
+        <argsstring>(self, label_workflow)</argsstring>
+        <name>test_workflow_syntax_valid</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_workflow_syntax_valid</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1af02978b59fb72185625f5722ece87991" kindref="member">label_workflow</ref></type>
+          <defname>label_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify workflow has valid YAML syntax.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="258" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="258" bodyend="262"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1aaa3be43584145795dbc0c3994108328b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_no_config_check_step</definition>
+        <argsstring>(self, label_workflow)</argsstring>
+        <name>test_no_config_check_step</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_no_config_check_step</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1af02978b59fb72185625f5722ece87991" kindref="member">label_workflow</ref></type>
+          <defname>label_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify config check step was removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="263" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="263" bodyend="272"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1adaa9ddf96c6c5830dce0017d4a3c5b79" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_no_checkout_step</definition>
+        <argsstring>(self, label_workflow)</argsstring>
+        <name>test_no_checkout_step</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_no_checkout_step</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1af02978b59fb72185625f5722ece87991" kindref="member">label_workflow</ref></type>
+          <defname>label_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify checkout step was removed (not needed).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="273" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="273" bodyend="281"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1ac491f1cc054a6a4426ca4fd62a4e0466" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_simplified_to_single_step</definition>
+        <argsstring>(self, label_workflow)</argsstring>
+        <name>test_simplified_to_single_step</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_simplified_to_single_step</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1af02978b59fb72185625f5722ece87991" kindref="member">label_workflow</ref></type>
+          <defname>label_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Assert the label workflow has been simplified to a single actions/labeler step.
+
+Checks that the &apos;label&apos; job contains exactly one step and that the step&apos;s `uses`
+reference includes `actions/labeler`.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="282" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="282" bodyend="296"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1ac2750bf089375b4ca4be934a025494b4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_no_conditional_execution</definition>
+        <argsstring>(self, label_workflow)</argsstring>
+        <name>test_no_conditional_execution</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges.test_no_conditional_execution</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1af02978b59fb72185625f5722ece87991" kindref="member">label_workflow</ref></type>
+          <defname>label_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify no conditional if statements in steps.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="297" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="297" bodyend="306"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for label.yml workflow changes.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_config_changes.TestLabelWorkflowChanges</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="243" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="243" bodyend="306"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1af02978b59fb72185625f5722ece87991" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestLabelWorkflowChanges</scope><name>label_workflow</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1adaa9ddf96c6c5830dce0017d4a3c5b79" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestLabelWorkflowChanges</scope><name>test_no_checkout_step</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1ac2750bf089375b4ca4be934a025494b4" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestLabelWorkflowChanges</scope><name>test_no_conditional_execution</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1aaa3be43584145795dbc0c3994108328b" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestLabelWorkflowChanges</scope><name>test_no_config_check_step</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1ac491f1cc054a6a4426ca4fd62a4e0466" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestLabelWorkflowChanges</scope><name>test_simplified_to_single_step</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges_1a3f8b6ee1fd61948e4ae50047c6b238b9" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestLabelWorkflowChanges</scope><name>test_workflow_syntax_valid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

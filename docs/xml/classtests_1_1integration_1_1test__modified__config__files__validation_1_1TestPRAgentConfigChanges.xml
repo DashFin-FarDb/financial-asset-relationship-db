@@ -1,0 +1,246 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_modified_config_files_validation::TestPRAgentConfigChanges</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a83438788a2695f9b4542c29818dbb67d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Path</type>
+        <definition> Path tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.config_path</definition>
+        <argsstring>()</argsstring>
+        <name>config_path</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.config_path</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Return the Path to the PR Agent YAML configuration file relative to the test module.
+
+Returns:
+    path (Path): Path to the .github/pr-agent-config.yml file.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="23" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="23" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1af20ef716922454527cecbdf897779e15" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.config_data</definition>
+        <argsstring>(Path config_path)</argsstring>
+        <name>config_data</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.config_data</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>config_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load and parse the PR Agent YAML configuration file.
+
+Parameters:
+    config_path (Path): Path to the `.github/pr-agent-config.yml` file to read.
+
+Returns:
+    config (Dict[str, Any]): Mapping representing the parsed YAML configuration.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="34" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="34" bodyend="46"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a54f82770ab3e1ca3882384981f3c245f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_version_is_correct</definition>
+        <argsstring>(self, Dict[str, Any] config_data)</argsstring>
+        <name>test_version_is_correct</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_version_is_correct</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>config_data</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify the PR agent configuration declares agent.version equal to &quot;1.0.0&quot;.
+
+Parameters:
+    config_data (dict): Parsed YAML content of .github/pr-agent-config.yml.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="47" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="47" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a16c2cdb968b9197bc46a34cde4d9842a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_no_context_chunking_config</definition>
+        <argsstring>(self, Dict[str, Any] config_data)</argsstring>
+        <name>test_no_context_chunking_config</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_no_context_chunking_config</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>config_data</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify context chunking configuration has been removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="58" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="58" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a59a419081ec49edcbb2babfd35f98f7a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_no_fallback_strategies</definition>
+        <argsstring>(self, Dict[str, Any] config_data)</argsstring>
+        <name>test_no_fallback_strategies</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_no_fallback_strategies</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>config_data</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify the PR Agent configuration does not define a &apos;fallback&apos; key under the top-level &apos;limits&apos; mapping.
+
+Parameters:
+    config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`. If a &apos;limits&apos; mapping exists, this test asserts it does not contain a &apos;fallback&apos; key.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="66" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="66" bodyend="76"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a4ff4e3fe181872f7ac427194735a7457" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_basic_sections_present</definition>
+        <argsstring>(self, Dict[str, Any] config_data)</argsstring>
+        <name>test_basic_sections_present</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_basic_sections_present</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>config_data</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that the PR agent YAML configuration includes the essential top-level sections.
+
+Parameters:
+    config_data (dict): Parsed YAML configuration mapping (from .github/pr-agent-config.yml).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="77" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="77" bodyend="90"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a01e65d4dec60507865807d21aca2cb54" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_no_complex_token_management</definition>
+        <argsstring>(self, Dict[str, Any] config_data)</argsstring>
+        <name>test_no_complex_token_management</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_no_complex_token_management</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>config_data</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that the PR agent configuration does not contain complex token-chunking or explicit token-limit settings.
+
+Asserts that the configuration text does not include &apos;chunk_size&apos;, and that &apos;max_tokens&apos; is absent unless a `limits.max_execution_time` value is present in the config.
+
+Parameters:
+    config_data (Dict[str, Any]): Parsed PR agent configuration data.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="91" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="91" bodyend="107"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1addf4365858227fb7b0707c57fe3a3998" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_quality_standards_preserved</definition>
+        <argsstring>(self, Dict[str, Any] config_data)</argsstring>
+        <name>test_quality_standards_preserved</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges.test_quality_standards_preserved</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>config_data</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate that the configuration preserves required quality settings for supported languages and Python tooling.
+
+Parameters:
+    config_data (Dict[str, Any]): Parsed YAML configuration for the PR agent.
+
+Details:
+    Asserts that the top-level `quality` section contains `python` and `typescript`, and that the Python quality configuration includes a `linter` and a `test_runner` set to `pytest`.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="108" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="108" bodyend="128"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Validate changes to PR Agent configuration file.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_modified_config_files_validation.TestPRAgentConfigChanges</label>
+        <link refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="18" bodyend="128"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1af20ef716922454527cecbdf897779e15" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestPRAgentConfigChanges</scope><name>config_data</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a83438788a2695f9b4542c29818dbb67d" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestPRAgentConfigChanges</scope><name>config_path</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a4ff4e3fe181872f7ac427194735a7457" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestPRAgentConfigChanges</scope><name>test_basic_sections_present</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a01e65d4dec60507865807d21aca2cb54" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestPRAgentConfigChanges</scope><name>test_no_complex_token_management</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a16c2cdb968b9197bc46a34cde4d9842a" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestPRAgentConfigChanges</scope><name>test_no_context_chunking_config</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a59a419081ec49edcbb2babfd35f98f7a" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestPRAgentConfigChanges</scope><name>test_no_fallback_strategies</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1addf4365858227fb7b0707c57fe3a3998" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestPRAgentConfigChanges</scope><name>test_quality_standards_preserved</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestPRAgentConfigChanges_1a54f82770ab3e1ca3882384981f3c245f" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestPRAgentConfigChanges</scope><name>test_version_is_correct</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

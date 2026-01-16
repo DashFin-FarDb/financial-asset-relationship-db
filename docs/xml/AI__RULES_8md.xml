@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="AI__RULES_8md" kind="file" language="Markdown">
+    <compoundname>AI_RULES.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>AI<sp/>Rules<sp/>for<sp/>Financial<sp/>Application<sp/>Development</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>outlines<sp/>the<sp/>core<sp/>technologies<sp/>and<sp/>best<sp/>practices<sp/>for<sp/>developing<sp/>and<sp/>maintaining<sp/>the<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Network<sp/>application.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Tech<sp/>Stack<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>application<sp/>suite<sp/>is<sp/>built<sp/>primarily<sp/>with<sp/>Python,<sp/>leveraging<sp/>specialized<sp/>libraries<sp/>for<sp/>data<sp/>handling,<sp/>visualization,<sp/>and<sp/>web<sp/>interface<sp/>creation.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Python:**<sp/>The<sp/>foundational<sp/>programming<sp/>language<sp/>for<sp/>all<sp/>application<sp/>logic,<sp/>data<sp/>processing,<sp/>and<sp/>backend<sp/>operations.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Gradio:**<sp/>Employed<sp/>for<sp/>creating<sp/>user-friendly<sp/>web<sp/>interfaces<sp/>for<sp/>machine<sp/>learning<sp/>models<sp/>or<sp/>data<sp/>science<sp/>demos,<sp/>as<sp/>seen<sp/>in<sp/>the<sp/>&quot;Financial<sp/>Asset<sp/>Relationship<sp/>Network&quot;<sp/>for<sp/>visualizing<sp/>complex<sp/>graph<sp/>structures<sp/>and<sp/>exploring<sp/>asset<sp/>relationships.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Pandas:**<sp/>The<sp/>go-to<sp/>library<sp/>for<sp/>all<sp/>data<sp/>manipulation,<sp/>analysis,<sp/>and<sp/>structuring<sp/>of<sp/>tabular<sp/>data<sp/>(DataFrames).<sp/>It&apos;s<sp/>essential<sp/>for<sp/>preparing<sp/>data<sp/>for<sp/>display<sp/>and<sp/>calculations.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**NumPy:**<sp/>Utilized<sp/>for<sp/>high-performance<sp/>numerical<sp/>operations,<sp/>array<sp/>computations,<sp/>and<sp/>statistical<sp/>functions,<sp/>particularly<sp/>in<sp/>graph<sp/>algorithms<sp/>and<sp/>data<sp/>generation.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Plotly<sp/>(plotly.graph_objects,<sp/>plotly.express,<sp/>plotly.subplots):**<sp/>The<sp/>exclusive<sp/>library<sp/>for<sp/>generating<sp/>all<sp/>interactive<sp/>charts,<sp/>graphs,<sp/>and<sp/>visualizations<sp/>across<sp/>the<sp/>Gradio<sp/>application.<sp/>This<sp/>includes<sp/>candlestick<sp/>charts,<sp/>bar<sp/>charts,<sp/>pie<sp/>charts,<sp/>gauges,<sp/>and<sp/>3D<sp/>network<sp/>visualizations.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**yfinance:**<sp/>Dedicated<sp/>to<sp/>fetching<sp/>real-time<sp/>and<sp/>historical<sp/>financial<sp/>market<sp/>data,<sp/>including<sp/>stock<sp/>prices,<sp/>company<sp/>information,<sp/>and<sp/>news.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**dataclasses<sp/>&amp;<sp/>enum:**<sp/>Python&apos;s<sp/>built-in<sp/>modules<sp/>for<sp/>defining<sp/>structured<sp/>data<sp/>models<sp/>(e.g.,<sp/>`Asset`,<sp/>`Equity`,<sp/>`Bond`)<sp/>and<sp/>enumerations<sp/>(e.g.,<sp/>`AssetClass`,<sp/>`RegulatoryActivity`),<sp/>ensuring<sp/>type<sp/>safety<sp/>and<sp/>clear<sp/>data<sp/>definitions.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**datetime:**<sp/>Used<sp/>for<sp/>handling<sp/>and<sp/>formatting<sp/>dates<sp/>and<sp/>times,<sp/>crucial<sp/>for<sp/>financial<sp/>data<sp/>timelines<sp/>and<sp/>event<sp/>management.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**json:**<sp/>Employed<sp/>for<sp/>serializing<sp/>and<sp/>deserializing<sp/>data,<sp/>particularly<sp/>for<sp/>displaying<sp/>structured<sp/>information<sp/>within<sp/>the<sp/>Gradio<sp/>interface.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Library<sp/>Usage<sp/>Rules</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">To<sp/>maintain<sp/>consistency,<sp/>performance,<sp/>and<sp/>readability,<sp/>adhere<sp/>to<sp/>the<sp/>following<sp/>guidelines<sp/>for<sp/>library<sp/>usage:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Web<sp/>Application<sp/>Frameworks:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Use<sp/>**Gradio**<sp/>for<sp/>interactive<sp/>demonstrations<sp/>of<sp/>complex<sp/>models,<sp/>graph<sp/>visualizations,<sp/>or<sp/>schema<sp/>exploration<sp/>where<sp/>a<sp/>tabbed<sp/>interface<sp/>and<sp/>direct<sp/>input/output<sp/>components<sp/>are<sp/>beneficial.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Data<sp/>Manipulation:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Always<sp/>use<sp/>**Pandas**<sp/>DataFrames<sp/>for<sp/>any<sp/>tabular<sp/>data<sp/>processing,<sp/>filtering,<sp/>aggregation,<sp/>and<sp/>transformation.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>For<sp/>low-level<sp/>numerical<sp/>operations,<sp/>array<sp/>manipulations,<sp/>or<sp/>statistical<sp/>functions,<sp/>**NumPy**<sp/>should<sp/>be<sp/>used.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Charting<sp/>and<sp/>Visualization:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Plotly**<sp/>is<sp/>the<sp/>sole<sp/>library<sp/>for<sp/>all<sp/>graphical<sp/>representations.<sp/>This<sp/>ensures<sp/>a<sp/>consistent<sp/>interactive<sp/>experience<sp/>and<sp/>visual<sp/>style.<sp/>Avoid<sp/>other<sp/>charting<sp/>libraries.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Financial<sp/>Data<sp/>Acquisition:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**yfinance**<sp/>is<sp/>the<sp/>standard<sp/>for<sp/>retrieving<sp/>public<sp/>financial<sp/>market<sp/>data.<sp/>Do<sp/>not<sp/>implement<sp/>custom<sp/>scraping<sp/>or<sp/>use<sp/>other<sp/>external<sp/>financial<sp/>APIs<sp/>unless<sp/>explicitly<sp/>required<sp/>and<sp/>approved.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Data<sp/>Modeling:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Define<sp/>all<sp/>structured<sp/>data<sp/>objects<sp/>using<sp/>**dataclasses**<sp/>for<sp/>clarity<sp/>and<sp/>maintainability.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Use<sp/>**enum**<sp/>for<sp/>any<sp/>fixed<sp/>sets<sp/>of<sp/>choices<sp/>or<sp/>categories<sp/>(e.g.,<sp/>asset<sp/>classes,<sp/>event<sp/>types).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Date<sp/>and<sp/>Time<sp/>Handling:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Utilize<sp/>the<sp/>**datetime**<sp/>module<sp/>for<sp/>parsing,<sp/>formatting,<sp/>and<sp/>performing<sp/>operations<sp/>on<sp/>dates<sp/>and<sp/>times.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Structured<sp/>Output:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>When<sp/>displaying<sp/>complex<sp/>data<sp/>structures<sp/>in<sp/>the<sp/>UI,<sp/>especially<sp/>in<sp/>Gradio,<sp/>use<sp/>**json**<sp/>for<sp/>clear,<sp/>formatted<sp/>output.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Directory<sp/>and<sp/>File<sp/>Naming<sp/>Conventions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Directory<sp/>Names:**<sp/>All<sp/>directory<sp/>names<sp/>MUST<sp/>be<sp/>all<sp/>lower-case<sp/>(e.g.,<sp/>`src/pages`,<sp/>`src/components`,<sp/>`src/utils`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**File<sp/>Names:**<sp/>File<sp/>names<sp/>may<sp/>use<sp/>mixed-case<sp/>(e.g.,<sp/>`AssetRelationshipGraph.py`).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Coding<sp/>Guidelines</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Modularity:**<sp/>Create<sp/>small,<sp/>focused<sp/>files<sp/>and<sp/>components.<sp/>Aim<sp/>for<sp/>components<sp/>that<sp/>are<sp/>100<sp/>lines<sp/>of<sp/>code<sp/>or<sp/>less.<sp/>Refactor<sp/>large<sp/>files<sp/>when<sp/>necessary.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Readability:**<sp/>Write<sp/>clean,<sp/>well-commented<sp/>code.<sp/>Use<sp/>meaningful<sp/>variable<sp/>and<sp/>function<sp/>names.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Consistency:**<sp/>Adhere<sp/>to<sp/>the<sp/>existing<sp/>coding<sp/>style<sp/>and<sp/>conventions<sp/>of<sp/>the<sp/>project.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Completeness:**<sp/>All<sp/>implemented<sp/>features<sp/>must<sp/>be<sp/>fully<sp/>functional<sp/>with<sp/>complete<sp/>code;<sp/>avoid<sp/>placeholders<sp/>or<sp/>partial<sp/>implementations.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Error<sp/>Handling:**<sp/>Do<sp/>not<sp/>use<sp/>`try/catch`<sp/>blocks<sp/>for<sp/>general<sp/>error<sp/>handling<sp/>unless<sp/>specifically<sp/>requested.<sp/>Allow<sp/>errors<sp/>to<sp/>propagate<sp/>for<sp/>easier<sp/>debugging<sp/>and<sp/>system-level<sp/>error<sp/>management.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Simplicity:**<sp/>Prioritize<sp/>simple<sp/>and<sp/>elegant<sp/>solutions<sp/>over<sp/>overly<sp/>complex<sp/>or<sp/>over-engineered<sp/>designs.<sp/>Focus<sp/>on<sp/>the<sp/>user&apos;s<sp/>request<sp/>and<sp/>make<sp/>the<sp/>minimum<sp/>necessary<sp/>changes.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Responsiveness:**<sp/>Always<sp/>generate<sp/>responsive<sp/>designs<sp/>for<sp/>web<sp/>interfaces.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**User<sp/>Feedback:**<sp/>Use<sp/>toast<sp/>components<sp/>or<sp/>similar<sp/>UI<sp/>elements<sp/>to<sp/>inform<sp/>the<sp/>user<sp/>about<sp/>important<sp/>events<sp/>or<sp/>actions.</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/AI_RULES.md"/>
+  </compounddef>
+</doxygen>

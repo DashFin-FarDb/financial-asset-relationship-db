@@ -1,0 +1,1099 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacegraph__visuals" kind="namespace" language="Python">
+    <compoundname>graph_visuals</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacegraph__visuals_1a1627440dc1df44cad149c032fdf924ae" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>graph_visuals.logger</definition>
+        <argsstring></argsstring>
+        <name>logger</name>
+        <qualifiedname>graph_visuals.logger</qualifiedname>
+        <initializer>=  logging.getLogger(__name__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="12" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacegraph__visuals_1ae74736d33b6cf7b933c982a12933338e" prot="protected" static="no" mutable="no">
+        <type></type>
+        <definition>graph_visuals._graph_access_lock</definition>
+        <argsstring></argsstring>
+        <name>_graph_access_lock</name>
+        <qualifiedname>graph_visuals._graph_access_lock</qualifiedname>
+        <initializer>=  threading.RLock()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="15" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="15" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacegraph__visuals_1a0371f168febd2c079928cdde1d286fd1" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>graph_visuals.REL_TYPE_COLORS</definition>
+        <argsstring></argsstring>
+        <name>REL_TYPE_COLORS</name>
+        <qualifiedname>graph_visuals.REL_TYPE_COLORS</qualifiedname>
+        <initializer>=  defaultdict(
+    lambda: &quot;#888888&quot;,
+    {
+        &quot;same_sector&quot;: &quot;#FF6B6B&quot;,  # Red for sector relationships
+        &quot;market_cap_similar&quot;: &quot;#4ECDC4&quot;,  # Teal for market cap
+        &quot;correlation&quot;: &quot;#45B7D1&quot;,  # Blue for correlations
+        &quot;corporate_bond_to_equity&quot;: &quot;#96CEB4&quot;,  # Green for corporate bonds
+        &quot;commodity_currency&quot;: &quot;#FFEAA7&quot;,  # Yellow for commodity-currency
+        &quot;income_comparison&quot;: &quot;#DDA0DD&quot;,  # Plum for income comparisons
+        &quot;regulatory_impact&quot;: &quot;#FFA07A&quot;,  # Light salmon for regulatory
+    },
+)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="18" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacegraph__visuals_1af2a815c0bdaadc2b6aa339387795f4bb" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition> bool graph_visuals._is_valid_color_format</definition>
+        <argsstring>(str color)</argsstring>
+        <name>_is_valid_color_format</name>
+        <qualifiedname>graph_visuals._is_valid_color_format</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>color</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate if a string is a valid color format.
+
+Supports common color formats:
+- Hex colors (#RGB, #RRGGBB, #RRGGBBAA)
+- RGB/RGBA (e.g., &apos;rgb(255,0,0)&apos;, &apos;rgba(255,0,0,0.5)&apos;)
+- Named colors (delegated to Plotly)
+
+Args:
+    color: Color string to validate
+
+Returns:
+    True if color format is valid, False otherwise
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="32" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="32" bodyend="62"/>
+        <referencedby refid="namespacegraph__visuals_1a553f122c8516e6a12814996a7cd1a13e" compoundref="graph__visuals_8py" startline="799" endline="819">_get_line_style</referencedby>
+        <referencedby refid="namespacegraph__visuals_1aa96bbd15e68187307b2af5f94fd0d364" compoundref="graph__visuals_8py" startline="539" endline="557">_validate_colors_list</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a0b234963e74afc0d696565e612ad410c" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, int]</type>
+        <definition> Dict[str, int] graph_visuals._build_asset_id_index</definition>
+        <argsstring>(List[str] asset_ids)</argsstring>
+        <name>_build_asset_id_index</name>
+        <qualifiedname>graph_visuals._build_asset_id_index</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Build O(1) lookup index for asset IDs to their positions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="63" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="63" bodyend="67"/>
+        <referencedby refid="namespacegraph__visuals_1a41e2aa4282d406d57e0c1b69abc42480" compoundref="graph__visuals_8py" startline="902" endline="998">_create_directional_arrows</referencedby>
+        <referencedby refid="namespacegraph__visuals_1a126c97a3aa996be29f948301ee861806" compoundref="graph__visuals_8py" startline="859" endline="897">_create_relationship_traces</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a632734f64a969060dc90f97e0f207d59" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[Tuple[str, str, str], float]</type>
+        <definition> Dict[Tuple[str, str, str], float] graph_visuals._build_relationship_index</definition>
+        <argsstring>(AssetRelationshipGraph graph, Iterable[str] asset_ids)</argsstring>
+        <name>_build_relationship_index</name>
+        <qualifiedname>graph_visuals._build_relationship_index</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <param>
+          <type>Iterable</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Build optimized relationship index for O(1) lookups with pre-filtering and
+thread safety.
+
+This function consolidates relationship data into a single index structure that
+can be efficiently queried for:
+- Checking if a relationship exists (O(1) lookup)
+- Getting relationship strength (O(1) lookup)
+- Detecting bidirectional relationships (O(1) reverse lookup)
+
+Performance optimizations:
+- Pre-filters graph.relationships to only include relevant source_ids
+- Uses set-based membership tests for O(1) lookups
+- Avoids unnecessary iterations over irrelevant relationships
+- Reduces continue statements by filtering upfront
+
+Thread Safety:
+==============
+This function uses a reentrant lock (RLock) to protect concurrent access to
+graph.relationships within this module. However, true thread safety requires
+coordination across the entire codebase.
+
+Implementation:
+- Uses threading.RLock (_graph_access_lock) to synchronize access to
+  graph.relationships
+- The lock is reentrant, allowing the same thread to acquire it multiple
+  times safely
+- Creates a snapshot of relationships within the lock to minimize lock hold
+  time
+
+Thread safety guarantees (with conditions):
+✓ SAFE: Multiple threads calling visualization functions in this module
+  concurrently
+✓ SAFE: Concurrent calls to this function with the same graph object
+⚠ CONDITIONAL: Concurrent modifications to graph.relationships are only safe
+  if:
+  - All code that modifies graph.relationships uses the same
+    _graph_access_lock, OR
+  - The graph object is treated as immutable after creation (recommended
+    approach)
+
+Recommended usage patterns for thread safety:
+1. PREFERRED: Treat graph objects as immutable after creation. Build the graph
+   completely before passing it to visualization functions. This eliminates the
+   need for locking.
+2. ALTERNATIVE: If you must modify graph.relationships concurrently, ensure all
+   modification code acquires _graph_access_lock before accessing
+   graph.relationships. This requires coordination across your entire codebase.
+
+Note: The AssetRelationshipGraph class itself does not implement any locking
+mechanisms. Thread safety for modifications must be managed by the calling
+code. If other parts of your application modify graph.relationships without
+using _graph_access_lock, race conditions may occur.
+
+Error Handling (addresses review feedback):
+===========================================
+This function implements comprehensive error handling to ensure robustness:
+- Validates that graph is an AssetRelationshipGraph instance
+- Validates that graph.relationships exists and is a properly formatted
+  dictionary
+- Validates that asset_ids is iterable and contains only strings
+- Validates each relationship tuple has the correct structure (3 elements)
+- Validates data types for target_id (string), rel_type (string), and
+  strength (numeric)
+- Provides detailed error messages indicating the exact location and nature
+  of any issues
+
+Args:
+    graph: The asset relationship graph
+    asset_ids: Iterable of asset IDs to include (will be converted to a set
+        for O(1) membership tests)
+
+Returns:
+    Dictionary mapping (source_id, target_id, rel_type) to strength for all
+    relationships
+
+Raises:
+    TypeError: If graph is not an AssetRelationshipGraph instance, or if data
+        types are invalid
+    ValueError: If graph.relationships has invalid structure or malformed
+        data
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="68" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="70" bodyend="259"/>
+        <referencedby refid="namespacegraph__visuals_1a7f6044587769ab8335e37ea20279fd8a" compoundref="graph__visuals_8py" startline="708" endline="748">_collect_and_group_relationships</referencedby>
+        <referencedby refid="namespacegraph__visuals_1a41e2aa4282d406d57e0c1b69abc42480" compoundref="graph__visuals_8py" startline="902" endline="998">_create_directional_arrows</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a345ff70d680ece5d645ee7c9501d2a4a" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>go.Scatter3d</type>
+        <definition> go.Scatter3d graph_visuals._create_node_trace</definition>
+        <argsstring>(np.ndarray positions, List[str] asset_ids, List[str] colors, List[str] hover_texts)</argsstring>
+        <name>_create_node_trace</name>
+        <qualifiedname>graph_visuals._create_node_trace</qualifiedname>
+        <param>
+          <type>np.ndarray</type>
+          <declname>positions</declname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>colors</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>hover_texts</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create node trace for 3D visualization with comprehensive input validation.
+
+Validates all inputs to ensure:
+- positions is a non-empty 2D numpy array with
+  shape(n, 3) containing finite numeric values
+- asset_ids is a non-empty list or tuple of
+  non-empty strings with length matching positions
+- colors is a non-empty list or tuple of valid color strings with
+  length matching positions
+- hover_texts is a non-empty list or tuple of strings with
+  length matching positions
+
+Args:
+    positions: NumPy array of node positions with shape(n, 3)
+        containing finite numeric values
+    asset_ids: List of asset ID strings (must be non-empty strings,
+        length must match positions)
+    colors: List of node colors(length must match positions)
+    hover_texts: List of hover texts(length must match positions)
+
+Returns:
+    Plotly Scatter3d trace for nodes
+
+Raises:
+    ValueError: If input parameters are invalid,
+        have mismatched dimensions, or contain invalid data
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="260" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="265" bodyend="358"/>
+        <references refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</references>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+        <referencedby refid="namespacegraph__visuals_1a828bdcb4c7a34d98e2a555a154c74576" compoundref="graph__visuals_8py" startline="1096" endline="1280">visualize_3d_graph_with_filters</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a3aba8b14bed184d9ab46de2e8f0b3fa5" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str graph_visuals._generate_dynamic_title</definition>
+        <argsstring>(int num_assets, int num_relationships, str base_title=&quot;Financial Asset Network&quot;)</argsstring>
+        <name>_generate_dynamic_title</name>
+        <qualifiedname>graph_visuals._generate_dynamic_title</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>num_assets</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>num_relationships</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>base_title</declname>
+          <defval>&quot;Financial Asset Network&quot;</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Generate a dynamic title for the visualization based on asset
+and relationship counts.
+
+This function creates a consistent title format
+across different visualization contexts, improving modularity
+and making it easier to customize titles without modifying core logic.
+
+Args:
+    num_assets: Number of assets in the visualization
+    num_relationships: Number of relationships displayed
+    base_title: Base title text(default: &quot;Financial Asset Network&quot;)
+
+Returns:
+    Formatted title string with asset and relationship counts
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="359" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="363" bodyend="381"/>
+        <referencedby refid="namespacegraph__visuals_1a268f24b662cc93d2049a92711703834c" compoundref="graph__visuals_8py" startline="408" endline="431">_prepare_layout_config</referencedby>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1ae50fff61e59d784869707c6cb7cf5554" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition> int graph_visuals._calculate_visible_relationships</definition>
+        <argsstring>(List[go.Scatter3d] relationship_traces)</argsstring>
+        <name>_calculate_visible_relationships</name>
+        <qualifiedname>graph_visuals._calculate_visible_relationships</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>relationship_traces</declname>
+          <array>[go.Scatter3d]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Calculate the number of visible relationships from traces.
+
+This helper function extracts the relationship count calculation logic,
+making it reusable and testable independently of the visualization logic.
+
+Args:
+    relationship_traces: List of Scatter3d traces representing relationships
+
+Returns:
+    Number of visible relationships(edges) in the traces
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="382" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="382" bodyend="402"/>
+        <referencedby refid="namespacegraph__visuals_1a268f24b662cc93d2049a92711703834c" compoundref="graph__visuals_8py" startline="408" endline="431">_prepare_layout_config</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a268f24b662cc93d2049a92711703834c" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Tuple[str, Dict[str, object]]</type>
+        <definition> Tuple[str, Dict[str, object]] graph_visuals._prepare_layout_config</definition>
+        <argsstring>(int num_assets, List[go.Scatter3d] relationship_traces, str base_title=&quot;Financial Asset Network&quot;, Optional[Dict[str, object]] layout_options=None)</argsstring>
+        <name>_prepare_layout_config</name>
+        <qualifiedname>graph_visuals._prepare_layout_config</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>num_assets</declname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>relationship_traces</declname>
+          <array>[go.Scatter3d]</array>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>base_title</declname>
+          <defval>&quot;Financial Asset Network&quot;</defval>
+        </param>
+        <param>
+          <type>Optional]</type>
+          <declname>layout_options</declname>
+          <array>[Dict[str, object]</array>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Prepare layout configuration with dynamic title based on visualization data.
+
+This function separates layout configuration logic from the main
+visualization function, improving modularity and making it easier to
+customize layouts in different contexts.
+
+Args:
+    num_assets: Number of assets in the visualization
+    relationship_traces: List of relationship traces to count visible
+        relationships
+    base_title: Base title text (default: &quot;Financial Asset Network&quot;)
+    layout_options: Optional layout customization options
+
+Returns:
+    Tuple of (dynamic_title, layout_options) ready for use with
+        _configure_3d_layout
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="403" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="408" bodyend="431"/>
+        <references refid="namespacegraph__visuals_1ae50fff61e59d784869707c6cb7cf5554" compoundref="graph__visuals_8py" startline="382" endline="402">_calculate_visible_relationships</references>
+        <references refid="namespacegraph__visuals_1a3aba8b14bed184d9ab46de2e8f0b3fa5" compoundref="graph__visuals_8py" startline="363" endline="381">_generate_dynamic_title</references>
+        <referencedby refid="namespacegraph__visuals_1a828bdcb4c7a34d98e2a555a154c74576" compoundref="graph__visuals_8py" startline="1096" endline="1280">visualize_3d_graph_with_filters</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1adf5165349a616f411dfb4613adf79286" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._add_directional_arrows_to_figure</definition>
+        <argsstring>(go.Figure fig, AssetRelationshipGraph graph, np.ndarray positions, List[str] asset_ids)</argsstring>
+        <name>_add_directional_arrows_to_figure</name>
+        <qualifiedname>graph_visuals._add_directional_arrows_to_figure</qualifiedname>
+        <param>
+          <type>go.Figure</type>
+          <declname>fig</declname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>positions</declname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Add directional arrows to the figure for unidirectional
+relationships using batch operations.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="432" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="437" bodyend="445"/>
+        <references refid="namespacegraph__visuals_1a41e2aa4282d406d57e0c1b69abc42480" compoundref="graph__visuals_8py" startline="902" endline="998">_create_directional_arrows</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a0ac5eba53e8e0b8218c2b7ccf5072f82" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._configure_3d_layout</definition>
+        <argsstring>(go.Figure fig, str title, Optional[Dict[str, object]] options=None)</argsstring>
+        <name>_configure_3d_layout</name>
+        <qualifiedname>graph_visuals._configure_3d_layout</qualifiedname>
+        <param>
+          <type>go.Figure</type>
+          <declname>fig</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>title</declname>
+        </param>
+        <param>
+          <type>Optional]</type>
+          <declname>options</declname>
+          <array>[Dict[str, object]</array>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Configure the 3D layout for the figure.
+
+Args:
+    fig: Target Plotly figure
+    title: Title text
+    options: Optional mapping to override defaults. Supported keys:
+        - width(int)
+        - height(int)
+        - gridcolor(str)
+        - bgcolor(str)
+        - legend_bgcolor(str)
+        - legend_bordercolor(str)
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="446" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="450" bodyend="499"/>
+        <referencedby refid="namespacegraph__visuals_1a828bdcb4c7a34d98e2a555a154c74576" compoundref="graph__visuals_8py" startline="1096" endline="1280">visualize_3d_graph_with_filters</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1ab2c4f4a71bd4ac0c27552e84e6118eab" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._validate_positions_array</definition>
+        <argsstring>(np.ndarray positions)</argsstring>
+        <name>_validate_positions_array</name>
+        <qualifiedname>graph_visuals._validate_positions_array</qualifiedname>
+        <param>
+          <type>np.ndarray</type>
+          <declname>positions</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate positions array structure and values.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="500" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="500" bodyend="527"/>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a5d2b6e0ace20321ddff80afa16911f60" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._validate_asset_ids_list</definition>
+        <argsstring>(List[str] asset_ids)</argsstring>
+        <name>_validate_asset_ids_list</name>
+        <qualifiedname>graph_visuals._validate_asset_ids_list</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate asset_ids list structure and content.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="528" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="528" bodyend="538"/>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1aa96bbd15e68187307b2af5f94fd0d364" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._validate_colors_list</definition>
+        <argsstring>(List[str] colors, int expected_length)</argsstring>
+        <name>_validate_colors_list</name>
+        <qualifiedname>graph_visuals._validate_colors_list</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>colors</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>expected_length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate colors list structure, content, and format.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="539" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="539" bodyend="557"/>
+        <references refid="namespacegraph__visuals_1af2a815c0bdaadc2b6aa339387795f4bb" compoundref="graph__visuals_8py" startline="32" endline="62">_is_valid_color_format</references>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a8c595f8085bc0ca1f3adf6d2708657f4" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._validate_hover_texts_list</definition>
+        <argsstring>(List[str] hover_texts, int expected_length)</argsstring>
+        <name>_validate_hover_texts_list</name>
+        <qualifiedname>graph_visuals._validate_hover_texts_list</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>hover_texts</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>expected_length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate hover_texts list structure and content.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="558" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="561" bodyend="576"/>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a372e2fa2aab88734f03d83259f58c597" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._validate_asset_ids_uniqueness</definition>
+        <argsstring>(List[str] asset_ids)</argsstring>
+        <name>_validate_asset_ids_uniqueness</name>
+        <qualifiedname>graph_visuals._validate_asset_ids_uniqueness</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate that asset IDs are unique.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="577" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="577" bodyend="591"/>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._validate_visualization_data</definition>
+        <argsstring>(np.ndarray positions, List[str] asset_ids, List[str] colors, List[str] hover_texts)</argsstring>
+        <name>_validate_visualization_data</name>
+        <qualifiedname>graph_visuals._validate_visualization_data</qualifiedname>
+        <param>
+          <type>np.ndarray</type>
+          <declname>positions</declname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>colors</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>hover_texts</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate visualization data integrity to prevent runtime errors.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="592" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="597" bodyend="703"/>
+        <references refid="namespacegraph__visuals_1a41e2aa4282d406d57e0c1b69abc42480" compoundref="graph__visuals_8py" startline="902" endline="998">_create_directional_arrows</references>
+        <references refid="namespacegraph__visuals_1a345ff70d680ece5d645ee7c9501d2a4a" compoundref="graph__visuals_8py" startline="265" endline="358">_create_node_trace</references>
+        <references refid="namespacegraph__visuals_1a126c97a3aa996be29f948301ee861806" compoundref="graph__visuals_8py" startline="859" endline="897">_create_relationship_traces</references>
+        <references refid="namespacegraph__visuals_1a3aba8b14bed184d9ab46de2e8f0b3fa5" compoundref="graph__visuals_8py" startline="363" endline="381">_generate_dynamic_title</references>
+        <references refid="namespacegraph__visuals_1a5d2b6e0ace20321ddff80afa16911f60" compoundref="graph__visuals_8py" startline="528" endline="538">_validate_asset_ids_list</references>
+        <references refid="namespacegraph__visuals_1a372e2fa2aab88734f03d83259f58c597" compoundref="graph__visuals_8py" startline="577" endline="591">_validate_asset_ids_uniqueness</references>
+        <references refid="namespacegraph__visuals_1aa96bbd15e68187307b2af5f94fd0d364" compoundref="graph__visuals_8py" startline="539" endline="557">_validate_colors_list</references>
+        <references refid="namespacegraph__visuals_1a8c595f8085bc0ca1f3adf6d2708657f4" compoundref="graph__visuals_8py" startline="561" endline="576">_validate_hover_texts_list</references>
+        <references refid="namespacegraph__visuals_1ab2c4f4a71bd4ac0c27552e84e6118eab" compoundref="graph__visuals_8py" startline="500" endline="527">_validate_positions_array</references>
+        <references refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</references>
+        <referencedby refid="namespacegraph__visuals_1a345ff70d680ece5d645ee7c9501d2a4a" compoundref="graph__visuals_8py" startline="265" endline="358">_create_node_trace</referencedby>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+        <referencedby refid="namespacegraph__visuals_1a828bdcb4c7a34d98e2a555a154c74576" compoundref="graph__visuals_8py" startline="1096" endline="1280">visualize_3d_graph_with_filters</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a7f6044587769ab8335e37ea20279fd8a" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[Tuple[str, bool], List[dict]]</type>
+        <definition> Dict[Tuple[str, bool], List[dict]] graph_visuals._collect_and_group_relationships</definition>
+        <argsstring>(AssetRelationshipGraph graph, Iterable[str] asset_ids, Optional[Dict[str, bool]] relationship_filters=None)</argsstring>
+        <name>_collect_and_group_relationships</name>
+        <qualifiedname>graph_visuals._collect_and_group_relationships</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <param>
+          <type>Iterable</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>Optional]</type>
+          <declname>relationship_filters</declname>
+          <array>[Dict[str, bool]</array>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Collect and group relationships with directionality info in a single pass.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="704" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="708" bodyend="748"/>
+        <references refid="namespacegraph__visuals_1a632734f64a969060dc90f97e0f207d59" compoundref="graph__visuals_8py" startline="70" endline="259">_build_relationship_index</references>
+        <referencedby refid="namespacegraph__visuals_1a126c97a3aa996be29f948301ee861806" compoundref="graph__visuals_8py" startline="859" endline="897">_create_relationship_traces</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1ae0f9ab07f0f1d5aeb10cc8a8bf4a0da6" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Tuple[List[Optional[float]], List[Optional[float]], List[Optional[float]]]</type>
+        <definition> Tuple[List[Optional[float]], List[Optional[float]], List[Optional[float]]] graph_visuals._build_edge_coordinates_optimized</definition>
+        <argsstring>(List[dict] relationships, np.ndarray positions, Dict[str, int] asset_id_index)</argsstring>
+        <name>_build_edge_coordinates_optimized</name>
+        <qualifiedname>graph_visuals._build_edge_coordinates_optimized</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>relationships</declname>
+          <array>[dict]</array>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>positions</declname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>asset_id_index</declname>
+          <array>[str, int]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Build edge coordinate lists for relationships using optimized O(1) lookups.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="749" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="753" bodyend="777"/>
+        <referencedby refid="namespacegraph__visuals_1a89feb243f069a64c954d913babcc0284" compoundref="graph__visuals_8py" startline="833" endline="853">_create_trace_for_group</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1ac5edbf171a6ddb6e1e3a8f61971ad627" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Optional[str]]</type>
+        <definition> List[Optional[str]] graph_visuals._build_hover_texts</definition>
+        <argsstring>(List[dict] relationships, str rel_type, bool is_bidirectional)</argsstring>
+        <name>_build_hover_texts</name>
+        <qualifiedname>graph_visuals._build_hover_texts</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>relationships</declname>
+          <array>[dict]</array>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>rel_type</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>is_bidirectional</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Build hover text list for relationships with pre-allocation for performance.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="778" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="780" bodyend="798"/>
+        <referencedby refid="namespacegraph__visuals_1a89feb243f069a64c954d913babcc0284" compoundref="graph__visuals_8py" startline="833" endline="853">_create_trace_for_group</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a553f122c8516e6a12814996a7cd1a13e" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>dict</type>
+        <definition> dict graph_visuals._get_line_style</definition>
+        <argsstring>(str rel_type, bool is_bidirectional)</argsstring>
+        <name>_get_line_style</name>
+        <qualifiedname>graph_visuals._get_line_style</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>rel_type</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>is_bidirectional</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get line style configuration for a relationship
+with color validation.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="799" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="799" bodyend="819"/>
+        <references refid="namespacegraph__visuals_1af2a815c0bdaadc2b6aa339387795f4bb" compoundref="graph__visuals_8py" startline="32" endline="62">_is_valid_color_format</references>
+        <referencedby refid="namespacegraph__visuals_1a89feb243f069a64c954d913babcc0284" compoundref="graph__visuals_8py" startline="833" endline="853">_create_trace_for_group</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1aa4d02d3595ef8a27dd8ccc870d692749" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str graph_visuals._format_trace_name</definition>
+        <argsstring>(str rel_type, bool is_bidirectional)</argsstring>
+        <name>_format_trace_name</name>
+        <qualifiedname>graph_visuals._format_trace_name</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>rel_type</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>is_bidirectional</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Format trace name for legend.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="820" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="820" bodyend="826"/>
+        <referencedby refid="namespacegraph__visuals_1a89feb243f069a64c954d913babcc0284" compoundref="graph__visuals_8py" startline="833" endline="853">_create_trace_for_group</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a89feb243f069a64c954d913babcc0284" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>go.Scatter3d</type>
+        <definition> go.Scatter3d graph_visuals._create_trace_for_group</definition>
+        <argsstring>(str rel_type, bool is_bidirectional, List[dict] relationships, np.ndarray positions, Dict[str, int] asset_id_index)</argsstring>
+        <name>_create_trace_for_group</name>
+        <qualifiedname>graph_visuals._create_trace_for_group</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>rel_type</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>is_bidirectional</declname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>relationships</declname>
+          <array>[dict]</array>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>positions</declname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>asset_id_index</declname>
+          <array>[str, int]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a single trace for a relationship group with optimized performance.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="827" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="833" bodyend="853"/>
+        <references refid="namespacegraph__visuals_1ae0f9ab07f0f1d5aeb10cc8a8bf4a0da6" compoundref="graph__visuals_8py" startline="753" endline="777">_build_edge_coordinates_optimized</references>
+        <references refid="namespacegraph__visuals_1ac5edbf171a6ddb6e1e3a8f61971ad627" compoundref="graph__visuals_8py" startline="780" endline="798">_build_hover_texts</references>
+        <references refid="namespacegraph__visuals_1aa4d02d3595ef8a27dd8ccc870d692749" compoundref="graph__visuals_8py" startline="820" endline="826">_format_trace_name</references>
+        <references refid="namespacegraph__visuals_1a553f122c8516e6a12814996a7cd1a13e" compoundref="graph__visuals_8py" startline="799" endline="819">_get_line_style</references>
+        <referencedby refid="namespacegraph__visuals_1a126c97a3aa996be29f948301ee861806" compoundref="graph__visuals_8py" startline="859" endline="897">_create_relationship_traces</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a126c97a3aa996be29f948301ee861806" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[go.Scatter3d]</type>
+        <definition> List[go.Scatter3d] graph_visuals._create_relationship_traces</definition>
+        <argsstring>(AssetRelationshipGraph graph, np.ndarray positions, List[str] asset_ids, Optional[Dict[str, bool]] relationship_filters=None)</argsstring>
+        <name>_create_relationship_traces</name>
+        <qualifiedname>graph_visuals._create_relationship_traces</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>positions</declname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>Optional]</type>
+          <declname>relationship_filters</declname>
+          <array>[Dict[str, bool]</array>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create separate traces for different types of relationships
+with enhanced visibility.
+
+Returns a list of traces for batch addition to figure using
+fig.add_traces() for optimal performance.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="854" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="859" bodyend="897"/>
+        <references refid="namespacegraph__visuals_1a0b234963e74afc0d696565e612ad410c" compoundref="graph__visuals_8py" startline="63" endline="67">_build_asset_id_index</references>
+        <references refid="namespacegraph__visuals_1a7f6044587769ab8335e37ea20279fd8a" compoundref="graph__visuals_8py" startline="708" endline="748">_collect_and_group_relationships</references>
+        <references refid="namespacegraph__visuals_1a89feb243f069a64c954d913babcc0284" compoundref="graph__visuals_8py" startline="833" endline="853">_create_trace_for_group</references>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+        <referencedby refid="namespacegraph__visuals_1a828bdcb4c7a34d98e2a555a154c74576" compoundref="graph__visuals_8py" startline="1096" endline="1280">visualize_3d_graph_with_filters</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a41e2aa4282d406d57e0c1b69abc42480" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[go.Scatter3d]</type>
+        <definition> List[go.Scatter3d] graph_visuals._create_directional_arrows</definition>
+        <argsstring>(AssetRelationshipGraph graph, np.ndarray positions, List[str] asset_ids)</argsstring>
+        <name>_create_directional_arrows</name>
+        <qualifiedname>graph_visuals._create_directional_arrows</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>positions</declname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>asset_ids</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create arrow markers for unidirectional relationships using
+vectorized NumPy operations.
+
+Returns a list of traces for batch addition to figure.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="898" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="902" bodyend="998"/>
+        <references refid="namespacegraph__visuals_1a0b234963e74afc0d696565e612ad410c" compoundref="graph__visuals_8py" startline="63" endline="67">_build_asset_id_index</references>
+        <references refid="namespacegraph__visuals_1a632734f64a969060dc90f97e0f207d59" compoundref="graph__visuals_8py" startline="70" endline="259">_build_relationship_index</references>
+        <referencedby refid="namespacegraph__visuals_1adf5165349a616f411dfb4613adf79286" compoundref="graph__visuals_8py" startline="437" endline="445">_add_directional_arrows_to_figure</referencedby>
+        <referencedby refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</referencedby>
+        <referencedby refid="namespacegraph__visuals_1a828bdcb4c7a34d98e2a555a154c74576" compoundref="graph__visuals_8py" startline="1096" endline="1280">visualize_3d_graph_with_filters</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1aadaf25f110e332612e1de8ce383cf8ce" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._validate_filter_parameters</definition>
+        <argsstring>(Dict[str, bool] filter_params)</argsstring>
+        <name>_validate_filter_parameters</name>
+        <qualifiedname>graph_visuals._validate_filter_parameters</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>filter_params</declname>
+          <array>[str, bool]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate that all filter parameters are boolean values.
+
+Args:
+    filter_params: Dictionary mapping filter parameter names to
+        their boolean values.
+        Expected keys:
+            show_same_sector,
+            show_market_cap,
+            show_correlation,
+            show_corporate_bond,
+            show_commodity_currency,
+            show_income_comparison,
+            show_regulatory,
+            show_all_relationships,
+            toggle_arrows
+
+Raises:
+    TypeError: If any parameter is not a boolean or if filter_params is not
+        a dictionary
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="999" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="999" bodyend="1036"/>
+        <referencedby refid="namespacegraph__visuals_1a828bdcb4c7a34d98e2a555a154c74576" compoundref="graph__visuals_8py" startline="1096" endline="1280">visualize_3d_graph_with_filters</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1ac8a25682128b2e8456b0aa75229e5fb0" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None graph_visuals._validate_relationship_filters</definition>
+        <argsstring>(Optional[Dict[str, bool]] relationship_filters)</argsstring>
+        <name>_validate_relationship_filters</name>
+        <qualifiedname>graph_visuals._validate_relationship_filters</qualifiedname>
+        <param>
+          <type>Optional]</type>
+          <declname>relationship_filters</declname>
+          <array>[Dict[str, bool]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate relationship filter dictionary structure and values.
+
+Args:
+    relationship_filters: Optional dictionary mapping
+        relationship types to boolean visibility flags
+
+Raises:
+    TypeError: If relationship_filters is not None and not a dictionary
+    ValueError: If relationship_filters contains invalid keys or non-boolean
+        values
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="1037" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="1039" bodyend="1084"/>
+        <referencedby refid="namespacegraph__visuals_1a828bdcb4c7a34d98e2a555a154c74576" compoundref="graph__visuals_8py" startline="1096" endline="1280">visualize_3d_graph_with_filters</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegraph__visuals_1a828bdcb4c7a34d98e2a555a154c74576" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>go.Figure</type>
+        <definition> go.Figure graph_visuals.visualize_3d_graph_with_filters</definition>
+        <argsstring>(AssetRelationshipGraph graph, bool show_same_sector=True, bool show_market_cap=True, bool show_correlation=True, bool show_corporate_bond=True, bool show_commodity_currency=True, bool show_income_comparison=True, bool show_regulatory=True, bool show_all_relationships=True, bool toggle_arrows=True)</argsstring>
+        <name>visualize_3d_graph_with_filters</name>
+        <qualifiedname>graph_visuals.visualize_3d_graph_with_filters</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_same_sector</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_market_cap</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_correlation</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_corporate_bond</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_commodity_currency</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_income_comparison</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_regulatory</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>show_all_relationships</declname>
+          <defval>True</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>toggle_arrows</declname>
+          <defval>True</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create 3D visualization with selective relationship filtering.
+
+This function dynamically creates and adds relationship traces based
+on optional filters, with comprehensive error handling to manage
+potential issues from invalid filter configurations or data
+inconsistencies.
+
+Args:
+    graph: Asset relationship graph to visualize
+    show_same_sector: Show same sector relationships (default: True)
+    show_market_cap: Show market cap relationships (default: True)
+    show_correlation: Show correlation relationships (default: True)
+    show_corporate_bond: Show corporate bond relationships (default: True)
+    show_commodity_currency: Show commodity currency relationships
+        (default: True)
+    show_income_comparison: Show income comparison relationships
+        (default: True)
+    show_regulatory: Show regulatory relationships (default: True)
+    show_all_relationships: Master toggle to show all relationships
+        (default: True)
+    toggle_arrows: Show directional arrows for unidirectional
+        relationships (default: True)
+
+Returns:
+    Plotly Figure object with 3D visualization
+
+Raises:
+    ValueError: If graph is invalid or missing required methods /
+        attributes
+    TypeError: If filter parameters are not boolean values
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="1085" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" bodystart="1096" bodyend="1280"/>
+        <references refid="namespacegraph__visuals_1a0ac5eba53e8e0b8218c2b7ccf5072f82" compoundref="graph__visuals_8py" startline="450" endline="499">_configure_3d_layout</references>
+        <references refid="namespacegraph__visuals_1a41e2aa4282d406d57e0c1b69abc42480" compoundref="graph__visuals_8py" startline="902" endline="998">_create_directional_arrows</references>
+        <references refid="namespacegraph__visuals_1a345ff70d680ece5d645ee7c9501d2a4a" compoundref="graph__visuals_8py" startline="265" endline="358">_create_node_trace</references>
+        <references refid="namespacegraph__visuals_1a126c97a3aa996be29f948301ee861806" compoundref="graph__visuals_8py" startline="859" endline="897">_create_relationship_traces</references>
+        <references refid="namespacegraph__visuals_1a268f24b662cc93d2049a92711703834c" compoundref="graph__visuals_8py" startline="408" endline="431">_prepare_layout_config</references>
+        <references refid="namespacegraph__visuals_1aadaf25f110e332612e1de8ce383cf8ce" compoundref="graph__visuals_8py" startline="999" endline="1036">_validate_filter_parameters</references>
+        <references refid="namespacegraph__visuals_1ac8a25682128b2e8456b0aa75229e5fb0" compoundref="graph__visuals_8py" startline="1039" endline="1084">_validate_relationship_filters</references>
+        <references refid="namespacegraph__visuals_1a870c69decb3e9db3ed97f279c6121748" compoundref="graph__visuals_8py" startline="597" endline="703">_validate_visualization_data</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/graph_visuals.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

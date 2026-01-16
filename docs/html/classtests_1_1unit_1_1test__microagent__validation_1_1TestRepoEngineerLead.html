@@ -1,0 +1,937 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: tests.unit.test_microagent_validation.TestRepoEngineerLead Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classtests_1_1unit_1_1test__microagent__validation_1_1TestRepoEngineerLead.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="classtests_1_1unit_1_1test__microagent__validation_1_1TestRepoEngineerLead-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">tests.unit.test_microagent_validation.TestRepoEngineerLead Class Reference</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+Inheritance diagram for tests.unit.test_microagent_validation.TestRepoEngineerLead:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="classtests_1_1unit_1_1test__microagent__validation_1_1TestRepoEngineerLead__inherit__graph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Collaboration diagram for tests.unit.test_microagent_validation.TestRepoEngineerLead:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="classtests_1_1unit_1_1test__microagent__validation_1_1TestRepoEngineerLead__coll__graph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:afba92d1371393d816db18df4496153fb" id="r_afba92d1371393d816db18df4496153fb"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afba92d1371393d816db18df4496153fb">repo_engineer_frontmatter</a> (self, str <a class="el" href="#ae79990c7e242dbb1672d43a541b15c9c">repo_engineer_content</a>)</td></tr>
+<tr class="separator:afba92d1371393d816db18df4496153fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac68590996c8ad2fda5831eca01a0a04" id="r_aac68590996c8ad2fda5831eca01a0a04"><td class="memItemLeft" align="right" valign="top">str&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a> (self, str <a class="el" href="#ae79990c7e242dbb1672d43a541b15c9c">repo_engineer_content</a>)</td></tr>
+<tr class="separator:aac68590996c8ad2fda5831eca01a0a04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8627f3a0483b70ff9ae6ee2bf2aa866" id="r_ac8627f3a0483b70ff9ae6ee2bf2aa866"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac8627f3a0483b70ff9ae6ee2bf2aa866">test_has_valid_frontmatter</a> (self, str <a class="el" href="#ae79990c7e242dbb1672d43a541b15c9c">repo_engineer_content</a>)</td></tr>
+<tr class="separator:ac8627f3a0483b70ff9ae6ee2bf2aa866"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation.html">tests.unit.test_microagent_validation.TestMicroagentValidation</a></td></tr>
+<tr class="memitem:abf450f8425751abe6fefb15206e72907 inherit pub_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation" id="r_abf450f8425751abe6fefb15206e72907"><td class="memItemLeft" align="right" valign="top">Path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation.html#abf450f8425751abe6fefb15206e72907">microagents_dir</a> (self)</td></tr>
+<tr class="separator:abf450f8425751abe6fefb15206e72907 inherit pub_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1964dbf5d42e16dcce64ee6e879dc9f inherit pub_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation" id="r_ae1964dbf5d42e16dcce64ee6e879dc9f"><td class="memItemLeft" align="right" valign="top">List[Path]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation.html#ae1964dbf5d42e16dcce64ee6e879dc9f">microagent_files</a> (self, Path <a class="el" href="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation.html#abf450f8425751abe6fefb15206e72907">microagents_dir</a>)</td></tr>
+<tr class="separator:ae1964dbf5d42e16dcce64ee6e879dc9f inherit pub_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a8adf50a4727fc77707252d03b93c31a3" id="r_a8adf50a4727fc77707252d03b93c31a3"><td class="memItemLeft" align="right" valign="top">Path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8adf50a4727fc77707252d03b93c31a3">repo_engineer_path</a> (Path <a class="el" href="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation.html#abf450f8425751abe6fefb15206e72907">microagents_dir</a>)</td></tr>
+<tr class="separator:a8adf50a4727fc77707252d03b93c31a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae79990c7e242dbb1672d43a541b15c9c" id="r_ae79990c7e242dbb1672d43a541b15c9c"><td class="memItemLeft" align="right" valign="top">str&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae79990c7e242dbb1672d43a541b15c9c">repo_engineer_content</a> (Path <a class="el" href="#a8adf50a4727fc77707252d03b93c31a3">repo_engineer_path</a>)</td></tr>
+<tr class="separator:ae79990c7e242dbb1672d43a541b15c9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a425fd91e134dbbc3d1135fd36b313007" id="r_a425fd91e134dbbc3d1135fd36b313007"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a425fd91e134dbbc3d1135fd36b313007">test_file_exists</a> (Path <a class="el" href="#a8adf50a4727fc77707252d03b93c31a3">repo_engineer_path</a>)</td></tr>
+<tr class="separator:a425fd91e134dbbc3d1135fd36b313007"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7eede56e5f353ad288d8a813c4f41c92" id="r_a7eede56e5f353ad288d8a813c4f41c92"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7eede56e5f353ad288d8a813c4f41c92">test_file_not_empty</a> (str <a class="el" href="#ae79990c7e242dbb1672d43a541b15c9c">repo_engineer_content</a>)</td></tr>
+<tr class="separator:a7eede56e5f353ad288d8a813c4f41c92"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3299e29bd67e93b10cf0eb4636283a5" id="r_af3299e29bd67e93b10cf0eb4636283a5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3299e29bd67e93b10cf0eb4636283a5">test_frontmatter_has_required_fields</a> (Dict[str, Any] <a class="el" href="#afba92d1371393d816db18df4496153fb">repo_engineer_frontmatter</a>)</td></tr>
+<tr class="separator:af3299e29bd67e93b10cf0eb4636283a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85e6453f70a7284e0dd9c4272a10fe2a" id="r_a85e6453f70a7284e0dd9c4272a10fe2a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a85e6453f70a7284e0dd9c4272a10fe2a">test_frontmatter_name_field</a> (Dict[str, Any] <a class="el" href="#afba92d1371393d816db18df4496153fb">repo_engineer_frontmatter</a>)</td></tr>
+<tr class="separator:a85e6453f70a7284e0dd9c4272a10fe2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a318c222112c978638aa0060c0fb3090d" id="r_a318c222112c978638aa0060c0fb3090d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a318c222112c978638aa0060c0fb3090d">test_frontmatter_type_field</a> (Dict[str, Any] <a class="el" href="#afba92d1371393d816db18df4496153fb">repo_engineer_frontmatter</a>)</td></tr>
+<tr class="separator:a318c222112c978638aa0060c0fb3090d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70b067cb06dcc01b8356c58046260901" id="r_a70b067cb06dcc01b8356c58046260901"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a70b067cb06dcc01b8356c58046260901">test_frontmatter_version_field</a> (Dict[str, Any] <a class="el" href="#afba92d1371393d816db18df4496153fb">repo_engineer_frontmatter</a>)</td></tr>
+<tr class="separator:a70b067cb06dcc01b8356c58046260901"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d14b6d6c968760e914fd57178c2c393" id="r_a7d14b6d6c968760e914fd57178c2c393"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7d14b6d6c968760e914fd57178c2c393">test_frontmatter_agent_field</a> (Dict[str, Any] <a class="el" href="#afba92d1371393d816db18df4496153fb">repo_engineer_frontmatter</a>)</td></tr>
+<tr class="separator:a7d14b6d6c968760e914fd57178c2c393"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a6ac5bebd1fd6af32e32888800e5e7a" id="r_a3a6ac5bebd1fd6af32e32888800e5e7a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3a6ac5bebd1fd6af32e32888800e5e7a">test_frontmatter_no_triggers</a> (Dict[str, Any] <a class="el" href="#afba92d1371393d816db18df4496153fb">repo_engineer_frontmatter</a>)</td></tr>
+<tr class="separator:a3a6ac5bebd1fd6af32e32888800e5e7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e9a3ceecb45700236c17378a5a6b371" id="r_a5e9a3ceecb45700236c17378a5a6b371"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5e9a3ceecb45700236c17378a5a6b371">test_body_content_not_empty</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:a5e9a3ceecb45700236c17378a5a6b371"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab95fd9a1f38e43a415afee7603a76d41" id="r_ab95fd9a1f38e43a415afee7603a76d41"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab95fd9a1f38e43a415afee7603a76d41">test_body_describes_purpose</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:ab95fd9a1f38e43a415afee7603a76d41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0525b2acf1690e5d94e7f4dda5e125f7" id="r_a0525b2acf1690e5d94e7f4dda5e125f7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0525b2acf1690e5d94e7f4dda5e125f7">test_body_mentions_issue_review</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:a0525b2acf1690e5d94e7f4dda5e125f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd96cc684545b5ec664121195d7a9462" id="r_afd96cc684545b5ec664121195d7a9462"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afd96cc684545b5ec664121195d7a9462">test_body_mentions_pr_handling</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:afd96cc684545b5ec664121195d7a9462"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ce07da3210b41a52af8b03958836431" id="r_a6ce07da3210b41a52af8b03958836431"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ce07da3210b41a52af8b03958836431">test_body_mentions_code_changes</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:a6ce07da3210b41a52af8b03958836431"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae102774781efb2a8f8e71d42e51ca69c" id="r_ae102774781efb2a8f8e71d42e51ca69c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae102774781efb2a8f8e71d42e51ca69c">test_body_mentions_documentation</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:ae102774781efb2a8f8e71d42e51ca69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93b76ff039e6766359f7568f1579fb90" id="r_a93b76ff039e6766359f7568f1579fb90"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a93b76ff039e6766359f7568f1579fb90">test_body_mentions_merge_conflicts</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:a93b76ff039e6766359f7568f1579fb90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4aeaa2badbf85c5f0377bf122dc7ee19" id="r_a4aeaa2badbf85c5f0377bf122dc7ee19"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4aeaa2badbf85c5f0377bf122dc7ee19">test_body_mentions_branch_hygiene</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:a4aeaa2badbf85c5f0377bf122dc7ee19"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef22e93894217092685b59a1fcf0dc8c" id="r_aef22e93894217092685b59a1fcf0dc8c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aef22e93894217092685b59a1fcf0dc8c">test_body_mentions_commit_responsibility</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:aef22e93894217092685b59a1fcf0dc8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afacfc1372dbd2c946f1936fc95edec3d" id="r_afacfc1372dbd2c946f1936fc95edec3d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afacfc1372dbd2c946f1936fc95edec3d">test_body_no_malformed_sentences</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:afacfc1372dbd2c946f1936fc95edec3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aada01b003d0a04f268f3250bc67f66e3" id="r_aada01b003d0a04f268f3250bc67f66e3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aada01b003d0a04f268f3250bc67f66e3">test_content_appropriate_length</a> (str <a class="el" href="#aac68590996c8ad2fda5831eca01a0a04">repo_engineer_body</a>)</td></tr>
+<tr class="separator:aada01b003d0a04f268f3250bc67f66e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a300c4b68a7e6932e31c16cc15cf14f42" id="r_a300c4b68a7e6932e31c16cc15cf14f42"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a300c4b68a7e6932e31c16cc15cf14f42">test_yaml_frontmatter_syntax_valid</a> (str <a class="el" href="#ae79990c7e242dbb1672d43a541b15c9c">repo_engineer_content</a>)</td></tr>
+<tr class="separator:a300c4b68a7e6932e31c16cc15cf14f42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0c3931fdec7b0cb0185a0b8280f3fc2" id="r_ae0c3931fdec7b0cb0185a0b8280f3fc2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae0c3931fdec7b0cb0185a0b8280f3fc2">test_no_trailing_whitespace</a> (str <a class="el" href="#ae79990c7e242dbb1672d43a541b15c9c">repo_engineer_content</a>)</td></tr>
+<tr class="separator:ae0c3931fdec7b0cb0185a0b8280f3fc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a568b12e590b7e2a022f5311287435a18" id="r_a568b12e590b7e2a022f5311287435a18"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a568b12e590b7e2a022f5311287435a18">test_proper_line_endings</a> (Path <a class="el" href="#a8adf50a4727fc77707252d03b93c31a3">repo_engineer_path</a>)</td></tr>
+<tr class="separator:a568b12e590b7e2a022f5311287435a18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2452ffbb917cb9d7d2fb728c4c916272" id="r_a2452ffbb917cb9d7d2fb728c4c916272"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2452ffbb917cb9d7d2fb728c4c916272">test_encoding_is_utf8</a> (Path <a class="el" href="#a8adf50a4727fc77707252d03b93c31a3">repo_engineer_path</a>)</td></tr>
+<tr class="separator:a2452ffbb917cb9d7d2fb728c4c916272"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_static_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_static_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation')"><img src="closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation.html">tests.unit.test_microagent_validation.TestMicroagentValidation</a></td></tr>
+<tr class="memitem:a497652f84032b4dc895d13b0d68d76f6 inherit pub_static_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation" id="r_a497652f84032b4dc895d13b0d68d76f6"><td class="memItemLeft" align="right" valign="top">tuple[Dict[str, Any], str]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation.html#a497652f84032b4dc895d13b0d68d76f6">parse_frontmatter</a> (str content)</td></tr>
+<tr class="separator:a497652f84032b4dc895d13b0d68d76f6 inherit pub_static_methods_classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><pre class="fragment">Test cases for repo_engineer_lead.md microagent.</pre> </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="aac68590996c8ad2fda5831eca01a0a04" name="aac68590996c8ad2fda5831eca01a0a04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac68590996c8ad2fda5831eca01a0a04">&#9670;&#160;</a></span>repo_engineer_body()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> str tests.unit.test_microagent_validation.TestRepoEngineerLead.repo_engineer_body </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_content</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Return body content from repo_engineer_lead.md.</pre> <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classtests_1_1unit_1_1test__microagent__validation_1_1TestRepoEngineerLead_aac68590996c8ad2fda5831eca01a0a04_cgraph.svg" width="640" height="66"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae79990c7e242dbb1672d43a541b15c9c" name="ae79990c7e242dbb1672d43a541b15c9c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae79990c7e242dbb1672d43a541b15c9c">&#9670;&#160;</a></span>repo_engineer_content()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> str tests.unit.test_microagent_validation.TestRepoEngineerLead.repo_engineer_content </td>
+          <td>(</td>
+          <td class="paramtype">Path</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_path</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Load repo_engineer_lead.md content.</pre> 
+</div>
+</div>
+<a id="afba92d1371393d816db18df4496153fb" name="afba92d1371393d816db18df4496153fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afba92d1371393d816db18df4496153fb">&#9670;&#160;</a></span>repo_engineer_frontmatter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] tests.unit.test_microagent_validation.TestRepoEngineerLead.repo_engineer_frontmatter </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_content</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Parse and return frontmatter from repo_engineer_lead.md.</pre> <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classtests_1_1unit_1_1test__microagent__validation_1_1TestRepoEngineerLead_afba92d1371393d816db18df4496153fb_cgraph.svg" width="640" height="66"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a8adf50a4727fc77707252d03b93c31a3" name="a8adf50a4727fc77707252d03b93c31a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8adf50a4727fc77707252d03b93c31a3">&#9670;&#160;</a></span>repo_engineer_path()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Path tests.unit.test_microagent_validation.TestRepoEngineerLead.repo_engineer_path </td>
+          <td>(</td>
+          <td class="paramtype">Path</td>          <td class="paramname"><span class="paramname"><em>microagents_dir</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Return the path to repo_engineer_lead.md.</pre> 
+</div>
+</div>
+<a id="a5e9a3ceecb45700236c17378a5a6b371" name="a5e9a3ceecb45700236c17378a5a6b371"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e9a3ceecb45700236c17378a5a6b371">&#9670;&#160;</a></span>test_body_content_not_empty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_content_not_empty </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body content is not empty.</pre> 
+</div>
+</div>
+<a id="ab95fd9a1f38e43a415afee7603a76d41" name="ab95fd9a1f38e43a415afee7603a76d41"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab95fd9a1f38e43a415afee7603a76d41">&#9670;&#160;</a></span>test_body_describes_purpose()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_describes_purpose </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body describes the microagent's purpose.</pre> 
+</div>
+</div>
+<a id="a4aeaa2badbf85c5f0377bf122dc7ee19" name="a4aeaa2badbf85c5f0377bf122dc7ee19"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4aeaa2badbf85c5f0377bf122dc7ee19">&#9670;&#160;</a></span>test_body_mentions_branch_hygiene()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_mentions_branch_hygiene </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body mentions branch hygiene maintenance.</pre> 
+</div>
+</div>
+<a id="a6ce07da3210b41a52af8b03958836431" name="a6ce07da3210b41a52af8b03958836431"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ce07da3210b41a52af8b03958836431">&#9670;&#160;</a></span>test_body_mentions_code_changes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_mentions_code_changes </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body mentions code change capabilities.</pre> 
+</div>
+</div>
+<a id="aef22e93894217092685b59a1fcf0dc8c" name="aef22e93894217092685b59a1fcf0dc8c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef22e93894217092685b59a1fcf0dc8c">&#9670;&#160;</a></span>test_body_mentions_commit_responsibility()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_mentions_commit_responsibility </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body mentions commit responsibilities.</pre> 
+</div>
+</div>
+<a id="ae102774781efb2a8f8e71d42e51ca69c" name="ae102774781efb2a8f8e71d42e51ca69c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae102774781efb2a8f8e71d42e51ca69c">&#9670;&#160;</a></span>test_body_mentions_documentation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_mentions_documentation </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body mentions documentation responsibilities.</pre> 
+</div>
+</div>
+<a id="a0525b2acf1690e5d94e7f4dda5e125f7" name="a0525b2acf1690e5d94e7f4dda5e125f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0525b2acf1690e5d94e7f4dda5e125f7">&#9670;&#160;</a></span>test_body_mentions_issue_review()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_mentions_issue_review </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body mentions issue review functionality.</pre> 
+</div>
+</div>
+<a id="a93b76ff039e6766359f7568f1579fb90" name="a93b76ff039e6766359f7568f1579fb90"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93b76ff039e6766359f7568f1579fb90">&#9670;&#160;</a></span>test_body_mentions_merge_conflicts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_mentions_merge_conflicts </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body mentions merge conflict resolution.</pre> 
+</div>
+</div>
+<a id="afd96cc684545b5ec664121195d7a9462" name="afd96cc684545b5ec664121195d7a9462"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd96cc684545b5ec664121195d7a9462">&#9670;&#160;</a></span>test_body_mentions_pr_handling()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_mentions_pr_handling </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body mentions PR handling functionality.</pre> 
+</div>
+</div>
+<a id="afacfc1372dbd2c946f1936fc95edec3d" name="afacfc1372dbd2c946f1936fc95edec3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afacfc1372dbd2c946f1936fc95edec3d">&#9670;&#160;</a></span>test_body_no_malformed_sentences()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_body_no_malformed_sentences </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that body doesn't have obviously malformed sentences.</pre> 
+</div>
+</div>
+<a id="aada01b003d0a04f268f3250bc67f66e3" name="aada01b003d0a04f268f3250bc67f66e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aada01b003d0a04f268f3250bc67f66e3">&#9670;&#160;</a></span>test_content_appropriate_length()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_content_appropriate_length </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_body</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that content has appropriate length for a microagent description.</pre> 
+</div>
+</div>
+<a id="a2452ffbb917cb9d7d2fb728c4c916272" name="a2452ffbb917cb9d7d2fb728c4c916272"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2452ffbb917cb9d7d2fb728c4c916272">&#9670;&#160;</a></span>test_encoding_is_utf8()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_encoding_is_utf8 </td>
+          <td>(</td>
+          <td class="paramtype">Path</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_path</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that file is UTF-8 encoded.</pre> 
+</div>
+</div>
+<a id="a425fd91e134dbbc3d1135fd36b313007" name="a425fd91e134dbbc3d1135fd36b313007"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a425fd91e134dbbc3d1135fd36b313007">&#9670;&#160;</a></span>test_file_exists()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_file_exists </td>
+          <td>(</td>
+          <td class="paramtype">Path</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_path</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that repo_engineer_lead.md exists.</pre> 
+</div>
+</div>
+<a id="a7eede56e5f353ad288d8a813c4f41c92" name="a7eede56e5f353ad288d8a813c4f41c92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7eede56e5f353ad288d8a813c4f41c92">&#9670;&#160;</a></span>test_file_not_empty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_file_not_empty </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_content</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that repo_engineer_lead.md is not empty.</pre> 
+</div>
+</div>
+<a id="a7d14b6d6c968760e914fd57178c2c393" name="a7d14b6d6c968760e914fd57178c2c393"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d14b6d6c968760e914fd57178c2c393">&#9670;&#160;</a></span>test_frontmatter_agent_field()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_frontmatter_agent_field </td>
+          <td>(</td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_frontmatter</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that agent field is valid.</pre> 
+</div>
+</div>
+<a id="af3299e29bd67e93b10cf0eb4636283a5" name="af3299e29bd67e93b10cf0eb4636283a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3299e29bd67e93b10cf0eb4636283a5">&#9670;&#160;</a></span>test_frontmatter_has_required_fields()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_frontmatter_has_required_fields </td>
+          <td>(</td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_frontmatter</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that frontmatter contains all required fields.</pre> 
+</div>
+</div>
+<a id="a85e6453f70a7284e0dd9c4272a10fe2a" name="a85e6453f70a7284e0dd9c4272a10fe2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85e6453f70a7284e0dd9c4272a10fe2a">&#9670;&#160;</a></span>test_frontmatter_name_field()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_frontmatter_name_field </td>
+          <td>(</td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_frontmatter</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that name field is valid.</pre> 
+</div>
+</div>
+<a id="a3a6ac5bebd1fd6af32e32888800e5e7a" name="a3a6ac5bebd1fd6af32e32888800e5e7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a6ac5bebd1fd6af32e32888800e5e7a">&#9670;&#160;</a></span>test_frontmatter_no_triggers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_frontmatter_no_triggers </td>
+          <td>(</td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_frontmatter</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that triggers field is absent (as documented in the content).</pre> 
+</div>
+</div>
+<a id="a318c222112c978638aa0060c0fb3090d" name="a318c222112c978638aa0060c0fb3090d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a318c222112c978638aa0060c0fb3090d">&#9670;&#160;</a></span>test_frontmatter_type_field()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_frontmatter_type_field </td>
+          <td>(</td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_frontmatter</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that type field is valid.</pre> 
+</div>
+</div>
+<a id="a70b067cb06dcc01b8356c58046260901" name="a70b067cb06dcc01b8356c58046260901"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70b067cb06dcc01b8356c58046260901">&#9670;&#160;</a></span>test_frontmatter_version_field()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_frontmatter_version_field </td>
+          <td>(</td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_frontmatter</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that version field is valid.</pre> 
+</div>
+</div>
+<a id="ac8627f3a0483b70ff9ae6ee2bf2aa866" name="ac8627f3a0483b70ff9ae6ee2bf2aa866"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8627f3a0483b70ff9ae6ee2bf2aa866">&#9670;&#160;</a></span>test_has_valid_frontmatter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_has_valid_frontmatter </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_content</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that file has valid YAML frontmatter.</pre> <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classtests_1_1unit_1_1test__microagent__validation_1_1TestRepoEngineerLead_ac8627f3a0483b70ff9ae6ee2bf2aa866_cgraph.svg" width="636" height="66"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae0c3931fdec7b0cb0185a0b8280f3fc2" name="ae0c3931fdec7b0cb0185a0b8280f3fc2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0c3931fdec7b0cb0185a0b8280f3fc2">&#9670;&#160;</a></span>test_no_trailing_whitespace()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_no_trailing_whitespace </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_content</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that file doesn't have excessive trailing whitespace.</pre> 
+</div>
+</div>
+<a id="a568b12e590b7e2a022f5311287435a18" name="a568b12e590b7e2a022f5311287435a18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a568b12e590b7e2a022f5311287435a18">&#9670;&#160;</a></span>test_proper_line_endings()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_proper_line_endings </td>
+          <td>(</td>
+          <td class="paramtype">Path</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_path</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that file uses Unix line endings.</pre> 
+</div>
+</div>
+<a id="a300c4b68a7e6932e31c16cc15cf14f42" name="a300c4b68a7e6932e31c16cc15cf14f42"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a300c4b68a7e6932e31c16cc15cf14f42">&#9670;&#160;</a></span>test_yaml_frontmatter_syntax_valid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.unit.test_microagent_validation.TestRepoEngineerLead.test_yaml_frontmatter_syntax_valid </td>
+          <td>(</td>
+          <td class="paramtype">str</td>          <td class="paramname"><span class="paramname"><em>repo_engineer_content</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Test that YAML frontmatter has valid syntax.</pre> 
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
+<li>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/<a class="el" href="test__microagent__validation_8py.html">test_microagent_validation.py</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacetests.html">tests</a></li><li class="navelem"><a class="el" href="namespacetests_1_1unit.html">unit</a></li><li class="navelem"><a class="el" href="namespacetests_1_1unit_1_1test__microagent__validation.html">test_microagent_validation</a></li><li class="navelem"><a class="el" href="classtests_1_1unit_1_1test__microagent__validation_1_1TestRepoEngineerLead.html">TestRepoEngineerLead</a></li>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

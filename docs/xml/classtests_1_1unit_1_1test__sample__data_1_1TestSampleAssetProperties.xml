@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_sample_data::TestSampleAssetProperties</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1a5e5f2bc2c7877980877925aac8f91c32" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleAssetProperties.test_equity_assets_have_valid_prices</definition>
+        <argsstring>()</argsstring>
+        <name>test_equity_assets_have_valid_prices</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleAssetProperties.test_equity_assets_have_valid_prices</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that equity assets have positive prices.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="86" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="86" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1a9c00f1295e23ba80351a08d182d2056f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleAssetProperties.test_equity_assets_have_valid_market_cap</definition>
+        <argsstring>()</argsstring>
+        <name>test_equity_assets_have_valid_market_cap</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleAssetProperties.test_equity_assets_have_valid_market_cap</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that equity assets have valid market capitalization.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="96" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="96" bodyend="105"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1a116ddad8007e86b3245931a8ad381462" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleAssetProperties.test_equity_assets_have_sectors</definition>
+        <argsstring>()</argsstring>
+        <name>test_equity_assets_have_sectors</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleAssetProperties.test_equity_assets_have_sectors</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that equity assets have sector assignments.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="107" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="107" bodyend="116"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1aef2fb132c0413116e90d19e02b0a6886" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleAssetProperties.test_bond_assets_have_yield</definition>
+        <argsstring>()</argsstring>
+        <name>test_bond_assets_have_yield</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleAssetProperties.test_bond_assets_have_yield</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that bond assets have yield information.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="118" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="118" bodyend="127"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1ae7f815a567ccd60dba7bba26b0c160a3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleAssetProperties.test_bond_assets_have_credit_ratings</definition>
+        <argsstring>()</argsstring>
+        <name>test_bond_assets_have_credit_ratings</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleAssetProperties.test_bond_assets_have_credit_ratings</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that bond assets have credit ratings.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="129" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="129" bodyend="145"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1a29043620c58bc3b859c3cd7aa9a83c26" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleAssetProperties.test_commodity_assets_have_contract_info</definition>
+        <argsstring>()</argsstring>
+        <name>test_commodity_assets_have_contract_info</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleAssetProperties.test_commodity_assets_have_contract_info</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that commodity assets have contract information.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="147" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="147" bodyend="157"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1aa9a68b933aab3760d61d72a8d24bbc4d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleAssetProperties.test_currency_assets_have_exchange_rates</definition>
+        <argsstring>()</argsstring>
+        <name>test_currency_assets_have_exchange_rates</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleAssetProperties.test_currency_assets_have_exchange_rates</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that currency assets have exchange rate information.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="159" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="159" bodyend="169"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for sample asset properties.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_sample_data.TestSampleAssetProperties</label>
+        <link refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="82" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="82" bodyend="169"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1ae7f815a567ccd60dba7bba26b0c160a3" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleAssetProperties</scope><name>test_bond_assets_have_credit_ratings</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1aef2fb132c0413116e90d19e02b0a6886" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleAssetProperties</scope><name>test_bond_assets_have_yield</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1a29043620c58bc3b859c3cd7aa9a83c26" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleAssetProperties</scope><name>test_commodity_assets_have_contract_info</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1aa9a68b933aab3760d61d72a8d24bbc4d" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleAssetProperties</scope><name>test_currency_assets_have_exchange_rates</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1a116ddad8007e86b3245931a8ad381462" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleAssetProperties</scope><name>test_equity_assets_have_sectors</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1a9c00f1295e23ba80351a08d182d2056f" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleAssetProperties</scope><name>test_equity_assets_have_valid_market_cap</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties_1a5e5f2bc2c7877980877925aac8f91c32" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleAssetProperties</scope><name>test_equity_assets_have_valid_prices</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

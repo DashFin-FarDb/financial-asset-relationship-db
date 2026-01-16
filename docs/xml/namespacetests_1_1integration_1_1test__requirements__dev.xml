@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1integration_1_1test__requirements__dev" kind="namespace" language="Python">
+    <compoundname>tests::integration::test_requirements_dev</compoundname>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation" prot="public">tests::integration::test_requirements_dev::TestComprehensivePackageValidation</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence" prot="public">tests::integration::test_requirements_dev::TestDevelopmentToolsPresence</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling" prot="public">tests::integration::test_requirements_dev::TestEdgeCasesAndErrorHandling</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileOrganization" prot="public">tests::integration::test_requirements_dev::TestFileOrganization</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization" prot="public">tests::integration::test_requirements_dev::TestFileStructureAndOrganization</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency" prot="public">tests::integration::test_requirements_dev::TestPackageConsistency</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing" prot="public">tests::integration::test_requirements_dev::TestPackageNamingAndCasing</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem" prot="public">tests::integration::test_requirements_dev::TestPytestEcosystem</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration" prot="public">tests::integration::test_requirements_dev::TestPyYAMLIntegration</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages" prot="public">tests::integration::test_requirements_dev::TestRequiredPackages</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists" prot="public">tests::integration::test_requirements_dev::TestRequirementsFileExists</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileFormat" prot="public">tests::integration::test_requirements_dev::TestRequirementsFileFormat</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSecurityBestPractices" prot="public">tests::integration::test_requirements_dev::TestSecurityBestPractices</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges" prot="public">tests::integration::test_requirements_dev::TestSpecificChanges</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestTypeStubConsistency" prot="public">tests::integration::test_requirements_dev::TestTypeStubConsistency</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionConstraintValidation" prot="public">tests::integration::test_requirements_dev::TestVersionConstraintValidation</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications" prot="public">tests::integration::test_requirements_dev::TestVersionSpecifications</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetests_1_1integration_1_1test__requirements__dev_1a32289b3f4166f09591fea4e6cfc29ea6" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::integration::test_requirements_dev.REQUIREMENTS_FILE</definition>
+        <argsstring></argsstring>
+        <name>REQUIREMENTS_FILE</name>
+        <qualifiedname>tests.integration.test_requirements_dev.REQUIREMENTS_FILE</qualifiedname>
+        <initializer>=  Path(__file__).parent.parent.parent / &quot;requirements-dev.txt&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="19" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="19" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.parsed_requirements</definition>
+        <argsstring>()</argsstring>
+        <name>parsed_requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.parsed_requirements</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse requirements file and return list of (package, version_spec) tuples.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="23" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="23" bodyend="27"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" compoundref="test__requirements__dev_8py" startline="100" endline="164">tests.integration.test_requirements_dev.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__requirements__dev_1a597cde3f54d87654fdd6023724cffbc4" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str tests.integration.test_requirements_dev._extract_package_name</definition>
+        <argsstring>(str line, Requirement req)</argsstring>
+        <name>_extract_package_name</name>
+        <qualifiedname>tests.integration.test_requirements_dev._extract_package_name</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>line</declname>
+        </param>
+        <param>
+          <type>Requirement</type>
+          <declname>req</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extract the package name from a requirement line, preserving original casing.
+
+Args:
+    line: The raw requirement line from the file.
+    req: The parsed Requirement object.
+
+Returns:
+    The package name as written in the requirements file.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="28" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="28" bodyend="49"/>
+        <referencedby refid="namespacetests_1_1integration_1_1test__requirements__dev_1a1d98458011c778690270b664e89e9d0d" compoundref="test__requirements__dev_8py" startline="65" endline="79">tests.integration.test_requirements_dev._parse_single_requirement</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__requirements__dev_1af93939058281d84f82ef7de8476489d7" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str tests.integration.test_requirements_dev._normalize_specifier</definition>
+        <argsstring>(str specifier_str)</argsstring>
+        <name>_normalize_specifier</name>
+        <qualifiedname>tests.integration.test_requirements_dev._normalize_specifier</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>specifier_str</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Normalize a version specifier string by removing spaces around commas.
+
+Args:
+    specifier_str: The version specifier string to normalize.
+
+Returns:
+    The normalized specifier string.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="50" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="50" bodyend="64"/>
+        <referencedby refid="namespacetests_1_1integration_1_1test__requirements__dev_1a1d98458011c778690270b664e89e9d0d" compoundref="test__requirements__dev_8py" startline="65" endline="79">tests.integration.test_requirements_dev._parse_single_requirement</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__requirements__dev_1a1d98458011c778690270b664e89e9d0d" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>tuple</type>
+        <definition> tuple tests.integration.test_requirements_dev._parse_single_requirement</definition>
+        <argsstring>(str line)</argsstring>
+        <name>_parse_single_requirement</name>
+        <qualifiedname>tests.integration.test_requirements_dev._parse_single_requirement</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>line</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse a single requirement line into (package, version_spec) tuple.
+
+Args:
+    line: A stripped, non-empty, non-comment line from the requirements file.
+
+Returns:
+    A tuple of (package_name, version_specifier) or None if parsing fails.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="65" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="65" bodyend="79"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a597cde3f54d87654fdd6023724cffbc4" compoundref="test__requirements__dev_8py" startline="28" endline="49">tests.integration.test_requirements_dev._extract_package_name</references>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1af93939058281d84f82ef7de8476489d7" compoundref="test__requirements__dev_8py" startline="50" endline="64">tests.integration.test_requirements_dev._normalize_specifier</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.parse_requirements</definition>
+        <argsstring>(Path file_path)</argsstring>
+        <name>parse_requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.parse_requirements</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>file_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse requirements file and return list of (package, version_spec) tuples.
+Examples:
+    Input line: &quot;requests&gt;=2.25.0&quot;
+    Output: (&quot;requests&quot;, &quot;&gt;=2.25.0&quot;)
+
+    Input line: &quot;pytest&gt;=6.0,&lt;7.0 # testing framework&quot;
+    Output: (&quot;pytest&quot;, &quot;&gt;=6.0,&lt;7.0&quot;)
+
+    Input line: &quot;pandas&quot;
+    Output: (&quot;pandas&quot;, &quot;&quot;)
+
+    Input line: &quot;package[extra1,extra2]&gt;=1.0&quot;
+    Output: (&quot;package&quot;, &quot;&gt;=1.0&quot;)
+Raises:
+    ValueError: If a requirement line is malformed.
+    OSError: If the requirements file could not be opened or read.
+...
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="100" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="100" bodyend="164"/>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency_1add8286ad526fb55f130f0e05b90d6a97" compoundref="test__requirements__dev_8py" startline="317" endline="321">tests.integration.test_requirements_dev.TestPackageConsistency.package_names</referencedby>
+        <referencedby refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" compoundref="test__requirements__dev_8py" startline="23" endline="27">tests.integration.test_requirements_dev.parsed_requirements</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges_1a5b05ce244dd030e8e928b919f3ee0fcd" compoundref="test__requirements__dev_8py" startline="381" endline="384">tests.integration.test_requirements_dev.TestSpecificChanges.requirements</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a0cab9e45e199b6c4c14a769dbd6ad548" compoundref="test__requirements__dev_8py" startline="462" endline="479">tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_empty_lines_and_comments_ignored</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileOrganization_1a304c2561bd3f21da8272713d4ff4f9eb" compoundref="test__requirements__dev_8py" startline="370" endline="375">tests.integration.test_requirements_dev.TestFileOrganization.test_has_appropriate_number_of_packages</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a81a4d2a964f7f13e8d3afc97a6da1199" compoundref="test__requirements__dev_8py" startline="445" endline="451">tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_parse_inline_comments</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a62b385c8293edfdaa30eec96447df73d" compoundref="test__requirements__dev_8py" startline="436" endline="443">tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_parse_packages_with_environment_markers</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a95e2a52ce9b5e0126aa730ad841a28d5" compoundref="test__requirements__dev_8py" startline="427" endline="434">tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_parse_packages_with_extras</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1aa7656b4e42a96c6607ff33a0dd11b136" compoundref="test__requirements__dev_8py" startline="453" endline="460">tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_whitespace_handling</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration_1ad9cecc86ca7fdabea621a35f90b31f30" compoundref="test__requirements__dev_8py" startline="854" endline="867">tests.integration.test_requirements_dev.TestPyYAMLIntegration.test_yaml_parsing_capability</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for requirements-dev.txt development dependencies file.
+
+This test suite validates that the development dependencies file is properly
+formatted, contains required packages, and has valid version specifications.
+
+Note: Bandit B101 (assert_used) is suppressed for this test file as assert
+statements are the standard and required pattern in pytest test files.
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

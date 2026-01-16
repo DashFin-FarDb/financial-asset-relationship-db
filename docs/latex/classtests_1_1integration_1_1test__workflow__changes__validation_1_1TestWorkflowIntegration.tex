@@ -1,0 +1,39 @@
+\doxysection{tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+Integration Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowIntegration}{}\label{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowIntegration}\index{tests.integration.test\_workflow\_changes\_validation.TestWorkflowIntegration@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowIntegration}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+Integration\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=243pt]{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowIntegration__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowIntegration_aa285170c86bf400ff1e00deca966c63b}{test\+\_\+workflows\+\_\+reference\+\_\+existing\+\_\+paths}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test integration between workflows and repository structure.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowIntegration_aa285170c86bf400ff1e00deca966c63b}\index{tests.integration.test\_workflow\_changes\_validation.TestWorkflowIntegration@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowIntegration}!test\_workflows\_reference\_existing\_paths@{test\_workflows\_reference\_existing\_paths}}
+\index{test\_workflows\_reference\_existing\_paths@{test\_workflows\_reference\_existing\_paths}!tests.integration.test\_workflow\_changes\_validation.TestWorkflowIntegration@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowIntegration}}
+\doxysubsubsection{\texorpdfstring{test\_workflows\_reference\_existing\_paths()}{test\_workflows\_reference\_existing\_paths()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowIntegration_aa285170c86bf400ff1e00deca966c63b} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+Integration.\+test\+\_\+workflows\+\_\+reference\+\_\+existing\+\_\+paths (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Verify that file paths referenced in workflow YAML files exist in the repository.
+
+Scans .github/workflows/*.yml for path-like references (for example `working-directory` and `path`), normalizes leading `./`, ignores references containing variables (`$`) or wildcards (`*`), and asserts that each remaining referenced path exists.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__workflow__changes__validation_8py}{test\+\_\+workflow\+\_\+changes\+\_\+validation.\+py}}\end{DoxyCompactItemize}

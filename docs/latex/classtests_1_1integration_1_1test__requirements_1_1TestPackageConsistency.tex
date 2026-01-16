@@ -1,0 +1,89 @@
+\doxysection{tests.\+integration.\+test\+\_\+requirements.\+Test\+Package\+Consistency Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency}{}\label{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency}\index{tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+requirements.\+Test\+Package\+Consistency\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=283pt]{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_ac91fb341b5166817ba5b733a0db9aa87}{requirements}} ()
+\item 
+List\mbox{[}str\mbox{]} \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a10811a9258b316ab13615a21890a8102}{package\+\_\+names}} (List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_ac91fb341b5166817ba5b733a0db9aa87}{requirements}})
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a75459c9ecf96155eb6930318e5e01442}{test\+\_\+no\+\_\+duplicate\+\_\+packages}} (List\mbox{[}str\mbox{]} \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a10811a9258b316ab13615a21890a8102}{package\+\_\+names}})
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a7c873104b33f50cccfac86995e645dda}{test\+\_\+packages\+\_\+sorted\+\_\+logically}} (List\mbox{[}str\mbox{]} \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a10811a9258b316ab13615a21890a8102}{package\+\_\+names}})
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a8c023589ea3c0c5e78384803fdfed29d}{test\+\_\+package\+\_\+names\+\_\+valid}} (List\mbox{[}str\mbox{]} \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a10811a9258b316ab13615a21890a8102}{package\+\_\+names}})
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a5351999f53b9c0be19a0064c9341a25f}{test\+\_\+no\+\_\+conflicting\+\_\+packages}} (List\mbox{[}str\mbox{]} \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a10811a9258b316ab13615a21890a8102}{package\+\_\+names}})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test package consistency and naming conventions.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a10811a9258b316ab13615a21890a8102}\index{tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}!package\_names@{package\_names}}
+\index{package\_names@{package\_names}!tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}}
+\doxysubsubsection{\texorpdfstring{package\_names()}{package\_names()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a10811a9258b316ab13615a21890a8102} 
+ List\mbox{[}str\mbox{]} tests.\+integration.\+test\+\_\+requirements.\+Test\+Package\+Consistency.\+package\+\_\+names (\begin{DoxyParamCaption}\item[{List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]}}]{requirements}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Extract package names from requirements.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_ac91fb341b5166817ba5b733a0db9aa87}\index{tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}!requirements@{requirements}}
+\index{requirements@{requirements}!tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}}
+\doxysubsubsection{\texorpdfstring{requirements()}{requirements()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_ac91fb341b5166817ba5b733a0db9aa87} 
+ List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} tests.\+integration.\+test\+\_\+requirements.\+Test\+Package\+Consistency.\+requirements (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Parse requirements and return list of (package, version) tuples.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_ac91fb341b5166817ba5b733a0db9aa87_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a5351999f53b9c0be19a0064c9341a25f}\index{tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}!test\_no\_conflicting\_packages@{test\_no\_conflicting\_packages}}
+\index{test\_no\_conflicting\_packages@{test\_no\_conflicting\_packages}!tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}}
+\doxysubsubsection{\texorpdfstring{test\_no\_conflicting\_packages()}{test\_no\_conflicting\_packages()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a5351999f53b9c0be19a0064c9341a25f} 
+tests.\+integration.\+test\+\_\+requirements.\+Test\+Package\+Consistency.\+test\+\_\+no\+\_\+conflicting\+\_\+packages (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{package\+\_\+names}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that there are no known conflicting packages.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a75459c9ecf96155eb6930318e5e01442}\index{tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}!test\_no\_duplicate\_packages@{test\_no\_duplicate\_packages}}
+\index{test\_no\_duplicate\_packages@{test\_no\_duplicate\_packages}!tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}}
+\doxysubsubsection{\texorpdfstring{test\_no\_duplicate\_packages()}{test\_no\_duplicate\_packages()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a75459c9ecf96155eb6930318e5e01442} 
+tests.\+integration.\+test\+\_\+requirements.\+Test\+Package\+Consistency.\+test\+\_\+no\+\_\+duplicate\+\_\+packages (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{package\+\_\+names}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that no package is listed multiple times.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a8c023589ea3c0c5e78384803fdfed29d}\index{tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}!test\_package\_names\_valid@{test\_package\_names\_valid}}
+\index{test\_package\_names\_valid@{test\_package\_names\_valid}!tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}}
+\doxysubsubsection{\texorpdfstring{test\_package\_names\_valid()}{test\_package\_names\_valid()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a8c023589ea3c0c5e78384803fdfed29d} 
+tests.\+integration.\+test\+\_\+requirements.\+Test\+Package\+Consistency.\+test\+\_\+package\+\_\+names\+\_\+valid (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{package\+\_\+names}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that package names follow valid naming conventions.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a7c873104b33f50cccfac86995e645dda}\index{tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}!test\_packages\_sorted\_logically@{test\_packages\_sorted\_logically}}
+\index{test\_packages\_sorted\_logically@{test\_packages\_sorted\_logically}!tests.integration.test\_requirements.TestPackageConsistency@{tests.integration.test\_requirements.TestPackageConsistency}}
+\doxysubsubsection{\texorpdfstring{test\_packages\_sorted\_logically()}{test\_packages\_sorted\_logically()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_a7c873104b33f50cccfac86995e645dda} 
+tests.\+integration.\+test\+\_\+requirements.\+Test\+Package\+Consistency.\+test\+\_\+packages\+\_\+sorted\+\_\+logically (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{package\+\_\+names}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that packages are organized in logical groups.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__requirements_8py}{test\+\_\+requirements.\+py}}\end{DoxyCompactItemize}

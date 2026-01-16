@@ -1,0 +1,93 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Complexity Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity}\index{tests.integration.test\_github\_workflows.TestWorkflowComplexity@{tests.integration.test\_github\_workflows.TestWorkflowComplexity}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Complexity\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_aba57576a72b3059098fc554480a09439}{test\+\_\+workflow\+\_\+job\+\_\+count\+\_\+reasonable}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_a1e8ba42f0f88a6769671ca4f056cb8e1}{test\+\_\+workflow\+\_\+step\+\_\+count\+\_\+per\+\_\+job}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_af5cef63be83cacdb1a371f6bd7757954}{test\+\_\+workflow\+\_\+deep\+\_\+nesting\+\_\+in\+\_\+conditionals}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for workflow complexity and maintainability.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_af5cef63be83cacdb1a371f6bd7757954}\index{tests.integration.test\_github\_workflows.TestWorkflowComplexity@{tests.integration.test\_github\_workflows.TestWorkflowComplexity}!test\_workflow\_deep\_nesting\_in\_conditionals@{test\_workflow\_deep\_nesting\_in\_conditionals}}
+\index{test\_workflow\_deep\_nesting\_in\_conditionals@{test\_workflow\_deep\_nesting\_in\_conditionals}!tests.integration.test\_github\_workflows.TestWorkflowComplexity@{tests.integration.test\_github\_workflows.TestWorkflowComplexity}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_deep\_nesting\_in\_conditionals()}{test\_workflow\_deep\_nesting\_in\_conditionals()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_af5cef63be83cacdb1a371f6bd7757954} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Complexity.\+test\+\_\+workflow\+\_\+deep\+\_\+nesting\+\_\+in\+\_\+conditionals (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Warns when a job-level `if` conditional shows high logical complexity.
+
+Counts occurrences of the logical operators `&&` and `||` in each job's `if` conditional and prints a warning if their total exceeds 5, indicating a potentially over-complex conditional.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file to inspect.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_af5cef63be83cacdb1a371f6bd7757954_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_aba57576a72b3059098fc554480a09439}\index{tests.integration.test\_github\_workflows.TestWorkflowComplexity@{tests.integration.test\_github\_workflows.TestWorkflowComplexity}!test\_workflow\_job\_count\_reasonable@{test\_workflow\_job\_count\_reasonable}}
+\index{test\_workflow\_job\_count\_reasonable@{test\_workflow\_job\_count\_reasonable}!tests.integration.test\_github\_workflows.TestWorkflowComplexity@{tests.integration.test\_github\_workflows.TestWorkflowComplexity}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_job\_count\_reasonable()}{test\_workflow\_job\_count\_reasonable()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_aba57576a72b3059098fc554480a09439} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Complexity.\+test\+\_\+workflow\+\_\+job\+\_\+count\+\_\+reasonable (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Validate that a workflow defines a reasonable number of jobs.
+
+Prints a warning if the workflow defines more than 10 jobs and causes the test to fail if it defines more than 20 jobs.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file being validated.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_aba57576a72b3059098fc554480a09439_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_a1e8ba42f0f88a6769671ca4f056cb8e1}\index{tests.integration.test\_github\_workflows.TestWorkflowComplexity@{tests.integration.test\_github\_workflows.TestWorkflowComplexity}!test\_workflow\_step\_count\_per\_job@{test\_workflow\_step\_count\_per\_job}}
+\index{test\_workflow\_step\_count\_per\_job@{test\_workflow\_step\_count\_per\_job}!tests.integration.test\_github\_workflows.TestWorkflowComplexity@{tests.integration.test\_github\_workflows.TestWorkflowComplexity}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_step\_count\_per\_job()}{test\_workflow\_step\_count\_per\_job()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_a1e8ba42f0f88a6769671ca4f056cb8e1} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Complexity.\+test\+\_\+workflow\+\_\+step\+\_\+count\+\_\+per\+\_\+job (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Validate that each job in the workflow does not contain an excessive number of steps.
+
+Prints an informational message if a job has more than 15 steps and fails the test if a job has more than 30 steps.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowComplexity_a1e8ba42f0f88a6769671ca4f056cb8e1_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

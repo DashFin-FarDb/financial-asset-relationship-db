@@ -1,0 +1,25 @@
+var namespacetests_1_1unit =
+[
+    [ "test_api", "namespacetests_1_1unit_1_1test__api.html", "namespacetests_1_1unit_1_1test__api" ],
+    [ "test_api_main", "namespacetests_1_1unit_1_1test__api__main.html", "namespacetests_1_1unit_1_1test__api__main" ],
+    [ "test_asset_graph", "namespacetests_1_1unit_1_1test__asset__graph.html", "namespacetests_1_1unit_1_1test__asset__graph" ],
+    [ "test_config_validation", "namespacetests_1_1unit_1_1test__config__validation.html", null ],
+    [ "test_database", "namespacetests_1_1unit_1_1test__database.html", "namespacetests_1_1unit_1_1test__database" ],
+    [ "test_database_memory", "namespacetests_1_1unit_1_1test__database__memory.html", "namespacetests_1_1unit_1_1test__database__memory" ],
+    [ "test_db_models", "namespacetests_1_1unit_1_1test__db__models.html", "namespacetests_1_1unit_1_1test__db__models" ],
+    [ "test_dev_scripts", "namespacetests_1_1unit_1_1test__dev__scripts.html", "namespacetests_1_1unit_1_1test__dev__scripts" ],
+    [ "test_documentation_validation", "namespacetests_1_1unit_1_1test__documentation__validation.html", null ],
+    [ "test_financial_models", "namespacetests_1_1unit_1_1test__financial__models.html", "namespacetests_1_1unit_1_1test__financial__models" ],
+    [ "test_formulaic_analysis", "namespacetests_1_1unit_1_1test__formulaic__analysis.html", "namespacetests_1_1unit_1_1test__formulaic__analysis" ],
+    [ "test_formulaic_visuals", "namespacetests_1_1unit_1_1test__formulaic__visuals.html", "namespacetests_1_1unit_1_1test__formulaic__visuals" ],
+    [ "test_graph_2d_visuals", "namespacetests_1_1unit_1_1test__graph__2d__visuals.html", "namespacetests_1_1unit_1_1test__graph__2d__visuals" ],
+    [ "test_graph_visuals", "namespacetests_1_1unit_1_1test__graph__visuals.html", "namespacetests_1_1unit_1_1test__graph__visuals" ],
+    [ "test_metric_visuals", "namespacetests_1_1unit_1_1test__metric__visuals.html", "namespacetests_1_1unit_1_1test__metric__visuals" ],
+    [ "test_microagent_validation", "namespacetests_1_1unit_1_1test__microagent__validation.html", "namespacetests_1_1unit_1_1test__microagent__validation" ],
+    [ "test_repository", "namespacetests_1_1unit_1_1test__repository.html", "namespacetests_1_1unit_1_1test__repository" ],
+    [ "test_root_conftest", "namespacetests_1_1unit_1_1test__root__conftest.html", "namespacetests_1_1unit_1_1test__root__conftest" ],
+    [ "test_sample_data", "namespacetests_1_1unit_1_1test__sample__data.html", "namespacetests_1_1unit_1_1test__sample__data" ],
+    [ "test_schema_report", "namespacetests_1_1unit_1_1test__schema__report.html", "namespacetests_1_1unit_1_1test__schema__report" ],
+    [ "test_summary_documentation", "namespacetests_1_1unit_1_1test__summary__documentation.html", null ],
+    [ "test_workflow_validator", "namespacetests_1_1unit_1_1test__workflow__validator.html", "namespacetests_1_1unit_1_1test__workflow__validator" ]
+];

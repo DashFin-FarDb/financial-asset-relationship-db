@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements::TestVersionSpecifications</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1a0f6ad1f2d85bd00b01429f3f08ac984e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements.TestVersionSpecifications.requirements</definition>
+        <argsstring>()</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements.TestVersionSpecifications.requirements</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse requirements and return list of (package, version) tuples.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="207" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="207" bodyend="210"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements_1a979f85cc6fc4eaa1143477069cb8b99a" compoundref="test__requirements_8py" startline="25" endline="78">tests.integration.test_requirements.parse_requirements</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1a80ef254b05a467ca11f7fbe9f00501cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestVersionSpecifications.test_all_packages_parseable</definition>
+        <argsstring>(self, List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_all_packages_parseable</name>
+        <qualifiedname>tests.integration.test_requirements.TestVersionSpecifications.test_all_packages_parseable</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all package specifications are parseable.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="211" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="211" bodyend="214"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1ab5b6936c57f653071753997e48d2fe51" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestVersionSpecifications.test_version_format_valid</definition>
+        <argsstring>(self, List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_version_format_valid</name>
+        <qualifiedname>tests.integration.test_requirements.TestVersionSpecifications.test_version_format_valid</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that version specifications use valid format.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="215" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="215" bodyend="225"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1aa89bedb5a11caa9793374324f09bbac4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestVersionSpecifications.test_zipp_security_version</definition>
+        <argsstring>(self, List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_zipp_security_version</name>
+        <qualifiedname>tests.integration.test_requirements.TestVersionSpecifications.test_zipp_security_version</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that zipp has the security-required minimum version.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="226" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="226" bodyend="231"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1a33ecf63839d7596fb8e046884e5d1ff0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestVersionSpecifications.test_uses_minimum_versions</definition>
+        <argsstring>(self, List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_uses_minimum_versions</name>
+        <qualifiedname>tests.integration.test_requirements.TestVersionSpecifications.test_uses_minimum_versions</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that most packages use &gt;= for version specifications.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="232" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="232" bodyend="238"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1a745328a5018c6626efec79619a8abb3f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestVersionSpecifications.test_no_exact_pins_without_comment</definition>
+        <argsstring>(self, List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_no_exact_pins_without_comment</name>
+        <qualifiedname>tests.integration.test_requirements.TestVersionSpecifications.test_no_exact_pins_without_comment</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that exact pins (==) are documented with comments in the file.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="239" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="239" bodyend="254"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test version specifications and constraints.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements.TestVersionSpecifications</label>
+        <link refid="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="202" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="202" bodyend="254"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1a0f6ad1f2d85bd00b01429f3f08ac984e" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestVersionSpecifications</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1a80ef254b05a467ca11f7fbe9f00501cd" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestVersionSpecifications</scope><name>test_all_packages_parseable</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1a745328a5018c6626efec79619a8abb3f" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestVersionSpecifications</scope><name>test_no_exact_pins_without_comment</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1a33ecf63839d7596fb8e046884e5d1ff0" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestVersionSpecifications</scope><name>test_uses_minimum_versions</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1ab5b6936c57f653071753997e48d2fe51" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestVersionSpecifications</scope><name>test_version_format_valid</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1aa89bedb5a11caa9793374324f09bbac4" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestVersionSpecifications</scope><name>test_zipp_security_version</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

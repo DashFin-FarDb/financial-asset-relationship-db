@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classapi_1_1auth_1_1UserRepository" kind="class" language="Python" prot="public">
+    <compoundname>api::auth::UserRepository</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classapi_1_1auth_1_1UserRepository_1a183e414cf1343a6760d79d9917ed1243" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Optional[UserInDB]</type>
+        <definition> Optional[UserInDB] api.auth.UserRepository.get_user</definition>
+        <argsstring>(str username)</argsstring>
+        <name>get_user</name>
+        <qualifiedname>api.auth.UserRepository.get_user</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>username</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Retrieve a user record by username from the repository.
+
+Returns:
+    `UserInDB` for the matching username, `None` if no such user exists.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="71" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="71" bodyend="95"/>
+      </memberdef>
+      <memberdef kind="function" id="classapi_1_1auth_1_1UserRepository_1afbf15bbccdbfd1fe39288481b15e0801" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition> bool api.auth.UserRepository.has_users</definition>
+        <argsstring>()</argsstring>
+        <name>has_users</name>
+        <qualifiedname>api.auth.UserRepository.has_users</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check whether any user credential records exist.
+
+Returns:
+    `True` if at least one user credential exists, `False` otherwise.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="97" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="97" bodyend="105"/>
+      </memberdef>
+      <memberdef kind="function" id="classapi_1_1auth_1_1UserRepository_1a56d2d2fac29fd88a48bdb6965d51a365" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None api.auth.UserRepository.create_or_update_user</definition>
+        <argsstring>(*, str username, str hashed_password, Optional[str] user_email=None, Optional[str] user_full_name=None, bool is_disabled=False)</argsstring>
+        <name>create_or_update_user</name>
+        <qualifiedname>api.auth.UserRepository.create_or_update_user</qualifiedname>
+        <param>
+          <type>*</type>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>username</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>hashed_password</declname>
+        </param>
+        <param>
+          <type>Optional</type>
+          <declname>user_email</declname>
+          <array>[str]</array>
+          <defval>None</defval>
+        </param>
+        <param>
+          <type>Optional</type>
+          <declname>user_full_name</declname>
+          <array>[str]</array>
+          <defval>None</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>is_disabled</declname>
+          <defval>False</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create or update a user credential record in the repository.
+
+Performs an upsert into the user_credentials table using the
+provided fields so the record for `username` is inserted or
+updated.
+
+Parameters:
+    username (str): Unique identifier for the user.
+    hashed_password (str): Password hash; must already be hashed.
+    user_email (Optional[str]): User email address, if available.
+    user_full_name (Optional[str]): User&apos;s full name, if available.
+    is_disabled (bool): Whether the user account is disabled (inactive).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="107" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="114" bodyend="154"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Repository for accessing user credential records.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>api.auth.UserRepository</label>
+        <link refid="classapi_1_1auth_1_1UserRepository"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="67" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="67" bodyend="155"/>
+    <listofallmembers>
+      <member refid="classapi_1_1auth_1_1UserRepository_1a56d2d2fac29fd88a48bdb6965d51a365" prot="public" virt="non-virtual"><scope>api::auth::UserRepository</scope><name>create_or_update_user</name></member>
+      <member refid="classapi_1_1auth_1_1UserRepository_1a183e414cf1343a6760d79d9917ed1243" prot="public" virt="non-virtual"><scope>api::auth::UserRepository</scope><name>get_user</name></member>
+      <member refid="classapi_1_1auth_1_1UserRepository_1afbf15bbccdbfd1fe39288481b15e0801" prot="public" virt="non-virtual"><scope>api::auth::UserRepository</scope><name>has_users</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

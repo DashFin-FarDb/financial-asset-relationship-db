@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classEnum" kind="class" language="Python" prot="public">
+    <compoundname>Enum</compoundname>
+    <derivedcompoundref refid="classfinancial__models_1_1AssetClass" prot="public" virt="non-virtual">financial_models.AssetClass</derivedcompoundref>
+    <derivedcompoundref refid="classfinancial__models_1_1RegulatoryActivity" prot="public" virt="non-virtual">financial_models.RegulatoryActivity</derivedcompoundref>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>Enum</label>
+        <link refid="classEnum"/>
+      </node>
+      <node id="2">
+        <label>financial_models.AssetClass</label>
+        <link refid="classfinancial__models_1_1AssetClass"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>financial_models.RegulatoryActivity</label>
+        <link refid="classfinancial__models_1_1RegulatoryActivity"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>Enum</label>
+        <link refid="classEnum"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="8" column="1"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

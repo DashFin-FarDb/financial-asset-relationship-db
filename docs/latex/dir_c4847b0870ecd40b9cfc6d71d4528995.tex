@@ -1,0 +1,54 @@
+\doxysection{/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests Directory Reference}
+\hypertarget{dir_c4847b0870ecd40b9cfc6d71d4528995}{}\label{dir_c4847b0870ecd40b9cfc6d71d4528995}\index{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/tests Directory Reference@{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/tests Directory Reference}}
+Directory dependency graph for tests\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=312pt]{dir_c4847b0870ecd40b9cfc6d71d4528995_dep}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \mbox{\hyperlink{dir_af8d33c2b670b859062a09d48b711fa1}{integration}}
+\item 
+directory \mbox{\hyperlink{dir_b7c6e98c9d578990c88a84a623abf3dc}{unit}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Files}
+\begin{DoxyCompactItemize}
+\item 
+file \mbox{\hyperlink{tests_2____init_____8py}{\+\_\+\+\_\+init\+\_\+\+\_\+.\+py}}
+\item 
+file \mbox{\hyperlink{tests_2conftest_8py}{conftest.\+py}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Comprehensive test suite for the Financial Asset Relationship Database Next.\+js integration.\hypertarget{README.md_autotoc_md5571}{}\doxysubsection{\texorpdfstring{Test Files Created}{Test Files Created}}\label{README.md_autotoc_md5571}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{\doxylink{tests_2unit_2test__api_8py}{tests/unit/test\+\_\+api.\+py}}} -\/ Backend API tests (50+ test cases)
+\item {\bfseries{\doxylink{test__dev__scripts_8py}{tests/unit/test\+\_\+dev\+\_\+scripts.\+py}}} -\/ Configuration validation tests
+\item {\bfseries{\doxylink{test__api__integration_8py}{tests/integration/test\+\_\+api\+\_\+integration.\+py}}} -\/ Integration tests
+\item {\bfseries{frontend/app/lib/{\ttfamily \+\_\+\+\_\+tests\+\_\+\+\_\+}/api.test.\+ts}} -\/ Frontend API client tests
+\end{DoxyEnumerate}\hypertarget{README.md_autotoc_md5572}{}\doxysubsection{\texorpdfstring{Running Tests}{Running Tests}}\label{README.md_autotoc_md5572}
+\hypertarget{README.md_autotoc_md5573}{}\doxysubsubsection{\texorpdfstring{Backend (Python)}{Backend (Python)}}\label{README.md_autotoc_md5573}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pytest\ -\/-\/cov=api\ -\/-\/cov=src\ -\/v}
+
+\end{DoxyCode}
+\hypertarget{README.md_autotoc_md5574}{}\doxysubsubsection{\texorpdfstring{Frontend (Type\+Script)}{Frontend (Type\+Script)}}\label{README.md_autotoc_md5574}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test}
+
+\end{DoxyCode}
+\hypertarget{README.md_autotoc_md5575}{}\doxysubsection{\texorpdfstring{Coverage}{Coverage}}\label{README.md_autotoc_md5575}
+
+\begin{DoxyItemize}
+\item 88+ test methods across all new code
+\item All 10 API endpoints tested
+\item CORS, error handling, edge cases covered 
+\end{DoxyItemize}

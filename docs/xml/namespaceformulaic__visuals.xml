@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespaceformulaic__visuals" kind="namespace" language="Python">
+    <compoundname>formulaic_visuals</compoundname>
+    <innerclass refid="classformulaic__visuals_1_1FormulaicVisualizer" prot="public">formulaic_visuals::FormulaicVisualizer</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

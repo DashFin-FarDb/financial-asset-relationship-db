@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1unit_1_1test__sample__data" kind="namespace" language="Python">
+    <compoundname>tests::unit::test_sample_data</compoundname>
+    <innerclass refid="classtests_1_1unit_1_1test__sample__data_1_1TestEdgeCases" prot="public">tests::unit::test_sample_data::TestEdgeCases</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleAssetProperties" prot="public">tests::unit::test_sample_data::TestSampleAssetProperties</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation" prot="public">tests::unit::test_sample_data::TestSampleDatabaseCreation</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseMetrics" prot="public">tests::unit::test_sample_data::TestSampleDatabaseMetrics</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency" prot="public">tests::unit::test_sample_data::TestSampleDataConsistency</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataReproducibility" prot="public">tests::unit::test_sample_data::TestSampleDataReproducibility</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRegulatoryEvents" prot="public">tests::unit::test_sample_data::TestSampleRegulatoryEvents</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships" prot="public">tests::unit::test_sample_data::TestSampleRelationships</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Unit tests for sample data generation.
+
+This module contains comprehensive unit tests for sample data generation including:
+- Sample database creation
+- Asset diversity across all asset classes
+- Relationship establishment
+- Regulatory event generation
+- Data consistency and completeness
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

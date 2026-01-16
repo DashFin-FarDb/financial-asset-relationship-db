@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevYAMLUsage" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_pyyaml::TestRequirementsDevYAMLUsage</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevYAMLUsage_1a550f8c2c569c2c09c42d69d7477d37a9" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestRequirementsDevYAMLUsage.test_pyyaml_used_in_workflow_tests</definition>
+        <argsstring>()</argsstring>
+        <name>test_pyyaml_used_in_workflow_tests</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevYAMLUsage.test_pyyaml_used_in_workflow_tests</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that PyYAML is imported in workflow test files.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="128" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="128" bodyend="145"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevYAMLUsage_1a25ce8e44144a91f3ebfc9733f8770762" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestRequirementsDevYAMLUsage.test_yaml_files_exist_in_repo</definition>
+        <argsstring>()</argsstring>
+        <name>test_yaml_files_exist_in_repo</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevYAMLUsage.test_yaml_files_exist_in_repo</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that at least one YAML workflow file exists under .github/workflows.
+
+Asserts that a file with extension `.yml` or `.yaml` is present in the repository&apos;s .github/workflows directory.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="147" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="147" bodyend="162"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that PyYAML is needed for workflow validation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_pyyaml.TestRequirementsDevYAMLUsage</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevYAMLUsage"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="124" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="124" bodyend="162"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevYAMLUsage_1a550f8c2c569c2c09c42d69d7477d37a9" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevYAMLUsage</scope><name>test_pyyaml_used_in_workflow_tests</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevYAMLUsage_1a25ce8e44144a91f3ebfc9733f8770762" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevYAMLUsage</scope><name>test_yaml_files_exist_in_repo</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

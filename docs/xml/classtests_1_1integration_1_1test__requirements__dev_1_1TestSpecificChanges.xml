@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestSpecificChanges</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges_1a5b05ce244dd030e8e928b919f3ee0fcd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.TestSpecificChanges.requirements</definition>
+        <argsstring>()</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestSpecificChanges.requirements</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse and return requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="381" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="381" bodyend="384"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" compoundref="test__requirements__dev_8py" startline="100" endline="164">tests.integration.test_requirements_dev.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges_1af8ddf8e2295fab27b37ed4c417fe46e2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestSpecificChanges.test_pyyaml_added</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_pyyaml_added</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestSpecificChanges.test_pyyaml_added</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that PyYAML was added as per the diff.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="386" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="386" bodyend="392"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges_1ab40cd8988a201fc5a23922443cdc9124" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestSpecificChanges.test_types_pyyaml_added</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_types_pyyaml_added</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestSpecificChanges.test_types_pyyaml_added</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that types-PyYAML was added as per the diff.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="394" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="394" bodyend="400"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges_1acdf361ac3a34c925d58e8b4d85cbebe9" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestSpecificChanges.test_existing_packages_preserved</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_existing_packages_preserved</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestSpecificChanges.test_existing_packages_preserved</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that existing packages are still present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="402" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="402" bodyend="421"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test the specific changes made in the diff.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestSpecificChanges</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="376" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="376" bodyend="421"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges_1a5b05ce244dd030e8e928b919f3ee0fcd" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestSpecificChanges</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges_1acdf361ac3a34c925d58e8b4d85cbebe9" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestSpecificChanges</scope><name>test_existing_packages_preserved</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges_1af8ddf8e2295fab27b37ed4c417fe46e2" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestSpecificChanges</scope><name>test_pyyaml_added</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestSpecificChanges_1ab40cd8988a201fc5a23922443cdc9124" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestSpecificChanges</scope><name>test_types_pyyaml_added</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

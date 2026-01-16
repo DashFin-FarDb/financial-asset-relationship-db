@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevVersionPinning" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_pyyaml::TestRequirementsDevVersionPinning</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevVersionPinning_1aff81825f683875817fa7dc89c1c884d9" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[str]</type>
+        <definition> List[str] tests.integration.test_requirements_pyyaml.TestRequirementsDevVersionPinning.requirements_lines</definition>
+        <argsstring>()</argsstring>
+        <name>requirements_lines</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevVersionPinning.requirements_lines</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get the non-comment, non-empty lines from requirements-dev.txt.
+
+Returns:
+    List[str]: Cleaned requirement lines (whitespace trimmed) in file order.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="265" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="265" bodyend="281"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevVersionPinning_1a05ef193d23f42e28af0c2ac0f93304b9" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestRequirementsDevVersionPinning.test_uses_minimum_version_specifiers</definition>
+        <argsstring>(List[str] requirements_lines)</argsstring>
+        <name>test_uses_minimum_version_specifiers</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevVersionPinning.test_uses_minimum_version_specifiers</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>requirements_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure non-typing packages in the provided requirement lines include a minimum version specifier (&apos;&gt;=&apos; or &apos;==&apos;).
+
+Parameters:
+    requirements_lines (List[str]): Non-empty, non-comment requirement lines to validate.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="283" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="283" bodyend="293"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevVersionPinning_1a4f4f48356e8fcef46a116ec02ad0c7cb" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestRequirementsDevVersionPinning.test_pyyaml_and_types_both_pinned</definition>
+        <argsstring>(List[str] requirements_lines)</argsstring>
+        <name>test_pyyaml_and_types_both_pinned</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevVersionPinning.test_pyyaml_and_types_both_pinned</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>requirements_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that both PyYAML and types-PyYAML have version pins.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="295" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="295" bodyend="302"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test version pinning strategy in requirements-dev.txt.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_pyyaml.TestRequirementsDevVersionPinning</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevVersionPinning"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="260" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="260" bodyend="302"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevVersionPinning_1aff81825f683875817fa7dc89c1c884d9" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevVersionPinning</scope><name>requirements_lines</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevVersionPinning_1a4f4f48356e8fcef46a116ec02ad0c7cb" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevVersionPinning</scope><name>test_pyyaml_and_types_both_pinned</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevVersionPinning_1a05ef193d23f42e28af0c2ac0f93304b9" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevVersionPinning</scope><name>test_uses_minimum_version_specifiers</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

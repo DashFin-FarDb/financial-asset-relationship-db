@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorPerformance" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_workflow_validator::TestWorkflowValidatorPerformance</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorPerformance_1a0d16391bc9708aef49ca706ecb715372" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestWorkflowValidatorPerformance.test_validate_workflow_returns_quickly_on_error</definition>
+        <argsstring>()</argsstring>
+        <name>test_validate_workflow_returns_quickly_on_error</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestWorkflowValidatorPerformance.test_validate_workflow_returns_quickly_on_error</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that validation returns quickly even on error</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="885" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="885" bodyend="895"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorPerformance_1a87e121dbf3102d0ca4e57a766c6625bb" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestWorkflowValidatorPerformance.test_validate_multiple_workflows_sequentially</definition>
+        <argsstring>()</argsstring>
+        <name>test_validate_multiple_workflows_sequentially</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestWorkflowValidatorPerformance.test_validate_multiple_workflows_sequentially</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test validating multiple workflows in sequence</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="897" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="897" bodyend="927"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorPerformance_1ae4254c30886136eac4bc7f92fa5ee546" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestWorkflowValidatorPerformance.test_workflow_with_minimal_memory_footprint</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_minimal_memory_footprint</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestWorkflowValidatorPerformance.test_workflow_with_minimal_memory_footprint</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that validation doesn&apos;t consume excessive memory</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="929" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="929" bodyend="947"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test performance-related aspects of workflow validation</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_workflow_validator.TestWorkflowValidatorPerformance</label>
+        <link refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorPerformance"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="881" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="881" bodyend="947"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorPerformance_1a87e121dbf3102d0ca4e57a766c6625bb" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestWorkflowValidatorPerformance</scope><name>test_validate_multiple_workflows_sequentially</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorPerformance_1a0d16391bc9708aef49ca706ecb715372" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestWorkflowValidatorPerformance</scope><name>test_validate_workflow_returns_quickly_on_error</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorPerformance_1ae4254c30886136eac4bc7f92fa5ee546" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestWorkflowValidatorPerformance</scope><name>test_workflow_with_minimal_memory_footprint</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

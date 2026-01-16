@@ -1,0 +1,54 @@
+\doxysection{tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+Workflow\+Schema\+Compliance Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance}{}\label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance}\index{tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance@{tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+Workflow\+Schema\+Compliance\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=232pt]{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance_a6a6d48848b2d0ebd97fd10363d6c3c74}{test\+\_\+workflows\+\_\+have\+\_\+required\+\_\+top\+\_\+level\+\_\+keys}} (self, \mbox{\hyperlink{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance_ad51429d59e2d4e9ab31c3e18762ad0cb}{all\+\_\+workflows}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\mbox{[}Dict\mbox{[}str, Any\mbox{]}\mbox{]} \mbox{\hyperlink{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance_ad51429d59e2d4e9ab31c3e18762ad0cb}{all\+\_\+workflows}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for GitHub Actions workflow schema compliance.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance_ad51429d59e2d4e9ab31c3e18762ad0cb}\index{tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance@{tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance}!all\_workflows@{all\_workflows}}
+\index{all\_workflows@{all\_workflows}!tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance@{tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance}}
+\doxysubsubsection{\texorpdfstring{all\_workflows()}{all\_workflows()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance_ad51429d59e2d4e9ab31c3e18762ad0cb} 
+ List\mbox{[}Dict\mbox{[}str, Any\mbox{]}\mbox{]} tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+Workflow\+Schema\+Compliance.\+all\+\_\+workflows (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Collects and parses all YAML workflow files found in .github/workflows.
+
+Returns:
+    workflows (List[Dict[str, Any]]): A list of dictionaries, each containing:
+        - 'path' (Path): Path to the workflow file.
+        - 'content' (Any): Parsed YAML content as returned by yaml.safe_load (typically a dict, or None if the file is empty).
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance_a6a6d48848b2d0ebd97fd10363d6c3c74}\index{tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance@{tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance}!test\_workflows\_have\_required\_top\_level\_keys@{test\_workflows\_have\_required\_top\_level\_keys}}
+\index{test\_workflows\_have\_required\_top\_level\_keys@{test\_workflows\_have\_required\_top\_level\_keys}!tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance@{tests.integration.test\_yaml\_config\_validation.TestWorkflowSchemaCompliance}}
+\doxysubsubsection{\texorpdfstring{test\_workflows\_have\_required\_top\_level\_keys()}{test\_workflows\_have\_required\_top\_level\_keys()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestWorkflowSchemaCompliance_a6a6d48848b2d0ebd97fd10363d6c3c74} 
+tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+Workflow\+Schema\+Compliance.\+test\+\_\+workflows\+\_\+have\+\_\+required\+\_\+top\+\_\+level\+\_\+keys (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{all\+\_\+workflows}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify workflows have all required top-level keys.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__yaml__config__validation_8py}{test\+\_\+yaml\+\_\+config\+\_\+validation.\+py}}\end{DoxyCompactItemize}

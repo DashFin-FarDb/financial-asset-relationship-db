@@ -1,0 +1,50 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Performance Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPerformance}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPerformance}\index{tests.integration.test\_github\_workflows.TestWorkflowPerformance@{tests.integration.test\_github\_workflows.TestWorkflowPerformance}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Performance\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPerformance__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPerformance_a62f6bb951bce729808c1c422c41e1a6c}{test\+\_\+workflow\+\_\+uses\+\_\+caching}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test suite for workflow performance considerations.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPerformance_a62f6bb951bce729808c1c422c41e1a6c}\index{tests.integration.test\_github\_workflows.TestWorkflowPerformance@{tests.integration.test\_github\_workflows.TestWorkflowPerformance}!test\_workflow\_uses\_caching@{test\_workflow\_uses\_caching}}
+\index{test\_workflow\_uses\_caching@{test\_workflow\_uses\_caching}!tests.integration.test\_github\_workflows.TestWorkflowPerformance@{tests.integration.test\_github\_workflows.TestWorkflowPerformance}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_uses\_caching()}{test\_workflow\_uses\_caching()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPerformance_a62f6bb951bce729808c1c422c41e1a6c} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Performance.\+test\+\_\+workflow\+\_\+uses\+\_\+caching (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check whether a workflow uses caching and print an informational message if none is detected.
+
+Scans the workflow's jobs and steps for common caching indicators (for example an `actions/cache` action or a `cache` key in a step's `with` block). This check is advisory and will not fail the test; it only emits an informational message when no caching is found.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file to inspect.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPerformance_a62f6bb951bce729808c1c422c41e1a6c_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

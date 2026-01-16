@@ -1,0 +1,477 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: tests.integration.test_github_workflows.TestPrAgentWorkflow Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">tests.integration.test_github_workflows.TestPrAgentWorkflow Class Reference</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+Collaboration diagram for tests.integration.test_github_workflows.TestPrAgentWorkflow:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow__coll__graph.svg" width="227" height="472"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:ab6bd34f7668576c53600ca39a6243965" id="r_ab6bd34f7668576c53600ca39a6243965"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab6bd34f7668576c53600ca39a6243965">test_pr_agent_name</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:ab6bd34f7668576c53600ca39a6243965"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a741deabfa746dfc4193ff2196635a746" id="r_a741deabfa746dfc4193ff2196635a746"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a741deabfa746dfc4193ff2196635a746">test_pr_agent_triggers_on_pull_request</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:a741deabfa746dfc4193ff2196635a746"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a752a1ae804fb16307f4a2deb6a914280" id="r_a752a1ae804fb16307f4a2deb6a914280"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a752a1ae804fb16307f4a2deb6a914280">test_pr_agent_has_review_job</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:a752a1ae804fb16307f4a2deb6a914280"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a620a398f0661741c577b735b4ab985b7" id="r_a620a398f0661741c577b735b4ab985b7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a620a398f0661741c577b735b4ab985b7">test_pr_agent_review_runs_on_ubuntu</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:a620a398f0661741c577b735b4ab985b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea63601b5164d54bd7e63fa78aa8e480" id="r_aea63601b5164d54bd7e63fa78aa8e480"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aea63601b5164d54bd7e63fa78aa8e480">test_pr_agent_has_checkout_step</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:aea63601b5164d54bd7e63fa78aa8e480"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe9d49b1e0edc0f3c56a1c1ba7e356b4" id="r_abe9d49b1e0edc0f3c56a1c1ba7e356b4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abe9d49b1e0edc0f3c56a1c1ba7e356b4">test_pr_agent_checkout_has_token</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:abe9d49b1e0edc0f3c56a1c1ba7e356b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac527515110bcd06c95d2955c61dca596" id="r_ac527515110bcd06c95d2955c61dca596"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac527515110bcd06c95d2955c61dca596">test_pr_agent_has_python_setup</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:ac527515110bcd06c95d2955c61dca596"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8242cf22b3298484b6cfdf49f4c98732" id="r_a8242cf22b3298484b6cfdf49f4c98732"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8242cf22b3298484b6cfdf49f4c98732">test_pr_agent_has_node_setup</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:a8242cf22b3298484b6cfdf49f4c98732"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb79411cac14573092c64333e5d73ec4" id="r_acb79411cac14573092c64333e5d73ec4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb79411cac14573092c64333e5d73ec4">test_pr_agent_python_version</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:acb79411cac14573092c64333e5d73ec4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30c69a0fcde4438046b6be967140838d" id="r_a30c69a0fcde4438046b6be967140838d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a30c69a0fcde4438046b6be967140838d">test_pr_agent_no_duplicate_setup_steps</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:a30c69a0fcde4438046b6be967140838d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bd8c887ac86c593d8a98dee2656687b" id="r_a6bd8c887ac86c593d8a98dee2656687b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6bd8c887ac86c593d8a98dee2656687b">test_pr_agent_fetch_depth_configured</a> (self, Dict[str, Any] <a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a>)</td></tr>
+<tr class="separator:a6bd8c887ac86c593d8a98dee2656687b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a14826915526bd4bdc01c15d2eb31b77a" id="r_a14826915526bd4bdc01c15d2eb31b77a"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a14826915526bd4bdc01c15d2eb31b77a">pr_agent_workflow</a> ()</td></tr>
+<tr class="separator:a14826915526bd4bdc01c15d2eb31b77a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><pre class="fragment">Specific tests for the pr-agent.yml workflow.</pre> </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a14826915526bd4bdc01c15d2eb31b77a" name="a14826915526bd4bdc01c15d2eb31b77a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14826915526bd4bdc01c15d2eb31b77a">&#9670;&#160;</a></span>pr_agent_workflow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] tests.integration.test_github_workflows.TestPrAgentWorkflow.pr_agent_workflow </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Load the 'pr-agent' workflow YAML and provide its parsed mapping for tests.
+
+If the file .github/workflows/pr-agent.yml is missing, the invoking test is skipped.
+
+Returns:
+    workflow (Dict[str, Any]): Parsed YAML mapping of the pr-agent workflow.
+</pre> <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_a14826915526bd4bdc01c15d2eb31b77a_cgraph.svg" width="458" height="66"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="abe9d49b1e0edc0f3c56a1c1ba7e356b4" name="abe9d49b1e0edc0f3c56a1c1ba7e356b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe9d49b1e0edc0f3c56a1c1ba7e356b4">&#9670;&#160;</a></span>test_pr_agent_checkout_has_token()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_checkout_has_token </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Ensure every actions/checkout step in the review job provides a `token` in its `with` mapping.
+
+Fails the test if any checkout step omits the `token` key.
+</pre> 
+</div>
+</div>
+<a id="a6bd8c887ac86c593d8a98dee2656687b" name="a6bd8c887ac86c593d8a98dee2656687b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6bd8c887ac86c593d8a98dee2656687b">&#9670;&#160;</a></span>test_pr_agent_fetch_depth_configured()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_fetch_depth_configured </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Ensure checkout steps in the PR Agent review job have valid fetch-depth values.
+
+Checks each step in `jobs.review` that uses `actions/checkout`; if the step's `with` mapping contains `fetch-depth` the value must be an integer or exactly 0, otherwise an assertion fails.
+
+Parameters:
+    pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow.
+</pre> 
+</div>
+</div>
+<a id="aea63601b5164d54bd7e63fa78aa8e480" name="aea63601b5164d54bd7e63fa78aa8e480"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea63601b5164d54bd7e63fa78aa8e480">&#9670;&#160;</a></span>test_pr_agent_has_checkout_step()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_checkout_step </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that review job checks out the code.</pre> 
+</div>
+</div>
+<a id="a8242cf22b3298484b6cfdf49f4c98732" name="a8242cf22b3298484b6cfdf49f4c98732"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8242cf22b3298484b6cfdf49f4c98732">&#9670;&#160;</a></span>test_pr_agent_has_node_setup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_node_setup </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that review job sets up Node.js.</pre> 
+</div>
+</div>
+<a id="ac527515110bcd06c95d2955c61dca596" name="ac527515110bcd06c95d2955c61dca596"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac527515110bcd06c95d2955c61dca596">&#9670;&#160;</a></span>test_pr_agent_has_python_setup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_python_setup </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Asserts the workflow's "review" job includes at least one step that uses actions/setup-python.
+
+Parameters:
+    pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow; expected to contain a "jobs" mapping with a "review" job.
+</pre> 
+</div>
+</div>
+<a id="a752a1ae804fb16307f4a2deb6a914280" name="a752a1ae804fb16307f4a2deb6a914280"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a752a1ae804fb16307f4a2deb6a914280">&#9670;&#160;</a></span>test_pr_agent_has_review_job()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_review_job </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that pr-agent workflow has a review job.</pre> 
+</div>
+</div>
+<a id="ab6bd34f7668576c53600ca39a6243965" name="ab6bd34f7668576c53600ca39a6243965"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6bd34f7668576c53600ca39a6243965">&#9670;&#160;</a></span>test_pr_agent_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_name </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Assert the pr-agent workflow's top-level "name" equals "PR Agent".
+
+Parameters:
+    pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow fixture.
+</pre> 
+</div>
+</div>
+<a id="a30c69a0fcde4438046b6be967140838d" name="a30c69a0fcde4438046b6be967140838d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30c69a0fcde4438046b6be967140838d">&#9670;&#160;</a></span>test_pr_agent_no_duplicate_setup_steps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_no_duplicate_setup_steps </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that there are no duplicate setup steps in the workflow.</pre> 
+</div>
+</div>
+<a id="acb79411cac14573092c64333e5d73ec4" name="acb79411cac14573092c64333e5d73ec4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb79411cac14573092c64333e5d73ec4">&#9670;&#160;</a></span>test_pr_agent_python_version()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_python_version </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Ensure any actions/setup-python step in the "review" job specifies python-version "3.11".
+
+Parameters:
+    pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow; expected to contain a "jobs" -&gt; "review" -&gt; "steps" sequence.
+</pre> 
+</div>
+</div>
+<a id="a620a398f0661741c577b735b4ab985b7" name="a620a398f0661741c577b735b4ab985b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a620a398f0661741c577b735b4ab985b7">&#9670;&#160;</a></span>test_pr_agent_review_runs_on_ubuntu()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_review_runs_on_ubuntu </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that review job runs on Ubuntu.</pre> 
+</div>
+</div>
+<a id="a741deabfa746dfc4193ff2196635a746" name="a741deabfa746dfc4193ff2196635a746"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a741deabfa746dfc4193ff2196635a746">&#9670;&#160;</a></span>test_pr_agent_triggers_on_pull_request()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_triggers_on_pull_request </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>pr_agent_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that pr-agent workflow triggers on pull request events.</pre> 
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
+<li>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/<a class="el" href="test__github__workflows_8py.html">test_github_workflows.py</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacetests.html">tests</a></li><li class="navelem"><a class="el" href="namespacetests_1_1integration.html">integration</a></li><li class="navelem"><a class="el" href="namespacetests_1_1integration_1_1test__github__workflows.html">test_github_workflows</a></li><li class="navelem"><a class="el" href="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow.html">TestPrAgentWorkflow</a></li>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

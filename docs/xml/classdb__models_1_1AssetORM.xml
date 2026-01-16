@@ -1,0 +1,512 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classdb__models_1_1AssetORM" kind="class" language="Python" prot="public">
+    <compoundname>db_models::AssetORM</compoundname>
+    <basecompoundref refid="classBase" prot="public" virt="non-virtual">Base</basecompoundref>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1ac658ab4d476e115946e7f825d5857b5c" prot="private" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str db_models.AssetORM::__tablename__</definition>
+        <argsstring></argsstring>
+        <name>__tablename__</name>
+        <qualifiedname>db_models.AssetORM.__tablename__</qualifiedname>
+        <initializer>=  &quot;assets&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="16" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="16" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a9e4a64abb1af1aba467ff6230ad02329" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::id</definition>
+        <argsstring></argsstring>
+        <name>id</name>
+        <qualifiedname>db_models.AssetORM.id</qualifiedname>
+        <initializer>=  mapped_column(String, primary_key=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1ab10030f897accc49f0a8caea0b1a1d13" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::symbol</definition>
+        <argsstring></argsstring>
+        <name>symbol</name>
+        <qualifiedname>db_models.AssetORM.symbol</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="19" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1aaed1ebf4ef1150d6093396db1ad3e5e7" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <qualifiedname>db_models.AssetORM.name</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="20" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1ab455c1211618dffb26c9b95ba74121f4" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::asset_class</definition>
+        <argsstring></argsstring>
+        <name>asset_class</name>
+        <qualifiedname>db_models.AssetORM.asset_class</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="21" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1ad2d0504c8f623ab3e103a8260775b192" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::sector</definition>
+        <argsstring></argsstring>
+        <name>sector</name>
+        <qualifiedname>db_models.AssetORM.sector</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="22" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="22" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a5954b3d62859cb314032f0bc442f01af" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::price</definition>
+        <argsstring></argsstring>
+        <name>price</name>
+        <qualifiedname>db_models.AssetORM.price</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="23" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1af28e242dfe4493eeb6ede241646d1298" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::market_cap</definition>
+        <argsstring></argsstring>
+        <name>market_cap</name>
+        <qualifiedname>db_models.AssetORM.market_cap</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="24" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a364a674f771c5c89c8e0de5f03d6fcdd" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::currency</definition>
+        <argsstring></argsstring>
+        <name>currency</name>
+        <qualifiedname>db_models.AssetORM.currency</qualifiedname>
+        <initializer>=  mapped_column(String(3), nullable=False)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="25" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a46b0e84b3d4c6af709ff72c07eaf0105" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::pe_ratio</definition>
+        <argsstring></argsstring>
+        <name>pe_ratio</name>
+        <qualifiedname>db_models.AssetORM.pe_ratio</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="28" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a3b37cb647c6fddaaa1b26fbecbac6a31" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::dividend_yield</definition>
+        <argsstring></argsstring>
+        <name>dividend_yield</name>
+        <qualifiedname>db_models.AssetORM.dividend_yield</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="29" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1ab1229eefe6ee1acd618c4f2e6192b156" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::earnings_per_share</definition>
+        <argsstring></argsstring>
+        <name>earnings_per_share</name>
+        <qualifiedname>db_models.AssetORM.earnings_per_share</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="30" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1ad1eef846fa84d72cfcc97beb93a8d6d6" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::book_value</definition>
+        <argsstring></argsstring>
+        <name>book_value</name>
+        <qualifiedname>db_models.AssetORM.book_value</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="31" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1adb4a37319eb2f86f57467c898691554c" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::yield_to_maturity</definition>
+        <argsstring></argsstring>
+        <name>yield_to_maturity</name>
+        <qualifiedname>db_models.AssetORM.yield_to_maturity</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="34" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a7a641dd0341eed8f072aa2f7870e9c06" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::coupon_rate</definition>
+        <argsstring></argsstring>
+        <name>coupon_rate</name>
+        <qualifiedname>db_models.AssetORM.coupon_rate</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="35" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a67ac7bcd6a4bbbfdf180ef72e706ea77" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::maturity_date</definition>
+        <argsstring></argsstring>
+        <name>maturity_date</name>
+        <qualifiedname>db_models.AssetORM.maturity_date</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="36" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a61f92458e85ccae9054f21048c480e1a" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::credit_rating</definition>
+        <argsstring></argsstring>
+        <name>credit_rating</name>
+        <qualifiedname>db_models.AssetORM.credit_rating</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="37" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="37" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1ac324e6a72135aff7fe488b21053482a9" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::issuer_id</definition>
+        <argsstring></argsstring>
+        <name>issuer_id</name>
+        <qualifiedname>db_models.AssetORM.issuer_id</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="38" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1aa4a2b13be4363428fff11062fff6ff8f" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::contract_size</definition>
+        <argsstring></argsstring>
+        <name>contract_size</name>
+        <qualifiedname>db_models.AssetORM.contract_size</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="41" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a91a26d52ab5cefd41c8d6ab958301487" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::delivery_date</definition>
+        <argsstring></argsstring>
+        <name>delivery_date</name>
+        <qualifiedname>db_models.AssetORM.delivery_date</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="42" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a9de98a94b0c0b2e5f57c53fdc1d68124" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::volatility</definition>
+        <argsstring></argsstring>
+        <name>volatility</name>
+        <qualifiedname>db_models.AssetORM.volatility</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="43" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a6ecf8bc3478b71d6536d0f6f0b67b4ce" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::exchange_rate</definition>
+        <argsstring></argsstring>
+        <name>exchange_rate</name>
+        <qualifiedname>db_models.AssetORM.exchange_rate</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="46" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a1f287ac0ab34ac6a33580261ef5af44d" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::country</definition>
+        <argsstring></argsstring>
+        <name>country</name>
+        <qualifiedname>db_models.AssetORM.country</qualifiedname>
+        <initializer>=  mapped_column(String, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="47" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a00c71dca168e28f61cfa6d44a00c343d" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::central_bank_rate</definition>
+        <argsstring></argsstring>
+        <name>central_bank_rate</name>
+        <qualifiedname>db_models.AssetORM.central_bank_rate</qualifiedname>
+        <initializer>=  mapped_column(Float, nullable=True)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="48" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a9e4ba413f33b0a0427d488ff95429f6a" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::outgoing_relationships</definition>
+        <argsstring></argsstring>
+        <name>outgoing_relationships</name>
+        <qualifiedname>db_models.AssetORM.outgoing_relationships</qualifiedname>
+        <initializer>=  relationship(
+        &quot;AssetRelationshipORM&quot;,
+        back_populates=&quot;source&quot;,
+        cascade=&quot;all, delete-orphan&quot;,
+        foreign_keys=&quot;AssetRelationshipORM.source_asset_id&quot;,
+    )</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="50" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1a2a758b80e0aa1b138d4888ceec028275" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::incoming_relationships</definition>
+        <argsstring></argsstring>
+        <name>incoming_relationships</name>
+        <qualifiedname>db_models.AssetORM.incoming_relationships</qualifiedname>
+        <initializer>=  relationship(
+        &quot;AssetRelationshipORM&quot;,
+        back_populates=&quot;target&quot;,
+        cascade=&quot;all, delete-orphan&quot;,
+        foreign_keys=&quot;AssetRelationshipORM.target_asset_id&quot;,
+    )</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="56" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdb__models_1_1AssetORM_1aa773fb58ae1bdd68c1e4bdc7c862064e" prot="public" static="yes" mutable="no">
+        <type>Mapped</type>
+        <definition>Mapped db_models.AssetORM::regulatory_events</definition>
+        <argsstring></argsstring>
+        <name>regulatory_events</name>
+        <qualifiedname>db_models.AssetORM.regulatory_events</qualifiedname>
+        <initializer>=  relationship(
+        &quot;RegulatoryEventORM&quot;, back_populates=&quot;asset&quot;, cascade=&quot;all, delete-orphan&quot;
+    )</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="62" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="62" bodyend="-1"/>
+        <referencedby refid="classasset__graph_1_1AssetRelationshipGraph_1aa20a244b9799fc502de34c5cbea524c1" compoundref="asset__graph_8py" startline="32" endline="35">asset_graph.AssetRelationshipGraph.add_regulatory_event</referencedby>
+        <referencedby refid="classasset__graph_1_1AssetRelationshipGraph_1ad847e0bc5cda0217fd3e2fe9f00049ed" compoundref="asset__graph_8py" startline="36" endline="78">asset_graph.AssetRelationshipGraph.build_relationships</referencedby>
+        <referencedby refid="classasset__graph_1_1AssetRelationshipGraph_1a01cbbf020e31125a5c10328ecac61035" compoundref="asset__graph_8py" startline="107" endline="158">asset_graph.AssetRelationshipGraph.calculate_metrics</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Persistent representation of an asset.</verbatim> </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>Base</label>
+        <link refid="classBase"/>
+      </node>
+      <node id="1">
+        <label>db_models.AssetORM</label>
+        <link refid="classdb__models_1_1AssetORM"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>Base</label>
+        <link refid="classBase"/>
+      </node>
+      <node id="4">
+        <label>Mapped</label>
+      </node>
+      <node id="1">
+        <label>db_models.AssetORM</label>
+        <link refid="classdb__models_1_1AssetORM"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>-__tablename__</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>+asset_class</edgelabel>
+          <edgelabel>+book_value</edgelabel>
+          <edgelabel>+central_bank_rate</edgelabel>
+          <edgelabel>+contract_size</edgelabel>
+          <edgelabel>+country</edgelabel>
+          <edgelabel>+coupon_rate</edgelabel>
+          <edgelabel>+credit_rating</edgelabel>
+          <edgelabel>+currency</edgelabel>
+          <edgelabel>+delivery_date</edgelabel>
+          <edgelabel>+dividend_yield</edgelabel>
+          <edgelabel>...</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>str</label>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="13" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" bodystart="13" bodyend="66"/>
+    <listofallmembers>
+      <member refid="classdb__models_1_1AssetORM_1ac658ab4d476e115946e7f825d5857b5c" prot="private" virt="non-virtual"><scope>db_models::AssetORM</scope><name>__tablename__</name></member>
+      <member refid="classdb__models_1_1AssetORM_1ab455c1211618dffb26c9b95ba74121f4" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>asset_class</name></member>
+      <member refid="classdb__models_1_1AssetORM_1ad1eef846fa84d72cfcc97beb93a8d6d6" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>book_value</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a00c71dca168e28f61cfa6d44a00c343d" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>central_bank_rate</name></member>
+      <member refid="classdb__models_1_1AssetORM_1aa4a2b13be4363428fff11062fff6ff8f" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>contract_size</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a1f287ac0ab34ac6a33580261ef5af44d" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>country</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a7a641dd0341eed8f072aa2f7870e9c06" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>coupon_rate</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a61f92458e85ccae9054f21048c480e1a" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>credit_rating</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a364a674f771c5c89c8e0de5f03d6fcdd" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>currency</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a91a26d52ab5cefd41c8d6ab958301487" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>delivery_date</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a3b37cb647c6fddaaa1b26fbecbac6a31" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>dividend_yield</name></member>
+      <member refid="classdb__models_1_1AssetORM_1ab1229eefe6ee1acd618c4f2e6192b156" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>earnings_per_share</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a6ecf8bc3478b71d6536d0f6f0b67b4ce" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>exchange_rate</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a9e4a64abb1af1aba467ff6230ad02329" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>id</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a2a758b80e0aa1b138d4888ceec028275" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>incoming_relationships</name></member>
+      <member refid="classdb__models_1_1AssetORM_1ac324e6a72135aff7fe488b21053482a9" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>issuer_id</name></member>
+      <member refid="classdb__models_1_1AssetORM_1af28e242dfe4493eeb6ede241646d1298" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>market_cap</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a67ac7bcd6a4bbbfdf180ef72e706ea77" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>maturity_date</name></member>
+      <member refid="classdb__models_1_1AssetORM_1aaed1ebf4ef1150d6093396db1ad3e5e7" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>name</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a9e4ba413f33b0a0427d488ff95429f6a" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>outgoing_relationships</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a46b0e84b3d4c6af709ff72c07eaf0105" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>pe_ratio</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a5954b3d62859cb314032f0bc442f01af" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>price</name></member>
+      <member refid="classdb__models_1_1AssetORM_1aa773fb58ae1bdd68c1e4bdc7c862064e" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>regulatory_events</name></member>
+      <member refid="classdb__models_1_1AssetORM_1ad2d0504c8f623ab3e103a8260775b192" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>sector</name></member>
+      <member refid="classdb__models_1_1AssetORM_1ab10030f897accc49f0a8caea0b1a1d13" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>symbol</name></member>
+      <member refid="classdb__models_1_1AssetORM_1a9de98a94b0c0b2e5f57c53fdc1d68124" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>volatility</name></member>
+      <member refid="classdb__models_1_1AssetORM_1adb4a37319eb2f86f57467c898691554c" prot="public" virt="non-virtual"><scope>db_models::AssetORM</scope><name>yield_to_maturity</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

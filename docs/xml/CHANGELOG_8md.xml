@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="CHANGELOG_8md" kind="file" language="Markdown">
+    <compoundname>CHANGELOG.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Changelog</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>[Unreleased]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Fixed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Removed<sp/>inappropriate<sp/>CI/CD<sp/>workflow<sp/>files<sp/>that<sp/>were<sp/>causing<sp/>build<sp/>failures:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Deleted<sp/>`.github/workflows/objective-c-xcode.yml`<sp/>-<sp/>Xcode/Objective-C<sp/>workflow<sp/>not<sp/>applicable<sp/>to<sp/>Python/JavaScript<sp/>project</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Deleted<sp/>`.github/workflows/go.yml`<sp/>-<sp/>Go<sp/>workflow<sp/>not<sp/>applicable<sp/>to<sp/>Python/JavaScript<sp/>project</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Deleted<sp/>`.github/workflows/dotnet-desktop.yml`<sp/>-<sp/>.NET<sp/>Desktop<sp/>workflow<sp/>not<sp/>applicable<sp/>to<sp/>Python/JavaScript<sp/>project</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Improved</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Cleaned<sp/>up<sp/>CI/CD<sp/>configuration<sp/>to<sp/>only<sp/>include<sp/>relevant<sp/>workflows<sp/>for<sp/>the<sp/>project&apos;s<sp/>tech<sp/>stack<sp/>(Python,<sp/>JavaScript/TypeScript,<sp/>Next.js)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Reduced<sp/>CI/CD<sp/>execution<sp/>time<sp/>and<sp/>resource<sp/>usage<sp/>by<sp/>removing<sp/>unnecessary<sp/>workflow<sp/>runs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Improved<sp/>maintainability<sp/>by<sp/>removing<sp/>duplicate<sp/>and<sp/>conflicting<sp/>workflow<sp/>configurations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Changelog</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">All<sp/>notable<sp/>changes<sp/>to<sp/>this<sp/>project<sp/>will<sp/>be<sp/>documented<sp/>in<sp/>this<sp/>file.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>format<sp/>is<sp/>based<sp/>on<sp/>[Keep<sp/>a<sp/>Changelog](https://keepachangelog.com/en/1.0.0/),</highlight></codeline>
+<codeline><highlight class="normal">and<sp/>this<sp/>project<sp/>adheres<sp/>to<sp/>[Semantic<sp/>Versioning](https://semver.org/spec/v2.0.0.html).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>[Unreleased]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Added</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Comprehensive<sp/>testing<sp/>infrastructure<sp/>with<sp/>pytest</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Unit<sp/>tests<sp/>for<sp/>financial<sp/>models<sp/>(test_financial_models.py)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Unit<sp/>tests<sp/>for<sp/>asset<sp/>graph<sp/>logic<sp/>(test_asset_graph.py)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Test<sp/>fixtures<sp/>in<sp/>conftest.py<sp/>for<sp/>reusable<sp/>test<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Development<sp/>dependencies<sp/>in<sp/>requirements-dev.txt</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Linting<sp/>configuration<sp/>(.flake8,<sp/>pyproject.toml)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Code<sp/>formatting<sp/>tools<sp/>(black,<sp/>isort)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Type<sp/>checking<sp/>with<sp/>mypy</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Pre-commit<sp/>hooks<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>EditorConfig<sp/>for<sp/>consistent<sp/>formatting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Consolidated<sp/>CI<sp/>workflow<sp/>(.github/workflows/ci.yml)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Code<sp/>coverage<sp/>reporting<sp/>with<sp/>pytest-cov</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Makefile<sp/>for<sp/>common<sp/>development<sp/>tasks</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>CONTRIBUTING.md<sp/>guide<sp/>for<sp/>developers</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>AUDIT_REPORT.md<sp/>comprehensive<sp/>code<sp/>audit</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>CHANGELOG.md<sp/>(this<sp/>file)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Changed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Consolidated<sp/>redundant<sp/>Python<sp/>workflows<sp/>into<sp/>single<sp/>ci.yml</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Updated<sp/>.gitignore<sp/>to<sp/>include<sp/>test<sp/>artifacts<sp/>and<sp/>cache<sp/>directories</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Improved<sp/>CI/CD<sp/>pipeline<sp/>with<sp/>dependency<sp/>caching</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Enhanced<sp/>workflow<sp/>to<sp/>include<sp/>linting,<sp/>type<sp/>checking,<sp/>and<sp/>security<sp/>scanning</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Removed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>23<sp/>irrelevant<sp/>workflow<sp/>files<sp/>(docker,<sp/>.NET,<sp/>Next.js,<sp/>Node.js,<sp/>etc.)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>python-app.yml<sp/>(merged<sp/>into<sp/>ci.yml)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>python-package.yml<sp/>(merged<sp/>into<sp/>ci.yml)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>pylint.yml<sp/>(merged<sp/>into<sp/>ci.yml)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>super-linter.yml<sp/>(replaced<sp/>with<sp/>specific<sp/>linters)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>[1.0.0]<sp/>-<sp/>2024-10-30</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Added</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Initial<sp/>release</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database<sp/>with<sp/>3D<sp/>visualization</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Support<sp/>for<sp/>multiple<sp/>asset<sp/>classes<sp/>(Equity,<sp/>Bond,<sp/>Commodity,<sp/>Currency,<sp/>Derivative)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Automatic<sp/>relationship<sp/>discovery<sp/>between<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Regulatory<sp/>event<sp/>tracking<sp/>and<sp/>impact<sp/>modeling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Interactive<sp/>Gradio<sp/>web<sp/>interface</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>3D<sp/>network<sp/>visualization<sp/>with<sp/>Plotly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Metrics<sp/>and<sp/>analytics<sp/>dashboard</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Schema<sp/>and<sp/>business<sp/>rules<sp/>reporting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Asset<sp/>explorer<sp/>with<sp/>detailed<sp/>information</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Real-time<sp/>data<sp/>fetching<sp/>with<sp/>yfinance</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Sample<sp/>data<sp/>generation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Comprehensive<sp/>documentation<sp/>(README.md,<sp/>AI_RULES.md)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Asset<sp/>Classes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Equities<sp/>with<sp/>P/E<sp/>ratios,<sp/>dividend<sp/>yields,<sp/>EPS</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Fixed<sp/>Income<sp/>with<sp/>yield,<sp/>duration,<sp/>credit<sp/>ratings</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Commodities<sp/>with<sp/>futures<sp/>and<sp/>spot<sp/>prices</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Currencies<sp/>with<sp/>exchange<sp/>rates</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Regulatory<sp/>events<sp/>with<sp/>impact<sp/>scoring</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Relationship<sp/>Types</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Sector<sp/>affinity<sp/>(same_sector)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Corporate<sp/>links<sp/>(corporate_bond_to_equity)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Commodity<sp/>exposure</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Currency<sp/>risk</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Income<sp/>comparison<sp/>(dividend<sp/>vs<sp/>yield)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Event<sp/>impact</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Visualizations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>3D<sp/>network<sp/>graph<sp/>with<sp/>deterministic<sp/>positioning</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Asset<sp/>class<sp/>color<sp/>coding</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Relationship<sp/>strength<sp/>visualization</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Metrics<sp/>dashboard</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Schema<sp/>documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Version<sp/>History</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Version<sp/>Numbering</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>project<sp/>uses<sp/>[Semantic<sp/>Versioning](https://semver.org/):</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**MAJOR**<sp/>version<sp/>for<sp/>incompatible<sp/>API<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**MINOR**<sp/>version<sp/>for<sp/>backwards-compatible<sp/>functionality<sp/>additions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**PATCH**<sp/>version<sp/>for<sp/>backwards-compatible<sp/>bug<sp/>fixes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Unreleased<sp/>Changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Changes<sp/>in<sp/>the<sp/>`[Unreleased]`<sp/>section<sp/>are<sp/>features<sp/>and<sp/>fixes<sp/>that<sp/>have<sp/>been<sp/>committed<sp/>but<sp/>not<sp/>yet<sp/>released.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Release<sp/>Process</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Update<sp/>CHANGELOG.md</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Update<sp/>version<sp/>in<sp/>pyproject.toml</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Commit<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Tag<sp/>release:<sp/>`git<sp/>tag<sp/>-a<sp/>v1.0.0<sp/>-m<sp/>&quot;Release<sp/>v1.0.0&quot;`</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>Push<sp/>tags:<sp/>`git<sp/>push<sp/>--tags`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">[Unreleased]:<sp/>https://github.com/mohavro/financial-asset-relationship-db/compare/v1.0.0...HEAD</highlight></codeline>
+<codeline><highlight class="normal">[1.0.0]:<sp/>https://github.com/mohavro/financial-asset-relationship-db/releases/tag/v1.0.0</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/CHANGELOG.md"/>
+  </compounddef>
+</doxygen>

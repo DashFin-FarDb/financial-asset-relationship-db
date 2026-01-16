@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_repository::TestEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases_1a6cff8f9c0831d97cbb2d37c7182caf3a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestEdgeCases.test_empty_repository</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_empty_repository</name>
+        <qualifiedname>tests.unit.test_repository.TestEdgeCases.test_empty_repository</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test operations on empty repository.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="708" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="708" bodyend="718"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases_1ae550a380359027fa102dadf8dee112c0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestEdgeCases.test_asset_with_minimal_fields</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_asset_with_minimal_fields</name>
+        <qualifiedname>tests.unit.test_repository.TestEdgeCases.test_asset_with_minimal_fields</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test asset with only required fields.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="720" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="720" bodyend="737"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases_1a12aa69a006145b9f67a6fc56123fe24c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestEdgeCases.test_relationship_with_zero_strength</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_relationship_with_zero_strength</name>
+        <qualifiedname>tests.unit.test_repository.TestEdgeCases.test_relationship_with_zero_strength</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test relationship with zero strength.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="739" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="739" bodyend="769"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases_1a75881a0d65004568b25f513989851815" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestEdgeCases.test_relationship_with_max_strength</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_relationship_with_max_strength</name>
+        <qualifiedname>tests.unit.test_repository.TestEdgeCases.test_relationship_with_max_strength</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test relationship with maximum strength.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="771" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="771" bodyend="801"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases and error conditions.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_repository.TestEdgeCases</label>
+        <link refid="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="704" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="704" bodyend="801"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases_1ae550a380359027fa102dadf8dee112c0" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestEdgeCases</scope><name>test_asset_with_minimal_fields</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases_1a6cff8f9c0831d97cbb2d37c7182caf3a" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestEdgeCases</scope><name>test_empty_repository</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases_1a75881a0d65004568b25f513989851815" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestEdgeCases</scope><name>test_relationship_with_max_strength</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestEdgeCases_1a12aa69a006145b9f67a6fc56123fe24c" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestEdgeCases</scope><name>test_relationship_with_zero_strength</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

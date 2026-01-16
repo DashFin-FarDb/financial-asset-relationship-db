@@ -1,0 +1,5 @@
+var classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements =
+[
+    [ "test_pr_agent_workflow_has_install_dependencies_step", "classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements.html#a4f5b66c1e33cfe5121a834989f9cda42", null ],
+    [ "test_workflow_installs_before_running_tests", "classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements.html#a4bbbdd90ee7600b4b76f9d5e629144f3", null ]
+];

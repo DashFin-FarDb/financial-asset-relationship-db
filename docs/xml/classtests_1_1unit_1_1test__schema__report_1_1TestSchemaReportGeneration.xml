@@ -1,0 +1,322 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_schema_report::TestSchemaReportGeneration</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a333975e4f66a82b36ac1a3472f59766e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_generate_report_returns_string</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_generate_report_returns_string</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_generate_report_returns_string</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that generate_schema_report returns a string.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="18" bodyend="23"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1ac001fcb4c4e9053a6b115346e1ddf5c0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_title</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_contains_title</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_title</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report contains main title.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="25" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="25" bodyend="29"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a7ba2874e1c3d707f5b373ee95d85d307" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_schema_overview</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_contains_schema_overview</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_schema_overview</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report contains schema overview section.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="31" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="31" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a893c338858e51bd77df2cf4b629af9ed" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_lists_entity_types</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_lists_entity_types</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_lists_entity_types</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report lists all entity types.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="38" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="38" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a5b492517360248f0c3bda747904a1f17" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_relationship_types</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_contains_relationship_types</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_relationship_types</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report contains relationship types section.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="47" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="47" bodyend="51"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a034b4dd4cc6cd522e911b8d48a02cc18" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_calculated_metrics</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_contains_calculated_metrics</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_contains_calculated_metrics</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report contains calculated metrics section.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="53" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="53" bodyend="58"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a674d922a9a661cd2e8d04012701b6d71" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_total_assets</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_includes_total_assets</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_total_assets</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report includes total assets metric.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="60" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="60" bodyend="66"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1ae1f1e4e66db8a07a54d71db07359eeec" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_relationship_metrics</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_includes_relationship_metrics</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_relationship_metrics</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report includes relationship metrics.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="68" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="68" bodyend="74"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a76274e77ff9158c708556566757d0ccc" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_asset_class_distribution</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_includes_asset_class_distribution</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_asset_class_distribution</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report includes asset class distribution.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="76" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="76" bodyend="80"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a5f6256557394e4feb04a03fa84af4434" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_business_rules</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_includes_business_rules</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_business_rules</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report includes business rules section.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="82" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="82" bodyend="87"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a20f11819e9ce09d025cc43218cb41a44" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_regulatory_rules</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_includes_regulatory_rules</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_regulatory_rules</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report includes regulatory rules.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="89" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="89" bodyend="93"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a1867ec4e3f45bd4ac27925e65950823b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_valuation_rules</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_includes_valuation_rules</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_valuation_rules</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report includes valuation rules.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="95" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="95" bodyend="99"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a80edbd0e7869b5464e072bafaed8d8e2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_optimization_metrics</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_includes_optimization_metrics</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_optimization_metrics</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report includes schema optimization metrics.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="101" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="101" bodyend="106"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1aac88616853f135b18d2bdbc3cf9bbafd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_recommendations</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_includes_recommendations</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_recommendations</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report includes recommendations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="108" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="108" bodyend="112"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1ac90ab5fbe412dd5d06c3213341b24022" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_implementation_notes</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_includes_implementation_notes</name>
+        <qualifiedname>tests.unit.test_schema_report.TestSchemaReportGeneration.test_report_includes_implementation_notes</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report includes implementation notes.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="114" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="114" bodyend="119"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for schema report generation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_schema_report.TestSchemaReportGeneration</label>
+        <link refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="14" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="14" bodyend="119"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a333975e4f66a82b36ac1a3472f59766e" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_generate_report_returns_string</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a034b4dd4cc6cd522e911b8d48a02cc18" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_contains_calculated_metrics</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a5b492517360248f0c3bda747904a1f17" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_contains_relationship_types</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a7ba2874e1c3d707f5b373ee95d85d307" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_contains_schema_overview</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1ac001fcb4c4e9053a6b115346e1ddf5c0" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_contains_title</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a76274e77ff9158c708556566757d0ccc" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_includes_asset_class_distribution</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a5f6256557394e4feb04a03fa84af4434" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_includes_business_rules</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1ac90ab5fbe412dd5d06c3213341b24022" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_includes_implementation_notes</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a80edbd0e7869b5464e072bafaed8d8e2" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_includes_optimization_metrics</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1aac88616853f135b18d2bdbc3cf9bbafd" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_includes_recommendations</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a20f11819e9ce09d025cc43218cb41a44" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_includes_regulatory_rules</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1ae1f1e4e66db8a07a54d71db07359eeec" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_includes_relationship_metrics</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a674d922a9a661cd2e8d04012701b6d71" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_includes_total_assets</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a1867ec4e3f45bd4ac27925e65950823b" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_includes_valuation_rules</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestSchemaReportGeneration_1a893c338858e51bd77df2cf4b629af9ed" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestSchemaReportGeneration</scope><name>test_report_lists_entity_types</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

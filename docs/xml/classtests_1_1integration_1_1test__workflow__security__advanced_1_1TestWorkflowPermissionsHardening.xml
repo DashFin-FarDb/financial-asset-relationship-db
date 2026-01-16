@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_security_advanced::TestWorkflowPermissionsHardening</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening_1ad5f885d2436b5d8703f94a9a4cb8fa08" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_security_advanced.TestWorkflowPermissionsHardening.test_workflows_define_explicit_permissions</definition>
+        <argsstring>(all_workflows)</argsstring>
+        <name>test_workflows_define_explicit_permissions</name>
+        <qualifiedname>tests.integration.test_workflow_security_advanced.TestWorkflowPermissionsHardening.test_workflows_define_explicit_permissions</qualifiedname>
+        <param>
+          <type>all_workflows</type>
+          <defname>all_workflows</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify workflows explicitly define permissions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" line="120" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" bodystart="120" bodyend="126"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening_1a86173cec6e9cb51b46ef505a715e04ed" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_security_advanced.TestWorkflowPermissionsHardening.test_default_permissions_are_restrictive</definition>
+        <argsstring>(all_workflows)</argsstring>
+        <name>test_default_permissions_are_restrictive</name>
+        <qualifiedname>tests.integration.test_workflow_security_advanced.TestWorkflowPermissionsHardening.test_default_permissions_are_restrictive</qualifiedname>
+        <param>
+          <type>all_workflows</type>
+          <defname>all_workflows</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify default permissions follow least privilege.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" line="128" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" bodystart="128" bodyend="149"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening_1a16df9ebd2a8bff4713d316017a9036e4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_security_advanced.TestWorkflowPermissionsHardening.test_no_workflows_with_write_all_permission</definition>
+        <argsstring>(all_workflows)</argsstring>
+        <name>test_no_workflows_with_write_all_permission</name>
+        <qualifiedname>tests.integration.test_workflow_security_advanced.TestWorkflowPermissionsHardening.test_no_workflows_with_write_all_permission</qualifiedname>
+        <param>
+          <type>all_workflows</type>
+          <defname>all_workflows</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify no workflow uses &apos;write-all&apos; permission.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" line="151" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" bodystart="151" bodyend="160"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for workflow permissions and least privilege.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_security_advanced.TestWorkflowPermissionsHardening</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" line="116" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_security_advanced.py" bodystart="116" bodyend="160"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening_1a86173cec6e9cb51b46ef505a715e04ed" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_security_advanced::TestWorkflowPermissionsHardening</scope><name>test_default_permissions_are_restrictive</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening_1a16df9ebd2a8bff4713d316017a9036e4" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_security_advanced::TestWorkflowPermissionsHardening</scope><name>test_no_workflows_with_write_all_permission</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening_1ad5f885d2436b5d8703f94a9a4cb8fa08" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_security_advanced::TestWorkflowPermissionsHardening</scope><name>test_workflows_define_explicit_permissions</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

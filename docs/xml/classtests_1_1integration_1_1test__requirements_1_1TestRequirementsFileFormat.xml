@@ -1,0 +1,142 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements::TestRequirementsFileFormat</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1ad4a251b2239c941483267cad911bddf4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str tests.integration.test_requirements.TestRequirementsFileFormat.file_content</definition>
+        <argsstring>(self)</argsstring>
+        <name>file_content</name>
+        <qualifiedname>tests.integration.test_requirements.TestRequirementsFileFormat.file_content</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load requirements file content.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="104" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="104" bodyend="108"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1ad9ba91d4b819b668b7cc669ed272667f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[str]</type>
+        <definition> List[str] tests.integration.test_requirements.TestRequirementsFileFormat.file_lines</definition>
+        <argsstring>(self)</argsstring>
+        <name>file_lines</name>
+        <qualifiedname>tests.integration.test_requirements.TestRequirementsFileFormat.file_lines</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load requirements file as list of lines.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="110" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="110" bodyend="114"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1a307b476edb26fbfbf7f3292ac1df8f95" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestRequirementsFileFormat.test_file_encoding</definition>
+        <argsstring>()</argsstring>
+        <name>test_file_encoding</name>
+        <qualifiedname>tests.integration.test_requirements.TestRequirementsFileFormat.test_file_encoding</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file uses UTF-8 encoding.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="116" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="116" bodyend="120"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1a1746734a640ae83356ab195eccd3bd5c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestRequirementsFileFormat.test_no_trailing_whitespace</definition>
+        <argsstring>(List[str] file_lines)</argsstring>
+        <name>test_no_trailing_whitespace</name>
+        <qualifiedname>tests.integration.test_requirements.TestRequirementsFileFormat.test_no_trailing_whitespace</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>file_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that lines don&apos;t have trailing whitespace.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="122" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="122" bodyend="128"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1a90de39f398d52eaf95115b6f9099a935" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestRequirementsFileFormat.test_ends_with_newline</definition>
+        <argsstring>(str file_content)</argsstring>
+        <name>test_ends_with_newline</name>
+        <qualifiedname>tests.integration.test_requirements.TestRequirementsFileFormat.test_ends_with_newline</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>file_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file ends with a newline.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="130" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="130" bodyend="133"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1aa4aef045a1d79cebe81e80cfd8f97233" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestRequirementsFileFormat.test_no_blank_lines_in_middle</definition>
+        <argsstring>(List[str] file_lines)</argsstring>
+        <name>test_no_blank_lines_in_middle</name>
+        <qualifiedname>tests.integration.test_requirements.TestRequirementsFileFormat.test_no_blank_lines_in_middle</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>file_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that there are no excessive blank lines (max 1 consecutive).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="135" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="135" bodyend="147"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test requirements.txt file formatting and structure.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements.TestRequirementsFileFormat</label>
+        <link refid="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="100" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="100" bodyend="147"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1ad4a251b2239c941483267cad911bddf4" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestRequirementsFileFormat</scope><name>file_content</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1ad9ba91d4b819b668b7cc669ed272667f" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestRequirementsFileFormat</scope><name>file_lines</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1a90de39f398d52eaf95115b6f9099a935" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestRequirementsFileFormat</scope><name>test_ends_with_newline</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1a307b476edb26fbfbf7f3292ac1df8f95" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestRequirementsFileFormat</scope><name>test_file_encoding</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1aa4aef045a1d79cebe81e80cfd8f97233" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestRequirementsFileFormat</scope><name>test_no_blank_lines_in_middle</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat_1a1746734a640ae83356ab195eccd3bd5c" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestRequirementsFileFormat</scope><name>test_no_trailing_whitespace</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

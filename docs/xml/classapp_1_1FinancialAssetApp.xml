@@ -1,0 +1,478 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classapp_1_1FinancialAssetApp" kind="class" language="Python" prot="public">
+    <compoundname>app::FinancialAssetApp</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classapp_1_1FinancialAssetApp_1ab3c175ea91a2f07b695ffa593ab68a9f" prot="public" static="no" mutable="no">
+        <type>Optional[<ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref>]</type>
+        <definition>Optional[AssetRelationshipGraph] app.FinancialAssetApp::graph</definition>
+        <argsstring></argsstring>
+        <name>graph</name>
+        <qualifiedname>app.FinancialAssetApp.graph</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="135" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="135" bodyend="-1"/>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1ac33bbb920250622229430b5da9211366" compoundref="app_8py" startline="138" endline="154">app.FinancialAssetApp._initialize_graph</referencedby>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1aeda68c005a14bf78c22be66f795fbf8b" compoundref="app_8py" startline="427" endline="770">app.FinancialAssetApp.create_interface</referencedby>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1a54667558411627b15aeb4951aff6b392" compoundref="app_8py" startline="155" endline="161">app.FinancialAssetApp.ensure_graph</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1FinancialAssetApp_1a9b39242f95022f2b566ee2c543e1dbbb" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.FinancialAssetApp::refresh_all_outputs</definition>
+        <argsstring></argsstring>
+        <name>refresh_all_outputs</name>
+        <qualifiedname>app.FinancialAssetApp.refresh_all_outputs</qualifiedname>
+        <initializer>= [asset_info, asset_relationships],</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="643" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="643" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1FinancialAssetApp_1ae0f1e249acad66840b4474fbd11e427e" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.FinancialAssetApp::refresh_visualization</definition>
+        <argsstring></argsstring>
+        <name>refresh_visualization</name>
+        <qualifiedname>app.FinancialAssetApp.refresh_visualization</qualifiedname>
+        <initializer>=  [
+                visualization_3d,
+                error_message,
+            ]</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="670" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="670" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1FinancialAssetApp_1ac5df4c019aa09db82793ba3eba0c9544" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.FinancialAssetApp::generate_formulaic_analysis</definition>
+        <argsstring></argsstring>
+        <name>generate_formulaic_analysis</name>
+        <qualifiedname>app.FinancialAssetApp.generate_formulaic_analysis</qualifiedname>
+        <initializer>=  [
+                formulaic_dashboard,
+                correlation_network,
+                metric_comparison,
+                formula_selector,
+                formula_summary,
+                error_message,
+            ]</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="701" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="701" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1FinancialAssetApp_1a15b21016c71ed5504ac70a8f809bf58e" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.FinancialAssetApp::show_formula_details</definition>
+        <argsstring></argsstring>
+        <name>show_formula_details</name>
+        <qualifiedname>app.FinancialAssetApp.show_formula_details</qualifiedname>
+        <initializer>= formulaic_outputs,</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="707" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="707" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classapp_1_1FinancialAssetApp_1a17f007c5df24fa84e34f89b57d7268ef" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.FinancialAssetApp::update_asset_info</definition>
+        <argsstring></argsstring>
+        <name>update_asset_info</name>
+        <qualifiedname>app.FinancialAssetApp.update_asset_info</qualifiedname>
+        <initializer>= visualization_outputs,</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="758" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="758" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1ab53ca897695802ab63d64733b409b4b2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>app.FinancialAssetApp.__init__</definition>
+        <argsstring>(self)</argsstring>
+        <name>__init__</name>
+        <qualifiedname>app.FinancialAssetApp.__init__</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="134" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="134" bodyend="137"/>
+      </memberdef>
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1a54667558411627b15aeb4951aff6b392" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+        <definition> AssetRelationshipGraph app.FinancialAssetApp.ensure_graph</definition>
+        <argsstring>(self)</argsstring>
+        <name>ensure_graph</name>
+        <qualifiedname>app.FinancialAssetApp.ensure_graph</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensures the graph is initialized, re-creating sample data if it&apos;s None.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="155" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="155" bodyend="161"/>
+        <references refid="classapp_1_1FinancialAssetApp_1ac33bbb920250622229430b5da9211366" compoundref="app_8py" startline="138" endline="154">app.FinancialAssetApp._initialize_graph</references>
+        <references refid="classapp_1_1FinancialAssetApp_1ab3c175ea91a2f07b695ffa593ab68a9f" compoundref="app_8py" startline="135">app.FinancialAssetApp.graph</references>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1a2e6a030d6b759be9a3483dc26da21885" compoundref="app_8py" startline="315" endline="372">app.FinancialAssetApp.generate_formulaic_analysis</referencedby>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1abdb57adc70fa98a6c507714d2c47bd81" compoundref="app_8py" startline="212" endline="260">app.FinancialAssetApp.refresh_all_outputs</referencedby>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1a23e9f40281bb553248735762523a2ef7" compoundref="app_8py" startline="275" endline="314">app.FinancialAssetApp.refresh_visualization</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1ae0e06267c27a0577165ffdf62d64a657" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>app.FinancialAssetApp.update_all_metrics_outputs</definition>
+        <argsstring>(self, AssetRelationshipGraph graph)</argsstring>
+        <name>update_all_metrics_outputs</name>
+        <qualifiedname>app.FinancialAssetApp.update_all_metrics_outputs</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Updates all metric-related visualizations and text.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="180" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="180" bodyend="185"/>
+        <references refid="classapp_1_1FinancialAssetApp_1a039f1574f4af1b89ac02965f8afb8caa" compoundref="app_8py" startline="163" endline="179">app.FinancialAssetApp._update_metrics_text</references>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1abdb57adc70fa98a6c507714d2c47bd81" compoundref="app_8py" startline="212" endline="260">app.FinancialAssetApp.refresh_all_outputs</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1abdb57adc70fa98a6c507714d2c47bd81" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>app.FinancialAssetApp.refresh_all_outputs</definition>
+        <argsstring>(self, AssetRelationshipGraph graph_state)</argsstring>
+        <name>refresh_all_outputs</name>
+        <qualifiedname>app.FinancialAssetApp.refresh_all_outputs</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph_state</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Refreshes all visualizations and reports in the Gradio interface.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="212" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="212" bodyend="260"/>
+        <references refid="classapp_1_1FinancialAssetApp_1a54667558411627b15aeb4951aff6b392" compoundref="app_8py" startline="155" endline="161">app.FinancialAssetApp.ensure_graph</references>
+        <references refid="classapp_1_1FinancialAssetApp_1ae0e06267c27a0577165ffdf62d64a657" compoundref="app_8py" startline="180" endline="185">app.FinancialAssetApp.update_all_metrics_outputs</references>
+      </memberdef>
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1a23e9f40281bb553248735762523a2ef7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>app.FinancialAssetApp.refresh_visualization</definition>
+        <argsstring>(self, graph_state, view_mode, layout_type, show_same_sector, show_market_cap, show_correlation, show_corporate_bond, show_commodity_currency, show_income_comparison, show_regulatory, show_all_relationships, toggle_arrows)</argsstring>
+        <name>refresh_visualization</name>
+        <qualifiedname>app.FinancialAssetApp.refresh_visualization</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>graph_state</type>
+          <defname>graph_state</defname>
+        </param>
+        <param>
+          <type>view_mode</type>
+          <defname>view_mode</defname>
+        </param>
+        <param>
+          <type>layout_type</type>
+          <defname>layout_type</defname>
+        </param>
+        <param>
+          <type>show_same_sector</type>
+          <defname>show_same_sector</defname>
+        </param>
+        <param>
+          <type>show_market_cap</type>
+          <defname>show_market_cap</defname>
+        </param>
+        <param>
+          <type>show_correlation</type>
+          <defname>show_correlation</defname>
+        </param>
+        <param>
+          <type>show_corporate_bond</type>
+          <defname>show_corporate_bond</defname>
+        </param>
+        <param>
+          <type>show_commodity_currency</type>
+          <defname>show_commodity_currency</defname>
+        </param>
+        <param>
+          <type>show_income_comparison</type>
+          <defname>show_income_comparison</defname>
+        </param>
+        <param>
+          <type>show_regulatory</type>
+          <defname>show_regulatory</defname>
+        </param>
+        <param>
+          <type>show_all_relationships</type>
+          <defname>show_all_relationships</defname>
+        </param>
+        <param>
+          <type>toggle_arrows</type>
+          <defname>toggle_arrows</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Refresh visualization with 2D/3D mode support and relationship filtering.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="261" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="275" bodyend="314"/>
+        <references refid="classapp_1_1FinancialAssetApp_1a54667558411627b15aeb4951aff6b392" compoundref="app_8py" startline="155" endline="161">app.FinancialAssetApp.ensure_graph</references>
+      </memberdef>
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1a2e6a030d6b759be9a3483dc26da21885" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>app.FinancialAssetApp.generate_formulaic_analysis</definition>
+        <argsstring>(self, AssetRelationshipGraph graph_state)</argsstring>
+        <name>generate_formulaic_analysis</name>
+        <qualifiedname>app.FinancialAssetApp.generate_formulaic_analysis</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph_state</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Generate comprehensive formulaic analysis of the asset graph.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="315" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="315" bodyend="372"/>
+        <references refid="classapp_1_1FinancialAssetApp_1a97f0c7bdc8c242aecb1eef59d18200c3" compoundref="app_8py" startline="387" endline="426">app.FinancialAssetApp._format_formula_summary</references>
+        <references refid="classapp_1_1FinancialAssetApp_1a54667558411627b15aeb4951aff6b392" compoundref="app_8py" startline="155" endline="161">app.FinancialAssetApp.ensure_graph</references>
+      </memberdef>
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1ab0e6e196bf509a805682ab8e46e85e48" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>app.FinancialAssetApp.show_formula_details</definition>
+        <argsstring>(self, str formula_name, AssetRelationshipGraph graph_state)</argsstring>
+        <name>show_formula_details</name>
+        <qualifiedname>app.FinancialAssetApp.show_formula_details</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>formula_name</declname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph_state</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Show detailed view of a specific formula.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="373" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="375" bodyend="385"/>
+      </memberdef>
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1aeda68c005a14bf78c22be66f795fbf8b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>app.FinancialAssetApp.create_interface</definition>
+        <argsstring>(self)</argsstring>
+        <name>create_interface</name>
+        <qualifiedname>app.FinancialAssetApp.create_interface</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Creates the Gradio interface for the Financial Asset Relationship Database.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="427" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="427" bodyend="770"/>
+        <references refid="classapp_1_1FinancialAssetApp_1ab3c175ea91a2f07b695ffa593ab68a9f" compoundref="app_8py" startline="135">app.FinancialAssetApp.graph</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="protected-func">
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1ac33bbb920250622229430b5da9211366" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None app.FinancialAssetApp._initialize_graph</definition>
+        <argsstring>(self)</argsstring>
+        <name>_initialize_graph</name>
+        <qualifiedname>app.FinancialAssetApp._initialize_graph</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Initializes the asset graph, creating a sample database if necessary.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="138" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="138" bodyend="154"/>
+        <references refid="classapp_1_1FinancialAssetApp_1ab3c175ea91a2f07b695ffa593ab68a9f" compoundref="app_8py" startline="135">app.FinancialAssetApp.graph</references>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1a54667558411627b15aeb4951aff6b392" compoundref="app_8py" startline="155" endline="161">app.FinancialAssetApp.ensure_graph</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="protected-static-func">
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1a039f1574f4af1b89ac02965f8afb8caa" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str app.FinancialAssetApp._update_metrics_text</definition>
+        <argsstring>(AssetRelationshipGraph graph)</argsstring>
+        <name>_update_metrics_text</name>
+        <qualifiedname>app.FinancialAssetApp._update_metrics_text</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Generates the formatted text for network statistics.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="163" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="163" bodyend="179"/>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1ae0e06267c27a0577165ffdf62d64a657" compoundref="app_8py" startline="180" endline="185">app.FinancialAssetApp.update_all_metrics_outputs</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1a97f0c7bdc8c242aecb1eef59d18200c3" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str app.FinancialAssetApp._format_formula_summary</definition>
+        <argsstring>(Dict summary, Dict analysis_results)</argsstring>
+        <name>_format_formula_summary</name>
+        <qualifiedname>app.FinancialAssetApp._format_formula_summary</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>summary</declname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>analysis_results</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Format the formula analysis summary for display.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="387" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="387" bodyend="426"/>
+        <referencedby refid="classapp_1_1FinancialAssetApp_1a2e6a030d6b759be9a3483dc26da21885" compoundref="app_8py" startline="315" endline="372">app.FinancialAssetApp.generate_formulaic_analysis</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classapp_1_1FinancialAssetApp_1ac37ca0ede2a875f3f48772d04531941a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Tuple[Dict, Dict]</type>
+        <definition> Tuple[Dict, Dict] app.FinancialAssetApp.update_asset_info</definition>
+        <argsstring>(Optional[str] selected_asset, AssetRelationshipGraph graph)</argsstring>
+        <name>update_asset_info</name>
+        <qualifiedname>app.FinancialAssetApp.update_asset_info</qualifiedname>
+        <param>
+          <type>Optional</type>
+          <declname>selected_asset</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Retrieves and formats detailed information for a selected asset.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="187" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="189" bodyend="211"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>Optional</label>
+      </node>
+      <node id="1">
+        <label>app.FinancialAssetApp</label>
+        <link refid="classapp_1_1FinancialAssetApp"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>+graph</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="133" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="133" bodyend="770"/>
+    <listofallmembers>
+      <member refid="classapp_1_1FinancialAssetApp_1ab53ca897695802ab63d64733b409b4b2" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>__init__</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1a97f0c7bdc8c242aecb1eef59d18200c3" prot="protected" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>_format_formula_summary</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1ac33bbb920250622229430b5da9211366" prot="protected" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>_initialize_graph</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1a039f1574f4af1b89ac02965f8afb8caa" prot="protected" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>_update_metrics_text</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1aeda68c005a14bf78c22be66f795fbf8b" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>create_interface</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1a54667558411627b15aeb4951aff6b392" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>ensure_graph</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1ac5df4c019aa09db82793ba3eba0c9544" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>generate_formulaic_analysis</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1a2e6a030d6b759be9a3483dc26da21885" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>generate_formulaic_analysis</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1ab3c175ea91a2f07b695ffa593ab68a9f" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>graph</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1a9b39242f95022f2b566ee2c543e1dbbb" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>refresh_all_outputs</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1abdb57adc70fa98a6c507714d2c47bd81" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>refresh_all_outputs</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1ae0f1e249acad66840b4474fbd11e427e" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>refresh_visualization</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1a23e9f40281bb553248735762523a2ef7" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>refresh_visualization</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1a15b21016c71ed5504ac70a8f809bf58e" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>show_formula_details</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1ab0e6e196bf509a805682ab8e46e85e48" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>show_formula_details</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1ae0e06267c27a0577165ffdf62d64a657" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>update_all_metrics_outputs</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1a17f007c5df24fa84e34f89b57d7268ef" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>update_asset_info</name></member>
+      <member refid="classapp_1_1FinancialAssetApp_1ac37ca0ede2a875f3f48772d04531941a" prot="public" virt="non-virtual"><scope>app::FinancialAssetApp</scope><name>update_asset_info</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

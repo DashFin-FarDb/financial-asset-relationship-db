@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api_main::TestGraphInitialization</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_1acb32ce63122d95a33b45496e203fc7ed" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestGraphInitialization.test_graph_initialization</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_graph_initialization</name>
+        <qualifiedname>tests.unit.test_api_main.TestGraphInitialization.test_graph_initialization</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test graph is initialized via get_graph().</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="87" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="87" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_1aa2d8fa58e0acebc39287fd747345f051" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestGraphInitialization.test_graph_singleton</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_graph_singleton</name>
+        <qualifiedname>tests.unit.test_api_main.TestGraphInitialization.test_graph_singleton</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test graph is a singleton instance via get_graph().</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="95" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="95" bodyend="102"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_1a0f90439047ea21c19a335a230bd39a4b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestGraphInitialization.test_graph_uses_cache_when_configured</definition>
+        <argsstring>(self, tmp_path, monkeypatch)</argsstring>
+        <name>test_graph_uses_cache_when_configured</name>
+        <qualifiedname>tests.unit.test_api_main.TestGraphInitialization.test_graph_uses_cache_when_configured</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>tmp_path</type>
+          <defname>tmp_path</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Graph initialization should load from cached dataset when provided.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="103" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="103" bodyend="119"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_1a8ffb364de8e1daa0003b59dd421f4df1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestGraphInitialization.test_graph_fallback_on_corrupted_cache</definition>
+        <argsstring>(self, tmp_path, monkeypatch)</argsstring>
+        <name>test_graph_fallback_on_corrupted_cache</name>
+        <qualifiedname>tests.unit.test_api_main.TestGraphInitialization.test_graph_fallback_on_corrupted_cache</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>tmp_path</type>
+          <defname>tmp_path</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Graph initialization should fallback when cache is corrupted or invalid.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="120" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="120" bodyend="141"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test the lazy graph initialization via get_graph().</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api_main.TestGraphInitialization</label>
+        <link refid="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="84" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="84" bodyend="141"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_1a8ffb364de8e1daa0003b59dd421f4df1" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestGraphInitialization</scope><name>test_graph_fallback_on_corrupted_cache</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_1acb32ce63122d95a33b45496e203fc7ed" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestGraphInitialization</scope><name>test_graph_initialization</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_1aa2d8fa58e0acebc39287fd747345f051" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestGraphInitialization</scope><name>test_graph_singleton</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_1a0f90439047ea21c19a335a230bd39a4b" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestGraphInitialization</scope><name>test_graph_uses_cache_when_configured</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

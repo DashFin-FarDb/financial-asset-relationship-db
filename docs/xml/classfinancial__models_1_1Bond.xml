@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classfinancial__models_1_1Bond" kind="class" language="Python" prot="public">
+    <compoundname>financial_models::Bond</compoundname>
+    <basecompoundref refid="classfinancial__models_1_1Asset" prot="public" virt="non-virtual">financial_models.Asset</basecompoundref>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classfinancial__models_1_1Bond_1ad236f1c07052b903f2842543d4b902e3" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Bond::yield_to_maturity</definition>
+        <argsstring></argsstring>
+        <name>yield_to_maturity</name>
+        <qualifiedname>financial_models.Bond.yield_to_maturity</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="68" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1Bond_1ad0f6c449bd701f2460ef5fc55455c8b0" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Bond::coupon_rate</definition>
+        <argsstring></argsstring>
+        <name>coupon_rate</name>
+        <qualifiedname>financial_models.Bond.coupon_rate</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="69" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1Bond_1a6618209557cc8a58aef6c8612cc554a3" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Bond::maturity_date</definition>
+        <argsstring></argsstring>
+        <name>maturity_date</name>
+        <qualifiedname>financial_models.Bond.maturity_date</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="70" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1Bond_1ac2b05d7dea5caeba64d98368f2c03a1a" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Bond::credit_rating</definition>
+        <argsstring></argsstring>
+        <name>credit_rating</name>
+        <qualifiedname>financial_models.Bond.credit_rating</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="71" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1Bond_1af0b724ee713ed3478f0b8c4dd4b7e365" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Bond::issuer_id</definition>
+        <argsstring></argsstring>
+        <name>issuer_id</name>
+        <qualifiedname>financial_models.Bond.issuer_id</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="72" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="72" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Fixed income asset</verbatim> </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>financial_models.Bond</label>
+        <link refid="classfinancial__models_1_1Bond"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>financial_models.Asset</label>
+        <link refid="classfinancial__models_1_1Asset"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="3">
+        <label>Optional</label>
+      </node>
+      <node id="1">
+        <label>financial_models.Bond</label>
+        <link refid="classfinancial__models_1_1Bond"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>+coupon_rate</edgelabel>
+          <edgelabel>+credit_rating</edgelabel>
+          <edgelabel>+issuer_id</edgelabel>
+          <edgelabel>+maturity_date</edgelabel>
+          <edgelabel>+yield_to_maturity</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>financial_models.Asset</label>
+        <link refid="classfinancial__models_1_1Asset"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>+market_cap</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>+currency</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>str</label>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="65" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="65" bodyend="75"/>
+    <listofallmembers>
+      <member refid="classfinancial__models_1_1Asset_1a64a6076fccb749bf5743383c89d40da2" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>__post_init__</name></member>
+      <member refid="classfinancial__models_1_1Bond_1ad0f6c449bd701f2460ef5fc55455c8b0" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>coupon_rate</name></member>
+      <member refid="classfinancial__models_1_1Bond_1ac2b05d7dea5caeba64d98368f2c03a1a" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>credit_rating</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a31f95d0dfb2b7b755b1310e1ea1f14b3" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>currency</name></member>
+      <member refid="classfinancial__models_1_1Asset_1ae9887b9d0db8d69b46d769865ffd3fc5" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>id</name></member>
+      <member refid="classfinancial__models_1_1Bond_1af0b724ee713ed3478f0b8c4dd4b7e365" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>issuer_id</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a38a25ce11801121108b00783c7a87892" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>market_cap</name></member>
+      <member refid="classfinancial__models_1_1Bond_1a6618209557cc8a58aef6c8612cc554a3" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>maturity_date</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a802d461a988c53cee87fce1b525c2830" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>name</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a2f17a913622605f0efeab4b29d7029f5" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>price</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a6caebdaf55c153c236445629d6d89af0" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>symbol</name></member>
+      <member refid="classfinancial__models_1_1Bond_1ad236f1c07052b903f2842543d4b902e3" prot="public" virt="non-virtual"><scope>financial_models::Bond</scope><name>yield_to_maturity</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

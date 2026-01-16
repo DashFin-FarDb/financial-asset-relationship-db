@@ -1,0 +1,64 @@
+\chapter{Quick Test Reference Guide}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5}\index{Quick Test Reference Guide@{Quick Test Reference Guide}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3513}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3513}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3514}{}\doxysection{\texorpdfstring{Running Tests}{Running Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3514}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3515}{}\doxysubsection{\texorpdfstring{Basic Commands}{Basic Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3515}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Run\ all\ tests}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ -\/-\/coverage\ \ \ \ \ \ \#\ With\ coverage}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ -\/-\/watch\ \ \ \ \ \ \ \ \ \#\ Watch\ mode}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3516}{}\doxysubsection{\texorpdfstring{Run Specific Files}{Run Specific Files}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3516}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ MetricsDashboard.test.tsx\ \ \ \ \ \ \#\ Metrics\ component}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ NetworkVisualization.test.tsx\ \ \#\ Visualization\ component}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ page.test.tsx\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Home\ page}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ api.test.ts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ API\ client}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ integration/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Integration\ tests}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3517}{}\doxysubsection{\texorpdfstring{Run Specific Test Suites}{Run Specific Test Suites}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3517}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ -\/t\ "{}Accessibility"{}\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Accessibility\ tests}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ -\/t\ "{}Edge\ Cases"{}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Edge\ case\ tests}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ -\/t\ "{}Performance"{}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Performance\ tests}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ test\ -\/-\/\ -\/t\ "{}Error\ Handling"{}\ \ \ \ \ \ \ \ \ \ \ \ \#\ Error\ handling\ tests}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3518}{}\doxysection{\texorpdfstring{Test Files}{Test Files}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3518}
+
+\begin{DoxyItemize}
+\item {\bfseries{Metrics\+Dashboard.\+test.\+tsx}} -\/ 221 lines, 23 tests
+\item {\bfseries{Network\+Visualization.\+test.\+tsx}} -\/ 315 lines, 20 tests
+\item {\bfseries{page.\+test.\+tsx}} -\/ 340 lines, 26 tests
+\item {\bfseries{api.\+test.\+ts}} -\/ 608 lines, 59 tests
+\item {\bfseries{component-\/integration.\+test.\+tsx}} -\/ 327 lines, 19 tests
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3519}{}\doxysection{\texorpdfstring{Coverage Areas}{Coverage Areas}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3519}
+
+\begin{DoxyItemize}
+\item {\bfseries{Accessibility}} (8 tests) -\/ WCAG, ARIA, semantic HTML
+\item {\bfseries{Edge Cases}} (28 tests) -\/ Boundaries, limits, invalid data
+\item {\bfseries{Error Handling}} (15 tests) -\/ Network, HTTP errors
+\item {\bfseries{Performance}} (8 tests) -\/ Large datasets, concurrency
+\item {\bfseries{Integration}} (19 tests) -\/ User journeys, data flow
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3520}{}\doxysection{\texorpdfstring{Documentation}{Documentation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3520}
+
+\begin{DoxyItemize}
+\item {\bfseries{\doxylink{COMPREHENSIVE__ADDITIONAL__TESTS__SUMMARY_8md}{COMPREHENSIVE\+\_\+\+ADDITIONAL\+\_\+\+TESTS\+\_\+\+SUMMARY.\+md}}} -\/ Detailed guide
+\item {\bfseries{\doxylink{TEST__GENERATION__COMPREHENSIVE__FINAL__SUMMARY_8md}{TEST\+\_\+\+GENERATION\+\_\+\+COMPREHENSIVE\+\_\+\+FINAL\+\_\+\+SUMMARY.\+md}}} -\/ Executive summary
+\item {\bfseries{\doxylink{QUICK__TEST__REFERENCE_8md}{QUICK\+\_\+\+TEST\+\_\+\+REFERENCE.\+md}}} -\/ This file
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3521}{}\doxysection{\texorpdfstring{Quick Tips}{Quick Tips}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio919cfa58637ee509494e39dc344b44e5_autotoc_md3521}
+
+\begin{DoxyEnumerate}
+\item Run before committing\+: {\ttfamily cd frontend \&\& npm test}
+\item Check coverage\+: {\ttfamily cd frontend \&\& npm test -\/-\/ -\/-\/coverage}
+\item Debug single test\+: {\ttfamily cd frontend \&\& npm test -\/-\/ -\/t "{}test name"{}}
+\item Verbose output\+: {\ttfamily cd frontend \&\& npm test -\/-\/ -\/-\/verbose}
+\end{DoxyEnumerate}
+
+Happy Testing! 🚀 

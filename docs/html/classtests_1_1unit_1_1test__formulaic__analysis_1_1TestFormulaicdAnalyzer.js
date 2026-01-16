@@ -1,0 +1,27 @@
+var classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer =
+[
+    [ "analyzer", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#aabe63b2ce271575716499c0f96e12ac8", null ],
+    [ "test_analyze_correlation_patterns", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a2726b6790afc48910e539ca1e943a2a4", null ],
+    [ "test_analyze_cross_asset_relationships_with_commodities_and_currencies", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#ac1d1df75578e497b1240f99635aed60e", null ],
+    [ "test_analyze_cross_asset_relationships_with_currencies", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a200b3deb204c24b582f9529382b5c268", null ],
+    [ "test_analyze_graph_with_empty_graph", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a795d087210ce557b7432d309752f22e6", null ],
+    [ "test_analyze_graph_with_populated_graph", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a48ae38cc74ca0d777bbed9da2fff6328", null ],
+    [ "test_analyze_risk_return_relationships", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#adef2653fcd3c27eb70d7bddb7549c3bc", null ],
+    [ "test_analyzer_initialization", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a04aa48d339ecdfee440ad4de969da012", null ],
+    [ "test_calculate_asset_class_relationships", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a6b2da6b57f896d0d1935ab02c7101316", null ],
+    [ "test_calculate_avg_correlation_strength", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a350893e3563e16dc57bef79f6d235f78", null ],
+    [ "test_calculate_sector_relationships", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#ac6e9543fa77ce2cc6fea239fd8bf6c93", null ],
+    [ "test_categorize_formulas", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a43bbd835d84180306ba4962bf58e9e12", null ],
+    [ "test_extract_fundamental_formulas_with_bonds", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a25fe364b13c8900ca5586f11f3034dd5", null ],
+    [ "test_extract_fundamental_formulas_with_dividend_stocks", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a92284dad644d873c3316f4805a5e9ab8", null ],
+    [ "test_extract_fundamental_formulas_with_equities", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#af4ade70d7d19794c6292814decb8da1c", null ],
+    [ "test_extract_portfolio_theory_formulas", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a2b3e574ef2388a5dc496a7fd8c529f04", null ],
+    [ "test_extract_valuation_relationships", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a518cc5b32e41b869082c37dd93b2a7d2", null ],
+    [ "test_find_strongest_correlations", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a19f52d5edba42262eb63daa2139ca21e", null ],
+    [ "test_generate_formula_summary", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#ae48de308f2cf7fe8b1e0cbcf160f4e46", null ],
+    [ "test_has_bonds_detection", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a559521aec8827aa6428c9dddd5e36bf5", null ],
+    [ "test_has_commodities_detection", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a6f6d4b13ba37bf8a2c61f1ee854e4643", null ],
+    [ "test_has_currencies_detection", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a0729cbe930aaebe1a4c153a0ff892e23", null ],
+    [ "test_has_dividend_stocks_detection", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a520b126cb6dd685ad58e33338f95fc8e", null ],
+    [ "test_has_equities_detection", "classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormulaicdAnalyzer.html#a035fb8f5b617ca587d21d03eab7698e2", null ]
+];

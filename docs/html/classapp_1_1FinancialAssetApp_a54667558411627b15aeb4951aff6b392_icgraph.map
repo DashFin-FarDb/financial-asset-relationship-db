@@ -1,0 +1,9 @@
+<map id="app.FinancialAssetApp.ensure_graph" name="app.FinancialAssetApp.ensure_graph">
+<area shape="rect" id="Node000001" title=" " alt="" coords="284,69,501,109"/>
+<area shape="rect" id="Node000002" href="$classapp_1_1FinancialAssetApp.html#a2e6a030d6b759be9a3483dc26da21885" title=" " alt="" coords="5,5,236,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="293,69,206,48,207,43,294,64"/>
+<area shape="rect" id="Node000003" href="$classapp_1_1FinancialAssetApp.html#abdb57adc70fa98a6c507714d2c47bd81" title=" " alt="" coords="11,69,230,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="270,92,230,92,230,87,270,87"/>
+<area shape="rect" id="Node000004" href="$classapp_1_1FinancialAssetApp.html#a23e9f40281bb553248735762523a2ef7" title=" " alt="" coords="11,133,230,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="294,115,207,136,206,131,293,110"/>
+</map>

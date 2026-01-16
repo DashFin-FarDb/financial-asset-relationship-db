@@ -1,0 +1,5 @@
+var classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifactsAdvanced =
+[
+    [ "test_artifacts_have_reasonable_retention", "classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifactsAdvanced.html#a02e1470ad1c8f0862204bd3b92cc3f88", null ],
+    [ "test_job_outputs_reference_valid_steps", "classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifactsAdvanced.html#a7d6398ba1e640afb9eb6ac28da2dc4f1", null ]
+];

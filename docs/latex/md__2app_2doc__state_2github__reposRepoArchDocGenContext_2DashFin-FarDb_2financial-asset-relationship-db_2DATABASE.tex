@@ -1,0 +1,77 @@
+\chapter{Database Integration}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE}\index{Database Integration@{Database Integration}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1184}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1184}%
+
+
+This project uses Supabase as the database provider. The integration supports both the Supabase API client and direct Postgre\+SQL connections.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1185}{}\doxysection{\texorpdfstring{Configuration}{Configuration}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1185}
+Add the following environment variables to your {\ttfamily .env} file\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Supabase\ Configuration}
+\DoxyCodeLine{SUPABASE\_URL=https://your-\/project-\/id.supabase.co}
+\DoxyCodeLine{SUPABASE\_KEY=your-\/supabase-\/anon-\/key}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Direct\ PostgreSQL\ Connection\ (Optional)}
+\DoxyCodeLine{DATABASE\_URL=postgresql://postgres.your-\/project-\/id:your-\/password@aws-\/1-\/us-\/east-\/1.pooler.supabase.com:6543/postgres}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1186}{}\doxysection{\texorpdfstring{Usage}{Usage}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1186}
+The database module provides a simple interface for connecting to and querying the database\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{from}\ src.data.database\ \textcolor{keyword}{import}\ get\_db}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Get\ database\ connection}}
+\DoxyCodeLine{db\ =\ get\_db()}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Connect\ to\ the\ database}}
+\DoxyCodeLine{db.connect()}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Query\ data}}
+\DoxyCodeLine{assets\ =\ db.query(\textcolor{stringliteral}{"{}assets"{}},\ limit=10)}
+\DoxyCodeLine{print(assets)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Close\ connection\ when\ done}}
+\DoxyCodeLine{db.close()}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1187}{}\doxysection{\texorpdfstring{Connection Methods}{Connection Methods}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1187}
+The database module will attempt to connect using the Supabase client first, and fall back to a direct Postgre\+SQL connection if that fails.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1188}{}\doxysubsection{\texorpdfstring{Supabase Client}{Supabase Client}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1188}
+The Supabase client provides a high-\/level API for interacting with your Supabase database, including\+:
+
+
+\begin{DoxyItemize}
+\item Authentication
+\item Storage
+\item Realtime subscriptions
+\item Database queries with Row Level Security
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1189}{}\doxysubsection{\texorpdfstring{Direct Postgre\+SQL Connection}{Direct Postgre\+SQL Connection}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1189}
+The direct Postgre\+SQL connection provides lower-\/level access to the database using the {\ttfamily psycopg2} library.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1190}{}\doxysection{\texorpdfstring{Required Dependencies}{Required Dependencies}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1190}
+Install the required dependencies\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pip\ install\ supabase\ psycopg2-\/binary\ python-\/dotenv}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1191}{}\doxysection{\texorpdfstring{Database Schema}{Database Schema}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1191}
+The database schema will be automatically created when you first connect to the database. The schema includes the following tables\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily assets}\+: Stores information about financial assets
+\item {\ttfamily relationships}\+: Stores relationships between assets
+\item {\ttfamily metrics}\+: Stores metrics for assets
+\item {\ttfamily users}\+: Stores user information
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1192}{}\doxysection{\texorpdfstring{Testing}{Testing}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_autotoc_md1192}
+You can test the database connection using the provided test scripts\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ test\_db\_module.py}
+
+\end{DoxyCode}
+ 

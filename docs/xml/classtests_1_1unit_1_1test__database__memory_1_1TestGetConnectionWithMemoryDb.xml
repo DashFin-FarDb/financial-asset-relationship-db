@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__database__memory_1_1TestGetConnectionWithMemoryDb" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_database_memory::TestGetConnectionWithMemoryDb</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestGetConnectionWithMemoryDb_1a53033478efaf3ebe052251e26f81f6b3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestGetConnectionWithMemoryDb.test_get_connection_does_not_close_memory_db</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_get_connection_does_not_close_memory_db</name>
+        <qualifiedname>tests.unit.test_database_memory.TestGetConnectionWithMemoryDb.test_get_connection_does_not_close_memory_db</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that get_connection keeps memory database connections open.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="324" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="326" bodyend="349"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestGetConnectionWithMemoryDb_1a53e7a47fbe97bc7acd4eb252013c7f2e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestGetConnectionWithMemoryDb.test_get_connection_closes_file_db</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_get_connection_closes_file_db</name>
+        <qualifiedname>tests.unit.test_database_memory.TestGetConnectionWithMemoryDb.test_get_connection_closes_file_db</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that get_connection closes file database connections.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="350" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="350" bodyend="381"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for get_connection context manager with memory databases.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_database_memory.TestGetConnectionWithMemoryDb</label>
+        <link refid="classtests_1_1unit_1_1test__database__memory_1_1TestGetConnectionWithMemoryDb"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="321" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="321" bodyend="381"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestGetConnectionWithMemoryDb_1a53e7a47fbe97bc7acd4eb252013c7f2e" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestGetConnectionWithMemoryDb</scope><name>test_get_connection_closes_file_db</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestGetConnectionWithMemoryDb_1a53033478efaf3ebe052251e26f81f6b3" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestGetConnectionWithMemoryDb</scope><name>test_get_connection_does_not_close_memory_db</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

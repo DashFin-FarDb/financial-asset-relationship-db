@@ -1,0 +1,144 @@
+\doxysection{tests.\+conftest Namespace Reference}
+\hypertarget{namespacetests_1_1conftest}{}\label{namespacetests_1_1conftest}\index{tests.conftest@{tests.conftest}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacetests_1_1conftest_acf74c7408a68d502029bd28e91602c1b}{empty\+\_\+graph}} ()
+\item 
+\mbox{\hyperlink{namespacetests_1_1conftest_a98351be069dd528fb4ae48c24af4a326}{sample\+\_\+equity}} ()
+\item 
+\mbox{\hyperlink{namespacetests_1_1conftest_add92eade8caea489cbc96089fc8c3f05}{sample\+\_\+bond}} ()
+\item 
+\mbox{\hyperlink{namespacetests_1_1conftest_aeed13c141ccd21c59e7770a32f8347ef}{sample\+\_\+commodity}} ()
+\item 
+\mbox{\hyperlink{namespacetests_1_1conftest_a790e4399549396a15f133c23ba82d0c9}{sample\+\_\+currency}} ()
+\item 
+\mbox{\hyperlink{namespacetests_1_1conftest_ad223d1994c93a4f64faa44b2afd6bdac}{sample\+\_\+regulatory\+\_\+event}} ()
+\item 
+\mbox{\hyperlink{namespacetests_1_1conftest_af37ba70ee3f25a7d21fd143eea97c68d}{populated\+\_\+graph}} (\mbox{\hyperlink{namespacetests_1_1conftest_a98351be069dd528fb4ae48c24af4a326}{sample\+\_\+equity}}, \mbox{\hyperlink{namespacetests_1_1conftest_add92eade8caea489cbc96089fc8c3f05}{sample\+\_\+bond}}, \mbox{\hyperlink{namespacetests_1_1conftest_aeed13c141ccd21c59e7770a32f8347ef}{sample\+\_\+commodity}}, \mbox{\hyperlink{namespacetests_1_1conftest_a790e4399549396a15f133c23ba82d0c9}{sample\+\_\+currency}}, \mbox{\hyperlink{namespacetests_1_1conftest_ad223d1994c93a4f64faa44b2afd6bdac}{sample\+\_\+regulatory\+\_\+event}})
+\item 
+None \mbox{\hyperlink{namespacetests_1_1conftest_a099d5e2a8fd44d2d0ad8b582715da935}{pytest\+\_\+addoption}} ("{}Parser"{} parser)
+\item 
+None \mbox{\hyperlink{namespacetests_1_1conftest_a844caabcc8d6b0a23772782103ae2554}{\+\_\+register\+\_\+dummy\+\_\+cov\+\_\+options}} ("{}Parser"{} parser)
+\item 
+\mbox{\hyperlink{namespacetests_1_1conftest_ada48d9ff606f084600c621bb04faf0c1}{\+\_\+reset\+\_\+graph}} ()
+\item 
+\mbox{\hyperlink{namespacetests_1_1conftest_ac59314e1fedf4b7176b05a69b9cd57cd}{dividend\+\_\+stock}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Pytest configuration and fixtures for the financial asset relationship
+database tests.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetests_1_1conftest_a844caabcc8d6b0a23772782103ae2554}\index{tests.conftest@{tests.conftest}!\_register\_dummy\_cov\_options@{\_register\_dummy\_cov\_options}}
+\index{\_register\_dummy\_cov\_options@{\_register\_dummy\_cov\_options}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{\_register\_dummy\_cov\_options()}{\_register\_dummy\_cov\_options()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_a844caabcc8d6b0a23772782103ae2554} 
+ None tests.\+conftest.\+\_\+register\+\_\+dummy\+\_\+cov\+\_\+options (\begin{DoxyParamCaption}\item[{"{}Parser"{}}]{parser}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Register dummy --cov and --cov-report options.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1conftest_a844caabcc8d6b0a23772782103ae2554_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacetests_1_1conftest_ada48d9ff606f084600c621bb04faf0c1}\index{tests.conftest@{tests.conftest}!\_reset\_graph@{\_reset\_graph}}
+\index{\_reset\_graph@{\_reset\_graph}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{\_reset\_graph()}{\_reset\_graph()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_ada48d9ff606f084600c621bb04faf0c1} 
+tests.\+conftest.\+\_\+reset\+\_\+graph (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Reset the graph singleton between tests.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1conftest_ac59314e1fedf4b7176b05a69b9cd57cd}\index{tests.conftest@{tests.conftest}!dividend\_stock@{dividend\_stock}}
+\index{dividend\_stock@{dividend\_stock}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{dividend\_stock()}{dividend\_stock()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_ac59314e1fedf4b7176b05a69b9cd57cd} 
+tests.\+conftest.\+dividend\+\_\+stock (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Provide a sample Equity representing a dividend-paying stock for tests.
+
+Returns:
+    Equity: An Equity instance configured for testing with id "DIV_STOCK",
+        symbol "DIVS", sector "Utilities", price 100.0,
+        dividend_yield 0.04 and other common financial fields populated.
+\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1conftest_acf74c7408a68d502029bd28e91602c1b}\index{tests.conftest@{tests.conftest}!empty\_graph@{empty\_graph}}
+\index{empty\_graph@{empty\_graph}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{empty\_graph()}{empty\_graph()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_acf74c7408a68d502029bd28e91602c1b} 
+tests.\+conftest.\+empty\+\_\+graph (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Provide an empty AssetRelationshipGraph.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1conftest_af37ba70ee3f25a7d21fd143eea97c68d}\index{tests.conftest@{tests.conftest}!populated\_graph@{populated\_graph}}
+\index{populated\_graph@{populated\_graph}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{populated\_graph()}{populated\_graph()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_af37ba70ee3f25a7d21fd143eea97c68d} 
+tests.\+conftest.\+populated\+\_\+graph (\begin{DoxyParamCaption}\item[{}]{sample\+\_\+equity}{, }\item[{}]{sample\+\_\+bond}{, }\item[{}]{sample\+\_\+commodity}{, }\item[{}]{sample\+\_\+currency}{, }\item[{}]{sample\+\_\+regulatory\+\_\+event}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Provide a populated AssetRelationshipGraph with 4 assets and 1 event.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1conftest_a099d5e2a8fd44d2d0ad8b582715da935}\index{tests.conftest@{tests.conftest}!pytest\_addoption@{pytest\_addoption}}
+\index{pytest\_addoption@{pytest\_addoption}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{pytest\_addoption()}{pytest\_addoption()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_a099d5e2a8fd44d2d0ad8b582715da935} 
+ None tests.\+conftest.\+pytest\+\_\+addoption (\begin{DoxyParamCaption}\item[{"{}Parser"{}}]{parser}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Register dummy coverage command-line options when pytest-cov is unavailable.
+
+If the `pytest-cov` plugin cannot be imported this registers `--cov` and
+`--cov-report` as benign, appendable options so test runs that include those
+flags do not error. If `pytest-cov` is importable this function has no effect.
+
+Parameters:
+    parser (Parser): Pytest argument parser used to add the command-line options.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1conftest_a099d5e2a8fd44d2d0ad8b582715da935_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacetests_1_1conftest_add92eade8caea489cbc96089fc8c3f05}\index{tests.conftest@{tests.conftest}!sample\_bond@{sample\_bond}}
+\index{sample\_bond@{sample\_bond}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{sample\_bond()}{sample\_bond()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_add92eade8caea489cbc96089fc8c3f05} 
+tests.\+conftest.\+sample\+\_\+bond (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Provide a sample Bond asset.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1conftest_aeed13c141ccd21c59e7770a32f8347ef}\index{tests.conftest@{tests.conftest}!sample\_commodity@{sample\_commodity}}
+\index{sample\_commodity@{sample\_commodity}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{sample\_commodity()}{sample\_commodity()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_aeed13c141ccd21c59e7770a32f8347ef} 
+tests.\+conftest.\+sample\+\_\+commodity (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Provide a sample Commodity asset.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1conftest_a790e4399549396a15f133c23ba82d0c9}\index{tests.conftest@{tests.conftest}!sample\_currency@{sample\_currency}}
+\index{sample\_currency@{sample\_currency}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{sample\_currency()}{sample\_currency()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_a790e4399549396a15f133c23ba82d0c9} 
+tests.\+conftest.\+sample\+\_\+currency (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Provide a sample Currency asset.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1conftest_a98351be069dd528fb4ae48c24af4a326}\index{tests.conftest@{tests.conftest}!sample\_equity@{sample\_equity}}
+\index{sample\_equity@{sample\_equity}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{sample\_equity()}{sample\_equity()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_a98351be069dd528fb4ae48c24af4a326} 
+tests.\+conftest.\+sample\+\_\+equity (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Provide a sample Equity asset.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1conftest_ad223d1994c93a4f64faa44b2afd6bdac}\index{tests.conftest@{tests.conftest}!sample\_regulatory\_event@{sample\_regulatory\_event}}
+\index{sample\_regulatory\_event@{sample\_regulatory\_event}!tests.conftest@{tests.conftest}}
+\doxysubsubsection{\texorpdfstring{sample\_regulatory\_event()}{sample\_regulatory\_event()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1conftest_ad223d1994c93a4f64faa44b2afd6bdac} 
+tests.\+conftest.\+sample\+\_\+regulatory\+\_\+event (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Provide a sample RegulatoryEvent.\end{DoxyVerb}
+ 

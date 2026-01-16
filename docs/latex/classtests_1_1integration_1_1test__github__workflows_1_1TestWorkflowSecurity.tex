@@ -1,0 +1,56 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Security Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity}\index{tests.integration.test\_github\_workflows.TestWorkflowSecurity@{tests.integration.test\_github\_workflows.TestWorkflowSecurity}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Security\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity_a9e718772f92801db368e1ae726933c5e}{test\+\_\+workflow\+\_\+no\+\_\+hardcoded\+\_\+secrets}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity_a6a0ec29915a59fbce86d28cec2887dcc}{test\+\_\+workflow\+\_\+uses\+\_\+secrets\+\_\+context}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test suite for workflow security best practices.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity_a9e718772f92801db368e1ae726933c5e}\index{tests.integration.test\_github\_workflows.TestWorkflowSecurity@{tests.integration.test\_github\_workflows.TestWorkflowSecurity}!test\_workflow\_no\_hardcoded\_secrets@{test\_workflow\_no\_hardcoded\_secrets}}
+\index{test\_workflow\_no\_hardcoded\_secrets@{test\_workflow\_no\_hardcoded\_secrets}!tests.integration.test\_github\_workflows.TestWorkflowSecurity@{tests.integration.test\_github\_workflows.TestWorkflowSecurity}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_no\_hardcoded\_secrets()}{test\_workflow\_no\_hardcoded\_secrets()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity_a9e718772f92801db368e1ae726933c5e} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Security.\+test\+\_\+workflow\+\_\+no\+\_\+hardcoded\+\_\+secrets (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that workflows don't contain hardcoded secrets or tokens.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity_a6a0ec29915a59fbce86d28cec2887dcc}\index{tests.integration.test\_github\_workflows.TestWorkflowSecurity@{tests.integration.test\_github\_workflows.TestWorkflowSecurity}!test\_workflow\_uses\_secrets\_context@{test\_workflow\_uses\_secrets\_context}}
+\index{test\_workflow\_uses\_secrets\_context@{test\_workflow\_uses\_secrets\_context}!tests.integration.test\_github\_workflows.TestWorkflowSecurity@{tests.integration.test\_github\_workflows.TestWorkflowSecurity}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_uses\_secrets\_context()}{test\_workflow\_uses\_secrets\_context()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity_a6a0ec29915a59fbce86d28cec2887dcc} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Security.\+test\+\_\+workflow\+\_\+uses\+\_\+secrets\+\_\+context (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify sensitive keys in step `with` mappings use the GitHub secrets context or are empty.
+
+Scans each job's steps and for any `with` keys containing `token`, `password`, `key` or `secret` asserts that string values start with `"${{"` (secrets context) or are empty.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSecurity_a6a0ec29915a59fbce86d28cec2887dcc_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

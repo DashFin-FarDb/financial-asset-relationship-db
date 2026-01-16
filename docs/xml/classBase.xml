@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classBase" kind="class" language="Python" prot="public">
+    <compoundname>Base</compoundname>
+    <derivedcompoundref refid="classdb__models_1_1AssetORM" prot="public" virt="non-virtual">db_models.AssetORM</derivedcompoundref>
+    <derivedcompoundref refid="classdb__models_1_1AssetRelationshipORM" prot="public" virt="non-virtual">db_models.AssetRelationshipORM</derivedcompoundref>
+    <derivedcompoundref refid="classdb__models_1_1RegulatoryEventAssetORM" prot="public" virt="non-virtual">db_models.RegulatoryEventAssetORM</derivedcompoundref>
+    <derivedcompoundref refid="classdb__models_1_1RegulatoryEventORM" prot="public" virt="non-virtual">db_models.RegulatoryEventORM</derivedcompoundref>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>Base</label>
+        <link refid="classBase"/>
+      </node>
+      <node id="2">
+        <label>db_models.AssetORM</label>
+        <link refid="classdb__models_1_1AssetORM"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>db_models.AssetRelationshipORM</label>
+        <link refid="classdb__models_1_1AssetRelationshipORM"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>db_models.RegulatoryEventAssetORM</label>
+        <link refid="classdb__models_1_1RegulatoryEventAssetORM"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>db_models.RegulatoryEventORM</label>
+        <link refid="classdb__models_1_1RegulatoryEventORM"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>Base</label>
+        <link refid="classBase"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/db_models.py" line="13" column="1"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

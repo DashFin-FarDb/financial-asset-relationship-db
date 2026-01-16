@@ -1,0 +1,274 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="test__api__integration_8py" kind="file" language="Python">
+    <compoundname>test_api_integration.py</compoundname>
+    <innernamespace refid="namespacetests">tests</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration">tests::integration</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__api__integration">tests::integration::test_api_integration</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespacetests_1_1integration_1_1test__api__integration" refkind="compound"><highlight class="stringliteral">&quot;&quot;&quot;Integration<sp/>tests<sp/>for<sp/>the<sp/>complete<sp/>API<sp/>flow.</highlight></codeline>
+<codeline lineno="2"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal">This<sp/>module<sp/>tests<sp/>the<sp/>full<sp/>API<sp/>integration<sp/>including:</highlight></codeline>
+<codeline lineno="4"><highlight class="normal">-<sp/>End<sp/>-<sp/>to<sp/>-<sp/>end<sp/>request<sp/>/<sp/>response<sp/>cycles</highlight></codeline>
+<codeline lineno="5"><highlight class="normal">-<sp/>Data<sp/>consistency<sp/>across<sp/>endpoints</highlight></codeline>
+<codeline lineno="6"><highlight class="normal">-<sp/>Real<sp/>graph<sp/>initialization</highlight></codeline>
+<codeline lineno="7"><highlight class="normal">-<sp/>Performance<sp/>benchmarks</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="9"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="10"><highlight class="stringliteral">import<sp/>os</highlight></codeline>
+<codeline lineno="11"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="12"><highlight class="stringliteral">import<sp/>pytest</highlight></codeline>
+<codeline lineno="13"><highlight class="stringliteral">from<sp/>fastapi.testclient<sp/>import<sp/>TestClient</highlight></codeline>
+<codeline lineno="14"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="15"><highlight class="stringliteral">from<sp/>api.main<sp/>import<sp/>app</highlight></codeline>
+<codeline lineno="16"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="17"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="18"><highlight class="stringliteral">@pytest.fixture</highlight></codeline>
+<codeline lineno="19"><highlight class="stringliteral">def<sp/>client():</highlight></codeline>
+<codeline lineno="20"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Create<sp/>a<sp/>test<sp/>client<sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>integration<sp/>tests.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="21"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>return<sp/>TestClient(app)</highlight></codeline>
+<codeline lineno="22"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="23"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="24"><highlight class="stringliteral">class<sp/>TestCompleteAPIFlow:</highlight></codeline>
+<codeline lineno="25"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>complete<sp/>API<sp/>workflows.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="26"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="27"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="28"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_full_data_retrieval_flow(client):</highlight></codeline>
+<codeline lineno="29"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>complete<sp/>flow:<sp/>health<sp/>-&gt;<sp/>assets<sp/>-&gt;<sp/>detail<sp/>-&gt;<sp/>relationships.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="30"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Step<sp/>1:<sp/>Check<sp/>health</highlight></codeline>
+<codeline lineno="31"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>health_response<sp/>=<sp/>client.get(&quot;/api/health&quot;)</highlight></codeline>
+<codeline lineno="32"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>health_response.status_code<sp/>==<sp/>200</highlight></codeline>
+<codeline lineno="33"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="34"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Step<sp/>2:<sp/>Get<sp/>all<sp/>assets</highlight></codeline>
+<codeline lineno="35"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assets_response<sp/>=<sp/>client.get(&quot;/api/assets&quot;)</highlight></codeline>
+<codeline lineno="36"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>assets_response.status_code<sp/>==<sp/>200</highlight></codeline>
+<codeline lineno="37"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assets<sp/>=<sp/>assets_response.json()</highlight></codeline>
+<codeline lineno="38"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>len(assets)<sp/>&gt;<sp/>0</highlight></codeline>
+<codeline lineno="39"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="40"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Step<sp/>3:<sp/>Get<sp/>detail<sp/>for<sp/>first<sp/>asset</highlight></codeline>
+<codeline lineno="41"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>first_asset<sp/>=<sp/>assets[0]</highlight></codeline>
+<codeline lineno="42"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>detail_response<sp/>=<sp/>client.get(f&quot;/api/assets/{first_asset[&apos;id&apos;]}&quot;)</highlight></codeline>
+<codeline lineno="43"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>detail_response.status_code<sp/>==<sp/>200</highlight></codeline>
+<codeline lineno="44"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>detail<sp/>=<sp/>detail_response.json()</highlight></codeline>
+<codeline lineno="45"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>detail[&quot;id&quot;]<sp/>==<sp/>first_asset[&quot;id&quot;]</highlight></codeline>
+<codeline lineno="46"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="47"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Step<sp/>4:<sp/>Get<sp/>relationships<sp/>for<sp/>asset</highlight></codeline>
+<codeline lineno="48"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rel_response<sp/>=<sp/>client.get(f&quot;/api/assets/{first_asset[&apos;id&apos;]}/relationships&quot;)</highlight></codeline>
+<codeline lineno="49"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>rel_response.status_code<sp/>==<sp/>200</highlight></codeline>
+<codeline lineno="50"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>relationships<sp/>=<sp/>rel_response.json()</highlight></codeline>
+<codeline lineno="51"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>isinstance(relationships,<sp/>list)</highlight></codeline>
+<codeline lineno="52"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="53"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="54"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_metrics_consistency(client):</highlight></codeline>
+<codeline lineno="55"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>metrics<sp/>are<sp/>consistent<sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>actual<sp/>data.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="56"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Get<sp/>metrics</highlight></codeline>
+<codeline lineno="57"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>metrics_response<sp/>=<sp/>client.get(&quot;/api/metrics&quot;)</highlight></codeline>
+<codeline lineno="58"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>metrics_response.status_code<sp/>==<sp/>200</highlight></codeline>
+<codeline lineno="59"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>metrics<sp/>=<sp/>metrics_response.json()</highlight></codeline>
+<codeline lineno="60"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="61"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Get<sp/>all<sp/>assets</highlight></codeline>
+<codeline lineno="62"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assets_response<sp/>=<sp/>client.get(&quot;/api/assets&quot;)</highlight></codeline>
+<codeline lineno="63"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assets<sp/>=<sp/>assets_response.json()</highlight></codeline>
+<codeline lineno="64"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="65"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Verify<sp/>metrics<sp/>match<sp/>actual<sp/>counts</highlight></codeline>
+<codeline lineno="66"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>metrics[&quot;total_assets&quot;]<sp/>==<sp/>len(assets)</highlight></codeline>
+<codeline lineno="67"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="68"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Verify<sp/>asset<sp/>class<sp/>counts</highlight></codeline>
+<codeline lineno="69"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>asset_class_counts<sp/>=<sp/>{}</highlight></codeline>
+<codeline lineno="70"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>asset<sp/>in<sp/>assets:</highlight></codeline>
+<codeline lineno="71"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ac<sp/>=<sp/>asset[&quot;asset_class&quot;]</highlight></codeline>
+<codeline lineno="72"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>asset_class_counts[ac]<sp/>=<sp/>asset_class_counts.get(ac,<sp/>0)<sp/>+<sp/>1</highlight></codeline>
+<codeline lineno="73"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="74"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>metrics[&quot;asset_classes&quot;]<sp/>==<sp/>asset_class_counts</highlight></codeline>
+<codeline lineno="75"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="76"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="77"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_visualization_data_consistency(client):</highlight></codeline>
+<codeline lineno="78"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>visualization<sp/>data<sp/>consistency<sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>assets.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="79"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Get<sp/>assets</highlight></codeline>
+<codeline lineno="80"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assets_response<sp/>=<sp/>client.get(&quot;/api/assets&quot;)</highlight></codeline>
+<codeline lineno="81"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assets<sp/>=<sp/>assets_response.json()</highlight></codeline>
+<codeline lineno="82"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>asset_ids<sp/>=<sp/>{asset[&quot;id&quot;]<sp/>for<sp/>asset<sp/>in<sp/>assets}</highlight></codeline>
+<codeline lineno="83"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="84"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Get<sp/>visualization<sp/>data</highlight></codeline>
+<codeline lineno="85"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>viz_response<sp/>=<sp/>client.get(&quot;/api/visualization&quot;)</highlight></codeline>
+<codeline lineno="86"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>viz_data<sp/>=<sp/>viz_response.json()</highlight></codeline>
+<codeline lineno="87"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="88"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>All<sp/>nodes<sp/>should<sp/>correspond<sp/>to<sp/>existing<sp/>assets</highlight></codeline>
+<codeline lineno="89"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>node_ids<sp/>=<sp/>{node[&quot;id&quot;]<sp/>for<sp/>node<sp/>in<sp/>viz_data[&quot;nodes&quot;]}</highlight></codeline>
+<codeline lineno="90"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>node_ids<sp/>==<sp/>asset_ids</highlight></codeline>
+<codeline lineno="91"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="92"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>All<sp/>edges<sp/>should<sp/>reference<sp/>existing<sp/>nodes</highlight></codeline>
+<codeline lineno="93"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>edge<sp/>in<sp/>viz_data[&quot;edges&quot;]:</highlight></codeline>
+<codeline lineno="94"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>edge[&quot;source&quot;]<sp/>in<sp/>node_ids</highlight></codeline>
+<codeline lineno="95"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>edge[&quot;target&quot;]<sp/>in<sp/>node_ids</highlight></codeline>
+<codeline lineno="96"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="97"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="98"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_filter_combinations(client):</highlight></codeline>
+<codeline lineno="99"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>various<sp/>filter<sp/>combinations<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>consistent<sp/>results.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="100"><highlight class="stringliteral">#<sp/>Get<sp/>all<sp/>assets</highlight></codeline>
+<codeline lineno="101"><highlight class="stringliteral">all_assets<sp/>=<sp/>client.get(&quot;/api/assets&quot;).json()</highlight></codeline>
+<codeline lineno="102"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="103"><highlight class="stringliteral">#<sp/>Get<sp/>unique<sp/>asset<sp/>classes<sp/>and<sp/>sectors</highlight></codeline>
+<codeline lineno="104"><highlight class="stringliteral">asset_classes<sp/>=<sp/>set(a[&quot;asset_class&quot;]<sp/>for<sp/>a<sp/>in<sp/>all_assets)</highlight></codeline>
+<codeline lineno="105"><highlight class="stringliteral">sectors<sp/>=<sp/>set(a[&quot;sector&quot;]<sp/>for<sp/>a<sp/>in<sp/>all_assets)</highlight></codeline>
+<codeline lineno="106"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="107"><highlight class="stringliteral">#<sp/>Test<sp/>each<sp/>asset<sp/>class<sp/>filter</highlight></codeline>
+<codeline lineno="108"><highlight class="stringliteral">for<sp/>ac<sp/>in<sp/>asset_classes:</highlight></codeline>
+<codeline lineno="109"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>filtered<sp/>=<sp/>client.get(f&quot;/api/assets?asset_class={ac}&quot;).json()</highlight></codeline>
+<codeline lineno="110"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>assert<sp/>all(a[&quot;asset_class&quot;]<sp/>==<sp/>ac<sp/>for<sp/>a<sp/>in<sp/>filtered)</highlight></codeline>
+<codeline lineno="111"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>assert<sp/>len(filtered)<sp/>&lt;=<sp/>len(all_assets)</highlight></codeline>
+<codeline lineno="112"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="113"><highlight class="stringliteral">#<sp/>Test<sp/>each<sp/>sector<sp/>filter</highlight></codeline>
+<codeline lineno="114"><highlight class="stringliteral">for<sp/>sector<sp/>in<sp/>sectors:</highlight></codeline>
+<codeline lineno="115"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>filtered<sp/>=<sp/>client.get(f&quot;/api/assets?sector={sector}&quot;).json()</highlight></codeline>
+<codeline lineno="116"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>assert<sp/>all(a[&quot;sector&quot;]<sp/>==<sp/>sector<sp/>for<sp/>a<sp/>in<sp/>filtered)</highlight></codeline>
+<codeline lineno="117"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>assert<sp/>len(filtered)<sp/>&lt;=<sp/>len(all_assets)</highlight></codeline>
+<codeline lineno="118"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="119"><highlight class="stringliteral">class<sp/>TestDataIntegrity:</highlight></codeline>
+<codeline lineno="120"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>data<sp/>integrity<sp/>across<sp/>endpoints.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="121"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="122"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="123"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_asset_detail_matches_list(client):</highlight></codeline>
+<codeline lineno="124"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>asset<sp/>details<sp/>match<sp/>what<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>the<sp/>list.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="125"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assets<sp/>=<sp/>client.get(&quot;/api/assets&quot;).json()</highlight></codeline>
+<codeline lineno="126"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="127"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>asset<sp/>in<sp/>assets[:3]:<sp/><sp/>#<sp/>Test<sp/>first<sp/>3<sp/>assets</highlight></codeline>
+<codeline lineno="128"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>detail<sp/>=<sp/>client.get(f&quot;/api/assets/{asset[&apos;id&apos;]}&quot;).json()</highlight></codeline>
+<codeline lineno="129"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="130"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Core<sp/>fields<sp/>should<sp/>match</highlight></codeline>
+<codeline lineno="131"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>detail[&quot;id&quot;]<sp/>==<sp/>asset[&quot;id&quot;]</highlight></codeline>
+<codeline lineno="132"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>detail[&quot;symbol&quot;]<sp/>==<sp/>asset[&quot;symbol&quot;]</highlight></codeline>
+<codeline lineno="133"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>detail[&quot;name&quot;]<sp/>==<sp/>asset[&quot;name&quot;]</highlight></codeline>
+<codeline lineno="134"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>detail[&quot;asset_class&quot;]<sp/>==<sp/>asset[&quot;asset_class&quot;]</highlight></codeline>
+<codeline lineno="135"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>detail[&quot;price&quot;]<sp/>==<sp/>asset[&quot;price&quot;]</highlight></codeline>
+<codeline lineno="136"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="137"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="138"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_relationship_bidirectionality(client):</highlight></codeline>
+<codeline lineno="139"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>relationships<sp/>are<sp/>properly<sp/>represented.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="140"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>relationships<sp/>=<sp/>client.get(&quot;/api/relationships&quot;).json()</highlight></codeline>
+<codeline lineno="141"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="142"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Build<sp/>relationship<sp/>graph</highlight></codeline>
+<codeline lineno="143"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>graph<sp/>=<sp/>{}</highlight></codeline>
+<codeline lineno="144"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>rel<sp/>in<sp/>relationships:</highlight></codeline>
+<codeline lineno="145"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>source<sp/>=<sp/>rel[&quot;source_id&quot;]</highlight></codeline>
+<codeline lineno="146"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>target<sp/>=<sp/>rel[&quot;target_id&quot;]</highlight></codeline>
+<codeline lineno="147"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>source<sp/>not<sp/>in<sp/>graph:</highlight></codeline>
+<codeline lineno="148"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>graph[source]<sp/>=<sp/>[]</highlight></codeline>
+<codeline lineno="149"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>graph[source].append(target)</highlight></codeline>
+<codeline lineno="150"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="151"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Verify<sp/>relationships<sp/>are<sp/>accessible<sp/>from<sp/>both<sp/>endpoints</highlight></codeline>
+<codeline lineno="152"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>source_id<sp/>in<sp/>graph:</highlight></codeline>
+<codeline lineno="153"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>asset_rels<sp/>=<sp/>client.get(f&quot;/api/assets/{source_id}/relationships&quot;).json()</highlight></codeline>
+<codeline lineno="154"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>len(asset_rels)<sp/>&gt;<sp/>0</highlight></codeline>
+<codeline lineno="155"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="156"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="157"><highlight class="stringliteral">class<sp/>TestPerformance:</highlight></codeline>
+<codeline lineno="158"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Basic<sp/>performance<sp/>tests.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="159"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="160"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="161"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_response_times(client):</highlight></codeline>
+<codeline lineno="162"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>endpoints<sp/>respond<sp/>within<sp/>reasonable<sp/>time.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="163"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>import<sp/>time</highlight></codeline>
+<codeline lineno="164"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="165"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>endpoints<sp/>=<sp/>[</highlight></codeline>
+<codeline lineno="166"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;/api/health&quot;,</highlight></codeline>
+<codeline lineno="167"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;/api/assets&quot;,</highlight></codeline>
+<codeline lineno="168"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;/api/metrics&quot;,</highlight></codeline>
+<codeline lineno="169"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;/api/asset-classes&quot;,</highlight></codeline>
+<codeline lineno="170"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>]</highlight></codeline>
+<codeline lineno="171"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="172"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>endpoint<sp/>in<sp/>endpoints:</highlight></codeline>
+<codeline lineno="173"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>start<sp/>=<sp/>time.time()</highlight></codeline>
+<codeline lineno="174"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>response<sp/>=<sp/>client.get(endpoint)</highlight></codeline>
+<codeline lineno="175"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>duration<sp/>=<sp/>time.time()<sp/>-<sp/>start</highlight></codeline>
+<codeline lineno="176"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="177"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>response.status_code<sp/>==<sp/>200</highlight></codeline>
+<codeline lineno="178"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>duration<sp/>&lt;<sp/>5.0,<sp/>f&quot;{endpoint}<sp/>took<sp/>{duration:.2f}s&quot;</highlight></codeline>
+<codeline lineno="179"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="180"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="181"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_concurrent_requests(client):</highlight></codeline>
+<codeline lineno="182"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>handling<sp/>of<sp/>multiple<sp/>concurrent<sp/>requests.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="183"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>from<sp/>concurrent.futures<sp/>import<sp/>ThreadPoolExecutor</highlight></codeline>
+<codeline lineno="184"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="185"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>def<sp/>make_request():</highlight></codeline>
+<codeline lineno="186"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>client.get(&quot;/api/assets&quot;).status_code</highlight></codeline>
+<codeline lineno="187"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="188"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with<sp/>ThreadPoolExecutor(max_workers=5)<sp/>as<sp/>executor:</highlight></codeline>
+<codeline lineno="189"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>futures<sp/>=<sp/>[executor.submit(make_request)<sp/>for<sp/>_<sp/>in<sp/>range(10)]</highlight></codeline>
+<codeline lineno="190"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>results<sp/>=<sp/>[f.result()<sp/>for<sp/>f<sp/>in<sp/>futures]</highlight></codeline>
+<codeline lineno="191"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="192"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>All<sp/>requests<sp/>should<sp/>succeed</highlight></codeline>
+<codeline lineno="193"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>all(status<sp/>==<sp/>200<sp/>for<sp/>status<sp/>in<sp/>results)</highlight></codeline>
+<codeline lineno="194"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="195"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="196"><highlight class="stringliteral">class<sp/>TestAuthenticationFlow:</highlight></codeline>
+<codeline lineno="197"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>authentication<sp/></highlight><highlight class="keywordflow">and</highlight><highlight class="normal"><sp/>token<sp/>validation<sp/>against<sp/>the<sp/>backing<sp/>store.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="198"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="199"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="200"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_token_issuance_and_validation(client):</highlight></codeline>
+<codeline lineno="201"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">A<sp/>valid<sp/>credential<sp/>should<sp/></highlight><highlight class="keywordflow">yield</highlight><highlight class="normal"><sp/>a<sp/>token<sp/>that<sp/>authorizes<sp/>protected<sp/>endpoints.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="202"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="203"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>credentials<sp/>=<sp/>{</highlight></codeline>
+<codeline lineno="204"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;username&quot;:<sp/>os.environ[&quot;ADMIN_USERNAME&quot;],</highlight></codeline>
+<codeline lineno="205"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;password&quot;:<sp/>os.environ[&quot;ADMIN_PASSWORD&quot;],</highlight></codeline>
+<codeline lineno="206"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="207"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>token_response<sp/>=<sp/>client.post(</highlight></codeline>
+<codeline lineno="208"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;/token&quot;,</highlight></codeline>
+<codeline lineno="209"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>data=credentials,</highlight></codeline>
+<codeline lineno="210"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>headers={&quot;content-type&quot;:<sp/>&quot;application/x-www-form-urlencoded&quot;},</highlight></codeline>
+<codeline lineno="211"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="212"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>token_response.status_code<sp/>==<sp/>200</highlight></codeline>
+<codeline lineno="213"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>token<sp/>=<sp/>token_response.json()[&quot;access_token&quot;]</highlight></codeline>
+<codeline lineno="214"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="215"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>me_response<sp/>=<sp/>client.get(&quot;/api/users/me&quot;,<sp/>headers={&quot;Authorization&quot;:<sp/>f&quot;Bearer<sp/>{token}&quot;})</highlight></codeline>
+<codeline lineno="216"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>me_response.status_code<sp/>==<sp/>200</highlight></codeline>
+<codeline lineno="217"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>payload<sp/>=<sp/>me_response.json()</highlight></codeline>
+<codeline lineno="218"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>payload[&quot;username&quot;]<sp/>==<sp/>credentials[&quot;username&quot;]</highlight></codeline>
+<codeline lineno="219"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>payload[&quot;email&quot;]<sp/>==<sp/>os.environ[&quot;ADMIN_EMAIL&quot;]</highlight></codeline>
+<codeline lineno="220"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>payload[&quot;full_name&quot;]<sp/>==<sp/>os.environ[&quot;ADMIN_FULL_NAME&quot;]</highlight></codeline>
+<codeline lineno="221"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>payload[&quot;disabled&quot;]<sp/>is<sp/>False</highlight></codeline>
+<codeline lineno="222"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="223"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>invalid_response<sp/>=<sp/>client.get(&quot;/api/users/me&quot;,<sp/>headers={&quot;Authorization&quot;:<sp/>&quot;Bearer<sp/>invalid-token&quot;})</highlight></codeline>
+<codeline lineno="224"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>invalid_response.status_code<sp/>==<sp/>401</highlight></codeline>
+<codeline lineno="225"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="226"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Test<sp/>authentication<sp/>with<sp/>incorrect<sp/>password</highlight></codeline>
+<codeline lineno="227"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>invalid_credentials<sp/>=<sp/>credentials.copy()</highlight></codeline>
+<codeline lineno="228"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>invalid_credentials[&quot;password&quot;]<sp/>=<sp/>&quot;wrongpassword&quot;</highlight></codeline>
+<codeline lineno="229"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>invalid_token_response<sp/>=<sp/>client.post(</highlight></codeline>
+<codeline lineno="230"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;/token&quot;,</highlight></codeline>
+<codeline lineno="231"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>data=invalid_credentials,</highlight></codeline>
+<codeline lineno="232"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>headers={&quot;content-type&quot;:<sp/>&quot;application/x-www-form-urlencoded&quot;},</highlight></codeline>
+<codeline lineno="233"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="234"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>invalid_token_response.status_code<sp/>==<sp/>401</highlight></codeline>
+<codeline lineno="235"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="236"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="237"><highlight class="stringliteral">class<sp/>TestErrorRecovery:</highlight></codeline>
+<codeline lineno="238"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>error<sp/>handling<sp/></highlight><highlight class="keywordflow">and</highlight><highlight class="normal"><sp/>recovery.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="239"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="240"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="241"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_invalid_endpoints_return_404(client):</highlight></codeline>
+<codeline lineno="242"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>invalid<sp/>endpoints<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>404.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="243"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>response<sp/>=<sp/>client.get(&quot;/api/nonexistent&quot;)</highlight></codeline>
+<codeline lineno="244"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>response.status_code<sp/>==<sp/>404</highlight></codeline>
+<codeline lineno="245"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="246"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="247"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_invalid_asset_id_returns_404(client):</highlight></codeline>
+<codeline lineno="248"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>invalid<sp/>asset<sp/>IDs<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>404.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="249"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>response<sp/>=<sp/>client.get(&quot;/api/assets/NONEXISTENT_ID_12345&quot;)</highlight></codeline>
+<codeline lineno="250"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>response.status_code<sp/>==<sp/>404</highlight></codeline>
+<codeline lineno="251"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="252"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="253"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_malformed_requests(client):</highlight></codeline>
+<codeline lineno="254"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>handling<sp/>of<sp/>malformed<sp/>requests.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="255"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Test<sp/>with<sp/>invalid<sp/>query<sp/>parameters</highlight></codeline>
+<codeline lineno="256"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>response<sp/>=<sp/>client.get(&quot;/api/assets?asset_class=INVALID&quot;)</highlight></codeline>
+<codeline lineno="257"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>response.status_code<sp/>==<sp/>200</highlight></codeline>
+<codeline lineno="258"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>len(response.json())<sp/>==<sp/>0</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_api_integration.py"/>
+  </compounddef>
+</doxygen>

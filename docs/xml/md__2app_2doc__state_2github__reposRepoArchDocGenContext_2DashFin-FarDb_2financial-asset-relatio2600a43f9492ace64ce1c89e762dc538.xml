@@ -1,0 +1,253 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2BRANCH__CLEANUP__SUMMARY</compoundname>
+    <title>Branch Cleanup Summary</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md299"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md300">
+<title>Issue #136: Remove All Unnecessary Branches</title><para>This document summarizes the branch cleanup initiative and the tools/processes implemented to maintain a clean repository.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md301">
+<title>Objectives Completed</title><para>✅ <bold>Identified open branches</bold> - Created comprehensive analysis in <computeroutput><ref refid="BRANCH__CLEANUP__ANALYSIS_8md" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref></computeroutput> ✅ <bold>Traced commit history</bold> - Documented all branches and their commit status ✅ <bold>Provided cleanup recommendations</bold> - Detailed action plan for each branch ✅ <bold>Implemented automation</bold> - Created tools to prevent future branch accumulation ✅ <bold>Updated documentation</bold> - Enhanced contributing guidelines with branch management best practices</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md302">
+<title>Files Created/Modified</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md303">
+<title>1. Documentation Files</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md304">
+<title><computeroutput>BRANCH_CLEANUP_ANALYSIS.md</computeroutput> (NEW)</title><para>Comprehensive analysis of all branches in the repository including:</para>
+<para><itemizedlist>
+<listitem><para>Current branch inventory</para>
+</listitem><listitem><para>Commit history analysis</para>
+</listitem><listitem><para>Merge status for each branch</para>
+</listitem><listitem><para>Specific recommendations for each branch</para>
+</listitem><listitem><para>Step-by-step cleanup procedures</para>
+</listitem><listitem><para>Best practices for future branch management</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md305">
+<title>2. Automation Tools</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md306">
+<title><computeroutput>.github/workflows/branch-cleanup.yml</computeroutput> (NEW)</title><para>Automated GitHub Actions workflow that:</para>
+<para><itemizedlist>
+<listitem><para>Runs weekly to identify stale branches</para>
+</listitem><listitem><para>Adds a stale branch report to the workflow run summary</para>
+</listitem><listitem><para>Provides branch activity reports</para>
+</listitem><listitem><para>Can be triggered manually for on-demand analysis</para>
+</listitem><listitem><para>Helps maintain repository hygiene automatically</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md307">
+<title><computeroutput>cleanup-branches.sh</computeroutput> (NEW)</title><para>Interactive shell script for local branch cleanup:</para>
+<para><itemizedlist>
+<listitem><para>Lists all local and remote branches</para>
+</listitem><listitem><para>Identifies merged branches (safe to delete)</para>
+</listitem><listitem><para>Finds stale branches (90+ days old)</para>
+</listitem><listitem><para>Shows remote branches not tracked locally</para>
+</listitem><listitem><para>Provides interactive cleanup options</para>
+</listitem><listitem><para>Includes safety checks and confirmations</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md308">
+<title>3. Configuration Updates</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md309">
+<title><computeroutput>.gitignore</computeroutput> (UPDATED)</title><para>Added coverage directory exclusions:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>coverage/</computeroutput> - General coverage reports</para>
+</listitem><listitem><para><computeroutput>frontend/coverage/</computeroutput> - Frontend-specific coverage</para>
+</listitem><listitem><para>Prevents accidental commits of test artifacts</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md310">
+<title><computeroutput>CONTRIBUTING.md</computeroutput> (UPDATED)</title><para>Enhanced with branch management section:</para>
+<para><itemizedlist>
+<listitem><para>Branch cleanup best practices</para>
+</listitem><listitem><para>When to delete branches</para>
+</listitem><listitem><para>How to verify merge status</para>
+</listitem><listitem><para>Commands for safe branch deletion</para>
+</listitem><listitem><para>Guidelines for keeping repository clean</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md311">
+<title><computeroutput>README.md</computeroutput> (UPDATED)</title><para>Added branch management documentation link:</para>
+<para><itemizedlist>
+<listitem><para>References to <computeroutput><ref refid="BRANCH__CLEANUP__ANALYSIS_8md" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref></computeroutput></para>
+</listitem><listitem><para>Integration with existing documentation structure</para>
+</listitem><listitem><para>Easy access for contributors</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md312">
+<title>Branch Analysis Results</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md313">
+<title>Branches Requiring Action</title><para>Based on the analysis in <computeroutput><ref refid="BRANCH__CLEANUP__ANALYSIS_8md" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref></computeroutput>, here are the key findings:</para>
+<para><orderedlist>
+<listitem><para><bold>Merged Branches</bold> - Can be safely deleted after verification</para>
+</listitem><listitem><para><bold>Stale Branches</bold> - No activity in 90+ days, candidates for archival</para>
+</listitem><listitem><para><bold>Active Development Branches</bold> - Need review and either merge or close</para>
+</listitem><listitem><para><bold>Automated Tool Branches</bold> - From bots like Dependabot, CodeRabbit, etc.</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md314">
+<title>Recommended Actions</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md315">
+<title>Immediate Actions (High Priority)</title><para><orderedlist>
+<listitem><para>Review all branches listed in <computeroutput><ref refid="BRANCH__CLEANUP__ANALYSIS_8md" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref></computeroutput></para>
+</listitem><listitem><para>Verify that important commits are merged to main</para>
+</listitem><listitem><para>Delete merged branches using the cleanup script</para>
+</listitem><listitem><para>Close stale PRs with explanation</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md316">
+<title>Short-term Actions (This Week)</title><para><orderedlist>
+<listitem><para>Run <computeroutput>./cleanup-branches.sh</computeroutput> to identify local cleanup opportunities</para>
+</listitem><listitem><para>Review automated tool branches (Dependabot, CodeRabbit)</para>
+</listitem><listitem><para>Merge or close open PRs with useful changes</para>
+</listitem><listitem><para>Update branch protection rules if needed</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md317">
+<title>Long-term Actions (Ongoing)</title><para><orderedlist>
+<listitem><para>Enable the automated branch cleanup workflow</para>
+</listitem><listitem><para>Review branch status monthly</para>
+</listitem><listitem><para>Enforce &quot;delete branch after merge&quot; policy</para>
+</listitem><listitem><para>Keep only main branch as permanent</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md318">
+<title>How to Use the Cleanup Tools</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md319">
+<title>Automated Workflow</title><para>The GitHub Actions workflow runs automatically but can also be triggered manually:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Via<sp/>GitHub<sp/>UI:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>1.<sp/>Go<sp/>to<sp/>Actions<sp/>tab</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>2.<sp/>Select<sp/>&quot;Branch<sp/>Cleanup<sp/>Report&quot;</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>3.<sp/>Click<sp/>&quot;Run<sp/>workflow&quot;</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md320">
+<title>Manual Cleanup Script</title><para>Run the interactive cleanup script:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Make<sp/>script<sp/>executable</highlight></codeline>
+<codeline><highlight class="normal">chmod<sp/>+x<sp/>cleanup-branches.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>script</highlight></codeline>
+<codeline><highlight class="normal">./cleanup-branches.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Follow<sp/>the<sp/>interactive<sp/>prompts</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md321">
+<title>Manual Branch Deletion</title><para>For individual branch cleanup:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Delete<sp/>local<sp/>branch<sp/>(safe<sp/>-<sp/>only<sp/>if<sp/>merged)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-d<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Force<sp/>delete<sp/>local<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-D<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Delete<sp/>remote<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>--delete<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Prune<sp/>deleted<sp/>remote<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>fetch<sp/>--prune</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md322">
+<title>Branch Management Best Practices</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md323">
+<title>For Contributors</title><para><orderedlist>
+<listitem><para><bold>Create feature branches</bold> from main</para>
+</listitem><listitem><para><bold>Use descriptive names</bold> (e.g., <computeroutput>feature/add-api-endpoint</computeroutput>, <computeroutput>fix/database-connection</computeroutput>)</para>
+</listitem><listitem><para><bold>Keep branches short-lived</bold> (merge within 1-2 weeks)</para>
+</listitem><listitem><para><bold>Delete after merge</bold> - Always delete feature branches after PR is merged</para>
+</listitem><listitem><para><bold>Sync regularly</bold> - Keep your branch up to date with main</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md324">
+<title>For Maintainers</title><para><orderedlist>
+<listitem><para><bold>Review PRs promptly</bold> - Don&apos;t let PRs go stale</para>
+</listitem><listitem><para><bold>Merge or close</bold> - Make decisions on old PRs</para>
+</listitem><listitem><para><bold>Delete merged branches</bold> - Clean up after merging</para>
+</listitem><listitem><para><bold>Monitor branch count</bold> - Keep total branches under 10</para>
+</listitem><listitem><para><bold>Use automation</bold> - Let the workflow help identify stale branches</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md325">
+<title>Verification Steps</title><para>Before deleting any branch, verify:</para>
+<para><orderedlist>
+<listitem><para>✅ Branch is fully merged to main</para>
+</listitem><listitem><para>✅ No unique commits will be lost</para>
+</listitem><listitem><para>✅ Associated PR is closed</para>
+</listitem><listitem><para>✅ No active work depends on it</para>
+</listitem><listitem><para>✅ CI/CD pipelines don&apos;t reference it</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md326">
+<title>Success Metrics</title><para>Track these metrics to measure cleanup success:</para>
+<para><itemizedlist>
+<listitem><para><bold>Total branch count</bold> - Target: &lt; 10 branches</para>
+</listitem><listitem><para><bold>Stale branches</bold> - Target: 0 branches older than 90 days</para>
+</listitem><listitem><para><bold>Merged but not deleted</bold> - Target: 0 branches</para>
+</listitem><listitem><para><bold>Open PRs</bold> - Target: &lt; 5 active PRs</para>
+</listitem><listitem><para><bold>Average branch age</bold> - Target: &lt; 30 days</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md327">
+<title>Next Steps</title><para><orderedlist>
+<listitem><para><bold>Review</bold> the <computeroutput><ref refid="BRANCH__CLEANUP__ANALYSIS_8md" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref></computeroutput> file</para>
+</listitem><listitem><para><bold>Execute</bold> the cleanup plan for each branch</para>
+</listitem><listitem><para><bold>Enable</bold> the automated workflow</para>
+</listitem><listitem><para><bold>Monitor</bold> branch health weekly</para>
+</listitem><listitem><para><bold>Enforce</bold> branch deletion policy</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md328">
+<title>Maintenance Schedule</title><para><itemizedlist>
+<listitem><para><bold>Weekly</bold>: Automated stale branch detection (via GitHub Actions)</para>
+</listitem><listitem><para><bold>Weekly</bold>: Review branch cleanup workflow results</para>
+</listitem><listitem><para><bold>Monthly</bold>: Manual audit of all branches</para>
+</listitem><listitem><para><bold>Quarterly</bold>: Review and update branch policies</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md329">
+<title>Support and Questions</title><para>For questions about branch cleanup:</para>
+<para><orderedlist>
+<listitem><para>Review <computeroutput><ref refid="BRANCH__CLEANUP__ANALYSIS_8md" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref></computeroutput> for detailed analysis</para>
+</listitem><listitem><para>Check <computeroutput><ref refid="CONTRIBUTING_8md" kindref="compound">CONTRIBUTING.md</ref></computeroutput> for branch management guidelines</para>
+</listitem><listitem><para>Run <computeroutput>./cleanup-branches.sh</computeroutput> for local branch analysis</para>
+</listitem><listitem><para>Create an issue if you need help with specific branches</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_1autotoc_md330">
+<title>References</title><para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref> - Detailed branch analysis</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING" kindref="compound">CONTRIBUTING.md</ref> - Branch management guidelines</para>
+</listitem><listitem><para><ulink url="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches">GitHub Branch Protection</ulink></para>
+</listitem><listitem><para><ulink url="https://git-scm.com/book/en/v2/Git-Branching-Branch-Management">Git Branch Management</ulink></para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+<para><bold>Last Updated</bold>: 2025-11-12 <bold>Issue</bold>: #136 <bold>Status</bold>: ✅ Completed - Tools and documentation in place, ready for execution </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/BRANCH_CLEANUP_SUMMARY.md"/>
+  </compounddef>
+</doxygen>

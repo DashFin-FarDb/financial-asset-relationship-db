@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestFileStructureAndOrganization</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization_1a540917aacac61ce96f0200cdf8eed46a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestFileStructureAndOrganization.test_comments_have_proper_format</definition>
+        <argsstring>()</argsstring>
+        <name>test_comments_have_proper_format</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestFileStructureAndOrganization.test_comments_have_proper_format</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that comments follow a consistent format.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="740" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="740" bodyend="752"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization_1a2a04217cae7dbcf50b40de450e3910b3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestFileStructureAndOrganization.test_sections_are_organized</definition>
+        <argsstring>()</argsstring>
+        <name>test_sections_are_organized</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestFileStructureAndOrganization.test_sections_are_organized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the file appears to be organized into sections.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="754" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="754" bodyend="763"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization_1abbce910064ee0f4d1b439c3ed31a3f82" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestFileStructureAndOrganization.test_no_excessive_blank_lines</definition>
+        <argsstring>()</argsstring>
+        <name>test_no_excessive_blank_lines</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestFileStructureAndOrganization.test_no_excessive_blank_lines</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that there are no excessive consecutive blank lines.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="765" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="765" bodyend="783"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test file structure and organizational aspects.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestFileStructureAndOrganization</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="736" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="736" bodyend="783"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization_1a540917aacac61ce96f0200cdf8eed46a" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestFileStructureAndOrganization</scope><name>test_comments_have_proper_format</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization_1abbce910064ee0f4d1b439c3ed31a3f82" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestFileStructureAndOrganization</scope><name>test_no_excessive_blank_lines</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestFileStructureAndOrganization_1a2a04217cae7dbcf50b40de450e3910b3" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestFileStructureAndOrganization</scope><name>test_sections_are_organized</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

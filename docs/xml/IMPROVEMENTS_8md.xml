@@ -1,0 +1,560 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="IMPROVEMENTS_8md" kind="file" language="Markdown">
+    <compoundname>IMPROVEMENTS.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Code<sp/>Quality<sp/>Improvements<sp/>and<sp/>Recommendations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>outlines<sp/>additional<sp/>improvements,<sp/>error-prone<sp/>patterns<sp/>identified,<sp/>and<sp/>recommendations<sp/>for<sp/>future<sp/>development.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Issues<sp/>Identified<sp/>and<sp/>Recommendations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Broad<sp/>Exception<sp/>Handling<sp/>⚠️</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Location:**<sp/>`src/data/real_data_fetcher.py`<sp/>and<sp/>`src/data/sample_data.py`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Issue:**<sp/>Using<sp/>`except<sp/>Exception`<sp/>catches<sp/>too<sp/>many<sp/>exceptions,<sp/>making<sp/>debugging<sp/>difficult.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Found<sp/>in:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`real_data_fetcher.py`:<sp/>5<sp/>instances</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`sample_data.py`:<sp/>1<sp/>instance</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Instead<sp/>of:</highlight></codeline>
+<codeline><highlight class="normal">try:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>data<sp/>=<sp/>fetch_data()</highlight></codeline>
+<codeline><highlight class="normal">except<sp/>Exception<sp/>as<sp/>e:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.error(f&quot;Error:<sp/>{e}&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Use<sp/>specific<sp/>exceptions:</highlight></codeline>
+<codeline><highlight class="normal">try:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>data<sp/>=<sp/>fetch_data()</highlight></codeline>
+<codeline><highlight class="normal">except<sp/>(ValueError,<sp/>KeyError,<sp/>TypeError)<sp/>as<sp/>e:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.error(f&quot;Data<sp/>error:<sp/>{e}&quot;)</highlight></codeline>
+<codeline><highlight class="normal">except<sp/>ConnectionError<sp/>as<sp/>e:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.error(f&quot;Network<sp/>error:<sp/>{e}&quot;)</highlight></codeline>
+<codeline><highlight class="normal">except<sp/>Exception<sp/>as<sp/>e:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.exception(f&quot;Unexpected<sp/>error:<sp/>{e}&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/><sp/>#<sp/>Re-raise<sp/>unexpected<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Status:**<sp/>Documented<sp/>for<sp/>future<sp/>improvement<sp/>(not<sp/>critical<sp/>for<sp/>current<sp/>functionality)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Type<sp/>Hints<sp/>Coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Current<sp/>State:**<sp/>Partial<sp/>type<sp/>hints<sp/>in<sp/>core<sp/>modules</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>comprehensive<sp/>type<sp/>hints<sp/>to<sp/>all<sp/>functions:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>typing<sp/>import<sp/>Dict,<sp/>List,<sp/>Optional,<sp/>Tuple</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>calculate_metrics(self)<sp/>-&gt;<sp/>Dict[str,<sp/>Any]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Calculate<sp/>metrics<sp/>with<sp/>full<sp/>type<sp/>annotations.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium<sp/>(improves<sp/>IDE<sp/>support<sp/>and<sp/>catches<sp/>type<sp/>errors)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Configuration<sp/>Management</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Issue:**<sp/>Hardcoded<sp/>values<sp/>scattered<sp/>throughout<sp/>code</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Examples:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Random<sp/>seed:<sp/>`np.random.seed(42)`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Relationship<sp/>strengths:<sp/>`0.7`,<sp/>`0.8`,<sp/>`0.9`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Gradio<sp/>port:<sp/>`7860`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Create<sp/>`src/config.py`:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>src/config.py</highlight></codeline>
+<codeline><highlight class="normal">class<sp/>Config:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Visualization</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>RANDOM_SEED<sp/>=<sp/>42</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>LINE_LENGTH<sp/>=<sp/>120</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Relationship<sp/>strengths</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>SAME_SECTOR_STRENGTH<sp/>=<sp/>0.7</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CURRENCY_EXPOSURE_STRENGTH<sp/>=<sp/>0.8</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CORPORATE_BOND_STRENGTH<sp/>=<sp/>0.9</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Server</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>GRADIO_PORT<sp/>=<sp/>7860</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>GRADIO_HOST<sp/>=<sp/>&quot;0.0.0.0&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Status:**<sp/>Recommended<sp/>for<sp/>future<sp/>release</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Logging<sp/>Enhancement</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Current<sp/>State:**<sp/>Basic<sp/>logging<sp/>configured<sp/>in<sp/>`app.py`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Implement<sp/>structured<sp/>logging:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>logging</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>json</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>datetime<sp/>import<sp/>datetime</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">class<sp/>StructuredLogger:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>__init__(self,<sp/>name:<sp/>str):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.logger<sp/>=<sp/>logging.getLogger(name)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>log_event(self,<sp/>level:<sp/>str,<sp/>event:<sp/>str,<sp/>**kwargs):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>log_data<sp/>=<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;timestamp&quot;:<sp/>datetime.utcnow().isoformat(),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;level&quot;:<sp/>level,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;event&quot;:<sp/>event,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>**kwargs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.logger.info(json.dumps(log_data))</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium<sp/>(useful<sp/>for<sp/>production<sp/>monitoring)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>5.<sp/>Input<sp/>Validation<sp/>Enhancement</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Current<sp/>State:**<sp/>Basic<sp/>validation<sp/>in<sp/>dataclass<sp/>`__post_init__`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>validation<sp/>decorators:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>functools<sp/>import<sp/>wraps</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>typing<sp/>import<sp/>Callable</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>validate_price(func:<sp/>Callable)<sp/>-&gt;<sp/>Callable:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>@wraps(func)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>wrapper(self,<sp/>*args,<sp/>**kwargs):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>hasattr(self,<sp/>&apos;price&apos;)<sp/>and<sp/>self.price<sp/>&lt;<sp/>0:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>raise<sp/>ValueError(&quot;Price<sp/>must<sp/>be<sp/>non-negative&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>func(self,<sp/>*args,<sp/>**kwargs)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>wrapper</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Low<sp/>(current<sp/>validation<sp/>is<sp/>adequate)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>6.<sp/>Performance<sp/>Optimizations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Potential<sp/>Improvements:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Caching<sp/>for<sp/>expensive<sp/>operations:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>functools<sp/>import<sp/>lru_cache</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">@lru_cache(maxsize=128)</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>calculate_relationship_strength(asset1_id:<sp/>str,<sp/>asset2_id:<sp/>str)<sp/>-&gt;<sp/>float:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Cache<sp/>results<sp/>for<sp/>frequently<sp/>accessed<sp/>pairs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Lazy<sp/>loading<sp/>for<sp/>visualizations:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">@property</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>visualization_data(self):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>not<sp/>hasattr(self,<sp/>&apos;_viz_data&apos;):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self._viz_data<sp/>=<sp/>self._compute_visualization()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>self._viz_data</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Database<sp/>connection<sp/>pooling**<sp/>(when<sp/>adding<sp/>PostgreSQL):</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>sqlalchemy<sp/>import<sp/>create_engine</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>sqlalchemy.pool<sp/>import<sp/>QueuePool</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">engine<sp/>=<sp/>create_engine(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>DATABASE_URL,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>poolclass=QueuePool,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>pool_size=10,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>max_overflow=20</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Low<sp/>(premature<sp/>optimization,<sp/>measure<sp/>first)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>7.<sp/>Error<sp/>Messages</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Current<sp/>State:**<sp/>Some<sp/>error<sp/>messages<sp/>lack<sp/>context</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>contextual<sp/>information:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Instead<sp/>of:</highlight></codeline>
+<codeline><highlight class="normal">raise<sp/>ValueError(&quot;Invalid<sp/>input&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Use:</highlight></codeline>
+<codeline><highlight class="normal">raise<sp/>ValueError(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>f&quot;Invalid<sp/>input:<sp/>expected<sp/>price<sp/>&gt;=<sp/>0,<sp/>got<sp/>{price}.<sp/>&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>f&quot;Asset:<sp/>{self.symbol}<sp/>({self.id})&quot;</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>8.<sp/>Testing<sp/>Enhancements</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Current<sp/>State:**<sp/>30+<sp/>unit<sp/>tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendations:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Add<sp/>integration<sp/>tests:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>tests/integration/test_workflow.py</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>test_full_workflow():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Test<sp/>complete<sp/>workflow<sp/>from<sp/>data<sp/>loading<sp/>to<sp/>visualization.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>graph<sp/>=<sp/>AssetRelationshipGraph()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Load<sp/>data</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Build<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Generate<sp/>visualization</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Verify<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Add<sp/>property-based<sp/>tests:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>hypothesis<sp/>import<sp/>given,<sp/>strategies<sp/>as<sp/>st</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">@given(st.floats(min_value=0,<sp/>max_value=1))</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>test_relationship_strength_bounds(strength):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Verify<sp/>strength<sp/>is<sp/>always<sp/>clamped<sp/>to<sp/>[0,<sp/>1].&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Test<sp/>with<sp/>random<sp/>valid<sp/>inputs</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Add<sp/>performance<sp/>tests:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>pytest</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>time</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">@pytest.mark.slow</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>test_large_graph_performance():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Ensure<sp/>performance<sp/>with<sp/>1000+<sp/>assets.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>start<sp/>=<sp/>time.time()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Create<sp/>large<sp/>graph</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Verify<sp/>completion<sp/>within<sp/>threshold</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>assert<sp/>time.time()<sp/>-<sp/>start<sp/>&lt;<sp/>5.0<sp/><sp/>#<sp/>5<sp/>second<sp/>threshold</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>High<sp/>(expand<sp/>test<sp/>coverage)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Security<sp/>Enhancements</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Dependency<sp/>Scanning</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Implemented:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>CodeQL<sp/>security<sp/>scanning</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Dependency<sp/>review<sp/>on<sp/>PRs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Trivy<sp/>Docker<sp/>image<sp/>scanning</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Additional<sp/>Recommendations:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Add<sp/>`safety`<sp/>to<sp/>CI<sp/>for<sp/>Python<sp/>dependency<sp/>vulnerabilities</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Add<sp/>`bandit`<sp/>for<sp/>Python<sp/>security<sp/>linting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Regular<sp/>dependency<sp/>updates<sp/>with<sp/>Dependabot</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Input<sp/>Sanitization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Current<sp/>State:**<sp/>Basic<sp/>validation<sp/>on<sp/>dataclass<sp/>fields</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>sanitization<sp/>for<sp/>user<sp/>inputs:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>re</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>html<sp/>import<sp/>escape</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>sanitize_input(value:<sp/>str)<sp/>-&gt;<sp/>str:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Sanitize<sp/>user<sp/>input<sp/>to<sp/>prevent<sp/>injection<sp/>attacks.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Remove<sp/>potentially<sp/>dangerous<sp/>characters</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>value<sp/>=<sp/>escape(value)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Validate<sp/>format</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>not<sp/>re.match(r&apos;^[a-zA-Z0-9\s\-_\.]+$&apos;,<sp/>value):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>raise<sp/>ValueError(&quot;Invalid<sp/>characters<sp/>in<sp/>input&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>value.strip()</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium<sp/>(depends<sp/>on<sp/>user<sp/>input<sp/>surface<sp/>area)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Secrets<sp/>Management</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Use<sp/>environment<sp/>variables<sp/>and<sp/>secret<sp/>managers:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>os</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>pathlib<sp/>import<sp/>Path</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Load<sp/>from<sp/>environment<sp/>or<sp/>.env<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">DATABASE_URL<sp/>=<sp/>os.getenv(&apos;DATABASE_URL&apos;)</highlight></codeline>
+<codeline><highlight class="normal">API_KEY<sp/>=<sp/>os.getenv(&apos;API_KEY&apos;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>For<sp/>production,<sp/>use<sp/>secret<sp/>manager</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>from<sp/>azure.keyvault.secrets<sp/>import<sp/>SecretClient</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>secret<sp/>=<sp/>client.get_secret(&quot;database-url&quot;).value</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>High<sp/>(before<sp/>production<sp/>deployment)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Architecture<sp/>Improvements</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Repository<sp/>Pattern</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Abstract<sp/>data<sp/>access:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>src/repositories/asset_repository.py</highlight></codeline>
+<codeline><highlight class="normal">class<sp/>AssetRepository:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>get_by_id(self,<sp/>asset_id:<sp/>str)<sp/>-&gt;<sp/>Optional[Asset]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>get_all(self)<sp/>-&gt;<sp/>List[Asset]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>save(self,<sp/>asset:<sp/>Asset)<sp/>-&gt;<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium<sp/>(useful<sp/>when<sp/>adding<sp/>persistence)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Service<sp/>Layer</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Separate<sp/>business<sp/>logic:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>src/services/asset_service.py</highlight></codeline>
+<codeline><highlight class="normal">class<sp/>AssetService:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>__init__(self,<sp/>repository:<sp/>AssetRepository):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.repository<sp/>=<sp/>repository</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>calculate_portfolio_risk(self,<sp/>assets:<sp/>List[Asset])<sp/>-&gt;<sp/>float:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Business<sp/>logic<sp/>here</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium<sp/>(helps<sp/>with<sp/>testability)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Dependency<sp/>Injection</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Use<sp/>dependency<sp/>injection<sp/>for<sp/>better<sp/>testing:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>typing<sp/>import<sp/>Protocol</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">class<sp/>DataFetcher(Protocol):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>fetch(self,<sp/>symbol:<sp/>str)<sp/>-&gt;<sp/>Asset:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">class<sp/>AssetService:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>__init__(self,<sp/>fetcher:<sp/>DataFetcher):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.fetcher<sp/>=<sp/>fetcher<sp/><sp/>#<sp/>Can<sp/>inject<sp/>mock<sp/>for<sp/>testing</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Low<sp/>(current<sp/>design<sp/>is<sp/>adequate)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Documentation<sp/>Improvements</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>API<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>OpenAPI/Swagger<sp/>for<sp/>API<sp/>endpoints:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>fastapi<sp/>import<sp/>FastAPI</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>fastapi.openapi.utils<sp/>import<sp/>get_openapi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">app<sp/>=<sp/>FastAPI()</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>custom_openapi():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>app.openapi_schema:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>app.openapi_schema</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>openapi_schema<sp/>=<sp/>get_openapi(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>title=&quot;Financial<sp/>Asset<sp/>API&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>version=&quot;1.0.0&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>description=&quot;API<sp/>for<sp/>financial<sp/>asset<sp/>relationships&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>routes=app.routes,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>app.openapi_schema<sp/>=<sp/>openapi_schema</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>app.openapi_schema</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">app.openapi<sp/>=<sp/>custom_openapi</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium<sp/>(if<sp/>exposing<sp/>API)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Architecture<sp/>Diagrams</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>diagrams<sp/>to<sp/>documentation:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>System<sp/>architecture</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Data<sp/>flow<sp/>diagrams</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Sequence<sp/>diagrams<sp/>for<sp/>key<sp/>operations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Tools:**<sp/>Mermaid,<sp/>PlantUML,<sp/>or<sp/>diagrams.net</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Code<sp/>Examples</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>runnable<sp/>examples:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>examples/basic_usage.py</highlight></codeline>
+<codeline><highlight class="normal">&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">Basic<sp/>usage<sp/>example<sp/>for<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Run:<sp/>python<sp/>examples/basic_usage.py</highlight></codeline>
+<codeline><highlight class="normal">&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>src.logic.asset_graph<sp/>import<sp/>AssetRelationshipGraph</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>src.models.financial_models<sp/>import<sp/>Equity,<sp/>AssetClass</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Create<sp/>graph</highlight></codeline>
+<codeline><highlight class="normal">graph<sp/>=<sp/>AssetRelationshipGraph()</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Add<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">apple<sp/>=<sp/>Equity(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>id=&quot;AAPL&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>symbol=&quot;AAPL&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>name=&quot;Apple<sp/>Inc.&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>asset_class=AssetClass.EQUITY,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sector=&quot;Technology&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>price=150.00</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">graph.add_asset(apple)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">graph.build_relationships()</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Get<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal">metrics<sp/>=<sp/>graph.calculate_metrics()</highlight></codeline>
+<codeline><highlight class="normal">print(f&quot;Total<sp/>assets:<sp/>{metrics[&apos;total_assets&apos;]}&quot;)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Monitoring<sp/>and<sp/>Observability</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Metrics<sp/>Collection</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>Prometheus<sp/>metrics:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>prometheus_client<sp/>import<sp/>Counter,<sp/>Histogram,<sp/>start_http_server</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Define<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal">request_count<sp/>=<sp/>Counter(&apos;app_requests_total&apos;,<sp/>&apos;Total<sp/>requests&apos;)</highlight></codeline>
+<codeline><highlight class="normal">request_duration<sp/>=<sp/>Histogram(&apos;app_request_duration_seconds&apos;,<sp/>&apos;Request<sp/>duration&apos;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Use<sp/>in<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">with<sp/>request_duration.time():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>result<sp/>=<sp/>expensive_operation()</highlight></codeline>
+<codeline><highlight class="normal">request_count.inc()</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Low<sp/>(for<sp/>production)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Health<sp/>Checks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>comprehensive<sp/>health<sp/>checks:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>fastapi<sp/>import<sp/>FastAPI,<sp/>status</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">@app.get(&quot;/health&quot;,<sp/>status_code=status.HTTP_200_OK)</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>health_check():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Health<sp/>check<sp/>endpoint.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;status&quot;:<sp/>&quot;healthy&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;database&quot;:<sp/>check_database(),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;cache&quot;:<sp/>check_cache(),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;version&quot;:<sp/>&quot;1.0.0&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Medium</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Distributed<sp/>Tracing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Recommendation:**<sp/>Add<sp/>OpenTelemetry<sp/>for<sp/>tracing:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>opentelemetry<sp/>import<sp/>trace</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>opentelemetry.sdk.trace<sp/>import<sp/>TracerProvider</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">tracer<sp/>=<sp/>trace.get_tracer(__name__)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">with<sp/>tracer.start_as_current_span(&quot;calculate_metrics&quot;):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>metrics<sp/>=<sp/>graph.calculate_metrics()</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Priority:**<sp/>Low<sp/>(for<sp/>microservices)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Future<sp/>Features</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Machine<sp/>Learning<sp/>Integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Ideas:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Predictive<sp/>relationship<sp/>discovery</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Anomaly<sp/>detection<sp/>in<sp/>asset<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Portfolio<sp/>optimization</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Risk<sp/>prediction</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Tools:**<sp/>scikit-learn,<sp/>TensorFlow,<sp/>PyTorch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Real-time<sp/>Updates</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Ideas:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>WebSocket<sp/>support<sp/>for<sp/>live<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Event-driven<sp/>architecture</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Message<sp/>queue<sp/>integration<sp/>(RabbitMQ,<sp/>Kafka)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Advanced<sp/>Analytics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Ideas:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Time-series<sp/>analysis</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Correlation<sp/>matrices</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Network<sp/>centrality<sp/>measures</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Community<sp/>detection<sp/>algorithms</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Multi-tenancy</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Ideas:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>User<sp/>authentication</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Per-user<sp/>data<sp/>isolation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Role-based<sp/>access<sp/>control</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>API<sp/>rate<sp/>limiting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Conclusion</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>provides<sp/>a<sp/>roadmap<sp/>for<sp/>future<sp/>improvements.<sp/>Prioritize<sp/>based<sp/>on:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Security**<sp/>(High):<sp/>Secrets<sp/>management,<sp/>input<sp/>sanitization</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Testing**<sp/>(High):<sp/>Integration<sp/>tests,<sp/>performance<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Monitoring**<sp/>(Medium):<sp/>Health<sp/>checks,<sp/>logging</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Features**<sp/>(Medium):<sp/>ML<sp/>integration,<sp/>real-time<sp/>updates</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Optimization**<sp/>(Low):<sp/>Measure<sp/>before<sp/>optimizing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">All<sp/>current<sp/>code<sp/>is<sp/>production-ready<sp/>for<sp/>the<sp/>current<sp/>use<sp/>case.<sp/>These<sp/>improvements<sp/>are<sp/>for<sp/>scaling<sp/>and<sp/>enterprise<sp/>deployment.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Last<sp/>Updated:**<sp/>October<sp/>30,<sp/>2025</highlight></codeline>
+<codeline><highlight class="normal">**Version:**<sp/>1.0</highlight></codeline>
+<codeline><highlight class="normal">**Author:**<sp/>GitHub<sp/>Copilot<sp/>Code<sp/>Agent</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/IMPROVEMENTS.md"/>
+  </compounddef>
+</doxygen>

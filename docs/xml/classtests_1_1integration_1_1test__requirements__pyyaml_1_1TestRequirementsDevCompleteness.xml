@@ -1,0 +1,172 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_pyyaml::TestRequirementsDevCompleteness</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1ad487ffb33563724393d350b836a1f2d8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.requirements_content</definition>
+        <argsstring>(self)</argsstring>
+        <name>requirements_content</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.requirements_content</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Read the repository&apos;s requirements-dev.txt as UTF-8 text.
+
+Returns:
+    str: The full contents of requirements-dev.txt.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="167" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="167" bodyend="176"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1a5ea251e39291306e0f401678248221b0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_file_ends_with_newline</definition>
+        <argsstring>(self, str requirements_content)</argsstring>
+        <name>test_file_ends_with_newline</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_file_ends_with_newline</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>requirements_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that requirements-dev.txt ends with a newline.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="177" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="177" bodyend="180"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1acea89c3b99c15bb59637dae894aa6b20" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_no_duplicate_packages</definition>
+        <argsstring>(self, str requirements_content)</argsstring>
+        <name>test_no_duplicate_packages</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_no_duplicate_packages</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>requirements_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify the requirements content contains no duplicate package entries.
+
+Ignores blank lines and lines starting with &apos;#&apos;. Package names are taken as the text before any of the characters &apos;&gt;&apos;, &apos;&lt;&apos;, or &apos;=&apos; on each non-comment line; the test fails if any package name appears more than once.
+
+Parameters:
+    requirements_content (str): Full text of the requirements file to inspect.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="181" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="181" bodyend="199"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1ab18211d6e7d8a0c4c8b07f82983241c3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_all_lines_valid_format</definition>
+        <argsstring>(self, str requirements_content)</argsstring>
+        <name>test_all_lines_valid_format</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_all_lines_valid_format</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>requirements_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all requirement lines have valid format.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="200" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="200" bodyend="209"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1ab2c3f427561fd5de743e790c19071772" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_has_testing_dependencies</definition>
+        <argsstring>(self, str requirements_content)</argsstring>
+        <name>test_has_testing_dependencies</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_has_testing_dependencies</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>requirements_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file includes essential testing dependencies.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="210" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="210" bodyend="216"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1abc15865af26063cde596ee4ce33bece8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_has_linting_dependencies</definition>
+        <argsstring>(self, str requirements_content)</argsstring>
+        <name>test_has_linting_dependencies</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness.test_has_linting_dependencies</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>requirements_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file includes linting dependencies.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="217" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="217" bodyend="224"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that requirements-dev.txt is complete and well-formed.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_pyyaml.TestRequirementsDevCompleteness</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="163" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="163" bodyend="224"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1ad487ffb33563724393d350b836a1f2d8" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevCompleteness</scope><name>requirements_content</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1ab18211d6e7d8a0c4c8b07f82983241c3" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevCompleteness</scope><name>test_all_lines_valid_format</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1a5ea251e39291306e0f401678248221b0" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevCompleteness</scope><name>test_file_ends_with_newline</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1abc15865af26063cde596ee4ce33bece8" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevCompleteness</scope><name>test_has_linting_dependencies</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1ab2c3f427561fd5de743e790c19071772" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevCompleteness</scope><name>test_has_testing_dependencies</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestRequirementsDevCompleteness_1acea89c3b99c15bb59637dae894aa6b20" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestRequirementsDevCompleteness</scope><name>test_no_duplicate_packages</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

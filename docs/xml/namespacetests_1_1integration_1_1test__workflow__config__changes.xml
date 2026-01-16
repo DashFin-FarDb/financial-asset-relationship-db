@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1integration_1_1test__workflow__config__changes" kind="namespace" language="Python">
+    <compoundname>tests::integration::test_workflow_config_changes</compoundname>
+    <innerclass refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestAPISecScanWorkflowChanges" prot="public">tests::integration::test_workflow_config_changes::TestAPISecScanWorkflowChanges</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges" prot="public">tests::integration::test_workflow_config_changes::TestGreetingsWorkflowChanges</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges" prot="public">tests::integration::test_workflow_config_changes::TestLabelWorkflowChanges</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges" prot="public">tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentWorkflowChanges" prot="public">tests::integration::test_workflow_config_changes::TestPRAgentWorkflowChanges</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges" prot="public">tests::integration::test_workflow_config_changes::TestRequirementsDevChanges</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive tests for workflow configuration changes in current branch.
+
+Tests focus on:
+1. PR Agent workflow configuration validation
+2. Greetings workflow message customization
+3. Label workflow configuration
+4. APISec scan workflow conditional execution
+5. Workflow YAML syntax and structure
+6. Security best practices in workflows
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

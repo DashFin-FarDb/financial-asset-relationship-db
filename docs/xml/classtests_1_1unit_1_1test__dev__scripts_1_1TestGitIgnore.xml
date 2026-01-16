@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__dev__scripts_1_1TestGitIgnore" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_dev_scripts::TestGitIgnore</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestGitIgnore_1a9ca8e1c53181090760019a2878531733" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestGitIgnore.test_gitignore_excludes_build_artifacts</definition>
+        <argsstring>()</argsstring>
+        <name>test_gitignore_excludes_build_artifacts</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestGitIgnore.test_gitignore_excludes_build_artifacts</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that .gitignore excludes build artifacts.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="81" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="81" bodyend="99"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test .gitignore configuration.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_dev_scripts.TestGitIgnore</label>
+        <link refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestGitIgnore"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="77" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="77" bodyend="99"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestGitIgnore_1a9ca8e1c53181090760019a2878531733" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestGitIgnore</scope><name>test_gitignore_excludes_build_artifacts</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

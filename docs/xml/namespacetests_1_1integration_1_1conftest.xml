@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1integration_1_1conftest" kind="namespace" language="Python">
+    <compoundname>tests::integration::conftest</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetests_1_1integration_1_1conftest_1a825b01fea347a0abe216fec253fda3b1" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::integration::conftest.REQUIREMENTS_DEV_FILE</definition>
+        <argsstring></argsstring>
+        <name>REQUIREMENTS_DEV_FILE</name>
+        <qualifiedname>tests.integration.conftest.REQUIREMENTS_DEV_FILE</qualifiedname>
+        <initializer>=  Path(__file__).parent.parent.parent / &quot;requirements-dev.txt&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/conftest.py" line="9" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/conftest.py" bodystart="9" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1conftest_1a9e50885d5ebf8754427442e8fe76115c" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.conftest._parse_requirements_file</definition>
+        <argsstring>(Path file_path)</argsstring>
+        <name>_parse_requirements_file</name>
+        <qualifiedname>tests.integration.conftest._parse_requirements_file</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>file_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Helper to parse requirements file into (package, version) tuples.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/conftest.py" line="12" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/conftest.py" bodystart="12" bodyend="42"/>
+        <referencedby refid="namespacetests_1_1integration_1_1conftest_1aec82707acc67d297679847219b266886" compoundref="tests_2integration_2conftest_8py" startline="43" endline="48">tests.integration.conftest.parsed_requirements</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1conftest_1aec82707acc67d297679847219b266886" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.conftest.parsed_requirements</definition>
+        <argsstring>()</argsstring>
+        <name>parsed_requirements</name>
+        <qualifiedname>tests.integration.conftest.parsed_requirements</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse requirements-dev.txt and return list of (package, version) tuples.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/conftest.py" line="43" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/conftest.py" bodystart="43" bodyend="48"/>
+        <references refid="namespacetests_1_1integration_1_1conftest_1a9e50885d5ebf8754427442e8fe76115c" compoundref="tests_2integration_2conftest_8py" startline="12" endline="42">tests.integration.conftest._parse_requirements_file</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1conftest_1a8aba8d1c1d89b1872be0e439c26173f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[dict]</type>
+        <definition> List[dict] tests.integration.conftest.all_workflows</definition>
+        <argsstring>()</argsstring>
+        <name>all_workflows</name>
+        <qualifiedname>tests.integration.conftest.all_workflows</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load and parse all GitHub Actions workflow YAML files from .github/workflows.
+
+Returns:
+    List[dict]: A list of dictionaries containing &apos;path&apos;, &apos;content&apos;, and &apos;raw&apos; keys.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/conftest.py" line="49" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/conftest.py" bodystart="49" bodyend="77"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Shared fixtures for integration tests.</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/conftest.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,294 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="QUICK__START_8md" kind="file" language="Markdown">
+    <compoundname>QUICK_START.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Quick<sp/>Start<sp/>Guide<sp/>-<sp/>Next.js<sp/>+<sp/>FastAPI<sp/>Integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>guide<sp/>will<sp/>get<sp/>you<sp/>up<sp/>and<sp/>running<sp/>with<sp/>the<sp/>new<sp/>Next.js<sp/>frontend<sp/>in<sp/>under<sp/>5<sp/>minutes.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Prerequisites</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Python<sp/>3.8<sp/>or<sp/>higher</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Node.js<sp/>18<sp/>or<sp/>higher</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Git</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Option<sp/>1:<sp/>Automated<sp/>Setup<sp/>(Recommended)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Linux/macOS</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Make<sp/>the<sp/>script<sp/>executable</highlight></codeline>
+<codeline><highlight class="normal">chmod<sp/>+x<sp/>run-dev.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>development<sp/>environment</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Windows</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```cmd</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>development<sp/>environment</highlight></codeline>
+<codeline><highlight class="normal">run-dev.bat</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">That&apos;s<sp/>it!<sp/>The<sp/>script<sp/>will:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Create<sp/>a<sp/>Python<sp/>virtual<sp/>environment</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Install<sp/>Python<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Install<sp/>Node.js<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Start<sp/>the<sp/>FastAPI<sp/>backend<sp/>on<sp/>port<sp/>8000</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>Start<sp/>the<sp/>Next.js<sp/>frontend<sp/>on<sp/>port<sp/>3000</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Access<sp/>the<sp/>application:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Frontend:<sp/>http://localhost:3000</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Backend<sp/>API:<sp/>http://localhost:8000</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>API<sp/>Documentation:<sp/>http://localhost:8000/docs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Option<sp/>2:<sp/>Manual<sp/>Setup</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Step<sp/>1:<sp/>Backend<sp/>Setup</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Create<sp/>and<sp/>activate<sp/>virtual<sp/>environment</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Linux/macOS</highlight></codeline>
+<codeline><highlight class="normal">source<sp/>.venv/bin/activate</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Windows</highlight></codeline>
+<codeline><highlight class="normal">.venv\Scripts\activate</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>the<sp/>backend</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--port<sp/>8000</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Step<sp/>2:<sp/>Frontend<sp/>Setup<sp/>(in<sp/>a<sp/>new<sp/>terminal)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Navigate<sp/>to<sp/>frontend<sp/>directory</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Copy<sp/>environment<sp/>file<sp/>from<sp/>project<sp/>root</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>(the<sp/>.env.example<sp/>file<sp/>is<sp/>located<sp/>in<sp/>the<sp/>project<sp/>root<sp/>directory)</highlight></codeline>
+<codeline><highlight class="normal">cp<sp/>../.env.example<sp/>.env.local</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>the<sp/>development<sp/>server</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>What<sp/>You&apos;ll<sp/>See</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Backend<sp/>(Port<sp/>8000)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">INFO:<sp/><sp/><sp/><sp/><sp/>Uvicorn<sp/>running<sp/>on<sp/>http://0.0.0.0:8000</highlight></codeline>
+<codeline><highlight class="normal">INFO:<sp/><sp/><sp/><sp/><sp/>Application<sp/>startup<sp/>complete.</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Visit<sp/>http://localhost:8000/docs<sp/>to<sp/>see<sp/>the<sp/>interactive<sp/>API<sp/>documentation.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>(Port<sp/>3000)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>ready<sp/>started<sp/>server<sp/>on<sp/>0.0.0.0:3000,<sp/>url:<sp/>http://localhost:3000</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>event<sp/>compiled<sp/>client<sp/>and<sp/>server<sp/>successfully</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Visit<sp/>http://localhost:3000<sp/>to<sp/>see<sp/>the<sp/>application.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Using<sp/>the<sp/>Application</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>3D<sp/>Visualization<sp/>Tab</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Interactive<sp/>3D<sp/>network<sp/>graph</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Rotate:<sp/>Click<sp/>and<sp/>drag</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Zoom:<sp/>Scroll<sp/>wheel</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Hover:<sp/>View<sp/>asset<sp/>details</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Metrics<sp/>&amp;<sp/>Analytics<sp/>Tab</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Total<sp/>assets<sp/>and<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Network<sp/>statistics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Asset<sp/>class<sp/>distribution</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Asset<sp/>Explorer<sp/>Tab</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Filterable<sp/>table<sp/>of<sp/>all<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Filter<sp/>by<sp/>asset<sp/>class<sp/>or<sp/>sector</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>View<sp/>detailed<sp/>asset<sp/>information</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Testing<sp/>the<sp/>API</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Using<sp/>curl</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Health<sp/>check</highlight></codeline>
+<codeline><highlight class="normal">curl<sp/>http://localhost:8000/api/health</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Get<sp/>all<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">curl<sp/>http://localhost:8000/api/assets</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Get<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal">curl<sp/>http://localhost:8000/api/metrics</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Using<sp/>Python</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>test<sp/>script</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>test_api.py</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Using<sp/>Browser</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Visit<sp/>http://localhost:8000/docs<sp/>for<sp/>interactive<sp/>API<sp/>testing.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Troubleshooting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Backend<sp/>Issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Problem:<sp/>Port<sp/>8000<sp/>already<sp/>in<sp/>use**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Find<sp/>and<sp/>kill<sp/>the<sp/>process</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Linux/macOS</highlight></codeline>
+<codeline><highlight class="normal">lsof<sp/>-ti:8000<sp/>|<sp/>xargs<sp/>kill<sp/>-9</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Windows</highlight></codeline>
+<codeline><highlight class="normal">netstat<sp/>-ano<sp/>|<sp/>findstr<sp/>:8000</highlight></codeline>
+<codeline><highlight class="normal">taskkill<sp/>/PID<sp/>&lt;PID&gt;<sp/>/F</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Problem:<sp/>Module<sp/>not<sp/>found<sp/>errors**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Ensure<sp/>virtual<sp/>environment<sp/>is<sp/>activated</highlight></codeline>
+<codeline><highlight class="normal">source<sp/>.venv/bin/activate<sp/><sp/>#<sp/>Linux/macOS</highlight></codeline>
+<codeline><highlight class="normal">.venv\Scripts\activate<sp/><sp/><sp/><sp/><sp/>#<sp/>Windows</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Reinstall<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>Issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Problem:<sp/>Port<sp/>3000<sp/>already<sp/>in<sp/>use**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>The<sp/>frontend<sp/>will<sp/>automatically<sp/>use<sp/>the<sp/>next<sp/>available<sp/>port</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>kill<sp/>the<sp/>process<sp/>manually:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Linux/macOS</highlight></codeline>
+<codeline><highlight class="normal">lsof<sp/>-ti:3000<sp/>|<sp/>xargs<sp/>kill<sp/>-9</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Windows</highlight></codeline>
+<codeline><highlight class="normal">netstat<sp/>-ano<sp/>|<sp/>findstr<sp/>:3000</highlight></codeline>
+<codeline><highlight class="normal">taskkill<sp/>/PID<sp/>&lt;PID&gt;<sp/>/F</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Problem:<sp/>API<sp/>connection<sp/>errors**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Check<sp/>that<sp/>backend<sp/>is<sp/>running<sp/>on<sp/>port<sp/>8000</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Verify<sp/>`NEXT_PUBLIC_API_URL`<sp/>in<sp/>`.env.local`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Check<sp/>browser<sp/>console<sp/>for<sp/>CORS<sp/>errors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Problem:<sp/>Module<sp/>not<sp/>found**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">rm<sp/>-rf<sp/>node_modules<sp/>.next</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Common<sp/>Commands</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Backend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>backend</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--port<sp/>8000</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>with<sp/>custom<sp/>host</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--host<sp/>0.0.0.0<sp/>--port<sp/>8000</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>without<sp/>auto-reload<sp/>(production-like)</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--port<sp/>8000</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Development<sp/>server</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Production<sp/>build</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>production<sp/>server</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>start</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Lint<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>lint</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Next<sp/>Steps</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Explore<sp/>the<sp/>code**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Backend:<sp/>`api/main.py`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Frontend:<sp/>`frontend/app/page.tsx`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Components:<sp/>`frontend/app/components/`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Read<sp/>the<sp/>documentation**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>[DEPLOYMENT.md](./DEPLOYMENT.md)<sp/>-<sp/>Full<sp/>deployment<sp/>guide</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>[INTEGRATION_SUMMARY.md](./INTEGRATION_SUMMARY.md)<sp/>-<sp/>Technical<sp/>details</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>[frontend/README.md](./frontend/README.md)<sp/>-<sp/>Frontend<sp/>specifics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Deploy<sp/>to<sp/>Vercel**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>See<sp/>[DEPLOYMENT.md](./DEPLOYMENT.md)<sp/>for<sp/>instructions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Customize**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Modify<sp/>components<sp/>in<sp/>`frontend/app/components/`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Add<sp/>new<sp/>API<sp/>endpoints<sp/>in<sp/>`api/main.py`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Update<sp/>styles<sp/>in<sp/>`frontend/app/globals.css`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Getting<sp/>Help</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Check<sp/>the<sp/>error<sp/>messages<sp/>in<sp/>your<sp/>terminal</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Review<sp/>the<sp/>browser<sp/>console<sp/>for<sp/>frontend<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Visit<sp/>the<sp/>API<sp/>docs<sp/>at<sp/>http://localhost:8000/docs</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>See<sp/>[DEPLOYMENT.md](./DEPLOYMENT.md)<sp/>for<sp/>detailed<sp/>troubleshooting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Compare<sp/>with<sp/>Gradio<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">You<sp/>can<sp/>still<sp/>use<sp/>the<sp/>original<sp/>Gradio<sp/>interface:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>app.py</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Access<sp/>at<sp/>http://localhost:7860</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Both<sp/>UIs<sp/>use<sp/>the<sp/>same<sp/>underlying<sp/>data<sp/>and<sp/>logic,<sp/>so<sp/>you<sp/>can<sp/>use<sp/>whichever<sp/>you<sp/>prefer!</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Happy<sp/>Coding!<sp/>🚀**</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/QUICK_START.md"/>
+  </compounddef>
+</doxygen>

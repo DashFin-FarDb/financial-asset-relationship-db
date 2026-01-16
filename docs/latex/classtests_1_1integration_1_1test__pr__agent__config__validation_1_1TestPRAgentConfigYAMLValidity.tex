@@ -1,0 +1,63 @@
+\doxysection{tests.\+integration.\+test\+\_\+pr\+\_\+agent\+\_\+config\+\_\+validation.\+Test\+PRAgent\+Config\+YAMLValidity Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity}{}\label{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity}\index{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity@{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+pr\+\_\+agent\+\_\+config\+\_\+validation.\+Test\+PRAgent\+Config\+YAMLValidity\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=244pt]{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_a2677eeac89e344f78141c230ae966807}{test\+\_\+config\+\_\+is\+\_\+valid\+\_\+yaml}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_a21af673178bb0327bafb09988827b4a8}{test\+\_\+no\+\_\+duplicate\+\_\+keys}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_a789d5832250a4c09d436706419dbd987}{test\+\_\+consistent\+\_\+indentation}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test YAML validity and structure.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_a2677eeac89e344f78141c230ae966807}\index{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity@{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity}!test\_config\_is\_valid\_yaml@{test\_config\_is\_valid\_yaml}}
+\index{test\_config\_is\_valid\_yaml@{test\_config\_is\_valid\_yaml}!tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity@{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity}}
+\doxysubsubsection{\texorpdfstring{test\_config\_is\_valid\_yaml()}{test\_config\_is\_valid\_yaml()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_a2677eeac89e344f78141c230ae966807} 
+tests.\+integration.\+test\+\_\+pr\+\_\+agent\+\_\+config\+\_\+validation.\+Test\+PRAgent\+Config\+YAMLValidity.\+test\+\_\+config\+\_\+is\+\_\+valid\+\_\+yaml (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Fail the test if .github/pr-agent-config.yml contains invalid YAML.
+
+Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_a789d5832250a4c09d436706419dbd987}\index{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity@{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity}!test\_consistent\_indentation@{test\_consistent\_indentation}}
+\index{test\_consistent\_indentation@{test\_consistent\_indentation}!tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity@{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity}}
+\doxysubsubsection{\texorpdfstring{test\_consistent\_indentation()}{test\_consistent\_indentation()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_a789d5832250a4c09d436706419dbd987} 
+tests.\+integration.\+test\+\_\+pr\+\_\+agent\+\_\+config\+\_\+validation.\+Test\+PRAgent\+Config\+YAMLValidity.\+test\+\_\+consistent\+\_\+indentation (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
+
+Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_a21af673178bb0327bafb09988827b4a8}\index{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity@{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity}!test\_no\_duplicate\_keys@{test\_no\_duplicate\_keys}}
+\index{test\_no\_duplicate\_keys@{test\_no\_duplicate\_keys}!tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity@{tests.integration.test\_pr\_agent\_config\_validation.TestPRAgentConfigYAMLValidity}}
+\doxysubsubsection{\texorpdfstring{test\_no\_duplicate\_keys()}{test\_no\_duplicate\_keys()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity_a21af673178bb0327bafb09988827b4a8} 
+tests.\+integration.\+test\+\_\+pr\+\_\+agent\+\_\+config\+\_\+validation.\+Test\+PRAgent\+Config\+YAMLValidity.\+test\+\_\+no\+\_\+duplicate\+\_\+keys (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Fail the test if any top-level YAML key appears more than once in the file.
+
+Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__pr__agent__config__validation_8py}{test\+\_\+pr\+\_\+agent\+\_\+config\+\_\+validation.\+py}}\end{DoxyCompactItemize}

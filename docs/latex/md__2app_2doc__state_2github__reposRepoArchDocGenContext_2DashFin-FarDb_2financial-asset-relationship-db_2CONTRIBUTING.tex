@@ -1,0 +1,473 @@
+\chapter{Contributing to Financial Asset Relationship Database}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING}\index{Contributing to Financial Asset Relationship Database@{Contributing to Financial Asset Relationship Database}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md652}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md652}%
+
+
+Thank you for your interest in contributing! This document provides guidelines and instructions for contributing to this project.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md653}{}\doxysection{\texorpdfstring{📋 Table of Contents}{📋 Table of Contents}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md653}
+
+\begin{DoxyItemize}
+\item Code of Conduct
+\item Getting Started
+\item Development Setup
+\item Development Workflow
+\item Coding Standards
+\item Testing Guidelines
+\item Submitting Changes
+\item Project Structure
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md654}{}\doxysection{\texorpdfstring{Code of Conduct}{Code of Conduct}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md654}
+This project adheres to a code of conduct that fosters an open and welcoming environment. Please be respectful and professional in all interactions.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md655}{}\doxysection{\texorpdfstring{Getting Started}{Getting Started}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md655}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md656}{}\doxysubsection{\texorpdfstring{Prerequisites}{Prerequisites}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md656}
+
+\begin{DoxyItemize}
+\item Python 3.\+8 or higher
+\item Git
+\item Virtual environment tool (venv, virtualenv, or conda)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md657}{}\doxysubsection{\texorpdfstring{Installation}{Installation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md657}
+
+\begin{DoxyEnumerate}
+\item Fork the repository on Git\+Hub
+\item Clone your fork locally\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ clone\ https://github.com/YOUR\_USERNAME/financial-\/asset-\/relationship-\/db.git}
+\DoxyCodeLine{cd\ financial-\/asset-\/relationship-\/db}
+
+\end{DoxyCode}
+
+\item Add the upstream repository\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ remote\ add\ upstream\ https://github.com/mohavro/financial-\/asset-\/relationship-\/db.git}
+
+\end{DoxyCode}
+
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md658}{}\doxysection{\texorpdfstring{Development Setup}{Development Setup}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md658}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md659}{}\doxysubsection{\texorpdfstring{1. Create a Virtual Environment}{1. Create a Virtual Environment}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md659}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ -\/m\ venv\ .venv}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md660}{}\doxysubsection{\texorpdfstring{2. Activate the Virtual Environment}{2. Activate the Virtual Environment}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md660}
+{\bfseries{Windows (Power\+Shell)\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{.\(\backslash\).venv\(\backslash\)Scripts\(\backslash\)Activate.ps1}
+
+\end{DoxyCode}
+
+
+{\bfseries{Windows (Command Prompt)\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{.venv\(\backslash\)Scripts\(\backslash\)activate.bat}
+
+\end{DoxyCode}
+
+
+{\bfseries{mac\+OS/\+Linux\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{source\ .venv/bin/activate}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md661}{}\doxysubsection{\texorpdfstring{3. Install Dependencies}{3. Install Dependencies}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md661}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Install\ production\ dependencies}
+\DoxyCodeLine{pip\ install\ -\/r\ requirements.txt}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Install\ development\ dependencies}
+\DoxyCodeLine{pip\ install\ -\/r\ requirements-\/dev.txt}
+
+\end{DoxyCode}
+
+
+Or use the Makefile\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ install-\/dev}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md662}{}\doxysubsection{\texorpdfstring{4. Install Pre-\/commit Hooks}{4. Install Pre-\/commit Hooks}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md662}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pre-\/commit\ install}
+
+\end{DoxyCode}
+
+
+Or use the Makefile\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ pre-\/commit}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md663}{}\doxysection{\texorpdfstring{Development Workflow}{Development Workflow}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md663}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md664}{}\doxysubsection{\texorpdfstring{1. Create a Branch}{1. Create a Branch}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md664}
+Always create a new branch for your work\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ checkout\ -\/b\ feature/your-\/feature-\/name}
+\DoxyCodeLine{\#\ or}
+\DoxyCodeLine{git\ checkout\ -\/b\ bugfix/issue-\/number}
+
+\end{DoxyCode}
+
+
+Branch naming conventions\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily feature/description} -\/ New features
+\item {\ttfamily bugfix/description} -\/ Bug fixes
+\item {\ttfamily docs/description} -\/ Documentation updates
+\item {\ttfamily refactor/description} -\/ Code refactoring
+\item {\ttfamily test/description} -\/ Test additions/improvements
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md665}{}\doxysubsection{\texorpdfstring{2. Make Your Changes}{2. Make Your Changes}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md665}
+
+\begin{DoxyItemize}
+\item Follow the coding standards (see below)
+\item Write or update tests for your changes
+\item Update documentation as needed
+\item Keep commits small and focused
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md666}{}\doxysubsection{\texorpdfstring{3. Run Checks Locally}{3. Run Checks Locally}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md666}
+Before committing, run all checks\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Format\ code}
+\DoxyCodeLine{make\ format}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ linters}
+\DoxyCodeLine{make\ lint}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ type\ checker}
+\DoxyCodeLine{make\ type-\/check}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ tests}
+\DoxyCodeLine{make\ test}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Or\ run\ all\ checks\ at\ once}
+\DoxyCodeLine{make\ check}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md667}{}\doxysubsection{\texorpdfstring{4. Commit Your Changes}{4. Commit Your Changes}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md667}
+Write clear, descriptive commit messages\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ add\ .}
+\DoxyCodeLine{git\ commit\ -\/m\ "{}Add\ feature:\ brief\ description}
+\DoxyCodeLine{}
+\DoxyCodeLine{More\ detailed\ explanation\ of\ what\ changed\ and\ why.}
+\DoxyCodeLine{Reference\ any\ related\ issues:\ \#123"{}}
+
+\end{DoxyCode}
+
+
+Commit message guidelines\+:
+
+
+\begin{DoxyItemize}
+\item Use present tense ("{}\+Add feature"{} not "{}\+Added feature"{})
+\item First line should be concise (50 chars or less)
+\item Separate subject from body with blank line
+\item Body should explain what and why, not how
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md668}{}\doxysubsection{\texorpdfstring{5. Push and Create Pull Request}{5. Push and Create Pull Request}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md668}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ push\ origin\ your-\/branch-\/name}
+
+\end{DoxyCode}
+
+
+Then create a pull request on Git\+Hub with\+:
+
+
+\begin{DoxyItemize}
+\item Clear description of changes
+\item Reference to related issues
+\item Screenshots (if UI changes)
+\item Test results
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md669}{}\doxysection{\texorpdfstring{Coding Standards}{Coding Standards}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md669}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md670}{}\doxysubsection{\texorpdfstring{Python Style}{Python Style}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md670}
+We follow PEP 8 with some modifications\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Line length\+:}} 120 characters (not 79)
+\item {\bfseries{Formatting\+:}} Use Black for automatic formatting
+\item {\bfseries{Import sorting\+:}} Use isort
+\item {\bfseries{Type hints\+:}} Add type hints to all functions
+\item {\bfseries{Docstrings\+:}} Use Google or Num\+Py style
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md671}{}\doxysubsection{\texorpdfstring{Code Organization}{Code Organization}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md671}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{\#\ Standard\ library\ imports}}
+\DoxyCodeLine{\textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Dict,\ List}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Third-\/party\ imports}}
+\DoxyCodeLine{\textcolor{keyword}{import}\ numpy\ \textcolor{keyword}{as}\ np}
+\DoxyCodeLine{\textcolor{keyword}{import}\ plotly.graph\_objects\ \textcolor{keyword}{as}\ go}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Local\ imports}}
+\DoxyCodeLine{\textcolor{keyword}{from}\ src.models.financial\_models\ \textcolor{keyword}{import}\ Asset}
+\DoxyCodeLine{\textcolor{keyword}{from}\ src.logic.asset\_graph\ \textcolor{keyword}{import}\ AssetRelationshipGraph}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md672}{}\doxysubsection{\texorpdfstring{Naming Conventions}{Naming Conventions}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md672}
+
+\begin{DoxyItemize}
+\item {\bfseries{Variables/\+Functions\+:}} {\ttfamily snake\+\_\+case}
+\item {\bfseries{Classes\+:}} {\ttfamily Pascal\+Case}
+\item {\bfseries{Constants\+:}} {\ttfamily UPPER\+\_\+\+CASE}
+\item {\bfseries{Private methods\+:}} {\ttfamily \+\_\+leading\+\_\+underscore}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md673}{}\doxysubsection{\texorpdfstring{Documentation}{Documentation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md673}
+Every public class and function should have a docstring\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{def\ }calculate\_metrics(self)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Calculate\ relationship\ strength\ metrics.}}
+\DoxyCodeLine{\textcolor{stringliteral}{}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ Returns:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ Dict\ containing\ metrics\ including\ total\_assets,\ total\_relationships,}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ average\_relationship\_strength,\ and\ more.}}
+\DoxyCodeLine{\textcolor{stringliteral}{}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ Raises:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ ValueError:\ If\ graph\ is\ empty\ or\ invalid.}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{pass}}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md674}{}\doxysection{\texorpdfstring{Testing Guidelines}{Testing Guidelines}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md674}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md675}{}\doxysubsection{\texorpdfstring{Test Structure}{Test Structure}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md675}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{tests/}
+\DoxyCodeLine{├──\ conftest.py\ \ \ \ \ \ \ \ \ \ \#\ Shared\ fixtures}
+\DoxyCodeLine{├──\ unit/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Unit\ tests}
+\DoxyCodeLine{│\ \ \ ├──\ test\_models.py}
+\DoxyCodeLine{│\ \ \ └──\ test\_graph.py}
+\DoxyCodeLine{└──\ integration/\ \ \ \ \ \ \ \ \ \#\ Integration\ tests}
+\DoxyCodeLine{\ \ \ \ └──\ test\_workflows.py}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md676}{}\doxysubsection{\texorpdfstring{Writing Tests}{Writing Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md676}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Use descriptive test names\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{def\ }test\_asset\_creation\_with\_valid\_data():}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Test\ that\ a\ valid\ asset\ can\ be\ created."{}"{}"{}}}
+
+\end{DoxyCode}
+
+\item {\bfseries{Use fixtures from conftest.\+py\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{def\ }test\_add\_asset(empty\_graph,\ sample\_equity):}
+\DoxyCodeLine{\ \ \ \ empty\_graph.add\_asset(sample\_equity)}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{assert}\ len(empty\_graph.assets)\ ==\ 1}
+
+\end{DoxyCode}
+
+\item {\bfseries{Test edge cases\+:}}
+\begin{DoxyItemize}
+\item Empty inputs
+\item Null/\+None values
+\item Boundary conditions
+\item Invalid data
+\end{DoxyItemize}
+\item {\bfseries{Use pytest markers\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{@pytest.mark.unit}}
+\DoxyCodeLine{\textcolor{keyword}{def\ }test\_something():}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{}
+\DoxyCodeLine{@pytest.mark.slow}
+\DoxyCodeLine{\textcolor{keyword}{def\ }test\_something\_slow():}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{pass}}
+
+\end{DoxyCode}
+
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md677}{}\doxysubsection{\texorpdfstring{Running Tests}{Running Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md677}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ all\ tests}
+\DoxyCodeLine{pytest}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ specific\ test\ file}
+\DoxyCodeLine{pytest\ tests/unit/test\_models.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ with\ coverage}
+\DoxyCodeLine{pytest\ -\/-\/cov=src}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ only\ unit\ tests}
+\DoxyCodeLine{pytest\ -\/m\ unit}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ with\ verbose\ output}
+\DoxyCodeLine{pytest\ -\/v}
+
+\end{DoxyCode}
+
+
+Or use the Makefile\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ test\ \ \ \ \ \ \ \ \#\ With\ coverage}
+\DoxyCodeLine{make\ test-\/fast\ \ \ \#\ Without\ coverage}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md678}{}\doxysubsection{\texorpdfstring{Test Coverage Goals}{Test Coverage Goals}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md678}
+
+\begin{DoxyItemize}
+\item {\bfseries{Target\+:}} 80\% or higher
+\item {\bfseries{New features\+:}} Must have tests
+\item {\bfseries{Bug fixes\+:}} Add test that would have caught the bug
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md679}{}\doxysection{\texorpdfstring{Submitting Changes}{Submitting Changes}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md679}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md680}{}\doxysubsection{\texorpdfstring{Pull Request Process}{Pull Request Process}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md680}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Update documentation\+:}}
+\begin{DoxyItemize}
+\item Update README.\+md if needed
+\item Update docstrings
+\item Add comments for complex logic
+\end{DoxyItemize}
+\item {\bfseries{Ensure all checks pass\+:}}
+\begin{DoxyItemize}
+\item All tests pass
+\item Linters show no errors
+\item Type checking passes
+\item Code is formatted
+\end{DoxyItemize}
+\item {\bfseries{Update \doxylink{CHANGELOG_8md}{CHANGELOG.\+md}}} (if exists) with\+:
+\begin{DoxyItemize}
+\item Type of change (Added, Changed, Fixed, etc.)
+\item Brief description
+\item Issue reference if applicable
+\end{DoxyItemize}
+\item {\bfseries{Create Pull Request\+:}}
+\begin{DoxyItemize}
+\item Use descriptive title
+\item Fill out PR template
+\item Request review from maintainers
+\item Link related issues
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md681}{}\doxysubsection{\texorpdfstring{PR Review Process}{PR Review Process}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md681}
+
+\begin{DoxyItemize}
+\item Maintainers will review your PR
+\item Address any feedback or requested changes
+\item Keep discussion focused and professional
+\item Be patient -\/ reviews take time
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md682}{}\doxysubsection{\texorpdfstring{After PR is Merged}{After PR is Merged}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md682}
+
+\begin{DoxyItemize}
+\item Delete your feature branch (both locally and on Git\+Hub)
+\item Pull the latest changes from upstream\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ checkout\ main}
+\DoxyCodeLine{git\ pull\ upstream\ main}
+
+\end{DoxyCode}
+
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md683}{}\doxysubsection{\texorpdfstring{Branch Cleanup Best Practices}{Branch Cleanup Best Practices}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md683}
+To keep the repository clean and organized\+:
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Delete merged branches\+:}}
+\begin{DoxyItemize}
+\item Git\+Hub can automatically delete branches after PR merge
+\item Manually delete local branches\+: {\ttfamily git branch -\/d branch-\/name}
+\item Delete remote branches\+: {\ttfamily git push origin -\/-\/delete branch-\/name}
+\end{DoxyItemize}
+\item {\bfseries{Avoid long-\/lived feature branches\+:}}
+\begin{DoxyItemize}
+\item Keep branches short-\/lived (ideally \texorpdfstring{$<$}{<} 2 weeks)
+\item Break large features into smaller PRs
+\item Regularly sync with main to avoid conflicts
+\end{DoxyItemize}
+\item {\bfseries{Stale branch policy\+:}}
+\begin{DoxyItemize}
+\item Branches inactive for 90+ days may be automatically deleted
+\item You\textquotesingle{}ll receive a warning before deletion
+\item Important branches should be documented in issues
+\end{DoxyItemize}
+\item {\bfseries{Branch naming\+:}}
+\begin{DoxyItemize}
+\item Use descriptive names that indicate purpose
+\item Follow the naming conventions listed above
+\item Avoid generic names like "{}test"{} or "{}temp"{}
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+See \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.md}{0} for detailed branch management guidelines.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md684}{}\doxysection{\texorpdfstring{Project Structure}{Project Structure}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md684}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{financial-\/asset-\/relationship-\/db/}
+\DoxyCodeLine{├──\ .github/}
+\DoxyCodeLine{│\ \ \ ├──\ workflows/\ \ \ \ \ \ \ \ \ \ \ \#\ CI/CD\ workflows}
+\DoxyCodeLine{│\ \ \ └──\ copilot-\/instructions.md}
+\DoxyCodeLine{├──\ src/}
+\DoxyCodeLine{│\ \ \ ├──\ analysis/\ \ \ \ \ \ \ \ \ \ \ \#\ Analysis\ algorithms}
+\DoxyCodeLine{│\ \ \ ├──\ data/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Data\ management}
+\DoxyCodeLine{│\ \ \ ├──\ logic/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Core\ business\ logic}
+\DoxyCodeLine{│\ \ \ ├──\ models/\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Data\ models}
+\DoxyCodeLine{│\ \ \ ├──\ reports/\ \ \ \ \ \ \ \ \ \ \ \ \#\ Report\ generation}
+\DoxyCodeLine{│\ \ \ └──\ visualizations/\ \ \ \ \ \#\ Visualization\ code}
+\DoxyCodeLine{├──\ tests/}
+\DoxyCodeLine{│\ \ \ ├──\ unit/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Unit\ tests}
+\DoxyCodeLine{│\ \ \ └──\ integration/\ \ \ \ \ \ \ \ \#\ Integration\ tests}
+\DoxyCodeLine{├──\ app.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Main\ application}
+\DoxyCodeLine{├──\ requirements.txt\ \ \ \ \ \ \ \ \#\ Production\ dependencies}
+\DoxyCodeLine{├──\ requirements-\/dev.txt\ \ \ \ \#\ Development\ dependencies}
+\DoxyCodeLine{├──\ pyproject.toml\ \ \ \ \ \ \ \ \ \ \#\ Project\ configuration}
+\DoxyCodeLine{├──\ Makefile\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Development\ commands}
+\DoxyCodeLine{└──\ README.md\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Project\ documentation}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md685}{}\doxysubsection{\texorpdfstring{Key Files}{Key Files}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md685}
+
+\begin{DoxyItemize}
+\item {\bfseries{\doxylink{app_8py}{app.\+py}\+:}} Main Gradio application entry point
+\item {\bfseries{\doxylink{asset__graph_8py}{src/logic/asset\+\_\+graph.\+py}\+:}} Core graph algorithms
+\item {\bfseries{\doxylink{financial__models_8py}{src/models/financial\+\_\+models.\+py}\+:}} Domain models
+\item {\bfseries{\doxylink{sample__data_8py}{src/data/sample\+\_\+data.\+py}\+:}} Sample data generation
+\item {\bfseries{pyproject.\+toml\+:}} Tool configurations
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md686}{}\doxysection{\texorpdfstring{Need Help?}{Need Help?}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md686}
+
+\begin{DoxyItemize}
+\item Check existing issues and pull requests
+\item Read the documentation in README.\+md
+\item Review \doxylink{AI__RULES_8md}{AI\+\_\+\+RULES.\+md} for tech stack guidelines
+\item Ask questions in issue comments
+\item Contact maintainers
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md687}{}\doxysection{\texorpdfstring{Recognition}{Recognition}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_autotoc_md687}
+Contributors will be recognized in\+:
+
+
+\begin{DoxyItemize}
+\item Git\+Hub contributors list
+\item Release notes
+\item Project documentation (if significant contribution)
+\end{DoxyItemize}
+
+Thank you for contributing! 🎉 

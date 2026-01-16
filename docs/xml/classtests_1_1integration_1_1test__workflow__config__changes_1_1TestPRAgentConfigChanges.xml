@@ -1,0 +1,219 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1abde6c066815d22c9015bab05d48c455a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.pr_agent_config</definition>
+        <argsstring>(self)</argsstring>
+        <name>pr_agent_config</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.pr_agent_config</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load and parse the .github/pr-agent-config.yml file.
+
+Returns:
+    config (Dict[str, Any]): Parsed YAML configuration as a dictionary.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="123" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="123" bodyend="133"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1aa364038996cae8c029c0e8cfa73a2895" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_config_has_valid_yaml_syntax</definition>
+        <argsstring>(self, pr_agent_config)</argsstring>
+        <name>test_config_has_valid_yaml_syntax</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_config_has_valid_yaml_syntax</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1abde6c066815d22c9015bab05d48c455a" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify config file has valid YAML syntax.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="134" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="134" bodyend="138"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a0478d853d3716c438e5529ce7a323e86" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_agent_version_is_simplified</definition>
+        <argsstring>(self, pr_agent_config)</argsstring>
+        <name>test_agent_version_is_simplified</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_agent_version_is_simplified</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1abde6c066815d22c9015bab05d48c455a" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Assert the agent version in the parsed pr-agent-config.yml equals &quot;1.0.0&quot;.
+
+Parameters:
+    pr_agent_config (dict): Parsed YAML content of .github/pr-agent-config.yml as a dictionary.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="139" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="139" bodyend="151"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a341e6df587920857fc429eb512b5b0ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_no_context_chunking_config</definition>
+        <argsstring>(self, pr_agent_config)</argsstring>
+        <name>test_no_context_chunking_config</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_no_context_chunking_config</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1abde6c066815d22c9015bab05d48c455a" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure the agent configuration does not include a &apos;context&apos; chunking subsection.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="152" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="152" bodyend="160"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a56538fcbd7a11f2a35a90db0bfe06370" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_no_chunking_limits_config</definition>
+        <argsstring>(self, pr_agent_config)</argsstring>
+        <name>test_no_chunking_limits_config</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_no_chunking_limits_config</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1abde6c066815d22c9015bab05d48c455a" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify chunking limits configuration was removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="161" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="161" bodyend="170"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1ae4d7fe07dc6442e85e9631ccbde86458" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_basic_config_structure_intact</definition>
+        <argsstring>(self, pr_agent_config)</argsstring>
+        <name>test_basic_config_structure_intact</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_basic_config_structure_intact</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1abde6c066815d22c9015bab05d48c455a" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify basic configuration structure is maintained.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="171" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="171" bodyend="176"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a6c2960b266496c010918eb380e79e576" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_rate_limiting_configured</definition>
+        <argsstring>(self, pr_agent_config)</argsstring>
+        <name>test_rate_limiting_configured</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_rate_limiting_configured</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1abde6c066815d22c9015bab05d48c455a" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify rate limiting is still configured.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="177" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="177" bodyend="182"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a2ba8039e9d89a5b8f8867dd46fdb97e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_monitoring_interval_configured</definition>
+        <argsstring>(self, pr_agent_config)</argsstring>
+        <name>test_monitoring_interval_configured</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges.test_monitoring_interval_configured</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1abde6c066815d22c9015bab05d48c455a" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify monitoring interval is configured.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="183" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="183" bodyend="189"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for pr-agent-config.yml configuration changes.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_config_changes.TestPRAgentConfigChanges</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="119" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="119" bodyend="189"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1abde6c066815d22c9015bab05d48c455a" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</scope><name>pr_agent_config</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a0478d853d3716c438e5529ce7a323e86" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</scope><name>test_agent_version_is_simplified</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1ae4d7fe07dc6442e85e9631ccbde86458" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</scope><name>test_basic_config_structure_intact</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1aa364038996cae8c029c0e8cfa73a2895" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</scope><name>test_config_has_valid_yaml_syntax</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a2ba8039e9d89a5b8f8867dd46fdb97e8" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</scope><name>test_monitoring_interval_configured</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a56538fcbd7a11f2a35a90db0bfe06370" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</scope><name>test_no_chunking_limits_config</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a341e6df587920857fc429eb512b5b0ec" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</scope><name>test_no_context_chunking_config</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges_1a6c2960b266496c010918eb380e79e576" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestPRAgentConfigChanges</scope><name>test_rate_limiting_configured</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

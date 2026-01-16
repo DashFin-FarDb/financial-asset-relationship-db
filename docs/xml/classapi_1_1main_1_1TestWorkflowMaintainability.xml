@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classapi_1_1main_1_1TestWorkflowMaintainability" kind="class" language="Python" prot="public">
+    <compoundname>api::main::TestWorkflowMaintainability</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classapi_1_1main_1_1TestWorkflowMaintainability_1afc791b16c0d036a51dc6bd0d2a232be8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.TestWorkflowMaintainability.test_workflows_have_comments</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflows_have_comments</name>
+        <qualifiedname>api.main.TestWorkflowMaintainability.test_workflows_have_comments</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Workflows should have explanatory comments.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="1010" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="1010" bodyend="1035"/>
+      </memberdef>
+      <memberdef kind="function" id="classapi_1_1main_1_1TestWorkflowMaintainability_1a8dd7773229cd31b93a565c18b0154e19" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.TestWorkflowMaintainability.test_complex_expressions_explained</definition>
+        <argsstring>()</argsstring>
+        <name>test_complex_expressions_explained</name>
+        <qualifiedname>api.main.TestWorkflowMaintainability.test_complex_expressions_explained</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Complex expressions should have explanatory comments.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="1037" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="1037" bodyend="1068"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test workflow maintainability and documentation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>api.main.TestWorkflowMaintainability</label>
+        <link refid="classapi_1_1main_1_1TestWorkflowMaintainability"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="1006" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="1006" bodyend="1068"/>
+    <listofallmembers>
+      <member refid="classapi_1_1main_1_1TestWorkflowMaintainability_1a8dd7773229cd31b93a565c18b0154e19" prot="public" virt="non-virtual"><scope>api::main::TestWorkflowMaintainability</scope><name>test_complex_expressions_explained</name></member>
+      <member refid="classapi_1_1main_1_1TestWorkflowMaintainability_1afc791b16c0d036a51dc6bd0d2a232be8" prot="public" virt="non-virtual"><scope>api::main::TestWorkflowMaintainability</scope><name>test_workflows_have_comments</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

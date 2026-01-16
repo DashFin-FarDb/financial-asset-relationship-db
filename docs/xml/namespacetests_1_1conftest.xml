@@ -1,0 +1,225 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1conftest" kind="namespace" language="Python">
+    <compoundname>tests::conftest</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetests_1_1conftest_1acf74c7408a68d502029bd28e91602c1b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.conftest.empty_graph</definition>
+        <argsstring>()</argsstring>
+        <name>empty_graph</name>
+        <qualifiedname>tests.conftest.empty_graph</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide an empty AssetRelationshipGraph.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="22" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="22" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1a98351be069dd528fb4ae48c24af4a326" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.conftest.sample_equity</definition>
+        <argsstring>()</argsstring>
+        <name>sample_equity</name>
+        <qualifiedname>tests.conftest.sample_equity</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide a sample Equity asset.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="28" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="28" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1add92eade8caea489cbc96089fc8c3f05" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.conftest.sample_bond</definition>
+        <argsstring>()</argsstring>
+        <name>sample_bond</name>
+        <qualifiedname>tests.conftest.sample_bond</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide a sample Bond asset.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="41" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="41" bodyend="54"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1aeed13c141ccd21c59e7770a32f8347ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.conftest.sample_commodity</definition>
+        <argsstring>()</argsstring>
+        <name>sample_commodity</name>
+        <qualifiedname>tests.conftest.sample_commodity</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide a sample Commodity asset.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="55" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="55" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1a790e4399549396a15f133c23ba82d0c9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.conftest.sample_currency</definition>
+        <argsstring>()</argsstring>
+        <name>sample_currency</name>
+        <qualifiedname>tests.conftest.sample_currency</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide a sample Currency asset.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="68" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="68" bodyend="80"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1ad223d1994c93a4f64faa44b2afd6bdac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.conftest.sample_regulatory_event</definition>
+        <argsstring>()</argsstring>
+        <name>sample_regulatory_event</name>
+        <qualifiedname>tests.conftest.sample_regulatory_event</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide a sample RegulatoryEvent.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="81" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="81" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1af37ba70ee3f25a7d21fd143eea97c68d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.conftest.populated_graph</definition>
+        <argsstring>(sample_equity, sample_bond, sample_commodity, sample_currency, sample_regulatory_event)</argsstring>
+        <name>populated_graph</name>
+        <qualifiedname>tests.conftest.populated_graph</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1conftest_1a98351be069dd528fb4ae48c24af4a326" kindref="member">sample_equity</ref></type>
+          <defname>sample_equity</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1conftest_1add92eade8caea489cbc96089fc8c3f05" kindref="member">sample_bond</ref></type>
+          <defname>sample_bond</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1conftest_1aeed13c141ccd21c59e7770a32f8347ef" kindref="member">sample_commodity</ref></type>
+          <defname>sample_commodity</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1conftest_1a790e4399549396a15f133c23ba82d0c9" kindref="member">sample_currency</ref></type>
+          <defname>sample_currency</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1conftest_1ad223d1994c93a4f64faa44b2afd6bdac" kindref="member">sample_regulatory_event</ref></type>
+          <defname>sample_regulatory_event</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide a populated AssetRelationshipGraph with 4 assets and 1 event.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="95" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="101" bodyend="112"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1a099d5e2a8fd44d2d0ad8b582715da935" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None tests.conftest.pytest_addoption</definition>
+        <argsstring>(&quot;Parser&quot; parser)</argsstring>
+        <name>pytest_addoption</name>
+        <qualifiedname>tests.conftest.pytest_addoption</qualifiedname>
+        <param>
+          <type>&quot;Parser&quot;</type>
+          <declname>parser</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Register dummy coverage command-line options when pytest-cov is unavailable.
+
+If the `pytest-cov` plugin cannot be imported this registers `--cov` and
+`--cov-report` as benign, appendable options so test runs that include those
+flags do not error. If `pytest-cov` is importable this function has no effect.
+
+Parameters:
+    parser (Parser): Pytest argument parser used to add the command-line options.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="117" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="117" bodyend="133"/>
+        <references refid="namespacetests_1_1conftest_1a844caabcc8d6b0a23772782103ae2554" compoundref="tests_2conftest_8py" startline="134" endline="155">tests.conftest._register_dummy_cov_options</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1a844caabcc8d6b0a23772782103ae2554" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None tests.conftest._register_dummy_cov_options</definition>
+        <argsstring>(&quot;Parser&quot; parser)</argsstring>
+        <name>_register_dummy_cov_options</name>
+        <qualifiedname>tests.conftest._register_dummy_cov_options</qualifiedname>
+        <param>
+          <type>&quot;Parser&quot;</type>
+          <declname>parser</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Register dummy --cov and --cov-report options.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="134" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="134" bodyend="155"/>
+        <referencedby refid="namespacetests_1_1conftest_1a099d5e2a8fd44d2d0ad8b582715da935" compoundref="tests_2conftest_8py" startline="117" endline="133">tests.conftest.pytest_addoption</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1ada48d9ff606f084600c621bb04faf0c1" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.conftest._reset_graph</definition>
+        <argsstring>()</argsstring>
+        <name>_reset_graph</name>
+        <qualifiedname>tests.conftest._reset_graph</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Reset the graph singleton between tests.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="156" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="156" bodyend="164"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1conftest_1ac59314e1fedf4b7176b05a69b9cd57cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.conftest.dividend_stock</definition>
+        <argsstring>()</argsstring>
+        <name>dividend_stock</name>
+        <qualifiedname>tests.conftest.dividend_stock</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide a sample Equity representing a dividend-paying stock for tests.
+
+Returns:
+    Equity: An Equity instance configured for testing with id &quot;DIV_STOCK&quot;,
+        symbol &quot;DIVS&quot;, sector &quot;Utilities&quot;, price 100.0,
+        dividend_yield 0.04 and other common financial fields populated.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="165" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" bodystart="165" bodyend="186"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Pytest configuration and fixtures for the financial asset relationship
+database tests.
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/conftest.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

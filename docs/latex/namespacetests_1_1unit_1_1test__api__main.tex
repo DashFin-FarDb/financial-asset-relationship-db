@@ -1,0 +1,85 @@
+\doxysection{tests.\+unit.\+test\+\_\+api\+\_\+main Namespace Reference}
+\hypertarget{namespacetests_1_1unit_1_1test__api__main}{}\label{namespacetests_1_1unit_1_1test__api__main}\index{tests.unit.test\_api\_main@{tests.unit.test\_api\_main}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields}{Test\+Additional\+Fields}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestAPIEndpoints}{Test\+APIEndpoints}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling}{Test\+Error\+Handling}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization}{Test\+Graph\+Initialization}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios}{Test\+Integration\+Scenarios}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels}{Test\+Pydantic\+Models}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin}{Test\+Validate\+Origin}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestVisualizationDataProcessing}{Test\+Visualization\+Data\+Processing}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacetests_1_1unit_1_1test__api__main_a9f71ec228f2324223d350c067d5b22cd}{cors\+\_\+client}} ()
+\item 
+\mbox{\hyperlink{namespacetests_1_1unit_1_1test__api__main_afa2dc86818b2ec5565ad88ab1ced3000}{test\+\_\+cors\+\_\+headers\+\_\+present}} (\mbox{\hyperlink{namespacetests_1_1unit_1_1test__api__main_a9f71ec228f2324223d350c067d5b22cd}{cors\+\_\+client}})
+\item 
+\mbox{\hyperlink{namespacetests_1_1unit_1_1test__api__main_a099d26279e9130bcfe5365bdf9772fb4}{test\+\_\+cors\+\_\+rejects\+\_\+disallowed\+\_\+origin}} (\mbox{\hyperlink{namespacetests_1_1unit_1_1test__api__main_a9f71ec228f2324223d350c067d5b22cd}{cors\+\_\+client}})
+\item 
+\mbox{\hyperlink{namespacetests_1_1unit_1_1test__api__main_a75fd588e1e4814b0f9132216b836e696}{test\+\_\+cors\+\_\+allows\+\_\+development\+\_\+origins}} (\mbox{\hyperlink{namespacetests_1_1unit_1_1test__api__main_a9f71ec228f2324223d350c067d5b22cd}{cors\+\_\+client}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{namespacetests_1_1unit_1_1test__api__main_a2bd3883f2ecf93119a8f9fe548961a6f}{CORS\+\_\+\+DEV\+\_\+\+ORIGIN}} = "{}http\+://localhost\+:3000"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Comprehensive unit tests for the FastAPI backend (api/main.py).
+
+This module tests all API endpoints, error handling, CORS configuration,
+lazy graph initialization with thread-safe double-check locking, and response models.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetests_1_1unit_1_1test__api__main_a9f71ec228f2324223d350c067d5b22cd}\index{tests.unit.test\_api\_main@{tests.unit.test\_api\_main}!cors\_client@{cors\_client}}
+\index{cors\_client@{cors\_client}!tests.unit.test\_api\_main@{tests.unit.test\_api\_main}}
+\doxysubsubsection{\texorpdfstring{cors\_client()}{cors\_client()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1unit_1_1test__api__main_a9f71ec228f2324223d350c067d5b22cd} 
+tests.\+unit.\+test\+\_\+api\+\_\+main.\+cors\+\_\+client (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create a reusable test client for CORS checks.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1unit_1_1test__api__main_a75fd588e1e4814b0f9132216b836e696}\index{tests.unit.test\_api\_main@{tests.unit.test\_api\_main}!test\_cors\_allows\_development\_origins@{test\_cors\_allows\_development\_origins}}
+\index{test\_cors\_allows\_development\_origins@{test\_cors\_allows\_development\_origins}!tests.unit.test\_api\_main@{tests.unit.test\_api\_main}}
+\doxysubsubsection{\texorpdfstring{test\_cors\_allows\_development\_origins()}{test\_cors\_allows\_development\_origins()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1unit_1_1test__api__main_a75fd588e1e4814b0f9132216b836e696} 
+tests.\+unit.\+test\+\_\+api\+\_\+main.\+test\+\_\+cors\+\_\+allows\+\_\+development\+\_\+origins (\begin{DoxyParamCaption}\item[{}]{cors\+\_\+client}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test CORS allows development origins explicitly in development mode.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1unit_1_1test__api__main_afa2dc86818b2ec5565ad88ab1ced3000}\index{tests.unit.test\_api\_main@{tests.unit.test\_api\_main}!test\_cors\_headers\_present@{test\_cors\_headers\_present}}
+\index{test\_cors\_headers\_present@{test\_cors\_headers\_present}!tests.unit.test\_api\_main@{tests.unit.test\_api\_main}}
+\doxysubsubsection{\texorpdfstring{test\_cors\_headers\_present()}{test\_cors\_headers\_present()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1unit_1_1test__api__main_afa2dc86818b2ec5565ad88ab1ced3000} 
+tests.\+unit.\+test\+\_\+api\+\_\+main.\+test\+\_\+cors\+\_\+headers\+\_\+present (\begin{DoxyParamCaption}\item[{}]{cors\+\_\+client}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure allowed origins receive the expected CORS headers.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1unit_1_1test__api__main_a099d26279e9130bcfe5365bdf9772fb4}\index{tests.unit.test\_api\_main@{tests.unit.test\_api\_main}!test\_cors\_rejects\_disallowed\_origin@{test\_cors\_rejects\_disallowed\_origin}}
+\index{test\_cors\_rejects\_disallowed\_origin@{test\_cors\_rejects\_disallowed\_origin}!tests.unit.test\_api\_main@{tests.unit.test\_api\_main}}
+\doxysubsubsection{\texorpdfstring{test\_cors\_rejects\_disallowed\_origin()}{test\_cors\_rejects\_disallowed\_origin()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1unit_1_1test__api__main_a099d26279e9130bcfe5365bdf9772fb4} 
+tests.\+unit.\+test\+\_\+api\+\_\+main.\+test\+\_\+cors\+\_\+rejects\+\_\+disallowed\+\_\+origin (\begin{DoxyParamCaption}\item[{}]{cors\+\_\+client}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure disallowed origins do not receive CORS headers.\end{DoxyVerb}
+ 
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetests_1_1unit_1_1test__api__main_a2bd3883f2ecf93119a8f9fe548961a6f}\index{tests.unit.test\_api\_main@{tests.unit.test\_api\_main}!CORS\_DEV\_ORIGIN@{CORS\_DEV\_ORIGIN}}
+\index{CORS\_DEV\_ORIGIN@{CORS\_DEV\_ORIGIN}!tests.unit.test\_api\_main@{tests.unit.test\_api\_main}}
+\doxysubsubsection{\texorpdfstring{CORS\_DEV\_ORIGIN}{CORS\_DEV\_ORIGIN}}
+{\footnotesize\ttfamily \label{namespacetests_1_1unit_1_1test__api__main_a2bd3883f2ecf93119a8f9fe548961a6f} 
+str tests.\+unit.\+test\+\_\+api\+\_\+main.\+CORS\+\_\+\+DEV\+\_\+\+ORIGIN = "{}http\+://localhost\+:3000"{}}
+

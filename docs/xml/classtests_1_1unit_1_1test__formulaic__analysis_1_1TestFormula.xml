@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormula" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_formulaic_analysis::TestFormula</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormula_1ab7423e5bd8530aeb825d4d84262d5401" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestFormula.test_formula_creation</definition>
+        <argsstring>()</argsstring>
+        <name>test_formula_creation</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestFormula.test_formula_creation</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test creating a Formula instance.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="23" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="23" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormula_1aa6da11379b94ae4dd46960cfccd95491" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestFormula.test_formula_default_r_squared</definition>
+        <argsstring>()</argsstring>
+        <name>test_formula_default_r_squared</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestFormula.test_formula_default_r_squared</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that r_squared defaults to 0.0.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="45" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="45" bodyend="60"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for the Formula dataclass.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_formulaic_analysis.TestFormula</label>
+        <link refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormula"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="19" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="19" bodyend="60"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormula_1ab7423e5bd8530aeb825d4d84262d5401" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestFormula</scope><name>test_formula_creation</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestFormula_1aa6da11379b94ae4dd46960cfccd95491" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestFormula</scope><name>test_formula_default_r_squared</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,63 @@
+\doxysection{api.\+main.\+Test\+Workflow\+Security Class Reference}
+\hypertarget{classapi_1_1main_1_1TestWorkflowSecurity}{}\label{classapi_1_1main_1_1TestWorkflowSecurity}\index{api.main.TestWorkflowSecurity@{api.main.TestWorkflowSecurity}}
+
+
+Collaboration diagram for api.\+main.\+Test\+Workflow\+Security\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=244pt]{classapi_1_1main_1_1TestWorkflowSecurity__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowSecurity_acb68b185accd0e0a9b38067091528184}{workflow\+\_\+files}} (self)
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowSecurity_ae15f49fb376e558ce7a4711766abd054}{test\+\_\+no\+\_\+hardcoded\+\_\+secrets}} (self, \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowSecurity_acb68b185accd0e0a9b38067091528184}{workflow\+\_\+files}})
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowSecurity_a399eb72cb288d99222f87f555fe4e7d9}{test\+\_\+pull\+\_\+request\+\_\+safe\+\_\+checkout}} (self, \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowSecurity_acb68b185accd0e0a9b38067091528184}{workflow\+\_\+files}})
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowSecurity_a473d00e82bf494357e09f6e12ff7ab61}{test\+\_\+restricted\+\_\+permissions}} (self, \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowSecurity_acb68b185accd0e0a9b38067091528184}{workflow\+\_\+files}})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Security-focused tests for GitHub workflows.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classapi_1_1main_1_1TestWorkflowSecurity_ae15f49fb376e558ce7a4711766abd054}\index{api.main.TestWorkflowSecurity@{api.main.TestWorkflowSecurity}!test\_no\_hardcoded\_secrets@{test\_no\_hardcoded\_secrets}}
+\index{test\_no\_hardcoded\_secrets@{test\_no\_hardcoded\_secrets}!api.main.TestWorkflowSecurity@{api.main.TestWorkflowSecurity}}
+\doxysubsubsection{\texorpdfstring{test\_no\_hardcoded\_secrets()}{test\_no\_hardcoded\_secrets()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowSecurity_ae15f49fb376e558ce7a4711766abd054} 
+api.\+main.\+Test\+Workflow\+Security.\+test\+\_\+no\+\_\+hardcoded\+\_\+secrets (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{workflow\+\_\+files}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Workflows should not contain hardcoded secrets.\end{DoxyVerb}
+ \Hypertarget{classapi_1_1main_1_1TestWorkflowSecurity_a399eb72cb288d99222f87f555fe4e7d9}\index{api.main.TestWorkflowSecurity@{api.main.TestWorkflowSecurity}!test\_pull\_request\_safe\_checkout@{test\_pull\_request\_safe\_checkout}}
+\index{test\_pull\_request\_safe\_checkout@{test\_pull\_request\_safe\_checkout}!api.main.TestWorkflowSecurity@{api.main.TestWorkflowSecurity}}
+\doxysubsubsection{\texorpdfstring{test\_pull\_request\_safe\_checkout()}{test\_pull\_request\_safe\_checkout()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowSecurity_a399eb72cb288d99222f87f555fe4e7d9} 
+api.\+main.\+Test\+Workflow\+Security.\+test\+\_\+pull\+\_\+request\+\_\+safe\+\_\+checkout (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{workflow\+\_\+files}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}PR workflows should checkout safely (not HEAD of PR).\end{DoxyVerb}
+ \Hypertarget{classapi_1_1main_1_1TestWorkflowSecurity_a473d00e82bf494357e09f6e12ff7ab61}\index{api.main.TestWorkflowSecurity@{api.main.TestWorkflowSecurity}!test\_restricted\_permissions@{test\_restricted\_permissions}}
+\index{test\_restricted\_permissions@{test\_restricted\_permissions}!api.main.TestWorkflowSecurity@{api.main.TestWorkflowSecurity}}
+\doxysubsubsection{\texorpdfstring{test\_restricted\_permissions()}{test\_restricted\_permissions()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowSecurity_a473d00e82bf494357e09f6e12ff7ab61} 
+api.\+main.\+Test\+Workflow\+Security.\+test\+\_\+restricted\+\_\+permissions (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{workflow\+\_\+files}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Workflows should use minimal required permissions.\end{DoxyVerb}
+ \Hypertarget{classapi_1_1main_1_1TestWorkflowSecurity_acb68b185accd0e0a9b38067091528184}\index{api.main.TestWorkflowSecurity@{api.main.TestWorkflowSecurity}!workflow\_files@{workflow\_files}}
+\index{workflow\_files@{workflow\_files}!api.main.TestWorkflowSecurity@{api.main.TestWorkflowSecurity}}
+\doxysubsubsection{\texorpdfstring{workflow\_files()}{workflow\_files()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowSecurity_acb68b185accd0e0a9b38067091528184} 
+api.\+main.\+Test\+Workflow\+Security.\+workflow\+\_\+files (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get all workflow files.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/api/\mbox{\hyperlink{api_2main_8py}{main.\+py}}\end{DoxyCompactItemize}

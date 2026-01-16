@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_graph_2d_visuals::TestEdgeCases</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1ac5dd001996072d93f8719eab879af58b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_visualize_2d_graph_with_single_asset</definition>
+        <argsstring>(self, empty_graph, sample_equity)</argsstring>
+        <name>test_visualize_2d_graph_with_single_asset</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_visualize_2d_graph_with_single_asset</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>sample_equity</type>
+          <defname>sample_equity</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test 2D visualization with only one asset.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="376" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="376" bodyend="385"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1a151b9b1d784503f6f9d33f79694969f2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_circular_layout_with_many_assets</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_circular_layout_with_many_assets</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_circular_layout_with_many_assets</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test circular layout with many assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="386" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="386" bodyend="399"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1a16e3b956a838c339f144ca17181ee860" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_grid_layout_with_non_square_number</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_grid_layout_with_non_square_number</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_grid_layout_with_non_square_number</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test grid layout with non-perfect-square number of assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="400" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="400" bodyend="409"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1af8a8bfb5fe99d2ad1617fd52968d937c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_visualize_2d_graph_with_invalid_layout_type</definition>
+        <argsstring>(self, populated_graph)</argsstring>
+        <name>test_visualize_2d_graph_with_invalid_layout_type</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_visualize_2d_graph_with_invalid_layout_type</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that invalid layout type defaults to spring.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="410" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="410" bodyend="417"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1a6634e38c9fb978d5826e260629905888" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_relationship_traces_with_missing_assets_in_positions</definition>
+        <argsstring>(self, populated_graph)</argsstring>
+        <name>test_relationship_traces_with_missing_assets_in_positions</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.TestEdgeCases.test_relationship_traces_with_missing_assets_in_positions</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test creating traces when some assets in relationships aren&apos;t in positions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="418" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="420" bodyend="448"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases and error handling.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_graph_2d_visuals.TestEdgeCases</label>
+        <link refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="373" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="373" bodyend="448"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1a151b9b1d784503f6f9d33f79694969f2" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_2d_visuals::TestEdgeCases</scope><name>test_circular_layout_with_many_assets</name></member>
+      <member refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1a16e3b956a838c339f144ca17181ee860" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_2d_visuals::TestEdgeCases</scope><name>test_grid_layout_with_non_square_number</name></member>
+      <member refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1a6634e38c9fb978d5826e260629905888" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_2d_visuals::TestEdgeCases</scope><name>test_relationship_traces_with_missing_assets_in_positions</name></member>
+      <member refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1af8a8bfb5fe99d2ad1617fd52968d937c" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_2d_visuals::TestEdgeCases</scope><name>test_visualize_2d_graph_with_invalid_layout_type</name></member>
+      <member refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases_1ac5dd001996072d93f8719eab879af58b" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_2d_visuals::TestEdgeCases</scope><name>test_visualize_2d_graph_with_single_asset</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

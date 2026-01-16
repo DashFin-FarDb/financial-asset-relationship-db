@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classapi_1_1auth_1_1TokenData" kind="class" language="Python" prot="public">
+    <compoundname>api::auth::TokenData</compoundname>
+    <basecompoundref refid="classBaseModel" prot="public" virt="non-virtual">BaseModel</basecompoundref>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classapi_1_1auth_1_1TokenData_1a20fb6b0b03649034f0fcf33d84f2e904" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional api.auth.TokenData::username</definition>
+        <argsstring></argsstring>
+        <name>username</name>
+        <qualifiedname>api.auth.TokenData.username</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="41" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="41" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>BaseModel</label>
+        <link refid="classBaseModel"/>
+      </node>
+      <node id="1">
+        <label>api.auth.TokenData</label>
+        <link refid="classapi_1_1auth_1_1TokenData"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>BaseModel</label>
+        <link refid="classBaseModel"/>
+      </node>
+      <node id="3">
+        <label>Optional</label>
+      </node>
+      <node id="1">
+        <label>api.auth.TokenData</label>
+        <link refid="classapi_1_1auth_1_1TokenData"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>+username</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="40" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="40" bodyend="43"/>
+    <listofallmembers>
+      <member refid="classapi_1_1auth_1_1TokenData_1a20fb6b0b03649034f0fcf33d84f2e904" prot="public" virt="non-virtual"><scope>api::auth::TokenData</scope><name>username</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

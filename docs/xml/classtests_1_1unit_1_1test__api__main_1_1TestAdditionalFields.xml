@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api_main::TestAdditionalFields</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields_1acfc2de7cc96b33c74ed031e8da4a406a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestAdditionalFields.client</definition>
+        <argsstring>()</argsstring>
+        <name>client</name>
+        <qualifiedname>tests.unit.test_api_main.TestAdditionalFields.client</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a test client.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="633" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="633" bodyend="636"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields_1adaf316e4b7f796c4c388c0168671f7dd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestAdditionalFields.test_equity_additional_fields</definition>
+        <argsstring>(client)</argsstring>
+        <name>test_equity_additional_fields</name>
+        <qualifiedname>tests.unit.test_api_main.TestAdditionalFields.test_equity_additional_fields</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields_1acfc2de7cc96b33c74ed031e8da4a406a" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that equity-specific fields are included.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="638" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="638" bodyend="658"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields_1ac4a3bfa51ca47fada33739d9a2e7ce4b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestAdditionalFields.test_bond_additional_fields</definition>
+        <argsstring>(client)</argsstring>
+        <name>test_bond_additional_fields</name>
+        <qualifiedname>tests.unit.test_api_main.TestAdditionalFields.test_bond_additional_fields</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields_1acfc2de7cc96b33c74ed031e8da4a406a" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that bond-specific fields are included.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="660" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="660" bodyend="679"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test handling of asset-specific additional fields.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api_main.TestAdditionalFields</label>
+        <link refid="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="628" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="628" bodyend="679"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields_1acfc2de7cc96b33c74ed031e8da4a406a" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestAdditionalFields</scope><name>client</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields_1ac4a3bfa51ca47fada33739d9a2e7ce4b" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestAdditionalFields</scope><name>test_bond_additional_fields</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields_1adaf316e4b7f796c4c388c0168671f7dd" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestAdditionalFields</scope><name>test_equity_additional_fields</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

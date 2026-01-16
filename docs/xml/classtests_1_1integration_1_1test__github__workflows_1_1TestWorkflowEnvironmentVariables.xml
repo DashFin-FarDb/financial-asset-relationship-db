@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEnvironmentVariables" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowEnvironmentVariables</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEnvironmentVariables_1ac27468ac68c972a629b9c801b13665ce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowEnvironmentVariables.test_env_vars_use_consistent_naming</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_env_vars_use_consistent_naming</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowEnvironmentVariables.test_env_vars_use_consistent_naming</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that environment variables follow naming conventions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2820" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2820" bodyend="2841"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEnvironmentVariables_1ab30da71ef1ade3a72d590f442a20c823" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowEnvironmentVariables.test_env_vars_not_duplicated_across_levels</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_env_vars_not_duplicated_across_levels</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowEnvironmentVariables.test_env_vars_not_duplicated_across_levels</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that env vars aren&apos;t unnecessarily duplicated.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2843" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2843" bodyend="2854"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for environment variable usage.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowEnvironmentVariables</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEnvironmentVariables"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2816" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2816" bodyend="2854"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEnvironmentVariables_1ab30da71ef1ade3a72d590f442a20c823" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowEnvironmentVariables</scope><name>test_env_vars_not_duplicated_across_levels</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEnvironmentVariables_1ac27468ac68c972a629b9c801b13665ce" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowEnvironmentVariables</scope><name>test_env_vars_use_consistent_naming</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

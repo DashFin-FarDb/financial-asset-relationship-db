@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classformulaic__visuals_1_1FormulaicVisualizer" kind="class" language="Python" prot="public">
+    <compoundname>formulaic_visuals::FormulaicVisualizer</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classformulaic__visuals_1_1FormulaicVisualizer_1afff5a34d9f9876add5f5116468ee4165" prot="public" static="no" mutable="no">
+        <type>dict</type>
+        <definition>dict formulaic_visuals.FormulaicVisualizer::color_scheme</definition>
+        <argsstring></argsstring>
+        <name>color_scheme</name>
+        <qualifiedname>formulaic_visuals.FormulaicVisualizer.color_scheme</qualifiedname>
+        <initializer>=  {
+            &quot;Valuation&quot;: &quot;#FF6B6B&quot;,
+            &quot;Income&quot;: &quot;#4ECDC4&quot;,
+            &quot;Fixed Income&quot;: &quot;#45B7D1&quot;,
+            &quot;Risk Management&quot;: &quot;#96CEB4&quot;,
+            &quot;Portfolio Theory&quot;: &quot;#FFEAA7&quot;,
+            &quot;Statistical Analysis&quot;: &quot;#DDA0DD&quot;,
+            &quot;Currency Markets&quot;: &quot;#98D8C8&quot;,
+            &quot;Cross-Asset&quot;: &quot;#F7DC6F&quot;,
+        }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" line="15" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" bodystart="15" bodyend="-1"/>
+        <referencedby refid="classformulaic__visuals_1_1FormulaicVisualizer_1a3e4416f6dd8db7238c47038ab073b99d" compoundref="formulaic__visuals_8py" startline="26" endline="235">formulaic_visuals.FormulaicVisualizer.create_formula_dashboard</referencedby>
+        <referencedby refid="classformulaic__visuals_1_1FormulaicVisualizer_1a96f5e241c3429c6186d6277b144a2e2b" compoundref="formulaic__visuals_8py" startline="236" endline="286">formulaic_visuals.FormulaicVisualizer.create_formula_detail_view</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classformulaic__visuals_1_1FormulaicVisualizer_1a7083b76252d5cde88dc0d9b2d1c1de71" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>formulaic_visuals.FormulaicVisualizer.__init__</definition>
+        <argsstring>(self)</argsstring>
+        <name>__init__</name>
+        <qualifiedname>formulaic_visuals.FormulaicVisualizer.__init__</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" line="14" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" bodystart="14" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="function" id="classformulaic__visuals_1_1FormulaicVisualizer_1a3e4416f6dd8db7238c47038ab073b99d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>go.Figure</type>
+        <definition> go.Figure formulaic_visuals.FormulaicVisualizer.create_formula_dashboard</definition>
+        <argsstring>(self, Dict[str, Any] analysis_results)</argsstring>
+        <name>create_formula_dashboard</name>
+        <qualifiedname>formulaic_visuals.FormulaicVisualizer.create_formula_dashboard</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>analysis_results</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a comprehensive dashboard showing all formulaic relationships</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" line="26" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" bodystart="26" bodyend="235"/>
+        <references refid="classformulaic__visuals_1_1FormulaicVisualizer_1afff5a34d9f9876add5f5116468ee4165" compoundref="formulaic__visuals_8py" startline="15">formulaic_visuals.FormulaicVisualizer.color_scheme</references>
+      </memberdef>
+      <memberdef kind="function" id="classformulaic__visuals_1_1FormulaicVisualizer_1a96f5e241c3429c6186d6277b144a2e2b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>go.Figure</type>
+        <definition> go.Figure formulaic_visuals.FormulaicVisualizer.create_formula_detail_view</definition>
+        <argsstring>(self, Formula formula)</argsstring>
+        <name>create_formula_detail_view</name>
+        <qualifiedname>formulaic_visuals.FormulaicVisualizer.create_formula_detail_view</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Formula</type>
+          <declname>formula</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a detailed view of a specific formula</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" line="236" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" bodystart="236" bodyend="286"/>
+        <references refid="classformulaic__visuals_1_1FormulaicVisualizer_1afff5a34d9f9876add5f5116468ee4165" compoundref="formulaic__visuals_8py" startline="15">formulaic_visuals.FormulaicVisualizer.color_scheme</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classformulaic__visuals_1_1FormulaicVisualizer_1a906303eabfd87f3d8b268f47f6884ee2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>go.Figure</type>
+        <definition> go.Figure formulaic_visuals.FormulaicVisualizer.create_correlation_network</definition>
+        <argsstring>(Dict[str, Any] empirical_relationships)</argsstring>
+        <name>create_correlation_network</name>
+        <qualifiedname>formulaic_visuals.FormulaicVisualizer.create_correlation_network</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>empirical_relationships</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a network graph showing asset correlations</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" line="288" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" bodystart="290" bodyend="419"/>
+      </memberdef>
+      <memberdef kind="function" id="classformulaic__visuals_1_1FormulaicVisualizer_1a661303d94f617bdf9b82602b0c797471" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>go.Figure</type>
+        <definition> go.Figure formulaic_visuals.FormulaicVisualizer.create_metric_comparison_chart</definition>
+        <argsstring>(Dict[str, Any] analysis_results)</argsstring>
+        <name>create_metric_comparison_chart</name>
+        <qualifiedname>formulaic_visuals.FormulaicVisualizer.create_metric_comparison_chart</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>analysis_results</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a chart comparing different metrics derived from formulas.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" line="421" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" bodystart="421" bodyend="472"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Visualizes mathematical formulas and relationships from financial analysis.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>dict</label>
+      </node>
+      <node id="1">
+        <label>formulaic_visuals.FormulaicVisualizer</label>
+        <link refid="classformulaic__visuals_1_1FormulaicVisualizer"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>+color_scheme</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" line="11" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/visualizations/formulaic_visuals.py" bodystart="11" bodyend="472"/>
+    <listofallmembers>
+      <member refid="classformulaic__visuals_1_1FormulaicVisualizer_1a7083b76252d5cde88dc0d9b2d1c1de71" prot="public" virt="non-virtual"><scope>formulaic_visuals::FormulaicVisualizer</scope><name>__init__</name></member>
+      <member refid="classformulaic__visuals_1_1FormulaicVisualizer_1afff5a34d9f9876add5f5116468ee4165" prot="public" virt="non-virtual"><scope>formulaic_visuals::FormulaicVisualizer</scope><name>color_scheme</name></member>
+      <member refid="classformulaic__visuals_1_1FormulaicVisualizer_1a906303eabfd87f3d8b268f47f6884ee2" prot="public" virt="non-virtual"><scope>formulaic_visuals::FormulaicVisualizer</scope><name>create_correlation_network</name></member>
+      <member refid="classformulaic__visuals_1_1FormulaicVisualizer_1a3e4416f6dd8db7238c47038ab073b99d" prot="public" virt="non-virtual"><scope>formulaic_visuals::FormulaicVisualizer</scope><name>create_formula_dashboard</name></member>
+      <member refid="classformulaic__visuals_1_1FormulaicVisualizer_1a96f5e241c3429c6186d6277b144a2e2b" prot="public" virt="non-virtual"><scope>formulaic_visuals::FormulaicVisualizer</scope><name>create_formula_detail_view</name></member>
+      <member refid="classformulaic__visuals_1_1FormulaicVisualizer_1a661303d94f617bdf9b82602b0c797471" prot="public" virt="non-virtual"><scope>formulaic_visuals::FormulaicVisualizer</scope><name>create_metric_comparison_chart</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

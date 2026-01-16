@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_changes_validation::TestWorkflowYAMLValidity</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_1a1747d47317bb89fd9febd538657882b2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestWorkflowYAMLValidity.test_all_workflows_valid_yaml</definition>
+        <argsstring>()</argsstring>
+        <name>test_all_workflows_valid_yaml</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestWorkflowYAMLValidity.test_all_workflows_valid_yaml</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check each YAML workflow in .github/workflows for valid syntax.
+
+Fails the test if any file under .github/workflows with a .yml extension contains invalid YAML.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="305" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="305" bodyend="319"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_1a44fd30c22f0a9a85a43b4759ddf3eb37" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestWorkflowYAMLValidity.test_workflows_have_required_fields</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflows_have_required_fields</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestWorkflowYAMLValidity.test_workflows_have_required_fields</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure every workflow in .github/workflows defines top-level &apos;name&apos;, &apos;on&apos;, and &apos;jobs&apos; keys.
+
+Asserts that each .yml file contains &apos;name&apos;, &apos;on&apos;, and &apos;jobs&apos;; a failing assertion includes the workflow filename and the missing key.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="321" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="321" bodyend="336"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_1a54cae38d0c7d8185ffa12668f458da99" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestWorkflowYAMLValidity.test_workflow_jobs_have_runs_on</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_jobs_have_runs_on</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestWorkflowYAMLValidity.test_workflow_jobs_have_runs_on</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure every job in every GitHub Actions workflow specifies its runner with the &apos;runs-on&apos; key.
+
+If a job is missing &apos;runs-on&apos;, the test fails with an assertion identifying the job name and workflow filename.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="338" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="338" bodyend="353"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test YAML validity and formatting of workflows.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_changes_validation.TestWorkflowYAMLValidity</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="301" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="301" bodyend="353"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_1a1747d47317bb89fd9febd538657882b2" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestWorkflowYAMLValidity</scope><name>test_all_workflows_valid_yaml</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_1a54cae38d0c7d8185ffa12668f458da99" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestWorkflowYAMLValidity</scope><name>test_workflow_jobs_have_runs_on</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_1a44fd30c22f0a9a85a43b4759ddf3eb37" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestWorkflowYAMLValidity</scope><name>test_workflows_have_required_fields</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

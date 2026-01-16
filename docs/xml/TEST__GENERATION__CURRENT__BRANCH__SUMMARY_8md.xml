@@ -1,0 +1,300 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="TEST__GENERATION__CURRENT__BRANCH__SUMMARY_8md" kind="file" language="Markdown">
+    <compoundname>TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Unit<sp/>Test<sp/>Generation<sp/>Summary<sp/>for<sp/>Current<sp/>Branch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Comprehensive<sp/>unit<sp/>tests<sp/>have<sp/>been<sp/>generated<sp/>for<sp/>all<sp/>testable<sp/>files<sp/>that<sp/>changed<sp/>in<sp/>the<sp/>current<sp/>branch<sp/>compared<sp/>to<sp/>`main`.<sp/>This<sp/>includes<sp/>tests<sp/>for<sp/>Python<sp/>helper<sp/>functions,<sp/>TypeScript<sp/>test<sp/>utilities,<sp/>documentation<sp/>validation,<sp/>and<sp/>dependency<sp/>configuration<sp/>validation.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Files<sp/>Changed<sp/>in<sp/>Branch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>`.github/workflows/pr-agent.yml`<sp/>-<sp/>Fixed<sp/>duplicate<sp/>YAML<sp/>key<sp/>(already<sp/>tested<sp/>by<sp/>existing<sp/>test_github_workflows.py)</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>`TEST_GENERATION_WORKFLOW_SUMMARY.md`<sp/>-<sp/>Documentation<sp/>file<sp/>(NEW<sp/>TESTS)</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>`frontend/__tests__/test-utils.ts`<sp/>-<sp/>Test<sp/>utility<sp/>mocks<sp/>(NEW<sp/>TESTS)</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>`requirements-dev.txt`<sp/>-<sp/>Added<sp/>PyYAML<sp/>dependencies<sp/>(NEW<sp/>TESTS)</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>`tests/integration/test_github_workflows.py`<sp/>-<sp/>Already<sp/>comprehensive<sp/>test<sp/>file<sp/>(NEW<sp/>TESTS<sp/>for<sp/>helper<sp/>functions)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Generated<sp/>Test<sp/>Files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>tests/integration/test_github_workflows_helpers.py<sp/>(NEW)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Unit<sp/>tests<sp/>for<sp/>helper<sp/>functions<sp/>in<sp/>test_github_workflows.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">+**Test<sp/>Classes**:<sp/>2</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestGetWorkflowFiles`<sp/>-<sp/>10<sp/>tests<sp/>for<sp/>workflow<sp/>file<sp/>discovery</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestLoadYamlSafe`<sp/>-<sp/>8<sp/>tests<sp/>for<sp/>YAML<sp/>loading</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestCheckDuplicateKeys`<sp/>-<sp/>10<sp/>tests<sp/>for<sp/>duplicate<sp/>key<sp/>detection</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestWorkflowsDirectoryConstant`<sp/>-<sp/>3<sp/>tests<sp/>for<sp/>path<sp/>constants</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestIntegrationScenarios`<sp/>-<sp/>2<sp/>integration<sp/>tests<sp/>combining<sp/>helpers</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Features**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Tests<sp/>edge<sp/>cases<sp/>like<sp/>missing<sp/>directories,<sp/>invalid<sp/>YAML,<sp/>UTF-8<sp/>encoding</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>duplicate<sp/>key<sp/>detection<sp/>(the<sp/>exact<sp/>bug<sp/>that<sp/>was<sp/>fixed)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Uses<sp/>pytest<sp/>fixtures<sp/>and<sp/>tmp_path<sp/>for<sp/>isolated<sp/>testing</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Includes<sp/>integration<sp/>tests<sp/>showing<sp/>real-world<sp/>usage<sp/>patterns</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Total<sp/>Tests**:<sp/>33<sp/>comprehensive<sp/>unit<sp/>tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>frontend/**tests**/test-utils.test.ts<sp/>(NEW)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Validates<sp/>mock<sp/>data<sp/>structures<sp/>and<sp/>test<sp/>utilities</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Suites**:<sp/>11</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`mockAssets`<sp/>-<sp/>8<sp/>tests<sp/>validating<sp/>asset<sp/>array<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`mockAsset`<sp/>-<sp/>6<sp/>tests<sp/>for<sp/>single<sp/>asset<sp/>object</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`mockAssetClasses`<sp/>-<sp/>5<sp/>tests<sp/>for<sp/>asset<sp/>class<sp/>enumeration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`mockSectors`<sp/>-<sp/>5<sp/>tests<sp/>for<sp/>sector<sp/>enumeration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`mockRelationships`<sp/>-<sp/>7<sp/>tests<sp/>for<sp/>relationship<sp/>arrays</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`mockAllRelationships`<sp/>-<sp/>4<sp/>tests<sp/>for<sp/>comprehensive<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`mockMetrics`<sp/>-<sp/>8<sp/>tests<sp/>for<sp/>metrics<sp/>data<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`mockVisualizationData`<sp/>-<sp/>9<sp/>tests<sp/>for<sp/>visualization<sp/>nodes/edges</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`mockVizData`<sp/>-<sp/>6<sp/>tests<sp/>for<sp/>alternative<sp/>visualization<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`Cross-mock<sp/>consistency`<sp/>-<sp/>3<sp/>tests<sp/>ensuring<sp/>consistency</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`Edge<sp/>cases<sp/>and<sp/>boundaries`<sp/>-<sp/>4<sp/>tests<sp/>for<sp/>edge<sp/>cases</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Features**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>all<sp/>TypeScript<sp/>type<sp/>definitions<sp/>are<sp/>correctly<sp/>implemented</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tests<sp/>data<sp/>consistency<sp/>across<sp/>related<sp/>mocks</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Checks<sp/>for<sp/>valid<sp/>ranges<sp/>(prices,<sp/>market<sp/>caps,<sp/>coordinates)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>string<sp/>formats<sp/>(currency<sp/>codes,<sp/>hex<sp/>colors,<sp/>symbols)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Ensures<sp/>graph<sp/>relationships<sp/>reference<sp/>existing<sp/>nodes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tests<sp/>edge<sp/>cases<sp/>like<sp/>empty<sp/>fields<sp/>and<sp/>boundary<sp/>values</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Total<sp/>Tests**:<sp/>65<sp/>comprehensive<sp/>Jest<sp/>tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>tests/integration/test_workflow_documentation.py<sp/>(NEW)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Validates<sp/>documentation<sp/>file<sp/>structure<sp/>and<sp/>content</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Classes**:<sp/>2</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDocumentationExists`<sp/>-<sp/>4<sp/>tests<sp/>for<sp/>file<sp/>existence</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDocumentationStructure`<sp/>-<sp/>4<sp/>tests<sp/>for<sp/>Markdown<sp/>structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Features**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>file<sp/>exists<sp/>and<sp/>is<sp/>readable</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Checks<sp/>for<sp/>required<sp/>sections<sp/>(Overview,<sp/>Running<sp/>Tests,<sp/>etc.)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>sufficient<sp/>section<sp/>count</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tests<sp/>document<sp/>structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Total<sp/>Tests**:<sp/>8<sp/>documentation<sp/>validation<sp/>tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>tests/integration/test_requirements_dev.py<sp/>(NEW)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Validates<sp/>development<sp/>dependencies<sp/>file</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Classes**:<sp/>7</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestRequirementsFileExists`<sp/>-<sp/>3<sp/>tests<sp/>for<sp/>file<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestRequirementsFileFormat`<sp/>-<sp/>4<sp/>tests<sp/>for<sp/>format/encoding</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestRequiredPackages`<sp/>-<sp/>7<sp/>tests<sp/>for<sp/>required<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestVersionSpecifications`<sp/>-<sp/>4<sp/>tests<sp/>for<sp/>version<sp/>constraints</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestPackageConsistency`<sp/>-<sp/>3<sp/>tests<sp/>for<sp/>package<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestFileOrganization`<sp/>-<sp/>3<sp/>tests<sp/>for<sp/>file<sp/>organization</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestSpecificChanges`<sp/>-<sp/>3<sp/>tests<sp/>for<sp/>branch-specific<sp/>changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Features**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>PyYAML&gt;=6.0<sp/>and<sp/>types-PyYAML<sp/>were<sp/>added</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Checks<sp/>all<sp/>packages<sp/>have<sp/>proper<sp/>version<sp/>specifications</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>type<sp/>stub<sp/>packages<sp/>match<sp/>base<sp/>packages</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tests<sp/>for<sp/>duplicate<sp/>packages</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Verifies<sp/>UTF-8<sp/>encoding<sp/>and<sp/>formatting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>the<sp/>specific<sp/>diff<sp/>changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Total<sp/>Tests**:<sp/>27<sp/>requirements<sp/>validation<sp/>tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>5.<sp/>tests/integration/test_documentation_validation.py<sp/>(NEW)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Comprehensive<sp/>validation<sp/>tests<sp/>for<sp/>TEST_GENERATION_WORKFLOW_SUMMARY.md</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Classes**:<sp/>10</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDocumentStructure`<sp/>-<sp/>8<sp/>tests<sp/>for<sp/>document<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestMarkdownFormatting`<sp/>-<sp/>4<sp/>tests<sp/>for<sp/>markdown<sp/>formatting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestContentAccuracy`<sp/>-<sp/>8<sp/>tests<sp/>for<sp/>content<sp/>accuracy</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestCodeExamples`<sp/>-<sp/>2<sp/>tests<sp/>for<sp/>code<sp/>example<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDocumentCompleteness`<sp/>-<sp/>4<sp/>tests<sp/>for<sp/>completeness</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDocumentMaintainability`<sp/>-<sp/>3<sp/>tests<sp/>for<sp/>maintainability</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestLinkValidation`<sp/>-<sp/>1<sp/>test<sp/>for<sp/>link<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestSecurityAndBestPractices`<sp/>-<sp/>2<sp/>tests<sp/>for<sp/>security</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestReferenceAccuracy`<sp/>-<sp/>2<sp/>tests<sp/>for<sp/>reference<sp/>accuracy</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestEdgeCases`<sp/>-<sp/>3<sp/>tests<sp/>for<sp/>edge<sp/>cases</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Features**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>markdown<sp/>syntax<sp/>and<sp/>formatting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Checks<sp/>for<sp/>required<sp/>sections<sp/>and<sp/>hierarchical<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Verifies<sp/>code<sp/>examples<sp/>and<sp/>pytest<sp/>commands<sp/>are<sp/>valid</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tests<sp/>for<sp/>broken<sp/>internal<sp/>links</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>file<sp/>references<sp/>point<sp/>to<sp/>existing<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Checks<sp/>for<sp/>security<sp/>issues<sp/>like<sp/>hardcoded<sp/>secrets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Ensures<sp/>UTF-8<sp/>encoding<sp/>and<sp/>consistent<sp/>line<sp/>endings</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tests<sp/>document<sp/>completeness<sp/>and<sp/>maintainability</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Total<sp/>Tests**:<sp/>37<sp/>documentation<sp/>validation<sp/>tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Testing<sp/>Framework<sp/>Compatibility</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Python<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Framework:<sp/>**pytest**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Coverage:<sp/>pytest-cov</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Fixtures:<sp/>Uses<sp/>pytest<sp/>fixtures<sp/>and<sp/>tmp_path</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Mocking:<sp/>unittest.mock<sp/>for<sp/>isolated<sp/>testing</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Parameterization:<sp/>pytest.mark.parametrize<sp/>for<sp/>data-driven<sp/>tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>TypeScript<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Framework:<sp/>**Jest**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Environment:<sp/>jest-environment-jsdom</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Assertions:<sp/>@testing-library/jest-dom</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Configuration:<sp/>Integrated<sp/>with<sp/>Next.js<sp/>test<sp/>setup</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Running<sp/>the<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Python<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>new<sp/>Python<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows_helpers.py<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_workflow_documentation.py<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_requirements_dev.py<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_documentation_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/<sp/>--cov=tests/integration/test_github_workflows.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>class</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows_helpers.py::TestCheckDuplicateKeys<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>TypeScript<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>from<sp/>frontend<sp/>directory</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>test-utils<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>test-utils.test.ts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>test:coverage<sp/>--<sp/>test-utils.test.ts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>in<sp/>watch<sp/>mode</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>test:watch<sp/>--<sp/>test-utils.test.ts</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>All<sp/>Tests<sp/>Together</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Python<sp/>tests<sp/>from<sp/>root</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Frontend<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Coverage<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>File<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Test<sp/>File<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Test<sp/>Count<sp/><sp/><sp/><sp/>|<sp/>Coverage<sp/>Focus<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>-----------------------------------<sp/>|<sp/>--------------------------------<sp/>|<sp/>-------------<sp/>|<sp/>------------------------------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test_github_workflows.py<sp/>(helpers)<sp/><sp/>|<sp/>test_github_workflows_helpers.py<sp/>|<sp/>33<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Helper<sp/>function<sp/>validation<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test-utils.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>test-utils.test.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>65<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Mock<sp/>data<sp/>structure<sp/>validation<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>TEST_GENERATION_WORKFLOW_SUMMARY.md<sp/>|<sp/>test_workflow_documentation.py<sp/><sp/><sp/>|<sp/>8<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Documentation<sp/>quality<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>requirements-dev.txt<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>test_requirements_dev.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>27<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Dependency<sp/>validation<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>TEST_GENERATION_WORKFLOW_SUMMARY.md<sp/>|<sp/>test_documentation_validation.py<sp/>|<sp/>37<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Documentation<sp/>validation<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**TOTAL**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>**5<sp/>new<sp/>test<sp/>files**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>**170<sp/>tests**<sp/>|<sp/>**Comprehensive**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>What<sp/>These<sp/>Tests<sp/>Validate</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Functional<sp/>Correctness</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Helper<sp/>functions<sp/>work<sp/>correctly<sp/>with<sp/>valid<sp/>inputs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Mock<sp/>data<sp/>conforms<sp/>to<sp/>TypeScript<sp/>type<sp/>definitions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Documentation<sp/>contains<sp/>required<sp/>information</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Dependencies<sp/>are<sp/>properly<sp/>specified</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Edge<sp/>Cases</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Missing<sp/>directories<sp/>and<sp/>files<sp/>handled<sp/>gracefully</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Invalid<sp/>YAML<sp/>syntax<sp/>caught<sp/>appropriately</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Empty<sp/>and<sp/>malformed<sp/>data<sp/>rejected</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>UTF-8<sp/>encoding<sp/>issues<sp/>detected</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Boundary<sp/>values<sp/>validated</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Data<sp/>Integrity</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>No<sp/>duplicate<sp/>keys<sp/>in<sp/>YAML<sp/>(the<sp/>fixed<sp/>bug!)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Relationships<sp/>reference<sp/>valid<sp/>nodes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Version<sp/>specifications<sp/>are<sp/>valid</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Type<sp/>stubs<sp/>match<sp/>base<sp/>packages</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Data<sp/>consistency<sp/>across<sp/>mocks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Quality<sp/>Standards</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>File<sp/>formatting<sp/>and<sp/>encoding</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Documentation<sp/>structure<sp/>and<sp/>completeness</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Consistent<sp/>naming<sp/>conventions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Proper<sp/>version<sp/>constraints</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>No<sp/>trailing<sp/>whitespace</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Integration<sp/>with<sp/>CI/CD</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">These<sp/>tests<sp/>integrate<sp/>seamlessly<sp/>with<sp/>the<sp/>existing<sp/>CI/CD<sp/>pipeline:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```yaml</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Already<sp/>runs<sp/>automatically<sp/>in<sp/>GitHub<sp/>Actions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>name:<sp/>Run<sp/>Python<sp/>Tests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>run:<sp/>pytest<sp/>tests/<sp/>-v<sp/>--cov</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Frontend<sp/>tests<sp/>run<sp/>via</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>name:<sp/>Run<sp/>Frontend<sp/>Tests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>run:<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">All<sp/>new<sp/>tests<sp/>will<sp/>execute<sp/>automatically<sp/>on<sp/>pull<sp/>requests<sp/>and<sp/>commits.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Benefits</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Prevents<sp/>Regressions**:<sp/>Tests<sp/>catch<sp/>issues<sp/>before<sp/>they<sp/>reach<sp/>production</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Documents<sp/>Behavior**:<sp/>Tests<sp/>serve<sp/>as<sp/>executable<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Validates<sp/>Types**:<sp/>Ensures<sp/>TypeScript<sp/>types<sp/>are<sp/>correctly<sp/>implemented</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Catches<sp/>Edge<sp/>Cases**:<sp/>Comprehensive<sp/>edge<sp/>case<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Quality<sp/>Assurance**:<sp/>Enforces<sp/>formatting<sp/>and<sp/>best<sp/>practices</highlight></codeline>
+<codeline><highlight class="normal">6.<sp/>**Fast<sp/>Feedback**:<sp/>Developers<sp/>get<sp/>immediate<sp/>feedback<sp/>on<sp/>changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Notes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>All<sp/>tests<sp/>follow<sp/>existing<sp/>project<sp/>conventions<sp/>(pytest<sp/>for<sp/>Python,<sp/>Jest<sp/>for<sp/>TypeScript)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tests<sp/>use<sp/>existing<sp/>testing<sp/>infrastructure<sp/>(no<sp/>new<sp/>dependencies<sp/>added<sp/>beyond<sp/>PyYAML)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tests<sp/>are<sp/>isolated<sp/>and<sp/>don&apos;t<sp/>require<sp/>external<sp/>services</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Mock<sp/>data<sp/>is<sp/>realistic<sp/>and<sp/>representative<sp/>of<sp/>production<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Documentation<sp/>tests<sp/>ensure<sp/>knowledge<sp/>artifacts<sp/>stay<sp/>current</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Files<sp/>Modified</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>`requirements-dev.txt`<sp/>-<sp/>Added<sp/>PyYAML&gt;=6.0<sp/>and<sp/>types-PyYAML<sp/>(already<sp/>in<sp/>branch)</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>`tests/integration/test_github_workflows_helpers.py`<sp/>-<sp/>NEW<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>`frontend/__tests__/test-utils.test.ts`<sp/>-<sp/>NEW<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>`tests/integration/test_workflow_documentation.py`<sp/>-<sp/>NEW<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>`tests/integration/test_requirements_dev.py`<sp/>-<sp/>NEW<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">6.<sp/>`tests/integration/test_documentation_validation.py`<sp/>-<sp/>NEW<sp/>test<sp/>file</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Total<sp/>new<sp/>lines<sp/>of<sp/>test<sp/>code:<sp/>**~2,350<sp/>lines**<sp/>across<sp/>5<sp/>files</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md"/>
+  </compounddef>
+</doxygen>

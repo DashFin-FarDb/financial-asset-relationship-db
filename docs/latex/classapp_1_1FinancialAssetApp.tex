@@ -1,0 +1,297 @@
+\doxysection{app.\+Financial\+Asset\+App Class Reference}
+\hypertarget{classapp_1_1FinancialAssetApp}{}\label{classapp_1_1FinancialAssetApp}\index{app.FinancialAssetApp@{app.FinancialAssetApp}}
+
+
+Collaboration diagram for app.\+Financial\+Asset\+App\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=243pt]{classapp_1_1FinancialAssetApp__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_ab53ca897695802ab63d64733b409b4b2}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\item 
+\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} \mbox{\hyperlink{classapp_1_1FinancialAssetApp_a54667558411627b15aeb4951aff6b392}{ensure\+\_\+graph}} (self)
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_ae0e06267c27a0577165ffdf62d64a657}{update\+\_\+all\+\_\+metrics\+\_\+outputs}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} \mbox{\hyperlink{classapp_1_1FinancialAssetApp_ab3c175ea91a2f07b695ffa593ab68a9f}{graph}})
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_abdb57adc70fa98a6c507714d2c47bd81}{refresh\+\_\+all\+\_\+outputs}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph\+\_\+state)
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_a23e9f40281bb553248735762523a2ef7}{refresh\+\_\+visualization}} (self, graph\+\_\+state, view\+\_\+mode, layout\+\_\+type, show\+\_\+same\+\_\+sector, show\+\_\+market\+\_\+cap, show\+\_\+correlation, show\+\_\+corporate\+\_\+bond, show\+\_\+commodity\+\_\+currency, show\+\_\+income\+\_\+comparison, show\+\_\+regulatory, show\+\_\+all\+\_\+relationships, toggle\+\_\+arrows)
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_a2e6a030d6b759be9a3483dc26da21885}{generate\+\_\+formulaic\+\_\+analysis}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph\+\_\+state)
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_ab0e6e196bf509a805682ab8e46e85e48}{show\+\_\+formula\+\_\+details}} (self, str formula\+\_\+name, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph\+\_\+state)
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_aeda68c005a14bf78c22be66f795fbf8b}{create\+\_\+interface}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+Tuple\mbox{[}Dict, Dict\mbox{]} \mbox{\hyperlink{classapp_1_1FinancialAssetApp_ac37ca0ede2a875f3f48772d04531941a}{update\+\_\+asset\+\_\+info}} (Optional\mbox{[}str\mbox{]} selected\+\_\+asset, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} \mbox{\hyperlink{classapp_1_1FinancialAssetApp_ab3c175ea91a2f07b695ffa593ab68a9f}{graph}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Optional\mbox{[}\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}\mbox{]} \mbox{\hyperlink{classapp_1_1FinancialAssetApp_ab3c175ea91a2f07b695ffa593ab68a9f}{graph}} = None
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_a9b39242f95022f2b566ee2c543e1dbbb}{refresh\+\_\+all\+\_\+outputs}} = \mbox{[}asset\+\_\+info, asset\+\_\+relationships\mbox{]},
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_ae0f1e249acad66840b4474fbd11e427e}{refresh\+\_\+visualization}}
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_ac5df4c019aa09db82793ba3eba0c9544}{generate\+\_\+formulaic\+\_\+analysis}}
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_a15b21016c71ed5504ac70a8f809bf58e}{show\+\_\+formula\+\_\+details}} = formulaic\+\_\+outputs,
+\item 
+\mbox{\hyperlink{classapp_1_1FinancialAssetApp_a17f007c5df24fa84e34f89b57d7268ef}{update\+\_\+asset\+\_\+info}} = visualization\+\_\+outputs,
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \mbox{\hyperlink{classapp_1_1FinancialAssetApp_ac33bbb920250622229430b5da9211366}{\+\_\+initialize\+\_\+graph}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{classapp_1_1FinancialAssetApp_a039f1574f4af1b89ac02965f8afb8caa}{\+\_\+update\+\_\+metrics\+\_\+text}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} \mbox{\hyperlink{classapp_1_1FinancialAssetApp_ab3c175ea91a2f07b695ffa593ab68a9f}{graph}})
+\item 
+str \mbox{\hyperlink{classapp_1_1FinancialAssetApp_a97f0c7bdc8c242aecb1eef59d18200c3}{\+\_\+format\+\_\+formula\+\_\+summary}} (Dict summary, Dict analysis\+\_\+results)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classapp_1_1FinancialAssetApp_ab53ca897695802ab63d64733b409b4b2}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_ab53ca897695802ab63d64733b409b4b2} 
+app.\+Financial\+Asset\+App.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classapp_1_1FinancialAssetApp_a97f0c7bdc8c242aecb1eef59d18200c3}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!\_format\_formula\_summary@{\_format\_formula\_summary}}
+\index{\_format\_formula\_summary@{\_format\_formula\_summary}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{\_format\_formula\_summary()}{\_format\_formula\_summary()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_a97f0c7bdc8c242aecb1eef59d18200c3} 
+ str app.\+Financial\+Asset\+App.\+\_\+format\+\_\+formula\+\_\+summary (\begin{DoxyParamCaption}\item[{Dict}]{summary}{, }\item[{Dict}]{analysis\+\_\+results}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [protected]}}
+
+\begin{DoxyVerb}Format the formula analysis summary for display.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_a97f0c7bdc8c242aecb1eef59d18200c3_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classapp_1_1FinancialAssetApp_ac33bbb920250622229430b5da9211366}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!\_initialize\_graph@{\_initialize\_graph}}
+\index{\_initialize\_graph@{\_initialize\_graph}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{\_initialize\_graph()}{\_initialize\_graph()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_ac33bbb920250622229430b5da9211366} 
+ None app.\+Financial\+Asset\+App.\+\_\+initialize\+\_\+graph (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Initializes the asset graph, creating a sample database if necessary.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_ac33bbb920250622229430b5da9211366_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classapp_1_1FinancialAssetApp_a039f1574f4af1b89ac02965f8afb8caa}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!\_update\_metrics\_text@{\_update\_metrics\_text}}
+\index{\_update\_metrics\_text@{\_update\_metrics\_text}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{\_update\_metrics\_text()}{\_update\_metrics\_text()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_a039f1574f4af1b89ac02965f8afb8caa} 
+ str app.\+Financial\+Asset\+App.\+\_\+update\+\_\+metrics\+\_\+text (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [protected]}}
+
+\begin{DoxyVerb}Generates the formatted text for network statistics.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_a039f1574f4af1b89ac02965f8afb8caa_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classapp_1_1FinancialAssetApp_aeda68c005a14bf78c22be66f795fbf8b}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!create\_interface@{create\_interface}}
+\index{create\_interface@{create\_interface}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{create\_interface()}{create\_interface()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_aeda68c005a14bf78c22be66f795fbf8b} 
+app.\+Financial\+Asset\+App.\+create\+\_\+interface (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Creates the Gradio interface for the Financial Asset Relationship Database.
+\end{DoxyVerb}
+ \Hypertarget{classapp_1_1FinancialAssetApp_a54667558411627b15aeb4951aff6b392}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!ensure\_graph@{ensure\_graph}}
+\index{ensure\_graph@{ensure\_graph}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{ensure\_graph()}{ensure\_graph()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_a54667558411627b15aeb4951aff6b392} 
+ \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} app.\+Financial\+Asset\+App.\+ensure\+\_\+graph (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensures the graph is initialized, re-creating sample data if it's None.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_a54667558411627b15aeb4951aff6b392_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_a54667558411627b15aeb4951aff6b392_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classapp_1_1FinancialAssetApp_a2e6a030d6b759be9a3483dc26da21885}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!generate\_formulaic\_analysis@{generate\_formulaic\_analysis}}
+\index{generate\_formulaic\_analysis@{generate\_formulaic\_analysis}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{generate\_formulaic\_analysis()}{generate\_formulaic\_analysis()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_a2e6a030d6b759be9a3483dc26da21885} 
+app.\+Financial\+Asset\+App.\+generate\+\_\+formulaic\+\_\+analysis (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph\+\_\+state}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate comprehensive formulaic analysis of the asset graph.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_a2e6a030d6b759be9a3483dc26da21885_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classapp_1_1FinancialAssetApp_abdb57adc70fa98a6c507714d2c47bd81}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!refresh\_all\_outputs@{refresh\_all\_outputs}}
+\index{refresh\_all\_outputs@{refresh\_all\_outputs}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{refresh\_all\_outputs()}{refresh\_all\_outputs()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_abdb57adc70fa98a6c507714d2c47bd81} 
+app.\+Financial\+Asset\+App.\+refresh\+\_\+all\+\_\+outputs (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph\+\_\+state}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Refreshes all visualizations and reports in the Gradio interface.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_abdb57adc70fa98a6c507714d2c47bd81_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classapp_1_1FinancialAssetApp_a23e9f40281bb553248735762523a2ef7}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!refresh\_visualization@{refresh\_visualization}}
+\index{refresh\_visualization@{refresh\_visualization}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{refresh\_visualization()}{refresh\_visualization()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_a23e9f40281bb553248735762523a2ef7} 
+app.\+Financial\+Asset\+App.\+refresh\+\_\+visualization (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{graph\+\_\+state}{, }\item[{}]{view\+\_\+mode}{, }\item[{}]{layout\+\_\+type}{, }\item[{}]{show\+\_\+same\+\_\+sector}{, }\item[{}]{show\+\_\+market\+\_\+cap}{, }\item[{}]{show\+\_\+correlation}{, }\item[{}]{show\+\_\+corporate\+\_\+bond}{, }\item[{}]{show\+\_\+commodity\+\_\+currency}{, }\item[{}]{show\+\_\+income\+\_\+comparison}{, }\item[{}]{show\+\_\+regulatory}{, }\item[{}]{show\+\_\+all\+\_\+relationships}{, }\item[{}]{toggle\+\_\+arrows}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Refresh visualization with 2D/3D mode support and relationship filtering.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_a23e9f40281bb553248735762523a2ef7_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classapp_1_1FinancialAssetApp_ab0e6e196bf509a805682ab8e46e85e48}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!show\_formula\_details@{show\_formula\_details}}
+\index{show\_formula\_details@{show\_formula\_details}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{show\_formula\_details()}{show\_formula\_details()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_ab0e6e196bf509a805682ab8e46e85e48} 
+app.\+Financial\+Asset\+App.\+show\+\_\+formula\+\_\+details (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{formula\+\_\+name}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}     }]{graph\+\_\+state}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Show detailed view of a specific formula.\end{DoxyVerb}
+ \Hypertarget{classapp_1_1FinancialAssetApp_ae0e06267c27a0577165ffdf62d64a657}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!update\_all\_metrics\_outputs@{update\_all\_metrics\_outputs}}
+\index{update\_all\_metrics\_outputs@{update\_all\_metrics\_outputs}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{update\_all\_metrics\_outputs()}{update\_all\_metrics\_outputs()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_ae0e06267c27a0577165ffdf62d64a657} 
+app.\+Financial\+Asset\+App.\+update\+\_\+all\+\_\+metrics\+\_\+outputs (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Updates all metric-related visualizations and text.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_ae0e06267c27a0577165ffdf62d64a657_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classapp_1_1FinancialAssetApp_ae0e06267c27a0577165ffdf62d64a657_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classapp_1_1FinancialAssetApp_ac37ca0ede2a875f3f48772d04531941a}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!update\_asset\_info@{update\_asset\_info}}
+\index{update\_asset\_info@{update\_asset\_info}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{update\_asset\_info()}{update\_asset\_info()}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_ac37ca0ede2a875f3f48772d04531941a} 
+ Tuple\mbox{[}Dict, Dict\mbox{]} app.\+Financial\+Asset\+App.\+update\+\_\+asset\+\_\+info (\begin{DoxyParamCaption}\item[{Optional\mbox{[}str\mbox{]}}]{selected\+\_\+asset}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}     }]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Retrieves and formats detailed information for a selected asset.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classapp_1_1FinancialAssetApp_ac5df4c019aa09db82793ba3eba0c9544}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!generate\_formulaic\_analysis@{generate\_formulaic\_analysis}}
+\index{generate\_formulaic\_analysis@{generate\_formulaic\_analysis}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{generate\_formulaic\_analysis}{generate\_formulaic\_analysis}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_ac5df4c019aa09db82793ba3eba0c9544} 
+app.\+Financial\+Asset\+App.\+generate\+\_\+formulaic\+\_\+analysis}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ formulaic\_dashboard,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ correlation\_network,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ metric\_comparison,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ formula\_selector,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ formula\_summary,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ error\_message,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ ]}
+
+\end{DoxyCode}
+\Hypertarget{classapp_1_1FinancialAssetApp_ab3c175ea91a2f07b695ffa593ab68a9f}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!graph@{graph}}
+\index{graph@{graph}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{graph}{graph}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_ab3c175ea91a2f07b695ffa593ab68a9f} 
+Optional\mbox{[}\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}\mbox{]} app.\+Financial\+Asset\+App.\+graph = None}
+
+\Hypertarget{classapp_1_1FinancialAssetApp_a9b39242f95022f2b566ee2c543e1dbbb}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!refresh\_all\_outputs@{refresh\_all\_outputs}}
+\index{refresh\_all\_outputs@{refresh\_all\_outputs}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{refresh\_all\_outputs}{refresh\_all\_outputs}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_a9b39242f95022f2b566ee2c543e1dbbb} 
+app.\+Financial\+Asset\+App.\+refresh\+\_\+all\+\_\+outputs = \mbox{[}asset\+\_\+info, asset\+\_\+relationships\mbox{]},}
+
+\Hypertarget{classapp_1_1FinancialAssetApp_ae0f1e249acad66840b4474fbd11e427e}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!refresh\_visualization@{refresh\_visualization}}
+\index{refresh\_visualization@{refresh\_visualization}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{refresh\_visualization}{refresh\_visualization}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_ae0f1e249acad66840b4474fbd11e427e} 
+app.\+Financial\+Asset\+App.\+refresh\+\_\+visualization}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ visualization\_3d,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ error\_message,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ ]}
+
+\end{DoxyCode}
+\Hypertarget{classapp_1_1FinancialAssetApp_a15b21016c71ed5504ac70a8f809bf58e}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!show\_formula\_details@{show\_formula\_details}}
+\index{show\_formula\_details@{show\_formula\_details}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{show\_formula\_details}{show\_formula\_details}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_a15b21016c71ed5504ac70a8f809bf58e} 
+app.\+Financial\+Asset\+App.\+show\+\_\+formula\+\_\+details = formulaic\+\_\+outputs,}
+
+\Hypertarget{classapp_1_1FinancialAssetApp_a17f007c5df24fa84e34f89b57d7268ef}\index{app.FinancialAssetApp@{app.FinancialAssetApp}!update\_asset\_info@{update\_asset\_info}}
+\index{update\_asset\_info@{update\_asset\_info}!app.FinancialAssetApp@{app.FinancialAssetApp}}
+\doxysubsubsection{\texorpdfstring{update\_asset\_info}{update\_asset\_info}}
+{\footnotesize\ttfamily \label{classapp_1_1FinancialAssetApp_a17f007c5df24fa84e34f89b57d7268ef} 
+app.\+Financial\+Asset\+App.\+update\+\_\+asset\+\_\+info = visualization\+\_\+outputs,}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/\mbox{\hyperlink{app_8py}{app.\+py}}\end{DoxyCompactItemize}

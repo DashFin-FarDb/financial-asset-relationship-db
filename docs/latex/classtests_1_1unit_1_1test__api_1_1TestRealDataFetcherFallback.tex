@@ -1,0 +1,93 @@
+\doxysection{tests.\+unit.\+test\+\_\+api.\+Test\+Real\+Data\+Fetcher\+Fallback Class Reference}
+\hypertarget{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback}{}\label{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback}\index{tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}}
+
+
+Collaboration diagram for tests.\+unit.\+test\+\_\+api.\+Test\+Real\+Data\+Fetcher\+Fallback\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=264pt]{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_a8afbb0edb30ed60cf9c8f5b789a831bf}{test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+complete\+\_\+failure\+\_\+fallback}} (self, mock\+\_\+ticker)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_afc870d29f79d13650ca5ecfcc38b3349}{test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+partial\+\_\+fetch\+\_\+success}} (self, mock\+\_\+ticker)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_aeb64cd2a682cbe02ff440abdec76a378}{test\+\_\+fetcher\+\_\+falls\+\_\+back\+\_\+on\+\_\+unhandled\+\_\+exception}} (self, mock\+\_\+fetch\+\_\+equity)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_abd56725db1fc95cd3ecb0ba78f43e896}{test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+empty\+\_\+history\+\_\+graceful\+\_\+handling}} (self, mock\+\_\+ticker)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_ad3acec07cb48a942dac96940b6958fbe}{test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+logs\+\_\+fallback\+\_\+on\+\_\+exception}} (mock\+\_\+fetch\+\_\+equity, mock\+\_\+logger)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_a206e51f2585d515fa6a01a8409ad9da3}{test\+\_\+individual\+\_\+asset\+\_\+class\+\_\+fetch\+\_\+failures\+\_\+logged}} (mock\+\_\+ticker, mock\+\_\+logger)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_a4b9e34ace8b7f54b039d6af45bb5edf4}{test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+loads\+\_\+from\+\_\+cache}} (tmp\+\_\+path)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test RealDataFetcher fallback behavior when external APIs fail.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_aeb64cd2a682cbe02ff440abdec76a378}\index{tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}!test\_fetcher\_falls\_back\_on\_unhandled\_exception@{test\_fetcher\_falls\_back\_on\_unhandled\_exception}}
+\index{test\_fetcher\_falls\_back\_on\_unhandled\_exception@{test\_fetcher\_falls\_back\_on\_unhandled\_exception}!tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}}
+\doxysubsubsection{\texorpdfstring{test\_fetcher\_falls\_back\_on\_unhandled\_exception()}{test\_fetcher\_falls\_back\_on\_unhandled\_exception()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_aeb64cd2a682cbe02ff440abdec76a378} 
+tests.\+unit.\+test\+\_\+api.\+Test\+Real\+Data\+Fetcher\+Fallback.\+test\+\_\+fetcher\+\_\+falls\+\_\+back\+\_\+on\+\_\+unhandled\+\_\+exception (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{mock\+\_\+fetch\+\_\+equity}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that unhandled exceptions in create_real_database trigger fallback.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_a206e51f2585d515fa6a01a8409ad9da3}\index{tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}!test\_individual\_asset\_class\_fetch\_failures\_logged@{test\_individual\_asset\_class\_fetch\_failures\_logged}}
+\index{test\_individual\_asset\_class\_fetch\_failures\_logged@{test\_individual\_asset\_class\_fetch\_failures\_logged}!tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}}
+\doxysubsubsection{\texorpdfstring{test\_individual\_asset\_class\_fetch\_failures\_logged()}{test\_individual\_asset\_class\_fetch\_failures\_logged()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_a206e51f2585d515fa6a01a8409ad9da3} 
+tests.\+unit.\+test\+\_\+api.\+Test\+Real\+Data\+Fetcher\+Fallback.\+test\+\_\+individual\+\_\+asset\+\_\+class\+\_\+fetch\+\_\+failures\+\_\+logged (\begin{DoxyParamCaption}\item[{}]{mock\+\_\+ticker}{, }\item[{}]{mock\+\_\+logger}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that individual asset class fetch failures are logged properly.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_a8afbb0edb30ed60cf9c8f5b789a831bf}\index{tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}!test\_real\_data\_fetcher\_complete\_failure\_fallback@{test\_real\_data\_fetcher\_complete\_failure\_fallback}}
+\index{test\_real\_data\_fetcher\_complete\_failure\_fallback@{test\_real\_data\_fetcher\_complete\_failure\_fallback}!tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}}
+\doxysubsubsection{\texorpdfstring{test\_real\_data\_fetcher\_complete\_failure\_fallback()}{test\_real\_data\_fetcher\_complete\_failure\_fallback()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_a8afbb0edb30ed60cf9c8f5b789a831bf} 
+tests.\+unit.\+test\+\_\+api.\+Test\+Real\+Data\+Fetcher\+Fallback.\+test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+complete\+\_\+failure\+\_\+fallback (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{mock\+\_\+ticker}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that RealDataFetcher falls back to sample data when fetching fails completely.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_abd56725db1fc95cd3ecb0ba78f43e896}\index{tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}!test\_real\_data\_fetcher\_empty\_history\_graceful\_handling@{test\_real\_data\_fetcher\_empty\_history\_graceful\_handling}}
+\index{test\_real\_data\_fetcher\_empty\_history\_graceful\_handling@{test\_real\_data\_fetcher\_empty\_history\_graceful\_handling}!tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}}
+\doxysubsubsection{\texorpdfstring{test\_real\_data\_fetcher\_empty\_history\_graceful\_handling()}{test\_real\_data\_fetcher\_empty\_history\_graceful\_handling()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_abd56725db1fc95cd3ecb0ba78f43e896} 
+tests.\+unit.\+test\+\_\+api.\+Test\+Real\+Data\+Fetcher\+Fallback.\+test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+empty\+\_\+history\+\_\+graceful\+\_\+handling (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{mock\+\_\+ticker}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test RealDataFetcher handles empty ticker history gracefully.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_a4b9e34ace8b7f54b039d6af45bb5edf4}\index{tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}!test\_real\_data\_fetcher\_loads\_from\_cache@{test\_real\_data\_fetcher\_loads\_from\_cache}}
+\index{test\_real\_data\_fetcher\_loads\_from\_cache@{test\_real\_data\_fetcher\_loads\_from\_cache}!tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}}
+\doxysubsubsection{\texorpdfstring{test\_real\_data\_fetcher\_loads\_from\_cache()}{test\_real\_data\_fetcher\_loads\_from\_cache()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_a4b9e34ace8b7f54b039d6af45bb5edf4} 
+tests.\+unit.\+test\+\_\+api.\+Test\+Real\+Data\+Fetcher\+Fallback.\+test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+loads\+\_\+from\+\_\+cache (\begin{DoxyParamCaption}\item[{}]{tmp\+\_\+path}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}RealDataFetcher should return cached dataset when available.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_ad3acec07cb48a942dac96940b6958fbe}\index{tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}!test\_real\_data\_fetcher\_logs\_fallback\_on\_exception@{test\_real\_data\_fetcher\_logs\_fallback\_on\_exception}}
+\index{test\_real\_data\_fetcher\_logs\_fallback\_on\_exception@{test\_real\_data\_fetcher\_logs\_fallback\_on\_exception}!tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}}
+\doxysubsubsection{\texorpdfstring{test\_real\_data\_fetcher\_logs\_fallback\_on\_exception()}{test\_real\_data\_fetcher\_logs\_fallback\_on\_exception()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_ad3acec07cb48a942dac96940b6958fbe} 
+tests.\+unit.\+test\+\_\+api.\+Test\+Real\+Data\+Fetcher\+Fallback.\+test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+logs\+\_\+fallback\+\_\+on\+\_\+exception (\begin{DoxyParamCaption}\item[{}]{mock\+\_\+fetch\+\_\+equity}{, }\item[{}]{mock\+\_\+logger}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that RealDataFetcher logs when falling back to sample data.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_afc870d29f79d13650ca5ecfcc38b3349}\index{tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}!test\_real\_data\_fetcher\_partial\_fetch\_success@{test\_real\_data\_fetcher\_partial\_fetch\_success}}
+\index{test\_real\_data\_fetcher\_partial\_fetch\_success@{test\_real\_data\_fetcher\_partial\_fetch\_success}!tests.unit.test\_api.TestRealDataFetcherFallback@{tests.unit.test\_api.TestRealDataFetcherFallback}}
+\doxysubsubsection{\texorpdfstring{test\_real\_data\_fetcher\_partial\_fetch\_success()}{test\_real\_data\_fetcher\_partial\_fetch\_success()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_afc870d29f79d13650ca5ecfcc38b3349} 
+tests.\+unit.\+test\+\_\+api.\+Test\+Real\+Data\+Fetcher\+Fallback.\+test\+\_\+real\+\_\+data\+\_\+fetcher\+\_\+partial\+\_\+fetch\+\_\+success (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{mock\+\_\+ticker}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test RealDataFetcher when all individual fetches fail gracefully (empty lists).\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/unit/\mbox{\hyperlink{tests_2unit_2test__api_8py}{test\+\_\+api.\+py}}\end{DoxyCompactItemize}

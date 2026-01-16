@@ -1,0 +1,222 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2BRANCH__CLEANUP__QUICK__REFERENCE</compoundname>
+    <title>Branch Cleanup Quick Reference</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md275"/></para>
+<para>Quick commands and procedures for maintaining a clean repository.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md276">
+<title>🚀 Quick Start</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>automated<sp/>cleanup<sp/>script</highlight></codeline>
+<codeline><highlight class="normal">chmod<sp/>+x<sp/>cleanup-branches.sh</highlight></codeline>
+<codeline><highlight class="normal">./cleanup-branches.sh</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md277">
+<title>📋 Common Commands</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md278">
+<title>View Branches</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>List<sp/>all<sp/>local<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-a</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>List<sp/>branches<sp/>with<sp/>last<sp/>commit<sp/>info</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-vv</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>List<sp/>remote<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-r</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Show<sp/>merged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--merged<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Show<sp/>unmerged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--no-merged<sp/>main</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md279">
+<title>Delete Branches</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Delete<sp/>local<sp/>branch<sp/>(safe<sp/>-<sp/>only<sp/>if<sp/>merged)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-d<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Force<sp/>delete<sp/>local<sp/>branch<sp/>(use<sp/>with<sp/>caution)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-D<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Delete<sp/>remote<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>--delete<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Delete<sp/>multiple<sp/>local<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--merged<sp/>main<sp/>|<sp/>grep<sp/>-v<sp/>&quot;^\*&quot;<sp/>|<sp/>grep<sp/>-v<sp/>&quot;main&quot;<sp/>|<sp/>xargs<sp/>-r<sp/>git<sp/>branch<sp/>-d</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md280">
+<title>Cleanup Remote References</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Remove<sp/>stale<sp/>remote-tracking<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>fetch<sp/>--prune</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>use<sp/>the<sp/>shorthand</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>fetch<sp/>-p</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Remove<sp/>all<sp/>remote-tracking<sp/>branches<sp/>that<sp/>no<sp/>longer<sp/>exist</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>remote<sp/>prune<sp/>origin</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md281">
+<title>Check Branch Status</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Show<sp/>branches<sp/>and<sp/>their<sp/>tracking<sp/>status</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-vv</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Show<sp/>last<sp/>commit<sp/>date<sp/>for<sp/>each<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>for-each-ref<sp/>--sort=-committerdate<sp/>refs/heads/<sp/>--format=&apos;%(committerdate:short)<sp/>%(refname:short)&apos;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Find<sp/>branches<sp/>older<sp/>than<sp/>90<sp/>days</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>for-each-ref<sp/>--sort=-committerdate<sp/>refs/heads/<sp/>--format=&apos;%(committerdate:short)<sp/>%(refname:short)&apos;<sp/>|<sp/>awk<sp/>&apos;$1<sp/>&lt;<sp/>&quot;&apos;$(date<sp/>-d<sp/>&apos;90<sp/>days<sp/>ago&apos;<sp/>+%Y-%m-%d)&apos;&quot;&apos;</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md282">
+<title>🔍 Branch Analysis</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md283">
+<title>Check if Branch is Merged</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Check<sp/>if<sp/>branch<sp/>is<sp/>merged<sp/>into<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--merged<sp/>main<sp/>|<sp/>grep<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>commits<sp/>unique<sp/>to<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>log<sp/>main..branch-name<sp/>--oneline</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>if<sp/>branch<sp/>has<sp/>unique<sp/>commits</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>cherry<sp/>-v<sp/>main<sp/>branch-name</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md284">
+<title>Find Stale Branches</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Branches<sp/>with<sp/>no<sp/>commits<sp/>in<sp/>last<sp/>90<sp/>days</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>branch<sp/>in<sp/>$(git<sp/>branch<sp/>|<sp/>sed<sp/>&apos;s/^..//&apos;);<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[<sp/>&quot;$branch&quot;<sp/>!=<sp/>&quot;main&quot;<sp/>];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>last_commit=$(git<sp/>log<sp/>-1<sp/>--format=%ci<sp/>&quot;$branch&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>echo<sp/>&quot;$branch:<sp/>$last_commit&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal">done</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md285">
+<title>⚠️ Safety Checks</title><para>Before deleting any branch:</para>
+<para><orderedlist>
+<listitem><para><bold>Verify it&apos;s merged</bold>:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>branch<sp/>--merged<sp/>main<sp/>|<sp/>grep<sp/>branch-name</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Check for unique commits</bold>:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>log<sp/>main..branch-name</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Ensure no active work</bold>:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>log<sp/>-1<sp/>branch-name</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Check PR status</bold> on GitHub</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md286">
+<title>🤖 Automated Workflow</title><para>The repository includes an automated workflow that runs weekly:</para>
+<para><itemizedlist>
+<listitem><para><bold>Location</bold>: <computeroutput>.github/workflows/branch-cleanup.yml</computeroutput></para>
+</listitem><listitem><para><bold>Schedule</bold>: Every Monday at 9 AM UTC</para>
+</listitem><listitem><para><bold>Manual trigger</bold>: Actions tab → &quot;Branch Cleanup Report&quot; → &quot;Run workflow&quot;</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md287">
+<title>📝 Branch Naming Conventions</title><para>Use descriptive branch names:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>feature/description</computeroutput> - New features</para>
+</listitem><listitem><para><computeroutput>fix/description</computeroutput> - Bug fixes</para>
+</listitem><listitem><para><computeroutput>docs/description</computeroutput> - Documentation updates</para>
+</listitem><listitem><para><computeroutput>refactor/description</computeroutput> - Code refactoring</para>
+</listitem><listitem><para><computeroutput>test/description</computeroutput> - Test additions/updates</para>
+</listitem><listitem><para><computeroutput>chore/description</computeroutput> - Maintenance tasks</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md288">
+<title>🎯 Best Practices</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md289">
+<title>For Contributors</title><para><orderedlist>
+<listitem><para>✅ Create branches from <computeroutput>main</computeroutput></para>
+</listitem><listitem><para>✅ Keep branches short-lived (&lt; 2 weeks)</para>
+</listitem><listitem><para>✅ Sync with main regularly</para>
+</listitem><listitem><para>✅ Delete after merge</para>
+</listitem><listitem><para>✅ Use descriptive names</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md290">
+<title>For Maintainers</title><para><orderedlist>
+<listitem><para>✅ Review PRs promptly</para>
+</listitem><listitem><para>✅ Merge or close stale PRs</para>
+</listitem><listitem><para>✅ Delete merged branches</para>
+</listitem><listitem><para>✅ Run cleanup script monthly</para>
+</listitem><listitem><para>✅ Monitor branch count</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md291">
+<title>🔧 Troubleshooting</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md292">
+<title>Branch Won&apos;t Delete</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>If<sp/>branch<sp/>has<sp/>unmerged<sp/>commits</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-D<sp/>branch-name<sp/><sp/>#<sp/>Force<sp/>delete<sp/>(careful!)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>If<sp/>remote<sp/>branch<sp/>won&apos;t<sp/>delete</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>--delete<sp/>branch-name<sp/>--force</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md293">
+<title>Restore Deleted Branch</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Find<sp/>the<sp/>commit<sp/>SHA</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>reflog</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Recreate<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>branch-name<sp/>&lt;commit-sha&gt;</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md294">
+<title>Sync Fork with Upstream</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Add<sp/>upstream<sp/>remote<sp/>(if<sp/>not<sp/>already<sp/>added)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>remote<sp/>add<sp/>upstream<sp/>https://github.com/original/repo.git</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Fetch<sp/>upstream<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>fetch<sp/>upstream</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Merge<sp/>upstream<sp/>main<sp/>into<sp/>your<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>checkout<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>merge<sp/>upstream/main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Push<sp/>to<sp/>your<sp/>fork</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>main</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md295">
+<title>📊 Repository Health Metrics</title><para>Target metrics for a healthy repository:</para>
+<para><itemizedlist>
+<listitem><para><bold>Total branches</bold>: &lt; 10</para>
+</listitem><listitem><para><bold>Stale branches</bold> (90+ days): 0</para>
+</listitem><listitem><para><bold>Merged but not deleted</bold>: 0</para>
+</listitem><listitem><para><bold>Open PRs</bold>: &lt; 5</para>
+</listitem><listitem><para><bold>Average branch age</bold>: &lt; 30 days</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md296">
+<title>🔗 Related Documentation</title><para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref> - Detailed analysis</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538" kindref="compound">BRANCH_CLEANUP_SUMMARY.md</ref> - Executive summary</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING" kindref="compound">CONTRIBUTING.md</ref> - Full contributing guidelines</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70bcdca6ac53146bdf74508af106df08_1autotoc_md297">
+<title>💡 Tips</title><para><itemizedlist>
+<listitem><para>Use <computeroutput>git fetch --prune</computeroutput> regularly to clean up remote references</para>
+</listitem><listitem><para>Enable &quot;Automatically delete head branches&quot; in GitHub repository settings</para>
+</listitem><listitem><para>Set up branch protection rules for <computeroutput>main</computeroutput></para>
+</listitem><listitem><para>Use the automated workflow to stay informed</para>
+</listitem><listitem><para>Review branches monthly, not just when they become a problem</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+<para><bold>Quick Help</bold>: Run <computeroutput>./cleanup-branches.sh</computeroutput> for an interactive cleanup session </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/BRANCH_CLEANUP_QUICK_REFERENCE.md"/>
+  </compounddef>
+</doxygen>

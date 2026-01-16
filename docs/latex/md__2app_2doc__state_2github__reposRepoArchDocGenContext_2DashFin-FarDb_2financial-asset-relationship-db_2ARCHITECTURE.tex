@@ -1,0 +1,380 @@
+\chapter{Architecture Overview}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE}\index{Architecture Overview@{Architecture Overview}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md92}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md92}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md93}{}\doxysection{\texorpdfstring{System Architecture}{System Architecture}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md93}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ User\ Interface\ Layer\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────┐\ \ \ \ \ ┌──────────────────────────┐\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ \ Gradio\ UI\ (Port\ 7860)\ \ │\ \ \ \ \ │\ Next.js\ UI\ (Port\ 3000)\ \ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ ┌────────────────────┐\ \ │\ \ \ \ \ │\ \ ┌────────────────────┐\ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ 3D\ Visualization\ \ \ │\ \ │\ \ \ \ \ │\ \ │\ 3D\ Visualization\ \ \ │\ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ Metrics\ Dashboard\ \ │\ \ │\ \ \ \ \ │\ \ │\ Metrics\ Dashboard\ \ │\ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ Asset\ Explorer\ \ \ \ \ │\ \ │\ \ \ \ \ │\ \ │\ Asset\ Explorer\ \ \ \ \ │\ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ Schema\ Report\ \ \ \ \ \ │\ \ │\ \ \ \ \ │\ \ │\ (React\ Components)\ │\ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ └────────────────────┘\ \ │\ \ \ \ \ │\ \ └────────────────────┘\ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ \ (Python/Gradio)\ \ \ \ \ \ \ \ │\ \ \ \ \ │\ \ \ (TypeScript/React)\ \ \ \ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──────────┬───────────────┘\ \ \ \ \ └──────────┬───────────────┘\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────┼─────────────────────────────────┼──────────────────────┘}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ Direct\ Function\ Calls\ \ \ \ \ \ \ \ \ \ │\ HTTP\ REST\ API}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{┌─────────────▼─────────────────────────────────▼──────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ API\ Layer\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├───────────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ┌────────────────────────────┐\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ FastAPI\ Backend\ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ (Port\ 8000)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ Endpoints:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ -\/\ /api/assets\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ -\/\ /api/metrics\ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ -\/\ /api/visualization\ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ -\/\ /api/relationships\ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ -\/\ /api/health\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ └────────────┬───────────────┘\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────┼───────────────────────────────┼────────────────────────┘}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ Function\ Calls}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{┌─────────────▼───────────────────────────────▼────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Core\ Business\ Logic\ Layer\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├───────────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────────────────────────────────────────┐\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ AssetRelationshipGraph\ (src/logic/asset\_graph.py)\ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ ┌──────────────┐\ \ ┌──────────────┐\ \ ┌──────────────┐\ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ add\_asset()\ \ │\ \ │\ add\_relation\ │\ \ │\ build\_rel()\ \ │\ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ get\_metrics()│\ \ │\ find\_rel()\ \ \ │\ \ │\ get\_3d\_viz()\ │\ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ └──────────────┘\ \ └──────────────┘\ \ └──────────────┘\ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ └──────────────────────────────────────────────────────────────┘\ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────────────────────────────────────────┐\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ Visualization\ Layer\ (src/visualizations/)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ ┌──────────────┐\ \ ┌──────────────┐\ \ ┌──────────────┐\ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ graph\_visuals│\ \ │\ metric\_vis\ \ \ │\ \ │\ formulaic\ \ \ \ │\ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ └──────────────┘\ \ └──────────────┘\ \ └──────────────┘\ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ └──────────────────────────────────────────────────────────────┘\ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────┬──────────────────────────────────────────────────────┘}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{┌─────────────▼──────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Data\ Layer\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────────────────────────────────────────┐\ │}
+\DoxyCodeLine{│\ \ │\ \ Financial\ Models\ (src/models/financial\_models.py)\ \ \ \ \ \ \ \ \ \ \ │\ │}
+\DoxyCodeLine{│\ \ │\ \ ┌─────────┐\ \ ┌─────────┐\ \ ┌─────────┐\ \ ┌─────────┐\ \ \ \ \ \ \ \ │\ │}
+\DoxyCodeLine{│\ \ │\ \ │\ Equity\ \ │\ \ │\ \ Bond\ \ \ │\ \ │Commodity│\ \ │Currency\ │\ \ \ \ \ \ \ \ │\ │}
+\DoxyCodeLine{│\ \ │\ \ └─────────┘\ \ └─────────┘\ \ └─────────┘\ \ └─────────┘\ \ \ \ \ \ \ \ │\ │}
+\DoxyCodeLine{│\ \ └──────────────────────────────────────────────────────────────┘\ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────────────────────────────────────────┐\ │}
+\DoxyCodeLine{│\ \ │\ \ Data\ Sources\ (src/data/)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ │}
+\DoxyCodeLine{│\ \ │\ \ ┌────────────────┐\ \ \ \ \ \ \ \ \ \ \ ┌────────────────┐\ \ \ \ \ \ \ \ \ \ \ \ │\ │}
+\DoxyCodeLine{│\ \ │\ \ │\ sample\_data.py\ │\ \ \ \ \ \ \ \ \ \ \ │real\_data\_fetch\ │\ \ \ \ \ \ \ \ \ \ \ \ │\ │}
+\DoxyCodeLine{│\ \ │\ \ │\ (Static)\ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ │(Yahoo\ Finance)\ │\ \ \ \ \ \ \ \ \ \ \ \ │\ │}
+\DoxyCodeLine{│\ \ │\ \ └────────────────┘\ \ \ \ \ \ \ \ \ \ \ └────────────────┘\ \ \ \ \ \ \ \ \ \ \ \ │\ │}
+\DoxyCodeLine{│\ \ └──────────────────────────────────────────────────────────────┘\ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└──────────────────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md94}{}\doxysection{\texorpdfstring{Component Interaction Flow}{Component Interaction Flow}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md94}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md95}{}\doxysubsection{\texorpdfstring{Flow 1\+: Next.\+js Frontend → Fast\+API → Core Logic}{Flow 1\+: Next.\+js Frontend → Fast\+API → Core Logic}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md95}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{User\ Action\ (Next.js)}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 1.\ Click\ "{}View\ 3D\ Graph"{}}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{React\ Component\ (NetworkVisualization.tsx)}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 2.\ API\ Call:\ GET\ /api/visualization}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{API\ Client\ (lib/api.ts)}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 3.\ HTTP\ Request\ (Axios)}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{FastAPI\ Endpoint\ (api/main.py)}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 4.\ get\_visualization\_data()}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{AssetRelationshipGraph.get\_3d\_visualization\_data()}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 5.\ Calculate\ positions,\ colors}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{Response:\ \{\ nodes:\ [...],\ edges:\ [...]\ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 6.\ JSON\ Response}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{React\ Component}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 7.\ Render\ with\ Plotly}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{3D\ Visualization\ Displayed}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md96}{}\doxysubsection{\texorpdfstring{Flow 2\+: Gradio UI → Core Logic (Direct)}{Flow 2\+: Gradio UI → Core Logic (Direct)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md96}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{User\ Action\ (Gradio)}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 1.\ Click\ "{}Refresh\ Visualization"{}}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{Gradio\ Event\ Handler\ (app.py)}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 2.\ refresh\_visualization\_outputs()}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{visualize\_3d\_graph()}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 3.\ Direct\ function\ call}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{AssetRelationshipGraph.get\_3d\_visualization\_data()}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 4.\ Calculate\ positions,\ colors}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{Plotly\ Figure\ Object}
+\DoxyCodeLine{\ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ │\ 5.\ Return\ figure}
+\DoxyCodeLine{\ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{Gradio\ Interface\ Update}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md97}{}\doxysection{\texorpdfstring{Technology Stack}{Technology Stack}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md97}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md98}{}\doxysubsection{\texorpdfstring{Frontend Technologies}{Frontend Technologies}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md98}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ Next.js\ Frontend\ Stack\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────┤}
+\DoxyCodeLine{│\ React\ 18\ \ \ \ \ \ │\ UI\ Framework\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Next.js\ 14\ \ \ \ │\ React\ Framework\ \ \ \ \ │}
+\DoxyCodeLine{│\ TypeScript\ \ \ \ │\ Type\ Safety\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Tailwind\ CSS\ \ │\ Styling\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Plotly.js\ \ \ \ \ │\ 3D\ Visualization\ \ \ \ │}
+\DoxyCodeLine{│\ Axios\ \ \ \ \ \ \ \ \ │\ HTTP\ Client\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────┘}
+\DoxyCodeLine{}
+\DoxyCodeLine{┌─────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ Gradio\ Frontend\ Stack\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────┤}
+\DoxyCodeLine{│\ Gradio\ 4.x\ \ \ \ │\ UI\ Framework\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Plotly\ \ \ \ \ \ \ \ │\ Visualization\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Python\ \ \ \ \ \ \ \ │\ Backend\ Logic\ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md99}{}\doxysubsection{\texorpdfstring{Backend Technologies}{Backend Technologies}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md99}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ Backend\ Stack\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────┤}
+\DoxyCodeLine{│\ FastAPI\ \ \ \ \ \ \ │\ REST\ API\ Framework\ \ │}
+\DoxyCodeLine{│\ Uvicorn\ \ \ \ \ \ \ │\ ASGI\ Server\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Pydantic\ \ \ \ \ \ │\ Data\ Validation\ \ \ \ \ │}
+\DoxyCodeLine{│\ Python\ 3.8+\ \ \ │\ Runtime\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────┘}
+\DoxyCodeLine{}
+\DoxyCodeLine{┌─────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ Core\ Logic\ Stack\ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────┤}
+\DoxyCodeLine{│\ NumPy\ \ \ \ \ \ \ \ \ │\ Numerical\ Computing\ │}
+\DoxyCodeLine{│\ Pandas\ \ \ \ \ \ \ \ │\ Data\ Analysis\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ yfinance\ \ \ \ \ \ │\ Financial\ Data\ \ \ \ \ \ │}
+\DoxyCodeLine{│\ Plotly\ \ \ \ \ \ \ \ │\ Visualization\ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md100}{}\doxysection{\texorpdfstring{Data Flow}{Data Flow}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md100}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md101}{}\doxysubsection{\texorpdfstring{Asset Relationship Discovery}{Asset Relationship Discovery}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md101}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1.\ Data\ Ingestion}
+\DoxyCodeLine{\ \ \ ├──\ Yahoo\ Finance\ API\ (yfinance)}
+\DoxyCodeLine{\ \ \ │\ \ \ ├──\ Stock\ prices}
+\DoxyCodeLine{\ \ \ │\ \ \ ├──\ Company\ info}
+\DoxyCodeLine{\ \ \ │\ \ \ └──\ Financial\ metrics}
+\DoxyCodeLine{\ \ \ └──\ Static\ sample\ data}
+\DoxyCodeLine{\ \ \ \ \ \ \ └──\ Example\ assets}
+\DoxyCodeLine{}
+\DoxyCodeLine{2.\ Asset\ Creation}
+\DoxyCodeLine{\ \ \ ├──\ Equity\ objects}
+\DoxyCodeLine{\ \ \ ├──\ Bond\ objects}
+\DoxyCodeLine{\ \ \ ├──\ Commodity\ objects}
+\DoxyCodeLine{\ \ \ └──\ Currency\ objects}
+\DoxyCodeLine{}
+\DoxyCodeLine{3.\ Relationship\ Building}
+\DoxyCodeLine{\ \ \ ├──\ Same\ sector\ analysis}
+\DoxyCodeLine{\ \ \ ├──\ Corporate\ bond-\/to-\/equity\ links}
+\DoxyCodeLine{\ \ \ ├──\ Commodity\ exposure\ detection}
+\DoxyCodeLine{\ \ \ ├──\ Currency\ risk\ mapping}
+\DoxyCodeLine{\ \ \ └──\ Income\ comparison\ (dividends\ vs\ yields)}
+\DoxyCodeLine{}
+\DoxyCodeLine{4.\ Graph\ Construction}
+\DoxyCodeLine{\ \ \ ├──\ Add\ assets\ as\ nodes}
+\DoxyCodeLine{\ \ \ ├──\ Add\ relationships\ as\ edges}
+\DoxyCodeLine{\ \ \ ├──\ Calculate\ edge\ weights\ (strength)}
+\DoxyCodeLine{\ \ \ └──\ Assign\ node\ attributes}
+\DoxyCodeLine{}
+\DoxyCodeLine{5.\ Visualization}
+\DoxyCodeLine{\ \ \ ├──\ Calculate\ 3D\ positions\ (deterministic)}
+\DoxyCodeLine{\ \ \ ├──\ Assign\ colors\ by\ asset\ class}
+\DoxyCodeLine{\ \ \ ├──\ Size\ nodes\ by\ importance}
+\DoxyCodeLine{\ \ \ └──\ Generate\ edge\ traces}
+\DoxyCodeLine{}
+\DoxyCodeLine{6.\ Output}
+\DoxyCodeLine{\ \ \ ├──\ JSON\ (API)}
+\DoxyCodeLine{\ \ \ ├──\ Plotly\ figure\ (Gradio)}
+\DoxyCodeLine{\ \ \ └──\ React\ props\ (Next.js)}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md102}{}\doxysection{\texorpdfstring{Deployment Architecture}{Deployment Architecture}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md102}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md103}{}\doxysubsection{\texorpdfstring{Local Development}{Local Development}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md103}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌──────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ Developer\ Machine\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├──────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌────────────┐\ \ \ \ \ \ ┌────────────┐\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ Frontend\ \ \ │\ \ \ \ \ \ │\ \ Backend\ \ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ npm\ run\ dev│\ \ \ \ \ \ │\ \ uvicorn\ \ \ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ Port\ 3000\ \ │◄────►│\ \ Port\ 8000\ │\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └────────────┘\ \ \ \ \ \ └────────────┘\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────────┐\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ Gradio\ (Optional)\ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ python\ app.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ Port\ 7860\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──────────────────────────────┘\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└──────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md104}{}\doxysubsection{\texorpdfstring{Vercel Deployment}{Vercel Deployment}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md104}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌──────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Vercel\ Platform\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├──────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────┐\ \ ┌────────────────────┐\ \ │}
+\DoxyCodeLine{│\ \ │\ \ Next.js\ Frontend\ \ \ \ \ \ \ \ │\ \ │\ \ Python\ Backend\ \ \ \ │\ \ │}
+\DoxyCodeLine{│\ \ │\ \ (Vercel\ Edge)\ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ (Serverless\ Func)\ │\ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ Static\ pages\ \ \ \ \ \ \ \ \ \ │\ \ │\ \ -\/\ FastAPI\ app\ \ \ \ \ │\ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ API\ routes\ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ -\/\ Auto-\/scaling\ \ \ \ │\ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ Auto-\/deploy\ from\ Git\ \ │\ \ │\ \ -\/\ Cold\ start\ \ \ \ \ \ │\ \ │}
+\DoxyCodeLine{│\ \ └──────────┬───────────────┘\ \ └──────────┬─────────┘\ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ Internal\ Network\ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ └──────────────────────────────┘\ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└──────────────────────────────────────────────────────────┘}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ HTTPS}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ▼}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Internet\ Users}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md105}{}\doxysection{\texorpdfstring{Security Architecture}{Security Architecture}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md105}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ Security\ Layers\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ 1.\ Transport\ Layer\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ ├──\ HTTPS/TLS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ └──\ Secure\ WebSocket\ (future)\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ 2.\ Application\ Layer\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ ├──\ CORS\ Configuration\ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ ├──\ Input\ Validation\ (Pydantic)\ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ └──\ Rate\ Limiting\ (future)\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ 3.\ Data\ Layer\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ ├──\ Data\ validation\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ └──\ Type\ checking\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md106}{}\doxysection{\texorpdfstring{Performance Considerations}{Performance Considerations}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md106}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md107}{}\doxysubsection{\texorpdfstring{Caching Strategy (Future)}{Caching Strategy (Future)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md107}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Request\ →\ Cache\ Check\ →\ Cache\ Hit?}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ├─\ Yes\ →\ Return\ cached\ data}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ └─\ No\ →\ Compute\ →\ Cache\ →\ Return}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md108}{}\doxysubsection{\texorpdfstring{Load Distribution}{Load Distribution}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md108}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{High\ Traffic}
+\DoxyCodeLine{\ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ ├─\ Static\ Assets\ →\ CDN\ (Vercel\ Edge)}
+\DoxyCodeLine{\ \ \ \ ├─\ API\ Requests\ →\ Serverless\ Functions\ (Auto-\/scale)}
+\DoxyCodeLine{\ \ \ \ └─\ Graph\ Data\ →\ In-\/memory\ cache\ (Instance-\/level)}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md109}{}\doxysection{\texorpdfstring{Extensibility Points}{Extensibility Points}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md109}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md110}{}\doxysubsection{\texorpdfstring{Adding New Features}{Adding New Features}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_autotoc_md110}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{New Asset Type}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{financial\_models.py\ →\ asset\_graph.py\ →\ API\ endpoint\ →\ Frontend}
+
+\end{DoxyCode}
+
+\item {\bfseries{New Relationship Type}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\_find\_relationships()\ →\ build\_relationships()\ →\ Visualization}
+
+\end{DoxyCode}
+
+\item {\bfseries{New Visualization}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Create\ component\ →\ Add\ to\ page.tsx\ →\ Connect\ to\ API}
+
+\end{DoxyCode}
+
+\item {\bfseries{New API Endpoint}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{api/main.py\ →\ Test\ →\ Update\ frontend\ API\ client\ →\ Use\ in\ components}
+
+\end{DoxyCode}
+
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+
+
+For more details, see\+:
+
+
+\begin{DoxyItemize}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY}{INTEGRATION\+\_\+\+SUMMARY.md}{0} -\/ Technical implementation
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT}{DEPLOYMENT.md}{0} -\/ Deployment procedures
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START}{QUICK\+\_\+\+START.md}{0} -\/ Getting started guide 
+\end{DoxyItemize}

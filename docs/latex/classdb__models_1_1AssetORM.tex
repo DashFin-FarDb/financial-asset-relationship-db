@@ -1,0 +1,283 @@
+\doxysection{db\+\_\+models.\+Asset\+ORM Class Reference}
+\hypertarget{classdb__models_1_1AssetORM}{}\label{classdb__models_1_1AssetORM}\index{db\_models.AssetORM@{db\_models.AssetORM}}
+
+
+Inheritance diagram for db\+\_\+models.\+Asset\+ORM\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=197pt]{classdb__models_1_1AssetORM__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for db\+\_\+models.\+Asset\+ORM\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=345pt]{classdb__models_1_1AssetORM__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a9e4a64abb1af1aba467ff6230ad02329}{id}} = mapped\+\_\+column(String, primary\+\_\+key=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_ab10030f897accc49f0a8caea0b1a1d13}{symbol}} = mapped\+\_\+column(String, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_aaed1ebf4ef1150d6093396db1ad3e5e7}{name}} = mapped\+\_\+column(String, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_ab455c1211618dffb26c9b95ba74121f4}{asset\+\_\+class}} = mapped\+\_\+column(String, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_ad2d0504c8f623ab3e103a8260775b192}{sector}} = mapped\+\_\+column(String, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a5954b3d62859cb314032f0bc442f01af}{price}} = mapped\+\_\+column(Float, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_af28e242dfe4493eeb6ede241646d1298}{market\+\_\+cap}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a364a674f771c5c89c8e0de5f03d6fcdd}{currency}} = mapped\+\_\+column(String(3), nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a46b0e84b3d4c6af709ff72c07eaf0105}{pe\+\_\+ratio}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a3b37cb647c6fddaaa1b26fbecbac6a31}{dividend\+\_\+yield}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_ab1229eefe6ee1acd618c4f2e6192b156}{earnings\+\_\+per\+\_\+share}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_ad1eef846fa84d72cfcc97beb93a8d6d6}{book\+\_\+value}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_adb4a37319eb2f86f57467c898691554c}{yield\+\_\+to\+\_\+maturity}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a7a641dd0341eed8f072aa2f7870e9c06}{coupon\+\_\+rate}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a67ac7bcd6a4bbbfdf180ef72e706ea77}{maturity\+\_\+date}} = mapped\+\_\+column(String, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a61f92458e85ccae9054f21048c480e1a}{credit\+\_\+rating}} = mapped\+\_\+column(String, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_ac324e6a72135aff7fe488b21053482a9}{issuer\+\_\+id}} = mapped\+\_\+column(String, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_aa4a2b13be4363428fff11062fff6ff8f}{contract\+\_\+size}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a91a26d52ab5cefd41c8d6ab958301487}{delivery\+\_\+date}} = mapped\+\_\+column(String, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a9de98a94b0c0b2e5f57c53fdc1d68124}{volatility}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a6ecf8bc3478b71d6536d0f6f0b67b4ce}{exchange\+\_\+rate}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a1f287ac0ab34ac6a33580261ef5af44d}{country}} = mapped\+\_\+column(String, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a00c71dca168e28f61cfa6d44a00c343d}{central\+\_\+bank\+\_\+rate}} = mapped\+\_\+column(Float, nullable=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a9e4ba413f33b0a0427d488ff95429f6a}{outgoing\+\_\+relationships}}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_a2a758b80e0aa1b138d4888ceec028275}{incoming\+\_\+relationships}}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetORM_aa773fb58ae1bdd68c1e4bdc7c862064e}{regulatory\+\_\+events}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{classdb__models_1_1AssetORM_ac658ab4d476e115946e7f825d5857b5c}{\+\_\+\+\_\+tablename\+\_\+\+\_\+}} = "{}assets"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Persistent representation of an asset.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classdb__models_1_1AssetORM_ac658ab4d476e115946e7f825d5857b5c}\index{db\_models.AssetORM@{db\_models.AssetORM}!\_\_tablename\_\_@{\_\_tablename\_\_}}
+\index{\_\_tablename\_\_@{\_\_tablename\_\_}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{\_\_tablename\_\_}{\_\_tablename\_\_}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_ac658ab4d476e115946e7f825d5857b5c} 
+str db\+\_\+models.\+Asset\+ORM.\+\_\+\+\_\+tablename\+\_\+\+\_\+ = "{}assets"{}\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_ab455c1211618dffb26c9b95ba74121f4}\index{db\_models.AssetORM@{db\_models.AssetORM}!asset\_class@{asset\_class}}
+\index{asset\_class@{asset\_class}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{asset\_class}{asset\_class}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_ab455c1211618dffb26c9b95ba74121f4} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+asset\+\_\+class = mapped\+\_\+column(String, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_ad1eef846fa84d72cfcc97beb93a8d6d6}\index{db\_models.AssetORM@{db\_models.AssetORM}!book\_value@{book\_value}}
+\index{book\_value@{book\_value}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{book\_value}{book\_value}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_ad1eef846fa84d72cfcc97beb93a8d6d6} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+book\+\_\+value = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a00c71dca168e28f61cfa6d44a00c343d}\index{db\_models.AssetORM@{db\_models.AssetORM}!central\_bank\_rate@{central\_bank\_rate}}
+\index{central\_bank\_rate@{central\_bank\_rate}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{central\_bank\_rate}{central\_bank\_rate}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a00c71dca168e28f61cfa6d44a00c343d} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+central\+\_\+bank\+\_\+rate = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_aa4a2b13be4363428fff11062fff6ff8f}\index{db\_models.AssetORM@{db\_models.AssetORM}!contract\_size@{contract\_size}}
+\index{contract\_size@{contract\_size}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{contract\_size}{contract\_size}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_aa4a2b13be4363428fff11062fff6ff8f} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+contract\+\_\+size = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a1f287ac0ab34ac6a33580261ef5af44d}\index{db\_models.AssetORM@{db\_models.AssetORM}!country@{country}}
+\index{country@{country}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{country}{country}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a1f287ac0ab34ac6a33580261ef5af44d} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+country = mapped\+\_\+column(String, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a7a641dd0341eed8f072aa2f7870e9c06}\index{db\_models.AssetORM@{db\_models.AssetORM}!coupon\_rate@{coupon\_rate}}
+\index{coupon\_rate@{coupon\_rate}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{coupon\_rate}{coupon\_rate}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a7a641dd0341eed8f072aa2f7870e9c06} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+coupon\+\_\+rate = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a61f92458e85ccae9054f21048c480e1a}\index{db\_models.AssetORM@{db\_models.AssetORM}!credit\_rating@{credit\_rating}}
+\index{credit\_rating@{credit\_rating}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{credit\_rating}{credit\_rating}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a61f92458e85ccae9054f21048c480e1a} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+credit\+\_\+rating = mapped\+\_\+column(String, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a364a674f771c5c89c8e0de5f03d6fcdd}\index{db\_models.AssetORM@{db\_models.AssetORM}!currency@{currency}}
+\index{currency@{currency}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{currency}{currency}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a364a674f771c5c89c8e0de5f03d6fcdd} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+currency = mapped\+\_\+column(String(3), nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a91a26d52ab5cefd41c8d6ab958301487}\index{db\_models.AssetORM@{db\_models.AssetORM}!delivery\_date@{delivery\_date}}
+\index{delivery\_date@{delivery\_date}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{delivery\_date}{delivery\_date}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a91a26d52ab5cefd41c8d6ab958301487} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+delivery\+\_\+date = mapped\+\_\+column(String, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a3b37cb647c6fddaaa1b26fbecbac6a31}\index{db\_models.AssetORM@{db\_models.AssetORM}!dividend\_yield@{dividend\_yield}}
+\index{dividend\_yield@{dividend\_yield}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{dividend\_yield}{dividend\_yield}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a3b37cb647c6fddaaa1b26fbecbac6a31} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+dividend\+\_\+yield = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_ab1229eefe6ee1acd618c4f2e6192b156}\index{db\_models.AssetORM@{db\_models.AssetORM}!earnings\_per\_share@{earnings\_per\_share}}
+\index{earnings\_per\_share@{earnings\_per\_share}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{earnings\_per\_share}{earnings\_per\_share}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_ab1229eefe6ee1acd618c4f2e6192b156} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+earnings\+\_\+per\+\_\+share = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a6ecf8bc3478b71d6536d0f6f0b67b4ce}\index{db\_models.AssetORM@{db\_models.AssetORM}!exchange\_rate@{exchange\_rate}}
+\index{exchange\_rate@{exchange\_rate}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{exchange\_rate}{exchange\_rate}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a6ecf8bc3478b71d6536d0f6f0b67b4ce} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+exchange\+\_\+rate = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a9e4a64abb1af1aba467ff6230ad02329}\index{db\_models.AssetORM@{db\_models.AssetORM}!id@{id}}
+\index{id@{id}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{id}{id}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a9e4a64abb1af1aba467ff6230ad02329} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+id = mapped\+\_\+column(String, primary\+\_\+key=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a2a758b80e0aa1b138d4888ceec028275}\index{db\_models.AssetORM@{db\_models.AssetORM}!incoming\_relationships@{incoming\_relationships}}
+\index{incoming\_relationships@{incoming\_relationships}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{incoming\_relationships}{incoming\_relationships}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a2a758b80e0aa1b138d4888ceec028275} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+incoming\+\_\+relationships\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ relationship(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}AssetRelationshipORM"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ back\_populates=\textcolor{stringliteral}{"{}target"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ cascade=\textcolor{stringliteral}{"{}all,\ delete-\/orphan"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ foreign\_keys=\textcolor{stringliteral}{"{}AssetRelationshipORM.target\_asset\_id"{}},}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classdb__models_1_1AssetORM_ac324e6a72135aff7fe488b21053482a9}\index{db\_models.AssetORM@{db\_models.AssetORM}!issuer\_id@{issuer\_id}}
+\index{issuer\_id@{issuer\_id}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{issuer\_id}{issuer\_id}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_ac324e6a72135aff7fe488b21053482a9} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+issuer\+\_\+id = mapped\+\_\+column(String, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_af28e242dfe4493eeb6ede241646d1298}\index{db\_models.AssetORM@{db\_models.AssetORM}!market\_cap@{market\_cap}}
+\index{market\_cap@{market\_cap}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{market\_cap}{market\_cap}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_af28e242dfe4493eeb6ede241646d1298} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+market\+\_\+cap = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a67ac7bcd6a4bbbfdf180ef72e706ea77}\index{db\_models.AssetORM@{db\_models.AssetORM}!maturity\_date@{maturity\_date}}
+\index{maturity\_date@{maturity\_date}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{maturity\_date}{maturity\_date}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a67ac7bcd6a4bbbfdf180ef72e706ea77} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+maturity\+\_\+date = mapped\+\_\+column(String, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_aaed1ebf4ef1150d6093396db1ad3e5e7}\index{db\_models.AssetORM@{db\_models.AssetORM}!name@{name}}
+\index{name@{name}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{name}{name}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_aaed1ebf4ef1150d6093396db1ad3e5e7} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+name = mapped\+\_\+column(String, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a9e4ba413f33b0a0427d488ff95429f6a}\index{db\_models.AssetORM@{db\_models.AssetORM}!outgoing\_relationships@{outgoing\_relationships}}
+\index{outgoing\_relationships@{outgoing\_relationships}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{outgoing\_relationships}{outgoing\_relationships}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a9e4ba413f33b0a0427d488ff95429f6a} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+outgoing\+\_\+relationships\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ relationship(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}AssetRelationshipORM"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ back\_populates=\textcolor{stringliteral}{"{}source"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ cascade=\textcolor{stringliteral}{"{}all,\ delete-\/orphan"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ foreign\_keys=\textcolor{stringliteral}{"{}AssetRelationshipORM.source\_asset\_id"{}},}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classdb__models_1_1AssetORM_a46b0e84b3d4c6af709ff72c07eaf0105}\index{db\_models.AssetORM@{db\_models.AssetORM}!pe\_ratio@{pe\_ratio}}
+\index{pe\_ratio@{pe\_ratio}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{pe\_ratio}{pe\_ratio}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a46b0e84b3d4c6af709ff72c07eaf0105} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+pe\+\_\+ratio = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a5954b3d62859cb314032f0bc442f01af}\index{db\_models.AssetORM@{db\_models.AssetORM}!price@{price}}
+\index{price@{price}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{price}{price}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a5954b3d62859cb314032f0bc442f01af} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+price = mapped\+\_\+column(Float, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_aa773fb58ae1bdd68c1e4bdc7c862064e}\index{db\_models.AssetORM@{db\_models.AssetORM}!regulatory\_events@{regulatory\_events}}
+\index{regulatory\_events@{regulatory\_events}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{regulatory\_events}{regulatory\_events}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_aa773fb58ae1bdd68c1e4bdc7c862064e} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+regulatory\+\_\+events\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ relationship(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}RegulatoryEventORM"{}},\ back\_populates=\textcolor{stringliteral}{"{}asset"{}},\ cascade=\textcolor{stringliteral}{"{}all,\ delete-\/orphan"{}}}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classdb__models_1_1AssetORM_ad2d0504c8f623ab3e103a8260775b192}\index{db\_models.AssetORM@{db\_models.AssetORM}!sector@{sector}}
+\index{sector@{sector}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{sector}{sector}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_ad2d0504c8f623ab3e103a8260775b192} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+sector = mapped\+\_\+column(String, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_ab10030f897accc49f0a8caea0b1a1d13}\index{db\_models.AssetORM@{db\_models.AssetORM}!symbol@{symbol}}
+\index{symbol@{symbol}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{symbol}{symbol}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_ab10030f897accc49f0a8caea0b1a1d13} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+symbol = mapped\+\_\+column(String, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_a9de98a94b0c0b2e5f57c53fdc1d68124}\index{db\_models.AssetORM@{db\_models.AssetORM}!volatility@{volatility}}
+\index{volatility@{volatility}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{volatility}{volatility}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_a9de98a94b0c0b2e5f57c53fdc1d68124} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+volatility = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetORM_adb4a37319eb2f86f57467c898691554c}\index{db\_models.AssetORM@{db\_models.AssetORM}!yield\_to\_maturity@{yield\_to\_maturity}}
+\index{yield\_to\_maturity@{yield\_to\_maturity}!db\_models.AssetORM@{db\_models.AssetORM}}
+\doxysubsubsection{\texorpdfstring{yield\_to\_maturity}{yield\_to\_maturity}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetORM_adb4a37319eb2f86f57467c898691554c} 
+Mapped db\+\_\+models.\+Asset\+ORM.\+yield\+\_\+to\+\_\+maturity = mapped\+\_\+column(Float, nullable=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/src/data/\mbox{\hyperlink{db__models_8py}{db\+\_\+models.\+py}}\end{DoxyCompactItemize}

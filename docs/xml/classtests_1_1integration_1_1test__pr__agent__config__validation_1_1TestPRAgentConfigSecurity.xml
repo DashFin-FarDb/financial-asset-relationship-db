@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigSecurity</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1afacf9fc4dc35c915b6f9a82e2cf6cf30" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.pr_agent_config</definition>
+        <argsstring>()</argsstring>
+        <name>pr_agent_config</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.pr_agent_config</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+
+Returns:
+    dict: The parsed YAML content as a Python mapping.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="185" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="185" bodyend="203"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1a2518212e64119e69a9b584a41658c79f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.test_config_values_have_no_hardcoded_credentials</definition>
+        <argsstring>(pr_agent_config)</argsstring>
+        <name>test_config_values_have_no_hardcoded_credentials</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.test_config_values_have_no_hardcoded_credentials</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1afacf9fc4dc35c915b6f9a82e2cf6cf30" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Recursively scan configuration values for suspected secrets.
+
+This inspects values (not just serialized text) and traverses nested dicts/lists.
+The heuristic flags:
+  - Long high-entropy strings (e.g., tokens)
+  - Obvious secret prefixes/suffixes
+  - Inline credentials in URLs (e.g., scheme://user:pass@host)
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="205" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="205" bodyend="264"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1a93fb1c9ac50d8ed248545a004c6d5ab4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.test_no_hardcoded_credentials</definition>
+        <argsstring>(pr_agent_config)</argsstring>
+        <name>test_no_hardcoded_credentials</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.test_no_hardcoded_credentials</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1afacf9fc4dc35c915b6f9a82e2cf6cf30" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Recursively scan configuration values and keys for suspected secrets.
+- Flags high - entropy or secret - like string values.
+- Ensures sensitive keys only use safe placeholders.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="266" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="266" bodyend="387"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1ae1526af2d6289d5c212c978e6b2813e4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.test_no_hardcoded_secrets</definition>
+        <argsstring>(pr_agent_config)</argsstring>
+        <name>test_no_hardcoded_secrets</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.test_no_hardcoded_secrets</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1afacf9fc4dc35c915b6f9a82e2cf6cf30" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Traverse the parsed YAML and ensure that any key or value containing sensitive
+indicators has a safe placeholder value (None, &apos;null&apos;, &apos;none&apos;, &apos;placeholder&apos;,
+or a templated variable like &apos;${VAR}&apos;).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="389" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="389" bodyend="448"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1aca40d52f9289815b9e791e1ae2128449" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.test_safe_configuration_values</definition>
+        <argsstring>(pr_agent_config)</argsstring>
+        <name>test_safe_configuration_values</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity.test_safe_configuration_values</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1afacf9fc4dc35c915b6f9a82e2cf6cf30" kindref="member">pr_agent_config</ref></type>
+          <defname>pr_agent_config</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Assert that key numeric limits in the PR agent configuration fall within safe bounds.
+
+Checks that:
+- `limits[&apos;max_execution_time&apos;]` is less than or equal to 3600 seconds.
+- `limits[&apos;max_concurrent_prs&apos;]` is less than or equal to 10.
+- `limits[&apos;rate_limit_requests&apos;]` is less than or equal to 1000.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="450" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="450" bodyend="466"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test security aspects of configuration.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigSecurity</label>
+        <link refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="180" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="180" bodyend="466"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1afacf9fc4dc35c915b6f9a82e2cf6cf30" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigSecurity</scope><name>pr_agent_config</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1a2518212e64119e69a9b584a41658c79f" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigSecurity</scope><name>test_config_values_have_no_hardcoded_credentials</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1a93fb1c9ac50d8ed248545a004c6d5ab4" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigSecurity</scope><name>test_no_hardcoded_credentials</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1ae1526af2d6289d5c212c978e6b2813e4" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigSecurity</scope><name>test_no_hardcoded_secrets</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity_1aca40d52f9289815b9e791e1ae2128449" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigSecurity</scope><name>test_safe_configuration_values</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

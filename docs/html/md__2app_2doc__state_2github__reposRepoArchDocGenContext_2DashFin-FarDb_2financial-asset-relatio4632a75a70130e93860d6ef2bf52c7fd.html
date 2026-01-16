@@ -1,0 +1,706 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: Vercel Deployment Checklist</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">Vercel Deployment Checklist</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md5623"></a></p>
+<p>Use this checklist to ensure a smooth deployment to Vercel.</p>
+<h1><a class="anchor" id="autotoc_md5624"></a>
+Pre-Deployment Checklist</h1>
+<h2><a class="anchor" id="autotoc_md5625"></a>
+1. Code Preparation</h2>
+<ul class="check">
+<li class="unchecked">All code is committed to your Git repository</li>
+</ul>
+<ul class="check">
+<li class="unchecked"><code>.gitignore</code> excludes build artifacts and dependencies</li>
+</ul>
+<ul class="check">
+<li class="unchecked">No sensitive data or secrets in code</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Environment variables are documented in <code>.env.example</code></li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5626"></a>
+2. Local Testing</h2>
+<ul class="check">
+<li class="unchecked">Backend API runs successfully: <code>python -m uvicorn <a class="el" href="namespaceapi_1_1main.html">api.main</a>:app --port 8000</code></li>
+</ul>
+<ul class="check">
+<li class="unchecked">Frontend builds without errors: <code>cd frontend &amp;&amp; npm run build</code></li>
+</ul>
+<ul class="check">
+<li class="unchecked">All API endpoints return valid responses</li>
+</ul>
+<ul class="check">
+<li class="unchecked">3D visualization renders correctly</li>
+</ul>
+<ul class="check">
+<li class="unchecked">No console errors in browser</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5627"></a>
+3. Configuration Files</h2>
+<ul class="check">
+<li class="unchecked"><code>vercel.json</code> exists in project root</li>
+</ul>
+<ul class="check">
+<li class="unchecked"><code>frontend/package.json</code> is properly configured</li>
+</ul>
+<ul class="check">
+<li class="unchecked"><code>frontend/next.config.js</code> has correct settings</li>
+</ul>
+<ul class="check">
+<li class="unchecked"><code>requirements.txt</code> includes all Python dependencies</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5628"></a>
+4. Dependencies Check</h2>
+<p>Python dependencies (requirements.txt):</p>
+<ul class="check">
+<li class="unchecked">fastapi&gt;=0.104.0</li>
+</ul>
+<ul class="check">
+<li class="unchecked">uvicorn[standard]&gt;=0.24.0</li>
+</ul>
+<ul class="check">
+<li class="unchecked">pydantic&gt;=2.4.0</li>
+</ul>
+<ul class="check">
+<li class="unchecked">gradio&gt;=4.0.0</li>
+</ul>
+<ul class="check">
+<li class="unchecked">plotly&gt;=5.0.0</li>
+</ul>
+<ul class="check">
+<li class="unchecked">numpy&gt;=1.21.0</li>
+</ul>
+<ul class="check">
+<li class="unchecked">yfinance&gt;=0.2.0</li>
+</ul>
+<ul class="check">
+<li class="unchecked">pandas&gt;=1.5.0</li>
+</ul>
+<p>Frontend dependencies (frontend/package.json):</p>
+<ul class="check">
+<li class="unchecked">react and react-dom</li>
+</ul>
+<ul class="check">
+<li class="unchecked">next</li>
+</ul>
+<ul class="check">
+<li class="unchecked">typescript</li>
+</ul>
+<ul class="check">
+<li class="unchecked">tailwindcss</li>
+</ul>
+<ul class="check">
+<li class="unchecked">plotly.js and react-plotly.js</li>
+</ul>
+<ul class="check">
+<li class="unchecked">axios</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5629"></a>
+Deployment Steps</h1>
+<h2><a class="anchor" id="autotoc_md5630"></a>
+Option 1: Deploy via GitHub Integration (Recommended)</h2>
+<h3><a class="anchor" id="autotoc_md5631"></a>
+Step 1: Push to GitHub</h3>
+<div class="fragment"><div class="line"># Ensure all changes are committed</div>
+<div class="line">git status</div>
+<div class="line"> </div>
+<div class="line"># Push to your repository</div>
+<div class="line">git push origin main  # or your branch name</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md5632"></a>
+Step 2: Connect to Vercel</h3>
+<ul class="check">
+<li class="unchecked">Go to <a href="https://vercel.com">vercel.com</a></li>
+</ul>
+<ul class="check">
+<li class="unchecked">Sign up or log in</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Click "New Project"</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Import your GitHub repository</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Vercel will auto-detect Next.js</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md5633"></a>
+Step 3: Configure Project Settings</h3>
+<ul class="check">
+<li class="unchecked"><b>Framework Preset</b>: Next.js</li>
+</ul>
+<ul class="check">
+<li class="unchecked"><b>Root Directory</b>: Leave as <code>.</code> (default)</li>
+</ul>
+<ul class="check">
+<li class="unchecked"><b>Build Command</b>: Leave default</li>
+</ul>
+<ul class="check">
+<li class="unchecked"><b>Output Directory</b>: Leave default</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md5634"></a>
+Step 4: Set Environment Variables</h3>
+<p>In the Vercel dashboard, add:</p>
+<ul class="check">
+<li class="unchecked"><code>NEXT_PUBLIC_API_URL</code> = <code><a href="https://your-project.vercel.app">https://your-project.vercel.app</a></code><ul>
+<li>Note: Use your actual Vercel deployment URL</li>
+<li>This will be available after first deployment</li>
+</ul>
+</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md5635"></a>
+Step 5: Deploy</h3>
+<ul class="check">
+<li class="unchecked">Click "Deploy"</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Wait for build to complete (2-5 minutes)</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check deployment logs for errors</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md5636"></a>
+Step 6: Update API URL</h3>
+<p>After first deployment:</p>
+<ul class="check">
+<li class="unchecked">Copy your Vercel project URL (e.g., <code><a href="https://your-project.vercel.app">https://your-project.vercel.app</a></code>)</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Update <code>NEXT_PUBLIC_API_URL</code> in environment variables</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Redeploy if necessary</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5637"></a>
+Option 2: Deploy via Vercel CLI</h2>
+<h3><a class="anchor" id="autotoc_md5638"></a>
+Step 1: Install Vercel CLI</h3>
+<div class="fragment"><div class="line">npm install -g vercel</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md5639"></a>
+Step 2: Login</h3>
+<div class="fragment"><div class="line">vercel login</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md5640"></a>
+Step 3: Deploy from Project Root</h3>
+<div class="fragment"><div class="line"># From the project root directory</div>
+<div class="line">vercel</div>
+<div class="line"> </div>
+<div class="line"># Follow the prompts:</div>
+<div class="line"># - Set up and deploy? Yes</div>
+<div class="line"># - Which scope? Your account</div>
+<div class="line"># - Link to existing project? No (for first deployment)</div>
+<div class="line"># - Project name? Your choice</div>
+<div class="line"># - Directory? ./ (current directory)</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md5641"></a>
+Step 4: Set Environment Variables</h3>
+<div class="fragment"><div class="line"># Set production environment variable</div>
+<div class="line">vercel env add NEXT_PUBLIC_API_URL production</div>
+<div class="line"># Enter: https://your-project.vercel.app</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md5642"></a>
+Step 5: Deploy to Production</h3>
+<div class="fragment"><div class="line">vercel --prod</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md5643"></a>
+Post-Deployment Checklist</h1>
+<h2><a class="anchor" id="autotoc_md5644"></a>
+1. Verify Deployment</h2>
+<ul class="check">
+<li class="unchecked">Open deployed URL in browser</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check that frontend loads without errors</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Verify API health: <code><a href="https://your-project.vercel.app/api/health">https://your-project.vercel.app/api/health</a></code></li>
+</ul>
+<ul class="check">
+<li class="unchecked">Test API docs: <code><a href="https://your-project.vercel.app/docs">https://your-project.vercel.app/docs</a></code></li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5645"></a>
+2. Test Functionality</h2>
+<ul class="check">
+<li class="unchecked">3D Visualization tab loads and displays graph</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Metrics tab shows correct statistics</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Asset Explorer tab displays and filters work</li>
+</ul>
+<ul class="check">
+<li class="unchecked">No CORS errors in browser console</li>
+</ul>
+<ul class="check">
+<li class="unchecked">All interactive features work</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5646"></a>
+3. Performance Check</h2>
+<ul class="check">
+<li class="unchecked">Page load time is acceptable (&lt; 3 seconds)</li>
+</ul>
+<ul class="check">
+<li class="unchecked">API responses are fast (&lt; 2 seconds)</li>
+</ul>
+<ul class="check">
+<li class="unchecked">3D visualization renders smoothly</li>
+</ul>
+<ul class="check">
+<li class="unchecked">No memory leaks or errors</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5647"></a>
+4. Mobile Testing</h2>
+<ul class="check">
+<li class="unchecked">Open site on mobile device</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check responsive layout</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Test touch interactions</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Verify visualization works on mobile</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5648"></a>
+Troubleshooting</h1>
+<h2><a class="anchor" id="autotoc_md5649"></a>
+Common Issues and Solutions</h2>
+<h3><a class="anchor" id="autotoc_md5650"></a>
+Issue 1: Build Failed</h3>
+<p><b>Error</b>: Build command failed <b>Solution</b>:</p>
+<ul class="check">
+<li class="unchecked">Check build logs in Vercel dashboard</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Verify all dependencies are in package.json</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Test build locally: <code>cd frontend &amp;&amp; npm run build</code></li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check for TypeScript errors</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Ensure Node.js version is compatible (18+)</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md5651"></a>
+Issue 2: API Not Found (404)</h3>
+<p><b>Error</b>: <code>/api/</code> routes return 404 <b>Solution</b>:</p>
+<ul class="check">
+<li class="unchecked">Verify <code>vercel.json</code> is in project root</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check route configuration in vercel.json</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Ensure <code><a class="el" href="api_2main_8py.html">api/main.py</a></code> exists</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check Python version compatibility</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md5652"></a>
+Issue 3: CORS Errors</h3>
+<p><b>Error</b>: CORS policy errors in browser <b>Solution</b>:</p>
+<ul class="check">
+<li class="unchecked">Check CORS configuration in <code><a class="el" href="api_2main_8py.html">api/main.py</a></code></li>
+</ul>
+<ul class="check">
+<li class="unchecked">Add Vercel domain to allowed origins</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Verify <code>NEXT_PUBLIC_API_URL</code> is set correctly</li>
+</ul>
+<div class="fragment"><div class="line"><span class="comment"># In api/main.py</span></div>
+<div class="line">app.add_middleware(</div>
+<div class="line">    CORSMiddleware,</div>
+<div class="line">    allow_origins=[<span class="stringliteral">&quot;https://*.vercel.app&quot;</span>, <span class="stringliteral">&quot;https://your-domain.com&quot;</span>],</div>
+<div class="line">    allow_credentials=<span class="keyword">True</span>,</div>
+<div class="line">    allow_methods=[<span class="stringliteral">&quot;*&quot;</span>],</div>
+<div class="line">    allow_headers=[<span class="stringliteral">&quot;*&quot;</span>],</div>
+<div class="line">)</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md5653"></a>
+Issue 4: Environment Variables Not Working</h3>
+<p><b>Error</b>: API_URL is undefined <b>Solution</b>:</p>
+<ul class="check">
+<li class="unchecked">Verify variable name starts with <code>NEXT_PUBLIC_</code></li>
+</ul>
+<ul class="check">
+<li class="unchecked">Set in Vercel dashboard (Settings → Environment Variables)</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Redeploy after adding variables</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check variable is accessed correctly in code</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md5654"></a>
+Issue 5: Python Dependencies Not Found</h3>
+<p><b>Error</b>: Module not found errors <b>Solution</b>:</p>
+<ul class="check">
+<li class="unchecked">Verify <code>requirements.txt</code> includes all dependencies</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check Python version in Vercel settings</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Use compatible package versions</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check Vercel Python runtime logs</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md5655"></a>
+Issue 6: Lambda Size Exceeded</h3>
+<p><b>Error</b>: Deployment exceeds size limit <b>Solution</b>:</p>
+<ul class="check">
+<li class="unchecked">Increase <code>maxLambdaSize</code> in vercel.json</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Remove unused dependencies</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Use lighter alternatives where possible</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Consider serverless-friendly packages</li>
+</ul>
+<div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;builds&quot;: [</div>
+<div class="line">    {</div>
+<div class="line">      &quot;src&quot;: &quot;api/main.py&quot;,</div>
+<div class="line">      &quot;use&quot;: &quot;@vercel/python&quot;,</div>
+<div class="line">      &quot;config&quot;: {</div>
+<div class="line">        &quot;maxLambdaSize&quot;: &quot;50mb&quot;</div>
+<div class="line">      }</div>
+<div class="line">    }</div>
+<div class="line">  ]</div>
+<div class="line">}</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md5656"></a>
+Continuous Deployment</h1>
+<h2><a class="anchor" id="autotoc_md5657"></a>
+Automatic Deployments</h2>
+<p>Once connected to GitHub:</p>
+<ul class="check">
+<li class="unchecked">Every push to main branch triggers deployment</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Pull requests create preview deployments</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Failed builds prevent deployment</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5658"></a>
+Branch Deployments</h2>
+<ul class="check">
+<li class="unchecked"><b>Production</b>: Deploy from <code>main</code> branch</li>
+</ul>
+<ul class="check">
+<li class="unchecked"><b>Staging</b>: Deploy from <code>develop</code> branch (optional)</li>
+</ul>
+<ul class="check">
+<li class="unchecked"><b>Preview</b>: Automatic for all PRs</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5659"></a>
+Monitoring</h1>
+<h2><a class="anchor" id="autotoc_md5660"></a>
+Vercel Dashboard</h2>
+<ul class="check">
+<li class="unchecked">Check deployment status regularly</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Monitor function execution times</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Review error logs</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Check bandwidth usage</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5661"></a>
+Analytics</h2>
+<ul class="check">
+<li class="unchecked">Enable Vercel Analytics (optional)</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Monitor page views</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Track performance metrics</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Review user behavior</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5662"></a>
+Security</h1>
+<h2><a class="anchor" id="autotoc_md5663"></a>
+Best Practices</h2>
+<ul class="check">
+<li class="unchecked">Never commit secrets to Git</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Use environment variables for sensitive data</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Enable HTTPS (automatic on Vercel)</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Set up proper CORS policies</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Regular dependency updates</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Monitor for security vulnerabilities</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5664"></a>
+Access Control</h2>
+<ul class="check">
+<li class="unchecked">Limit Vercel project access to team members</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Use separate production/staging environments</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Rotate secrets regularly</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Review access logs</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5665"></a>
+Backup Plan</h1>
+<h2><a class="anchor" id="autotoc_md5666"></a>
+Rollback Procedure</h2>
+<p>If deployment fails or has issues:</p>
+<ul class="check">
+<li class="unchecked">Go to Vercel dashboard</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Navigate to Deployments</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Find previous working deployment</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Click "Promote to Production"</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5667"></a>
+Local Fallback</h2>
+<ul class="check">
+<li class="unchecked">Keep Gradio UI as fallback: <code>python <a class="el" href="app_8py.html">app.py</a></code></li>
+</ul>
+<ul class="check">
+<li class="unchecked">Document how to switch between UIs</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Maintain both deployment methods</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5668"></a>
+Resources</h1>
+<h2><a class="anchor" id="autotoc_md5669"></a>
+Documentation Links</h2>
+<ul class="check">
+<li class="unchecked"><a href="https://vercel.com/docs">Vercel Documentation</a></li>
+</ul>
+<ul class="check">
+<li class="unchecked"><a href="https://nextjs.org/docs/deployment">Next.js Deployment</a></li>
+</ul>
+<ul class="check">
+<li class="unchecked"><a href="https://fastapi.tiangolo.com/deployment/">FastAPI Deployment</a></li>
+</ul>
+<ul class="check">
+<li class="unchecked">Project-specific: <a class="el" href="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT.html">DEPLOYMENT.md</a></li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5670"></a>
+Support Channels</h2>
+<ul class="check">
+<li class="unchecked">Vercel Support: <a href="#" onclick="location.href='mai'+'lto:'+'sup'+'po'+'rt@'+'ve'+'rce'+'l.'+'com'; return false;">suppo<span class="obfuscator">.nosp@m.</span>rt@v<span class="obfuscator">.nosp@m.</span>ercel<span class="obfuscator">.nosp@m.</span>.com</a></li>
+</ul>
+<ul class="check">
+<li class="unchecked">Vercel Community: Discord/Forum</li>
+</ul>
+<ul class="check">
+<li class="unchecked">GitHub Issues: For project-specific issues</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5671"></a>
+Final Checks</h1>
+<p>Before going live:</p>
+<ul class="check">
+<li class="unchecked">All tests pass</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Documentation is up to date</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Team members can access deployment</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Monitoring is set up</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Backup plan is documented</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Users are notified of new deployment</li>
+</ul>
+<hr  />
+<h1><a class="anchor" id="autotoc_md5673"></a>
+Quick Reference Commands</h1>
+<div class="fragment"><div class="line"># Test locally</div>
+<div class="line">./run-dev.sh  # or run-dev.bat on Windows</div>
+<div class="line"> </div>
+<div class="line"># Build frontend</div>
+<div class="line">cd frontend &amp;&amp; npm run build</div>
+<div class="line"> </div>
+<div class="line"># Test API</div>
+<div class="line">python test_api.py</div>
+<div class="line"> </div>
+<div class="line"># Deploy to Vercel</div>
+<div class="line">vercel --prod</div>
+<div class="line"> </div>
+<div class="line"># View logs</div>
+<div class="line">vercel logs</div>
+<div class="line"> </div>
+<div class="line"># List deployments</div>
+<div class="line">vercel ls</div>
+</div><!-- fragment --><hr  />
+<p><b>Deployment Complete?</b> 🎉</p>
+<p>If all items are checked and deployment is successful, congratulations! Your Financial Asset Relationship Database is now live on Vercel.</p>
+<p>For maintenance and updates, see <a class="el" href="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT.html">DEPLOYMENT.md</a>. </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

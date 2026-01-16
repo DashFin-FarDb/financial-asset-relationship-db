@@ -1,0 +1,292 @@
+\chapter{Docker Deployment Guide}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER}\index{Docker Deployment Guide@{Docker Deployment Guide}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1258}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1258}%
+
+
+This guide explains how to run the Financial Asset Relationship Database using Docker and Docker Compose.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1259}{}\doxysection{\texorpdfstring{Quick Start}{Quick Start}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1259}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1260}{}\doxysubsection{\texorpdfstring{Using Docker Compose (Recommended)}{Using Docker Compose (Recommended)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1260}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Build\ and\ start\ the\ application}
+\DoxyCodeLine{docker-\/compose\ up\ -\/-\/build}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Access\ the\ application\ at\ http://localhost:7860}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1261}{}\doxysubsection{\texorpdfstring{Using Docker Directly}{Using Docker Directly}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1261}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Build\ the\ image}
+\DoxyCodeLine{docker\ build\ -\/t\ financial-\/asset-\/db\ .}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ the\ container}
+\DoxyCodeLine{docker\ run\ -\/p\ 7860:7860\ financial-\/asset-\/db}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Access\ the\ application\ at\ http://localhost:7860}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1262}{}\doxysection{\texorpdfstring{Docker Compose Options}{Docker Compose Options}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1262}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1263}{}\doxysubsection{\texorpdfstring{Development Mode}{Development Mode}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1263}
+Mount your source code for live development\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ The\ docker-\/compose.yml\ already\ includes\ volume\ mounts}
+\DoxyCodeLine{docker-\/compose\ up}
+
+\end{DoxyCode}
+
+
+Changes to {\ttfamily src/} will be reflected immediately (may require app restart).\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1264}{}\doxysubsection{\texorpdfstring{Production Mode}{Production Mode}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1264}
+Build and run in detached mode\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Build\ and\ start\ in\ background}
+\DoxyCodeLine{docker-\/compose\ up\ -\/d\ -\/-\/build}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ View\ logs}
+\DoxyCodeLine{docker-\/compose\ logs\ -\/f}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Stop\ the\ application}
+\DoxyCodeLine{docker-\/compose\ down}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1265}{}\doxysubsection{\texorpdfstring{With Database (Postgre\+SQL)}{With Database (Postgre\+SQL)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1265}
+Uncomment the {\ttfamily postgres} service in {\ttfamily docker-\/compose.\+yml}\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Start\ with\ database}
+\DoxyCodeLine{docker-\/compose\ up\ -\/d}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ The\ database\ will\ be\ available\ at:}
+\DoxyCodeLine{\#\ Host:\ localhost}
+\DoxyCodeLine{\#\ Port:\ 5432}
+\DoxyCodeLine{\#\ Database:\ financial\_assets}
+\DoxyCodeLine{\#\ User:\ finuser}
+\DoxyCodeLine{\#\ Password:\ changeme}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1266}{}\doxysection{\texorpdfstring{Environment Variables}{Environment Variables}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1266}
+Configure the application using environment variables in {\ttfamily docker-\/compose.\+yml}\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{environment:}
+\DoxyCodeLine{\ \ -\/\ GRADIO\_SERVER\_NAME=0.0.0.0}
+\DoxyCodeLine{\ \ -\/\ GRADIO\_SERVER\_PORT=7860}
+\DoxyCodeLine{\ \ -\/\ DATABASE\_URL=postgresql://finuser:changeme@postgres:5432/financial\_assets}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1267}{}\doxysection{\texorpdfstring{Docker Commands}{Docker Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1267}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1268}{}\doxysubsection{\texorpdfstring{Build}{Build}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1268}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Build\ the\ Docker\ image}
+\DoxyCodeLine{docker\ build\ -\/t\ financial-\/asset-\/db\ .}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Build\ with\ no\ cache}
+\DoxyCodeLine{docker\ build\ -\/-\/no-\/cache\ -\/t\ financial-\/asset-\/db\ .}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1269}{}\doxysubsection{\texorpdfstring{Run}{Run}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1269}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ container}
+\DoxyCodeLine{docker\ run\ -\/p\ 7860:7860\ financial-\/asset-\/db}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ in\ background}
+\DoxyCodeLine{docker\ run\ -\/d\ -\/p\ 7860:7860\ -\/-\/name\ financial-\/asset-\/db\ financial-\/asset-\/db}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ with\ environment\ variables}
+\DoxyCodeLine{docker\ run\ -\/p\ 7860:7860\ -\/e\ GRADIO\_SERVER\_NAME=0.0.0.0\ financial-\/asset-\/db}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1270}{}\doxysubsection{\texorpdfstring{Manage}{Manage}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1270}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ List\ running\ containers}
+\DoxyCodeLine{docker\ ps}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ View\ logs}
+\DoxyCodeLine{docker\ logs\ financial-\/asset-\/db}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Follow\ logs}
+\DoxyCodeLine{docker\ logs\ -\/f\ financial-\/asset-\/db}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Stop\ container}
+\DoxyCodeLine{docker\ stop\ financial-\/asset-\/db}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Remove\ container}
+\DoxyCodeLine{docker\ rm\ financial-\/asset-\/db}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Remove\ image}
+\DoxyCodeLine{docker\ rmi\ financial-\/asset-\/db}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1271}{}\doxysection{\texorpdfstring{Docker Compose Commands}{Docker Compose Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1271}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Start\ services}
+\DoxyCodeLine{docker-\/compose\ up}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Start\ in\ background}
+\DoxyCodeLine{docker-\/compose\ up\ -\/d}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Stop\ services}
+\DoxyCodeLine{docker-\/compose\ down}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Stop\ and\ remove\ volumes}
+\DoxyCodeLine{docker-\/compose\ down\ -\/v}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ View\ logs}
+\DoxyCodeLine{docker-\/compose\ logs}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Follow\ logs\ for\ specific\ service}
+\DoxyCodeLine{docker-\/compose\ logs\ -\/f\ app}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Rebuild\ images}
+\DoxyCodeLine{docker-\/compose\ build}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Rebuild\ and\ start}
+\DoxyCodeLine{docker-\/compose\ up\ -\/-\/build}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Scale\ services\ (if\ needed)}
+\DoxyCodeLine{docker-\/compose\ up\ -\/-\/scale\ app=3}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1272}{}\doxysection{\texorpdfstring{Health Checks}{Health Checks}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1272}
+The application includes health checks\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Check\ container\ health}
+\DoxyCodeLine{docker\ inspect\ -\/-\/format='\{\{.State.Health.Status\}\}'\ financial-\/asset-\/db}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ View\ health\ check\ logs}
+\DoxyCodeLine{docker\ inspect\ -\/-\/format='\{\{range\ .State.Health.Log\}\}\{\{.Output\}\}\{\{end\}\}'\ financial-\/asset-\/db}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1273}{}\doxysection{\texorpdfstring{Troubleshooting}{Troubleshooting}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1273}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1274}{}\doxysubsection{\texorpdfstring{Container Won\textquotesingle{}t Start}{Container Won\textquotesingle{}t Start}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1274}
+Check logs\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{docker-\/compose\ logs\ app}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1275}{}\doxysubsection{\texorpdfstring{Port Already in Use}{Port Already in Use}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1275}
+Change the port mapping in {\ttfamily docker-\/compose.\+yml}\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{ports:}
+\DoxyCodeLine{\ \ -\/\ "{}8080:7860"{}\ \#\ Use\ port\ 8080\ instead}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1276}{}\doxysubsection{\texorpdfstring{Permission Issues}{Permission Issues}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1276}
+Ensure the non-\/root user has permissions\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Rebuild\ with\ proper\ permissions}
+\DoxyCodeLine{docker-\/compose\ build\ -\/-\/no-\/cache}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1277}{}\doxysubsection{\texorpdfstring{Database Connection Issues}{Database Connection Issues}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1277}
+If using Postgre\+SQL\+:
+
+
+\begin{DoxyEnumerate}
+\item Ensure the database service is running\+: {\ttfamily docker-\/compose ps}
+\item Check database logs\+: {\ttfamily docker-\/compose logs postgres}
+\item Verify connection string in environment variables
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1278}{}\doxysection{\texorpdfstring{Best Practices}{Best Practices}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1278}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Security}}
+\begin{DoxyItemize}
+\item The Dockerfile uses a non-\/root user (appuser)
+\item Change default database passwords in production
+\item Use secrets management for sensitive data
+\end{DoxyItemize}
+\item {\bfseries{Performance}}
+\begin{DoxyItemize}
+\item Use {\ttfamily .dockerignore} to exclude unnecessary files
+\item Leverage Docker layer caching
+\item Use multi-\/stage builds for smaller images (optional)
+\end{DoxyItemize}
+\item {\bfseries{Development}}
+\begin{DoxyItemize}
+\item Mount source code volumes for live development
+\item Use {\ttfamily docker-\/compose} for easier management
+\item Keep development and production configs separate
+\end{DoxyItemize}
+\item {\bfseries{Production}}
+\begin{DoxyItemize}
+\item Use specific image tags (not {\ttfamily latest})
+\item Set resource limits (CPU, memory)
+\item Configure proper logging and monitoring
+\item Use health checks for auto-\/recovery
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1279}{}\doxysection{\texorpdfstring{Multi-\/\+Stage Build (Advanced)}{Multi-\/\+Stage Build (Advanced)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1279}
+For smaller production images, create a multi-\/stage Dockerfile\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\#\ Build\ stage}}
+\DoxyCodeLine{FROM\ python:3.11-\/slim\ as\ builder}
+\DoxyCodeLine{WORKDIR\ /\mbox{\hyperlink{namespaceapp}{app}}}
+\DoxyCodeLine{COPY\ requirements.txt\ .}
+\DoxyCodeLine{RUN\ pip\ install\ -\/-\/user\ -\/-\/no-\/cache-\/dir\ -\/r\ requirements.txt}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#\ Runtime\ stage}}
+\DoxyCodeLine{FROM\ python:3.11-\/slim}
+\DoxyCodeLine{WORKDIR\ /\mbox{\hyperlink{namespaceapp}{app}}}
+\DoxyCodeLine{COPY\ -\/-\/from=builder\ /\mbox{\hyperlink{namespaceapi_1_1main_a0310b837dae9253adee650f5978e92ea}{root}}/.local\ /\mbox{\hyperlink{namespaceapi_1_1main_a0310b837dae9253adee650f5978e92ea}{root}}/.local}
+\DoxyCodeLine{COPY\ .\ .}
+\DoxyCodeLine{ENV\ PATH=/\mbox{\hyperlink{namespaceapi_1_1main_a0310b837dae9253adee650f5978e92ea}{root}}/.local/bin:\$PATH}
+\DoxyCodeLine{CMD\ [\textcolor{stringliteral}{"{}python"{}},\ \textcolor{stringliteral}{"{}app.py"{}}]}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1280}{}\doxysection{\texorpdfstring{Kubernetes Deployment (Optional)}{Kubernetes Deployment (Optional)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1280}
+For Kubernetes deployment, create manifests\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ deployment.yaml}
+\DoxyCodeLine{apiVersion:\ apps/v1}
+\DoxyCodeLine{kind:\ Deployment}
+\DoxyCodeLine{metadata:}
+\DoxyCodeLine{\ \ name:\ financial-\/asset-\/db}
+\DoxyCodeLine{spec:}
+\DoxyCodeLine{\ \ replicas:\ 3}
+\DoxyCodeLine{\ \ selector:}
+\DoxyCodeLine{\ \ \ \ matchLabels:}
+\DoxyCodeLine{\ \ \ \ \ \ app:\ financial-\/asset-\/db}
+\DoxyCodeLine{\ \ template:}
+\DoxyCodeLine{\ \ \ \ metadata:}
+\DoxyCodeLine{\ \ \ \ \ \ labels:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ app:\ financial-\/asset-\/db}
+\DoxyCodeLine{\ \ \ \ spec:}
+\DoxyCodeLine{\ \ \ \ \ \ containers:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ -\/\ name:\ app}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ image:\ financial-\/asset-\/db:latest}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ ports:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ -\/\ containerPort:\ 7860}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ env:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ -\/\ name:\ GRADIO\_SERVER\_NAME}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ value:\ "{}0.0.0.0"{}}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1281}{}\doxysection{\texorpdfstring{Resources}{Resources}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_autotoc_md1281}
+
+\begin{DoxyItemize}
+\item \href{https://docs.docker.com/}{\texttt{ Docker Documentation}}
+\item \href{https://docs.docker.com/compose/}{\texttt{ Docker Compose Documentation}}
+\item \href{https://docs.docker.com/develop/dev-best-practices/}{\texttt{ Best Practices}}
+\item \href{https://gradio.app/docs/}{\texttt{ Gradio Docker Guide}} 
+\end{DoxyItemize}

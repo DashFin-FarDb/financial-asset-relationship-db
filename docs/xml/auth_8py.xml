@@ -1,0 +1,362 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="auth_8py" kind="file" language="Python">
+    <compoundname>auth.py</compoundname>
+    <innerclass refid="classapi_1_1auth_1_1Token" prot="public">api::auth::Token</innerclass>
+    <innerclass refid="classapi_1_1auth_1_1TokenData" prot="public">api::auth::TokenData</innerclass>
+    <innerclass refid="classapi_1_1auth_1_1User" prot="public">api::auth::User</innerclass>
+    <innerclass refid="classapi_1_1auth_1_1UserRepository" prot="public">api::auth::UserRepository</innerclass>
+    <innernamespace refid="namespaceapi">api</innernamespace>
+    <innernamespace refid="namespaceapi_1_1auth">api::auth</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespaceapi_1_1auth" refkind="compound"><highlight class="stringliteral">&quot;&quot;&quot;Authentication<sp/>module<sp/>for<sp/>the<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database<sp/>API&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>__future__<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>annotations</highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>os</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>datetime<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>datetime,<sp/>timedelta</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>typing<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Optional</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>jwt</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Depends,<sp/>HTTPException,<sp/>status</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi.security<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>OAuth2PasswordBearer</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>jwt<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>ExpiredSignatureError,<sp/>InvalidTokenError</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>passlib.context<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>CryptContext</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>pydantic<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>BaseModel</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>.database<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>execute,<sp/>fetch_one,<sp/>fetch_value,<sp/>initialize_schema</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>.models<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>UserInDB</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="comment">#<sp/>Security<sp/>configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20" refid="namespaceapi_1_1auth_1a44cbca77fc0d01b2ce76dfd967ebfe2b" refkind="member"><highlight class="normal">SECRET_KEY<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&quot;SECRET_KEY&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>SECRET_KEY:</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;SECRET_KEY<sp/>environment<sp/>variable<sp/>must<sp/>be<sp/>set<sp/>before<sp/>importing<sp/>api.auth&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26" refid="namespaceapi_1_1auth_1af90cfd31d8e6f3e5b483e1d37cb6ebfe" refkind="member"><highlight class="normal">ALGORITHM<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;HS256&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27" refid="namespaceapi_1_1auth_1ae994d098458504a4f7ed11df844cbfe2" refkind="member"><highlight class="normal">ACCESS_TOKEN_EXPIRE_MINUTES<sp/>=<sp/>30</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="comment">#<sp/>Password<sp/>hashing</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30" refid="namespaceapi_1_1auth_1af55af27d801444ba78475210180a1a08" refkind="member"><highlight class="normal">pwd_context<sp/>=<sp/>CryptContext(schemes=[</highlight><highlight class="stringliteral">&quot;pbkdf2_sha256&quot;</highlight><highlight class="normal">],<sp/>deprecated=</highlight><highlight class="stringliteral">&quot;auto&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="31" refid="namespaceapi_1_1auth_1a277d87bde350c525aa8252cd5dc11ac6" refkind="member"><highlight class="normal">oauth2_scheme<sp/>=<sp/>OAuth2PasswordBearer(tokenUrl=</highlight><highlight class="stringliteral">&quot;token&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="comment">#<sp/>Models</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35" refid="classapi_1_1auth_1_1Token" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classapi_1_1auth_1_1Token" kindref="compound">Token</ref>(<ref refid="classBaseModel" kindref="compound">BaseModel</ref>):</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>access_token:<sp/>str</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/>token_type:<sp/>str</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40" refid="classapi_1_1auth_1_1TokenData" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classapi_1_1auth_1_1TokenData" kindref="compound">TokenData</ref>(<ref refid="classBaseModel" kindref="compound">BaseModel</ref>):</highlight></codeline>
+<codeline lineno="41" refid="classapi_1_1auth_1_1TokenData_1a20fb6b0b03649034f0fcf33d84f2e904" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>username:<sp/>Optional[str]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44" refid="classapi_1_1auth_1_1User" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classapi_1_1auth_1_1User" kindref="compound">User</ref>(<ref refid="classBaseModel" kindref="compound">BaseModel</ref>):</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>username:<sp/>str</highlight></codeline>
+<codeline lineno="46" refid="classapi_1_1auth_1_1User_1aa490d57bcc2495033ee685e97bf9e50b" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>email:<sp/>Optional[str]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47" refid="classapi_1_1auth_1_1User_1aaf610d03b947a35bd21a843028dd67b4" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>full_name:<sp/>Optional[str]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48" refid="classapi_1_1auth_1_1User_1a8179d3c93174b20777a1f90cb5ad0703" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>disabled:<sp/>Optional[bool]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/>hashed_password:<sp/>str</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52" refid="namespaceapi_1_1auth_1a4b72d63ef8f4087e0b511d807a1c0637" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceapi_1_1auth_1a4b72d63ef8f4087e0b511d807a1c0637" kindref="member">_is_truthy</ref>(value:<sp/>str<sp/>|<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">)<sp/>-&gt;<sp/>bool:</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="54"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Determine<sp/>whether<sp/>a<sp/>string<sp/>value<sp/>represents<sp/>a<sp/>truthy<sp/>boolean.</highlight></codeline>
+<codeline lineno="55"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="56"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters:</highlight></codeline>
+<codeline lineno="57"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>value<sp/>(str<sp/>|<sp/>None):<sp/>Input<sp/>string<sp/>to<sp/>evaluate;<sp/>recognised<sp/>truthy<sp/>forms<sp/>are</highlight></codeline>
+<codeline lineno="58"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;true&quot;,<sp/>&quot;1&quot;,<sp/>&quot;yes&quot;<sp/>and<sp/>&quot;on&quot;<sp/>(case-insensitive).</highlight></codeline>
+<codeline lineno="59"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="60"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="61"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>bool:<sp/>True<sp/>if<sp/>`value`<sp/>matches<sp/>a<sp/>recognised<sp/>truthy<sp/>form,</highlight></codeline>
+<codeline lineno="62"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>False<sp/>otherwise.</highlight></codeline>
+<codeline lineno="63"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>value<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>value.lower()<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>(</highlight><highlight class="stringliteral">&quot;true&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;1&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;yes&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;on&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67" refid="classapi_1_1auth_1_1UserRepository" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classapi_1_1auth_1_1UserRepository" kindref="compound">UserRepository</ref>:</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Repository<sp/>for<sp/>accessing<sp/>user<sp/>credential<sp/>records.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="preprocessor">@staticmethod</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71" refid="classapi_1_1auth_1_1UserRepository_1a183e414cf1343a6760d79d9917ed1243" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="classapi_1_1auth_1_1UserRepository_1a183e414cf1343a6760d79d9917ed1243" kindref="member">get_user</ref>(username:<sp/>str)<sp/>-&gt;<sp/>Optional[UserInDB]:</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="73"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Retrieve<sp/>a<sp/>user<sp/>record<sp/>by<sp/>username<sp/>from<sp/>the<sp/>repository.</highlight></codeline>
+<codeline lineno="74"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="75"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="76"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>`UserInDB`<sp/>for<sp/>the<sp/>matching<sp/>username,<sp/>`None`<sp/>if<sp/>no<sp/>such<sp/>user<sp/>exists.</highlight></codeline>
+<codeline lineno="77"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>row<sp/>=<sp/>fetch_one(</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="80"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>SELECT<sp/>username,<sp/>email,<sp/>full_name,<sp/>hashed_password,<sp/>disabled</highlight></codeline>
+<codeline lineno="81"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>FROM<sp/>user_credentials</highlight></codeline>
+<codeline lineno="82"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>WHERE<sp/>username<sp/>=<sp/>?</highlight></codeline>
+<codeline lineno="83"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(username,),</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>row<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>UserInDB(</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>username=row[</highlight><highlight class="stringliteral">&quot;username&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>email=row[</highlight><highlight class="stringliteral">&quot;email&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>full_name=row[</highlight><highlight class="stringliteral">&quot;full_name&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>disabled=bool(row[</highlight><highlight class="stringliteral">&quot;disabled&quot;</highlight><highlight class="normal">]),</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>hashed_password=row[</highlight><highlight class="stringliteral">&quot;hashed_password&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="preprocessor">@staticmethod</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97" refid="classapi_1_1auth_1_1UserRepository_1afbf15bbccdbfd1fe39288481b15e0801" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="classapi_1_1auth_1_1UserRepository_1afbf15bbccdbfd1fe39288481b15e0801" kindref="member">has_users</ref>()<sp/>-&gt;<sp/>bool:</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="99"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Check<sp/>whether<sp/>any<sp/>user<sp/>credential<sp/>records<sp/>exist.</highlight></codeline>
+<codeline lineno="100"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="101"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="102"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>`True`<sp/>if<sp/>at<sp/>least<sp/>one<sp/>user<sp/>credential<sp/>exists,<sp/>`False`<sp/>otherwise.</highlight></codeline>
+<codeline lineno="103"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>fetch_value(</highlight><highlight class="stringliteral">&quot;SELECT<sp/>1<sp/>FROM<sp/>user_credentials<sp/>LIMIT<sp/>1&quot;</highlight><highlight class="normal">)<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="preprocessor">@staticmethod</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="107" refid="classapi_1_1auth_1_1UserRepository_1a56d2d2fac29fd88a48bdb6965d51a365" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="classapi_1_1auth_1_1UserRepository_1a56d2d2fac29fd88a48bdb6965d51a365" kindref="member">create_or_update_user</ref>(</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*,</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>username:<sp/>str,</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>hashed_password:<sp/>str,</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>user_email:<sp/>Optional[str]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>user_full_name:<sp/>Optional[str]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>is_disabled:<sp/>bool<sp/>=<sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/>)<sp/>-&gt;<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="116"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Create<sp/>or<sp/>update<sp/>a<sp/>user<sp/>credential<sp/>record<sp/>in<sp/>the<sp/>repository.</highlight></codeline>
+<codeline lineno="117"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="118"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Performs<sp/>an<sp/>upsert<sp/>into<sp/>the<sp/>user_credentials<sp/>table<sp/>using<sp/>the</highlight></codeline>
+<codeline lineno="119"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>provided<sp/>fields<sp/>so<sp/>the<sp/>record<sp/>for<sp/>`username`<sp/>is<sp/>inserted<sp/>or</highlight></codeline>
+<codeline lineno="120"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>updated.</highlight></codeline>
+<codeline lineno="121"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="122"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Parameters:</highlight></codeline>
+<codeline lineno="123"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>username<sp/>(str):<sp/>Unique<sp/>identifier<sp/>for<sp/>the<sp/>user.</highlight></codeline>
+<codeline lineno="124"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>hashed_password<sp/>(str):<sp/>Password<sp/>hash;<sp/>must<sp/>already<sp/>be<sp/>hashed.</highlight></codeline>
+<codeline lineno="125"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>user_email<sp/>(Optional[str]):<sp/>User<sp/>email<sp/>address,<sp/>if<sp/>available.</highlight></codeline>
+<codeline lineno="126"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>user_full_name<sp/>(Optional[str]):<sp/>User&apos;s<sp/>full<sp/>name,<sp/>if<sp/>available.</highlight></codeline>
+<codeline lineno="127"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>is_disabled<sp/>(bool):<sp/>Whether<sp/>the<sp/>user<sp/>account<sp/>is<sp/>disabled<sp/>(inactive).</highlight></codeline>
+<codeline lineno="128"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>execute(</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="131"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>INSERT<sp/>INTO<sp/>user_credentials<sp/>(</highlight></codeline>
+<codeline lineno="132"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>username,</highlight></codeline>
+<codeline lineno="133"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>email,</highlight></codeline>
+<codeline lineno="134"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>full_name,</highlight></codeline>
+<codeline lineno="135"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>hashed_password,</highlight></codeline>
+<codeline lineno="136"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>disabled</highlight></codeline>
+<codeline lineno="137"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="138"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>VALUES<sp/>(?,<sp/>?,<sp/>?,<sp/>?,<sp/>?)</highlight></codeline>
+<codeline lineno="139"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ON<sp/>CONFLICT(username)<sp/>DO<sp/>UPDATE<sp/>SET</highlight></codeline>
+<codeline lineno="140"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>email=excluded.email,</highlight></codeline>
+<codeline lineno="141"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>full_name=excluded.full_name,</highlight></codeline>
+<codeline lineno="142"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>hashed_password=excluded.hashed_password,</highlight></codeline>
+<codeline lineno="143"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>disabled=excluded.disabled</highlight></codeline>
+<codeline lineno="144"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>username,</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>user_email,</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>user_full_name,</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>hashed_password,</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>1<sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>is_disabled<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>0,</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>),</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"></highlight></codeline>
+<codeline lineno="154"><highlight class="normal"></highlight></codeline>
+<codeline lineno="155"><highlight class="normal">initialize_schema()</highlight></codeline>
+<codeline lineno="156" refid="namespaceapi_1_1auth_1a3af2868ac5c11d24b509e5fe6bf8cf6c" refkind="member"><highlight class="normal">user_repository<sp/>=<sp/><ref refid="classapi_1_1auth_1_1UserRepository" kindref="compound">UserRepository</ref>()</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal"></highlight></codeline>
+<codeline lineno="159" refid="namespaceapi_1_1auth_1a62205ca839bdfe149312b664a59a030c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceapi_1_1auth_1a62205ca839bdfe149312b664a59a030c" kindref="member">verify_password</ref>(plain_password,<sp/>hashed_password):</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="161"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Verify<sp/>whether<sp/>a<sp/>plaintext<sp/>password<sp/>matches<sp/>a<sp/>stored<sp/>hashed<sp/>password.</highlight></codeline>
+<codeline lineno="162"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="163"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="164"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>`True`<sp/>if<sp/>the<sp/>plaintext<sp/>password<sp/>matches<sp/>the<sp/>hashed<sp/>password,<sp/>`False`<sp/>otherwise.</highlight></codeline>
+<codeline lineno="165"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>pwd_context.verify(plain_password,<sp/>hashed_password)</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"></highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight></codeline>
+<codeline lineno="169" refid="namespaceapi_1_1auth_1af93dff0b7760a50336e6702283294fc9" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceapi_1_1auth_1af93dff0b7760a50336e6702283294fc9" kindref="member">get_password_hash</ref>(password):</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="171"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Hash<sp/>a<sp/>plaintext<sp/>password<sp/>using<sp/>the<sp/>configured<sp/>password-hashing<sp/>context.</highlight></codeline>
+<codeline lineno="172"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="173"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters:</highlight></codeline>
+<codeline lineno="174"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>password<sp/>(str):<sp/>Plaintext<sp/>password<sp/>to<sp/>hash.</highlight></codeline>
+<codeline lineno="175"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="176"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="177"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>str:<sp/>The<sp/>hashed<sp/>password.</highlight></codeline>
+<codeline lineno="178"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>pwd_context.hash(password)</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight></codeline>
+<codeline lineno="181"><highlight class="normal"></highlight></codeline>
+<codeline lineno="182" refid="namespaceapi_1_1auth_1a3e573991ddd0d8eed854d8037ced147d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceapi_1_1auth_1a3e573991ddd0d8eed854d8037ced147d" kindref="member">_seed_credentials_from_env</ref>(repository:<sp/>UserRepository)<sp/>-&gt;<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="184"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Seed<sp/>an<sp/>administrative<sp/>user<sp/>into<sp/>the<sp/>repository<sp/>from<sp/>environment<sp/>variables.</highlight></codeline>
+<codeline lineno="185"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="186"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>If<sp/>both<sp/>ADMIN_USERNAME<sp/>and<sp/>ADMIN_PASSWORD<sp/>are<sp/>set,<sp/>create<sp/>or<sp/>update<sp/>that</highlight></codeline>
+<codeline lineno="187"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>user<sp/>in<sp/>the<sp/>repository<sp/>using<sp/>optional<sp/>ADMIN_EMAIL,<sp/>ADMIN_FULL_NAME<sp/>and</highlight></codeline>
+<codeline lineno="188"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>ADMIN_DISABLED<sp/>(interpreted<sp/>as<sp/>a<sp/>truthy<sp/>flag).<sp/>The<sp/>provided<sp/>password<sp/>is</highlight></codeline>
+<codeline lineno="189"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>stored<sp/>hashed.<sp/>If<sp/>either<sp/>ADMIN_USERNAME<sp/>or<sp/>ADMIN_PASSWORD<sp/>is<sp/>missing,<sp/>no</highlight></codeline>
+<codeline lineno="190"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>changes<sp/>are<sp/>made.</highlight></codeline>
+<codeline lineno="191"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/>username<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&quot;ADMIN_USERNAME&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/>password<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&quot;ADMIN_PASSWORD&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>username<sp/></highlight><highlight class="keywordflow">or</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>password:</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="196"><highlight class="normal"></highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/><sp/><sp/>hashed_password<sp/>=<sp/><ref refid="namespaceapi_1_1auth_1af93dff0b7760a50336e6702283294fc9" kindref="member">get_password_hash</ref>(password)</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"><sp/><sp/><sp/><sp/>admin_email<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&quot;ADMIN_EMAIL&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/><sp/><sp/>admin_full_name<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&quot;ADMIN_FULL_NAME&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/>admin_disabled<sp/>=<sp/><ref refid="namespaceapi_1_1auth_1a4b72d63ef8f4087e0b511d807a1c0637" kindref="member">_is_truthy</ref>(os.getenv(</highlight><highlight class="stringliteral">&quot;ADMIN_DISABLED&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;false&quot;</highlight><highlight class="normal">))</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"></highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/><sp/><sp/>repository.create_or_update_user(</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>username=username,</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>hashed_password=hashed_password,</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>email=admin_email,</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>full_name=admin_full_name,</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>disabled=admin_disabled,</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"></highlight></codeline>
+<codeline lineno="210"><highlight class="normal"></highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><ref refid="namespaceapi_1_1auth_1a3e573991ddd0d8eed854d8037ced147d" kindref="member">_seed_credentials_from_env</ref>(user_repository)</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"></highlight></codeline>
+<codeline lineno="213"><highlight class="normal"></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>user_repository.has_users():</highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;No<sp/>user<sp/>credentials<sp/>available.<sp/>Provide<sp/>ADMIN_USERNAME<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="216"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;and<sp/>ADMIN_PASSWORD<sp/>or<sp/>pre-populate<sp/>the<sp/>database.&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="217"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"></highlight></codeline>
+<codeline lineno="219"><highlight class="normal"></highlight></codeline>
+<codeline lineno="220" refid="namespaceapi_1_1auth_1a5e8641d87f691958e7a3c0ff1a682b76" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceapi_1_1auth_1a5e8641d87f691958e7a3c0ff1a682b76" kindref="member">get_user</ref>(</highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/><sp/><sp/>username:<sp/>str,</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/><sp/><sp/>repository:<sp/>Optional[UserRepository]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="223"><highlight class="normal">)<sp/>-&gt;<sp/>Optional[UserInDB]:</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="225"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Retrieve<sp/>a<sp/>user<sp/>by<sp/>username.</highlight></codeline>
+<codeline lineno="226"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="227"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters:</highlight></codeline>
+<codeline lineno="228"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>repository<sp/>(Optional[UserRepository]):<sp/>Repository<sp/>to<sp/>query;</highlight></codeline>
+<codeline lineno="229"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>omitted<sp/>the<sp/>module-level<sp/>`user_repository`<sp/>is<sp/>used.</highlight></codeline>
+<codeline lineno="230"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="231"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="232"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Optional[UserInDB]:<sp/>The<sp/>matching<sp/>UserInDB<sp/>instance,<sp/>or<sp/>`None`<sp/>if<sp/>no</highlight></codeline>
+<codeline lineno="233"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>user<sp/>exists<sp/>with<sp/>that<sp/>username.</highlight></codeline>
+<codeline lineno="234"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/><sp/><sp/>repo<sp/>=<sp/>repository<sp/></highlight><highlight class="keywordflow">or</highlight><highlight class="normal"><sp/>user_repository</highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>repo.get_user(username)</highlight></codeline>
+<codeline lineno="237"><highlight class="normal"></highlight></codeline>
+<codeline lineno="238"><highlight class="normal"></highlight></codeline>
+<codeline lineno="239" refid="namespaceapi_1_1auth_1a11727c41cdedef612db529a3ea92cf60" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceapi_1_1auth_1a11727c41cdedef612db529a3ea92cf60" kindref="member">authenticate_user</ref>(</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"><sp/><sp/><sp/><sp/>username:<sp/>str,</highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/><sp/><sp/>password:<sp/>str,</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/><sp/><sp/>repository:<sp/>Optional[UserRepository]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="243"><highlight class="normal">)<sp/>-&gt;<sp/>UserInDB<sp/>|<sp/>bool:</highlight></codeline>
+<codeline lineno="244"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="245"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Authenticate<sp/>a<sp/>username<sp/>and<sp/>password<sp/>and<sp/>return<sp/>the<sp/>corresponding<sp/>stored<sp/>user.</highlight></codeline>
+<codeline lineno="246"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="247"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters:</highlight></codeline>
+<codeline lineno="248"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>username<sp/>(str):<sp/>Username<sp/>to<sp/>authenticate.</highlight></codeline>
+<codeline lineno="249"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>password<sp/>(str):<sp/>Plaintext<sp/>password<sp/>to<sp/>verify.</highlight></codeline>
+<codeline lineno="250"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>repository<sp/>(Optional[UserRepository]):<sp/>Repository<sp/>to<sp/>query<sp/>for<sp/>the<sp/>user;<sp/>if</highlight></codeline>
+<codeline lineno="251"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>omitted<sp/>the<sp/>module-level<sp/>repository<sp/>is<sp/>used.</highlight></codeline>
+<codeline lineno="252"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="253"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="254"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>UserInDB<sp/>when<sp/>authentication<sp/>succeeds,<sp/>`False`<sp/>otherwise.</highlight></codeline>
+<codeline lineno="255"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="256"><highlight class="normal"><sp/><sp/><sp/><sp/>user<sp/>=<sp/><ref refid="namespaceapi_1_1auth_1a5e8641d87f691958e7a3c0ff1a682b76" kindref="member">get_user</ref>(username,<sp/>repository=repository)</highlight></codeline>
+<codeline lineno="257"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>user:</highlight></codeline>
+<codeline lineno="258"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="259"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/><ref refid="namespaceapi_1_1auth_1a62205ca839bdfe149312b664a59a030c" kindref="member">verify_password</ref>(password,<sp/>user.hashed_password):</highlight></codeline>
+<codeline lineno="260"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>user</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"></highlight></codeline>
+<codeline lineno="263"><highlight class="normal"></highlight></codeline>
+<codeline lineno="264" refid="namespaceapi_1_1auth_1ad0a4e0a1fde64da14403d1dda521af92" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceapi_1_1auth_1ad0a4e0a1fde64da14403d1dda521af92" kindref="member">create_access_token</ref>(data:<sp/>dict,<sp/>expires_delta:<sp/>Optional[timedelta]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">):</highlight></codeline>
+<codeline lineno="265"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="266"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Create<sp/>a<sp/>JWT<sp/>access<sp/>token<sp/>that<sp/>includes<sp/>an<sp/>expiry<sp/>(`exp`)<sp/>claim.</highlight></codeline>
+<codeline lineno="267"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="268"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters:</highlight></codeline>
+<codeline lineno="269"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>data<sp/>(dict):</highlight></codeline>
+<codeline lineno="270"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Claims<sp/>to<sp/>include<sp/>in<sp/>the<sp/>token<sp/>payload.</highlight></codeline>
+<codeline lineno="271"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>function<sp/>will<sp/>add<sp/>or<sp/>overwrite<sp/>the<sp/>`exp`<sp/>claim.</highlight></codeline>
+<codeline lineno="272"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>expires_delta<sp/>(Optional[timedelta]):</highlight></codeline>
+<codeline lineno="273"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Time<sp/>span<sp/>after<sp/>which<sp/>the<sp/>token<sp/>expires;<sp/>if<sp/>omitted<sp/>the<sp/>token</highlight></codeline>
+<codeline lineno="274"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>expires<sp/>in<sp/>15<sp/>minutes.</highlight></codeline>
+<codeline lineno="275"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="276"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="277"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>str:<sp/>Encoded<sp/>JWT<sp/>as<sp/>a<sp/>compact<sp/>string.</highlight></codeline>
+<codeline lineno="278"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="279"><highlight class="normal"><sp/><sp/><sp/><sp/>to_encode<sp/>=<sp/>data.copy()</highlight></codeline>
+<codeline lineno="280"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>expires_delta:</highlight></codeline>
+<codeline lineno="281"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>expire<sp/>=<sp/>datetime.utcnow()<sp/>+<sp/>expires_delta</highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="283"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>expire<sp/>=<sp/>datetime.utcnow()<sp/>+<sp/>timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"><sp/><sp/><sp/><sp/>to_encode.update({</highlight><highlight class="stringliteral">&quot;exp&quot;</highlight><highlight class="normal">:<sp/>expire})</highlight></codeline>
+<codeline lineno="285"><highlight class="normal"><sp/><sp/><sp/><sp/>encoded_jwt<sp/>=<sp/>jwt.encode(to_encode,<sp/>SECRET_KEY,<sp/>algorithm=ALGORITHM)</highlight></codeline>
+<codeline lineno="286"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>encoded_jwt</highlight></codeline>
+<codeline lineno="287"><highlight class="normal"></highlight></codeline>
+<codeline lineno="288"><highlight class="normal"></highlight></codeline>
+<codeline lineno="289" refid="namespaceapi_1_1auth_1acfa6a39adead4b0cb1275bd4233515b6" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">async<sp/>def<sp/></highlight><highlight class="normal"><ref refid="namespaceapi_1_1auth_1acfa6a39adead4b0cb1275bd4233515b6" kindref="member">get_current_user</ref>(token:<sp/>str<sp/>=<sp/>Depends(oauth2_scheme)):</highlight></codeline>
+<codeline lineno="290"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="291"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Return<sp/>the<sp/>user<sp/>represented<sp/>by<sp/>the<sp/>provided<sp/>JWT.</highlight></codeline>
+<codeline lineno="292"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="293"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="294"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="295"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>User:<sp/>The<sp/>User<sp/>model<sp/>corresponding<sp/>to<sp/>the<sp/>token&apos;s<sp/>subject.</highlight></codeline>
+<codeline lineno="296"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="297"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Raises:</highlight></codeline>
+<codeline lineno="298"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>HTTPException:<sp/>401<sp/>with<sp/>detail<sp/>&quot;Token<sp/>has<sp/>expired&quot;<sp/>if<sp/>the<sp/>token<sp/>has<sp/>expired.</highlight></codeline>
+<codeline lineno="299"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>HTTPException:<sp/>401<sp/>with<sp/>detail<sp/>&quot;Could<sp/>not<sp/>validate<sp/>credentials&quot;</highlight></codeline>
+<codeline lineno="300"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>the<sp/>token<sp/>is<sp/>invalid,</highlight></codeline>
+<codeline lineno="301"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>missing<sp/>the<sp/>subject,<sp/>or<sp/>no<sp/>matching<sp/>user<sp/>is<sp/>found.</highlight></codeline>
+<codeline lineno="302"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/>credentials_exception<sp/>=<sp/>HTTPException(</highlight></codeline>
+<codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=status.HTTP_401_UNAUTHORIZED,</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>detail=</highlight><highlight class="stringliteral">&quot;Could<sp/>not<sp/>validate<sp/>credentials&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>headers={</highlight><highlight class="stringliteral">&quot;WWW-Authenticate&quot;</highlight><highlight class="normal">:<sp/></highlight><highlight class="stringliteral">&quot;Bearer&quot;</highlight><highlight class="normal">},</highlight></codeline>
+<codeline lineno="307"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="308"><highlight class="normal"><sp/><sp/><sp/><sp/>expired_exception<sp/>=<sp/>HTTPException(</highlight></codeline>
+<codeline lineno="309"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=status.HTTP_401_UNAUTHORIZED,</highlight></codeline>
+<codeline lineno="310"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>detail=</highlight><highlight class="stringliteral">&quot;Token<sp/>has<sp/>expired&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="311"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>headers={</highlight><highlight class="stringliteral">&quot;WWW-Authenticate&quot;</highlight><highlight class="normal">:<sp/></highlight><highlight class="stringliteral">&quot;Bearer&quot;</highlight><highlight class="normal">},</highlight></codeline>
+<codeline lineno="312"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="313"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">try</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="314"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Explicitly<sp/>specify<sp/>algorithms<sp/>parameter<sp/>to<sp/>prevent<sp/>algorithm<sp/>confusion<sp/>attacks</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="315"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>payload<sp/>=<sp/>jwt.decode(token,<sp/>SECRET_KEY,<sp/>algorithms=[ALGORITHM])</highlight></codeline>
+<codeline lineno="316"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>username:<sp/>str<sp/>=<sp/>payload.get(</highlight><highlight class="stringliteral">&quot;sub&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="317"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>username<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="318"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>credentials_exception</highlight></codeline>
+<codeline lineno="319"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>token_data<sp/>=<sp/><ref refid="classapi_1_1auth_1_1TokenData" kindref="compound">TokenData</ref>(username=username)</highlight></codeline>
+<codeline lineno="320"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>ExpiredSignatureError<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>e:</highlight></codeline>
+<codeline lineno="321"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>expired_exception<sp/></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>e</highlight></codeline>
+<codeline lineno="322"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>InvalidTokenError<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>e:</highlight></codeline>
+<codeline lineno="323"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>credentials_exception<sp/></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>e</highlight></codeline>
+<codeline lineno="324"><highlight class="normal"><sp/><sp/><sp/><sp/>user<sp/>=<sp/><ref refid="namespaceapi_1_1auth_1a5e8641d87f691958e7a3c0ff1a682b76" kindref="member">get_user</ref>(token_data.username)</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>user<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="326"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>credentials_exception</highlight></codeline>
+<codeline lineno="327"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>user</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"></highlight></codeline>
+<codeline lineno="329"><highlight class="normal"></highlight></codeline>
+<codeline lineno="330" refid="namespaceapi_1_1auth_1aa09247ce61392982ae2d023373b390e2" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">async<sp/>def<sp/></highlight><highlight class="normal"><ref refid="namespaceapi_1_1auth_1aa09247ce61392982ae2d023373b390e2" kindref="member">get_current_active_user</ref>(current_user:<sp/>User<sp/>=<sp/>Depends(get_current_user)):</highlight></codeline>
+<codeline lineno="331"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="332"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Get<sp/>the<sp/>currently<sp/>authenticated<sp/>active<sp/>user.</highlight></codeline>
+<codeline lineno="333"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="334"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Raises:</highlight></codeline>
+<codeline lineno="335"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>HTTPException:<sp/>400<sp/>with<sp/>detail<sp/>&quot;Inactive<sp/>user&quot;<sp/>if<sp/>the<sp/>user&apos;s<sp/>account<sp/>is</highlight></codeline>
+<codeline lineno="336"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>disabled.</highlight></codeline>
+<codeline lineno="337"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="338"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="339"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>authenticated<sp/>user&apos;s<sp/>public<sp/>profile<sp/>as<sp/>a<sp/>`User`<sp/>instance.</highlight></codeline>
+<codeline lineno="340"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="341"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>current_user.disabled:</highlight></codeline>
+<codeline lineno="342"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>HTTPException(status_code=400,<sp/>detail=</highlight><highlight class="stringliteral">&quot;Inactive<sp/>user&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="343"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>current_user</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,352 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE</compoundname>
+    <title>Architecture Overview</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md92"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md93">
+<title>System Architecture</title><para><programlisting><codeline><highlight class="normal">┌─────────────────────────────────────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>User<sp/>Interface<sp/>Layer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├─────────────────────────────────────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────┐<sp/><sp/><sp/><sp/><sp/>┌──────────────────────────┐<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/><sp/>Gradio<sp/>UI<sp/>(Port<sp/>7860)<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│<sp/>Next.js<sp/>UI<sp/>(Port<sp/>3000)<sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>┌────────────────────┐<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>┌────────────────────┐<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>3D<sp/>Visualization<sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/>3D<sp/>Visualization<sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>Metrics<sp/>Dashboard<sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/>Metrics<sp/>Dashboard<sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>Asset<sp/>Explorer<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/>Asset<sp/>Explorer<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>Schema<sp/>Report<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/>(React<sp/>Components)<sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>└────────────────────┘<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>└────────────────────┘<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/><sp/>(Python/Gradio)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>(TypeScript/React)<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────┬───────────────┘<sp/><sp/><sp/><sp/><sp/>└──────────┬───────────────┘<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────┼─────────────────────────────────┼──────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Direct<sp/>Function<sp/>Calls<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>HTTP<sp/>REST<sp/>API</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────▼─────────────────────────────────▼──────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>API<sp/>Layer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├───────────────────────────────────────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>┌────────────────────────────┐<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>FastAPI<sp/>Backend<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>(Port<sp/>8000)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>Endpoints:<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>-<sp/>/api/assets<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>-<sp/>/api/metrics<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>-<sp/>/api/visualization<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>-<sp/>/api/relationships<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>-<sp/>/api/health<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>└────────────┬───────────────┘<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────┼───────────────────────────────┼────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Function<sp/>Calls</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────▼───────────────────────────────▼────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Core<sp/>Business<sp/>Logic<sp/>Layer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├───────────────────────────────────────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────────────────┐<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>AssetRelationshipGraph<sp/>(src/logic/asset_graph.py)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>┌──────────────┐<sp/><sp/>┌──────────────┐<sp/><sp/>┌──────────────┐<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>add_asset()<sp/><sp/>│<sp/><sp/>│<sp/>add_relation<sp/>│<sp/><sp/>│<sp/>build_rel()<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>get_metrics()│<sp/><sp/>│<sp/>find_rel()<sp/><sp/><sp/>│<sp/><sp/>│<sp/>get_3d_viz()<sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>└──────────────┘<sp/><sp/>└──────────────┘<sp/><sp/>└──────────────┘<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────────────────┘<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────────────────┐<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>Visualization<sp/>Layer<sp/>(src/visualizations/)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>┌──────────────┐<sp/><sp/>┌──────────────┐<sp/><sp/>┌──────────────┐<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>graph_visuals│<sp/><sp/>│<sp/>metric_vis<sp/><sp/><sp/>│<sp/><sp/>│<sp/>formulaic<sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>└──────────────┘<sp/><sp/>└──────────────┘<sp/><sp/>└──────────────┘<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────────────────┘<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────┬──────────────────────────────────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────▼──────────────────────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Data<sp/>Layer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├─────────────────────────────────────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────────────────┐<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>Financial<sp/>Models<sp/>(src/models/financial_models.py)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>┌─────────┐<sp/><sp/>┌─────────┐<sp/><sp/>┌─────────┐<sp/><sp/>┌─────────┐<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>Equity<sp/><sp/>│<sp/><sp/>│<sp/><sp/>Bond<sp/><sp/><sp/>│<sp/><sp/>│Commodity│<sp/><sp/>│Currency<sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>└─────────┘<sp/><sp/>└─────────┘<sp/><sp/>└─────────┘<sp/><sp/>└─────────┘<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────────────────┘<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────────────────┐<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>Data<sp/>Sources<sp/>(src/data/)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>┌────────────────┐<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>┌────────────────┐<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>sample_data.py<sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│real_data_fetch<sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>│<sp/>(Static)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│(Yahoo<sp/>Finance)<sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>└────────────────┘<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>└────────────────┘<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────────────────┘<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└──────────────────────────────────────────────────────────────────────┘</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md94">
+<title>Component Interaction Flow</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md95">
+<title>Flow 1: Next.js Frontend → FastAPI → Core Logic</title><para><programlisting><codeline><highlight class="normal">User<sp/>Action<sp/>(Next.js)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>1.<sp/>Click<sp/>&quot;View<sp/>3D<sp/>Graph&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">React<sp/>Component<sp/>(NetworkVisualization.tsx)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>2.<sp/>API<sp/>Call:<sp/>GET<sp/>/api/visualization</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">API<sp/>Client<sp/>(lib/api.ts)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>3.<sp/>HTTP<sp/>Request<sp/>(Axios)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">FastAPI<sp/>Endpoint<sp/>(api/main.py)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>4.<sp/>get_visualization_data()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">AssetRelationshipGraph.get_3d_visualization_data()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>5.<sp/>Calculate<sp/>positions,<sp/>colors</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">Response:<sp/>{<sp/>nodes:<sp/>[...],<sp/>edges:<sp/>[...]<sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>6.<sp/>JSON<sp/>Response</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">React<sp/>Component</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>7.<sp/>Render<sp/>with<sp/>Plotly</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">3D<sp/>Visualization<sp/>Displayed</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md96">
+<title>Flow 2: Gradio UI → Core Logic (Direct)</title><para><programlisting><codeline><highlight class="normal">User<sp/>Action<sp/>(Gradio)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>1.<sp/>Click<sp/>&quot;Refresh<sp/>Visualization&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">Gradio<sp/>Event<sp/>Handler<sp/>(app.py)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>2.<sp/>refresh_visualization_outputs()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">visualize_3d_graph()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>3.<sp/>Direct<sp/>function<sp/>call</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">AssetRelationshipGraph.get_3d_visualization_data()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>4.<sp/>Calculate<sp/>positions,<sp/>colors</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">Plotly<sp/>Figure<sp/>Object</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>5.<sp/>Return<sp/>figure</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal">Gradio<sp/>Interface<sp/>Update</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md97">
+<title>Technology Stack</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md98">
+<title>Frontend Technologies</title><para><programlisting><codeline><highlight class="normal">┌─────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/>Next.js<sp/>Frontend<sp/>Stack<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├─────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>React<sp/>18<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>UI<sp/>Framework<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Next.js<sp/>14<sp/><sp/><sp/><sp/>│<sp/>React<sp/>Framework<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>TypeScript<sp/><sp/><sp/><sp/>│<sp/>Type<sp/>Safety<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Tailwind<sp/>CSS<sp/><sp/>│<sp/>Styling<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Plotly.js<sp/><sp/><sp/><sp/><sp/>│<sp/>3D<sp/>Visualization<sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Axios<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>HTTP<sp/>Client<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────────────────────┘</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">┌─────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/>Gradio<sp/>Frontend<sp/>Stack<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├─────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Gradio<sp/>4.x<sp/><sp/><sp/><sp/>│<sp/>UI<sp/>Framework<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Plotly<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Visualization<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Python<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Backend<sp/>Logic<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────────────────────┘</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md99">
+<title>Backend Technologies</title><para><programlisting><codeline><highlight class="normal">┌─────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>Backend<sp/>Stack<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├─────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>FastAPI<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>REST<sp/>API<sp/>Framework<sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Uvicorn<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>ASGI<sp/>Server<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Pydantic<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Data<sp/>Validation<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Python<sp/>3.8+<sp/><sp/><sp/>│<sp/>Runtime<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────────────────────┘</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">┌─────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>Core<sp/>Logic<sp/>Stack<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├─────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>NumPy<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Numerical<sp/>Computing<sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Pandas<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Data<sp/>Analysis<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>yfinance<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Financial<sp/>Data<sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/>Plotly<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Visualization<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────────────────────┘</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md100">
+<title>Data Flow</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md101">
+<title>Asset Relationship Discovery</title><para><programlisting><codeline><highlight class="normal">1.<sp/>Data<sp/>Ingestion</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Yahoo<sp/>Finance<sp/>API<sp/>(yfinance)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>Stock<sp/>prices</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>Company<sp/>info</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>Financial<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>└──<sp/>Static<sp/>sample<sp/>data</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──<sp/>Example<sp/>assets</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>Asset<sp/>Creation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Equity<sp/>objects</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Bond<sp/>objects</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Commodity<sp/>objects</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>└──<sp/>Currency<sp/>objects</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>Relationship<sp/>Building</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Same<sp/>sector<sp/>analysis</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Corporate<sp/>bond-to-equity<sp/>links</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Commodity<sp/>exposure<sp/>detection</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Currency<sp/>risk<sp/>mapping</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>└──<sp/>Income<sp/>comparison<sp/>(dividends<sp/>vs<sp/>yields)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>Graph<sp/>Construction</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Add<sp/>assets<sp/>as<sp/>nodes</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Add<sp/>relationships<sp/>as<sp/>edges</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Calculate<sp/>edge<sp/>weights<sp/>(strength)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>└──<sp/>Assign<sp/>node<sp/>attributes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">5.<sp/>Visualization</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Calculate<sp/>3D<sp/>positions<sp/>(deterministic)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Assign<sp/>colors<sp/>by<sp/>asset<sp/>class</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Size<sp/>nodes<sp/>by<sp/>importance</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>└──<sp/>Generate<sp/>edge<sp/>traces</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">6.<sp/>Output</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>JSON<sp/>(API)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>├──<sp/>Plotly<sp/>figure<sp/>(Gradio)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>└──<sp/>React<sp/>props<sp/>(Next.js)</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md102">
+<title>Deployment Architecture</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md103">
+<title>Local Development</title><para><programlisting><codeline><highlight class="normal">┌──────────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Developer<sp/>Machine<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├──────────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌────────────┐<sp/><sp/><sp/><sp/><sp/><sp/>┌────────────┐<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/>Frontend<sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>Backend<sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/>npm<sp/>run<sp/>dev│<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>uvicorn<sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/>Port<sp/>3000<sp/><sp/>│◄────►│<sp/><sp/>Port<sp/>8000<sp/>│<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└────────────┘<sp/><sp/><sp/><sp/><sp/><sp/>└────────────┘<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────┐<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>Gradio<sp/>(Optional)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>python<sp/>app.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>Port<sp/>7860<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────┘<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└──────────────────────────────────────────┘</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md104">
+<title>Vercel Deployment</title><para><programlisting><codeline><highlight class="normal">┌──────────────────────────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Vercel<sp/>Platform<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├──────────────────────────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────┐<sp/><sp/>┌────────────────────┐<sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>Next.js<sp/>Frontend<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/>Python<sp/>Backend<sp/><sp/><sp/><sp/>│<sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>(Vercel<sp/>Edge)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/>(Serverless<sp/>Func)<sp/>│<sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Static<sp/>pages<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/>-<sp/>FastAPI<sp/>app<sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>API<sp/>routes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│<sp/><sp/>-<sp/>Auto-scaling<sp/><sp/><sp/><sp/>│<sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Auto-deploy<sp/>from<sp/>Git<sp/><sp/>│<sp/><sp/>│<sp/><sp/>-<sp/>Cold<sp/>start<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────┬───────────────┘<sp/><sp/>└──────────┬─────────┘<sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/>Internal<sp/>Network<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──────────────────────────────┘<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└──────────────────────────────────────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>HTTPS</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>▼</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Internet<sp/>Users</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md105">
+<title>Security Architecture</title><para><programlisting><codeline><highlight class="normal">┌─────────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Security<sp/>Layers<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">├─────────────────────────────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>1.<sp/>Transport<sp/>Layer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/>├──<sp/>HTTPS/TLS<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/>└──<sp/>Secure<sp/>WebSocket<sp/>(future)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>2.<sp/>Application<sp/>Layer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/>├──<sp/>CORS<sp/>Configuration<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/>├──<sp/>Input<sp/>Validation<sp/>(Pydantic)<sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/>└──<sp/>Rate<sp/>Limiting<sp/>(future)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>3.<sp/>Data<sp/>Layer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/>├──<sp/>Data<sp/>validation<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/>└──<sp/>Type<sp/>checking<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────────────────────────┘</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md106">
+<title>Performance Considerations</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md107">
+<title>Caching Strategy (Future)</title><para><programlisting><codeline><highlight class="normal">Request<sp/>→<sp/>Cache<sp/>Check<sp/>→<sp/>Cache<sp/>Hit?</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>├─<sp/>Yes<sp/>→<sp/>Return<sp/>cached<sp/>data</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>└─<sp/>No<sp/>→<sp/>Compute<sp/>→<sp/>Cache<sp/>→<sp/>Return</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md108">
+<title>Load Distribution</title><para><programlisting><codeline><highlight class="normal">High<sp/>Traffic</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>├─<sp/>Static<sp/>Assets<sp/>→<sp/>CDN<sp/>(Vercel<sp/>Edge)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>├─<sp/>API<sp/>Requests<sp/>→<sp/>Serverless<sp/>Functions<sp/>(Auto-scale)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>└─<sp/>Graph<sp/>Data<sp/>→<sp/>In-memory<sp/>cache<sp/>(Instance-level)</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md109">
+<title>Extensibility Points</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE_1autotoc_md110">
+<title>Adding New Features</title><para><orderedlist>
+<listitem><para><bold>New Asset Type</bold></para>
+<para><programlisting><codeline><highlight class="normal">financial_models.py<sp/>→<sp/>asset_graph.py<sp/>→<sp/>API<sp/>endpoint<sp/>→<sp/>Frontend</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>New Relationship Type</bold></para>
+<para><programlisting><codeline><highlight class="normal">_find_relationships()<sp/>→<sp/>build_relationships()<sp/>→<sp/>Visualization</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>New Visualization</bold></para>
+<para><programlisting><codeline><highlight class="normal">Create<sp/>component<sp/>→<sp/>Add<sp/>to<sp/>page.tsx<sp/>→<sp/>Connect<sp/>to<sp/>API</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>New API Endpoint</bold> <programlisting><codeline><highlight class="normal">api/main.py<sp/>→<sp/>Test<sp/>→<sp/>Update<sp/>frontend<sp/>API<sp/>client<sp/>→<sp/>Use<sp/>in<sp/>components</highlight></codeline>
+</programlisting></para>
+</listitem></orderedlist>
+</para>
+<para><hruler/>
+</para>
+<para>For more details, see:</para>
+<para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY" kindref="compound">INTEGRATION_SUMMARY.md</ref> - Technical implementation</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref> - Deployment procedures</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START" kindref="compound">QUICK_START.md</ref> - Getting started guide </para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/ARCHITECTURE.md"/>
+  </compounddef>
+</doxygen>

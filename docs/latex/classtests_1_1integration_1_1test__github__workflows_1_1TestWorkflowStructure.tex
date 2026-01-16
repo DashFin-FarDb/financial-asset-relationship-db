@@ -1,0 +1,113 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Structure Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure}\index{tests.integration.test\_github\_workflows.TestWorkflowStructure@{tests.integration.test\_github\_workflows.TestWorkflowStructure}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Structure\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_aa395e884408659837bd1e80c182e7e27}{test\+\_\+workflow\+\_\+has\+\_\+name}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a3d668deb5af79fbaf3dfaa9d55e27c6f}{test\+\_\+workflow\+\_\+has\+\_\+triggers}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a1da143aabd2f56261a4f3e17e4277331}{test\+\_\+workflow\+\_\+has\+\_\+jobs}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a1f1edda2552099b669d86f8cf1af0248}{test\+\_\+workflow\+\_\+jobs\+\_\+have\+\_\+steps}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test suite for GitHub Actions workflow structure validation.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a1da143aabd2f56261a4f3e17e4277331}\index{tests.integration.test\_github\_workflows.TestWorkflowStructure@{tests.integration.test\_github\_workflows.TestWorkflowStructure}!test\_workflow\_has\_jobs@{test\_workflow\_has\_jobs}}
+\index{test\_workflow\_has\_jobs@{test\_workflow\_has\_jobs}!tests.integration.test\_github\_workflows.TestWorkflowStructure@{tests.integration.test\_github\_workflows.TestWorkflowStructure}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_has\_jobs()}{test\_workflow\_has\_jobs()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a1da143aabd2f56261a4f3e17e4277331} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Structure.\+test\+\_\+workflow\+\_\+has\+\_\+jobs (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure the workflow defines at least one job.
+
+Asserts that the top-level "jobs" field is present, is a mapping (dictionary), and contains at least one job entry for the given workflow file.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a1da143aabd2f56261a4f3e17e4277331_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_aa395e884408659837bd1e80c182e7e27}\index{tests.integration.test\_github\_workflows.TestWorkflowStructure@{tests.integration.test\_github\_workflows.TestWorkflowStructure}!test\_workflow\_has\_name@{test\_workflow\_has\_name}}
+\index{test\_workflow\_has\_name@{test\_workflow\_has\_name}!tests.integration.test\_github\_workflows.TestWorkflowStructure@{tests.integration.test\_github\_workflows.TestWorkflowStructure}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_has\_name()}{test\_workflow\_has\_name()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_aa395e884408659837bd1e80c182e7e27} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Structure.\+test\+\_\+workflow\+\_\+has\+\_\+name (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify the workflow YAML defines a non-empty top-level name.
+
+Asserts that the top-level "name" key is present and its value is a non-empty string; failure messages include the workflow filename for context.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_aa395e884408659837bd1e80c182e7e27_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a3d668deb5af79fbaf3dfaa9d55e27c6f}\index{tests.integration.test\_github\_workflows.TestWorkflowStructure@{tests.integration.test\_github\_workflows.TestWorkflowStructure}!test\_workflow\_has\_triggers@{test\_workflow\_has\_triggers}}
+\index{test\_workflow\_has\_triggers@{test\_workflow\_has\_triggers}!tests.integration.test\_github\_workflows.TestWorkflowStructure@{tests.integration.test\_github\_workflows.TestWorkflowStructure}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_has\_triggers()}{test\_workflow\_has\_triggers()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a3d668deb5af79fbaf3dfaa9d55e27c6f} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Structure.\+test\+\_\+workflow\+\_\+has\+\_\+triggers (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure the workflow defines at least one trigger via a top-level "on" field.
+
+Asserts that the loaded workflow mapping contains a top-level "on" key.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a3d668deb5af79fbaf3dfaa9d55e27c6f_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a1f1edda2552099b669d86f8cf1af0248}\index{tests.integration.test\_github\_workflows.TestWorkflowStructure@{tests.integration.test\_github\_workflows.TestWorkflowStructure}!test\_workflow\_jobs\_have\_steps@{test\_workflow\_jobs\_have\_steps}}
+\index{test\_workflow\_jobs\_have\_steps@{test\_workflow\_jobs\_have\_steps}!tests.integration.test\_github\_workflows.TestWorkflowStructure@{tests.integration.test\_github\_workflows.TestWorkflowStructure}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_jobs\_have\_steps()}{test\_workflow\_jobs\_have\_steps()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a1f1edda2552099b669d86f8cf1af0248} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Structure.\+test\+\_\+workflow\+\_\+jobs\+\_\+have\+\_\+steps (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure each job in the workflow defines either a `steps` sequence or a `uses` reusable workflow, and that any `steps` entry is a non-empty list.
+
+Fails the test if a job:
+- does not contain either `steps` or `uses`;
+- has an empty `steps` value;
+- has a `steps` value that is not a list.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file being validated.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_a1f1edda2552099b669d86f8cf1af0248_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

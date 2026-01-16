@@ -1,0 +1,81 @@
+\doxysection{tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Connect\+With\+Memory\+Db Class Reference}
+\hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb}{}\label{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb}\index{tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}}
+
+
+Collaboration diagram for tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Connect\+With\+Memory\+Db\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=274pt]{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a813274b83619cbe456b102edf2e018ea}{test\+\_\+connect\+\_\+creates\+\_\+shared\+\_\+memory\+\_\+connection}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a62c8a84fec6ee02e60cf8717e49533b1}{test\+\_\+connect\+\_\+with\+\_\+uri\+\_\+memory\+\_\+database}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_abe654716cd63f96f141162ab6c06c82b}{test\+\_\+connect\+\_\+creates\+\_\+new\+\_\+connection\+\_\+for\+\_\+file\+\_\+db}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a830393ee08df5329145f43860665c3d8}{test\+\_\+connect\+\_\+sets\+\_\+row\+\_\+factory}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a20acfd2390495fa6388dbd37a952777f}{test\+\_\+connect\+\_\+enables\+\_\+check\+\_\+same\+\_\+thread\+\_\+false}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a906b953cfac2962c525180eab7802d17}{test\+\_\+connect\+\_\+with\+\_\+uri\+\_\+parameter}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for _connect function with various memory database configurations.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_abe654716cd63f96f141162ab6c06c82b}\index{tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}!test\_connect\_creates\_new\_connection\_for\_file\_db@{test\_connect\_creates\_new\_connection\_for\_file\_db}}
+\index{test\_connect\_creates\_new\_connection\_for\_file\_db@{test\_connect\_creates\_new\_connection\_for\_file\_db}!tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}}
+\doxysubsubsection{\texorpdfstring{test\_connect\_creates\_new\_connection\_for\_file\_db()}{test\_connect\_creates\_new\_connection\_for\_file\_db()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_abe654716cd63f96f141162ab6c06c82b} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Connect\+With\+Memory\+Db.\+test\+\_\+connect\+\_\+creates\+\_\+new\+\_\+connection\+\_\+for\+\_\+file\+\_\+db (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that _connect creates new connections for file-based databases.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a813274b83619cbe456b102edf2e018ea}\index{tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}!test\_connect\_creates\_shared\_memory\_connection@{test\_connect\_creates\_shared\_memory\_connection}}
+\index{test\_connect\_creates\_shared\_memory\_connection@{test\_connect\_creates\_shared\_memory\_connection}!tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}}
+\doxysubsubsection{\texorpdfstring{test\_connect\_creates\_shared\_memory\_connection()}{test\_connect\_creates\_shared\_memory\_connection()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a813274b83619cbe456b102edf2e018ea} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Connect\+With\+Memory\+Db.\+test\+\_\+connect\+\_\+creates\+\_\+shared\+\_\+memory\+\_\+connection (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that _connect creates and reuses a single shared connection for memory databases.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a20acfd2390495fa6388dbd37a952777f}\index{tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}!test\_connect\_enables\_check\_same\_thread\_false@{test\_connect\_enables\_check\_same\_thread\_false}}
+\index{test\_connect\_enables\_check\_same\_thread\_false@{test\_connect\_enables\_check\_same\_thread\_false}!tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}}
+\doxysubsubsection{\texorpdfstring{test\_connect\_enables\_check\_same\_thread\_false()}{test\_connect\_enables\_check\_same\_thread\_false()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a20acfd2390495fa6388dbd37a952777f} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Connect\+With\+Memory\+Db.\+test\+\_\+connect\+\_\+enables\+\_\+check\+\_\+same\+\_\+thread\+\_\+false (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that _connect disables check_same_thread for thread safety.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a830393ee08df5329145f43860665c3d8}\index{tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}!test\_connect\_sets\_row\_factory@{test\_connect\_sets\_row\_factory}}
+\index{test\_connect\_sets\_row\_factory@{test\_connect\_sets\_row\_factory}!tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}}
+\doxysubsubsection{\texorpdfstring{test\_connect\_sets\_row\_factory()}{test\_connect\_sets\_row\_factory()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a830393ee08df5329145f43860665c3d8} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Connect\+With\+Memory\+Db.\+test\+\_\+connect\+\_\+sets\+\_\+row\+\_\+factory (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that _connect sets sqlite3.Row as the row factory.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a62c8a84fec6ee02e60cf8717e49533b1}\index{tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}!test\_connect\_with\_uri\_memory\_database@{test\_connect\_with\_uri\_memory\_database}}
+\index{test\_connect\_with\_uri\_memory\_database@{test\_connect\_with\_uri\_memory\_database}!tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}}
+\doxysubsubsection{\texorpdfstring{test\_connect\_with\_uri\_memory\_database()}{test\_connect\_with\_uri\_memory\_database()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a62c8a84fec6ee02e60cf8717e49533b1} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Connect\+With\+Memory\+Db.\+test\+\_\+connect\+\_\+with\+\_\+uri\+\_\+memory\+\_\+database (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that _connect properly handles URI-style memory databases.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a906b953cfac2962c525180eab7802d17}\index{tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}!test\_connect\_with\_uri\_parameter@{test\_connect\_with\_uri\_parameter}}
+\index{test\_connect\_with\_uri\_parameter@{test\_connect\_with\_uri\_parameter}!tests.unit.test\_database\_memory.TestConnectWithMemoryDb@{tests.unit.test\_database\_memory.TestConnectWithMemoryDb}}
+\doxysubsubsection{\texorpdfstring{test\_connect\_with\_uri\_parameter()}{test\_connect\_with\_uri\_parameter()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_a906b953cfac2962c525180eab7802d17} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Connect\+With\+Memory\+Db.\+test\+\_\+connect\+\_\+with\+\_\+uri\+\_\+parameter (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that _connect correctly sets uri parameter for file: URIs.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/unit/\mbox{\hyperlink{test__database__memory_8py}{test\+\_\+database\+\_\+memory.\+py}}\end{DoxyCompactItemize}

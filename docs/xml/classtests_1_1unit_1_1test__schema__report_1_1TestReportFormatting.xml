@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_schema_report::TestReportFormatting</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1ad0076b891a43acde8fd0c9dffc610810" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestReportFormatting.test_report_uses_markdown_headers</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_uses_markdown_headers</name>
+        <qualifiedname>tests.unit.test_schema_report.TestReportFormatting.test_report_uses_markdown_headers</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report uses proper markdown headers.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="181" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="181" bodyend="186"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1a1ed201a9721547634d5151ffbfde1878" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestReportFormatting.test_report_uses_bold_formatting</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_uses_bold_formatting</name>
+        <qualifiedname>tests.unit.test_schema_report.TestReportFormatting.test_report_uses_bold_formatting</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report uses bold formatting for labels.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="188" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="188" bodyend="193"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1a6f7aa9ab5e368cae07a09ac208ec36b5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestReportFormatting.test_report_uses_lists</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_uses_lists</name>
+        <qualifiedname>tests.unit.test_schema_report.TestReportFormatting.test_report_uses_lists</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report uses markdown lists.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="195" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="195" bodyend="199"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1a4573fd91328328f93c8fb6052d02b07e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestReportFormatting.test_report_has_proper_line_breaks</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_has_proper_line_breaks</name>
+        <qualifiedname>tests.unit.test_schema_report.TestReportFormatting.test_report_has_proper_line_breaks</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that report has proper line breaks between sections.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="201" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="201" bodyend="205"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1ab1633d4a8f5de728351862b10c536732" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestReportFormatting.test_report_formats_percentages</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_formats_percentages</name>
+        <qualifiedname>tests.unit.test_schema_report.TestReportFormatting.test_report_formats_percentages</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that percentages are formatted correctly.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="207" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="207" bodyend="213"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for report formatting.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_schema_report.TestReportFormatting</label>
+        <link refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="177" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="177" bodyend="213"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1ab1633d4a8f5de728351862b10c536732" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestReportFormatting</scope><name>test_report_formats_percentages</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1a4573fd91328328f93c8fb6052d02b07e" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestReportFormatting</scope><name>test_report_has_proper_line_breaks</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1a1ed201a9721547634d5151ffbfde1878" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestReportFormatting</scope><name>test_report_uses_bold_formatting</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1a6f7aa9ab5e368cae07a09ac208ec36b5" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestReportFormatting</scope><name>test_report_uses_lists</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportFormatting_1ad0076b891a43acde8fd0c9dffc610810" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestReportFormatting</scope><name>test_report_uses_markdown_headers</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

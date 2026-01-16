@@ -1,0 +1,97 @@
+\doxysection{main Namespace Reference}
+\hypertarget{namespacemain}{}\label{namespacemain}\index{main@{main}}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacemain_ac7c3e724888f8970185b6700a5e23480}{DATABASE\+\_\+\+URL}} = os.\+getenv("{}DATABASE\+\_\+\+URL"{})
+\item 
+\mbox{\hyperlink{namespacemain_a6ae7a142738d3da435d6a12acac9cee9}{SUPABASE\+\_\+\+URL}} = os.\+getenv("{}SUPABASE\+\_\+\+URL"{})
+\item 
+\mbox{\hyperlink{namespacemain_a8448f75dbb0a13e3f93f6159aced604d}{SUPABASE\+\_\+\+KEY}} = os.\+getenv("{}SUPABASE\+\_\+\+KEY"{})
+\item 
+\mbox{\hyperlink{namespacemain_ab2fc4beca5ea50467e02d215a5f83c97}{CERT\+\_\+\+PATH}} = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}prod-\/ca-\/2021.crt"{})
+\item 
+Client \mbox{\hyperlink{namespacemain_ae85c3b07de28b8cfd2db3c505539bf7b}{supabase}} = create\+\_\+client(\mbox{\hyperlink{namespacemain_a6ae7a142738d3da435d6a12acac9cee9}{SUPABASE\+\_\+\+URL}}, \mbox{\hyperlink{namespacemain_a8448f75dbb0a13e3f93f6159aced604d}{SUPABASE\+\_\+\+KEY}})
+\item 
+Client \mbox{\hyperlink{namespacemain_a3deb03c0fa62bbd5a94d0a2a9a82122c}{response}} = supabase.\+table("{}transactions"{}).select("{}\texorpdfstring{$\ast$}{*}"{}).limit(1).execute()
+\item 
+\mbox{\hyperlink{namespacemain_a3e16089d2114f551b9d0c3cef0192abc}{updated\+\_\+db\+\_\+url}} = \mbox{\hyperlink{namespacemain_ac7c3e724888f8970185b6700a5e23480}{DATABASE\+\_\+\+URL}}
+\item 
+\mbox{\hyperlink{namespacemain_accdd965a6793cbd3ef392b9d0dd07144}{connection}}
+\item 
+\mbox{\hyperlink{namespacemain_aca1fa5ef8f4afcee47fccb54716d59be}{cursor}} = connection.\+cursor()
+\item 
+\mbox{\hyperlink{namespacemain_af5054e7cee59f93add27ee4d97cb586a}{result}} = cursor.\+fetchone()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacemain_ab2fc4beca5ea50467e02d215a5f83c97}\index{main@{main}!CERT\_PATH@{CERT\_PATH}}
+\index{CERT\_PATH@{CERT\_PATH}!main@{main}}
+\doxysubsubsection{\texorpdfstring{CERT\_PATH}{CERT\_PATH}}
+{\footnotesize\ttfamily \label{namespacemain_ab2fc4beca5ea50467e02d215a5f83c97} 
+main.\+CERT\+\_\+\+PATH = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}prod-\/ca-\/2021.crt"{})}
+
+\Hypertarget{namespacemain_accdd965a6793cbd3ef392b9d0dd07144}\index{main@{main}!connection@{connection}}
+\index{connection@{connection}!main@{main}}
+\doxysubsubsection{\texorpdfstring{connection}{connection}}
+{\footnotesize\ttfamily \label{namespacemain_accdd965a6793cbd3ef392b9d0dd07144} 
+main.\+connection}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ =\ \ psycopg2.connect(}
+\DoxyCodeLine{00002\ \ \ \ \ \ \ \ \ \ \ \ \ updated\_db\_url,}
+\DoxyCodeLine{00003\ \ \ \ \ \ \ \ \ \ \ \ \ sslmode=\textcolor{stringliteral}{"{}require"{}},}
+\DoxyCodeLine{00004\ \ \ \ \ \ \ \ \ \ \ \ \ sslrootcert=CERT\_PATH,}
+\DoxyCodeLine{00005\ \ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{namespacemain_aca1fa5ef8f4afcee47fccb54716d59be}\index{main@{main}!cursor@{cursor}}
+\index{cursor@{cursor}!main@{main}}
+\doxysubsubsection{\texorpdfstring{cursor}{cursor}}
+{\footnotesize\ttfamily \label{namespacemain_aca1fa5ef8f4afcee47fccb54716d59be} 
+main.\+cursor = connection.\+cursor()}
+
+\Hypertarget{namespacemain_ac7c3e724888f8970185b6700a5e23480}\index{main@{main}!DATABASE\_URL@{DATABASE\_URL}}
+\index{DATABASE\_URL@{DATABASE\_URL}!main@{main}}
+\doxysubsubsection{\texorpdfstring{DATABASE\_URL}{DATABASE\_URL}}
+{\footnotesize\ttfamily \label{namespacemain_ac7c3e724888f8970185b6700a5e23480} 
+main.\+DATABASE\+\_\+\+URL = os.\+getenv("{}DATABASE\+\_\+\+URL"{})}
+
+\Hypertarget{namespacemain_a3deb03c0fa62bbd5a94d0a2a9a82122c}\index{main@{main}!response@{response}}
+\index{response@{response}!main@{main}}
+\doxysubsubsection{\texorpdfstring{response}{response}}
+{\footnotesize\ttfamily \label{namespacemain_a3deb03c0fa62bbd5a94d0a2a9a82122c} 
+Client main.\+response = supabase.\+table("{}transactions"{}).select("{}\texorpdfstring{$\ast$}{*}"{}).limit(1).execute()}
+
+\Hypertarget{namespacemain_af5054e7cee59f93add27ee4d97cb586a}\index{main@{main}!result@{result}}
+\index{result@{result}!main@{main}}
+\doxysubsubsection{\texorpdfstring{result}{result}}
+{\footnotesize\ttfamily \label{namespacemain_af5054e7cee59f93add27ee4d97cb586a} 
+main.\+result = cursor.\+fetchone()}
+
+\Hypertarget{namespacemain_ae85c3b07de28b8cfd2db3c505539bf7b}\index{main@{main}!supabase@{supabase}}
+\index{supabase@{supabase}!main@{main}}
+\doxysubsubsection{\texorpdfstring{supabase}{supabase}}
+{\footnotesize\ttfamily \label{namespacemain_ae85c3b07de28b8cfd2db3c505539bf7b} 
+Client main.\+supabase = create\+\_\+client(\mbox{\hyperlink{namespacemain_a6ae7a142738d3da435d6a12acac9cee9}{SUPABASE\+\_\+\+URL}}, \mbox{\hyperlink{namespacemain_a8448f75dbb0a13e3f93f6159aced604d}{SUPABASE\+\_\+\+KEY}})}
+
+\Hypertarget{namespacemain_a8448f75dbb0a13e3f93f6159aced604d}\index{main@{main}!SUPABASE\_KEY@{SUPABASE\_KEY}}
+\index{SUPABASE\_KEY@{SUPABASE\_KEY}!main@{main}}
+\doxysubsubsection{\texorpdfstring{SUPABASE\_KEY}{SUPABASE\_KEY}}
+{\footnotesize\ttfamily \label{namespacemain_a8448f75dbb0a13e3f93f6159aced604d} 
+main.\+SUPABASE\+\_\+\+KEY = os.\+getenv("{}SUPABASE\+\_\+\+KEY"{})}
+
+\Hypertarget{namespacemain_a6ae7a142738d3da435d6a12acac9cee9}\index{main@{main}!SUPABASE\_URL@{SUPABASE\_URL}}
+\index{SUPABASE\_URL@{SUPABASE\_URL}!main@{main}}
+\doxysubsubsection{\texorpdfstring{SUPABASE\_URL}{SUPABASE\_URL}}
+{\footnotesize\ttfamily \label{namespacemain_a6ae7a142738d3da435d6a12acac9cee9} 
+main.\+SUPABASE\+\_\+\+URL = os.\+getenv("{}SUPABASE\+\_\+\+URL"{})}
+
+\Hypertarget{namespacemain_a3e16089d2114f551b9d0c3cef0192abc}\index{main@{main}!updated\_db\_url@{updated\_db\_url}}
+\index{updated\_db\_url@{updated\_db\_url}!main@{main}}
+\doxysubsubsection{\texorpdfstring{updated\_db\_url}{updated\_db\_url}}
+{\footnotesize\ttfamily \label{namespacemain_a3e16089d2114f551b9d0c3cef0192abc} 
+main.\+updated\+\_\+db\+\_\+url = \mbox{\hyperlink{namespacemain_ac7c3e724888f8970185b6700a5e23480}{DATABASE\+\_\+\+URL}}}
+

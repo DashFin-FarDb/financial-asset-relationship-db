@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1unit_1_1test__graph__2d__visuals" kind="namespace" language="Python">
+    <compoundname>tests::unit::test_graph_2d_visuals</compoundname>
+    <innerclass refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestEdgeCases" prot="public">tests::unit::test_graph_2d_visuals::TestEdgeCases</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestLayoutAlgorithms" prot="public">tests::unit::test_graph_2d_visuals::TestLayoutAlgorithms</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces" prot="public">tests::unit::test_graph_2d_visuals::TestRelationshipTraces</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestVisualize2DGraph" prot="public">tests::unit::test_graph_2d_visuals::TestVisualize2DGraph</innerclass>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__graph__2d__visuals_1a03fd2463d6b5b3764bfe8f8d073365cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.create_relationship_traces_with_defaults</definition>
+        <argsstring>(graph, positions, asset_ids, **overrides)</argsstring>
+        <name>create_relationship_traces_with_defaults</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.create_relationship_traces_with_defaults</qualifiedname>
+        <param>
+          <type>graph</type>
+          <defname>graph</defname>
+        </param>
+        <param>
+          <type>positions</type>
+          <defname>positions</defname>
+        </param>
+        <param>
+          <type>asset_ids</type>
+          <defname>asset_ids</defname>
+        </param>
+        <param>
+          <type>**</type>
+          <declname>overrides</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Helper to call _create_2d_relationship_traces with default parameters.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="23" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="23" bodyend="38"/>
+        <referencedby refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1aae72c9de4d091460fbc557904916212f" compoundref="test__graph__2d__visuals_8py" startline="355" endline="372">tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_empty_graph</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1ac2cff09e847754065131d3f5a0a95bfc" compoundref="test__graph__2d__visuals_8py" startline="332" endline="354">tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_selective_filtering</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1ad625b4fe2f3e3ab7ff331ac1088f73fb" compoundref="test__graph__2d__visuals_8py" startline="309" endline="331">tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_show_all</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1ad01325e167e0a5c65410304e6dab0838" compoundref="test__graph__2d__visuals_8py" startline="283" endline="308">tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_with_relationships</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Unit tests for 2D graph visualizations.
+
+This module contains comprehensive unit tests for the graph_2d_visuals module including:
+- 2D graph visualization creation
+- Layout algorithms (circular, grid, spring)
+- Relationship trace creation
+- Filtering and display options
+- Edge cases and error handling
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,5 @@
+var classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts =
+[
+    [ "test_workflow_artifacts_have_retention", "classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts.html#ad2b3b5e30e6778a65225da247fdf6298", null ],
+    [ "test_workflow_outputs_referenced_correctly", "classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts.html#a941e5e855eb901b51a134b82e6be0e19", null ]
+];

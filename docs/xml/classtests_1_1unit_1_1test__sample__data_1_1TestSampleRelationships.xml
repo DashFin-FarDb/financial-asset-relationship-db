@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_sample_data::TestSampleRelationships</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships_1a53b4a27a70f3e758d5dfd07bb544b756" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleRelationships.test_sample_database_has_relationships</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_has_relationships</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleRelationships.test_sample_database_has_relationships</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database includes relationships.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="174" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="174" bodyend="178"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships_1ae509d3779eb3003c36431c28ec5fda2a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleRelationships.test_relationships_have_valid_strength</definition>
+        <argsstring>()</argsstring>
+        <name>test_relationships_have_valid_strength</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleRelationships.test_relationships_have_valid_strength</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all relationships have valid strength values.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="180" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="180" bodyend="187"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships_1afeeca30932d99d7e62382565f76bd128" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleRelationships.test_same_sector_relationships_exist</definition>
+        <argsstring>()</argsstring>
+        <name>test_same_sector_relationships_exist</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleRelationships.test_same_sector_relationships_exist</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that same-sector relationships are established.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="189" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="189" bodyend="204"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships_1a46a2c0eeed79f6e69e20a3b744da5ea0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleRelationships.test_corporate_bond_relationships_exist</definition>
+        <argsstring>()</argsstring>
+        <name>test_corporate_bond_relationships_exist</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleRelationships.test_corporate_bond_relationships_exist</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that corporate bond relationships are established.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="206" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="206" bodyend="226"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for sample database relationships.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_sample_data.TestSampleRelationships</label>
+        <link refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="170" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="170" bodyend="226"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships_1a46a2c0eeed79f6e69e20a3b744da5ea0" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleRelationships</scope><name>test_corporate_bond_relationships_exist</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships_1ae509d3779eb3003c36431c28ec5fda2a" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleRelationships</scope><name>test_relationships_have_valid_strength</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships_1afeeca30932d99d7e62382565f76bd128" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleRelationships</scope><name>test_same_sector_relationships_exist</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleRelationships_1a53b4a27a70f3e758d5dfd07bb544b756" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleRelationships</scope><name>test_sample_database_has_relationships</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

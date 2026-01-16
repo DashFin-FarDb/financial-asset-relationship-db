@@ -1,0 +1,292 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="SUMMARY_8md" kind="file" language="Markdown">
+    <compoundname>SUMMARY.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Code<sp/>Audit<sp/>Summary<sp/>-<sp/>Quick<sp/>Reference</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Audit<sp/>Date:**<sp/>October<sp/>30,<sp/>2025</highlight></codeline>
+<codeline><highlight class="normal">**Status:**<sp/>✅<sp/>COMPLETE</highlight></codeline>
+<codeline><highlight class="normal">**Project<sp/>Health:**<sp/>🟢<sp/>8.5/10<sp/>(improved<sp/>from<sp/>5/10)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>TL;DR</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>audit<sp/>cleaned<sp/>up<sp/>a<sp/>well-structured<sp/>Python<sp/>project<sp/>by<sp/>removing<sp/>23<sp/>irrelevant<sp/>workflow<sp/>files,<sp/>adding<sp/>comprehensive<sp/>testing<sp/>infrastructure<sp/>(30+<sp/>tests),<sp/>configuring<sp/>modern<sp/>Python<sp/>tooling<sp/>(black,<sp/>isort,<sp/>mypy,<sp/>pylint,<sp/>flake8),<sp/>and<sp/>creating<sp/>extensive<sp/>documentation.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>What<sp/>Changed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>🗑️<sp/>Removed<sp/>(23<sp/>files)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>All<sp/>.NET<sp/>workflows<sp/>(dotnet.yml,<sp/>dotnet-desktop.yml)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>All<sp/>Node.js/Next.js<sp/>workflows<sp/>(nextjs.yml,<sp/>node.js.yml,<sp/>npm-publish.yml,<sp/>etc.)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>All<sp/>Docker<sp/>workflows<sp/>(docker-image.yml,<sp/>docker-publish.yml)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Redundant<sp/>Python<sp/>workflows<sp/>(python-app.yml,<sp/>python-package.yml,<sp/>pylint.yml)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Unnecessary<sp/>tooling<sp/>(super-linter.yml,<sp/>codacy.yml,<sp/>njsscan.yml,<sp/>pyre.yml,<sp/>stackhawk.yml)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Management<sp/>workflows<sp/>(stale.yml,<sp/>label.yml,<sp/>summary.yml,<sp/>manual.yml)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>✨<sp/>Added<sp/>(17<sp/>files)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Configuration<sp/>Files<sp/>(6):**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`pyproject.toml`<sp/>-<sp/>Comprehensive<sp/>project<sp/>and<sp/>tool<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`.flake8`<sp/>-<sp/>Linting<sp/>rules</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`.editorconfig`<sp/>-<sp/>Editor<sp/>consistency</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`.pre-commit-config.yaml`<sp/>-<sp/>Pre-commit<sp/>hooks</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`requirements-dev.txt`<sp/>-<sp/>Development<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`Makefile`<sp/>-<sp/>Development<sp/>command<sp/>shortcuts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Files<sp/>(6):**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`tests/__init__.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`tests/conftest.py`<sp/>-<sp/>Test<sp/>fixtures</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`tests/unit/__init__.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`tests/unit/test_financial_models.py`<sp/>-<sp/>18<sp/>test<sp/>cases</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`tests/unit/test_asset_graph.py`<sp/>-<sp/>15<sp/>test<sp/>cases</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`tests/integration/__init__.py`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Documentation<sp/>(4):**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`AUDIT_REPORT.md`<sp/>-<sp/>16KB<sp/>comprehensive<sp/>audit<sp/>(you&apos;re<sp/>reading<sp/>the<sp/>summary)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`CONTRIBUTING.md`<sp/>-<sp/>8KB<sp/>developer<sp/>guide</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`CHANGELOG.md`<sp/>-<sp/>Version<sp/>history<sp/>template</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`SUMMARY.md`<sp/>-<sp/>This<sp/>quick<sp/>reference</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Workflows<sp/>(1):**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`.github/workflows/ci.yml`<sp/>-<sp/>Consolidated<sp/>Python<sp/>CI/CD</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>📝<sp/>Modified<sp/>(2<sp/>files)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`README.md`<sp/>-<sp/>Added<sp/>testing,<sp/>development<sp/>tools,<sp/>and<sp/>documentation<sp/>sections</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`.gitignore`<sp/>-<sp/>Added<sp/>test<sp/>artifacts,<sp/>cache<sp/>directories</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Quick<sp/>Start<sp/>for<sp/>Developers</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>everything</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>install-dev</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>pre-commit<sp/>hooks</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>pre-commit</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>checks</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Format<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>format</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>linters</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>lint</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Clean<sp/>generated<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>clean</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Quality<sp/>Metrics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Metric<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Before<sp/>|<sp/>After<sp/>|<sp/>Change<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>----------------------<sp/>|<sp/>------<sp/>|<sp/>-----<sp/>|<sp/>------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Workflow<sp/>Files<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>26<sp/><sp/><sp/><sp/><sp/>|<sp/>3<sp/><sp/><sp/><sp/><sp/>|<sp/>-88%<sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Test<sp/>Cases<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>0<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>30+<sp/><sp/><sp/>|<sp/>+∞<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Test<sp/>Coverage<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>0%<sp/><sp/><sp/><sp/><sp/>|<sp/>Ready<sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Linting<sp/>Tools<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>0<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>5<sp/><sp/><sp/><sp/><sp/>|<sp/>+5<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Config<sp/>Files<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>2<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>9<sp/><sp/><sp/><sp/><sp/>|<sp/>+350%<sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Documentation<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>3<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>7<sp/><sp/><sp/><sp/><sp/>|<sp/>+133%<sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Python<sp/>Versions<sp/>Tested<sp/>|<sp/>1<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>5<sp/><sp/><sp/><sp/><sp/>|<sp/>+400%<sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Available<sp/>Commands</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>help<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Show<sp/>all<sp/>available<sp/>commands</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>install<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Install<sp/>production<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>install-dev<sp/><sp/><sp/>#<sp/>Install<sp/>dev<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Run<sp/>tests<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test-fast<sp/><sp/><sp/><sp/><sp/>#<sp/>Run<sp/>tests<sp/>without<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>lint<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Run<sp/>flake8<sp/>and<sp/>pylint</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>format<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Format<sp/>with<sp/>black<sp/>and<sp/>isort</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>format-check<sp/><sp/>#<sp/>Check<sp/>formatting<sp/>without<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>type-check<sp/><sp/><sp/><sp/>#<sp/>Run<sp/>mypy<sp/>type<sp/>checking</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>pre-commit<sp/><sp/><sp/><sp/>#<sp/>Install<sp/>pre-commit<sp/>hooks</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>pre-commit-run<sp/>#<sp/>Run<sp/>hooks<sp/>on<sp/>all<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>clean<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Clean<sp/>up<sp/>generated<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>run<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Run<sp/>the<sp/>application</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>check<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Run<sp/>all<sp/>checks<sp/>(format,<sp/>lint,<sp/>type,<sp/>test)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Tool<sp/>Configuration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Linting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**flake8:**<sp/>Max<sp/>line<sp/>length<sp/>120,<sp/>complexity<sp/>15</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**pylint:**<sp/>Fail<sp/>under<sp/>8.0,<sp/>ignore<sp/>docstring<sp/>warnings</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**black:**<sp/>Line<sp/>length<sp/>120,<sp/>Python<sp/>3.8+</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**isort:**<sp/>Black-compatible<sp/>profile</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**mypy:**<sp/>Check<sp/>untyped<sp/>definitions,<sp/>warn<sp/>on<sp/>issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Testing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**pytest:**<sp/>Verbose,<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**coverage:**<sp/>HTML<sp/>+<sp/>XML<sp/>reports,<sp/>80%<sp/>target</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**markers:**<sp/>unit,<sp/>integration,<sp/>slow</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>CI/CD<sp/>Pipeline</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Workflow:**<sp/>`.github/workflows/ci.yml`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Job</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Matrix:<sp/>Python<sp/>3.8,<sp/>3.9,<sp/>3.10,<sp/>3.11,<sp/>3.12</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Steps:<sp/>checkout<sp/>→<sp/>setup<sp/>python<sp/>→<sp/>install<sp/>→<sp/>lint<sp/>→<sp/>format<sp/>→<sp/>type-check<sp/>→<sp/>test</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Caching:<sp/>pip<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Artifacts:<sp/>coverage<sp/>reports</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Security<sp/>Job</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Tools:<sp/>safety,<sp/>bandit</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Runs<sp/>after<sp/>tests<sp/>pass</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Checks<sp/>dependencies<sp/>and<sp/>code<sp/>security</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>File<sp/>Organization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">financial-asset-relationship-db/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>.github/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>workflows/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>ci.yml<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Main<sp/>CI/CD<sp/>pipeline</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>codeql.yml<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Security<sp/>scanning</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>dependency-review.yml<sp/><sp/><sp/><sp/><sp/>#<sp/>Dependency<sp/>checks</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>copilot-instructions.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>AI<sp/>agent<sp/>guidelines</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>src/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Source<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>analysis/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Analysis<sp/>algorithms</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>data/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Data<sp/>management</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>logic/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Core<sp/>business<sp/>logic</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>models/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Data<sp/>models</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>reports/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Report<sp/>generation</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>visualizations/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Visualization<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tests/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Test<sp/>suite</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>unit/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Unit<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>integration/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>app.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Main<sp/>application</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements.txt<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Production<sp/>deps</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements-dev.txt<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Development<sp/>deps</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>pyproject.toml<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Tool<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>.flake8<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Linting<sp/>rules</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>.editorconfig<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Editor<sp/>config</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>.pre-commit-config.yaml<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Pre-commit<sp/>hooks</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>Makefile<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Development<sp/>commands</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>README.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Project<sp/>docs</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>CONTRIBUTING.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Developer<sp/>guide</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>CHANGELOG.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Version<sp/>history</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>AUDIT_REPORT.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Full<sp/>audit<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>SUMMARY.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>This<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Coverage<sp/>Map</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>✅<sp/>Tested</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Asset<sp/>model<sp/>validation<sp/>(creation,<sp/>validation<sp/>errors)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Equity,<sp/>Bond,<sp/>Commodity,<sp/>Currency<sp/>creation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>RegulatoryEvent<sp/>validation<sp/>(impact<sp/>score,<sp/>date<sp/>format)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>AssetRelationshipGraph<sp/>operations</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Relationship<sp/>building<sp/>and<sp/>discovery</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Bidirectional<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Strength<sp/>clamping<sp/>(0-1<sp/>range)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Metric<sp/>calculation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>3D<sp/>visualization<sp/>data<sp/>generation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Position<sp/>persistence<sp/>(deterministic<sp/>layout)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Same<sp/>sector<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Corporate<sp/>bond<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Deduplication</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>⏳<sp/>Not<sp/>Yet<sp/>Tested</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Gradio<sp/>UI<sp/>interactions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Real<sp/>data<sp/>fetching<sp/>(yfinance)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Visualization<sp/>rendering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Schema<sp/>report<sp/>generation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Formulaic<sp/>analysis</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>2D<sp/>graph<sp/>visualization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Security<sp/>Checks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>✅<sp/>Passed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>No<sp/>eval/exec<sp/>calls</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>No<sp/>hardcoded<sp/>secrets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>No<sp/>dangerous<sp/>imports</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Valid<sp/>Python<sp/>syntax<sp/>in<sp/>all<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>CodeQL<sp/>security<sp/>scanning<sp/>enabled</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Dependency<sp/>review<sp/>enabled</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>🔒<sp/>Security<sp/>Tools<sp/>in<sp/>CI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**safety:**<sp/>Check<sp/>for<sp/>known<sp/>vulnerabilities<sp/>in<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**bandit:**<sp/>Static<sp/>security<sp/>analysis<sp/>for<sp/>Python<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**CodeQL:**<sp/>Advanced<sp/>security<sp/>scanning</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**dependency-review:**<sp/>Check<sp/>new<sp/>dependencies<sp/>in<sp/>PRs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Next<sp/>Steps</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Immediate<sp/>(Do<sp/>Now)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>✅<sp/>Review<sp/>this<sp/>summary</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>⏳<sp/>Install<sp/>dev<sp/>dependencies:<sp/>`make<sp/>install-dev`</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>⏳<sp/>Install<sp/>pre-commit<sp/>hooks:<sp/>`make<sp/>pre-commit`</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>⏳<sp/>Run<sp/>all<sp/>checks:<sp/>`make<sp/>check`</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>⏳<sp/>Review<sp/>CONTRIBUTING.md</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Short-term<sp/>(This<sp/>Week)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>⏳<sp/>Run<sp/>tests<sp/>in<sp/>actual<sp/>environment</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>⏳<sp/>Apply<sp/>formatting:<sp/>`make<sp/>format`</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>⏳<sp/>Fix<sp/>any<sp/>linting<sp/>issues:<sp/>`make<sp/>lint`</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>⏳<sp/>Add<sp/>integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>⏳<sp/>Improve<sp/>code<sp/>coverage<sp/>to<sp/>80%+</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Long-term<sp/>(Future)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Add<sp/>API<sp/>documentation<sp/>(Sphinx/MkDocs)</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Consider<sp/>data<sp/>persistence<sp/>layer</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Add<sp/>more<sp/>integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Explore<sp/>performance<sp/>optimizations</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>Add<sp/>more<sp/>advanced<sp/>analytics<sp/>features</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Key<sp/>Takeaways</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Cleaner<sp/>Repository:**<sp/>Removed<sp/>88%<sp/>of<sp/>workflow<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Better<sp/>Testing:**<sp/>Infrastructure<sp/>for<sp/>comprehensive<sp/>testing</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Modern<sp/>Tooling:**<sp/>Black,<sp/>isort,<sp/>mypy,<sp/>pylint,<sp/>flake8</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Automated<sp/>Checks:**<sp/>Pre-commit<sp/>hooks<sp/>and<sp/>CI/CD<sp/>pipeline</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Better<sp/>Documentation:**<sp/>4<sp/>new<sp/>docs<sp/>totaling<sp/>28KB</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Resources</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Full<sp/>Audit:**<sp/>See<sp/>`AUDIT_REPORT.md`<sp/>for<sp/>detailed<sp/>analysis</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Contributing:**<sp/>See<sp/>`CONTRIBUTING.md`<sp/>for<sp/>developer<sp/>guidelines</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Changes:**<sp/>See<sp/>`CHANGELOG.md`<sp/>for<sp/>version<sp/>history</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Commands:**<sp/>Run<sp/>`make<sp/>help`<sp/>for<sp/>all<sp/>available<sp/>commands</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Questions?</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Read<sp/>CONTRIBUTING.md<sp/>for<sp/>detailed<sp/>guidelines</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Check<sp/>AUDIT_REPORT.md<sp/>for<sp/>comprehensive<sp/>analysis</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Review<sp/>existing<sp/>issues<sp/>and<sp/>PRs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Contact<sp/>maintainers</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Audit<sp/>Complete!**<sp/>🎉</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>project<sp/>now<sp/>has<sp/>professional-grade<sp/>development<sp/>infrastructure<sp/>and<sp/>is<sp/>ready<sp/>for<sp/>collaborative<sp/>development<sp/>with<sp/>confidence.</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/SUMMARY.md"/>
+  </compounddef>
+</doxygen>

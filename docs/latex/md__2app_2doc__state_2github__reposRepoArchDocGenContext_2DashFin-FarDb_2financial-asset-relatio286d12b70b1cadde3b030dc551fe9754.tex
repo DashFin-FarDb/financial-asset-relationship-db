@@ -1,0 +1,242 @@
+\chapter{Merge Conflict Resolution -\/ PR \#181}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754}\index{Merge Conflict Resolution -\/ PR \#181@{Merge Conflict Resolution -\/ PR \#181}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3191}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3191}%
+
+
+{\bfseries{Date}}\+: 2025-\/01-\/11 {\bfseries{Branch}}\+: {\ttfamily chore-\/review-\/resolve-\/pr-\/181-\/patch} {\bfseries{Status}}\+: ✅ {\bfseries{RESOLVED}}
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3193}{}\doxysection{\texorpdfstring{Issue Encountered}{Issue Encountered}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3193}
+After the initial merge of PR \#181 (patch branch), a merge conflict marker was discovered in {\ttfamily bandit-\/report.\+json}\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \ "{}results"{}:\ []}
+\DoxyCodeLine{<<<<<<<\ HEAD}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{=======}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{>>>>>>>\ patch}
+
+\end{DoxyCode}
+
+
+This conflict marker was left unresolved during the automated conflict resolution process.
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3195}{}\doxysection{\texorpdfstring{Root Cause}{Root Cause}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3195}
+The conflict occurred because\+:
+
+
+\begin{DoxyEnumerate}
+\item Both {\ttfamily main} and {\ttfamily patch} branches had the same {\ttfamily bandit-\/report.\+json} file
+\item Both versions had identical closing braces {\ttfamily \}}
+\item The automated conflict resolution script ({\ttfamily git checkout -\/-\/ours}) didn\textquotesingle{}t fully resolve this file
+\item The merge conflict markers were committed with the merge
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3197}{}\doxysection{\texorpdfstring{Resolution}{Resolution}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3197}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3198}{}\doxysubsection{\texorpdfstring{Step 1\+: Identified the Conflict}{Step 1\+: Identified the Conflict}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3198}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ status\ \ \#\ Showed\ clean\ working\ tree}
+\DoxyCodeLine{\#\ Manual\ inspection\ of\ bandit-\/report.json\ found\ the\ markers}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3199}{}\doxysubsection{\texorpdfstring{Step 2\+: Fixed the File}{Step 2\+: Fixed the File}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3199}
+Removed the merge conflict markers, keeping a single closing brace\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}results"{}:\ []}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3200}{}\doxysubsection{\texorpdfstring{Step 3\+: Validated JSON}{Step 3\+: Validated JSON}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3200}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ -\/c\ "{}import\ json;\ json.load(open('bandit-\/report.json'));\ print('✓\ Valid\ JSON')"{}}
+\DoxyCodeLine{\#\ Result:\ ✓\ Valid\ JSON}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3201}{}\doxysubsection{\texorpdfstring{Step 4\+: Committed the Fix}{Step 4\+: Committed the Fix}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3201}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ add\ bandit-\/report.json}
+\DoxyCodeLine{git\ commit\ -\/m\ "{}Fix\ merge\ conflict\ in\ bandit-\/report.json"{}}
+\DoxyCodeLine{\#\ Commit:\ d6cc8d90}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3203}{}\doxysection{\texorpdfstring{Verification}{Verification}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3203}
+✅ {\bfseries{JSON Validity}}\+: Confirmed with Python json.\+load() ✅ {\bfseries{Git Status}}\+: Clean working tree ✅ {\bfseries{No Other Conflicts}}\+: Checked all JSON files ✅ {\bfseries{Commit History}}\+: Proper linear history maintained
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3205}{}\doxysection{\texorpdfstring{Impact}{Impact}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3205}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3206}{}\doxysubsection{\texorpdfstring{Before Fix}{Before Fix}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3206}
+
+\begin{DoxyItemize}
+\item ❌ {\ttfamily bandit-\/report.\+json} had merge conflict markers
+\item ❌ File was technically invalid JSON (would fail strict parsers)
+\item ❌ CI/\+CD might fail on JSON validation
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3207}{}\doxysubsection{\texorpdfstring{After Fix}{After Fix}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3207}
+
+\begin{DoxyItemize}
+\item ✅ Valid JSON structure
+\item ✅ No merge conflict markers
+\item ✅ Ready for CI/\+CD
+\item ✅ Clean commit history
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3209}{}\doxysection{\texorpdfstring{Lessons Learned}{Lessons Learned}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3209}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3210}{}\doxysubsection{\texorpdfstring{For Future Merges}{For Future Merges}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3210}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Always verify conflict resolution}}
+\begin{DoxyItemize}
+\item Don\textquotesingle{}t trust automated scripts completely
+\item Manually inspect files after merge
+\item Run validators (JSON, YAML, Python syntax)
+\end{DoxyItemize}
+\item {\bfseries{Check for merge markers}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Search\ for\ conflict\ markers}
+\DoxyCodeLine{git\ diff\ -\/-\/check}
+\DoxyCodeLine{grep\ -\/r\ "{}<<<<<<<\ HEAD"{}\ .}
+\DoxyCodeLine{grep\ -\/r\ "{}>>>>>>>\ "{}\ .}
+
+\end{DoxyCode}
+
+\item {\bfseries{Validate all file types}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ JSON\ files}
+\DoxyCodeLine{find\ .\ -\/name\ "{}*.json"{}\ -\/exec\ python\ -\/c\ "{}import\ json;\ json.load(open('\{\}'))"{}\ \(\backslash\);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ YAML\ files}
+\DoxyCodeLine{find\ .\ -\/name\ "{}*.yml"{}\ -\/exec\ python\ -\/c\ "{}import\ yaml;\ yaml.safe\_load(open('\{\}'))"{}\ \(\backslash\);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Python\ files}
+\DoxyCodeLine{find\ .\ -\/name\ "{}*.py"{}\ -\/exec\ python\ -\/m\ py\_compile\ \{\}\ \(\backslash\);}
+
+\end{DoxyCode}
+
+\item {\bfseries{Improve conflict resolution script}}
+\begin{DoxyItemize}
+\item Add post-\/merge validation
+\item Check for conflict markers
+\item Validate file formats
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3212}{}\doxysection{\texorpdfstring{Updated Script for Future Use}{Updated Script for Future Use}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3212}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#!/bin/bash}
+\DoxyCodeLine{\#\ resolve\_conflicts\_with\_validation.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Resolve\ conflicts\ (as\ before)}
+\DoxyCodeLine{git\ checkout\ -\/-\/ours\ .circleci/config.yml}
+\DoxyCodeLine{git\ checkout\ -\/-\/ours\ .github/}
+\DoxyCodeLine{\#\ ...\ etc\ ...}
+\DoxyCodeLine{}
+\DoxyCodeLine{git\ add\ -\/A}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ NEW:\ Validate\ resolution}
+\DoxyCodeLine{echo\ "{}Validating\ conflict\ resolution..."{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ for\ merge\ markers}
+\DoxyCodeLine{if\ grep\ -\/r\ "{}<<<<<<<\ HEAD"{}\ .\ -\/-\/exclude-\/dir=.git;\ then}
+\DoxyCodeLine{\ \ \ \ echo\ "{}❌\ ERROR:\ Merge\ conflict\ markers\ found!"{}}
+\DoxyCodeLine{\ \ \ \ exit\ 1}
+\DoxyCodeLine{fi}
+\DoxyCodeLine{}
+\DoxyCodeLine{if\ grep\ -\/r\ "{}>>>>>>>\ "{}\ .\ -\/-\/exclude-\/dir=.git;\ then}
+\DoxyCodeLine{\ \ \ \ echo\ "{}❌\ ERROR:\ Merge\ conflict\ markers\ found!"{}}
+\DoxyCodeLine{\ \ \ \ exit\ 1}
+\DoxyCodeLine{fi}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Validate\ JSON\ files}
+\DoxyCodeLine{echo\ "{}Validating\ JSON\ files..."{}}
+\DoxyCodeLine{for\ file\ in\ \$(find\ .\ -\/name\ "{}*.json"{}\ -\/not\ -\/path\ "{}./.venv/*"{}\ -\/not\ -\/path\ "{}./.git/*"{});\ do}
+\DoxyCodeLine{\ \ \ \ if\ !\ python\ -\/c\ "{}import\ json;\ json.load(open('\$file'))"{}\ 2>/dev/null;\ then}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ echo\ "{}❌\ ERROR:\ Invalid\ JSON\ in\ \$file"{}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ exit\ 1}
+\DoxyCodeLine{\ \ \ \ fi}
+\DoxyCodeLine{done}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Validate\ Python\ files}
+\DoxyCodeLine{echo\ "{}Validating\ Python\ files..."{}}
+\DoxyCodeLine{for\ file\ in\ \$(find\ .\ -\/name\ "{}*.py"{}\ -\/not\ -\/path\ "{}./.venv/*"{}\ -\/not\ -\/path\ "{}./.git/*"{});\ do}
+\DoxyCodeLine{\ \ \ \ if\ !\ python\ -\/m\ py\_compile\ "{}\$file"{}\ 2>/dev/null;\ then}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ echo\ "{}❌\ ERROR:\ Syntax\ error\ in\ \$file"{}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ exit\ 1}
+\DoxyCodeLine{\ \ \ \ fi}
+\DoxyCodeLine{done}
+\DoxyCodeLine{}
+\DoxyCodeLine{echo\ "{}✅\ All\ validations\ passed"{}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3214}{}\doxysection{\texorpdfstring{Current Branch Status}{Current Branch Status}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3214}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3215}{}\doxysubsection{\texorpdfstring{Commit History}{Commit History}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3215}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d6cc8d90\ -\/\ Fix\ merge\ conflict\ in\ bandit-\/report.json}
+\DoxyCodeLine{6d912f73\ -\/\ Add\ task\ completion\ report\ for\ PR\ \#181\ resolution}
+\DoxyCodeLine{12012476\ -\/\ Add\ comprehensive\ documentation\ for\ PR\ \#181\ resolution}
+\DoxyCodeLine{4d3b81ad\ -\/\ Merge\ PR\ \#181\ (patch\ branch)\ into\ main}
+\DoxyCodeLine{6c2fba8f\ -\/\ Add\ GitHub\ Actions\ workflow\ for\ auto-\/assigning\ issues}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3216}{}\doxysubsection{\texorpdfstring{Files Changed (Total)}{Files Changed (Total)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3216}
+
+\begin{DoxyItemize}
+\item 68 files changed
+\item 18,900+ insertions
+\item All conflicts resolved
+\item All files validated
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3217}{}\doxysubsection{\texorpdfstring{Status Checks}{Status Checks}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3217}
+
+\begin{DoxyItemize}
+\item ✅ Git status\+: Clean
+\item ✅ JSON validation\+: All pass
+\item ✅ Python syntax\+: All pass
+\item ✅ Imports\+: All working
+\item ✅ Merge complete\+: Yes
+\item ✅ Ready for review\+: Yes
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3219}{}\doxysection{\texorpdfstring{Next Steps}{Next Steps}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3219}
+
+\begin{DoxyEnumerate}
+\item ✅ {\bfseries{Merge conflict resolved}} -\/ bandit-\/report.\+json fixed
+\item ⏳ {\bfseries{Run full test suite}} -\/ Verify no regressions
+\item ⏳ {\bfseries{Submit PR}} -\/ Create PR to merge to main
+\item ⏳ {\bfseries{Close PR \#181}} -\/ Mark as resolved
+\item ⏳ {\bfseries{Execute cleanup plan}} -\/ Close 15-\/20+ dependent PRs
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3221}{}\doxysection{\texorpdfstring{Conclusion}{Conclusion}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_autotoc_md3221}
+The merge conflict in {\ttfamily bandit-\/report.\+json} has been successfully resolved. The file now has valid JSON structure, and all validation checks pass. The PR \#181 merge is complete and ready for final review and merge to main.
+
+{\bfseries{Status}}\+: ✅ {\bfseries{READY FOR FINAL REVIEW}}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Fixed}}\+: 2025-\/01-\/11 {\bfseries{Commit}}\+: d6cc8d90 {\bfseries{File}}\+: bandit-\/report.\+json {\bfseries{Validation}}\+: ✅ All checks passed 

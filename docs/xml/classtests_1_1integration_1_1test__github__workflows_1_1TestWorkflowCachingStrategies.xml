@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowCachingStrategies" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowCachingStrategies</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowCachingStrategies_1a05605283cfa10afb77155137cc75a8ff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowCachingStrategies.test_cache_uses_hashfiles_for_lockfiles</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_cache_uses_hashfiles_for_lockfiles</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowCachingStrategies.test_cache_uses_hashfiles_for_lockfiles</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that caches use hashFiles for dependency lockfiles.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2573" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2573" bodyend="2591"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowCachingStrategies_1acf73d8de050ab9714aed712b62d3d1d3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowCachingStrategies.test_cache_keys_are_unique_per_os</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_cache_keys_are_unique_per_os</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowCachingStrategies.test_cache_keys_are_unique_per_os</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cache keys include OS information when running on matrix.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2593" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2593" bodyend="2612"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for caching best practices.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowCachingStrategies</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowCachingStrategies"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2569" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2569" bodyend="2612"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowCachingStrategies_1acf73d8de050ab9714aed712b62d3d1d3" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowCachingStrategies</scope><name>test_cache_keys_are_unique_per_os</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowCachingStrategies_1a05605283cfa10afb77155137cc75a8ff" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowCachingStrategies</scope><name>test_cache_uses_hashfiles_for_lockfiles</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

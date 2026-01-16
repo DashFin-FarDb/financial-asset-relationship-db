@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classfinancial__models_1_1RegulatoryEvent" kind="class" language="Python" prot="public">
+    <compoundname>financial_models::RegulatoryEvent</compoundname>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryEvent_1a44392e6fa6517782ce8d6b6d70c8f276" prot="public" static="yes" mutable="no">
+        <type>List</type>
+        <definition>List financial_models.RegulatoryEvent::related_assets</definition>
+        <argsstring></argsstring>
+        <name>related_assets</name>
+        <qualifiedname>financial_models.RegulatoryEvent.related_assets</qualifiedname>
+        <initializer>=  field(default_factory=list)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="103" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="103" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryEvent_1ab161cc36b627404656f91a0c132d2ede" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>financial_models.RegulatoryEvent::id</definition>
+        <argsstring></argsstring>
+        <name>id</name>
+        <qualifiedname>financial_models.RegulatoryEvent.id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="107" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="107" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryEvent_1ad0c2f6d930ee7723de257beb4885c974" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>financial_models.RegulatoryEvent::asset_id</definition>
+        <argsstring></argsstring>
+        <name>asset_id</name>
+        <qualifiedname>financial_models.RegulatoryEvent.asset_id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="109" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryEvent_1a28bf2b88bf445f36f551f76eba56a982" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>financial_models.RegulatoryEvent::impact_score</definition>
+        <argsstring></argsstring>
+        <name>impact_score</name>
+        <qualifiedname>financial_models.RegulatoryEvent.impact_score</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="111" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="111" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryEvent_1a4e17916e652797d325bd91bb94b786fb" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>financial_models.RegulatoryEvent::date</definition>
+        <argsstring></argsstring>
+        <name>date</name>
+        <qualifiedname>financial_models.RegulatoryEvent.date</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="114" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryEvent_1a31e44e812be2ca4a4b807d3a95a477fe" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>financial_models.RegulatoryEvent::description</definition>
+        <argsstring></argsstring>
+        <name>description</name>
+        <qualifiedname>financial_models.RegulatoryEvent.description</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="116" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="116" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classfinancial__models_1_1RegulatoryEvent_1a5fa7702ead2e76388295551727b5633b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>financial_models.RegulatoryEvent.__post_init__</definition>
+        <argsstring>(self)</argsstring>
+        <name>__post_init__</name>
+        <qualifiedname>financial_models.RegulatoryEvent.__post_init__</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate event data after initialization</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="105" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="105" bodyend="118"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Regulatory and corporate events</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>List</label>
+      </node>
+      <node id="1">
+        <label>financial_models.RegulatoryEvent</label>
+        <link refid="classfinancial__models_1_1RegulatoryEvent"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>+related_assets</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="94" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="94" bodyend="118"/>
+    <listofallmembers>
+      <member refid="classfinancial__models_1_1RegulatoryEvent_1a5fa7702ead2e76388295551727b5633b" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryEvent</scope><name>__post_init__</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryEvent_1ad0c2f6d930ee7723de257beb4885c974" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryEvent</scope><name>asset_id</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryEvent_1a4e17916e652797d325bd91bb94b786fb" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryEvent</scope><name>date</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryEvent_1a31e44e812be2ca4a4b807d3a95a477fe" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryEvent</scope><name>description</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryEvent_1ab161cc36b627404656f91a0c132d2ede" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryEvent</scope><name>id</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryEvent_1a28bf2b88bf445f36f551f76eba56a982" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryEvent</scope><name>impact_score</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryEvent_1a44392e6fa6517782ce8d6b6d70c8f276" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryEvent</scope><name>related_assets</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

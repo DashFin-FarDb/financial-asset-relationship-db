@@ -1,0 +1,665 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespaceapi_1_1main" kind="namespace" language="Python">
+    <compoundname>api::main</compoundname>
+    <innerclass refid="classapi_1_1main_1_1AssetResponse" prot="public">api::main::AssetResponse</innerclass>
+    <innerclass refid="classapi_1_1main_1_1MetricsResponse" prot="public">api::main::MetricsResponse</innerclass>
+    <innerclass refid="classapi_1_1main_1_1RelationshipResponse" prot="public">api::main::RelationshipResponse</innerclass>
+    <innerclass refid="classapi_1_1main_1_1TestWorkflowBestPractices" prot="public">api::main::TestWorkflowBestPractices</innerclass>
+    <innerclass refid="classapi_1_1main_1_1TestWorkflowCrossPlatform" prot="public">api::main::TestWorkflowCrossPlatform</innerclass>
+    <innerclass refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema" prot="public">api::main::TestWorkflowGitHubActionsSchema</innerclass>
+    <innerclass refid="classapi_1_1main_1_1TestWorkflowMaintainability" prot="public">api::main::TestWorkflowMaintainability</innerclass>
+    <innerclass refid="classapi_1_1main_1_1TestWorkflowSecurity" prot="public">api::main::TestWorkflowSecurity</innerclass>
+    <innerclass refid="classapi_1_1main_1_1TestWorkflowYAMLSyntax" prot="public">api::main::TestWorkflowYAMLSyntax</innerclass>
+    <innerclass refid="classapi_1_1main_1_1VisualizationDataResponse" prot="public">api::main::VisualizationDataResponse</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceapi_1_1main_1aa35f82e16993d32164403dbd79db6298" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::main.limiter</definition>
+        <argsstring></argsstring>
+        <name>limiter</name>
+        <qualifiedname>api.main.limiter</qualifiedname>
+        <initializer>=  Limiter(key_func=get_remote_address)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="162" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="162" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1main_1a86a3c1e804b448002d2081ef90cb01ca" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::main.app</definition>
+        <argsstring></argsstring>
+        <name>app</name>
+        <qualifiedname>api.main.app</qualifiedname>
+        <initializer>=  FastAPI(
+    title=&quot;Financial Asset Relationship API&quot;,
+    description=&quot;REST API for Financial Asset Relationship Database&quot;,
+    version=&quot;1.0.0&quot;,
+    <ref refid="namespaceapi_1_1main_1ae4595ce91fa5331777bf56cbd51f10a7" kindref="member">lifespan</ref>=<ref refid="namespaceapi_1_1main_1ae4595ce91fa5331777bf56cbd51f10a7" kindref="member">lifespan</ref>,
+)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="165" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="165" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1main_1ad251e4d9950b84be47146c8d547a858b" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::main.ENV</definition>
+        <argsstring></argsstring>
+        <name>ENV</name>
+        <qualifiedname>api.main.ENV</qualifiedname>
+        <initializer>=  os.getenv(&quot;ENV&quot;, &quot;development&quot;).lower()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="181" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="181" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1main_1a11230e43afa52d45c4fb15370aafd83b" prot="public" static="no" mutable="no">
+        <type>list</type>
+        <definition>list api::main.allowed_origins</definition>
+        <argsstring></argsstring>
+        <name>allowed_origins</name>
+        <qualifiedname>api.main.allowed_origins</qualifiedname>
+        <initializer>=  []</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="293" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="293" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1main_1a5faac58687e620f7e5a07dbcd020cc06" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::main.additional_origins</definition>
+        <argsstring></argsstring>
+        <name>additional_origins</name>
+        <qualifiedname>api.main.additional_origins</qualifiedname>
+        <initializer>=  os.getenv(&quot;ALLOWED_ORIGINS&quot;).split(&quot;,&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="314" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="314" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1main_1acc6b5b1fccda6c9765fb9e689ec3b441" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::main.stripped_origin</definition>
+        <argsstring></argsstring>
+        <name>stripped_origin</name>
+        <qualifiedname>api.main.stripped_origin</qualifiedname>
+        <initializer>=  origin.strip()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="316" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="316" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1main_1a89792fe5170fc29d309d070db8bea953" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::main.allow_origins</definition>
+        <argsstring></argsstring>
+        <name>allow_origins</name>
+        <qualifiedname>api.main.allow_origins</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="324" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="324" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1main_1a64a0ff52685ea26f48b6bbc1cd034075" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::main.allow_credentials</definition>
+        <argsstring></argsstring>
+        <name>allow_credentials</name>
+        <qualifiedname>api.main.allow_credentials</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="325" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="325" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1main_1ab7da13625cc2a11a850c97c8d5509a20" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::main.allow_methods</definition>
+        <argsstring></argsstring>
+        <name>allow_methods</name>
+        <qualifiedname>api.main.allow_methods</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="326" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="326" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1main_1ae28ee3f43325ba4bebdb1e3637420119" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::main.allow_headers</definition>
+        <argsstring></argsstring>
+        <name>allow_headers</name>
+        <qualifiedname>api.main.allow_headers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="327" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="327" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceapi_1_1main_1a36e38405e838cf6847b86f3ef103e262" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+        <definition> AssetRelationshipGraph api.main.get_graph</definition>
+        <argsstring>()</argsstring>
+        <name>get_graph</name>
+        <qualifiedname>api.main.get_graph</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide the global AssetRelationshipGraph, initialising it on first access if necessary.
+
+Returns:
+    AssetRelationshipGraph: The global graph instance.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="44" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="44" bodyend="59"/>
+        <references refid="namespaceapi_1_1main_1ae01417ef61271933f6fa186011018274" compoundref="api_2main_8py" startline="97" endline="125">api.main._initialize_graph</references>
+        <referencedby refid="namespaceapi_1_1main_1a82617850299efb7763024c5bfd919759" compoundref="api_2main_8py" startline="567" endline="616">api.main.get_all_relationships</referencedby>
+        <referencedby refid="namespaceapi_1_1main_1a03617816549accf6f06906b0fc784998" compoundref="api_2main_8py" startline="493" endline="526">api.main.get_asset_detail</referencedby>
+        <referencedby refid="namespaceapi_1_1main_1a4dbc679bdd140b907036fee6a9ee8092" compoundref="api_2main_8py" startline="527" endline="566">api.main.get_asset_relationships</referencedby>
+        <referencedby refid="namespaceapi_1_1main_1ae9e0206bc776c0671651abde39b897ed" compoundref="api_2main_8py" startline="461" endline="492">api.main.get_assets</referencedby>
+        <referencedby refid="namespaceapi_1_1main_1ae4595ce91fa5331777bf56cbd51f10a7" compoundref="api_2main_8py" startline="138" endline="161">api.main.lifespan</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a96faa5bda5e638da3b325540aedcf235" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None api.main.set_graph</definition>
+        <argsstring>(AssetRelationshipGraph graph_instance)</argsstring>
+        <name>set_graph</name>
+        <qualifiedname>api.main.set_graph</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph_instance</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Set the module-level graph to the provided AssetRelationshipGraph and clear any configured graph factory.
+
+Parameters:
+    graph_instance (AssetRelationshipGraph): Graph instance to use as the global graph.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="60" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="60" bodyend="72"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1ab9d3f7110a39d7e2cee8a046527783d6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None api.main.set_graph_factory</definition>
+        <argsstring>(Optional[Callable[[], AssetRelationshipGraph]] factory)</argsstring>
+        <name>set_graph_factory</name>
+        <qualifiedname>api.main.set_graph_factory</qualifiedname>
+        <param>
+          <type>Optional</type>
+          <defname>factory</defname>
+          <array>[Callable[[]</array>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref>]]</type>
+          <declname>factory</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Set the callable used to construct the global AssetRelationshipGraph on demand.
+
+If `factory` is a callable it will be used to build the graph the next time `get_graph()` is called. Passing `None` clears any configured factory. In all cases the current global graph instance is cleared so a new graph will be created on next access; this operation is performed in a thread-safe manner.
+
+Parameters:
+    factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns an `AssetRelationshipGraph`, or `None` to remove the factory and force recreation from defaults.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="73" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="73" bodyend="87"/>
+        <referencedby refid="namespaceapi_1_1main_1a98aa6df819941b0a1b4dc5202ebb5153" compoundref="api_2main_8py" startline="88" endline="96">api.main.reset_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a98aa6df819941b0a1b4dc5202ebb5153" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None api.main.reset_graph</definition>
+        <argsstring>()</argsstring>
+        <name>reset_graph</name>
+        <qualifiedname>api.main.reset_graph</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Clear the global graph and any configured factory so the graph will be reinitialised on next access.
+
+This removes any existing graph instance and clears the graph factory.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="88" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="88" bodyend="96"/>
+        <references refid="namespaceapi_1_1main_1ab9d3f7110a39d7e2cee8a046527783d6" compoundref="api_2main_8py" startline="73" endline="87">api.main.set_graph_factory</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1ae01417ef61271933f6fa186011018274" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+        <definition> AssetRelationshipGraph api.main._initialize_graph</definition>
+        <argsstring>()</argsstring>
+        <name>_initialize_graph</name>
+        <qualifiedname>api.main._initialize_graph</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Construct the asset relationship graph using the configured factory or environment-backed data sources.
+
+If a `graph_factory` is configured it is invoked. Otherwise, if `GRAPH_CACHE_PATH` is set a real-data graph is created (network access enabled when `USE_REAL_DATA_FETCHER` indicates real data should be used). If `GRAPH_CACHE_PATH` is not set but `USE_REAL_DATA_FETCHER` is true, `REAL_DATA_CACHE_PATH` is consulted to create a real-data graph. If neither real-data path nor real-data mode is available, a sample database graph is returned.
+
+Returns:
+    AssetRelationshipGraph: The initialized graph instance.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="97" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="97" bodyend="125"/>
+        <references refid="namespaceapi_1_1main_1ac3285016e88cfbffb67e774549fc3a33" compoundref="api_2main_8py" startline="126" endline="137">api.main._should_use_real_data_fetcher</references>
+        <referencedby refid="namespaceapi_1_1main_1a36e38405e838cf6847b86f3ef103e262" compoundref="api_2main_8py" startline="44" endline="59">api.main.get_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1ac3285016e88cfbffb67e774549fc3a33" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition> bool api.main._should_use_real_data_fetcher</definition>
+        <argsstring>()</argsstring>
+        <name>_should_use_real_data_fetcher</name>
+        <qualifiedname>api.main._should_use_real_data_fetcher</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Decides whether the application should use the real data fetcher based on the `USE_REAL_DATA_FETCHER` environment variable.
+
+Returns:
+    `True` if `USE_REAL_DATA_FETCHER` is set to a truthy value (`1`, `true`, `yes`, `on`), `False` otherwise.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="126" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="126" bodyend="137"/>
+        <referencedby refid="namespaceapi_1_1main_1ae01417ef61271933f6fa186011018274" compoundref="api_2main_8py" startline="97" endline="125">api.main._initialize_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1ae4595ce91fa5331777bf56cbd51f10a7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.lifespan</definition>
+        <argsstring>(FastAPI _fastapi_app)</argsstring>
+        <name>lifespan</name>
+        <qualifiedname>api.main.lifespan</qualifiedname>
+        <param>
+          <type>FastAPI</type>
+          <declname>_fastapi_app</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Manage the application&apos;s lifespan by initialising the global graph on startup and logging shutdown.
+
+Initialises the global asset relationship graph before the application begins handling requests; if initialisation fails the exception is re-raised to abort startup. Yields control for the application&apos;s running lifetime and logs on shutdown.
+
+Parameters:
+    fastapi_app (FastAPI): The FastAPI application instance.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="138" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="138" bodyend="161"/>
+        <references refid="namespaceapi_1_1main_1a36e38405e838cf6847b86f3ef103e262" compoundref="api_2main_8py" startline="44" endline="59">api.main.get_graph</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1aa3e5d8f8dc11b20ad05ee42dbeb72dfb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.login_for_access_token</definition>
+        <argsstring>(Request request, OAuth2PasswordRequestForm form_data=Depends())</argsstring>
+        <name>login_for_access_token</name>
+        <qualifiedname>api.main.login_for_access_token</qualifiedname>
+        <param>
+          <type>Request</type>
+          <declname>request</declname>
+        </param>
+        <param>
+          <type>OAuth2PasswordRequestForm</type>
+          <declname>form_data</declname>
+          <defval>Depends()</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a JWT access token for a user authenticated with a username and password.
+
+Parameters:
+    form_data (OAuth2PasswordRequestForm): Client-submitted credentials (`username` and `password`).
+
+Returns:
+    dict: Mapping with `access_token` (JWT string) and `token_type` set to `&apos;bearer&apos;`.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="186" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="188" bodyend="216"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a574efab533358b53a0c8d7dcc0be8ad9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.read_users_me</definition>
+        <argsstring>(Request request, User current_user=Depends(get_current_active_user))</argsstring>
+        <name>read_users_me</name>
+        <qualifiedname>api.main.read_users_me</qualifiedname>
+        <param>
+          <type>Request</type>
+          <declname>request</declname>
+        </param>
+        <param>
+          <type><ref refid="classapi_1_1auth_1_1User" kindref="compound">User</ref></type>
+          <declname>current_user</declname>
+          <defval>Depends(get_current_active_user)</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Retrieve the currently authenticated user.
+
+Parameters:
+    request (Request): Included for slowapi limiter dependency injection; unused by the function.
+    current_user (User): Active user injected by the authentication dependency.
+
+Returns:
+    The authenticated user.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="217" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="219" bodyend="236"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a63ea8c77818300f6f8b2464596c57407" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition> bool api.main.validate_origin</definition>
+        <argsstring>(str origin_url)</argsstring>
+        <name>validate_origin</name>
+        <qualifiedname>api.main.validate_origin</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>origin_url</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Determine whether an HTTP origin is permitted by the application&apos;s CORS rules.
+
+Allows explicitly configured origins, HTTPS origins with a valid domain,
+Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment,
+and HTTP localhost/127.0.0.1 when ENV is &quot;development&quot;.
+
+Parameters:
+    origin_url (str): Origin URL to validate (for example
+        &quot;https://example.com&quot; or &quot;http://localhost:3000&quot;).
+
+Returns:
+    True if the origin is allowed, False otherwise.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="237" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="237" bodyend="292"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1ad5568f262e69dcaf5f1b3e3cd498c9a4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None api.main.raise_asset_not_found</definition>
+        <argsstring>(str asset_id, str resource_type=&quot;Asset&quot;)</argsstring>
+        <name>raise_asset_not_found</name>
+        <qualifiedname>api.main.raise_asset_not_found</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>asset_id</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>resource_type</declname>
+          <defval>&quot;Asset&quot;</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Raise HTTPException for missing resources.
+
+Args:
+    asset_id (str): ID of the asset that was not found.
+    resource_type (str): Type of resource (default: &quot;Asset&quot;).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="331" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="331" bodyend="341"/>
+        <referencedby refid="namespaceapi_1_1main_1a03617816549accf6f06906b0fc784998" compoundref="api_2main_8py" startline="493" endline="526">api.main.get_asset_detail</referencedby>
+        <referencedby refid="namespaceapi_1_1main_1a4dbc679bdd140b907036fee6a9ee8092" compoundref="api_2main_8py" startline="527" endline="566">api.main.get_asset_relationships</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a01d5b997c7c518457e2a8503526bf65a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] api.main.serialize_asset</definition>
+        <argsstring>(Any asset, bool include_issuer=False)</argsstring>
+        <name>serialize_asset</name>
+        <qualifiedname>api.main.serialize_asset</qualifiedname>
+        <param>
+          <type>Any</type>
+          <declname>asset</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>include_issuer</declname>
+          <defval>False</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Serialize an Asset object to a dictionary representation.
+
+Args:
+    asset: Asset object to serialize
+    include_issuer: Whether to include issuer_id field (for detail views)
+
+Returns:
+    Dictionary containing asset data with additional_fields
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="342" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="342" bodyend="395"/>
+        <referencedby refid="namespaceapi_1_1main_1a03617816549accf6f06906b0fc784998" compoundref="api_2main_8py" startline="493" endline="526">api.main.get_asset_detail</referencedby>
+        <referencedby refid="namespaceapi_1_1main_1ae9e0206bc776c0671651abde39b897ed" compoundref="api_2main_8py" startline="461" endline="492">api.main.get_assets</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a0310b837dae9253adee650f5978e92ea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.root</definition>
+        <argsstring>()</argsstring>
+        <name>root</name>
+        <qualifiedname>api.main.root</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide basic API metadata and a listing of available endpoints.
+
+Returns:
+    Dict[str, Union[str, Dict[str, str]]]: A mapping containing:
+        - &quot;message&quot;: short API description string.
+        - &quot;version&quot;: API version string.
+        - &quot;endpoints&quot;: dict mapping endpoint keys to their URL paths (e.g., &quot;assets&quot;: &quot;/api/assets&quot;).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="431" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="431" bodyend="454"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a681769f2b8d07288312d911111ea9500" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.health_check</definition>
+        <argsstring>()</argsstring>
+        <name>health_check</name>
+        <qualifiedname>api.main.health_check</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Health check endpoint</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="455" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="455" bodyend="460"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1ae9e0206bc776c0671651abde39b897ed" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.get_assets</definition>
+        <argsstring>(Optional[str] asset_class=None, Optional[str] sector=None)</argsstring>
+        <name>get_assets</name>
+        <qualifiedname>api.main.get_assets</qualifiedname>
+        <param>
+          <type>Optional</type>
+          <declname>asset_class</declname>
+          <array>[str]</array>
+          <defval>None</defval>
+        </param>
+        <param>
+          <type>Optional</type>
+          <declname>sector</declname>
+          <array>[str]</array>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>List assets, optionally filtered by asset class and sector.
+
+Parameters:
+    asset_class (Optional[str]): Filter to include only assets whose `asset_class.value` equals this string.
+    sector (Optional[str]): Filter to include only assets whose `sector` equals this string.
+
+Returns:
+    List[AssetResponse]: AssetResponse objects matching the filters. Each object&apos;s `additional_fields` contains any non-null, asset-type-specific attributes as defined in the respective asset model classes.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="461" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="461" bodyend="492"/>
+        <references refid="namespaceapi_1_1main_1a36e38405e838cf6847b86f3ef103e262" compoundref="api_2main_8py" startline="44" endline="59">api.main.get_graph</references>
+        <references refid="namespaceapi_1_1main_1a01d5b997c7c518457e2a8503526bf65a" compoundref="api_2main_8py" startline="342" endline="395">api.main.serialize_asset</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a03617816549accf6f06906b0fc784998" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.get_asset_detail</definition>
+        <argsstring>(str asset_id)</argsstring>
+        <name>get_asset_detail</name>
+        <qualifiedname>api.main.get_asset_detail</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>asset_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Retrieve detailed information for the asset identified by `asset_id`.
+
+Parameters:
+    asset_id (str): Identifier of the asset whose details are requested.
+
+Returns:
+    AssetResponse: Detailed asset information as defined in the AssetResponse model, including core fields and an `additional_fields` map containing any asset-specific attributes that are present and non-null.
+
+Raises:
+    HTTPException: 404 if the asset is not found.
+    HTTPException: 500 for unexpected errors while retrieving the asset.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="493" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="493" bodyend="526"/>
+        <references refid="namespaceapi_1_1main_1a36e38405e838cf6847b86f3ef103e262" compoundref="api_2main_8py" startline="44" endline="59">api.main.get_graph</references>
+        <references refid="namespaceapi_1_1main_1ad5568f262e69dcaf5f1b3e3cd498c9a4" compoundref="api_2main_8py" startline="331" endline="341">api.main.raise_asset_not_found</references>
+        <references refid="namespaceapi_1_1main_1a01d5b997c7c518457e2a8503526bf65a" compoundref="api_2main_8py" startline="342" endline="395">api.main.serialize_asset</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a4dbc679bdd140b907036fee6a9ee8092" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.get_asset_relationships</definition>
+        <argsstring>(str asset_id)</argsstring>
+        <name>get_asset_relationships</name>
+        <qualifiedname>api.main.get_asset_relationships</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>asset_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>List outgoing relationships for the specified asset.
+
+Parameters:
+    asset_id (str): Identifier of the asset whose outgoing relationships are requested.
+
+Returns:
+    List[RelationshipResponse]: Outgoing relationship records for the asset (each with source_id, target_id, relationship_type, and strength).
+
+Raises:
+    HTTPException: 404 if the asset is not found; 500 for unexpected errors.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="527" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="527" bodyend="566"/>
+        <references refid="namespaceapi_1_1main_1a36e38405e838cf6847b86f3ef103e262" compoundref="api_2main_8py" startline="44" endline="59">api.main.get_graph</references>
+        <references refid="namespaceapi_1_1main_1ad5568f262e69dcaf5f1b3e3cd498c9a4" compoundref="api_2main_8py" startline="331" endline="341">api.main.raise_asset_not_found</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1main_1a82617850299efb7763024c5bfd919759" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.get_all_relationships</definition>
+        <argsstring>()</argsstring>
+        <name>get_all_relationships</name>
+        <qualifiedname>api.main.get_all_relationships</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>List all directed relationships in the initialized asset graph.
+
+Returns:
+    List[RelationshipResponse]: List of relationships where each item contains `source_id`, `target_id`, `relationship_type`, and `strength`.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="567" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="567" bodyend="616"/>
+        <references refid="namespaceapi_1_1main_1a36e38405e838cf6847b86f3ef103e262" compoundref="api_2main_8py" startline="44" endline="59">api.main.get_graph</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive YAML schema validation tests for GitHub workflows.
+
+Tests validate YAML structure, syntax, and GitHub Actions schema compliance
+for all workflow files in .github/workflows/
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,114 @@
+\doxysection{tests.\+integration.\+test\+\_\+debricked\+\_\+workflow Namespace Reference}
+\hypertarget{namespacetests_1_1integration_1_1test__debricked__workflow}{}\label{namespacetests_1_1integration_1_1test__debricked__workflow}\index{tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492}{Test\+Compliance\+With\+Issue492}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__debricked__workflow_1_1TestFileBasics}{Test\+File\+Basics}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__debricked__workflow_1_1TestSecretHandling}{Test\+Secret\+Handling}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__debricked__workflow_1_1TestSecurityPatterns}{Test\+Security\+Patterns}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__debricked__workflow_1_1TestStepsConfiguration}{Test\+Steps\+Configuration}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__debricked__workflow_1_1TestVersionConsistency}{Test\+Version\+Consistency}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowDocumentation}{Test\+Workflow\+Documentation}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure}{Test\+Workflow\+Structure}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_a18268ba9923b2b189aa1b7248d7fdf21}{workflow\+\_\+content}} ()
+\item 
+Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_af566b507c19f65b012874b3a1c43f1ce}{workflow\+\_\+config}} (str \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_a18268ba9923b2b189aa1b7248d7fdf21}{workflow\+\_\+content}})
+\item 
+Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_ae2243366a273d46cff5a97888e982040}{scan\+\_\+job}} (Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_af566b507c19f65b012874b3a1c43f1ce}{workflow\+\_\+config}})
+\item 
+List\mbox{[}Dict\mbox{[}str, Any\mbox{]}\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_a24913677aa1aaf931860770681f28267}{job\+\_\+steps}} (Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_ae2243366a273d46cff5a97888e982040}{scan\+\_\+job}})
+\item 
+List\mbox{[}Dict\mbox{[}str, Any\mbox{]}\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_a7a8664136c911367ca7337cfc5446fab}{get\+\_\+steps\+\_\+by\+\_\+action}} (List\mbox{[}Dict\mbox{[}str, Any\mbox{]}\mbox{]} steps, str action\+\_\+substring)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_ae972887bac1ab6bad72a40a2bd7995e3}{REPO\+\_\+\+ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).resolve().parent.\+parent.\+parent
+\item 
+str \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_a9b4a0e4d326ac6d530e28c4388c1d40d}{DEBRICKED\+\_\+\+WORKFLOW\+\_\+\+FILE}} = \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_ae972887bac1ab6bad72a40a2bd7995e3}{REPO\+\_\+\+ROOT}} / "{}.github"{} / "{}workflows"{} / "{}debricked.\+yml"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Comprehensive tests for the Debricked vulnerability scanning workflow.
+
+This module validates the debricked.yml workflow file to ensure:
+- Proper YAML structure and syntax
+- Required fields and configuration
+- Security best practices (permissions, injection prevention)
+- Integration with Debricked actions
+- Compliance with issue #492 requirements
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetests_1_1integration_1_1test__debricked__workflow_a7a8664136c911367ca7337cfc5446fab}\index{tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}!get\_steps\_by\_action@{get\_steps\_by\_action}}
+\index{get\_steps\_by\_action@{get\_steps\_by\_action}!tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}}
+\doxysubsubsection{\texorpdfstring{get\_steps\_by\_action()}{get\_steps\_by\_action()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__debricked__workflow_a7a8664136c911367ca7337cfc5446fab} 
+ List\mbox{[}Dict\mbox{[}str, Any\mbox{]}\mbox{]} tests.\+integration.\+test\+\_\+debricked\+\_\+workflow.\+get\+\_\+steps\+\_\+by\+\_\+action (\begin{DoxyParamCaption}\item[{List\mbox{[}Dict\mbox{[}str, Any\mbox{]}\mbox{]}}]{steps}{, }\item[{str }]{action\+\_\+substring}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Filter steps by action name (case-insensitive).\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1integration_1_1test__debricked__workflow_a7a8664136c911367ca7337cfc5446fab_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacetests_1_1integration_1_1test__debricked__workflow_a24913677aa1aaf931860770681f28267}\index{tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}!job\_steps@{job\_steps}}
+\index{job\_steps@{job\_steps}!tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}}
+\doxysubsubsection{\texorpdfstring{job\_steps()}{job\_steps()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__debricked__workflow_a24913677aa1aaf931860770681f28267} 
+ List\mbox{[}Dict\mbox{[}str, Any\mbox{]}\mbox{]} tests.\+integration.\+test\+\_\+debricked\+\_\+workflow.\+job\+\_\+steps (\begin{DoxyParamCaption}\item[{Dict\mbox{[}str, Any\mbox{]}}]{scan\+\_\+job}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get the list of steps from the scan job.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1integration_1_1test__debricked__workflow_ae2243366a273d46cff5a97888e982040}\index{tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}!scan\_job@{scan\_job}}
+\index{scan\_job@{scan\_job}!tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}}
+\doxysubsubsection{\texorpdfstring{scan\_job()}{scan\_job()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__debricked__workflow_ae2243366a273d46cff5a97888e982040} 
+ Dict\mbox{[}str, Any\mbox{]} tests.\+integration.\+test\+\_\+debricked\+\_\+workflow.\+scan\+\_\+job (\begin{DoxyParamCaption}\item[{Dict\mbox{[}str, Any\mbox{]}}]{workflow\+\_\+config}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get the vulnerabilities-scan job configuration.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1integration_1_1test__debricked__workflow_af566b507c19f65b012874b3a1c43f1ce}\index{tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}!workflow\_config@{workflow\_config}}
+\index{workflow\_config@{workflow\_config}!tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}}
+\doxysubsubsection{\texorpdfstring{workflow\_config()}{workflow\_config()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__debricked__workflow_af566b507c19f65b012874b3a1c43f1ce} 
+ Dict\mbox{[}str, Any\mbox{]} tests.\+integration.\+test\+\_\+debricked\+\_\+workflow.\+workflow\+\_\+config (\begin{DoxyParamCaption}\item[{str}]{workflow\+\_\+content}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse YAML content once for the module.\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1integration_1_1test__debricked__workflow_a18268ba9923b2b189aa1b7248d7fdf21}\index{tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}!workflow\_content@{workflow\_content}}
+\index{workflow\_content@{workflow\_content}!tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}}
+\doxysubsubsection{\texorpdfstring{workflow\_content()}{workflow\_content()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__debricked__workflow_a18268ba9923b2b189aa1b7248d7fdf21} 
+ str tests.\+integration.\+test\+\_\+debricked\+\_\+workflow.\+workflow\+\_\+content (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Load raw content of the debricked workflow file once for the module.\end{DoxyVerb}
+ 
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetests_1_1integration_1_1test__debricked__workflow_a9b4a0e4d326ac6d530e28c4388c1d40d}\index{tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}!DEBRICKED\_WORKFLOW\_FILE@{DEBRICKED\_WORKFLOW\_FILE}}
+\index{DEBRICKED\_WORKFLOW\_FILE@{DEBRICKED\_WORKFLOW\_FILE}!tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}}
+\doxysubsubsection{\texorpdfstring{DEBRICKED\_WORKFLOW\_FILE}{DEBRICKED\_WORKFLOW\_FILE}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__debricked__workflow_a9b4a0e4d326ac6d530e28c4388c1d40d} 
+str tests.\+integration.\+test\+\_\+debricked\+\_\+workflow.\+DEBRICKED\+\_\+\+WORKFLOW\+\_\+\+FILE = \mbox{\hyperlink{namespacetests_1_1integration_1_1test__debricked__workflow_ae972887bac1ab6bad72a40a2bd7995e3}{REPO\+\_\+\+ROOT}} / "{}.github"{} / "{}workflows"{} / "{}debricked.\+yml"{}}
+
+\Hypertarget{namespacetests_1_1integration_1_1test__debricked__workflow_ae972887bac1ab6bad72a40a2bd7995e3}\index{tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}!REPO\_ROOT@{REPO\_ROOT}}
+\index{REPO\_ROOT@{REPO\_ROOT}!tests.integration.test\_debricked\_workflow@{tests.integration.test\_debricked\_workflow}}
+\doxysubsubsection{\texorpdfstring{REPO\_ROOT}{REPO\_ROOT}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__debricked__workflow_ae972887bac1ab6bad72a40a2bd7995e3} 
+tests.\+integration.\+test\+\_\+debricked\+\_\+workflow.\+REPO\+\_\+\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).resolve().parent.\+parent.\+parent}
+

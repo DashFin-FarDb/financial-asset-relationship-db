@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_config_changes::TestGreetingsWorkflowChanges</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1a71570d0281ccdd3f9d21733069de095e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] tests.integration.test_workflow_config_changes.TestGreetingsWorkflowChanges.greetings_workflow</definition>
+        <argsstring>(self)</argsstring>
+        <name>greetings_workflow</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestGreetingsWorkflowChanges.greetings_workflow</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load greetings.yml workflow.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="194" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="194" bodyend="199"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1a8c5ea1d63fc873e0df8a07584b2869cb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestGreetingsWorkflowChanges.test_workflow_syntax_valid</definition>
+        <argsstring>(self, greetings_workflow)</argsstring>
+        <name>test_workflow_syntax_valid</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestGreetingsWorkflowChanges.test_workflow_syntax_valid</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1a71570d0281ccdd3f9d21733069de095e" kindref="member">greetings_workflow</ref></type>
+          <defname>greetings_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify workflow has valid YAML syntax.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="200" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="200" bodyend="204"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1abb12f08f6d19261a1c40f828bcc28d26" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestGreetingsWorkflowChanges.test_greetings_messages_simplified</definition>
+        <argsstring>(self, greetings_workflow)</argsstring>
+        <name>test_greetings_messages_simplified</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestGreetingsWorkflowChanges.test_greetings_messages_simplified</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1a71570d0281ccdd3f9d21733069de095e" kindref="member">greetings_workflow</ref></type>
+          <defname>greetings_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify greeting messages were simplified.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="205" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="205" bodyend="223"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1a701d8c7a0ce5ef6fc5ddeac39bb7dfea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_config_changes.TestGreetingsWorkflowChanges.test_no_complex_markdown_formatting</definition>
+        <argsstring>(self, greetings_workflow)</argsstring>
+        <name>test_no_complex_markdown_formatting</name>
+        <qualifiedname>tests.integration.test_workflow_config_changes.TestGreetingsWorkflowChanges.test_no_complex_markdown_formatting</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1a71570d0281ccdd3f9d21733069de095e" kindref="member">greetings_workflow</ref></type>
+          <defname>greetings_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify messages don&apos;t contain complex markdown.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="224" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="224" bodyend="242"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for greetings.yml workflow changes.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_config_changes.TestGreetingsWorkflowChanges</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" line="190" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_config_changes.py" bodystart="190" bodyend="242"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1a71570d0281ccdd3f9d21733069de095e" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestGreetingsWorkflowChanges</scope><name>greetings_workflow</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1abb12f08f6d19261a1c40f828bcc28d26" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestGreetingsWorkflowChanges</scope><name>test_greetings_messages_simplified</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1a701d8c7a0ce5ef6fc5ddeac39bb7dfea" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestGreetingsWorkflowChanges</scope><name>test_no_complex_markdown_formatting</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges_1a8c5ea1d63fc873e0df8a07584b2869cb" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_config_changes::TestGreetingsWorkflowChanges</scope><name>test_workflow_syntax_valid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

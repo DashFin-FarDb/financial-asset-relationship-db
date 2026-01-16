@@ -1,0 +1,5 @@
+var classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestGreetingsWorkflowChanges =
+[
+    [ "greetings_workflow", "classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestGreetingsWorkflowChanges.html#ad4926ed8d751a2001b556cdfd34e7ebe", null ],
+    [ "test_greetings_workflow_simplified", "classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestGreetingsWorkflowChanges.html#a1ffb31ff8b5ed4a7d7764111e20ac7f0", null ]
+];

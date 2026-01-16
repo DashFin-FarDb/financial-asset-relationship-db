@@ -1,0 +1,343 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestPrAgentWorkflow</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a14826915526bd4bdc01c15d2eb31b77a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] tests.integration.test_github_workflows.TestPrAgentWorkflow.pr_agent_workflow</definition>
+        <argsstring>()</argsstring>
+        <name>pr_agent_workflow</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.pr_agent_workflow</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load the &apos;pr-agent&apos; workflow YAML and provide its parsed mapping for tests.
+
+If the file .github/workflows/pr-agent.yml is missing, the invoking test is skipped.
+
+Returns:
+    workflow (Dict[str, Any]): Parsed YAML mapping of the pr-agent workflow.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="295" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="295" bodyend="308"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1ab6bd34f7668576c53600ca39a6243965" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_name</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_name</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_name</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Assert the pr-agent workflow&apos;s top-level &quot;name&quot; equals &quot;PR Agent&quot;.
+
+Parameters:
+    pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow fixture.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="309" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="309" bodyend="317"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a741deabfa746dfc4193ff2196635a746" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_triggers_on_pull_request</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_triggers_on_pull_request</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_triggers_on_pull_request</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pr-agent workflow triggers on pull request events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="318" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="318" bodyend="324"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a752a1ae804fb16307f4a2deb6a914280" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_review_job</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_has_review_job</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_review_job</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pr-agent workflow has a review job.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="325" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="325" bodyend="331"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a620a398f0661741c577b735b4ab985b7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_review_runs_on_ubuntu</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_review_runs_on_ubuntu</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_review_runs_on_ubuntu</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that review job runs on Ubuntu.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="332" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="332" bodyend="337"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1aea63601b5164d54bd7e63fa78aa8e480" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_checkout_step</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_has_checkout_step</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_checkout_step</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that review job checks out the code.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="338" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="338" bodyend="347"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1abe9d49b1e0edc0f3c56a1c1ba7e356b4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_checkout_has_token</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_checkout_has_token</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_checkout_has_token</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure every actions/checkout step in the review job provides a `token` in its `with` mapping.
+
+Fails the test if any checkout step omits the `token` key.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="348" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="348" bodyend="364"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1ac527515110bcd06c95d2955c61dca596" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_python_setup</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_has_python_setup</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_python_setup</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Asserts the workflow&apos;s &quot;review&quot; job includes at least one step that uses actions/setup-python.
+
+Parameters:
+    pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow; expected to contain a &quot;jobs&quot; mapping with a &quot;review&quot; job.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="365" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="365" bodyend="379"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a8242cf22b3298484b6cfdf49f4c98732" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_node_setup</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_has_node_setup</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_has_node_setup</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that review job sets up Node.js.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="380" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="380" bodyend="389"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1acb79411cac14573092c64333e5d73ec4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_python_version</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_python_version</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_python_version</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure any actions/setup-python step in the &quot;review&quot; job specifies python-version &quot;3.11&quot;.
+
+Parameters:
+    pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow; expected to contain a &quot;jobs&quot; -&gt; &quot;review&quot; -&gt; &quot;steps&quot; sequence.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="390" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="390" bodyend="413"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a30c69a0fcde4438046b6be967140838d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_no_duplicate_setup_steps</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_no_duplicate_setup_steps</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_no_duplicate_setup_steps</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that there are no duplicate setup steps in the workflow.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="414" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="414" bodyend="427"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a6bd8c887ac86c593d8a98dee2656687b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_fetch_depth_configured</definition>
+        <argsstring>(self, Dict[str, Any] pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_fetch_depth_configured</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestPrAgentWorkflow.test_pr_agent_fetch_depth_configured</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>pr_agent_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure checkout steps in the PR Agent review job have valid fetch-depth values.
+
+Checks each step in `jobs.review` that uses `actions/checkout`; if the step&apos;s `with` mapping contains `fetch-depth` the value must be an integer or exactly 0, otherwise an assertion fails.
+
+Parameters:
+    pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="428" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="428" bodyend="452"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Specific tests for the pr-agent.yml workflow.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestPrAgentWorkflow</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="290" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="290" bodyend="452"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a14826915526bd4bdc01c15d2eb31b77a" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>pr_agent_workflow</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1abe9d49b1e0edc0f3c56a1c1ba7e356b4" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_checkout_has_token</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a6bd8c887ac86c593d8a98dee2656687b" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_fetch_depth_configured</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1aea63601b5164d54bd7e63fa78aa8e480" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_has_checkout_step</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a8242cf22b3298484b6cfdf49f4c98732" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_has_node_setup</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1ac527515110bcd06c95d2955c61dca596" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_has_python_setup</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a752a1ae804fb16307f4a2deb6a914280" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_has_review_job</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1ab6bd34f7668576c53600ca39a6243965" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_name</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a30c69a0fcde4438046b6be967140838d" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_no_duplicate_setup_steps</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1acb79411cac14573092c64333e5d73ec4" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_python_version</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a620a398f0661741c577b735b4ab985b7" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_review_runs_on_ubuntu</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestPrAgentWorkflow_1a741deabfa746dfc4193ff2196635a746" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestPrAgentWorkflow</scope><name>test_pr_agent_triggers_on_pull_request</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

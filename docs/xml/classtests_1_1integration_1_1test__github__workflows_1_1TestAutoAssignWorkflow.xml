@@ -1,0 +1,724 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestAutoAssignWorkflow</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1af6f6109b446b16aa43ded753caebe2fc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] tests.integration.test_github_workflows.TestAutoAssignWorkflow.auto_assign_workflow</definition>
+        <argsstring>(self)</argsstring>
+        <name>auto_assign_workflow</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.auto_assign_workflow</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load the &apos;auto-assign&apos; workflow YAML and provide its parsed mapping for tests.
+
+If the file .github/workflows/auto-assign.yml is missing, the invoking test is skipped.
+
+Returns:
+    Dict[str, Any]: Parsed YAML mapping of the auto-assign workflow.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="949" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="949" bodyend="962"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a77763c9126792cd612a673688121ea68" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_name</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_structure_name</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_name</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Assert the auto-assign workflow&apos;s top-level name.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="964" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="964" bodyend="976"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a53bbd14ffac6d328b684dd0205d0d248" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_has_run_job</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_structure_has_run_job</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_has_run_job</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that auto-assign workflow has an &apos;auto-assign&apos; job.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="977" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="979" bodyend="986"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a86eb855063803b25329f33ffb976d075" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_runs_on_ubuntu</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_structure_runs_on_ubuntu</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_runs_on_ubuntu</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the auto-assign job executes on Ubuntu latest.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="987" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="989" bodyend="999"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a5fd24c69da6661ef16f3cae137cad6d2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_single_step</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_structure_single_step</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_single_step</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the auto-assign job has exactly one step.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1000" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1002" bodyend="1007"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ac9854925a29251550e56464b952baaf3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_no_dependencies</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_structure_no_dependencies</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_no_dependencies</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the auto-assign job has no dependencies or conditions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1008" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1010" bodyend="1024"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1aeff93b8d640af89ccdca8003a1160f76" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_triggers_on_issues</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_structure_triggers_on_issues</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_triggers_on_issues</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that auto-assign workflow triggers on issue opened events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1025" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1027" bodyend="1043"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ab86849df607f541db10c7cdae954dd2a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_triggers_on_pull_requests</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_structure_triggers_on_pull_requests</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_triggers_on_pull_requests</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that auto-assign workflow triggers on pull request opened events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1044" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1046" bodyend="1064"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ab17e777534c47f554c36a240db0a5336" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_defined</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_permissions_defined</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_defined</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the workflow defines appropriate permissions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1066" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1068" bodyend="1077"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a1cbf01a712bbe79243538dec58d534f8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_issues_write</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_permissions_issues_write</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_issues_write</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the workflow has issues write permission.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1078" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1080" bodyend="1089"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a962288d8ad6f33750fcfe360dfe376fd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_pull_requests_write</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_permissions_pull_requests_write</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_pull_requests_write</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the workflow has pull-requests write permission.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1090" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1092" bodyend="1105"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a66de0ffa9c4a9f77445a2bf02f01c766" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_minimal</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_permissions_minimal</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_minimal</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the workflow uses minimal permissions (least privilege principle).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1106" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1108" bodyend="1128"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ad806e6ea403f62d54deee5e6fdb4bb2f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_scoped_properly</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_permissions_scoped_properly</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_scoped_properly</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that permissions are defined at workflow or job level (both are valid patterns).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1129" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1131" bodyend="1140"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1aab4dc99f79dc20b16b5c9989ef6a2cc5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_uses_github_token</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_security_uses_github_token</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_uses_github_token</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the step uses GITHUB_TOKEN from secrets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1142" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1144" bodyend="1159"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a7f42f393e45ad08be9ce8b6327712137" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_no_hardcoded_secrets</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_security_no_hardcoded_secrets</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_no_hardcoded_secrets</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that no secrets are hardcoded in the workflow.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1160" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1162" bodyend="1175"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a4321c715f661ffbca44b06e664ada1c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_action_source_trusted</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_security_action_source_trusted</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_action_source_trusted</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the action comes from a trusted source.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1176" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1178" bodyend="1189"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ac184afd21cf8a5f7bdf08e73a426c8c6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_stable_action_version</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_security_stable_action_version</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_stable_action_version</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the workflow uses a stable version of the action.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1190" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1192" bodyend="1214"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ad719602617d2c2babc2852abfa93907f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_no_deprecated_syntax</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_security_no_deprecated_syntax</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_no_deprecated_syntax</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the workflow doesn&apos;t use deprecated GitHub Actions syntax.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1215" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1217" bodyend="1231"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a67fbe2ce81b872fb7a481a23bd83516c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_step_name</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_step_name</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_step_name</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the step has a descriptive name.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1233" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1235" bodyend="1246"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a30890ddcf6dd34f078347549013df472" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_uses_pozil_action</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_uses_pozil_action</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_uses_pozil_action</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the workflow uses the pozil/auto-assign-issue action.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1247" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1249" bodyend="1259"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a1722ae8086600f658004d7c71994f0ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_has_with_block</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_has_with_block</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_has_with_block</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the step has a &apos;with&apos; configuration block.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1260" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1262" bodyend="1270"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a86da87ef5edd91ca79d0fe5b310623b5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_required_fields</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_required_fields</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_required_fields</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all required configuration fields are present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1271" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1273" bodyend="1289"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a09d24bea5cd683eb8bd3dcffe47084a8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_assignees_valid</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_assignees_valid</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_assignees_valid</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that assignees are specified and valid.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1290" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1292" bodyend="1320"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a9995750734836e5e374afc9388837f1c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_num_assignees_valid</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_num_assignees_valid</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_num_assignees_valid</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that numOfAssignee is valid and matches assignees list.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1321" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1323" bodyend="1354"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1af6d4d12b50b5f43ffa2167857cc455e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_unexpected_fields</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_no_unexpected_fields</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_unexpected_fields</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that no unexpected configuration fields are present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1355" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1357" bodyend="1369"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a95f0aec51c9a16dda4932960fe901ddb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_env_vars</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_no_env_vars</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_env_vars</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that no environment variables are set (all config in &apos;with&apos;).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1370" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1372" bodyend="1381"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a30b0d877d99470c3cf7e16b49f8b3238" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_timeout</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_no_timeout</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_timeout</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test timeout configuration.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1382" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1384" bodyend="1399"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1adcf849f88a253b5aa6db7a6e33e585fc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_continue_on_error</definition>
+        <argsstring>(self, Dict[str, Any] auto_assign_workflow)</argsstring>
+        <name>test_auto_assign_configuration_no_continue_on_error</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_continue_on_error</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>auto_assign_workflow</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the step doesn&apos;t have continue-on-error set.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1400" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1402" bodyend="1412"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive tests for the auto-assign.yml workflow.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestAutoAssignWorkflow</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="945" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="945" bodyend="1412"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1af6f6109b446b16aa43ded753caebe2fc" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>auto_assign_workflow</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a09d24bea5cd683eb8bd3dcffe47084a8" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_assignees_valid</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a1722ae8086600f658004d7c71994f0ad" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_has_with_block</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1adcf849f88a253b5aa6db7a6e33e585fc" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_no_continue_on_error</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a95f0aec51c9a16dda4932960fe901ddb" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_no_env_vars</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a30b0d877d99470c3cf7e16b49f8b3238" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_no_timeout</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1af6d4d12b50b5f43ffa2167857cc455e5" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_no_unexpected_fields</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a9995750734836e5e374afc9388837f1c" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_num_assignees_valid</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a86da87ef5edd91ca79d0fe5b310623b5" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_required_fields</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a67fbe2ce81b872fb7a481a23bd83516c" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_step_name</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a30890ddcf6dd34f078347549013df472" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_configuration_uses_pozil_action</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ab17e777534c47f554c36a240db0a5336" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_permissions_defined</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a1cbf01a712bbe79243538dec58d534f8" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_permissions_issues_write</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a66de0ffa9c4a9f77445a2bf02f01c766" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_permissions_minimal</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a962288d8ad6f33750fcfe360dfe376fd" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_permissions_pull_requests_write</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ad806e6ea403f62d54deee5e6fdb4bb2f" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_permissions_scoped_properly</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a4321c715f661ffbca44b06e664ada1c4" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_security_action_source_trusted</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ad719602617d2c2babc2852abfa93907f" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_security_no_deprecated_syntax</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a7f42f393e45ad08be9ce8b6327712137" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_security_no_hardcoded_secrets</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ac184afd21cf8a5f7bdf08e73a426c8c6" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_security_stable_action_version</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1aab4dc99f79dc20b16b5c9989ef6a2cc5" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_security_uses_github_token</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a53bbd14ffac6d328b684dd0205d0d248" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_structure_has_run_job</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a77763c9126792cd612a673688121ea68" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_structure_name</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ac9854925a29251550e56464b952baaf3" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_structure_no_dependencies</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a86eb855063803b25329f33ffb976d075" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_structure_runs_on_ubuntu</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1a5fd24c69da6661ef16f3cae137cad6d2" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_structure_single_step</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1aeff93b8d640af89ccdca8003a1160f76" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_structure_triggers_on_issues</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_1ab86849df607f541db10c7cdae954dd2a" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestAutoAssignWorkflow</scope><name>test_auto_assign_structure_triggers_on_pull_requests</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

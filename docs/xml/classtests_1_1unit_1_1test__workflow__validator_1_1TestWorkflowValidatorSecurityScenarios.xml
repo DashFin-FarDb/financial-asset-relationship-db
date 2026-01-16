@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_workflow_validator::TestWorkflowValidatorSecurityScenarios</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios_1a927d6087cc4a7894d7026b5bdb6c9dcc" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestWorkflowValidatorSecurityScenarios.test_workflow_with_extremely_deep_nesting</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_extremely_deep_nesting</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestWorkflowValidatorSecurityScenarios.test_workflow_with_extremely_deep_nesting</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with extremely deep nesting (YAML bomb prevention)</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="800" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="800" bodyend="818"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios_1a0f9e7e40ccd87850bb52f2b82245890f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestWorkflowValidatorSecurityScenarios.test_workflow_with_suspicious_filenames</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_suspicious_filenames</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestWorkflowValidatorSecurityScenarios.test_workflow_with_suspicious_filenames</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow validation with suspicious filename patterns</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="820" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="820" bodyend="832"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios_1a76edfa984b9bd3a610173ae39775f7a3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestWorkflowValidatorSecurityScenarios.test_workflow_with_large_file_size</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_large_file_size</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestWorkflowValidatorSecurityScenarios.test_workflow_with_large_file_size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test validation of very large workflow file</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="834" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="834" bodyend="852"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios_1a64f9b74626dce7e1c67416db16b9058d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestWorkflowValidatorSecurityScenarios.test_workflow_with_yaml_injection_attempts</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_yaml_injection_attempts</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestWorkflowValidatorSecurityScenarios.test_workflow_with_yaml_injection_attempts</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with potential YAML injection patterns</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="854" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="854" bodyend="880"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test security-related scenarios and potential exploits</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_workflow_validator.TestWorkflowValidatorSecurityScenarios</label>
+        <link refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="796" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="796" bodyend="880"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios_1a927d6087cc4a7894d7026b5bdb6c9dcc" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestWorkflowValidatorSecurityScenarios</scope><name>test_workflow_with_extremely_deep_nesting</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios_1a76edfa984b9bd3a610173ae39775f7a3" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestWorkflowValidatorSecurityScenarios</scope><name>test_workflow_with_large_file_size</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios_1a0f9e7e40ccd87850bb52f2b82245890f" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestWorkflowValidatorSecurityScenarios</scope><name>test_workflow_with_suspicious_filenames</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios_1a64f9b74626dce7e1c67416db16b9058d" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestWorkflowValidatorSecurityScenarios</scope><name>test_workflow_with_yaml_injection_attempts</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

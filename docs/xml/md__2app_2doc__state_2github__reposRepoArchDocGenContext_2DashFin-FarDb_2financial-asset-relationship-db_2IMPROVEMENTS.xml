@@ -1,0 +1,484 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS</compoundname>
+    <title>Code Quality Improvements and Recommendations</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3109"/></para>
+<para>This document outlines additional improvements, error-prone patterns identified, and recommendations for future development.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3110">
+<title>Issues Identified and Recommendations</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3111">
+<title>1. Broad Exception Handling ⚠️</title><para><bold>Location:</bold> <computeroutput><ref refid="real__data__fetcher_8py" kindref="compound">src/data/real_data_fetcher.py</ref></computeroutput> and <computeroutput><ref refid="sample__data_8py" kindref="compound">src/data/sample_data.py</ref></computeroutput></para>
+<para><bold>Issue:</bold> Using <computeroutput>except Exception</computeroutput> catches too many exceptions, making debugging difficult.</para>
+<para><bold>Found in:</bold></para>
+<para><itemizedlist>
+<listitem><para><computeroutput><ref refid="real__data__fetcher_8py" kindref="compound">real_data_fetcher.py</ref></computeroutput>: 5 instances</para>
+</listitem><listitem><para><computeroutput><ref refid="sample__data_8py" kindref="compound">sample_data.py</ref></computeroutput>: 1 instance</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Recommendation:</bold></para>
+<para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>Instead<sp/>of:</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">try</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>data<sp/>=<sp/>fetch_data()</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>Exception<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>e:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.error(f</highlight><highlight class="stringliteral">&quot;Error:<sp/>{e}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Use<sp/>specific<sp/>exceptions:</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">try</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>data<sp/>=<sp/>fetch_data()</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>(ValueError,<sp/>KeyError,<sp/>TypeError)<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>e:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.error(f</highlight><highlight class="stringliteral">&quot;Data<sp/>error:<sp/>{e}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>ConnectionError<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>e:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.error(f</highlight><highlight class="stringliteral">&quot;Network<sp/>error:<sp/>{e}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>Exception<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>e:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.exception(f</highlight><highlight class="stringliteral">&quot;Unexpected<sp/>error:<sp/>{e}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">#<sp/>Re-raise<sp/>unexpected<sp/>errors</highlight></codeline>
+</programlisting></para>
+<para><bold>Status:</bold> Documented for future improvement (not critical for current functionality)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3112">
+<title>2. Type Hints Coverage</title><para><bold>Current State:</bold> Partial type hints in core modules</para>
+<para><bold>Recommendation:</bold> Add comprehensive type hints to all functions:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>typing<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Dict,<sp/>List,<sp/>Optional,<sp/>Tuple</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">calculate_metrics(self)<sp/>-&gt;<sp/>Dict[str,<sp/>Any]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Calculate<sp/>metrics<sp/>with<sp/>full<sp/>type<sp/>annotations.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Medium (improves IDE support and catches type errors)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3113">
+<title>3. Configuration Management</title><para><bold>Issue:</bold> Hardcoded values scattered throughout code</para>
+<para><bold>Examples:</bold></para>
+<para><itemizedlist>
+<listitem><para>Random seed: <computeroutput>np.random.seed(42)</computeroutput></para>
+</listitem><listitem><para>Relationship strengths: <computeroutput>0.7</computeroutput>, <computeroutput>0.8</computeroutput>, <computeroutput>0.9</computeroutput></para>
+</listitem><listitem><para>Gradio port: <computeroutput>7860</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Recommendation:</bold> Create <computeroutput>src/config.py</computeroutput>:</para>
+<para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>src/config.py</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">Config:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Visualization</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>RANDOM_SEED<sp/>=<sp/>42</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>LINE_LENGTH<sp/>=<sp/>120</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Relationship<sp/>strengths</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>SAME_SECTOR_STRENGTH<sp/>=<sp/>0.7</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CURRENCY_EXPOSURE_STRENGTH<sp/>=<sp/>0.8</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CORPORATE_BOND_STRENGTH<sp/>=<sp/>0.9</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Server</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>GRADIO_PORT<sp/>=<sp/>7860</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>GRADIO_HOST<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;0.0.0.0&quot;</highlight></codeline>
+</programlisting></para>
+<para><bold>Status:</bold> Recommended for future release</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3114">
+<title>4. Logging Enhancement</title><para><bold>Current State:</bold> Basic logging configured in <computeroutput><ref refid="app_8py" kindref="compound">app.py</ref></computeroutput></para>
+<para><bold>Recommendation:</bold> Implement structured logging:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">import</highlight><highlight class="normal"><sp/>logging</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>json</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>datetime<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>datetime</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">StructuredLogger:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">__init__(self,<sp/>name:<sp/>str):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.logger<sp/>=<sp/>logging.getLogger(name)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">log_event(self,<sp/>level:<sp/>str,<sp/>event:<sp/>str,<sp/>**kwargs):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>log_data<sp/>=<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;timestamp&quot;</highlight><highlight class="normal">:<sp/>datetime.utcnow().isoformat(),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;level&quot;</highlight><highlight class="normal">:<sp/>level,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;event&quot;</highlight><highlight class="normal">:<sp/>event,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>**kwargs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.logger.info(json.dumps(log_data))</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Medium (useful for production monitoring)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3115">
+<title>5. Input Validation Enhancement</title><para><bold>Current State:</bold> Basic validation in dataclass <computeroutput>__post_init__</computeroutput></para>
+<para><bold>Recommendation:</bold> Add validation decorators:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>functools<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>wraps</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>typing<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Callable</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">validate_price(func:<sp/>Callable)<sp/>-&gt;<sp/>Callable:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="preprocessor">@wraps(func)</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">wrapper(self,<sp/>*args,<sp/>**kwargs):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>hasattr(self,<sp/></highlight><highlight class="stringliteral">&apos;price&apos;</highlight><highlight class="normal">)<sp/></highlight><highlight class="keywordflow">and</highlight><highlight class="normal"><sp/>self.price<sp/>&lt;<sp/>0:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(</highlight><highlight class="stringliteral">&quot;Price<sp/>must<sp/>be<sp/>non-negative&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>func(self,<sp/>*args,<sp/>**kwargs)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>wrapper</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Low (current validation is adequate)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3116">
+<title>6. Performance Optimizations</title><para><bold>Potential Improvements:</bold></para>
+<para><orderedlist>
+<listitem><para><bold>Caching for expensive operations:</bold></para>
+</listitem></orderedlist>
+</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>functools<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>lru_cache</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">@lru_cache(maxsize=128)</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">calculate_relationship_strength(asset1_id:<sp/>str,<sp/>asset2_id:<sp/>str)<sp/>-&gt;<sp/>float:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Cache<sp/>results<sp/>for<sp/>frequently<sp/>accessed<sp/>pairs</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight></codeline>
+</programlisting></para>
+<para><orderedlist>
+<listitem><para><bold>Lazy loading for visualizations:</bold></para>
+</listitem></orderedlist>
+</para>
+<para><programlisting filename=".py"><codeline><highlight class="preprocessor">@property</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">visualization_data(self):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>hasattr(self,<sp/></highlight><highlight class="stringliteral">&apos;_viz_data&apos;</highlight><highlight class="normal">):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self._viz_data<sp/>=<sp/>self._compute_visualization()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>self._viz_data</highlight></codeline>
+</programlisting></para>
+<para><orderedlist>
+<listitem><para><bold>Database connection pooling</bold> (when adding PostgreSQL):</para>
+</listitem></orderedlist>
+</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>sqlalchemy<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>create_engine</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>sqlalchemy.pool<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>QueuePool</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">engine<sp/>=<sp/>create_engine(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>DATABASE_URL,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>poolclass=QueuePool,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>pool_size=10,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>max_overflow=20</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Low (premature optimization, measure first)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3117">
+<title>7. Error Messages</title><para><bold>Current State:</bold> Some error messages lack context</para>
+<para><bold>Recommendation:</bold> Add contextual information:</para>
+<para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>Instead<sp/>of:</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(</highlight><highlight class="stringliteral">&quot;Invalid<sp/>input&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Use:</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>f</highlight><highlight class="stringliteral">&quot;Invalid<sp/>input:<sp/>expected<sp/>price<sp/>&gt;=<sp/>0,<sp/>got<sp/>{price}.<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>f</highlight><highlight class="stringliteral">&quot;Asset:<sp/>{self.symbol}<sp/>({self.id})&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Medium</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3118">
+<title>8. Testing Enhancements</title><para><bold>Current State:</bold> 30+ unit tests</para>
+<para><bold>Recommendations:</bold></para>
+<para><orderedlist>
+<listitem><para><bold>Add integration tests:</bold></para>
+</listitem></orderedlist>
+</para>
+<para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>tests/integration/test_workflow.py</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_full_workflow():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>complete<sp/>workflow<sp/>from<sp/>data<sp/>loading<sp/>to<sp/>visualization.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>graph<sp/>=<sp/><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref>()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Load<sp/>data</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Build<sp/>relationships</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Generate<sp/>visualization</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Verify<sp/>output</highlight></codeline>
+</programlisting></para>
+<para><orderedlist>
+<listitem><para><bold>Add property-based tests:</bold></para>
+</listitem></orderedlist>
+</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>hypothesis<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>given,<sp/>strategies<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>st</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">@given(st.floats(min_value=0,<sp/>max_value=1)</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_relationship_strength_bounds(strength):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Verify<sp/>strength<sp/>is<sp/>always<sp/>clamped<sp/>to<sp/>[0,<sp/>1].&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Test<sp/>with<sp/>random<sp/>valid<sp/>inputs</highlight></codeline>
+</programlisting></para>
+<para><orderedlist>
+<listitem><para><bold>Add performance tests:</bold></para>
+</listitem></orderedlist>
+</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">import</highlight><highlight class="normal"><sp/>pytest</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>time</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">@pytest.mark.slow</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_large_graph_performance():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Ensure<sp/>performance<sp/>with<sp/>1000+<sp/>assets.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>start<sp/>=<sp/>time.time()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Create<sp/>large<sp/>graph</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Verify<sp/>completion<sp/>within<sp/>threshold</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>time.time()<sp/>-<sp/>start<sp/>&lt;<sp/>5.0<sp/><sp/></highlight><highlight class="comment">#<sp/>5<sp/>second<sp/>threshold</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> High (expand test coverage)</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3119">
+<title>Security Enhancements</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3120">
+<title>1. Dependency Scanning</title><para><bold>Implemented:</bold></para>
+<para><itemizedlist>
+<listitem><para>✅ CodeQL security scanning</para>
+</listitem><listitem><para>✅ Dependency review on PRs</para>
+</listitem><listitem><para>✅ Trivy Docker image scanning</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Additional Recommendations:</bold></para>
+<para><itemizedlist>
+<listitem><para>Add <computeroutput>safety</computeroutput> to CI for Python dependency vulnerabilities</para>
+</listitem><listitem><para>Add <computeroutput>bandit</computeroutput> for Python security linting</para>
+</listitem><listitem><para>Regular dependency updates with Dependabot</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3121">
+<title>2. Input Sanitization</title><para><bold>Current State:</bold> Basic validation on dataclass fields</para>
+<para><bold>Recommendation:</bold> Add sanitization for user inputs:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">import</highlight><highlight class="normal"><sp/>re</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>html<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>escape</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">sanitize_input(value:<sp/>str)<sp/>-&gt;<sp/>str:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Sanitize<sp/>user<sp/>input<sp/>to<sp/>prevent<sp/>injection<sp/>attacks.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Remove<sp/>potentially<sp/>dangerous<sp/>characters</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>value<sp/>=<sp/>escape(value)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Validate<sp/>format</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>re.match(</highlight><highlight class="stringliteral">r&apos;^[a-zA-Z0-9\s\-_\.]+$&apos;</highlight><highlight class="normal">,<sp/>value):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(</highlight><highlight class="stringliteral">&quot;Invalid<sp/>characters<sp/>in<sp/>input&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>value.strip()</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Medium (depends on user input surface area)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3122">
+<title>3. Secrets Management</title><para><bold>Recommendation:</bold> Use environment variables and secret managers:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">import</highlight><highlight class="normal"><sp/>os</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>pathlib<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Path</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Load<sp/>from<sp/>environment<sp/>or<sp/>.env<sp/>file</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">DATABASE_URL<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&apos;DATABASE_URL&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">API_KEY<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&apos;API_KEY&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>For<sp/>production,<sp/>use<sp/>secret<sp/>manager</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>from<sp/>azure.keyvault.secrets<sp/>import<sp/>SecretClient</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>secret<sp/>=<sp/>client.get_secret(&quot;database-url&quot;).value</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> High (before production deployment)</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3123">
+<title>Architecture Improvements</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3124">
+<title>1. Repository Pattern</title><para><bold>Recommendation:</bold> Abstract data access:</para>
+<para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>src/repositories/asset_repository.py</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">AssetRepository:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">get_by_id(self,<sp/>asset_id:<sp/>str)<sp/>-&gt;<sp/>Optional[Asset]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">get_all(self)<sp/>-&gt;<sp/>List[Asset]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">save(self,<sp/>asset:<sp/>Asset)<sp/>-&gt;<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Medium (useful when adding persistence)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3125">
+<title>2. Service Layer</title><para><bold>Recommendation:</bold> Separate business logic:</para>
+<para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>src/services/asset_service.py</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">AssetService:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">__init__(self,<sp/>repository:<sp/>AssetRepository):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.repository<sp/>=<sp/>repository</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">calculate_portfolio_risk(self,<sp/>assets:<sp/>List[Asset])<sp/>-&gt;<sp/>float:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Business<sp/>logic<sp/>here</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Medium (helps with testability)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3126">
+<title>3. Dependency Injection</title><para><bold>Recommendation:</bold> Use dependency injection for better testing:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>typing<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Protocol</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">DataFetcher(Protocol):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">fetch(self,<sp/>symbol:<sp/>str)<sp/>-&gt;<sp/>Asset:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">AssetService:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">__init__(self,<sp/>fetcher:<sp/>DataFetcher):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.fetcher<sp/>=<sp/>fetcher<sp/><sp/></highlight><highlight class="comment">#<sp/>Can<sp/>inject<sp/>mock<sp/>for<sp/>testing</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Low (current design is adequate)</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3127">
+<title>Documentation Improvements</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3128">
+<title>1. API Documentation</title><para><bold>Recommendation:</bold> Add OpenAPI/Swagger for API endpoints:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>FastAPI</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi.openapi.utils<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>get_openapi</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">app<sp/>=<sp/>FastAPI()</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">custom_openapi():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>app.openapi_schema:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>app.openapi_schema</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>openapi_schema<sp/>=<sp/>get_openapi(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>title=</highlight><highlight class="stringliteral">&quot;Financial<sp/>Asset<sp/>API&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>version=</highlight><highlight class="stringliteral">&quot;1.0.0&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>description=</highlight><highlight class="stringliteral">&quot;API<sp/>for<sp/>financial<sp/>asset<sp/>relationships&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>routes=app.routes,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>app.openapi_schema<sp/>=<sp/>openapi_schema</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>app.openapi_schema</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">app.openapi<sp/>=<sp/>custom_openapi</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Medium (if exposing API)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3129">
+<title>2. Architecture Diagrams</title><para><bold>Recommendation:</bold> Add diagrams to documentation:</para>
+<para><itemizedlist>
+<listitem><para>System architecture</para>
+</listitem><listitem><para>Data flow diagrams</para>
+</listitem><listitem><para>Sequence diagrams for key operations</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Tools:</bold> Mermaid, PlantUML, or diagrams.net</para>
+<para><bold>Priority:</bold> Medium</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3130">
+<title>3. Code Examples</title><para><bold>Recommendation:</bold> Add runnable examples:</para>
+<para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>examples/basic_usage.py</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="stringliteral">Basic<sp/>usage<sp/>example<sp/>for<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database.</highlight></codeline>
+<codeline><highlight class="stringliteral"></highlight></codeline>
+<codeline><highlight class="stringliteral">Run:<sp/>python<sp/>examples/basic_usage.py</highlight></codeline>
+<codeline><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>src.logic.asset_graph<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>AssetRelationshipGraph</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>src.models.financial_models<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Equity,<sp/>AssetClass</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Create<sp/>graph</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">graph<sp/>=<sp/><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref>()</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Add<sp/>assets</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">apple<sp/>=<sp/>Equity(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>id=</highlight><highlight class="stringliteral">&quot;AAPL&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>symbol=</highlight><highlight class="stringliteral">&quot;AAPL&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>name=</highlight><highlight class="stringliteral">&quot;Apple<sp/>Inc.&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>asset_class=AssetClass.EQUITY,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sector=</highlight><highlight class="stringliteral">&quot;Technology&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>price=150.00</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">graph.add_asset(apple)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Build<sp/>relationships</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">graph.build_relationships()</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Get<sp/>metrics</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">metrics<sp/>=<sp/>graph.calculate_metrics()</highlight></codeline>
+<codeline><highlight class="normal">print(f</highlight><highlight class="stringliteral">&quot;Total<sp/>assets:<sp/>{metrics[&apos;total_assets&apos;]}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Medium</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3131">
+<title>Monitoring and Observability</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3132">
+<title>1. Metrics Collection</title><para><bold>Recommendation:</bold> Add Prometheus metrics:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>prometheus_client<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Counter,<sp/>Histogram,<sp/>start_http_server</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Define<sp/>metrics</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">request_count<sp/>=<sp/>Counter(</highlight><highlight class="stringliteral">&apos;app_requests_total&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;Total<sp/>requests&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">request_duration<sp/>=<sp/>Histogram(</highlight><highlight class="stringliteral">&apos;app_request_duration_seconds&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;Request<sp/>duration&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Use<sp/>in<sp/>code</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>request_duration.time():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>result<sp/>=<sp/>expensive_operation()</highlight></codeline>
+<codeline><highlight class="normal">request_count.inc()</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Low (for production)</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3133">
+<title>2. Health Checks</title><para><bold>Recommendation:</bold> Add comprehensive health checks:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>FastAPI,<sp/>status</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">@app.get(&quot;/health&quot;,<sp/>status_code=status.HTTP_200_OK)</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">health_check():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Health<sp/>check<sp/>endpoint.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;status&quot;</highlight><highlight class="normal">:<sp/></highlight><highlight class="stringliteral">&quot;healthy&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;database&quot;</highlight><highlight class="normal">:<sp/>check_database(),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;cache&quot;</highlight><highlight class="normal">:<sp/>check_cache(),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;version&quot;</highlight><highlight class="normal">:<sp/></highlight><highlight class="stringliteral">&quot;1.0.0&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Medium</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3134">
+<title>3. Distributed Tracing</title><para><bold>Recommendation:</bold> Add OpenTelemetry for tracing:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>opentelemetry<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>trace</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>opentelemetry.sdk.trace<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>TracerProvider</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">tracer<sp/>=<sp/>trace.get_tracer(__name__)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>tracer.start_as_current_span(</highlight><highlight class="stringliteral">&quot;calculate_metrics&quot;</highlight><highlight class="normal">):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>metrics<sp/>=<sp/>graph.calculate_metrics()</highlight></codeline>
+</programlisting></para>
+<para><bold>Priority:</bold> Low (for microservices)</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3135">
+<title>Future Features</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3136">
+<title>1. Machine Learning Integration</title><para><bold>Ideas:</bold></para>
+<para><itemizedlist>
+<listitem><para>Predictive relationship discovery</para>
+</listitem><listitem><para>Anomaly detection in asset relationships</para>
+</listitem><listitem><para>Portfolio optimization</para>
+</listitem><listitem><para>Risk prediction</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Tools:</bold> scikit-learn, TensorFlow, PyTorch</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3137">
+<title>2. Real-time Updates</title><para><bold>Ideas:</bold></para>
+<para><itemizedlist>
+<listitem><para>WebSocket support for live data</para>
+</listitem><listitem><para>Event-driven architecture</para>
+</listitem><listitem><para>Message queue integration (RabbitMQ, Kafka)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3138">
+<title>3. Advanced Analytics</title><para><bold>Ideas:</bold></para>
+<para><itemizedlist>
+<listitem><para>Time-series analysis</para>
+</listitem><listitem><para>Correlation matrices</para>
+</listitem><listitem><para>Network centrality measures</para>
+</listitem><listitem><para>Community detection algorithms</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3139">
+<title>4. Multi-tenancy</title><para><bold>Ideas:</bold></para>
+<para><itemizedlist>
+<listitem><para>User authentication</para>
+</listitem><listitem><para>Per-user data isolation</para>
+</listitem><listitem><para>Role-based access control</para>
+</listitem><listitem><para>API rate limiting</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS_1autotoc_md3140">
+<title>Conclusion</title><para>This document provides a roadmap for future improvements. Prioritize based on:</para>
+<para><orderedlist>
+<listitem><para><bold>Security</bold> (High): Secrets management, input sanitization</para>
+</listitem><listitem><para><bold>Testing</bold> (High): Integration tests, performance tests</para>
+</listitem><listitem><para><bold>Monitoring</bold> (Medium): Health checks, logging</para>
+</listitem><listitem><para><bold>Features</bold> (Medium): ML integration, real-time updates</para>
+</listitem><listitem><para><bold>Optimization</bold> (Low): Measure before optimizing</para>
+</listitem></orderedlist>
+</para>
+<para>All current code is production-ready for the current use case. These improvements are for scaling and enterprise deployment.</para>
+<para><hruler/>
+</para>
+<para><bold>Last Updated:</bold> October 30, 2025 <bold>Version:</bold> 1.0 <bold>Author:</bold> GitHub Copilot Code Agent </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/IMPROVEMENTS.md"/>
+  </compounddef>
+</doxygen>

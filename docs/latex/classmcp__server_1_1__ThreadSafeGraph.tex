@@ -1,0 +1,68 @@
+\doxysection{mcp\+\_\+server.\+\_\+\+Thread\+Safe\+Graph Class Reference}
+\hypertarget{classmcp__server_1_1__ThreadSafeGraph}{}\label{classmcp__server_1_1__ThreadSafeGraph}\index{mcp\_server.\_ThreadSafeGraph@{mcp\_server.\_ThreadSafeGraph}}
+
+
+Collaboration diagram for mcp\+\_\+server.\+\_\+\+Thread\+Safe\+Graph\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=240pt]{classmcp__server_1_1__ThreadSafeGraph__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classmcp__server_1_1__ThreadSafeGraph_af558862fe19c2f97bf1c061c5c14120d}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph\+\_\+obj, threading.\+Lock lock)
+\item 
+\mbox{\hyperlink{classmcp__server_1_1__ThreadSafeGraph_a1d3e9d8180ebe2babe95ffa87d73d908}{\+\_\+\+\_\+getattr\+\_\+\+\_\+}} (self, str name)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classmcp__server_1_1__ThreadSafeGraph_a3cc621a189d30cca4bd25825ebfb3fd3}{\+\_\+graph}} = graph\+\_\+obj
+\item 
+\mbox{\hyperlink{classmcp__server_1_1__ThreadSafeGraph_a8b0e53bc3aa0a2527903de08fe165193}{\+\_\+lock}} = lock
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Proxy that serializes all access to the underlying graph via a lock.\end{DoxyVerb}
+ 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classmcp__server_1_1__ThreadSafeGraph_af558862fe19c2f97bf1c061c5c14120d}\index{mcp\_server.\_ThreadSafeGraph@{mcp\_server.\_ThreadSafeGraph}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!mcp\_server.\_ThreadSafeGraph@{mcp\_server.\_ThreadSafeGraph}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classmcp__server_1_1__ThreadSafeGraph_af558862fe19c2f97bf1c061c5c14120d} 
+mcp\+\_\+server.\+\_\+\+Thread\+Safe\+Graph.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph\+\_\+obj}{, }\item[{threading.\+Lock}]{lock}{}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classmcp__server_1_1__ThreadSafeGraph_a1d3e9d8180ebe2babe95ffa87d73d908}\index{mcp\_server.\_ThreadSafeGraph@{mcp\_server.\_ThreadSafeGraph}!\_\_getattr\_\_@{\_\_getattr\_\_}}
+\index{\_\_getattr\_\_@{\_\_getattr\_\_}!mcp\_server.\_ThreadSafeGraph@{mcp\_server.\_ThreadSafeGraph}}
+\doxysubsubsection{\texorpdfstring{\_\_getattr\_\_()}{\_\_getattr\_\_()}}
+{\footnotesize\ttfamily \label{classmcp__server_1_1__ThreadSafeGraph_a1d3e9d8180ebe2babe95ffa87d73d908} 
+mcp\+\_\+server.\+\_\+\+Thread\+Safe\+Graph.\+\_\+\+\_\+getattr\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{name}{}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classmcp__server_1_1__ThreadSafeGraph_a3cc621a189d30cca4bd25825ebfb3fd3}\index{mcp\_server.\_ThreadSafeGraph@{mcp\_server.\_ThreadSafeGraph}!\_graph@{\_graph}}
+\index{\_graph@{\_graph}!mcp\_server.\_ThreadSafeGraph@{mcp\_server.\_ThreadSafeGraph}}
+\doxysubsubsection{\texorpdfstring{\_graph}{\_graph}}
+{\footnotesize\ttfamily \label{classmcp__server_1_1__ThreadSafeGraph_a3cc621a189d30cca4bd25825ebfb3fd3} 
+mcp\+\_\+server.\+\_\+\+Thread\+Safe\+Graph.\+\_\+graph = graph\+\_\+obj\hspace{0.3cm}{\ttfamily [protected]}}
+
+\Hypertarget{classmcp__server_1_1__ThreadSafeGraph_a8b0e53bc3aa0a2527903de08fe165193}\index{mcp\_server.\_ThreadSafeGraph@{mcp\_server.\_ThreadSafeGraph}!\_lock@{\_lock}}
+\index{\_lock@{\_lock}!mcp\_server.\_ThreadSafeGraph@{mcp\_server.\_ThreadSafeGraph}}
+\doxysubsubsection{\texorpdfstring{\_lock}{\_lock}}
+{\footnotesize\ttfamily \label{classmcp__server_1_1__ThreadSafeGraph_a8b0e53bc3aa0a2527903de08fe165193} 
+mcp\+\_\+server.\+\_\+\+Thread\+Safe\+Graph.\+\_\+lock = lock\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/\mbox{\hyperlink{mcp__server_8py}{mcp\+\_\+server.\+py}}\end{DoxyCompactItemize}

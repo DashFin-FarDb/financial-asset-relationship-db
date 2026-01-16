@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStepConfiguration" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowStepConfiguration</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStepConfiguration_1aa9b73b3ff62185099d09d29f9d3e17d2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowStepConfiguration.test_workflow_steps_with_working_directory</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_steps_with_working_directory</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowStepConfiguration.test_workflow_steps_with_working_directory</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure steps that define `working-directory` use relative paths.
+
+Asserts that any step containing a `working-directory` key does not use an absolute path (i.e. the value does not start with `/`); the test fails with a descriptive message if an absolute path is found.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2065" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2065" bodyend="2085"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStepConfiguration_1ae95cce00e7152e3a62405d3d476b7f93" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowStepConfiguration.test_workflow_steps_with_id_are_unique</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_steps_with_id_are_unique</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowStepConfiguration.test_workflow_steps_with_id_are_unique</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that step IDs are unique within each job.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2087" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2087" bodyend="2100"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStepConfiguration_1a366c9c87c05c3290b9857d008fa176cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowStepConfiguration.test_workflow_steps_continue_on_error_usage</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_steps_continue_on_error_usage</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowStepConfiguration.test_workflow_steps_continue_on_error_usage</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that continue-on-error is used sparingly and intentionally.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2102" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2102" bodyend="2118"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Detailed tests for workflow step configuration.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowStepConfiguration</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStepConfiguration"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2061" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2061" bodyend="2118"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStepConfiguration_1a366c9c87c05c3290b9857d008fa176cf" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowStepConfiguration</scope><name>test_workflow_steps_continue_on_error_usage</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStepConfiguration_1ae95cce00e7152e3a62405d3d476b7f93" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowStepConfiguration</scope><name>test_workflow_steps_with_id_are_unique</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStepConfiguration_1aa9b73b3ff62185099d09d29f9d3e17d2" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowStepConfiguration</scope><name>test_workflow_steps_with_working_directory</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

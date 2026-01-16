@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__documentation__validation_1_1TestReferenceAccuracy" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_documentation_validation::TestReferenceAccuracy</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestReferenceAccuracy_1a67c03901267db411451d2abdb81b8f28" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestReferenceAccuracy.test_test_counts_are_realistic</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_test_counts_are_realistic</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestReferenceAccuracy.test_test_counts_are_realistic</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that mentioned test counts seem realistic.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="303" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="303" bodyend="310"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestReferenceAccuracy_1a8182d7988c93db59250237d50e94a04f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestReferenceAccuracy.test_file_references_are_consistent</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_file_references_are_consistent</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestReferenceAccuracy.test_file_references_are_consistent</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file references are consistent throughout.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="312" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="312" bodyend="325"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for reference accuracy.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_documentation_validation.TestReferenceAccuracy</label>
+        <link refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestReferenceAccuracy"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="299" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="299" bodyend="325"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestReferenceAccuracy_1a8182d7988c93db59250237d50e94a04f" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestReferenceAccuracy</scope><name>test_file_references_are_consistent</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestReferenceAccuracy_1a67c03901267db411451d2abdb81b8f28" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestReferenceAccuracy</scope><name>test_test_counts_are_realistic</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

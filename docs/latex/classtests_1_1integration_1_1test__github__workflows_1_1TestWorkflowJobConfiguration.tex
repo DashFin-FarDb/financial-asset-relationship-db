@@ -1,0 +1,70 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Job\+Configuration Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration}\index{tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration@{tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Job\+Configuration\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration_ae1c6d1300ada8291f717c7b889d92d64}{test\+\_\+workflow\+\_\+jobs\+\_\+specify\+\_\+runner}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration_a745eede21c772e88e6754b876c48a342}{test\+\_\+workflow\+\_\+jobs\+\_\+use\+\_\+standard\+\_\+runners}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for job-level configuration in workflows.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration_ae1c6d1300ada8291f717c7b889d92d64}\index{tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration@{tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration}!test\_workflow\_jobs\_specify\_runner@{test\_workflow\_jobs\_specify\_runner}}
+\index{test\_workflow\_jobs\_specify\_runner@{test\_workflow\_jobs\_specify\_runner}!tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration@{tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_jobs\_specify\_runner()}{test\_workflow\_jobs\_specify\_runner()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration_ae1c6d1300ada8291f717c7b889d92d64} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Job\+Configuration.\+test\+\_\+workflow\+\_\+jobs\+\_\+specify\+\_\+runner (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure each job in the workflow file specifies a runner.
+
+Checks every job in the parsed workflow YAML and asserts that non-reusable jobs declare a `runs-on` runner. Jobs that invoke reusable workflows via a `uses` key are exempt.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file being tested.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration_ae1c6d1300ada8291f717c7b889d92d64_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration_a745eede21c772e88e6754b876c48a342}\index{tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration@{tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration}!test\_workflow\_jobs\_use\_standard\_runners@{test\_workflow\_jobs\_use\_standard\_runners}}
+\index{test\_workflow\_jobs\_use\_standard\_runners@{test\_workflow\_jobs\_use\_standard\_runners}!tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration@{tests.integration.test\_github\_workflows.TestWorkflowJobConfiguration}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_jobs\_use\_standard\_runners()}{test\_workflow\_jobs\_use\_standard\_runners()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration_a745eede21c772e88e6754b876c48a342} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Job\+Configuration.\+test\+\_\+workflow\+\_\+jobs\+\_\+use\+\_\+standard\+\_\+runners (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure jobs that declare `runs-on` use recognised GitHub-hosted runners.
+
+Skips jobs that use expressions, matrix variables or self-hosted runners; fails if a job specifies a runner not in the accepted set.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowJobConfiguration_a745eede21c772e88e6754b876c48a342_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

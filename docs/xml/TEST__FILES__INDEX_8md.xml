@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="TEST__FILES__INDEX_8md" kind="file" language="Markdown">
+    <compoundname>TEST_FILES_INDEX.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Test<sp/>Files<sp/>Index<sp/>-<sp/>Complete<sp/>Reference</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>New<sp/>Files<sp/>Created<sp/>in<sp/>This<sp/>Session</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Files<sp/>(2<sp/>files,<sp/>589<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>1.<sp/>tests/integration/test_documentation_files_validation.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Lines**:<sp/>292</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Classes**:<sp/>3</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Tests**:<sp/>15</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Validates<sp/>all<sp/>markdown<sp/>documentation<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Covers**:<sp/>File<sp/>structure,<sp/>formatting,<sp/>links,<sp/>content<sp/>quality</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Classes**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDocumentationFilesValidation`<sp/>-<sp/>Core<sp/>validation<sp/>(10<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestMarkdownContentQuality`<sp/>-<sp/>Quality<sp/>metrics<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDocumentationConsistency`<sp/>-<sp/>Consistency<sp/>checks<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>2.<sp/>tests/integration/test_modified_config_files_validation.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Lines**:<sp/>297</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Classes**:<sp/>6</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Tests**:<sp/>26</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Validates<sp/>configuration<sp/>file<sp/>modifications</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Covers**:<sp/>PR<sp/>agent<sp/>config,<sp/>workflows,<sp/>requirements,<sp/>gitignore,<sp/>deletions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Classes**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestPRAgentConfigChanges`<sp/>-<sp/>Config<sp/>validation<sp/>(8<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestWorkflowSimplifications`<sp/>-<sp/>Workflow<sp/>changes<sp/>(4<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDeletedFilesImpact`<sp/>-<sp/>Deletion<sp/>verification<sp/>(6<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestRequirementsDevChanges`<sp/>-<sp/>Requirements<sp/>validation<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestGitignoreChanges`<sp/>-<sp/>Gitignore<sp/>validation<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestCodacyInstructionsChanges`<sp/>-<sp/>Codacy<sp/>docs<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Documentation<sp/>Files<sp/>(3<sp/>files,<sp/>477<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>3.<sp/>TEST_VALIDATION_COMPREHENSIVE_SUMMARY.md</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Lines**:<sp/>365</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Complete<sp/>documentation<sp/>of<sp/>validation<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Sections**:<sp/>Overview,<sp/>test<sp/>coverage,<sp/>running<sp/>tests,<sp/>integration<sp/>guide</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>4.<sp/>COMPLETE_TEST_QUICK_REFERENCE.md</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Lines**:<sp/>112</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Quick<sp/>command<sp/>reference<sp/>for<sp/>all<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Sections**:<sp/>Commands,<sp/>coverage,<sp/>troubleshooting,<sp/>CI/CD<sp/>integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>5.<sp/>FINAL_TEST_GENERATION_COMPLETE.md</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Lines**:<sp/>Current<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Executive<sp/>summary<sp/>and<sp/>final<sp/>status</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Sections**:<sp/>Deliverables,<sp/>coverage,<sp/>achievements,<sp/>conclusion</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>All<sp/>Test<sp/>Files<sp/>in<sp/>Repository</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Python<sp/>Tests<sp/>(tests/integration/)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>File<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Lines<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Tests<sp/><sp/><sp/><sp/>|<sp/>Status<sp/><sp/><sp/>|<sp/>Purpose<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>--------------------------------------------<sp/>|<sp/>----------<sp/>|<sp/>--------<sp/>|<sp/>--------<sp/>|<sp/>---------------------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test_github_workflows.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>2,592<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>50+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Existing<sp/>|<sp/>Workflow<sp/>validation<sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test_github_workflows_helpers.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>500<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>20+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Existing<sp/>|<sp/>Helper<sp/>functions<sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test_requirements_dev.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>481<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>15+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Existing<sp/>|<sp/>Requirements<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test_documentation_validation.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>385<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>10+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Existing<sp/>|<sp/>Doc<sp/>compliance<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test_branch_integration.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>369<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>16<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Existing<sp/>|<sp/>Integration<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test_pr_agent_config_validation.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>267<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>13<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Existing<sp/>|<sp/>PR<sp/>agent<sp/>config<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test_workflow_requirements_integration.py<sp/><sp/><sp/><sp/>|<sp/>221<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>8+<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Existing<sp/>|<sp/>Workflow-requirements<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**test_documentation_files_validation.py**<sp/><sp/><sp/>|<sp/>**292**<sp/><sp/><sp/><sp/>|<sp/>**15**<sp/><sp/><sp/>|<sp/>**NEW**<sp/><sp/>|<sp/>**Doc<sp/>quality**<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**test_modified_config_files_validation.py**<sp/>|<sp/>**297**<sp/><sp/><sp/><sp/>|<sp/>**26**<sp/><sp/><sp/>|<sp/>**NEW**<sp/><sp/>|<sp/>**Config<sp/>changes**<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Total**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>**~5,400**<sp/>|<sp/>**~170**<sp/>|<sp/>-<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>**Complete**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>Tests<sp/>(frontend/**tests**/)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>File<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Lines<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Tests<sp/><sp/><sp/><sp/>|<sp/>Status<sp/><sp/><sp/>|<sp/>Purpose<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>------------------------------<sp/>|<sp/>----------<sp/>|<sp/>--------<sp/>|<sp/>--------<sp/>|<sp/>--------------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test-utils.test.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>1,009<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>143+<sp/><sp/><sp/><sp/><sp/>|<sp/>Enhanced<sp/>|<sp/>Test<sp/>utilities<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>api.test.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>500+<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>30+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Enhanced<sp/>|<sp/>API<sp/>client<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>page.test.tsx<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>400+<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>20+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Enhanced<sp/>|<sp/>Main<sp/>page<sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>MetricsDashboard.test.tsx<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>300+<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>15+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Enhanced<sp/>|<sp/>Dashboard<sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>NetworkVisualization.test.tsx<sp/><sp/>|<sp/>300+<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>15+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Enhanced<sp/>|<sp/>Visualization<sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>AssetList.test.tsx<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>200+<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>10+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Enhanced<sp/>|<sp/>Asset<sp/>list<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>component-integration.test.tsx<sp/>|<sp/>400+<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>20+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Enhanced<sp/>|<sp/>Integration<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>test-utils.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>50<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>-<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Enhanced<sp/>|<sp/>Test<sp/>utilities<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Total**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>**~3,100**<sp/>|<sp/>**~250**<sp/>|<sp/>-<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>**Complete**<sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Running<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Quick<sp/>Commands</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>All<sp/>new<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_documentation_files_validation.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tests/integration/test_modified_config_files_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>All<sp/>Python<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/<sp/>-v<sp/>--cov</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>All<sp/>frontend<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Everything</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/<sp/>--cov<sp/>&amp;&amp;<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>By<sp/>Category</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Documentation<sp/>validation<sp/>(15<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_documentation_files_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Configuration<sp/>validation<sp/>(26<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_modified_config_files_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Workflow<sp/>validation<sp/>(50+<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Integration<sp/>tests<sp/>(16<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_branch_integration.py<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Coverage<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Files<sp/>Covered</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Category<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Count<sp/><sp/><sp/><sp/>|<sp/>Coverage<sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>-------------------<sp/>|<sp/>--------<sp/>|<sp/>----------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Python<sp/>Tests**<sp/><sp/><sp/><sp/>|<sp/>9<sp/>files<sp/><sp/>|<sp/>100%<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Frontend<sp/>Tests**<sp/><sp/>|<sp/>8<sp/>files<sp/><sp/>|<sp/>100%<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Documentation**<sp/><sp/><sp/>|<sp/>32<sp/>files<sp/>|<sp/>100%<sp/>(NEW)<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Configuration**<sp/><sp/><sp/>|<sp/>7<sp/>files<sp/><sp/>|<sp/>100%<sp/>(NEW)<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Deleted<sp/>Files**<sp/><sp/><sp/>|<sp/>5<sp/>files<sp/><sp/>|<sp/>100%<sp/>(NEW)<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Total<sp/>Validated**<sp/>|<sp/>61<sp/>files<sp/>|<sp/>100%<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Statistics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Metric<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Value<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>------------------<sp/>|<sp/>----------------------------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Total<sp/>Test<sp/>Files<sp/><sp/><sp/>|<sp/>17<sp/>(9<sp/>Python<sp/>+<sp/>8<sp/>Frontend)<sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Total<sp/>Test<sp/>Lines<sp/><sp/><sp/>|<sp/>~8,500<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Total<sp/>Test<sp/>Methods<sp/>|<sp/>~420<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Coverage<sp/>Threshold<sp/>|<sp/>80%<sp/>(Python),<sp/>75%<sp/>(Frontend)<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Current<sp/>Coverage<sp/><sp/><sp/>|<sp/>&gt;85%<sp/>(both)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Documentation<sp/>Reference</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[TEST_VALIDATION_COMPREHENSIVE_SUMMARY.md](TEST_VALIDATION_COMPREHENSIVE_SUMMARY.md)<sp/>-<sp/>Complete<sp/>validation<sp/>guide</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[COMPLETE_TEST_QUICK_REFERENCE.md](COMPLETE_TEST_QUICK_REFERENCE.md)<sp/>-<sp/>Quick<sp/>commands</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[FINAL_TEST_GENERATION_COMPLETE.md](FINAL_TEST_GENERATION_COMPLETE.md)<sp/>-<sp/>Executive<sp/>summary</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[TEST_FILES_INDEX.md](TEST_FILES_INDEX.md)<sp/>-<sp/>This<sp/>file</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>General<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[TESTING_GUIDE.md](TESTING_GUIDE.md)<sp/>-<sp/>General<sp/>testing<sp/>guidelines</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[COMPREHENSIVE_TEST_SUMMARY.md](COMPREHENSIVE_TEST_SUMMARY.md)<sp/>-<sp/>Overall<sp/>summary</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[README.md](README.md)<sp/>-<sp/>Project<sp/>readme</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Branch-Specific<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[ADDITIONAL_TESTS_SUMMARY.md](ADDITIONAL_TESTS_SUMMARY.md)<sp/>-<sp/>Additional<sp/>tests<sp/>summary</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[WORKFLOW_TESTS_GENERATION_SUMMARY.md](WORKFLOW_TESTS_GENERATION_SUMMARY.md)<sp/>-<sp/>Workflow<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md](TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md)<sp/>-<sp/>Branch<sp/>summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>File<sp/>Locations</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TEST_FILES_INDEX.md"/>
+  </compounddef>
+</doxygen>

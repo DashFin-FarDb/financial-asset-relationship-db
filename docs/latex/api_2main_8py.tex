@@ -1,0 +1,94 @@
+\doxysection{/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/api/main.py File Reference}
+\hypertarget{api_2main_8py}{}\label{api_2main_8py}\index{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/api/main.py@{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/api/main.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowYAMLSyntax}{api.\+main.\+Test\+Workflow\+YAMLSyntax}}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1AssetResponse}{api.\+main.\+Asset\+Response}}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1RelationshipResponse}{api.\+main.\+Relationship\+Response}}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1MetricsResponse}{api.\+main.\+Metrics\+Response}}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1VisualizationDataResponse}{api.\+main.\+Visualization\+Data\+Response}}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema}{api.\+main.\+Test\+Workflow\+Git\+Hub\+Actions\+Schema}}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowSecurity}{api.\+main.\+Test\+Workflow\+Security}}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowBestPractices}{api.\+main.\+Test\+Workflow\+Best\+Practices}}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowCrossPlatform}{api.\+main.\+Test\+Workflow\+Cross\+Platform}}
+\item 
+class \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowMaintainability}{api.\+main.\+Test\+Workflow\+Maintainability}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespaceapi}{api}}
+\item 
+namespace \mbox{\hyperlink{namespaceapi_1_1main}{api.\+main}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} \mbox{\hyperlink{namespaceapi_1_1main_a36e38405e838cf6847b86f3ef103e262}{api.\+main.\+get\+\_\+graph}} ()
+\item 
+None \mbox{\hyperlink{namespaceapi_1_1main_a96faa5bda5e638da3b325540aedcf235}{api.\+main.\+set\+\_\+graph}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph\+\_\+instance)
+\item 
+None \mbox{\hyperlink{namespaceapi_1_1main_ab9d3f7110a39d7e2cee8a046527783d6}{api.\+main.\+set\+\_\+graph\+\_\+factory}} (Optional\mbox{[}Callable\mbox{[}\mbox{[}$\,$\mbox{]}, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}\mbox{]}\mbox{]} factory)
+\item 
+None \mbox{\hyperlink{namespaceapi_1_1main_a98aa6df819941b0a1b4dc5202ebb5153}{api.\+main.\+reset\+\_\+graph}} ()
+\item 
+\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} \mbox{\hyperlink{namespaceapi_1_1main_ae01417ef61271933f6fa186011018274}{api.\+main.\+\_\+initialize\+\_\+graph}} ()
+\item 
+bool \mbox{\hyperlink{namespaceapi_1_1main_ac3285016e88cfbffb67e774549fc3a33}{api.\+main.\+\_\+should\+\_\+use\+\_\+real\+\_\+data\+\_\+fetcher}} ()
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_ae4595ce91fa5331777bf56cbd51f10a7}{api.\+main.\+lifespan}} (Fast\+API \+\_\+fastapi\+\_\+app)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_aa3e5d8f8dc11b20ad05ee42dbeb72dfb}{api.\+main.\+login\+\_\+for\+\_\+access\+\_\+token}} (Request request, OAuth2\+Password\+Request\+Form form\+\_\+data=Depends())
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a574efab533358b53a0c8d7dcc0be8ad9}{api.\+main.\+read\+\_\+users\+\_\+me}} (Request request, \mbox{\hyperlink{classapi_1_1auth_1_1User}{User}} current\+\_\+user=Depends(get\+\_\+current\+\_\+active\+\_\+user))
+\item 
+bool \mbox{\hyperlink{namespaceapi_1_1main_a63ea8c77818300f6f8b2464596c57407}{api.\+main.\+validate\+\_\+origin}} (str origin\+\_\+url)
+\item 
+None \mbox{\hyperlink{namespaceapi_1_1main_ad5568f262e69dcaf5f1b3e3cd498c9a4}{api.\+main.\+raise\+\_\+asset\+\_\+not\+\_\+found}} (str asset\+\_\+id, str resource\+\_\+type="{}Asset"{})
+\item 
+Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{namespaceapi_1_1main_a01d5b997c7c518457e2a8503526bf65a}{api.\+main.\+serialize\+\_\+asset}} (Any asset, bool include\+\_\+issuer=False)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a0310b837dae9253adee650f5978e92ea}{api.\+main.\+root}} ()
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a681769f2b8d07288312d911111ea9500}{api.\+main.\+health\+\_\+check}} ()
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_ae9e0206bc776c0671651abde39b897ed}{api.\+main.\+get\+\_\+assets}} (Optional\mbox{[}str\mbox{]} asset\+\_\+class=None, Optional\mbox{[}str\mbox{]} sector=None)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a03617816549accf6f06906b0fc784998}{api.\+main.\+get\+\_\+asset\+\_\+detail}} (str asset\+\_\+id)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a4dbc679bdd140b907036fee6a9ee8092}{api.\+main.\+get\+\_\+asset\+\_\+relationships}} (str asset\+\_\+id)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a82617850299efb7763024c5bfd919759}{api.\+main.\+get\+\_\+all\+\_\+relationships}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_aa35f82e16993d32164403dbd79db6298}{api.\+main.\+limiter}} = Limiter(key\+\_\+func=get\+\_\+remote\+\_\+address)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a86a3c1e804b448002d2081ef90cb01ca}{api.\+main.\+app}}
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_ad251e4d9950b84be47146c8d547a858b}{api.\+main.\+ENV}} = os.\+getenv("{}ENV"{}, "{}development"{}).lower()
+\item 
+list \mbox{\hyperlink{namespaceapi_1_1main_a11230e43afa52d45c4fb15370aafd83b}{api.\+main.\+allowed\+\_\+origins}} = \mbox{[}$\,$\mbox{]}
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a5faac58687e620f7e5a07dbcd020cc06}{api.\+main.\+additional\+\_\+origins}} = os.\+getenv("{}ALLOWED\+\_\+\+ORIGINS"{}).split("{},"{})
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_acc6b5b1fccda6c9765fb9e689ec3b441}{api.\+main.\+stripped\+\_\+origin}} = origin.\+strip()
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a89792fe5170fc29d309d070db8bea953}{api.\+main.\+allow\+\_\+origins}}
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_a64a0ff52685ea26f48b6bbc1cd034075}{api.\+main.\+allow\+\_\+credentials}}
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_ab7da13625cc2a11a850c97c8d5509a20}{api.\+main.\+allow\+\_\+methods}}
+\item 
+\mbox{\hyperlink{namespaceapi_1_1main_ae28ee3f43325ba4bebdb1e3637420119}{api.\+main.\+allow\+\_\+headers}}
+\end{DoxyCompactItemize}

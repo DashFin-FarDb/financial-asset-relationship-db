@@ -1,0 +1,176 @@
+\chapter{Auto-\/\+Assign Workflow -\/ Complete Test Documentation}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540}\index{Auto-\/Assign Workflow -\/ Complete Test Documentation@{Auto-\/Assign Workflow -\/ Complete Test Documentation}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md158}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md158}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md159}{}\doxysection{\texorpdfstring{Executive Summary}{Executive Summary}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md159}
+Successfully generated {\bfseries{37 comprehensive unit tests}} to enhance the auto-\/assign workflow testing beyond the original 28 tests, bringing total test coverage to {\bfseries{65 test methods}} across 3 test classes.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md160}{}\doxysection{\texorpdfstring{Test File Changes}{Test File Changes}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md160}
+{\bfseries{File}}\+: {\ttfamily \doxylink{test__github__workflows_8py}{tests/integration/test\+\_\+github\+\_\+workflows.\+py}}
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Total Lines}}\+: 2,645 lines
+\item {\bfseries{Lines Added}}\+: 483 lines of new test code
+\item {\bfseries{Test Classes}}\+: 3
+\item {\bfseries{Total Test Methods}}\+: 65
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md161}{}\doxysection{\texorpdfstring{Test Class Structure}{Test Class Structure}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md161}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md162}{}\doxysubsection{\texorpdfstring{1. Test\+Auto\+Assign\+Workflow (Line 881)}{1. Test\+Auto\+Assign\+Workflow (Line 881)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md162}
+{\bfseries{28 original tests}} covering fundamental workflow validation\+:\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md163}{}\doxysubsubsection{\texorpdfstring{Basic Structure (5 tests)}{Basic Structure (5 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md163}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+name} -\/ Validates workflow name
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+triggers\+\_\+on\+\_\+issues} -\/ Issue event triggers
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+triggers\+\_\+on\+\_\+pull\+\_\+requests} -\/ PR event triggers
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+has\+\_\+run\+\_\+job} -\/ Job existence
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+runs\+\_\+on\+\_\+ubuntu} -\/ Runner specification
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md164}{}\doxysubsubsection{\texorpdfstring{Permissions \& Security (5 tests)}{Permissions \& Security (5 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md164}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+permissions\+\_\+defined} -\/ Permission presence
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+has\+\_\+issues\+\_\+write\+\_\+permission} -\/ Issues write access
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+has\+\_\+pull\+\_\+requests\+\_\+write\+\_\+permission} -\/ PR write access
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+permissions\+\_\+minimal} -\/ Least privilege validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+security\+\_\+permissions\+\_\+scoped} -\/ Job-\/level scoping
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md165}{}\doxysubsubsection{\texorpdfstring{Step Configuration (8 tests)}{Step Configuration (8 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md165}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+has\+\_\+single\+\_\+step} -\/ Single step design
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+step\+\_\+has\+\_\+descriptive\+\_\+name} -\/ Naming conventions
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+uses\+\_\+pozil\+\_\+action} -\/ Correct action usage
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+action\+\_\+has\+\_\+version} -\/ Version tag validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+step\+\_\+has\+\_\+with\+\_\+config} -\/ Configuration block
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+uses\+\_\+github\+\_\+token} -\/ Token usage validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+uses\+\_\+stable\+\_\+action\+\_\+version} -\/ Stable versioning
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+config\+\_\+complete} -\/ Completeness check
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md166}{}\doxysubsubsection{\texorpdfstring{Assignee Configuration (5 tests)}{Assignee Configuration (5 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md166}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+specifies\+\_\+assignees} -\/ Assignee specification
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+assignees\+\_\+valid\+\_\+username} -\/ Username validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+specifies\+\_\+num\+\_\+assignees} -\/ Count field presence
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+num\+\_\+assignees\+\_\+valid} -\/ Count validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+num\+\_\+assignees\+\_\+matches\+\_\+list} -\/ Consistency check
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md167}{}\doxysubsubsection{\texorpdfstring{Best Practices \& Edge Cases (5 tests)}{Best Practices \& Edge Cases (5 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md167}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+extra\+\_\+config} -\/ No unexpected fields
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+triggers\+\_\+only\+\_\+on\+\_\+opened} -\/ Event type validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+job\+\_\+dependencies} -\/ Independence check
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+job\+\_\+conditions} -\/ Unconditional execution
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+workflow\+\_\+efficient} -\/ Efficiency validation
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md168}{}\doxysubsection{\texorpdfstring{2. Test\+Auto\+Assign\+Workflow\+Advanced (Line 1212)}{2. Test\+Auto\+Assign\+Workflow\+Advanced (Line 1212)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md168}
+{\bfseries{24 advanced tests}} for deeper validation\+:\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md169}{}\doxysubsubsection{\texorpdfstring{YAML \& Syntax Validation (3 tests)}{YAML \& Syntax Validation (3 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md169}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+yaml\+\_\+syntax\+\_\+valid} -\/ YAML parsing validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+file\+\_\+not\+\_\+empty} -\/ Content presence
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+syntax\+\_\+errors\+\_\+in\+\_\+expressions} -\/ Expression validation
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md170}{}\doxysubsubsection{\texorpdfstring{Security \& Trust (2 tests)}{Security \& Trust (2 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md170}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+action\+\_\+source\+\_\+is\+\_\+trusted} -\/ Trusted source validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+hardcoded\+\_\+secrets} -\/ Secret scanning (3 patterns)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md171}{}\doxysubsubsection{\texorpdfstring{Configuration Validation (3 tests)}{Configuration Validation (3 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md171}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+assignees\+\_\+not\+\_\+empty\+\_\+string} -\/ Non-\/empty validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+assignees\+\_\+no\+\_\+duplicates} -\/ Duplicate detection
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+action\+\_\+inputs\+\_\+documented} -\/ Input completeness
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md172}{}\doxysubsubsection{\texorpdfstring{Runner \& Environment (3 tests)}{Runner \& Environment (3 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md172}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+runner\+\_\+is\+\_\+latest} -\/ Latest runner usage
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+environment\+\_\+specified} -\/ No approval gates
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+matrix\+\_\+strategy} -\/ No matrix configuration
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md173}{}\doxysubsubsection{\texorpdfstring{Timeout \& Error Handling (3 tests)}{Timeout \& Error Handling (3 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md173}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+timeout} -\/ Timeout configuration
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+step\+\_\+no\+\_\+timeout} -\/ Step-\/level timeout
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+continue\+\_\+on\+\_\+error} -\/ Error handling
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md174}{}\doxysubsubsection{\texorpdfstring{Workflow Design (3 tests)}{Workflow Design (3 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md174}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+outputs\+\_\+defined} -\/ No unnecessary outputs
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+step\+\_\+no\+\_\+env\+\_\+vars} -\/ Config placement validation
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+workflow\+\_\+name\+\_\+descriptive} -\/ Naming conventions
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md175}{}\doxysubsubsection{\texorpdfstring{Trigger Configuration (2 tests)}{Trigger Configuration (2 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md175}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+triggers\+\_\+are\+\_\+specific} -\/ Trigger specificity
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+concurrent\+\_\+runs\+\_\+config} -\/ Concurrency handling
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md176}{}\doxysubsubsection{\texorpdfstring{Best Practices (5 tests)}{Best Practices (5 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md176}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+no\+\_\+deprecated\+\_\+syntax} -\/ Deprecation detection
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+job\+\_\+name\+\_\+appropriate} -\/ Job naming
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+permissions\+\_\+not\+\_\+overly\+\_\+broad} -\/ Permission scope
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+uses\+\_\+semantic\+\_\+versioning} -\/ Version format
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+configuration\+\_\+matches\+\_\+documentation} -\/ Doc consistency
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md177}{}\doxysubsection{\texorpdfstring{3. Test\+Auto\+Assign\+Documentation (Line 1537)}{3. Test\+Auto\+Assign\+Documentation (Line 1537)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md177}
+{\bfseries{13 documentation quality tests}}\+:\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md178}{}\doxysubsubsection{\texorpdfstring{Documentation Existence (2 tests)}{Documentation Existence (2 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md178}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+summary\+\_\+exists} -\/ Summary file presence
+\item {\ttfamily test\+\_\+final\+\_\+report\+\_\+exists} -\/ Report file presence
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md179}{}\doxysubsubsection{\texorpdfstring{Content Validation (4 tests)}{Content Validation (4 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md179}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+summary\+\_\+not\+\_\+empty} -\/ Summary content (\texorpdfstring{$>$}{>}500 chars)
+\item {\ttfamily test\+\_\+final\+\_\+report\+\_\+not\+\_\+empty} -\/ Report content (\texorpdfstring{$>$}{>}1000 chars)
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+summary\+\_\+has\+\_\+proper\+\_\+markdown} -\/ Markdown syntax
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+summary\+\_\+mentions\+\_\+test\+\_\+count} -\/ Test count documentation
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md180}{}\doxysubsubsection{\texorpdfstring{Documentation Quality (4 tests)}{Documentation Quality (4 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md180}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+auto\+\_\+assign\+\_\+summary\+\_\+has\+\_\+execution\+\_\+instructions} -\/ Pytest commands
+\item {\ttfamily test\+\_\+final\+\_\+report\+\_\+has\+\_\+executive\+\_\+summary} -\/ Executive summary presence
+\item {\ttfamily test\+\_\+final\+\_\+report\+\_\+documents\+\_\+test\+\_\+coverage} -\/ Coverage breakdown
+\item {\ttfamily test\+\_\+final\+\_\+report\+\_\+lists\+\_\+files\+\_\+modified} -\/ File change documentation
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md181}{}\doxysubsubsection{\texorpdfstring{Syntax \& Consistency (3 tests)}{Syntax \& Consistency (3 tests)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md181}
+
+\begin{DoxyItemize}
+\item {\ttfamily test\+\_\+documentation\+\_\+files\+\_\+have\+\_\+consistent\+\_\+formatting} -\/ Style consistency
+\item {\ttfamily test\+\_\+documentation\+\_\+has\+\_\+no\+\_\+broken\+\_\+markdown\+\_\+syntax} -\/ Valid Markdown
+\item {\ttfamily test\+\_\+documentation\+\_\+references\+\_\+correct\+\_\+action} -\/ Correct action reference
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md182}{}\doxysection{\texorpdfstring{Test Statistics}{Test Statistics}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md182}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{2}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Metric   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Value    }\\\cline{1-2}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Metric   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Value    }\\\cline{1-2}
+\endhead
+{\bfseries{Original Tests}}   &28    \\\cline{1-2}
+{\bfseries{New Advanced Tests}}   &24    \\\cline{1-2}
+{\bfseries{New Documentation Tests}}   &13    \\\cline{1-2}
+{\bfseries{Total Tests}}   &{\bfseries{65}}    \\\cline{1-2}
+{\bfseries{Test Classes}}   &3    \\\cline{1-2}
+{\bfseries{Total Lines}}   &2,645    \\\cline{1-2}
+{\bfseries{Lines Added}}   &483   \\\cline{1-2}
+\end{longtabu}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md183}{}\doxysection{\texorpdfstring{Test Execution}{Test Execution}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md183}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md184}{}\doxysubsection{\texorpdfstring{Run All Auto-\/\+Assign Tests}{Run All Auto-\/\+Assign Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod1c3d6a9794108d156b15bb17a24c540_autotoc_md184}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ All\ 65\ tests}
+\DoxyCodeLine{pytest\ tests/integration/test\_github\_workflows.py\ -\/k\ "{}AutoAssign"{}\ -\/v}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ By\ class}
+\DoxyCodeLine{pytest\ tests/integration/test\_github\_workflows.py::TestAutoAssignWorkflow\ -\/v}
+\DoxyCodeLine{pytest\ tests/integration/test\_github\_workflows.py::TestAutoAssignWorkflowAdvanced\ -\/v}
+\DoxyCodeLine{pytest\ tests/integration/test\_github\_workflows.py::TestAutoAssignDocumentation\ -\/v}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ With\ coverage}
+\DoxyCodeLine{pytest\ tests/integration/test\_github\_workflows.py\ -\/k\ "{}AutoAssign"{}\ -\/v\ -\/-\/cov=.github/workflows}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Security\ validation}
+\DoxyCodeLine{pytest\ tests/integration/test\_github\_workflows.py::TestAutoAssignWorkflowAdvanced::test\_auto\_assign\_no\_hardcoded\_secrets\ -\/v}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Documentation\ check}
+\DoxyCodeLine{pytest\ tests/integration/test\_github\_workflows.py::TestAutoAssignDocumentation::test\_auto\_assign\_summary\_exists\ -\/v}
+
+\end{DoxyCode}
+ 

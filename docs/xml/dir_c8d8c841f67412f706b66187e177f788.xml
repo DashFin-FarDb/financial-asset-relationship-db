@@ -1,0 +1,324 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="dir_c8d8c841f67412f706b66187e177f788" kind="dir">
+    <compoundname>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db</compoundname>
+    <innerdir refid="dir_4715a0783ab760d3bfbd7597a4b6fa81">/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api</innerdir>
+    <innerdir refid="dir_2755d1d78cb8b99472200bd126d14563">/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/branch_reviews</innerdir>
+    <innerdir refid="dir_736ea4d0b1077f600fd5a8b9f7a07ddc">/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/docs</innerdir>
+    <innerdir refid="dir_94dbfdae87642e6722b14a7ba84b9b96">/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend</innerdir>
+    <innerdir refid="dir_7c34897c8f57ffe14cb4838ff9fc8e78">/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src</innerdir>
+    <innerdir refid="dir_c4847b0870ecd40b9cfc6d71d4528995">/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests</innerdir>
+    <innerfile refid="app_8py">app.py</innerfile>
+    <innerfile refid="conftest_8py">conftest.py</innerfile>
+    <innerfile refid="main_8py">main.py</innerfile>
+    <innerfile refid="mcp__server_8py">mcp_server.py</innerfile>
+    <innerfile refid="test__api_8py">test_api.py</innerfile>
+    <innerfile refid="test__db__module_8py">test_db_module.py</innerfile>
+    <innerfile refid="test__postgres_8py">test_postgres.py</innerfile>
+    <innerfile refid="test__supabase_8py">test_supabase.py</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>A comprehensive 3D visualization system for interconnected financial assets across all major classes: <bold>Equities, Bonds, Commodities, Currencies, and Regulatory Events</bold>.</para>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3540">
+<title>🚀 Quick Start</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3541">
+<title>Prerequisites</title><para><itemizedlist>
+<listitem><para>Python 3.10+</para>
+</listitem><listitem><para>Node.js 18+ (for Next.js frontend)</para>
+</listitem><listitem><para>Virtual environment (recommended)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3542">
+<title>Option 1: Gradio UI (Original)</title><para><orderedlist>
+<listitem><para><bold>Clone the repository</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>clone<sp/>&lt;repository-url&gt;</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>financial-asset-relationship-db</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Set up Python environment</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Activate virtual environment</bold><itemizedlist>
+<listitem><para><bold>Windows (PowerShell):</bold> <programlisting filename=".powershell"><codeline><highlight class="normal">.\.venv\Scripts\Activate.ps1</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Windows (Command Prompt):</bold> <programlisting filename=".cmd"><codeline><highlight class="normal">.venv\Scripts\activate.bat</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>macOS/Linux:</bold> <computeroutput>bash source .venv/bin/activate </computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Install dependencies</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Run the application</bold> <programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>app.py</highlight></codeline>
+</programlisting></para>
+</listitem></orderedlist>
+</para>
+<para>The application will launch in your browser automatically at <computeroutput><ulink url="http://localhost:7860">http://localhost:7860</ulink></computeroutput>.</para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3543">
+<title>Option 2: Next.js Frontend + FastAPI Backend (New)</title><para>For the modern web frontend with REST API:</para>
+<para><bold>Quick Start (Both Servers):</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Linux/Mac</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Windows</highlight></codeline>
+<codeline><highlight class="normal">run-dev.bat</highlight></codeline>
+</programlisting></para>
+<para>This will start both the FastAPI backend (port 8000) and Next.js frontend (port 3000).</para>
+<para><bold>Manual Setup:</bold></para>
+<para><orderedlist>
+<listitem><para><bold>Start the FastAPI backend:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">source<sp/>.venv/bin/activate<sp/><sp/>#<sp/>On<sp/>Windows:<sp/>.venv\Scripts\activate</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--port<sp/>8000</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Start the Next.js frontend (in a new terminal):</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Access the application:</bold><itemizedlist>
+<listitem><para>Frontend: <computeroutput><ulink url="http://localhost:3000">http://localhost:3000</ulink></computeroutput></para>
+</listitem><listitem><para>Backend API: <computeroutput><ulink url="http://localhost:8000">http://localhost:8000</ulink></computeroutput></para>
+</listitem><listitem><para>API Documentation: <computeroutput><ulink url="http://localhost:8000/docs">http://localhost:8000/docs</ulink></computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+<para>See <ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref> for detailed deployment instructions and Vercel integration.</para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3544">
+<title>🐳 Docker Installation (Alternative)</title><para>For containerized deployment:</para>
+<para><orderedlist>
+<listitem><para><bold>Using Docker Compose (recommended)</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">docker-compose<sp/>up<sp/>--build</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Using Docker directly</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">docker<sp/>build<sp/>-t<sp/>financial-asset-db<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>run<sp/>-p<sp/>7860:7860<sp/>financial-asset-db</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Using Makefile</bold> <programlisting filename=".bash"><codeline><highlight class="normal">make<sp/>docker-compose-up</highlight></codeline>
+</programlisting></para>
+</listitem></orderedlist>
+</para>
+<para>See <ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER" kindref="compound">DOCKER.md</ref> for detailed Docker deployment guide.</para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3545">
+<title>📊 Features</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3546">
+<title>Core Functionality</title><para><itemizedlist>
+<listitem><para><bold>3D Network Visualization</bold>: Interactive 3D graph of asset relationships</para>
+</listitem><listitem><para><bold>Cross-Asset Analysis</bold>: Automatic relationship discovery between asset classes</para>
+</listitem><listitem><para><bold>Regulatory Integration</bold>: Corporate events and SEC filings impact modeling</para>
+</listitem><listitem><para><bold>Real-time Metrics</bold>: Network statistics and relationship strength analysis</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3547">
+<title>Asset Classes Supported</title><para><itemizedlist>
+<listitem><para><bold>Equities</bold>: Stocks with P/E ratios, dividend yields, EPS</para>
+</listitem><listitem><para><bold>Fixed Income</bold>: Bonds with yield, duration, credit ratings</para>
+</listitem><listitem><para><bold>Commodities</bold>: Futures and spot prices with contract specifications</para>
+</listitem><listitem><para><bold>Currencies</bold>: FX pairs with exchange rates and monetary policy links</para>
+</listitem><listitem><para><bold>Regulatory Events</bold>: Earnings, SEC filings, M&amp;A activities</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3548">
+<title>Relationship Types</title><para><itemizedlist>
+<listitem><para><bold>Sector Affinity</bold>: Assets in same industry sector</para>
+</listitem><listitem><para><bold>Corporate Links</bold>: Bonds issued by stock companies</para>
+</listitem><listitem><para><bold>Commodity Exposure</bold>: Equity companies exposed to commodity prices</para>
+</listitem><listitem><para><bold>Currency Risk</bold>: FX exposure for non-USD assets</para>
+</listitem><listitem><para><bold>Income Comparison</bold>: Dividends vs bond yields</para>
+</listitem><listitem><para><bold>Event Impact</bold>: Regulatory events affecting multiple assets</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3549">
+<title>🏗️ Architecture</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3550">
+<title>Key Components</title><para><itemizedlist>
+<listitem><para><bold><computeroutput><ref refid="app_8py" kindref="compound">app.py</ref></computeroutput></bold>: Gradio web interface and event handlers</para>
+</listitem><listitem><para><bold><computeroutput><ref refid="asset__graph_8py" kindref="compound">src/logic/asset_graph.py</ref></computeroutput></bold>: Core graph algorithms and relationship engine</para>
+</listitem><listitem><para><bold><computeroutput><ref refid="financial__models_8py" kindref="compound">src/models/financial_models.py</ref></computeroutput></bold>: Domain model dataclasses and enums</para>
+</listitem><listitem><para><bold><computeroutput><ref refid="sample__data_8py" kindref="compound">src/data/sample_data.py</ref></computeroutput></bold>: Sample dataset creation</para>
+</listitem><listitem><para><bold><computeroutput>src/visualizations/</computeroutput></bold>: Plotly-based charts and 3D graphs</para>
+</listitem><listitem><para><bold><computeroutput>src/reports/</computeroutput></bold>: Schema and business rules reporting</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3551">
+<title>Data Model</title><para><programlisting><codeline><highlight class="normal">Assets<sp/>-&gt;<sp/>Relationships<sp/>-&gt;<sp/>Regulatory<sp/>Events</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>↓<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>↓<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>↓</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>Attributes<sp/><sp/>Strength<sp/><sp/><sp/><sp/>Impact<sp/>Score</highlight></codeline>
+</programlisting></para>
+<para><itemizedlist>
+<listitem><para><bold>Relationship Strength</bold>: Normalized 0.0-1.0 scale</para>
+</listitem><listitem><para><bold>Regulatory Impact</bold>: -1 to +1 scale (negative to positive)</para>
+</listitem><listitem><para><bold>3D Positions</bold>: Deterministic layout with seed=42 for consistency</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3552">
+<title>🧪 Development</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3553">
+<title>Project Structure</title><para><programlisting><codeline><highlight class="normal">.</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>app.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Main<sp/>application<sp/>entry<sp/>point</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements.txt<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Python<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>.github/copilot-instructions.md<sp/>#<sp/>AI<sp/>agent<sp/>guidance</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>src/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>data/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>sample_data.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Sample<sp/>database<sp/>creation</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>logic/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>asset_graph.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Core<sp/>relationship<sp/>engine</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>models/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>financial_models.py<sp/><sp/><sp/><sp/>#<sp/>Domain<sp/>model<sp/>classes</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>reports/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>schema_report.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Schema<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>visualizations/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>graph_visuals.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>3D<sp/>network<sp/>visualization</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──<sp/>metric_visuals.py<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Analytics<sp/>charts</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3554">
+<title>Key Patterns</title><para><itemizedlist>
+<listitem><para><bold>Bidirectional Relationships</bold>: Some relationships are symmetric (e.g., <computeroutput>same_sector</computeroutput>)</para>
+</listitem><listitem><para><bold>Directional Relationships</bold>: Others flow one way (e.g., <computeroutput>corporate_bond_to_equity</computeroutput>)</para>
+</listitem><listitem><para><bold>Deterministic Positions</bold>: 3D layout uses fixed random seed for consistency</para>
+</listitem><listitem><para><bold>Relationship Discovery</bold>: Automatic relationship detection via <computeroutput>_find_relationships()</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3555">
+<title>📈 Usage Examples</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3556">
+<title>Adding New Asset Types</title><para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>src.models.financial_models<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Asset,<sp/>AssetClass</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Extend<sp/>Asset<sp/>for<sp/>new<sp/>types</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">@dataclass</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">Derivative(Asset):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>underlying_asset:<sp/>str</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>expiration_date:<sp/>str</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>strike_price:<sp/>Optional[float]<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3557">
+<title>Custom Relationship Rules</title><para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>Add<sp/>to<sp/>_find_relationships()<sp/>in<sp/>AssetRelationshipGraph</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>isinstance(asset1,<sp/>Derivative)<sp/></highlight><highlight class="keywordflow">and</highlight><highlight class="normal"><sp/>isinstance(asset2,<sp/>Equity):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>asset1.underlying_asset<sp/>==<sp/>asset2.symbol:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>relationships.append((</highlight><highlight class="stringliteral">&quot;derivative_underlying&quot;</highlight><highlight class="normal">,<sp/>0.95,<sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal">))</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3558">
+<title>🛠️ API Reference</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3559">
+<title>Core Methods</title><para><itemizedlist>
+<listitem><para><computeroutput>AssetRelationshipGraph.add_asset(asset)</computeroutput> - Add asset to graph</para>
+</listitem><listitem><para><computeroutput>AssetRelationshipGraph.add_relationship(source, target, type, strength)</computeroutput> - Create relationship</para>
+</listitem><listitem><para><computeroutput>AssetRelationshipGraph.build_relationships()</computeroutput> - Auto-discover relationships</para>
+</listitem><listitem><para><computeroutput>AssetRelationshipGraph.calculate_metrics()</computeroutput> - Generate network statistics</para>
+</listitem><listitem><para><computeroutput>AssetRelationshipGraph.get_3d_visualization_data()</computeroutput> - Export for visualization</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3560">
+<title>🧪 Testing</title><para>The project includes comprehensive test coverage:</para>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3561">
+<title>Backend (Python)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>--cov=src<sp/>--cov-report=html</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>use<sp/>Makefile</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3562">
+<title>Frontend (Next.js/React)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+</programlisting></para>
+<para><bold>Note:</bold> Coverage reports are generated locally in <computeroutput>frontend/coverage/</computeroutput> and are excluded from version control. These files are auto-generated by Jest/Istanbul and should not be committed.</para>
+<para>See <ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING" kindref="compound">CONTRIBUTING.md</ref> for detailed testing guidelines.</para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3563">
+<title>🔧 Development Tools</title><para><itemizedlist>
+<listitem><para><bold>Testing:</bold> pytest with coverage reporting</para>
+</listitem><listitem><para><bold>Linting:</bold> flake8, pylint</para>
+</listitem><listitem><para><bold>Formatting:</bold> black, isort</para>
+</listitem><listitem><para><bold>Type Checking:</bold> mypy</para>
+</listitem><listitem><para><bold>Pre-commit Hooks:</bold> Automatic quality checks</para>
+</listitem></itemizedlist>
+</para>
+<para>Install development dependencies:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements-dev.txt</highlight></codeline>
+<codeline><highlight class="normal">pre-commit<sp/>install</highlight></codeline>
+</programlisting></para>
+<para>Or use the Makefile:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">make<sp/>install-dev</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>pre-commit</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3564">
+<title>📝 License</title><para>MIT License - see LICENSE file for details.</para>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3565">
+<title>🤝 Contributing</title><para>We welcome contributions! Please see <ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING" kindref="compound">CONTRIBUTING.md</ref> for detailed guidelines.</para>
+<para>Quick start:</para>
+<para><orderedlist>
+<listitem><para>Fork the repository</para>
+</listitem><listitem><para>Create a feature branch</para>
+</listitem><listitem><para>Make your changes with tests</para>
+</listitem><listitem><para>Run <computeroutput>make check</computeroutput> to verify quality</para>
+</listitem><listitem><para>Submit a pull request</para>
+</listitem></orderedlist>
+</para>
+<para>For AI agents: see <computeroutput>.github/copilot-instructions.md</computeroutput> for development guidelines.</para>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3566">
+<title>📚 Additional Documentation</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3567">
+<title>Getting Started (NEW)</title><para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START" kindref="compound">QUICK_START.md</ref> - <bold>Get started in under 5 minutes</bold></para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON" kindref="compound">UI_COMPARISON.md</ref> - <bold>Compare Gradio vs Next.js interfaces</bold></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3568">
+<title>Deployment &amp; Integration (NEW)</title><para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref> - <bold>Vercel Next.js deployment guide</bold></para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd" kindref="compound">VERCEL_DEPLOYMENT_CHECKLIST.md</ref> - <bold>Step-by-step deployment checklist</bold></para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY" kindref="compound">INTEGRATION_SUMMARY.md</ref> - <bold>Technical integration details</bold></para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE" kindref="compound">ARCHITECTURE.md</ref> - <bold>System architecture diagrams</bold></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3569">
+<title>Original Documentation</title><para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AUDIT__REPORT" kindref="compound">AUDIT_REPORT.md</ref> - Comprehensive code audit and improvements</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG" kindref="compound">CHANGELOG.md</ref> - Version history and changes</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING" kindref="compound">CONTRIBUTING.md</ref> - Development guidelines</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AI__RULES" kindref="compound">AI_RULES.md</ref> - Tech stack and coding conventions</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER" kindref="compound">DOCKER.md</ref> - Docker deployment guide</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS" kindref="compound">IMPROVEMENTS.md</ref> - Code quality recommendations</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY" kindref="compound">SECURITY.md</ref> - Security best practices</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref> - Branch management and cleanup guide</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md_1autotoc_md3570">
+<title><ulink url="https://repography.com"><image type="html" name="https://images.repography.com/logo.svg" alt="Repography logo" inline="yes"></image>
+</ulink> / Structure</title><para><ulink url="https://github.com/DashFin/financial-asset-relationship-db"><image type="html" name="https://images.repography.com/101385307/DashFin/financial-asset-relationship-db/structure/arjWaynlR5rCs456RmPMMMqHEGw9SkWddam5SrE3whs/T4MviKoggvFTqpIOb8tlmjs-DCZZlG84-xtfxwZ4i5w_table.svg" alt="Structure" inline="yes"></image>
+</ulink> </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/"/>
+  </compounddef>
+</doxygen>

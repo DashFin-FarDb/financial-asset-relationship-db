@@ -1,0 +1,400 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="VERCEL__DEPLOYMENT__CHECKLIST_8md" kind="file" language="Markdown">
+    <compoundname>VERCEL_DEPLOYMENT_CHECKLIST.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Vercel<sp/>Deployment<sp/>Checklist</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Use<sp/>this<sp/>checklist<sp/>to<sp/>ensure<sp/>a<sp/>smooth<sp/>deployment<sp/>to<sp/>Vercel.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Pre-Deployment<sp/>Checklist</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Code<sp/>Preparation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>All<sp/>code<sp/>is<sp/>committed<sp/>to<sp/>your<sp/>Git<sp/>repository</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>`.gitignore`<sp/>excludes<sp/>build<sp/>artifacts<sp/>and<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>No<sp/>sensitive<sp/>data<sp/>or<sp/>secrets<sp/>in<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Environment<sp/>variables<sp/>are<sp/>documented<sp/>in<sp/>`.env.example`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Local<sp/>Testing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Backend<sp/>API<sp/>runs<sp/>successfully:<sp/>`python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--port<sp/>8000`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Frontend<sp/>builds<sp/>without<sp/>errors:<sp/>`cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>run<sp/>build`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>All<sp/>API<sp/>endpoints<sp/>return<sp/>valid<sp/>responses</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>3D<sp/>visualization<sp/>renders<sp/>correctly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>No<sp/>console<sp/>errors<sp/>in<sp/>browser</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Configuration<sp/>Files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>`vercel.json`<sp/>exists<sp/>in<sp/>project<sp/>root</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>`frontend/package.json`<sp/>is<sp/>properly<sp/>configured</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>`frontend/next.config.js`<sp/>has<sp/>correct<sp/>settings</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>`requirements.txt`<sp/>includes<sp/>all<sp/>Python<sp/>dependencies</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Dependencies<sp/>Check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Python<sp/>dependencies<sp/>(requirements.txt):</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>fastapi&gt;=0.104.0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>uvicorn[standard]&gt;=0.24.0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>pydantic&gt;=2.4.0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>gradio&gt;=4.0.0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>plotly&gt;=5.0.0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>numpy&gt;=1.21.0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>yfinance&gt;=0.2.0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>pandas&gt;=1.5.0</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Frontend<sp/>dependencies<sp/>(frontend/package.json):</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>react<sp/>and<sp/>react-dom</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>next</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>typescript</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>tailwindcss</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>plotly.js<sp/>and<sp/>react-plotly.js</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>axios</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Deployment<sp/>Steps</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>1:<sp/>Deploy<sp/>via<sp/>GitHub<sp/>Integration<sp/>(Recommended)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>1:<sp/>Push<sp/>to<sp/>GitHub</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Ensure<sp/>all<sp/>changes<sp/>are<sp/>committed</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>status</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Push<sp/>to<sp/>your<sp/>repository</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>main<sp/><sp/>#<sp/>or<sp/>your<sp/>branch<sp/>name</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>2:<sp/>Connect<sp/>to<sp/>Vercel</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Go<sp/>to<sp/>[vercel.com](https://vercel.com)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Sign<sp/>up<sp/>or<sp/>log<sp/>in</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Click<sp/>&quot;New<sp/>Project&quot;</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Import<sp/>your<sp/>GitHub<sp/>repository</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Vercel<sp/>will<sp/>auto-detect<sp/>Next.js</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>3:<sp/>Configure<sp/>Project<sp/>Settings</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>**Framework<sp/>Preset**:<sp/>Next.js</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>**Root<sp/>Directory**:<sp/>Leave<sp/>as<sp/>`.`<sp/>(default)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>**Build<sp/>Command**:<sp/>Leave<sp/>default</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>**Output<sp/>Directory**:<sp/>Leave<sp/>default</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>4:<sp/>Set<sp/>Environment<sp/>Variables</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">In<sp/>the<sp/>Vercel<sp/>dashboard,<sp/>add:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>`NEXT_PUBLIC_API_URL`<sp/>=<sp/>`https://your-project.vercel.app`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Note:<sp/>Use<sp/>your<sp/>actual<sp/>Vercel<sp/>deployment<sp/>URL</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>This<sp/>will<sp/>be<sp/>available<sp/>after<sp/>first<sp/>deployment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>5:<sp/>Deploy</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Click<sp/>&quot;Deploy&quot;</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Wait<sp/>for<sp/>build<sp/>to<sp/>complete<sp/>(2-5<sp/>minutes)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>deployment<sp/>logs<sp/>for<sp/>errors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>6:<sp/>Update<sp/>API<sp/>URL</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">After<sp/>first<sp/>deployment:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Copy<sp/>your<sp/>Vercel<sp/>project<sp/>URL<sp/>(e.g.,<sp/>`https://your-project.vercel.app`)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Update<sp/>`NEXT_PUBLIC_API_URL`<sp/>in<sp/>environment<sp/>variables</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Redeploy<sp/>if<sp/>necessary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>2:<sp/>Deploy<sp/>via<sp/>Vercel<sp/>CLI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>1:<sp/>Install<sp/>Vercel<sp/>CLI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install<sp/>-g<sp/>vercel</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>2:<sp/>Login</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>login</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>3:<sp/>Deploy<sp/>from<sp/>Project<sp/>Root</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>From<sp/>the<sp/>project<sp/>root<sp/>directory</highlight></codeline>
+<codeline><highlight class="normal">vercel</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Follow<sp/>the<sp/>prompts:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Set<sp/>up<sp/>and<sp/>deploy?<sp/>Yes</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Which<sp/>scope?<sp/>Your<sp/>account</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Link<sp/>to<sp/>existing<sp/>project?<sp/>No<sp/>(for<sp/>first<sp/>deployment)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Project<sp/>name?<sp/>Your<sp/>choice</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Directory?<sp/>./<sp/>(current<sp/>directory)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>4:<sp/>Set<sp/>Environment<sp/>Variables</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Set<sp/>production<sp/>environment<sp/>variable</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>env<sp/>add<sp/>NEXT_PUBLIC_API_URL<sp/>production</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Enter:<sp/>https://your-project.vercel.app</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>5:<sp/>Deploy<sp/>to<sp/>Production</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>--prod</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Post-Deployment<sp/>Checklist</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Verify<sp/>Deployment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Open<sp/>deployed<sp/>URL<sp/>in<sp/>browser</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>that<sp/>frontend<sp/>loads<sp/>without<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Verify<sp/>API<sp/>health:<sp/>`https://your-project.vercel.app/api/health`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Test<sp/>API<sp/>docs:<sp/>`https://your-project.vercel.app/docs`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Test<sp/>Functionality</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>3D<sp/>Visualization<sp/>tab<sp/>loads<sp/>and<sp/>displays<sp/>graph</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Metrics<sp/>tab<sp/>shows<sp/>correct<sp/>statistics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Asset<sp/>Explorer<sp/>tab<sp/>displays<sp/>and<sp/>filters<sp/>work</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>No<sp/>CORS<sp/>errors<sp/>in<sp/>browser<sp/>console</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>All<sp/>interactive<sp/>features<sp/>work</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Performance<sp/>Check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Page<sp/>load<sp/>time<sp/>is<sp/>acceptable<sp/>(&lt;<sp/>3<sp/>seconds)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>API<sp/>responses<sp/>are<sp/>fast<sp/>(&lt;<sp/>2<sp/>seconds)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>3D<sp/>visualization<sp/>renders<sp/>smoothly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>No<sp/>memory<sp/>leaks<sp/>or<sp/>errors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Mobile<sp/>Testing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Open<sp/>site<sp/>on<sp/>mobile<sp/>device</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>responsive<sp/>layout</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Test<sp/>touch<sp/>interactions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Verify<sp/>visualization<sp/>works<sp/>on<sp/>mobile</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Troubleshooting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Common<sp/>Issues<sp/>and<sp/>Solutions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Issue<sp/>1:<sp/>Build<sp/>Failed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Error**:<sp/>Build<sp/>command<sp/>failed</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>build<sp/>logs<sp/>in<sp/>Vercel<sp/>dashboard</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Verify<sp/>all<sp/>dependencies<sp/>are<sp/>in<sp/>package.json</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Test<sp/>build<sp/>locally:<sp/>`cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>run<sp/>build`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>for<sp/>TypeScript<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Ensure<sp/>Node.js<sp/>version<sp/>is<sp/>compatible<sp/>(18+)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Issue<sp/>2:<sp/>API<sp/>Not<sp/>Found<sp/>(404)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Error**:<sp/>`/api/`<sp/>routes<sp/>return<sp/>404</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Verify<sp/>`vercel.json`<sp/>is<sp/>in<sp/>project<sp/>root</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>route<sp/>configuration<sp/>in<sp/>vercel.json</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Ensure<sp/>`api/main.py`<sp/>exists</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>Python<sp/>version<sp/>compatibility</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Issue<sp/>3:<sp/>CORS<sp/>Errors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Error**:<sp/>CORS<sp/>policy<sp/>errors<sp/>in<sp/>browser</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>CORS<sp/>configuration<sp/>in<sp/>`api/main.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Add<sp/>Vercel<sp/>domain<sp/>to<sp/>allowed<sp/>origins</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Verify<sp/>`NEXT_PUBLIC_API_URL`<sp/>is<sp/>set<sp/>correctly</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>In<sp/>api/main.py</highlight></codeline>
+<codeline><highlight class="normal">app.add_middleware(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CORSMiddleware,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_origins=[&quot;https://*.vercel.app&quot;,<sp/>&quot;https://your-domain.com&quot;],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_credentials=True,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_methods=[&quot;*&quot;],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_headers=[&quot;*&quot;],</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Issue<sp/>4:<sp/>Environment<sp/>Variables<sp/>Not<sp/>Working</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Error**:<sp/>API_URL<sp/>is<sp/>undefined</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Verify<sp/>variable<sp/>name<sp/>starts<sp/>with<sp/>`NEXT_PUBLIC_`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Set<sp/>in<sp/>Vercel<sp/>dashboard<sp/>(Settings<sp/>→<sp/>Environment<sp/>Variables)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Redeploy<sp/>after<sp/>adding<sp/>variables</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>variable<sp/>is<sp/>accessed<sp/>correctly<sp/>in<sp/>code</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Issue<sp/>5:<sp/>Python<sp/>Dependencies<sp/>Not<sp/>Found</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Error**:<sp/>Module<sp/>not<sp/>found<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Verify<sp/>`requirements.txt`<sp/>includes<sp/>all<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>Python<sp/>version<sp/>in<sp/>Vercel<sp/>settings</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Use<sp/>compatible<sp/>package<sp/>versions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>Vercel<sp/>Python<sp/>runtime<sp/>logs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Issue<sp/>6:<sp/>Lambda<sp/>Size<sp/>Exceeded</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Error**:<sp/>Deployment<sp/>exceeds<sp/>size<sp/>limit</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Increase<sp/>`maxLambdaSize`<sp/>in<sp/>vercel.json</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Remove<sp/>unused<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Use<sp/>lighter<sp/>alternatives<sp/>where<sp/>possible</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Consider<sp/>serverless-friendly<sp/>packages</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```json</highlight></codeline>
+<codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;builds&quot;:<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;src&quot;:<sp/>&quot;api/main.py&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;use&quot;:<sp/>&quot;@vercel/python&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;config&quot;:<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;maxLambdaSize&quot;:<sp/>&quot;50mb&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>]</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Continuous<sp/>Deployment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Automatic<sp/>Deployments</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Once<sp/>connected<sp/>to<sp/>GitHub:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Every<sp/>push<sp/>to<sp/>main<sp/>branch<sp/>triggers<sp/>deployment</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Pull<sp/>requests<sp/>create<sp/>preview<sp/>deployments</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Failed<sp/>builds<sp/>prevent<sp/>deployment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Branch<sp/>Deployments</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>**Production**:<sp/>Deploy<sp/>from<sp/>`main`<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>**Staging**:<sp/>Deploy<sp/>from<sp/>`develop`<sp/>branch<sp/>(optional)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>**Preview**:<sp/>Automatic<sp/>for<sp/>all<sp/>PRs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Monitoring</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Vercel<sp/>Dashboard</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>deployment<sp/>status<sp/>regularly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Monitor<sp/>function<sp/>execution<sp/>times</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Review<sp/>error<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Check<sp/>bandwidth<sp/>usage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Analytics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Enable<sp/>Vercel<sp/>Analytics<sp/>(optional)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Monitor<sp/>page<sp/>views</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Track<sp/>performance<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Review<sp/>user<sp/>behavior</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Security</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Best<sp/>Practices</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Never<sp/>commit<sp/>secrets<sp/>to<sp/>Git</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Use<sp/>environment<sp/>variables<sp/>for<sp/>sensitive<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Enable<sp/>HTTPS<sp/>(automatic<sp/>on<sp/>Vercel)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Set<sp/>up<sp/>proper<sp/>CORS<sp/>policies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Regular<sp/>dependency<sp/>updates</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Monitor<sp/>for<sp/>security<sp/>vulnerabilities</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Access<sp/>Control</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Limit<sp/>Vercel<sp/>project<sp/>access<sp/>to<sp/>team<sp/>members</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Use<sp/>separate<sp/>production/staging<sp/>environments</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Rotate<sp/>secrets<sp/>regularly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Review<sp/>access<sp/>logs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Backup<sp/>Plan</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Rollback<sp/>Procedure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">If<sp/>deployment<sp/>fails<sp/>or<sp/>has<sp/>issues:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Go<sp/>to<sp/>Vercel<sp/>dashboard</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Navigate<sp/>to<sp/>Deployments</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Find<sp/>previous<sp/>working<sp/>deployment</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Click<sp/>&quot;Promote<sp/>to<sp/>Production&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Local<sp/>Fallback</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Keep<sp/>Gradio<sp/>UI<sp/>as<sp/>fallback:<sp/>`python<sp/>app.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Document<sp/>how<sp/>to<sp/>switch<sp/>between<sp/>UIs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Maintain<sp/>both<sp/>deployment<sp/>methods</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Resources</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Documentation<sp/>Links</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>[Vercel<sp/>Documentation](https://vercel.com/docs)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>[Next.js<sp/>Deployment](https://nextjs.org/docs/deployment)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>[FastAPI<sp/>Deployment](https://fastapi.tiangolo.com/deployment/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Project-specific:<sp/>[DEPLOYMENT.md](DEPLOYMENT.md)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Support<sp/>Channels</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Vercel<sp/>Support:<sp/>support@vercel.com</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Vercel<sp/>Community:<sp/>Discord/Forum</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>GitHub<sp/>Issues:<sp/>For<sp/>project-specific<sp/>issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Final<sp/>Checks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Before<sp/>going<sp/>live:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>All<sp/>tests<sp/>pass</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Documentation<sp/>is<sp/>up<sp/>to<sp/>date</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Team<sp/>members<sp/>can<sp/>access<sp/>deployment</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Monitoring<sp/>is<sp/>set<sp/>up</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Backup<sp/>plan<sp/>is<sp/>documented</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Users<sp/>are<sp/>notified<sp/>of<sp/>new<sp/>deployment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Quick<sp/>Reference<sp/>Commands</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Test<sp/>locally</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh<sp/><sp/>#<sp/>or<sp/>run-dev.bat<sp/>on<sp/>Windows</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>run<sp/>build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Test<sp/>API</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>test_api.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Deploy<sp/>to<sp/>Vercel</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>--prod</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>logs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>List<sp/>deployments</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>ls</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Deployment<sp/>Complete?**<sp/>🎉</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">If<sp/>all<sp/>items<sp/>are<sp/>checked<sp/>and<sp/>deployment<sp/>is<sp/>successful,<sp/>congratulations!<sp/>Your<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database<sp/>is<sp/>now<sp/>live<sp/>on<sp/>Vercel.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>maintenance<sp/>and<sp/>updates,<sp/>see<sp/>[DEPLOYMENT.md](DEPLOYMENT.md).</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/VERCEL_DEPLOYMENT_CHECKLIST.md"/>
+  </compounddef>
+</doxygen>

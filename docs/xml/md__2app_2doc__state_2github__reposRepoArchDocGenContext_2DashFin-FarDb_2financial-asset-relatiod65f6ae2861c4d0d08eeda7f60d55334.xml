@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2PR__RESOLUTION__ANALYSIS</compoundname>
+    <title>Open PRs Resolution Analysis</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3382"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3383">
+<title>Summary</title><para>Generated on: 2025-12-08 Total Open PRs: 43</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3384">
+<title>Successfully Merged PRs</title><para><itemizedlist>
+<listitem><para><bold>PR #239</bold>: Align pr-agent workflow tests with trigger job key - ✅ MERGED</para>
+</listitem><listitem><para><bold>PR #254</bold>: Fix pr-agent workflow parsing and dev requirements formatting - ✅ MERGED</para>
+</listitem><listitem><para><bold>PR #322</bold>: Remove duplicated empty test causing IndentationError - ✅ MERGED</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3385">
+<title>PRs with Unrelated Histories (Cannot be merged)</title><para>These PRs have branches with completely unrelated Git histories and cannot be merged into main:</para>
+<para><itemizedlist>
+<listitem><para>PR #181 (patch branch)</para>
+</listitem><listitem><para>PR #286 (codex/fix-env-var-naming-test-issue)</para>
+</listitem><listitem><para>PR #395 (copilot/sub-pr-394)</para>
+</listitem><listitem><para>Many others</para>
+</listitem></itemizedlist>
+</para>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3386">
+<title>Root Cause</title><para>The branches were created from different base commits or imported from external sources, causing Git to reject merges with &quot;fatal: refusing to merge unrelated histories&quot;.</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3387">
+<title>PRs Targeting Non-existent Files</title><para>Many PRs attempt to modify files that don&apos;t exist in the main branch:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput><ref refid="test__pr__agent__config__validation_8py" kindref="compound">tests/integration/test_pr_agent_config_validation.py</ref></computeroutput></para>
+</listitem><listitem><para>Various test and documentation files</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3388">
+<title>Recommended Actions</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3389">
+<title>1. Close Stale PRs</title><para>PRs older than 30 days with unrelated histories or targeting non-existent files should be closed with explanation.</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3390">
+<title>2. Recreate Valid Changes</title><para>If any PR contains valid changes:</para>
+<para><itemizedlist>
+<listitem><para>Cherry-pick the changes into a new branch from main</para>
+</listitem><listitem><para>Create a fresh PR with proper history</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3391">
+<title>3. Consolidate Duplicate PRs</title><para>Many PRs have similar titles and goals. Consolidate these into single PRs.</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod65f6ae2861c4d0d08eeda7f60d55334_1autotoc_md3392">
+<title>Next Steps</title><para><orderedlist>
+<listitem><para>Review each PR individually</para>
+</listitem><listitem><para>Close PRs that cannot be merged</para>
+</listitem><listitem><para>Extract and recreate valid changes in fresh branches</para>
+</listitem><listitem><para>Update documentation to prevent future unrelated history issues </para>
+</listitem></orderedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/PR_RESOLUTION_ANALYSIS.md"/>
+  </compounddef>
+</doxygen>

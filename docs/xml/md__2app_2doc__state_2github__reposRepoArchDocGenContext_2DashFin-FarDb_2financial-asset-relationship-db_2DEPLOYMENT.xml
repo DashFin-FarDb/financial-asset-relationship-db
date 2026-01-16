@@ -1,0 +1,288 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT</compoundname>
+    <title>Deployment Guide - Vercel Next.js Integration</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1226"/></para>
+<para>This guide explains how to deploy the Financial Asset Relationship Database with a Next.js frontend on Vercel.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1227">
+<title>Architecture Overview</title><para>The application now consists of two main components:</para>
+<para><orderedlist>
+<listitem><para><bold>Backend API</bold> (<computeroutput>/api</computeroutput>): FastAPI server that provides REST endpoints for the asset relationship graph</para>
+</listitem><listitem><para><bold>Frontend</bold> (<computeroutput>/frontend</computeroutput>): Next.js application with React components for visualization</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1228">
+<title>Local Development</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1229">
+<title>Prerequisites</title><para><itemizedlist>
+<listitem><para>Python 3.8+</para>
+</listitem><listitem><para>Node.js 18+ and npm</para>
+</listitem><listitem><para>Virtual environment (recommended for Python)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1230">
+<title>Backend Setup</title><para><orderedlist>
+<listitem><para><bold>Create and activate Python virtual environment:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+<codeline><highlight class="normal">source<sp/>.venv/bin/activate<sp/><sp/>#<sp/>On<sp/>Windows:<sp/>.venv\Scripts\activate</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Install Python dependencies:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Run the FastAPI backend:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--host<sp/>0.0.0.0<sp/>--port<sp/>8000</highlight></codeline>
+</programlisting></para>
+<para>The API will be available at <computeroutput><ulink url="http://localhost:8000">http://localhost:8000</ulink></computeroutput><itemizedlist>
+<listitem><para>API documentation: <computeroutput><ulink url="http://localhost:8000/docs">http://localhost:8000/docs</ulink></computeroutput></para>
+</listitem><listitem><para>Health check: <computeroutput><ulink url="http://localhost:8000/api/health">http://localhost:8000/api/health</ulink></computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1231">
+<title>Frontend Setup</title><para><orderedlist>
+<listitem><para><bold>Navigate to the frontend directory:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Install Node.js dependencies:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>(Optional) Create environment file:</bold></para>
+<para>Copy the environment template:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">cp<sp/>../.env.example<sp/>.env.local</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Run the Next.js development server:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+</programlisting></para>
+<para>The frontend will be available at <computeroutput><ulink url="http://localhost:3000">http://localhost:3000</ulink></computeroutput></para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1232">
+<title>Development Workflow</title><para>With both servers running:</para>
+<para><itemizedlist>
+<listitem><para>Frontend: <computeroutput><ulink url="http://localhost:3000">http://localhost:3000</ulink></computeroutput></para>
+</listitem><listitem><para>Backend API: <computeroutput><ulink url="http://localhost:8000">http://localhost:8000</ulink></computeroutput></para>
+</listitem><listitem><para>API Docs: <computeroutput><ulink url="http://localhost:8000/docs">http://localhost:8000/docs</ulink></computeroutput></para>
+</listitem></itemizedlist>
+</para>
+<para>The frontend automatically connects to the backend API on port 8000.</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1233">
+<title>Vercel Deployment</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1234">
+<title>Option 1: Deploy via Vercel CLI</title><para><orderedlist>
+<listitem><para><bold>Install Vercel CLI:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">npm<sp/>install<sp/>-g<sp/>vercel</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Login to Vercel:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">vercel<sp/>login</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Deploy from the project root:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">vercel</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Follow the prompts to configure your project</bold></para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1235">
+<title>Option 2: Deploy via GitHub Integration</title><para><orderedlist>
+<listitem><para><bold>Push your code to GitHub:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>add<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>commit<sp/>-m<sp/>&quot;Add<sp/>Vercel<sp/>Next.js<sp/>integration&quot;</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>main</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Connect to Vercel:</bold><itemizedlist>
+<listitem><para>Go to <ulink url="https://vercel.com">vercel.com</ulink></para>
+</listitem><listitem><para>Click &quot;New Project&quot;</para>
+</listitem><listitem><para>Import your GitHub repository</para>
+</listitem><listitem><para>Vercel will automatically detect the Next.js app</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Configure environment variables in Vercel dashboard:</bold><itemizedlist>
+<listitem><para><computeroutput>NEXT_PUBLIC_API_URL</computeroutput>: Set to your deployed API URL (e.g., <computeroutput><ulink url="https://your-project.vercel.app">https://your-project.vercel.app</ulink></computeroutput>)</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1236">
+<title>Project Structure for Vercel</title><para><programlisting><codeline><highlight class="normal">.</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>api/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>FastAPI<sp/>backend</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>__init__.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>main.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>API<sp/>entry<sp/>point</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>frontend/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Next.js<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>app/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>components/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>lib/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>types/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>layout.tsx</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>page.tsx</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>package.json</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>tsconfig.json</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>next.config.js</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>src/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Python<sp/>source<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements.txt<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Python<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>vercel.json<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Vercel<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>DEPLOYMENT.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>This<sp/>file</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1237">
+<title>API Endpoints</title><para>The FastAPI backend exposes the following endpoints:</para>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1238">
+<title>Core Endpoints</title><para><itemizedlist>
+<listitem><para><computeroutput>GET /</computeroutput> - API information</para>
+</listitem><listitem><para><computeroutput>GET /api/health</computeroutput> - Health check</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1239">
+<title>Assets</title><para><itemizedlist>
+<listitem><para><computeroutput>GET /api/assets</computeroutput> - Get all assets (with optional filters)<itemizedlist>
+<listitem><para>Query params: <computeroutput>asset_class</computeroutput>, <computeroutput>sector</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><computeroutput>GET /api/assets/{asset_id}</computeroutput> - Get asset details</para>
+</listitem><listitem><para><computeroutput>GET /api/assets/{asset_id}/relationships</computeroutput> - Get asset relationships</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1240">
+<title>Relationships</title><para><itemizedlist>
+<listitem><para><computeroutput>GET /api/relationships</computeroutput> - Get all relationships</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1241">
+<title>Metrics</title><para><itemizedlist>
+<listitem><para><computeroutput>GET /api/metrics</computeroutput> - Get network metrics</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1242">
+<title>Visualization</title><para><itemizedlist>
+<listitem><para><computeroutput>GET /api/visualization</computeroutput> - Get 3D visualization data</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1243">
+<title>Metadata</title><para><itemizedlist>
+<listitem><para><computeroutput>GET /api/asset-classes</computeroutput> - Get available asset classes</para>
+</listitem><listitem><para><computeroutput>GET /api/sectors</computeroutput> - Get available sectors</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1244">
+<title>Frontend Features</title><para>The Next.js frontend includes:</para>
+<para><orderedlist>
+<listitem><para><bold>3D Visualization Tab</bold>: Interactive 3D network graph using Plotly</para>
+</listitem><listitem><para><bold>Metrics &amp; Analytics Tab</bold>: Dashboard with key network statistics</para>
+</listitem><listitem><para><bold>Asset Explorer Tab</bold>: Filterable table of all assets</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1245">
+<title>Environment Variables</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1246">
+<title>Frontend (.env.local)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">NEXT_PUBLIC_API_URL=http://localhost:8000</highlight></codeline>
+</programlisting></para>
+<para>For production on Vercel, set this in the Vercel dashboard:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1247">
+<title>Troubleshooting</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1248">
+<title>CORS Issues</title><para>If you encounter CORS errors, ensure the FastAPI backend has the correct origins configured in <computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput>:</para>
+<para><programlisting filename=".py"><codeline><highlight class="normal">app.add_middleware(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CORSMiddleware,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_origins=[</highlight><highlight class="stringliteral">&quot;http://localhost:3000&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;https://*.vercel.app&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>...</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1249">
+<title>API Connection Errors</title><para><orderedlist>
+<listitem><para>Check that the backend is running: <computeroutput>curl <ulink url="http://localhost:8000/api/health">http://localhost:8000/api/health</ulink></computeroutput></para>
+</listitem><listitem><para>Verify the <computeroutput>NEXT_PUBLIC_API_URL</computeroutput> environment variable</para>
+</listitem><listitem><para>Check browser console for detailed error messages</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1250">
+<title>Build Errors</title><para>For frontend build issues:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">rm<sp/>-rf<sp/>.next<sp/>node_modules</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>build</highlight></codeline>
+</programlisting></para>
+<para>For backend issues:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">pip<sp/>install<sp/>--upgrade<sp/>-r<sp/>requirements.txt</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1251">
+<title>Monitoring and Logs</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1252">
+<title>Local Development</title><para><itemizedlist>
+<listitem><para>Backend logs: Visible in the terminal where <computeroutput>uvicorn</computeroutput> is running</para>
+</listitem><listitem><para>Frontend logs: Visible in the browser console and terminal</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1253">
+<title>Vercel Production</title><para><itemizedlist>
+<listitem><para>View logs in the Vercel dashboard under your project</para>
+</listitem><listitem><para>Real-time logs: <computeroutput>vercel logs</computeroutput></para>
+</listitem><listitem><para>Function logs: Available in the &quot;Functions&quot; tab</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1254">
+<title>Performance Considerations</title><para><orderedlist>
+<listitem><para><bold>Cold Starts</bold>: First API request may be slower due to serverless cold starts</para>
+</listitem><listitem><para><bold>Data Caching</bold>: The API initializes the graph on first request and keeps it in memory</para>
+</listitem><listitem><para><bold>Lambda Size</bold>: Vercel Python functions have a 50MB limit (configured in vercel.json)</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1255">
+<title>Scaling</title><para>For production deployments with higher traffic:</para>
+<para><orderedlist>
+<listitem><para>Consider using Vercel&apos;s Edge Functions for the API</para>
+</listitem><listitem><para>Implement caching for frequently accessed data</para>
+</listitem><listitem><para>Use a persistent database instead of in-memory data</para>
+</listitem><listitem><para>Add Redis for session/state management</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1256">
+<title>Security</title><para><orderedlist>
+<listitem><para>Add authentication/authorization if needed</para>
+</listitem><listitem><para>Rate limiting for API endpoints</para>
+</listitem><listitem><para>Validate all input data</para>
+</listitem><listitem><para>Use HTTPS in production</para>
+</listitem><listitem><para>Set up CORS properly for your domain</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT_1autotoc_md1257">
+<title>Additional Resources</title><para><itemizedlist>
+<listitem><para><ulink url="https://nextjs.org/docs">Next.js Documentation</ulink></para>
+</listitem><listitem><para><ulink url="https://fastapi.tiangolo.com/">FastAPI Documentation</ulink></para>
+</listitem><listitem><para><ulink url="https://vercel.com/docs">Vercel Documentation</ulink></para>
+</listitem><listitem><para><ulink url="https://plotly.com/javascript/react/">Plotly React Documentation</ulink> </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/DEPLOYMENT.md"/>
+  </compounddef>
+</doxygen>

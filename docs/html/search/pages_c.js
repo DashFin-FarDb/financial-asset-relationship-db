@@ -1,0 +1,11 @@
+var searchData=
+[
+  ['implementation_20summary_0',['Vercel Next.js Integration - Implementation Summary',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY.html',1,'']]],
+  ['improvements_1',['Dependency Management Improvements',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatioa052f3b4efb29307e6e706cb0e043f7e.html',1,'']]],
+  ['improvements_20and_20recommendations_2',['Code Quality Improvements and Recommendations',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS.html',1,'']]],
+  ['index_20complete_20reference_3',['Test Files Index - Complete Reference',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX.html',1,'']]],
+  ['integration_4',['Integration',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE.html',1,'Database Integration'],['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT.html',1,'Deployment Guide - Vercel Next.js Integration'],['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START.html',1,'Quick Start Guide - Next.js + FastAPI Integration']]],
+  ['integration_20implementation_20summary_5',['Vercel Next.js Integration - Implementation Summary',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY.html',1,'']]],
+  ['issue_20133_2020251112_20094229_20rqap_20tt_6',['Review: &lt;tt&gt;gitauto/issue-133-20251112-094229-rqAp&lt;/tt&gt;',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio5fbaacb222be8da4ae737aa40fb82893.html',1,'']]],
+  ['issue_20136_7',['Changelog Entry for Branch Cleanup (Issue #136)',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio44b97d0c5a71701971a16198a1cee9a1.html',1,'']]]
+];

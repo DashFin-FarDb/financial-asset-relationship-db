@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1integration_1_1test__debricked__workflow" kind="namespace" language="Python">
+    <compoundname>tests::integration::test_debricked_workflow</compoundname>
+    <innerclass refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492" prot="public">tests::integration::test_debricked_workflow::TestComplianceWithIssue492</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestFileBasics" prot="public">tests::integration::test_debricked_workflow::TestFileBasics</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestSecretHandling" prot="public">tests::integration::test_debricked_workflow::TestSecretHandling</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestSecurityPatterns" prot="public">tests::integration::test_debricked_workflow::TestSecurityPatterns</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestStepsConfiguration" prot="public">tests::integration::test_debricked_workflow::TestStepsConfiguration</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestVersionConsistency" prot="public">tests::integration::test_debricked_workflow::TestVersionConsistency</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowDocumentation" prot="public">tests::integration::test_debricked_workflow::TestWorkflowDocumentation</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure" prot="public">tests::integration::test_debricked_workflow::TestWorkflowStructure</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetests_1_1integration_1_1test__debricked__workflow_1ae972887bac1ab6bad72a40a2bd7995e3" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>tests::integration::test_debricked_workflow.REPO_ROOT</definition>
+        <argsstring></argsstring>
+        <name>REPO_ROOT</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.REPO_ROOT</qualifiedname>
+        <initializer>=  Path(__file__).resolve().parent.parent.parent</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="21" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetests_1_1integration_1_1test__debricked__workflow_1a9b4a0e4d326ac6d530e28c4388c1d40d" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::integration::test_debricked_workflow.DEBRICKED_WORKFLOW_FILE</definition>
+        <argsstring></argsstring>
+        <name>DEBRICKED_WORKFLOW_FILE</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.DEBRICKED_WORKFLOW_FILE</qualifiedname>
+        <initializer>=  <ref refid="namespacetests_1_1integration_1_1test__debricked__workflow_1ae972887bac1ab6bad72a40a2bd7995e3" kindref="member">REPO_ROOT</ref> / &quot;.github&quot; / &quot;workflows&quot; / &quot;debricked.yml&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="23" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="23" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__debricked__workflow_1a18268ba9923b2b189aa1b7248d7fdf21" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str tests.integration.test_debricked_workflow.workflow_content</definition>
+        <argsstring>()</argsstring>
+        <name>workflow_content</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.workflow_content</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load raw content of the debricked workflow file once for the module.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="30" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="30" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__debricked__workflow_1af566b507c19f65b012874b3a1c43f1ce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] tests.integration.test_debricked_workflow.workflow_config</definition>
+        <argsstring>(str workflow_content)</argsstring>
+        <name>workflow_config</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.workflow_config</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>workflow_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse YAML content once for the module.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="38" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="38" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__debricked__workflow_1ae2243366a273d46cff5a97888e982040" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] tests.integration.test_debricked_workflow.scan_job</definition>
+        <argsstring>(Dict[str, Any] workflow_config)</argsstring>
+        <name>scan_job</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.scan_job</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_config</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get the vulnerabilities-scan job configuration.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="47" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="47" bodyend="55"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__debricked__workflow_1a24913677aa1aaf931860770681f28267" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Dict[str, Any]]</type>
+        <definition> List[Dict[str, Any]] tests.integration.test_debricked_workflow.job_steps</definition>
+        <argsstring>(Dict[str, Any] scan_job)</argsstring>
+        <name>job_steps</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.job_steps</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>scan_job</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get the list of steps from the scan job.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="56" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="56" bodyend="63"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__debricked__workflow_1a7a8664136c911367ca7337cfc5446fab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Dict[str, Any]]</type>
+        <definition> List[Dict[str, Any]] tests.integration.test_debricked_workflow.get_steps_by_action</definition>
+        <argsstring>(List[Dict[str, Any]] steps, str action_substring)</argsstring>
+        <name>get_steps_by_action</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.get_steps_by_action</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>steps</declname>
+          <array>[Dict[str, Any]</array>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>action_substring</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Filter steps by action name (case-insensitive).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="64" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="66" bodyend="77"/>
+        <referencedby refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestStepsConfiguration_1aac099056fee53105f5e273a12c661382" compoundref="test__debricked__workflow_8py" startline="165" endline="169">tests.integration.test_debricked_workflow.TestStepsConfiguration.test_checkout_step_exists</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestStepsConfiguration_1afa710fa48baff6741d0131368f9911a5" compoundref="test__debricked__workflow_8py" startline="171" endline="191">tests.integration.test_debricked_workflow.TestStepsConfiguration.test_checkout_step_version_pinned</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestStepsConfiguration_1a0c59fa4cff670b080be003a3cf38880e" compoundref="test__debricked__workflow_8py" startline="193" endline="197">tests.integration.test_debricked_workflow.TestStepsConfiguration.test_debricked_action_exists</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestStepsConfiguration_1a59124949040a8b619dbece7fa52d0d31" compoundref="test__debricked__workflow_8py" startline="199" endline="222">tests.integration.test_debricked_workflow.TestStepsConfiguration.test_debricked_action_version_pinned</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestSecretHandling_1a14efa78607b9672157695a3b3dd828cd" compoundref="test__debricked__workflow_8py" startline="227" endline="248">tests.integration.test_debricked_workflow.TestSecretHandling.test_debricked_token_configuration</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a704772e8b4c6c695af36a995bea07568" compoundref="test__debricked__workflow_8py" startline="410" endline="421">tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_uses_github_secrets</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive tests for the Debricked vulnerability scanning workflow.
+
+This module validates the debricked.yml workflow file to ensure:
+- Proper YAML structure and syntax
+- Required fields and configuration
+- Security best practices (permissions, injection prevention)
+- Integration with Debricked actions
+- Compliance with issue #492 requirements
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

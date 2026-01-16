@@ -1,0 +1,79 @@
+\chapter{Code\+Rabbit Configuration Guide}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa}\index{CodeRabbit Configuration Guide@{CodeRabbit Configuration Guide}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md0}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md0}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md1}{}\doxysection{\texorpdfstring{Overview}{Overview}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md1}
+This document explains the {\ttfamily .coderabbit.\+yaml} configuration file structure for this repository.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md2}{}\doxysection{\texorpdfstring{Configuration Structure}{Configuration Structure}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md2}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md3}{}\doxysubsection{\texorpdfstring{Top-\/\+Level Settings}{Top-\/\+Level Settings}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md3}
+
+\begin{DoxyItemize}
+\item {\ttfamily language}\+: Set to {\ttfamily en-\/\+GB} for British English
+\item {\ttfamily early\+\_\+access}\+: Enable early access features
+\item {\ttfamily inheritance}\+: Enable configuration inheritance
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md4}{}\doxysubsection{\texorpdfstring{Reviews Section}{Reviews Section}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md4}
+Controls how Code\+Rabbit reviews pull requests\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily request\+\_\+changes\+\_\+workflow}\+: Request changes when issues are found
+\item {\ttfamily high\+\_\+level\+\_\+summary\+\_\+in\+\_\+walkthrough}\+: Include summary in PR walkthrough
+\item {\ttfamily auto\+\_\+apply\+\_\+labels}\+: Automatically apply labels based on PR content
+\item {\ttfamily auto\+\_\+assign\+\_\+reviewers}\+: Automatically assign reviewers
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md5}{}\doxysubsubsection{\texorpdfstring{Labeling Instructions}{Labeling Instructions}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md5}
+Defines rules for applying labels\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries{bug}}\+: Applied to PRs fixing defects, crashes, or incorrect behavior
+\item {\bfseries{documentation}}\+: Applied to PRs changing docs without runtime changes
+\item {\bfseries{security}}\+: Applied to PRs addressing security issues
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md6}{}\doxysubsubsection{\texorpdfstring{Auto Review}{Auto Review}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md6}
+
+\begin{DoxyItemize}
+\item {\ttfamily enabled}\+: Auto-\/review is enabled
+\item {\ttfamily drafts}\+: Review draft PRs as well
+\item {\ttfamily base\+\_\+branches}\+: Regex pattern {\ttfamily .\texorpdfstring{$\ast$}{*}} matches all branches
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md7}{}\doxysubsection{\texorpdfstring{Knowledge Base Section}{Knowledge Base Section}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md7}
+Configures Code\+Rabbit\textquotesingle{}s knowledge resources\+:\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md8}{}\doxysubsubsection{\texorpdfstring{MCP (Model Context Protocol)}{MCP (Model Context Protocol)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md8}
+
+\begin{DoxyItemize}
+\item {\ttfamily usage}\+: enabled
+\item {\ttfamily documents}\+: Reference documents for context
+\begin{DoxyItemize}
+\item {\ttfamily tech\+\_\+spec.\+md} -\/ Technical specifications
+\item {\ttfamily Dash\+Fin-\/financial-\/asset-\/relationship-\/db-\/wiki-\/v2.\+md} -\/ Wiki documentation
+\item {\ttfamily \doxylink{ARCHITECTURE_8md}{ARCHITECTURE.\+md}} -\/ System architecture
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md9}{}\doxysubsubsection{\texorpdfstring{Code Guidelines}{Code Guidelines}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md9}
+
+\begin{DoxyItemize}
+\item {\ttfamily enabled}\+: true
+\item {\ttfamily file\+Patterns}\+: Files containing coding guidelines
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{AI__RULES_8md}{AI\+\_\+\+RULES.\+md}} -\/ AI coding rules and conventions
+\item {\ttfamily \doxylink{CONTRIBUTING_8md}{CONTRIBUTING.\+md}} -\/ Contribution guidelines
+\item {\ttfamily \doxylink{CODE__OF__CONDUCT_8md}{CODE\+\_\+\+OF\+\_\+\+CONDUCT.\+md}} -\/ Code of conduct
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md10}{}\doxysubsection{\texorpdfstring{Issue Enrichment Section}{Issue Enrichment Section}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md10}
+
+\begin{DoxyItemize}
+\item {\ttfamily auto\+\_\+enrich.\+enabled}\+: Automatically enrich issues
+\item {\ttfamily labeling.\+auto\+\_\+apply\+\_\+labels}\+: Auto-\/apply labels to issues
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md11}{}\doxysection{\texorpdfstring{Common Issues}{Common Issues}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md11}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md12}{}\doxysubsection{\texorpdfstring{Duplicate Sections}{Duplicate Sections}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md12}
+{\bfseries{Problem}}\+: Multiple {\ttfamily knowledge\+\_\+base\+:}, {\ttfamily reviews\+:}, or other top-\/level sections. {\bfseries{Solution}}\+: Consolidate into single sections with all required fields.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md13}{}\doxysubsection{\texorpdfstring{Incorrect Nesting}{Incorrect Nesting}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md13}
+{\bfseries{Problem}}\+: {\ttfamily auto\+\_\+review} placed under {\ttfamily knowledge\+\_\+base} instead of {\ttfamily reviews}. {\bfseries{Solution}}\+: Ensure proper hierarchy -\/ {\ttfamily auto\+\_\+review} belongs under {\ttfamily reviews}.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md14}{}\doxysubsection{\texorpdfstring{Invalid YAML Syntax}{Invalid YAML Syntax}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md14}
+{\bfseries{Problem}}\+: Incorrect indentation or missing colons. {\bfseries{Solution}}\+: Validate with `python3 -\/c "{}import yaml; yaml.\+safe\+\_\+load(open('.\+coderabbit.\+yaml\textquotesingle{}))"{}\`{}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md15}{}\doxysection{\texorpdfstring{Validation}{Validation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md15}
+To validate the configuration file\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python3\ -\/c\ "{}import\ yaml;\ yaml.safe\_load(open('.coderabbit.yaml'))"{}\ \&\&\ echo\ "{}✓\ Valid\ YAML"{}}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md16}{}\doxysection{\texorpdfstring{Resources}{Resources}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_autotoc_md16}
+
+\begin{DoxyItemize}
+\item Schema\+: \href{https://docs.coderabbit.ai/schema/schema.v2.json}{\texttt{ https\+://docs.\+coderabbit.\+ai/schema/schema.\+v2.\+json}}
+\item Documentation\+: \href{https://docs.coderabbit.ai/}{\texttt{ https\+://docs.\+coderabbit.\+ai/}} 
+\end{DoxyItemize}

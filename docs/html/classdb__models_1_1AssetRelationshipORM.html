@@ -1,0 +1,434 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: db_models.AssetRelationshipORM Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classdb__models_1_1AssetRelationshipORM.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
+<a href="#pri-static-attribs">Static Private Attributes</a> &#124;
+<a href="classdb__models_1_1AssetRelationshipORM-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">db_models.AssetRelationshipORM Class Reference</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+Inheritance diagram for db_models.AssetRelationshipORM:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classdb__models_1_1AssetRelationshipORM__inherit__graph.svg" width="248" height="370"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Collaboration diagram for db_models.AssetRelationshipORM:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classdb__models_1_1AssetRelationshipORM__coll__graph.svg" width="491" height="336"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:ad04928e9bba81d475082ea29ff8cf364" id="r_ad04928e9bba81d475082ea29ff8cf364"><td class="memItemLeft" align="right" valign="top">Mapped&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad04928e9bba81d475082ea29ff8cf364">id</a> = mapped_column(Integer, primary_key=True, autoincrement=True)</td></tr>
+<tr class="separator:ad04928e9bba81d475082ea29ff8cf364"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad92fb25792b45f88a04070f72897df7d" id="r_ad92fb25792b45f88a04070f72897df7d"><td class="memItemLeft" align="right" valign="top">Mapped&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad92fb25792b45f88a04070f72897df7d">source_asset_id</a></td></tr>
+<tr class="separator:ad92fb25792b45f88a04070f72897df7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa49af28c0dd90d712a22977b221bdfda" id="r_aa49af28c0dd90d712a22977b221bdfda"><td class="memItemLeft" align="right" valign="top">Mapped&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa49af28c0dd90d712a22977b221bdfda">target_asset_id</a></td></tr>
+<tr class="separator:aa49af28c0dd90d712a22977b221bdfda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3866aa21a2115178cbca31c0ebb0e23f" id="r_a3866aa21a2115178cbca31c0ebb0e23f"><td class="memItemLeft" align="right" valign="top">Mapped&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3866aa21a2115178cbca31c0ebb0e23f">relationship_type</a> = mapped_column(String, nullable=False)</td></tr>
+<tr class="separator:a3866aa21a2115178cbca31c0ebb0e23f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32fc27baf44240e3fc4467fd7e8a0817" id="r_a32fc27baf44240e3fc4467fd7e8a0817"><td class="memItemLeft" align="right" valign="top">Mapped&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a32fc27baf44240e3fc4467fd7e8a0817">strength</a> = mapped_column(Float, nullable=False)</td></tr>
+<tr class="separator:a32fc27baf44240e3fc4467fd7e8a0817"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a03c88549b119b471ad8d5016ecc695" id="r_a0a03c88549b119b471ad8d5016ecc695"><td class="memItemLeft" align="right" valign="top">Mapped&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a03c88549b119b471ad8d5016ecc695">bidirectional</a> = mapped_column(Boolean, default=False, nullable=False)</td></tr>
+<tr class="separator:a0a03c88549b119b471ad8d5016ecc695"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab767df7c180d93da946cffb10a2e509a" id="r_ab767df7c180d93da946cffb10a2e509a"><td class="memItemLeft" align="right" valign="top">Mapped&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab767df7c180d93da946cffb10a2e509a">source</a></td></tr>
+<tr class="separator:ab767df7c180d93da946cffb10a2e509a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4fe795df5db7238e49e1ba52d45ac07d" id="r_a4fe795df5db7238e49e1ba52d45ac07d"><td class="memItemLeft" align="right" valign="top">Mapped&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4fe795df5db7238e49e1ba52d45ac07d">target</a></td></tr>
+<tr class="separator:a4fe795df5db7238e49e1ba52d45ac07d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-attribs" name="pri-static-attribs"></a>
+Static Private Attributes</h2></td></tr>
+<tr class="memitem:a8b580eca7c5bd3d11c9036668ea680c3" id="r_a8b580eca7c5bd3d11c9036668ea680c3"><td class="memItemLeft" align="right" valign="top">str&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8b580eca7c5bd3d11c9036668ea680c3">__tablename__</a> = &quot;asset_relationships&quot;</td></tr>
+<tr class="separator:a8b580eca7c5bd3d11c9036668ea680c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6a86d8ebcccc265a349df1fa1abe5d9" id="r_aa6a86d8ebcccc265a349df1fa1abe5d9"><td class="memItemLeft" align="right" valign="top">tuple&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa6a86d8ebcccc265a349df1fa1abe5d9">__table_args__</a></td></tr>
+<tr class="separator:aa6a86d8ebcccc265a349df1fa1abe5d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><pre class="fragment">Stores directed relationships between assets.</pre> </div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="aa6a86d8ebcccc265a349df1fa1abe5d9" name="aa6a86d8ebcccc265a349df1fa1abe5d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6a86d8ebcccc265a349df1fa1abe5d9">&#9670;&#160;</a></span>__table_args__</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">tuple db_models.AssetRelationshipORM.__table_args__</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=  (</div>
+<div class="line">        UniqueConstraint(</div>
+<div class="line">            <span class="stringliteral">&quot;source_asset_id&quot;</span>,</div>
+<div class="line">            <span class="stringliteral">&quot;target_asset_id&quot;</span>,</div>
+<div class="line">            <span class="stringliteral">&quot;relationship_type&quot;</span>,</div>
+<div class="line">            name=<span class="stringliteral">&quot;uq_relationship&quot;</span>,</div>
+<div class="line">        ),</div>
+<div class="line">    )</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a8b580eca7c5bd3d11c9036668ea680c3" name="a8b580eca7c5bd3d11c9036668ea680c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b580eca7c5bd3d11c9036668ea680c3">&#9670;&#160;</a></span>__tablename__</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">str db_models.AssetRelationshipORM.__tablename__ = &quot;asset_relationships&quot;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0a03c88549b119b471ad8d5016ecc695" name="a0a03c88549b119b471ad8d5016ecc695"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a03c88549b119b471ad8d5016ecc695">&#9670;&#160;</a></span>bidirectional</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Mapped db_models.AssetRelationshipORM.bidirectional = mapped_column(Boolean, default=False, nullable=False)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad04928e9bba81d475082ea29ff8cf364" name="ad04928e9bba81d475082ea29ff8cf364"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad04928e9bba81d475082ea29ff8cf364">&#9670;&#160;</a></span>id</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Mapped db_models.AssetRelationshipORM.id = mapped_column(Integer, primary_key=True, autoincrement=True)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3866aa21a2115178cbca31c0ebb0e23f" name="a3866aa21a2115178cbca31c0ebb0e23f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3866aa21a2115178cbca31c0ebb0e23f">&#9670;&#160;</a></span>relationship_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Mapped db_models.AssetRelationshipORM.relationship_type = mapped_column(String, nullable=False)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab767df7c180d93da946cffb10a2e509a" name="ab767df7c180d93da946cffb10a2e509a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab767df7c180d93da946cffb10a2e509a">&#9670;&#160;</a></span>source</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Mapped db_models.AssetRelationshipORM.source</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=  relationship(</div>
+<div class="line">        <span class="stringliteral">&quot;AssetORM&quot;</span>,</div>
+<div class="line">        foreign_keys=[source_asset_id],</div>
+<div class="line">        back_populates=<span class="stringliteral">&quot;outgoing_relationships&quot;</span>,</div>
+<div class="line">    )</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ad92fb25792b45f88a04070f72897df7d" name="ad92fb25792b45f88a04070f72897df7d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad92fb25792b45f88a04070f72897df7d">&#9670;&#160;</a></span>source_asset_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Mapped db_models.AssetRelationshipORM.source_asset_id</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=  mapped_column(</div>
+<div class="line">        ForeignKey(<span class="stringliteral">&quot;assets.id&quot;</span>, ondelete=<span class="stringliteral">&quot;CASCADE&quot;</span>), nullable=<span class="keyword">False</span></div>
+<div class="line">    )</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a32fc27baf44240e3fc4467fd7e8a0817" name="a32fc27baf44240e3fc4467fd7e8a0817"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32fc27baf44240e3fc4467fd7e8a0817">&#9670;&#160;</a></span>strength</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Mapped db_models.AssetRelationshipORM.strength = mapped_column(Float, nullable=False)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4fe795df5db7238e49e1ba52d45ac07d" name="a4fe795df5db7238e49e1ba52d45ac07d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4fe795df5db7238e49e1ba52d45ac07d">&#9670;&#160;</a></span>target</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Mapped db_models.AssetRelationshipORM.target</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=  relationship(</div>
+<div class="line">        <span class="stringliteral">&quot;AssetORM&quot;</span>,</div>
+<div class="line">        foreign_keys=[target_asset_id],</div>
+<div class="line">        back_populates=<span class="stringliteral">&quot;incoming_relationships&quot;</span>,</div>
+<div class="line">    )</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="aa49af28c0dd90d712a22977b221bdfda" name="aa49af28c0dd90d712a22977b221bdfda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa49af28c0dd90d712a22977b221bdfda">&#9670;&#160;</a></span>target_asset_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Mapped db_models.AssetRelationshipORM.target_asset_id</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=  mapped_column(</div>
+<div class="line">        ForeignKey(<span class="stringliteral">&quot;assets.id&quot;</span>, ondelete=<span class="stringliteral">&quot;CASCADE&quot;</span>), nullable=<span class="keyword">False</span></div>
+<div class="line">    )</div>
+</div><!-- fragment -->
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
+<li>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/<a class="el" href="db__models_8py.html">db_models.py</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacedb__models.html">db_models</a></li><li class="navelem"><a class="el" href="classdb__models_1_1AssetRelationshipORM.html">AssetRelationshipORM</a></li>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

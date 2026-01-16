@@ -1,0 +1,7 @@
+<map id="asset_graph.AssetRelationshipGraph" name="asset_graph.AssetRelationshipGraph">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,148,220,363"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="31,5,69,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="50,71,50,97,54,123,56,132,51,133,49,125,45,97,45,71"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="159,5,194,71"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,72,152,133,147,131,165,70"/>
+</map>

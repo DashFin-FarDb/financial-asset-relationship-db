@@ -1,0 +1,194 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_changes_validation::TestPRAgentWorkflowChanges</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a5a620c37fd2b71285781c2e8b3622dcd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.pr_agent_workflow</definition>
+        <argsstring>()</argsstring>
+        <name>pr_agent_workflow</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.pr_agent_workflow</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load and parse the PR Agent GitHub Actions workflow file.
+
+Returns:
+    dict: Parsed contents of .github/workflows/pr-agent.yml as native Python objects.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="22" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="22" bodyend="32"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a8091a7c60a5f29ee365f33883e7af057" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_workflow_structure</definition>
+        <argsstring>(self, pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_workflow_structure</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_workflow_structure</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a5a620c37fd2b71285781c2e8b3622dcd" kindref="member">pr_agent_workflow</ref></type>
+          <defname>pr_agent_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify PR agent workflow has expected structure.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="33" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="33" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a1b4ca150515c77dd3f85199e8dc5da0c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_has_required_triggers</definition>
+        <argsstring>(self, pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_has_required_triggers</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_has_required_triggers</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a5a620c37fd2b71285781c2e8b3622dcd" kindref="member">pr_agent_workflow</ref></type>
+          <defname>pr_agent_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify PR agent responds to correct events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="40" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="40" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a4a5d11bcd8694acecb90e36e01f663f7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_python_setup_simplified</definition>
+        <argsstring>(self, pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_python_setup_simplified</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_python_setup_simplified</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a5a620c37fd2b71285781c2e8b3622dcd" kindref="member">pr_agent_workflow</ref></type>
+          <defname>pr_agent_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate the pr-agent-trigger job uses a single Python dependency installation step and does not install PyYAML.
+
+Finds a step whose name includes &quot;Install Python dependencies&quot;, asserts exactly one such step exists, and verifies the step&apos;s run script contains no references to &quot;pyyaml&quot; or &quot;PyYAML&quot;.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="48" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="48" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1adf2939a2afb3288f6d3682c4872b47d7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_no_context_chunking_references</definition>
+        <argsstring>(self, pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_no_context_chunking_references</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_no_context_chunking_references</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a5a620c37fd2b71285781c2e8b3622dcd" kindref="member">pr_agent_workflow</ref></type>
+          <defname>pr_agent_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify context chunking logic removed from workflow.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="68" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="68" bodyend="76"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1af15988ed2f562c3fa935e8db845d5763" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_uses_gh_cli_for_parsing</definition>
+        <argsstring>(self, pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_uses_gh_cli_for_parsing</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_uses_gh_cli_for_parsing</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a5a620c37fd2b71285781c2e8b3622dcd" kindref="member">pr_agent_workflow</ref></type>
+          <defname>pr_agent_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify workflow uses gh CLI for PR comment parsing.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="77" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="77" bodyend="85"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a6b417fa5d5c385cd0b073f732b3d72df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_has_proper_permissions</definition>
+        <argsstring>(self, pr_agent_workflow)</argsstring>
+        <name>test_pr_agent_has_proper_permissions</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges.test_pr_agent_has_proper_permissions</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a5a620c37fd2b71285781c2e8b3622dcd" kindref="member">pr_agent_workflow</ref></type>
+          <defname>pr_agent_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify the PR Agent workflow exposes minimal permissions.
+
+Asserts the workflow top-level &apos;permissions&apos; sets &apos;contents&apos; to &apos;read&apos; and the &apos;pr-agent-trigger&apos; job-level &apos;permissions&apos; sets &apos;issues&apos; to &apos;write&apos;.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="86" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="86" bodyend="99"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test PR agent workflow simplification changes.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_changes_validation.TestPRAgentWorkflowChanges</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="17" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="17" bodyend="99"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a5a620c37fd2b71285781c2e8b3622dcd" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestPRAgentWorkflowChanges</scope><name>pr_agent_workflow</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a6b417fa5d5c385cd0b073f732b3d72df" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestPRAgentWorkflowChanges</scope><name>test_pr_agent_has_proper_permissions</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a1b4ca150515c77dd3f85199e8dc5da0c" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestPRAgentWorkflowChanges</scope><name>test_pr_agent_has_required_triggers</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1adf2939a2afb3288f6d3682c4872b47d7" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestPRAgentWorkflowChanges</scope><name>test_pr_agent_no_context_chunking_references</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a4a5d11bcd8694acecb90e36e01f663f7" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestPRAgentWorkflowChanges</scope><name>test_pr_agent_python_setup_simplified</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1af15988ed2f562c3fa935e8db845d5763" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestPRAgentWorkflowChanges</scope><name>test_pr_agent_uses_gh_cli_for_parsing</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestPRAgentWorkflowChanges_1a8091a7c60a5f29ee365f33883e7af057" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestPRAgentWorkflowChanges</scope><name>test_pr_agent_workflow_structure</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

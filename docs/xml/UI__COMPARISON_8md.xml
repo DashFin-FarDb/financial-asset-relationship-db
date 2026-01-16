@@ -1,0 +1,373 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="UI__COMPARISON_8md" kind="file" language="Markdown">
+    <compoundname>UI_COMPARISON.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>UI<sp/>Comparison:<sp/>Gradio<sp/>vs<sp/>Next.js</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>compares<sp/>the<sp/>two<sp/>available<sp/>user<sp/>interfaces<sp/>for<sp/>the<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Feature<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Gradio<sp/>UI<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>UI<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>------------------<sp/>|<sp/>--------------------------<sp/>|<sp/>------------------------------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Launch<sp/>Command**<sp/>|<sp/>`python<sp/>app.py`<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>`./run-dev.sh`<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Port**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>7860<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>3000<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Technology**<sp/><sp/><sp/><sp/><sp/>|<sp/>Python<sp/>+<sp/>Gradio<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>TypeScript<sp/>+<sp/>React<sp/>+<sp/>Next.js<sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**API**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Direct<sp/>function<sp/>calls<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>REST<sp/>API<sp/>(FastAPI)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Deployment**<sp/><sp/><sp/><sp/><sp/>|<sp/>Docker,<sp/>HuggingFace<sp/>Spaces<sp/>|<sp/>Vercel,<sp/>Netlify,<sp/>any<sp/>Node<sp/>host<sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Detailed<sp/>Comparison</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>User<sp/>Interface</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Gradio<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Pros:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Native<sp/>Python<sp/>UI<sp/>framework</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Rapid<sp/>prototyping</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Built-in<sp/>input/output<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Automatic<sp/>layout<sp/>management</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Easy<sp/>to<sp/>modify<sp/>for<sp/>Python<sp/>developers</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Cons:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Limited<sp/>customization<sp/>options</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Less<sp/>modern<sp/>look<sp/>and<sp/>feel</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Fewer<sp/>interactive<sp/>features</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Limited<sp/>mobile<sp/>responsiveness</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Next.js<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Pros:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Modern,<sp/>responsive<sp/>design</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Fully<sp/>customizable<sp/>with<sp/>Tailwind<sp/>CSS</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Rich<sp/>interactive<sp/>components</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Better<sp/>mobile<sp/>experience</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Industry-standard<sp/>web<sp/>framework</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Cons:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Requires<sp/>frontend<sp/>development<sp/>knowledge</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>More<sp/>complex<sp/>setup</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Requires<sp/>separate<sp/>backend<sp/>API</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Features<sp/>Comparison</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Feature<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Gradio<sp/>|<sp/>Next.js<sp/>|<sp/>Notes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>----------------------------<sp/>|<sp/>------<sp/>|<sp/>-------<sp/>|<sp/>--------------------------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**3D<sp/>Network<sp/>Visualization**<sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Both<sp/>use<sp/>Plotly<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Metrics<sp/>Dashboard**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Similar<sp/>functionality<sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Asset<sp/>Explorer**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>has<sp/>better<sp/>filters<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Schema<sp/>Report**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|<sp/>❌<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Gradio-only<sp/>feature<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Documentation<sp/>Tab**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|<sp/>❌<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Gradio-only<sp/>feature<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**2D<sp/>Visualization**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|<sp/>❌<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Can<sp/>be<sp/>added<sp/>to<sp/>Next.js<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Formulaic<sp/>Analysis**<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|<sp/>❌<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Can<sp/>be<sp/>added<sp/>to<sp/>Next.js<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Real-time<sp/>Updates**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|<sp/>⚠️<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>needs<sp/>WebSocket<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Export<sp/>Features**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|<sp/>⚠️<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Can<sp/>be<sp/>added<sp/>to<sp/>Next.js<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Responsive<sp/>Mobile**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>⚠️<sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>is<sp/>mobile-first<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Custom<sp/>Branding**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>⚠️<sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>fully<sp/>customizable<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**API<sp/>Access**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>❌<sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>exposes<sp/>REST<sp/>API<sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Legend:<sp/>✅<sp/>Fully<sp/>supported<sp/>|<sp/>⚠️<sp/>Partially<sp/>supported<sp/>|<sp/>❌<sp/>Not<sp/>available</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Development<sp/>Experience</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Gradio<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Setup<sp/>Time**:<sp/>~5<sp/>minutes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+<codeline><highlight class="normal">source<sp/>.venv/bin/activate</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>app.py</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Pros:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Single-language<sp/>development<sp/>(Python)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Quick<sp/>to<sp/>prototype<sp/>new<sp/>features</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>No<sp/>build<sp/>step<sp/>required</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Hot<sp/>reload<sp/>built-in</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Easy<sp/>to<sp/>debug</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Cons:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Limited<sp/>to<sp/>Gradio&apos;s<sp/>component<sp/>library</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Harder<sp/>to<sp/>implement<sp/>custom<sp/>UI<sp/>logic</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Less<sp/>control<sp/>over<sp/>layout</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Best<sp/>For:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Python<sp/>developers</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Data<sp/>scientists</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Quick<sp/>demonstrations</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Internal<sp/>tools</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Jupyter-like<sp/>environments</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Next.js<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Setup<sp/>Time**:<sp/>~10<sp/>minutes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Terminal<sp/>1:<sp/>Backend</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Terminal<sp/>2:<sp/>Frontend</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Pros:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Full<sp/>control<sp/>over<sp/>UI/UX</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Industry-standard<sp/>tooling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>TypeScript<sp/>for<sp/>type<sp/>safety</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Rich<sp/>ecosystem<sp/>of<sp/>React<sp/>components</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Better<sp/>testing<sp/>tools</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Cons:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Requires<sp/>JavaScript/TypeScript<sp/>knowledge</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>More<sp/>complex<sp/>architecture</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Longer<sp/>build<sp/>times</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Two<sp/>processes<sp/>to<sp/>manage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Best<sp/>For:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Web<sp/>developers</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Production<sp/>deployments</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Public-facing<sp/>applications</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Custom<sp/>branding<sp/>requirements</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>API-first<sp/>architecture</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Performance</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Aspect<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Gradio<sp/><sp/><sp/>|<sp/>Next.js<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Winner<sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>------------------------<sp/>|<sp/>--------<sp/>|<sp/>-----------------<sp/>|<sp/>-------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Initial<sp/>Load<sp/>Time**<sp/><sp/><sp/><sp/>|<sp/>~2-3s<sp/><sp/><sp/><sp/>|<sp/>~1-2s<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Visualization<sp/>Render**<sp/>|<sp/>Similar<sp/><sp/>|<sp/>Similar<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Tie<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Memory<sp/>Usage**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>~500MB<sp/><sp/><sp/>|<sp/>~300MB<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**API<sp/>Response<sp/>Time**<sp/><sp/><sp/><sp/>|<sp/>N/A<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>~100-500ms<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>N/A<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Scalability**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Moderate<sp/>|<sp/>High<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Cold<sp/>Start**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Fast<sp/><sp/><sp/><sp/><sp/>|<sp/>Slow<sp/>(serverless)<sp/>|<sp/>Gradio<sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>5.<sp/>Deployment<sp/>Options</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Gradio<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Supported<sp/>Platforms:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Docker<sp/>containers</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Hugging<sp/>Face<sp/>Spaces</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Railway</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Render</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Any<sp/>Python<sp/>hosting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Pros:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Simple<sp/>deployment</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Single<sp/>container</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Works<sp/>on<sp/>any<sp/>Python<sp/>host</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Easy<sp/>to<sp/>containerize</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Cons:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Limited<sp/>scalability</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Requires<sp/>Python<sp/>runtime</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Less<sp/>serverless-friendly</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Example<sp/>Deployment:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>--build</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Next.js<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Supported<sp/>Platforms:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Vercel<sp/>(recommended)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Netlify</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>AWS<sp/>Amplify</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Azure<sp/>Static<sp/>Web<sp/>Apps</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Any<sp/>Node.js<sp/>hosting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Pros:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Serverless-friendly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Auto-scaling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Global<sp/>CDN</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Preview<sp/>deployments</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>GitHub<sp/>integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Cons:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Requires<sp/>two<sp/>services<sp/>(frontend<sp/>+<sp/>backend)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>More<sp/>complex<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Potential<sp/>cold<sp/>starts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Example<sp/>Deployment:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>--prod</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>6.<sp/>Use<sp/>Cases</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>When<sp/>to<sp/>Use<sp/>Gradio<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Internal<sp/>Tools**:<sp/>For<sp/>team<sp/>use<sp/>only</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Prototyping**:<sp/>Quick<sp/>demos<sp/>and<sp/>experiments</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Data<sp/>Science**:<sp/>Familiar<sp/>environment<sp/>for<sp/>Python<sp/>developers</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Teaching**:<sp/>Educational<sp/>demonstrations</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Research**:<sp/>Academic<sp/>projects</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>When<sp/>to<sp/>Use<sp/>Next.js<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Production**:<sp/>Public-facing<sp/>applications</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Enterprise**:<sp/>Custom<sp/>branding<sp/>and<sp/>features</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Mobile**:<sp/>Mobile-first<sp/>requirements</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**API<sp/>Integration**:<sp/>Need<sp/>to<sp/>integrate<sp/>with<sp/>other<sp/>services</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Scalability**:<sp/>High-traffic<sp/>scenarios</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>7.<sp/>Maintenance</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Task<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Gradio<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Notes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>-----------------------<sp/>|<sp/>----------------<sp/>|<sp/>---------------------<sp/>|<sp/>-----------------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Update<sp/>Dependencies**<sp/>|<sp/>`pip<sp/>install<sp/>-U`<sp/>|<sp/>`npm<sp/>update`<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Similar<sp/>effort<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Add<sp/>New<sp/>Feature**<sp/><sp/><sp/><sp/><sp/>|<sp/>Single<sp/>file<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Multiple<sp/>files<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Gradio<sp/>simpler<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Bug<sp/>Fixes**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Quick<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Moderate<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Gradio<sp/>advantage<sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**UI<sp/>Customization**<sp/><sp/><sp/><sp/>|<sp/>Limited<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Extensive<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Next.js<sp/>advantage<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Security<sp/>Updates**<sp/><sp/><sp/><sp/>|<sp/>Python<sp/>packages<sp/><sp/>|<sp/>npm<sp/>packages<sp/>+<sp/>Python<sp/>|<sp/>Similar<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>8.<sp/>Cost<sp/>Analysis</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Gradio<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Hosting**:<sp/>$10-30/month<sp/>(basic<sp/>VM)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Scaling**:<sp/>Manual,<sp/>requires<sp/>bigger<sp/>VM</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Total**:<sp/>~$10-50/month</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Next.js<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Hosting**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Vercel:<sp/>Free<sp/>tier<sp/>available,<sp/>$20+/month<sp/>for<sp/>teams</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Backend:<sp/>$0-10/month<sp/>(serverless)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Scaling**:<sp/>Automatic,<sp/>pay<sp/>per<sp/>use</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Total**:<sp/>~$0-30/month<sp/>(starts<sp/>free)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>9.<sp/>Learning<sp/>Curve</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">Easy<sp/>───────────────────────────────────────<sp/>Hard</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Gradio<sp/>UI<sp/>(Python<sp/>developers)</highlight></codeline>
+<codeline><highlight class="normal">├─────────┤</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Next.js<sp/>UI<sp/>(Python<sp/>developers)</highlight></codeline>
+<codeline><highlight class="normal">├──────────────────────────────┤</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Next.js<sp/>UI<sp/>(JavaScript<sp/>developers)</highlight></codeline>
+<codeline><highlight class="normal">├────────────┤</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Gradio<sp/>UI<sp/>(JavaScript<sp/>developers)</highlight></codeline>
+<codeline><highlight class="normal">├──────────────────┤</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>10.<sp/>Future<sp/>Roadmap</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Gradio<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Stable<sp/>and<sp/>feature-complete</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Maintained<sp/>for<sp/>backward<sp/>compatibility</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>⚠️<sp/>Limited<sp/>new<sp/>features<sp/>planned</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Recommended<sp/>for<sp/>existing<sp/>users</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Next.js<sp/>UI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>🚀<sp/>Active<sp/>development</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>🚀<sp/>New<sp/>features<sp/>being<sp/>added</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>🚀<sp/>Modern<sp/>architecture</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>🚀<sp/>Recommended<sp/>for<sp/>new<sp/>projects</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Migration<sp/>Path</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>From<sp/>Gradio<sp/>to<sp/>Next.js</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Phase<sp/>1**:<sp/>Deploy<sp/>both<sp/>UIs<sp/>in<sp/>parallel</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Phase<sp/>2**:<sp/>Gather<sp/>user<sp/>feedback<sp/>on<sp/>Next.js</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Phase<sp/>3**:<sp/>Migrate<sp/>users<sp/>gradually</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Phase<sp/>4**:<sp/>Deprecate<sp/>Gradio<sp/>if<sp/>desired</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Feature<sp/>Parity<sp/>Roadmap</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">To<sp/>achieve<sp/>feature<sp/>parity<sp/>with<sp/>Gradio:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Add<sp/>Schema<sp/>Report<sp/>endpoint<sp/>and<sp/>UI</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Add<sp/>Documentation<sp/>tab</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Add<sp/>2D<sp/>Visualization<sp/>support</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Add<sp/>Formulaic<sp/>Analysis</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Add<sp/>Export<sp/>features</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Add<sp/>real-time<sp/>updates</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Recommendation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Choose<sp/>Gradio<sp/>UI<sp/>if:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You&apos;re<sp/>primarily<sp/>a<sp/>Python<sp/>developer</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You<sp/>need<sp/>quick<sp/>prototyping</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>It&apos;s<sp/>an<sp/>internal<sp/>tool</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You<sp/>want<sp/>minimal<sp/>setup</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You<sp/>prefer<sp/>single-language<sp/>development</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Choose<sp/>Next.js<sp/>UI<sp/>if:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You<sp/>need<sp/>a<sp/>production-ready<sp/>application</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You<sp/>want<sp/>modern<sp/>UI/UX</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You<sp/>need<sp/>mobile<sp/>support</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You<sp/>want<sp/>API<sp/>access</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You<sp/>need<sp/>custom<sp/>branding</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>You<sp/>plan<sp/>to<sp/>scale</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Hybrid<sp/>Approach<sp/>(Recommended)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">You<sp/>don&apos;t<sp/>have<sp/>to<sp/>choose!<sp/>Both<sp/>UIs<sp/>can<sp/>coexist:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Development**:<sp/>Use<sp/>Gradio<sp/>for<sp/>quick<sp/>experiments</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Production**:<sp/>Deploy<sp/>Next.js<sp/>for<sp/>end<sp/>users</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**API**:<sp/>Next.js<sp/>backend<sp/>serves<sp/>both<sp/>UIs</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Flexibility**:<sp/>Switch<sp/>between<sp/>UIs<sp/>as<sp/>needed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Use<sp/>Gradio<sp/>for<sp/>development</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>app.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Use<sp/>Next.js<sp/>for<sp/>production</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Conclusion</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Both<sp/>UIs<sp/>are<sp/>powerful<sp/>and<sp/>serve<sp/>different<sp/>purposes:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Gradio**:<sp/>Perfect<sp/>for<sp/>Python-centric<sp/>workflows<sp/>and<sp/>rapid<sp/>development</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Next.js**:<sp/>Ideal<sp/>for<sp/>production<sp/>deployments<sp/>and<sp/>modern<sp/>web<sp/>applications</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Choose<sp/>based<sp/>on<sp/>your<sp/>specific<sp/>needs,<sp/>or<sp/>use<sp/>both!</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>more<sp/>information:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[QUICK_START.md](QUICK_START.md)<sp/>-<sp/>Getting<sp/>started</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[DEPLOYMENT.md](DEPLOYMENT.md)<sp/>-<sp/>Deployment<sp/>guide</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[ARCHITECTURE.md](ARCHITECTURE.md)<sp/>-<sp/>Technical<sp/>architecture</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/UI_COMPARISON.md"/>
+  </compounddef>
+</doxygen>

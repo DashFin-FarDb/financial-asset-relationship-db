@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_database_memory::TestEdgeCasesAndErrorHandling</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1a4a7f3bcb3a4ceba65b415396876b0d41" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_resolve_sqlite_path_with_memory</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_resolve_sqlite_path_with_memory</name>
+        <qualifiedname>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_resolve_sqlite_path_with_memory</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _resolve_sqlite_path correctly handles :memory: URLs.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="458" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="460" bodyend="467"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1a19c897121aae4ad82427b1355a0c5d05" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_resolve_sqlite_path_with_regular_file</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_resolve_sqlite_path_with_regular_file</name>
+        <qualifiedname>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_resolve_sqlite_path_with_regular_file</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _resolve_sqlite_path correctly resolves file paths.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="468" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="470" bodyend="480"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1a0fab00db9392ff501321c5aa8fc07ca9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_database_url_environment_variable_required</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_database_url_environment_variable_required</name>
+        <qualifiedname>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_database_url_environment_variable_required</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that DATABASE_URL environment variable is required.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="481" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="483" bodyend="491"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1afebdba2ed9f3849e90cb98cbe7e326ea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_execute_with_memory_db_commits_changes</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_execute_with_memory_db_commits_changes</name>
+        <qualifiedname>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_execute_with_memory_db_commits_changes</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that execute function properly commits changes to memory database.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="492" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="494" bodyend="513"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1abce26887532f815b87929f28955a8f7c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_fetch_value_with_memory_db</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_fetch_value_with_memory_db</name>
+        <qualifiedname>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_fetch_value_with_memory_db</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that fetch_value works correctly with memory database.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="514" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="514" bodyend="536"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1a5e6bd2196f689b975bf8c5bece452515" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_connection_row_factory_returns_dict_like_rows</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_connection_row_factory_returns_dict_like_rows</name>
+        <qualifiedname>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling.test_connection_row_factory_returns_dict_like_rows</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that connections return dict-like Row objects.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="537" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="539" bodyend="563"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for edge cases and error handling in database connection management.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_database_memory.TestEdgeCasesAndErrorHandling</label>
+        <link refid="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="455" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="455" bodyend="563"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1a5e6bd2196f689b975bf8c5bece452515" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestEdgeCasesAndErrorHandling</scope><name>test_connection_row_factory_returns_dict_like_rows</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1a0fab00db9392ff501321c5aa8fc07ca9" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestEdgeCasesAndErrorHandling</scope><name>test_database_url_environment_variable_required</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1afebdba2ed9f3849e90cb98cbe7e326ea" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestEdgeCasesAndErrorHandling</scope><name>test_execute_with_memory_db_commits_changes</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1abce26887532f815b87929f28955a8f7c" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestEdgeCasesAndErrorHandling</scope><name>test_fetch_value_with_memory_db</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1a4a7f3bcb3a4ceba65b415396876b0d41" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestEdgeCasesAndErrorHandling</scope><name>test_resolve_sqlite_path_with_memory</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_1a19c897121aae4ad82427b1355a0c5d05" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestEdgeCasesAndErrorHandling</scope><name>test_resolve_sqlite_path_with_regular_file</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

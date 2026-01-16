@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1unit_1_1test__workflow__validator" kind="namespace" language="Python">
+    <compoundname>tests::unit::test_workflow_validator</compoundname>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios" prot="public">tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases" prot="public">tests::unit::test_workflow_validator::TestEdgeCases</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestErrorHandling" prot="public">tests::unit::test_workflow_validator::TestErrorHandling</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestIntegrationWithActualWorkflows" prot="public">tests::unit::test_workflow_validator::TestIntegrationWithActualWorkflows</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow" prot="public">tests::unit::test_workflow_validator::TestValidateWorkflow</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResult" prot="public">tests::unit::test_workflow_validator::TestValidationResult</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultBehavior" prot="public">tests::unit::test_workflow_validator::TestValidationResultBehavior</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultDataStructure" prot="public">tests::unit::test_workflow_validator::TestValidationResultDataStructure</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorEdgeCasesExtended" prot="public">tests::unit::test_workflow_validator::TestWorkflowValidatorEdgeCasesExtended</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorPerformance" prot="public">tests::unit::test_workflow_validator::TestWorkflowValidatorPerformance</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestWorkflowValidatorSecurityScenarios" prot="public">tests::unit::test_workflow_validator::TestWorkflowValidatorSecurityScenarios</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive unit tests for src/workflow_validator.py
+
+Tests the ValidationResult class and validate_workflow function:
+- File reading and YAML parsing
+- Structure validation (must be dict, must have &apos;jobs&apos;)
+- Error handling for various failure modes
+- Edge cases and boundary conditions
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

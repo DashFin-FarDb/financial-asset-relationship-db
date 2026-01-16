@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classfinancial__models_1_1Equity" kind="class" language="Python" prot="public">
+    <compoundname>financial_models::Equity</compoundname>
+    <basecompoundref refid="classfinancial__models_1_1Asset" prot="public" virt="non-virtual">financial_models.Asset</basecompoundref>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classfinancial__models_1_1Equity_1adb026e342e3b5fd4f941f7233f14639b" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Equity::pe_ratio</definition>
+        <argsstring></argsstring>
+        <name>pe_ratio</name>
+        <qualifiedname>financial_models.Equity.pe_ratio</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="58" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1Equity_1abe85d643b2f353e3c8de127fb65de004" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Equity::dividend_yield</definition>
+        <argsstring></argsstring>
+        <name>dividend_yield</name>
+        <qualifiedname>financial_models.Equity.dividend_yield</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="59" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1Equity_1a1ddfeb03d14fe0d3e1ce83d7854bf7c3" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Equity::earnings_per_share</definition>
+        <argsstring></argsstring>
+        <name>earnings_per_share</name>
+        <qualifiedname>financial_models.Equity.earnings_per_share</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="60" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="60" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1Equity_1a0f029a2d5c9a7904c8797ba3f5da7c48" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Equity::book_value</definition>
+        <argsstring></argsstring>
+        <name>book_value</name>
+        <qualifiedname>financial_models.Equity.book_value</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="61" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="61" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Equity asset</verbatim> </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>financial_models.Equity</label>
+        <link refid="classfinancial__models_1_1Equity"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>financial_models.Asset</label>
+        <link refid="classfinancial__models_1_1Asset"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="3">
+        <label>Optional</label>
+      </node>
+      <node id="1">
+        <label>financial_models.Equity</label>
+        <link refid="classfinancial__models_1_1Equity"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>+book_value</edgelabel>
+          <edgelabel>+dividend_yield</edgelabel>
+          <edgelabel>+earnings_per_share</edgelabel>
+          <edgelabel>+pe_ratio</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>financial_models.Asset</label>
+        <link refid="classfinancial__models_1_1Asset"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>+market_cap</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>+currency</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>str</label>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="55" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="55" bodyend="64"/>
+    <listofallmembers>
+      <member refid="classfinancial__models_1_1Asset_1a64a6076fccb749bf5743383c89d40da2" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>__post_init__</name></member>
+      <member refid="classfinancial__models_1_1Equity_1a0f029a2d5c9a7904c8797ba3f5da7c48" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>book_value</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a31f95d0dfb2b7b755b1310e1ea1f14b3" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>currency</name></member>
+      <member refid="classfinancial__models_1_1Equity_1abe85d643b2f353e3c8de127fb65de004" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>dividend_yield</name></member>
+      <member refid="classfinancial__models_1_1Equity_1a1ddfeb03d14fe0d3e1ce83d7854bf7c3" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>earnings_per_share</name></member>
+      <member refid="classfinancial__models_1_1Asset_1ae9887b9d0db8d69b46d769865ffd3fc5" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>id</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a38a25ce11801121108b00783c7a87892" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>market_cap</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a802d461a988c53cee87fce1b525c2830" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>name</name></member>
+      <member refid="classfinancial__models_1_1Equity_1adb026e342e3b5fd4f941f7233f14639b" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>pe_ratio</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a2f17a913622605f0efeab4b29d7029f5" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>price</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a6caebdaf55c153c236445629d6d89af0" prot="public" virt="non-virtual"><scope>financial_models::Equity</scope><name>symbol</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

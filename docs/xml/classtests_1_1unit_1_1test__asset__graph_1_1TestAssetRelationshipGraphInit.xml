@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__asset__graph_1_1TestAssetRelationshipGraphInit" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_asset_graph::TestAssetRelationshipGraphInit</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestAssetRelationshipGraphInit_1a9f2e515066f58ad3d45dce3d57b5d9d3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestAssetRelationshipGraphInit.test_init_creates_empty_relationships</definition>
+        <argsstring>()</argsstring>
+        <name>test_init_creates_empty_relationships</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestAssetRelationshipGraphInit.test_init_creates_empty_relationships</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that initialization creates an empty relationships dictionary.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="21" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="21" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestAssetRelationshipGraphInit_1a7ea96923c93f3a5ae1d4fe3146241dbe" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestAssetRelationshipGraphInit.test_init_relationships_type</definition>
+        <argsstring>()</argsstring>
+        <name>test_init_relationships_type</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestAssetRelationshipGraphInit.test_init_relationships_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that relationships dictionary has correct type annotation.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="29" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="29" bodyend="37"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for AssetRelationshipGraph initialization.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_asset_graph.TestAssetRelationshipGraphInit</label>
+        <link refid="classtests_1_1unit_1_1test__asset__graph_1_1TestAssetRelationshipGraphInit"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="17" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="17" bodyend="37"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestAssetRelationshipGraphInit_1a9f2e515066f58ad3d45dce3d57b5d9d3" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestAssetRelationshipGraphInit</scope><name>test_init_creates_empty_relationships</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestAssetRelationshipGraphInit_1a7ea96923c93f3a5ae1d4fe3146241dbe" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestAssetRelationshipGraphInit</scope><name>test_init_relationships_type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

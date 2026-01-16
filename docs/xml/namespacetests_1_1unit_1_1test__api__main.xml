@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1unit_1_1test__api__main" kind="namespace" language="Python">
+    <compoundname>tests::unit::test_api_main</compoundname>
+    <innerclass refid="classtests_1_1unit_1_1test__api__main_1_1TestAdditionalFields" prot="public">tests::unit::test_api_main::TestAdditionalFields</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api__main_1_1TestAPIEndpoints" prot="public">tests::unit::test_api_main::TestAPIEndpoints</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling" prot="public">tests::unit::test_api_main::TestErrorHandling</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization" prot="public">tests::unit::test_api_main::TestGraphInitialization</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios" prot="public">tests::unit::test_api_main::TestIntegrationScenarios</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels" prot="public">tests::unit::test_api_main::TestPydanticModels</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin" prot="public">tests::unit::test_api_main::TestValidateOrigin</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__api__main_1_1TestVisualizationDataProcessing" prot="public">tests::unit::test_api_main::TestVisualizationDataProcessing</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetests_1_1unit_1_1test__api__main_1a2bd3883f2ecf93119a8f9fe548961a6f" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::unit::test_api_main.CORS_DEV_ORIGIN</definition>
+        <argsstring></argsstring>
+        <name>CORS_DEV_ORIGIN</name>
+        <qualifiedname>tests.unit.test_api_main.CORS_DEV_ORIGIN</qualifiedname>
+        <initializer>=  &quot;http://localhost:3000&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="584" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="584" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__api__main_1a9f71ec228f2324223d350c067d5b22cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.cors_client</definition>
+        <argsstring>()</argsstring>
+        <name>cors_client</name>
+        <qualifiedname>tests.unit.test_api_main.cors_client</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a reusable test client for CORS checks.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="594" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="594" bodyend="598"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__api__main_1afa2dc86818b2ec5565ad88ab1ced3000" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.test_cors_headers_present</definition>
+        <argsstring>(cors_client)</argsstring>
+        <name>test_cors_headers_present</name>
+        <qualifiedname>tests.unit.test_api_main.test_cors_headers_present</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api__main_1a9f71ec228f2324223d350c067d5b22cd" kindref="member">cors_client</ref></type>
+          <defname>cors_client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure allowed origins receive the expected CORS headers.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="599" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="599" bodyend="609"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__api__main_1a099d26279e9130bcfe5365bdf9772fb4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.test_cors_rejects_disallowed_origin</definition>
+        <argsstring>(cors_client)</argsstring>
+        <name>test_cors_rejects_disallowed_origin</name>
+        <qualifiedname>tests.unit.test_api_main.test_cors_rejects_disallowed_origin</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api__main_1a9f71ec228f2324223d350c067d5b22cd" kindref="member">cors_client</ref></type>
+          <defname>cors_client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure disallowed origins do not receive CORS headers.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="610" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="610" bodyend="621"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__api__main_1a75fd588e1e4814b0f9132216b836e696" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.test_cors_allows_development_origins</definition>
+        <argsstring>(cors_client)</argsstring>
+        <name>test_cors_allows_development_origins</name>
+        <qualifiedname>tests.unit.test_api_main.test_cors_allows_development_origins</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api__main_1a9f71ec228f2324223d350c067d5b22cd" kindref="member">cors_client</ref></type>
+          <defname>cors_client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test CORS allows development origins explicitly in development mode.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="622" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="622" bodyend="627"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive unit tests for the FastAPI backend (api/main.py).
+
+This module tests all API endpoints, error handling, CORS configuration,
+lazy graph initialization with thread-safe double-check locking, and response models.
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

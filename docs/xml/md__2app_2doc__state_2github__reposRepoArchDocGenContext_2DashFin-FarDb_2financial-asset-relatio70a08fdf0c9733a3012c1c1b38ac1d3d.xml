@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__TEST__REFERENCE__WORKFLOW__VALIDATOR</compoundname>
+    <title>Quick Test Reference: workflow_validator.py</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3522"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3523">
+<title>Running the Tests</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3524">
+<title>Basic Commands</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>tests<sp/>for<sp/>workflow_validator</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>--cov=src.workflow_validator<sp/>--cov-report=term-missing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>a<sp/>specific<sp/>test<sp/>class</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py::TestValidateWorkflow<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>a<sp/>single<sp/>test</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py::TestValidateWorkflow::test_valid_minimal_workflow_file<sp/>-v</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3525">
+<title>Quick Test Examples</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3526">
+<title>Test 1: Valid Workflow</title><para><programlisting filename=".py"><codeline><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_valid_minimal_workflow_file(self):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>validation<sp/>of<sp/>a<sp/>minimal<sp/>valid<sp/>workflow<sp/>file&quot;&quot;&quot;</highlight></codeline>
+</programlisting></para>
+<para><bold>Validates</bold>: Basic workflow structure with jobs</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3527">
+<title>Test 2: Missing Jobs Key</title><para><programlisting filename=".py"><codeline><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_workflow_missing_jobs_key(self):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>detection<sp/>of<sp/>missing<sp/>&apos;jobs&apos;<sp/>key&quot;&quot;&quot;</highlight></codeline>
+</programlisting></para>
+<para><bold>Validates</bold>: Error detection for missing required keys</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3528">
+<title>Test 3: Invalid YAML</title><para><programlisting filename=".py"><codeline><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_workflow_invalid_yaml_syntax(self):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>handling<sp/>of<sp/>invalid<sp/>YAML<sp/>syntax&quot;&quot;&quot;</highlight></codeline>
+</programlisting></para>
+<para><bold>Validates</bold>: Proper error handling for malformed YAML</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3529">
+<title>Test Organization</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3530">
+<title>Test Classes</title><para><orderedlist>
+<listitem><para><bold>TestValidationResult</bold> - ValidationResult class tests</para>
+</listitem><listitem><para><bold>TestValidateWorkflow</bold> - Main validation function tests</para>
+</listitem><listitem><para><bold>TestEdgeCases</bold> - Boundary conditions and edge cases</para>
+</listitem><listitem><para><bold>TestErrorHandling</bold> - Exception and error scenarios</para>
+</listitem><listitem><para><bold>TestIntegrationWithActualWorkflows</bold> - Real project file tests</para>
+</listitem><listitem><para><bold>TestValidationResultDataStructure</bold> - Data structure integrity</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3531">
+<title>Coverage Report</title><para>Generate and view coverage:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Generate<sp/>HTML<sp/>coverage<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>--cov=src.workflow_validator<sp/>--cov-report=html</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Open<sp/>in<sp/>browser</highlight></codeline>
+<codeline><highlight class="normal">open<sp/>htmlcov/index.html<sp/><sp/>#<sp/>macOS</highlight></codeline>
+<codeline><highlight class="normal">xdg-open<sp/>htmlcov/index.html<sp/><sp/>#<sp/>Linux</highlight></codeline>
+<codeline><highlight class="normal">start<sp/>htmlcov/index.html<sp/><sp/>#<sp/>Windows</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3532">
+<title>Common Test Patterns</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3533">
+<title>Creating Test Workflow Files</title><para><programlisting filename=".py"><codeline><highlight class="keyword">with</highlight><highlight class="normal"><sp/>tempfile.NamedTemporaryFile(mode=</highlight><highlight class="stringliteral">&apos;w&apos;</highlight><highlight class="normal">,<sp/>suffix=</highlight><highlight class="stringliteral">&apos;.yml&apos;</highlight><highlight class="normal">,<sp/>delete=</highlight><highlight class="keyword">False</highlight><highlight class="normal">)<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>f.write(workflow_yaml_content)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>f.flush()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">try</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>validate_workflow(f.name)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>assertions<sp/>here</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">finally</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Path(f.name).unlink()</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3534">
+<title>Assertion Patterns</title><para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>Valid<sp/>workflow</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result.is_valid<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">True</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(result.errors)<sp/>==<sp/>0</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&apos;jobs&apos;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result.workflow_data</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Invalid<sp/>workflow</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result.is_valid<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(result.errors)<sp/>&gt;=<sp/>1</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;expected<sp/>error<sp/>message&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result.errors[0]</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3535">
+<title>Troubleshooting</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3536">
+<title>Import Errors</title><para>If you see import errors:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Ensure<sp/>src<sp/>is<sp/>in<sp/>Python<sp/>path</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>PYTHONPATH=&quot;${PYTHONPATH}:${PWD}/src&quot;</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>-v</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3537">
+<title>Test Discovery Issues</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Check<sp/>test<sp/>discovery</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>--collect-only</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>-vv</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_1autotoc_md3538">
+<title>Expected Test Output</title></sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/QUICK_TEST_REFERENCE_WORKFLOW_VALIDATOR.md"/>
+  </compounddef>
+</doxygen>

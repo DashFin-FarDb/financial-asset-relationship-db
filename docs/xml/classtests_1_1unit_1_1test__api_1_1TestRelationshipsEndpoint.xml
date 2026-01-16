@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api_1_1TestRelationshipsEndpoint" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api::TestRelationshipsEndpoint</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRelationshipsEndpoint_1a60ebc4715007860320eef740eb35d779" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRelationshipsEndpoint.test_get_asset_relationships</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_get_asset_relationships</name>
+        <qualifiedname>tests.unit.test_api.TestRelationshipsEndpoint.test_get_asset_relationships</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test retrieving relationships for a specific asset.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="339" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="339" bodyend="359"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRelationshipsEndpoint_1aa3cba702ed0fc07f03d41bdd63a56d3a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRelationshipsEndpoint.test_get_asset_relationships_not_found</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_get_asset_relationships_not_found</name>
+        <qualifiedname>tests.unit.test_api.TestRelationshipsEndpoint.test_get_asset_relationships_not_found</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test 404 for relationships of non-existent asset.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="361" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="361" bodyend="371"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRelationshipsEndpoint_1a1cf518360eb01932c4f303aee6cf612a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRelationshipsEndpoint.test_get_all_relationships</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_get_all_relationships</name>
+        <qualifiedname>tests.unit.test_api.TestRelationshipsEndpoint.test_get_all_relationships</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test retrieving all relationships in the graph.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="373" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="373" bodyend="394"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test relationship endpoints.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api.TestRelationshipsEndpoint</label>
+        <link refid="classtests_1_1unit_1_1test__api_1_1TestRelationshipsEndpoint"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="335" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="335" bodyend="394"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRelationshipsEndpoint_1a1cf518360eb01932c4f303aee6cf612a" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRelationshipsEndpoint</scope><name>test_get_all_relationships</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRelationshipsEndpoint_1a60ebc4715007860320eef740eb35d779" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRelationshipsEndpoint</scope><name>test_get_asset_relationships</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRelationshipsEndpoint_1aa3cba702ed0fc07f03d41bdd63a56d3a" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRelationshipsEndpoint</scope><name>test_get_asset_relationships_not_found</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

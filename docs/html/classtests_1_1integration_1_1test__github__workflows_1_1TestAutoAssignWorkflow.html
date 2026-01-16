@@ -1,0 +1,838 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: tests.integration.test_github_workflows.TestAutoAssignWorkflow Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">tests.integration.test_github_workflows.TestAutoAssignWorkflow Class Reference</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+Collaboration diagram for tests.integration.test_github_workflows.TestAutoAssignWorkflow:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow__coll__graph.svg" width="250" height="438"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:af6f6109b446b16aa43ded753caebe2fc" id="r_af6f6109b446b16aa43ded753caebe2fc"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a> (self)</td></tr>
+<tr class="separator:af6f6109b446b16aa43ded753caebe2fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77763c9126792cd612a673688121ea68" id="r_a77763c9126792cd612a673688121ea68"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a77763c9126792cd612a673688121ea68">test_auto_assign_structure_name</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a77763c9126792cd612a673688121ea68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53bbd14ffac6d328b684dd0205d0d248" id="r_a53bbd14ffac6d328b684dd0205d0d248"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a53bbd14ffac6d328b684dd0205d0d248">test_auto_assign_structure_has_run_job</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a53bbd14ffac6d328b684dd0205d0d248"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86eb855063803b25329f33ffb976d075" id="r_a86eb855063803b25329f33ffb976d075"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a86eb855063803b25329f33ffb976d075">test_auto_assign_structure_runs_on_ubuntu</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a86eb855063803b25329f33ffb976d075"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fd24c69da6661ef16f3cae137cad6d2" id="r_a5fd24c69da6661ef16f3cae137cad6d2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5fd24c69da6661ef16f3cae137cad6d2">test_auto_assign_structure_single_step</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a5fd24c69da6661ef16f3cae137cad6d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9854925a29251550e56464b952baaf3" id="r_ac9854925a29251550e56464b952baaf3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac9854925a29251550e56464b952baaf3">test_auto_assign_structure_no_dependencies</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:ac9854925a29251550e56464b952baaf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeff93b8d640af89ccdca8003a1160f76" id="r_aeff93b8d640af89ccdca8003a1160f76"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeff93b8d640af89ccdca8003a1160f76">test_auto_assign_structure_triggers_on_issues</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:aeff93b8d640af89ccdca8003a1160f76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab86849df607f541db10c7cdae954dd2a" id="r_ab86849df607f541db10c7cdae954dd2a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab86849df607f541db10c7cdae954dd2a">test_auto_assign_structure_triggers_on_pull_requests</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:ab86849df607f541db10c7cdae954dd2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab17e777534c47f554c36a240db0a5336" id="r_ab17e777534c47f554c36a240db0a5336"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab17e777534c47f554c36a240db0a5336">test_auto_assign_permissions_defined</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:ab17e777534c47f554c36a240db0a5336"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cbf01a712bbe79243538dec58d534f8" id="r_a1cbf01a712bbe79243538dec58d534f8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1cbf01a712bbe79243538dec58d534f8">test_auto_assign_permissions_issues_write</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a1cbf01a712bbe79243538dec58d534f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a962288d8ad6f33750fcfe360dfe376fd" id="r_a962288d8ad6f33750fcfe360dfe376fd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a962288d8ad6f33750fcfe360dfe376fd">test_auto_assign_permissions_pull_requests_write</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a962288d8ad6f33750fcfe360dfe376fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66de0ffa9c4a9f77445a2bf02f01c766" id="r_a66de0ffa9c4a9f77445a2bf02f01c766"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a66de0ffa9c4a9f77445a2bf02f01c766">test_auto_assign_permissions_minimal</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a66de0ffa9c4a9f77445a2bf02f01c766"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad806e6ea403f62d54deee5e6fdb4bb2f" id="r_ad806e6ea403f62d54deee5e6fdb4bb2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad806e6ea403f62d54deee5e6fdb4bb2f">test_auto_assign_permissions_scoped_properly</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:ad806e6ea403f62d54deee5e6fdb4bb2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab4dc99f79dc20b16b5c9989ef6a2cc5" id="r_aab4dc99f79dc20b16b5c9989ef6a2cc5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aab4dc99f79dc20b16b5c9989ef6a2cc5">test_auto_assign_security_uses_github_token</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:aab4dc99f79dc20b16b5c9989ef6a2cc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f42f393e45ad08be9ce8b6327712137" id="r_a7f42f393e45ad08be9ce8b6327712137"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7f42f393e45ad08be9ce8b6327712137">test_auto_assign_security_no_hardcoded_secrets</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a7f42f393e45ad08be9ce8b6327712137"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4321c715f661ffbca44b06e664ada1c4" id="r_a4321c715f661ffbca44b06e664ada1c4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4321c715f661ffbca44b06e664ada1c4">test_auto_assign_security_action_source_trusted</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a4321c715f661ffbca44b06e664ada1c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac184afd21cf8a5f7bdf08e73a426c8c6" id="r_ac184afd21cf8a5f7bdf08e73a426c8c6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac184afd21cf8a5f7bdf08e73a426c8c6">test_auto_assign_security_stable_action_version</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:ac184afd21cf8a5f7bdf08e73a426c8c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad719602617d2c2babc2852abfa93907f" id="r_ad719602617d2c2babc2852abfa93907f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad719602617d2c2babc2852abfa93907f">test_auto_assign_security_no_deprecated_syntax</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:ad719602617d2c2babc2852abfa93907f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67fbe2ce81b872fb7a481a23bd83516c" id="r_a67fbe2ce81b872fb7a481a23bd83516c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a67fbe2ce81b872fb7a481a23bd83516c">test_auto_assign_configuration_step_name</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a67fbe2ce81b872fb7a481a23bd83516c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30890ddcf6dd34f078347549013df472" id="r_a30890ddcf6dd34f078347549013df472"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a30890ddcf6dd34f078347549013df472">test_auto_assign_configuration_uses_pozil_action</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a30890ddcf6dd34f078347549013df472"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1722ae8086600f658004d7c71994f0ad" id="r_a1722ae8086600f658004d7c71994f0ad"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1722ae8086600f658004d7c71994f0ad">test_auto_assign_configuration_has_with_block</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a1722ae8086600f658004d7c71994f0ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86da87ef5edd91ca79d0fe5b310623b5" id="r_a86da87ef5edd91ca79d0fe5b310623b5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a86da87ef5edd91ca79d0fe5b310623b5">test_auto_assign_configuration_required_fields</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a86da87ef5edd91ca79d0fe5b310623b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09d24bea5cd683eb8bd3dcffe47084a8" id="r_a09d24bea5cd683eb8bd3dcffe47084a8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a09d24bea5cd683eb8bd3dcffe47084a8">test_auto_assign_configuration_assignees_valid</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a09d24bea5cd683eb8bd3dcffe47084a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9995750734836e5e374afc9388837f1c" id="r_a9995750734836e5e374afc9388837f1c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9995750734836e5e374afc9388837f1c">test_auto_assign_configuration_num_assignees_valid</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a9995750734836e5e374afc9388837f1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6d4d12b50b5f43ffa2167857cc455e5" id="r_af6d4d12b50b5f43ffa2167857cc455e5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af6d4d12b50b5f43ffa2167857cc455e5">test_auto_assign_configuration_no_unexpected_fields</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:af6d4d12b50b5f43ffa2167857cc455e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95f0aec51c9a16dda4932960fe901ddb" id="r_a95f0aec51c9a16dda4932960fe901ddb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a95f0aec51c9a16dda4932960fe901ddb">test_auto_assign_configuration_no_env_vars</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a95f0aec51c9a16dda4932960fe901ddb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30b0d877d99470c3cf7e16b49f8b3238" id="r_a30b0d877d99470c3cf7e16b49f8b3238"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a30b0d877d99470c3cf7e16b49f8b3238">test_auto_assign_configuration_no_timeout</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:a30b0d877d99470c3cf7e16b49f8b3238"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcf849f88a253b5aa6db7a6e33e585fc" id="r_adcf849f88a253b5aa6db7a6e33e585fc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adcf849f88a253b5aa6db7a6e33e585fc">test_auto_assign_configuration_no_continue_on_error</a> (self, Dict[str, Any] <a class="el" href="#af6f6109b446b16aa43ded753caebe2fc">auto_assign_workflow</a>)</td></tr>
+<tr class="separator:adcf849f88a253b5aa6db7a6e33e585fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><pre class="fragment">Comprehensive tests for the auto-assign.yml workflow.</pre> </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="af6f6109b446b16aa43ded753caebe2fc" name="af6f6109b446b16aa43ded753caebe2fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af6f6109b446b16aa43ded753caebe2fc">&#9670;&#160;</a></span>auto_assign_workflow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] tests.integration.test_github_workflows.TestAutoAssignWorkflow.auto_assign_workflow </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Load the 'auto-assign' workflow YAML and provide its parsed mapping for tests.
+
+If the file .github/workflows/auto-assign.yml is missing, the invoking test is skipped.
+
+Returns:
+    Dict[str, Any]: Parsed YAML mapping of the auto-assign workflow.
+</pre> <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow_af6f6109b446b16aa43ded753caebe2fc_cgraph.svg" width="480" height="66"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a09d24bea5cd683eb8bd3dcffe47084a8" name="a09d24bea5cd683eb8bd3dcffe47084a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a09d24bea5cd683eb8bd3dcffe47084a8">&#9670;&#160;</a></span>test_auto_assign_configuration_assignees_valid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_assignees_valid </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that assignees are specified and valid.</pre> 
+</div>
+</div>
+<a id="a1722ae8086600f658004d7c71994f0ad" name="a1722ae8086600f658004d7c71994f0ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1722ae8086600f658004d7c71994f0ad">&#9670;&#160;</a></span>test_auto_assign_configuration_has_with_block()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_has_with_block </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the step has a 'with' configuration block.</pre> 
+</div>
+</div>
+<a id="adcf849f88a253b5aa6db7a6e33e585fc" name="adcf849f88a253b5aa6db7a6e33e585fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcf849f88a253b5aa6db7a6e33e585fc">&#9670;&#160;</a></span>test_auto_assign_configuration_no_continue_on_error()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_continue_on_error </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the step doesn't have continue-on-error set.</pre> 
+</div>
+</div>
+<a id="a95f0aec51c9a16dda4932960fe901ddb" name="a95f0aec51c9a16dda4932960fe901ddb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95f0aec51c9a16dda4932960fe901ddb">&#9670;&#160;</a></span>test_auto_assign_configuration_no_env_vars()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_env_vars </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that no environment variables are set (all config in 'with').</pre> 
+</div>
+</div>
+<a id="a30b0d877d99470c3cf7e16b49f8b3238" name="a30b0d877d99470c3cf7e16b49f8b3238"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30b0d877d99470c3cf7e16b49f8b3238">&#9670;&#160;</a></span>test_auto_assign_configuration_no_timeout()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_timeout </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test timeout configuration.</pre> 
+</div>
+</div>
+<a id="af6d4d12b50b5f43ffa2167857cc455e5" name="af6d4d12b50b5f43ffa2167857cc455e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af6d4d12b50b5f43ffa2167857cc455e5">&#9670;&#160;</a></span>test_auto_assign_configuration_no_unexpected_fields()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_no_unexpected_fields </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that no unexpected configuration fields are present.</pre> 
+</div>
+</div>
+<a id="a9995750734836e5e374afc9388837f1c" name="a9995750734836e5e374afc9388837f1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9995750734836e5e374afc9388837f1c">&#9670;&#160;</a></span>test_auto_assign_configuration_num_assignees_valid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_num_assignees_valid </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that numOfAssignee is valid and matches assignees list.</pre> 
+</div>
+</div>
+<a id="a86da87ef5edd91ca79d0fe5b310623b5" name="a86da87ef5edd91ca79d0fe5b310623b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86da87ef5edd91ca79d0fe5b310623b5">&#9670;&#160;</a></span>test_auto_assign_configuration_required_fields()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_required_fields </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that all required configuration fields are present.</pre> 
+</div>
+</div>
+<a id="a67fbe2ce81b872fb7a481a23bd83516c" name="a67fbe2ce81b872fb7a481a23bd83516c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67fbe2ce81b872fb7a481a23bd83516c">&#9670;&#160;</a></span>test_auto_assign_configuration_step_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_step_name </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the step has a descriptive name.</pre> 
+</div>
+</div>
+<a id="a30890ddcf6dd34f078347549013df472" name="a30890ddcf6dd34f078347549013df472"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30890ddcf6dd34f078347549013df472">&#9670;&#160;</a></span>test_auto_assign_configuration_uses_pozil_action()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_configuration_uses_pozil_action </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the workflow uses the pozil/auto-assign-issue action.</pre> 
+</div>
+</div>
+<a id="ab17e777534c47f554c36a240db0a5336" name="ab17e777534c47f554c36a240db0a5336"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab17e777534c47f554c36a240db0a5336">&#9670;&#160;</a></span>test_auto_assign_permissions_defined()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_defined </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the workflow defines appropriate permissions.</pre> 
+</div>
+</div>
+<a id="a1cbf01a712bbe79243538dec58d534f8" name="a1cbf01a712bbe79243538dec58d534f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cbf01a712bbe79243538dec58d534f8">&#9670;&#160;</a></span>test_auto_assign_permissions_issues_write()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_issues_write </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the workflow has issues write permission.</pre> 
+</div>
+</div>
+<a id="a66de0ffa9c4a9f77445a2bf02f01c766" name="a66de0ffa9c4a9f77445a2bf02f01c766"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66de0ffa9c4a9f77445a2bf02f01c766">&#9670;&#160;</a></span>test_auto_assign_permissions_minimal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_minimal </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the workflow uses minimal permissions (least privilege principle).</pre> 
+</div>
+</div>
+<a id="a962288d8ad6f33750fcfe360dfe376fd" name="a962288d8ad6f33750fcfe360dfe376fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a962288d8ad6f33750fcfe360dfe376fd">&#9670;&#160;</a></span>test_auto_assign_permissions_pull_requests_write()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_pull_requests_write </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the workflow has pull-requests write permission.</pre> 
+</div>
+</div>
+<a id="ad806e6ea403f62d54deee5e6fdb4bb2f" name="ad806e6ea403f62d54deee5e6fdb4bb2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad806e6ea403f62d54deee5e6fdb4bb2f">&#9670;&#160;</a></span>test_auto_assign_permissions_scoped_properly()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_permissions_scoped_properly </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that permissions are defined at workflow or job level (both are valid patterns).</pre> 
+</div>
+</div>
+<a id="a4321c715f661ffbca44b06e664ada1c4" name="a4321c715f661ffbca44b06e664ada1c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4321c715f661ffbca44b06e664ada1c4">&#9670;&#160;</a></span>test_auto_assign_security_action_source_trusted()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_action_source_trusted </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the action comes from a trusted source.</pre> 
+</div>
+</div>
+<a id="ad719602617d2c2babc2852abfa93907f" name="ad719602617d2c2babc2852abfa93907f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad719602617d2c2babc2852abfa93907f">&#9670;&#160;</a></span>test_auto_assign_security_no_deprecated_syntax()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_no_deprecated_syntax </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the workflow doesn't use deprecated GitHub Actions syntax.</pre> 
+</div>
+</div>
+<a id="a7f42f393e45ad08be9ce8b6327712137" name="a7f42f393e45ad08be9ce8b6327712137"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f42f393e45ad08be9ce8b6327712137">&#9670;&#160;</a></span>test_auto_assign_security_no_hardcoded_secrets()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_no_hardcoded_secrets </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that no secrets are hardcoded in the workflow.</pre> 
+</div>
+</div>
+<a id="ac184afd21cf8a5f7bdf08e73a426c8c6" name="ac184afd21cf8a5f7bdf08e73a426c8c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac184afd21cf8a5f7bdf08e73a426c8c6">&#9670;&#160;</a></span>test_auto_assign_security_stable_action_version()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_stable_action_version </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the workflow uses a stable version of the action.</pre> 
+</div>
+</div>
+<a id="aab4dc99f79dc20b16b5c9989ef6a2cc5" name="aab4dc99f79dc20b16b5c9989ef6a2cc5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab4dc99f79dc20b16b5c9989ef6a2cc5">&#9670;&#160;</a></span>test_auto_assign_security_uses_github_token()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_security_uses_github_token </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the step uses GITHUB_TOKEN from secrets.</pre> 
+</div>
+</div>
+<a id="a53bbd14ffac6d328b684dd0205d0d248" name="a53bbd14ffac6d328b684dd0205d0d248"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53bbd14ffac6d328b684dd0205d0d248">&#9670;&#160;</a></span>test_auto_assign_structure_has_run_job()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_has_run_job </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that auto-assign workflow has an 'auto-assign' job.</pre> 
+</div>
+</div>
+<a id="a77763c9126792cd612a673688121ea68" name="a77763c9126792cd612a673688121ea68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77763c9126792cd612a673688121ea68">&#9670;&#160;</a></span>test_auto_assign_structure_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_name </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]</td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Assert the auto-assign workflow's top-level name.</pre> 
+</div>
+</div>
+<a id="ac9854925a29251550e56464b952baaf3" name="ac9854925a29251550e56464b952baaf3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9854925a29251550e56464b952baaf3">&#9670;&#160;</a></span>test_auto_assign_structure_no_dependencies()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_no_dependencies </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the auto-assign job has no dependencies or conditions.</pre> 
+</div>
+</div>
+<a id="a86eb855063803b25329f33ffb976d075" name="a86eb855063803b25329f33ffb976d075"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86eb855063803b25329f33ffb976d075">&#9670;&#160;</a></span>test_auto_assign_structure_runs_on_ubuntu()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_runs_on_ubuntu </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the auto-assign job executes on Ubuntu latest.</pre> 
+</div>
+</div>
+<a id="a5fd24c69da6661ef16f3cae137cad6d2" name="a5fd24c69da6661ef16f3cae137cad6d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fd24c69da6661ef16f3cae137cad6d2">&#9670;&#160;</a></span>test_auto_assign_structure_single_step()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_single_step </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that the auto-assign job has exactly one step.</pre> 
+</div>
+</div>
+<a id="aeff93b8d640af89ccdca8003a1160f76" name="aeff93b8d640af89ccdca8003a1160f76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeff93b8d640af89ccdca8003a1160f76">&#9670;&#160;</a></span>test_auto_assign_structure_triggers_on_issues()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_triggers_on_issues </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that auto-assign workflow triggers on issue opened events.</pre> 
+</div>
+</div>
+<a id="ab86849df607f541db10c7cdae954dd2a" name="ab86849df607f541db10c7cdae954dd2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab86849df607f541db10c7cdae954dd2a">&#9670;&#160;</a></span>test_auto_assign_structure_triggers_on_pull_requests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">tests.integration.test_github_workflows.TestAutoAssignWorkflow.test_auto_assign_structure_triggers_on_pull_requests </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Dict[str, Any]
+    </td>          <td class="paramname"><span class="paramname"><em>auto_assign_workflow</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Test that auto-assign workflow triggers on pull request opened events.</pre> 
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
+<li>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/<a class="el" href="test__github__workflows_8py.html">test_github_workflows.py</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacetests.html">tests</a></li><li class="navelem"><a class="el" href="namespacetests_1_1integration.html">integration</a></li><li class="navelem"><a class="el" href="namespacetests_1_1integration_1_1test__github__workflows.html">test_github_workflows</a></li><li class="navelem"><a class="el" href="classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignWorkflow.html">TestAutoAssignWorkflow</a></li>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

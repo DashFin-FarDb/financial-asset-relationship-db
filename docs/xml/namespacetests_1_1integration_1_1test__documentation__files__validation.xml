@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1integration_1_1test__documentation__files__validation" kind="namespace" language="Python">
+    <compoundname>tests::integration::test_documentation_files_validation</compoundname>
+    <innerclass refid="classtests_1_1integration_1_1test__documentation__files__validation_1_1TestDocumentationFilesValidation" prot="public">tests::integration::test_documentation_files_validation::TestDocumentationFilesValidation</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive validation tests for documentation markdown files added in current branch.
+
+Tests ensure that:
+- All markdown files are valid and parseable
+- Links within markdown files are correctly formatted
+- Code blocks have proper language identifiers
+- Tables are properly formatted
+- Headings follow a logical hierarchy
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_files_validation.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

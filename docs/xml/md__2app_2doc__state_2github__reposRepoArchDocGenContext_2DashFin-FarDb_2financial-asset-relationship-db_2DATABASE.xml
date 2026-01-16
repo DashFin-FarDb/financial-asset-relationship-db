@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE</compoundname>
+    <title>Database Integration</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_1autotoc_md1184"/></para>
+<para>This project uses Supabase as the database provider. The integration supports both the Supabase API client and direct PostgreSQL connections.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_1autotoc_md1185">
+<title>Configuration</title><para>Add the following environment variables to your <computeroutput>.env</computeroutput> file:</para>
+<para><programlisting><codeline><highlight class="normal">#<sp/>Supabase<sp/>Configuration</highlight></codeline>
+<codeline><highlight class="normal">SUPABASE_URL=https://your-project-id.supabase.co</highlight></codeline>
+<codeline><highlight class="normal">SUPABASE_KEY=your-supabase-anon-key</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Direct<sp/>PostgreSQL<sp/>Connection<sp/>(Optional)</highlight></codeline>
+<codeline><highlight class="normal">DATABASE_URL=postgresql://postgres.your-project-id:your-password@aws-1-us-east-1.pooler.supabase.com:6543/postgres</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_1autotoc_md1186">
+<title>Usage</title><para>The database module provides a simple interface for connecting to and querying the database:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>src.data.database<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>get_db</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Get<sp/>database<sp/>connection</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">db<sp/>=<sp/>get_db()</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Connect<sp/>to<sp/>the<sp/>database</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">db.connect()</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Query<sp/>data</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">assets<sp/>=<sp/>db.query(</highlight><highlight class="stringliteral">&quot;assets&quot;</highlight><highlight class="normal">,<sp/>limit=10)</highlight></codeline>
+<codeline><highlight class="normal">print(assets)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Close<sp/>connection<sp/>when<sp/>done</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">db.close()</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_1autotoc_md1187">
+<title>Connection Methods</title><para>The database module will attempt to connect using the Supabase client first, and fall back to a direct PostgreSQL connection if that fails.</para>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_1autotoc_md1188">
+<title>Supabase Client</title><para>The Supabase client provides a high-level API for interacting with your Supabase database, including:</para>
+<para><itemizedlist>
+<listitem><para>Authentication</para>
+</listitem><listitem><para>Storage</para>
+</listitem><listitem><para>Realtime subscriptions</para>
+</listitem><listitem><para>Database queries with Row Level Security</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_1autotoc_md1189">
+<title>Direct PostgreSQL Connection</title><para>The direct PostgreSQL connection provides lower-level access to the database using the <computeroutput>psycopg2</computeroutput> library.</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_1autotoc_md1190">
+<title>Required Dependencies</title><para>Install the required dependencies:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">pip<sp/>install<sp/>supabase<sp/>psycopg2-binary<sp/>python-dotenv</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_1autotoc_md1191">
+<title>Database Schema</title><para>The database schema will be automatically created when you first connect to the database. The schema includes the following tables:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>assets</computeroutput>: Stores information about financial assets</para>
+</listitem><listitem><para><computeroutput>relationships</computeroutput>: Stores relationships between assets</para>
+</listitem><listitem><para><computeroutput>metrics</computeroutput>: Stores metrics for assets</para>
+</listitem><listitem><para><computeroutput>users</computeroutput>: Stores user information</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DATABASE_1autotoc_md1192">
+<title>Testing</title><para>You can test the database connection using the provided test scripts:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>test_db_module.py</highlight></codeline>
+</programlisting> </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/DATABASE.md"/>
+  </compounddef>
+</doxygen>

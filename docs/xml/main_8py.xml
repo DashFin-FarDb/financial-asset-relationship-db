@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="main_8py" kind="file" language="Python">
+    <compoundname>main.py</compoundname>
+    <innernamespace refid="namespacemain">main</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespacemain" refkind="compound"><highlight class="keyword">import</highlight><highlight class="normal"><sp/>os</highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>socket</highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>psycopg2</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>dotenv<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>load_dotenv</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>supabase<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Client,<sp/>create_client</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="comment">#<sp/>Load<sp/>environment<sp/>variables<sp/>from<sp/>.env</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal">load_dotenv()</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="comment">#<sp/>Get<sp/>database<sp/>connection<sp/>details</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12" refid="namespacemain_1ac7c3e724888f8970185b6700a5e23480" refkind="member"><highlight class="normal">DATABASE_URL<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&quot;DATABASE_URL&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="13" refid="namespacemain_1a6ae7a142738d3da435d6a12acac9cee9" refkind="member"><highlight class="normal">SUPABASE_URL<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&quot;SUPABASE_URL&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="14" refid="namespacemain_1a8448f75dbb0a13e3f93f6159aced604d" refkind="member"><highlight class="normal">SUPABASE_KEY<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&quot;SUPABASE_KEY&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="comment">#<sp/>Path<sp/>to<sp/>SSL<sp/>certificate</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17" refid="namespacemain_1ab2fc4beca5ea50467e02d215a5f83c97" refkind="member"><highlight class="normal">CERT_PATH<sp/>=<sp/>os.path.join(os.path.dirname(os.path.abspath(__file__)),<sp/></highlight><highlight class="stringliteral">&quot;prod-ca-2021.crt&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal">print(</highlight><highlight class="stringliteral">&quot;Supabase<sp/>URL:&quot;</highlight><highlight class="normal">,<sp/>SUPABASE_URL)</highlight></codeline>
+<codeline lineno="20"><highlight class="normal">print(</highlight><highlight class="stringliteral">&quot;Supabase<sp/>Key:&quot;</highlight><highlight class="normal">,<sp/>SUPABASE_KEY[:5]<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;...&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>SUPABASE_KEY<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;Not<sp/>found&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="21"><highlight class="normal">print(</highlight><highlight class="stringliteral">&quot;Certificate<sp/>path:&quot;</highlight><highlight class="normal">,<sp/>CERT_PATH)</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="comment">#</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="comment">#<sp/>Try<sp/>Supabase<sp/>API<sp/>connection</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keywordflow">try</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;\n---<sp/>Testing<sp/>Supabase<sp/>API<sp/>Connection<sp/>with<sp/>New<sp/>Credentials<sp/>---&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Initialize<sp/>Supabase<sp/>client</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29" refid="namespacemain_1ae85c3b07de28b8cfd2db3c505539bf7b" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>supabase:<sp/>Client<sp/>=<sp/>create_client(SUPABASE_URL,<sp/>SUPABASE_KEY)</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;✅<sp/>Supabase<sp/>client<sp/>initialized<sp/>successfully!&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">try</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Example<sp/>query<sp/>-<sp/>fetch<sp/>data</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;Attempting<sp/>to<sp/>execute<sp/>query<sp/>via<sp/>Supabase<sp/>API...&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="35" refid="namespacemain_1a3deb03c0fa62bbd5a94d0a2a9a82122c" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>response<sp/>=<sp/>supabase.table(</highlight><highlight class="stringliteral">&quot;transactions&quot;</highlight><highlight class="normal">).select(</highlight><highlight class="stringliteral">&quot;*&quot;</highlight><highlight class="normal">).limit(1).execute()</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(f</highlight><highlight class="stringliteral">&quot;✅<sp/>Query<sp/>successful!<sp/>Found<sp/>{len(response.data)}<sp/>records.&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>response.data:</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;Sample<sp/>data:&quot;</highlight><highlight class="normal">,<sp/>response.data[0])</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;No<sp/>records<sp/>found<sp/>in<sp/>the<sp/>&apos;transactions&apos;<sp/>table.&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Try<sp/>another<sp/>table<sp/>if<sp/>assets<sp/>doesn&apos;t<sp/>exist</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;\nTrying<sp/>to<sp/>list<sp/>available<sp/>tables...&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>response<sp/>=<sp/>supabase.rpc(</highlight><highlight class="stringliteral">&quot;get_tables&quot;</highlight><highlight class="normal">).execute()</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>hasattr(response,<sp/></highlight><highlight class="stringliteral">&quot;data&quot;</highlight><highlight class="normal">)<sp/></highlight><highlight class="keywordflow">and</highlight><highlight class="normal"><sp/>response.data:</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;Available<sp/>tables:&quot;</highlight><highlight class="normal">,<sp/>response.data)</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;Could<sp/>not<sp/>retrieve<sp/>table<sp/>list.&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>socket.gaierror:</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;⚠️<sp/>Network<sp/>connection<sp/>issue:<sp/>Unable<sp/>to<sp/>reach<sp/>Supabase<sp/>API<sp/>servers.&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;This<sp/>is<sp/>expected<sp/>in<sp/>test<sp/>environments<sp/>with<sp/>network<sp/>restrictions.&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>Exception<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>query_error:</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(f</highlight><highlight class="stringliteral">&quot;⚠️<sp/>Query<sp/>error:<sp/>{query_error}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>Exception<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>e:</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>print(f</highlight><highlight class="stringliteral">&quot;❌<sp/>Failed<sp/>to<sp/>initialize<sp/>Supabase<sp/>client:<sp/>{e}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="comment">#<sp/>Try<sp/>direct<sp/>PostgreSQL<sp/>connection<sp/>with<sp/>SSL<sp/>certificate</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="keywordflow">try</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;\n---<sp/>Testing<sp/>Direct<sp/>PostgreSQL<sp/>Connection<sp/>with<sp/>SSL<sp/>---&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Use<sp/>DATABASE_URL<sp/>directly;<sp/>if<sp/>migrating<sp/>projects,<sp/>replace<sp/>the<sp/>fragment<sp/>accordingly</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64" refid="namespacemain_1a3e16089d2114f551b9d0c3cef0192abc" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>updated_db_url<sp/>=<sp/>DATABASE_URL</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Parse<sp/>connection<sp/>parameters<sp/>from<sp/>DATABASE_URL<sp/>or<sp/>use<sp/>individual<sp/>parameters</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>updated_db_url:</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(f</highlight><highlight class="stringliteral">&quot;Using<sp/>connection<sp/>string:<sp/>{updated_db_url[:20]}...&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>os.path.exists(CERT_PATH):</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(f</highlight><highlight class="stringliteral">&quot;⚠️<sp/>Warning:<sp/>Certificate<sp/>file<sp/>not<sp/>found<sp/>at<sp/>{CERT_PATH}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;Connection<sp/>may<sp/>fail<sp/>if<sp/>SSL<sp/>is<sp/>required.&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Add<sp/>SSL<sp/>parameters<sp/>to<sp/>connection</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="75" refid="namespacemain_1accdd965a6793cbd3ef392b9d0dd07144" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>connection<sp/>=<sp/>psycopg2.connect(</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>updated_db_url,</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>sslmode=</highlight><highlight class="stringliteral">&quot;require&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>sslrootcert=CERT_PATH,</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;No<sp/>DATABASE_URL<sp/>found,<sp/>using<sp/>individual<sp/>parameters&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>connection<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>connection:</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;✅<sp/>PostgreSQL<sp/>connection<sp/>successful!&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Create<sp/>a<sp/>cursor<sp/>to<sp/>execute<sp/>SQL<sp/>queries</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88" refid="namespacemain_1aca1fa5ef8f4afcee47fccb54716d59be" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cursor<sp/>=<sp/>connection.cursor()</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Example<sp/>query</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;Executing<sp/>query...&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cursor.execute(</highlight><highlight class="stringliteral">&quot;SELECT<sp/>NOW();&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="93" refid="namespacemain_1af5054e7cee59f93add27ee4d97cb586a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>cursor.fetchone()</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;Current<sp/>Time:&quot;</highlight><highlight class="normal">,<sp/>result)</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Close<sp/>the<sp/>cursor<sp/>and<sp/>connection</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cursor.close()</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>connection.close()</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;Connection<sp/>closed.&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>Exception<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>e:</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/>print(f</highlight><highlight class="stringliteral">&quot;❌<sp/>Failed<sp/>to<sp/>connect<sp/>to<sp/>PostgreSQL:<sp/>{e}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal">print(</highlight><highlight class="stringliteral">&quot;\nConnection<sp/>tests<sp/>completed.&quot;</highlight><highlight class="normal">)</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py"/>
+  </compounddef>
+</doxygen>

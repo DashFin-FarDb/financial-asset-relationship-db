@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING</compoundname>
+    <title>Testing Guide</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING_1autotoc_md5502"/></para>
+<para>Comprehensive testing guide for the Financial Asset Relationship Database.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING_1autotoc_md5503">
+<title>Python Backend Tests</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING_1autotoc_md5504">
+<title>Running Tests</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>API<sp/>tests<sp/>only</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_api_main.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>--cov=api<sp/>--cov=src<sp/>--cov-report=html</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING_1autotoc_md5505">
+<title>Test Coverage</title><para><bold><ref refid="test__api__main_8py" kindref="compound">test_api_main.py</ref></bold> provides 609 lines of comprehensive tests covering:</para>
+<para><orderedlist>
+<listitem><para><bold>CORS Validation</bold> - HTTP/HTTPS localhost, Vercel URLs, domain validation</para>
+</listitem><listitem><para><bold>Graph Initialization</bold> - Thread-safe singleton pattern</para>
+</listitem><listitem><para><bold>Pydantic Models</bold> - All response model validation</para>
+</listitem><listitem><para><bold>API Endpoints</bold> - All REST endpoints with filters</para>
+</listitem><listitem><para><bold>Error Handling</bold> - 404, 500, invalid methods</para>
+</listitem><listitem><para><bold>Integration Scenarios</bold> - Full workflow tests</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING_1autotoc_md5506">
+<title>Frontend TypeScript Tests</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING_1autotoc_md5507">
+<title>Running Tests</title><para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING_1autotoc_md5508">
+<title>Test Files</title><para><itemizedlist>
+<listitem><para><computeroutput>api.test.ts</computeroutput> - API client tests with mocking</para>
+</listitem><listitem><para><computeroutput>jest.config.js</computeroutput> - Jest configuration</para>
+</listitem><listitem><para><computeroutput>jest.setup.js</computeroutput> - Test environment setup</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING_1autotoc_md5509">
+<title>Quick Test Commands</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Backend<sp/>only</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_api_main.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Frontend<sp/>only</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Both<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>--cov<sp/>&amp;&amp;<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>run<sp/>test:coverage</highlight></codeline>
+</programlisting></para>
+<para>For detailed instructions, see the test files themselves. </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TESTING.md"/>
+  </compounddef>
+</doxygen>

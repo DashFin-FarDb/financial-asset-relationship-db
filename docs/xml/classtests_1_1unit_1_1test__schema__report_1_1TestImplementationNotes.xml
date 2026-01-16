@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_schema_report::TestImplementationNotes</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes_1a3c782902c0155e269f88266c1e0c7816" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestImplementationNotes.test_timestamp_format_noted</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_timestamp_format_noted</name>
+        <qualifiedname>tests.unit.test_schema_report.TestImplementationNotes.test_timestamp_format_noted</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that timestamp format is documented.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="320" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="320" bodyend="324"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes_1aa2a70c3af0a10c588896c87d516a5569" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestImplementationNotes.test_strength_normalization_noted</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_strength_normalization_noted</name>
+        <qualifiedname>tests.unit.test_schema_report.TestImplementationNotes.test_strength_normalization_noted</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that strength normalization is documented.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="326" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="326" bodyend="330"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes_1a5f542f03a5af7584d9e6e42bb25ee47a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestImplementationNotes.test_impact_score_scale_noted</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_impact_score_scale_noted</name>
+        <qualifiedname>tests.unit.test_schema_report.TestImplementationNotes.test_impact_score_scale_noted</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that impact score scale is documented.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="332" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="332" bodyend="336"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes_1aec0e7410a9ebc3c633bdfa8ae6387244" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestImplementationNotes.test_directionality_noted</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_directionality_noted</name>
+        <qualifiedname>tests.unit.test_schema_report.TestImplementationNotes.test_directionality_noted</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that relationship directionality is documented.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="338" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="338" bodyend="343"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for implementation notes.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_schema_report.TestImplementationNotes</label>
+        <link refid="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="316" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="316" bodyend="343"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes_1aec0e7410a9ebc3c633bdfa8ae6387244" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestImplementationNotes</scope><name>test_directionality_noted</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes_1a5f542f03a5af7584d9e6e42bb25ee47a" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestImplementationNotes</scope><name>test_impact_score_scale_noted</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes_1aa2a70c3af0a10c588896c87d516a5569" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestImplementationNotes</scope><name>test_strength_normalization_noted</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestImplementationNotes_1a3c782902c0155e269f88266c1e0c7816" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestImplementationNotes</scope><name>test_timestamp_format_noted</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

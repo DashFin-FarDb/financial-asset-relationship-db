@@ -1,0 +1,63 @@
+\doxysection{tests.\+unit.\+test\+\_\+api\+\_\+main.\+Test\+Graph\+Initialization Class Reference}
+\hypertarget{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization}{}\label{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization}\index{tests.unit.test\_api\_main.TestGraphInitialization@{tests.unit.test\_api\_main.TestGraphInitialization}}
+
+
+Collaboration diagram for tests.\+unit.\+test\+\_\+api\+\_\+main.\+Test\+Graph\+Initialization\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=233pt]{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_acb32ce63122d95a33b45496e203fc7ed}{test\+\_\+graph\+\_\+initialization}} (self)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_aa2d8fa58e0acebc39287fd747345f051}{test\+\_\+graph\+\_\+singleton}} (self)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_a0f90439047ea21c19a335a230bd39a4b}{test\+\_\+graph\+\_\+uses\+\_\+cache\+\_\+when\+\_\+configured}} (self, tmp\+\_\+path, monkeypatch)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_a8ffb364de8e1daa0003b59dd421f4df1}{test\+\_\+graph\+\_\+fallback\+\_\+on\+\_\+corrupted\+\_\+cache}} (self, tmp\+\_\+path, monkeypatch)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test the lazy graph initialization via get_graph().\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_a8ffb364de8e1daa0003b59dd421f4df1}\index{tests.unit.test\_api\_main.TestGraphInitialization@{tests.unit.test\_api\_main.TestGraphInitialization}!test\_graph\_fallback\_on\_corrupted\_cache@{test\_graph\_fallback\_on\_corrupted\_cache}}
+\index{test\_graph\_fallback\_on\_corrupted\_cache@{test\_graph\_fallback\_on\_corrupted\_cache}!tests.unit.test\_api\_main.TestGraphInitialization@{tests.unit.test\_api\_main.TestGraphInitialization}}
+\doxysubsubsection{\texorpdfstring{test\_graph\_fallback\_on\_corrupted\_cache()}{test\_graph\_fallback\_on\_corrupted\_cache()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_a8ffb364de8e1daa0003b59dd421f4df1} 
+tests.\+unit.\+test\+\_\+api\+\_\+main.\+Test\+Graph\+Initialization.\+test\+\_\+graph\+\_\+fallback\+\_\+on\+\_\+corrupted\+\_\+cache (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{tmp\+\_\+path}{, }\item[{}]{monkeypatch}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Graph initialization should fallback when cache is corrupted or invalid.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_acb32ce63122d95a33b45496e203fc7ed}\index{tests.unit.test\_api\_main.TestGraphInitialization@{tests.unit.test\_api\_main.TestGraphInitialization}!test\_graph\_initialization@{test\_graph\_initialization}}
+\index{test\_graph\_initialization@{test\_graph\_initialization}!tests.unit.test\_api\_main.TestGraphInitialization@{tests.unit.test\_api\_main.TestGraphInitialization}}
+\doxysubsubsection{\texorpdfstring{test\_graph\_initialization()}{test\_graph\_initialization()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_acb32ce63122d95a33b45496e203fc7ed} 
+tests.\+unit.\+test\+\_\+api\+\_\+main.\+Test\+Graph\+Initialization.\+test\+\_\+graph\+\_\+initialization (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test graph is initialized via get_graph().\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_aa2d8fa58e0acebc39287fd747345f051}\index{tests.unit.test\_api\_main.TestGraphInitialization@{tests.unit.test\_api\_main.TestGraphInitialization}!test\_graph\_singleton@{test\_graph\_singleton}}
+\index{test\_graph\_singleton@{test\_graph\_singleton}!tests.unit.test\_api\_main.TestGraphInitialization@{tests.unit.test\_api\_main.TestGraphInitialization}}
+\doxysubsubsection{\texorpdfstring{test\_graph\_singleton()}{test\_graph\_singleton()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_aa2d8fa58e0acebc39287fd747345f051} 
+tests.\+unit.\+test\+\_\+api\+\_\+main.\+Test\+Graph\+Initialization.\+test\+\_\+graph\+\_\+singleton (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test graph is a singleton instance via get_graph().\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_a0f90439047ea21c19a335a230bd39a4b}\index{tests.unit.test\_api\_main.TestGraphInitialization@{tests.unit.test\_api\_main.TestGraphInitialization}!test\_graph\_uses\_cache\_when\_configured@{test\_graph\_uses\_cache\_when\_configured}}
+\index{test\_graph\_uses\_cache\_when\_configured@{test\_graph\_uses\_cache\_when\_configured}!tests.unit.test\_api\_main.TestGraphInitialization@{tests.unit.test\_api\_main.TestGraphInitialization}}
+\doxysubsubsection{\texorpdfstring{test\_graph\_uses\_cache\_when\_configured()}{test\_graph\_uses\_cache\_when\_configured()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__api__main_1_1TestGraphInitialization_a0f90439047ea21c19a335a230bd39a4b} 
+tests.\+unit.\+test\+\_\+api\+\_\+main.\+Test\+Graph\+Initialization.\+test\+\_\+graph\+\_\+uses\+\_\+cache\+\_\+when\+\_\+configured (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{tmp\+\_\+path}{, }\item[{}]{monkeypatch}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Graph initialization should load from cached dataset when provided.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/unit/\mbox{\hyperlink{test__api__main_8py}{test\+\_\+api\+\_\+main.\+py}}\end{DoxyCompactItemize}

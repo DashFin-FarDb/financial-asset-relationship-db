@@ -1,0 +1,501 @@
+\chapter{Security Best Practices}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY}\index{Security Best Practices@{Security Best Practices}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3592}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3592}%
+
+
+This document outlines security considerations and best practices for the Financial Asset Relationship Database.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3593}{}\doxysection{\texorpdfstring{Current Security Status}{Current Security Status}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3593}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3594}{}\doxysubsection{\texorpdfstring{✅ Implemented Security Measures}{✅ Implemented Security Measures}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3594}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Code Scanning}}
+\begin{DoxyItemize}
+\item Code\+QL security scanning (0 alerts)
+\item Dependency review on pull requests
+\item Trivy Docker image scanning
+\end{DoxyItemize}
+\item {\bfseries{Input Validation}}
+\begin{DoxyItemize}
+\item Price validation (non-\/negative)
+\item Currency code validation (3-\/letter ISO)
+\item Impact score validation (-\/1 to 1)
+\item Date format validation (ISO 8601)
+\end{DoxyItemize}
+\item {\bfseries{Docker Security}}
+\begin{DoxyItemize}
+\item Non-\/root user (appuser)
+\item Minimal base image (Python 3.\+11-\/slim)
+\item No hardcoded secrets
+\item Health checks configured
+\end{DoxyItemize}
+\item {\bfseries{Dependency Management}}
+\begin{DoxyItemize}
+\item Requirements pinned with minimum versions
+\item Regular security scanning in CI/\+CD
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3595}{}\doxysection{\texorpdfstring{Security Checklist}{Security Checklist}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3595}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3596}{}\doxysubsection{\texorpdfstring{Before Production Deployment}{Before Production Deployment}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3596}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Change all default passwords
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Enable HTTPS/\+TLS
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Set up API authentication
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Configure rate limiting
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Enable CORS with specific origins
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Set up logging and monitoring
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Configure backup and recovery
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Set up secrets management
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Enable audit logging
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Configure network policies
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3597}{}\doxysubsection{\texorpdfstring{For API Endpoints (Future)}{For API Endpoints (Future)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3597}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Implement JWT authentication
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add request validation
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Rate limit per user/\+IP
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Implement CSRF protection
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add request signing
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Enable API versioning
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Set up WAF (Web Application Firewall)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3598}{}\doxysubsection{\texorpdfstring{For Database (When Added)}{For Database (When Added)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3598}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Use connection pooling
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Enable encryption at rest
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Enable encryption in transit
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Set up user roles and permissions
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Enable audit logging
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Regular backups configured
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] SQL injection prevention (use parameterized queries)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3599}{}\doxysection{\texorpdfstring{Security Recommendations}{Security Recommendations}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3599}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3600}{}\doxysubsection{\texorpdfstring{1. Authentication \& Authorization}{1. Authentication \& Authorization}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3600}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3601}{}\doxysubsubsection{\texorpdfstring{JWT Implementation (for APIs)}{JWT Implementation (for APIs)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3601}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{from}\ fastapi\ \textcolor{keyword}{import}\ Depends,\ HTTPException,\ status}
+\DoxyCodeLine{\textcolor{keyword}{from}\ fastapi.security\ \textcolor{keyword}{import}\ HTTPBearer}
+\DoxyCodeLine{\textcolor{keyword}{import}\ jwt}
+\DoxyCodeLine{}
+\DoxyCodeLine{security\ =\ HTTPBearer()}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }verify\_token(credentials:\ HTTPBearer\ =\ Depends(security)):}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ payload\ =\ jwt.decode(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ credentials.credentials,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ SECRET\_KEY,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ algorithms=[\textcolor{stringliteral}{"{}HS256"{}}]}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ payload}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{except}\ jwt.JWTError:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ HTTPException(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ status\_code=status.HTTP\_401\_UNAUTHORIZED,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ detail=\textcolor{stringliteral}{"{}Invalid\ authentication\ credentials"{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3602}{}\doxysubsubsection{\texorpdfstring{Role-\/\+Based Access Control (RBAC)}{Role-\/\+Based Access Control (RBAC)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3602}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{from}\ enum\ \textcolor{keyword}{import}\ Enum}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{class\ }Role(\mbox{\hyperlink{classEnum}{Enum}}):}
+\DoxyCodeLine{\ \ \ \ ADMIN\ =\ \textcolor{stringliteral}{"{}admin"{}}}
+\DoxyCodeLine{\ \ \ \ USER\ =\ \textcolor{stringliteral}{"{}user"{}}}
+\DoxyCodeLine{\ \ \ \ READONLY\ =\ \textcolor{stringliteral}{"{}readonly"{}}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }require\_role(required\_role:\ Role):}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{def\ }decorator(func):}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }wrapper(*args,\ **kwargs):}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ user\_role\ =\ get\_current\_user\_role()}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ user\_role.value\ <\ required\_role.value:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ HTTPException(status\_code=403)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ func(*args,\ **kwargs)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ wrapper}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ decorator}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{@require\_role(Role.ADMIN)}}
+\DoxyCodeLine{\textcolor{keyword}{def\ }delete\_asset(asset\_id:\ str):}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{pass}}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3603}{}\doxysubsection{\texorpdfstring{2. Input Sanitization}{2. Input Sanitization}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3603}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3604}{}\doxysubsubsection{\texorpdfstring{For User-\/\+Generated Content}{For User-\/\+Generated Content}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3604}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{import}\ bleach}
+\DoxyCodeLine{\textcolor{keyword}{from}\ html\ \textcolor{keyword}{import}\ escape}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }sanitize\_html(content:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Sanitize\ HTML\ content\ to\ prevent\ XSS."{}"{}"{}}}
+\DoxyCodeLine{\ \ \ \ allowed\_tags\ =\ [\textcolor{stringliteral}{'p'},\ \textcolor{stringliteral}{'br'},\ \textcolor{stringliteral}{'strong'},\ \textcolor{stringliteral}{'em'},\ \textcolor{stringliteral}{'u'}]}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ bleach.clean(content,\ tags=allowed\_tags,\ strip=\textcolor{keyword}{True})}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }sanitize\_text(text:\ str,\ max\_length:\ int\ =\ 1000)\ -\/>\ str:}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Sanitize\ plain\ text\ input."{}"{}"{}}}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Escape\ HTML}}
+\DoxyCodeLine{\ \ \ \ text\ =\ escape(text)}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Limit\ length}}
+\DoxyCodeLine{\ \ \ \ text\ =\ text[:max\_length]}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Remove\ control\ characters}}
+\DoxyCodeLine{\ \ \ \ text\ =\ \textcolor{stringliteral}{''}.join(char\ \textcolor{keywordflow}{for}\ char\ \textcolor{keywordflow}{in}\ text\ \textcolor{keywordflow}{if}\ ord(char)\ >=\ 32\ \textcolor{keywordflow}{or}\ char\ \textcolor{keywordflow}{in}\ \textcolor{stringliteral}{'\(\backslash\)n\(\backslash\)r\(\backslash\)t'})}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ text.strip()}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3605}{}\doxysubsubsection{\texorpdfstring{For SQL Queries (when adding database)}{For SQL Queries (when adding database)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3605}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{from}\ sqlalchemy\ \textcolor{keyword}{import}\ text}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ BAD\ -\/\ SQL\ injection\ vulnerability}}
+\DoxyCodeLine{query\ =\ f\textcolor{stringliteral}{"{}SELECT\ *\ FROM\ assets\ WHERE\ id\ =\ '\{asset\_id\}'"{}}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ GOOD\ -\/\ Use\ parameterized\ queries}}
+\DoxyCodeLine{query\ =\ text(\textcolor{stringliteral}{"{}SELECT\ *\ FROM\ assets\ WHERE\ id\ =\ :asset\_id"{}})}
+\DoxyCodeLine{result\ =\ session.execute(query,\ \{\textcolor{stringliteral}{"{}asset\_id"{}}:\ asset\_id\})}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3606}{}\doxysubsection{\texorpdfstring{3. Secrets Management}{3. Secrets Management}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3606}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3607}{}\doxysubsubsection{\texorpdfstring{Environment Variables}{Environment Variables}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3607}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\textcolor{keyword}{from}\ dotenv\ \textcolor{keyword}{import}\ load\_dotenv}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Load\ from\ .env\ file\ (development\ only)}}
+\DoxyCodeLine{load\_dotenv()}
+\DoxyCodeLine{}
+\DoxyCodeLine{DATABASE\_URL\ =\ os.getenv(\textcolor{stringliteral}{'DATABASE\_URL'})}
+\DoxyCodeLine{SECRET\_KEY\ =\ os.getenv(\textcolor{stringliteral}{'SECRET\_KEY'})}
+\DoxyCodeLine{API\_KEY\ =\ os.getenv(\textcolor{stringliteral}{'API\_KEY'})}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ all([DATABASE\_URL,\ SECRET\_KEY,\ API\_KEY]):}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{raise}\ ValueError(\textcolor{stringliteral}{"{}Missing\ required\ environment\ variables"{}})}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3608}{}\doxysubsubsection{\texorpdfstring{Using Secret Managers (Production)}{Using Secret Managers (Production)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3608}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{\#\ AWS\ Secrets\ Manager}}
+\DoxyCodeLine{\textcolor{keyword}{import}\ boto3}
+\DoxyCodeLine{\textcolor{keyword}{import}\ json}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }get\_secret(secret\_name:\ str)\ -\/>\ dict:}
+\DoxyCodeLine{\ \ \ \ client\ =\ boto3.client(\textcolor{stringliteral}{'secretsmanager'})}
+\DoxyCodeLine{\ \ \ \ response\ =\ client.get\_secret\_value(SecretId=secret\_name)}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ json.loads(response[\textcolor{stringliteral}{'SecretString'}])}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Azure\ Key\ Vault}}
+\DoxyCodeLine{\textcolor{keyword}{from}\ azure.keyvault.secrets\ \textcolor{keyword}{import}\ SecretClient}
+\DoxyCodeLine{\textcolor{keyword}{from}\ azure.identity\ \textcolor{keyword}{import}\ DefaultAzureCredential}
+\DoxyCodeLine{}
+\DoxyCodeLine{credential\ =\ DefaultAzureCredential()}
+\DoxyCodeLine{client\ =\ SecretClient(vault\_url=\textcolor{stringliteral}{"{}https://myvault.vault.azure.net/"{}},\ credential=credential)}
+\DoxyCodeLine{secret\ =\ client.get\_secret(\textcolor{stringliteral}{"{}database-\/url"{}}).value}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3609}{}\doxysubsection{\texorpdfstring{4. Rate Limiting}{4. Rate Limiting}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3609}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3610}{}\doxysubsubsection{\texorpdfstring{Simple Rate Limiter}{Simple Rate Limiter}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3610}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{from}\ fastapi\ \textcolor{keyword}{import}\ Request,\ HTTPException}
+\DoxyCodeLine{\textcolor{keyword}{from}\ fastapi.responses\ \textcolor{keyword}{import}\ JSONResponse}
+\DoxyCodeLine{\textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\textcolor{keyword}{from}\ threading\ \textcolor{keyword}{import}\ Lock}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{class\ }RateLimiter:}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ requests\_per\_minute:\ int\ =\ 60):}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ self.requests\_per\_minute\ =\ requests\_per\_minute}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ self.requests\ =\ defaultdict(list)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ self.lock\ =\ Lock()}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{def\ }is\_allowed(self,\ client\_id:\ str)\ -\/>\ bool:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ self.lock:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ now\ =\ time.time()}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ minute\_ago\ =\ now\ -\/\ 60}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Clean\ old\ requests}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.requests[client\_id]\ =\ [}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ req\_time\ \textcolor{keywordflow}{for}\ req\_time\ \textcolor{keywordflow}{in}\ self.requests[client\_id]}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ req\_time\ >\ minute\_ago}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ ]}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ limit}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(self.requests[client\_id])\ >=\ self.requests\_per\_minute:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Add\ current\ request}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.requests[client\_id].append(now)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{}
+\DoxyCodeLine{rate\_limiter\ =\ RateLimiter(requests\_per\_minute=60)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{async\ def\ }rate\_limit\_middleware(request:\ Request,\ call\_next):}
+\DoxyCodeLine{\ \ \ \ client\_id\ =\ request.client.host}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ rate\_limiter.is\_allowed(client\_id):}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ JSONResponse(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ status\_code=429,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ content=\{\textcolor{stringliteral}{"{}detail"{}}:\ \textcolor{stringliteral}{"{}Too\ many\ requests"{}}\}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ await\ call\_next(request)}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3611}{}\doxysubsection{\texorpdfstring{5. HTTPS/\+TLS Configuration}{5. HTTPS/\+TLS Configuration}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3611}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3612}{}\doxysubsubsection{\texorpdfstring{For Production Deployment}{For Production Deployment}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3612}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{\#\ Use\ SSL\ certificates}}
+\DoxyCodeLine{\textcolor{keyword}{import}\ ssl}
+\DoxyCodeLine{}
+\DoxyCodeLine{ssl\_context\ =\ ssl.SSLContext(ssl.PROTOCOL\_TLS\_SERVER)}
+\DoxyCodeLine{ssl\_context.load\_cert\_chain(\textcolor{stringliteral}{'cert.pem'},\ \textcolor{stringliteral}{'key.pem'})}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ For\ Gradio}}
+\DoxyCodeLine{interface.launch(}
+\DoxyCodeLine{\ \ \ \ server\_name=\textcolor{stringliteral}{"{}0.0.0.0"{}},}
+\DoxyCodeLine{\ \ \ \ server\_port=443,}
+\DoxyCodeLine{\ \ \ \ ssl\_keyfile=\textcolor{stringliteral}{"{}key.pem"{}},}
+\DoxyCodeLine{\ \ \ \ ssl\_certfile=\textcolor{stringliteral}{"{}cert.pem"{}}}
+\DoxyCodeLine{)}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3613}{}\doxysubsubsection{\texorpdfstring{Let\textquotesingle{}s Encrypt with Certbot}{Let\textquotesingle{}s Encrypt with Certbot}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3613}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Install\ certbot}
+\DoxyCodeLine{sudo\ apt-\/get\ install\ certbot}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Get\ certificate}
+\DoxyCodeLine{sudo\ certbot\ certonly\ -\/-\/standalone\ -\/d\ yourdomain.com}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Certificates\ will\ be\ in\ /etc/letsencrypt/live/yourdomain.com/}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3614}{}\doxysubsection{\texorpdfstring{6. CORS Configuration}{6. CORS Configuration}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3614}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3615}{}\doxysubsubsection{\texorpdfstring{Secure CORS Setup}{Secure CORS Setup}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3615}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{from}\ fastapi.middleware.cors\ \textcolor{keyword}{import}\ CORSMiddleware}
+\DoxyCodeLine{}
+\DoxyCodeLine{app.add\_middleware(}
+\DoxyCodeLine{\ \ \ \ CORSMiddleware,}
+\DoxyCodeLine{\ \ \ \ allow\_origins=[}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}https://yourdomain.com"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}https://app.yourdomain.com"{}}}
+\DoxyCodeLine{\ \ \ \ ],\ \ \textcolor{comment}{\#\ Specific\ origins\ only,\ not\ "{}*"{}}}
+\DoxyCodeLine{\ \ \ \ allow\_credentials=\textcolor{keyword}{True},}
+\DoxyCodeLine{\ \ \ \ allow\_methods=[\textcolor{stringliteral}{"{}GET"{}},\ \textcolor{stringliteral}{"{}POST"{}}],\ \ \textcolor{comment}{\#\ Only\ needed\ methods}}
+\DoxyCodeLine{\ \ \ \ allow\_headers=[\textcolor{stringliteral}{"{}Authorization"{}},\ \textcolor{stringliteral}{"{}Content-\/Type"{}}],}
+\DoxyCodeLine{\ \ \ \ max\_age=3600,}
+\DoxyCodeLine{)}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3616}{}\doxysubsection{\texorpdfstring{7. Logging Security Events}{7. Logging Security Events}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3616}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3617}{}\doxysubsubsection{\texorpdfstring{Security Event Logger}{Security Event Logger}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3617}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{import}\ logging}
+\DoxyCodeLine{\textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime}
+\DoxyCodeLine{}
+\DoxyCodeLine{security\_logger\ =\ logging.getLogger(\textcolor{stringliteral}{'security'})}
+\DoxyCodeLine{security\_logger.setLevel(logging.INFO)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }log\_security\_event(event\_type:\ str,\ user\_id:\ str\ =\ \textcolor{keywordtype}{None},\ **kwargs):}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Log\ security-\/relevant\ events."{}"{}"{}}}
+\DoxyCodeLine{\ \ \ \ event\ =\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.utcnow().isoformat(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}event\_type"{}}:\ event\_type,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}user\_id"{}}:\ user\_id,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ **kwargs}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ security\_logger.info(json.dumps(event))}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Usage}}
+\DoxyCodeLine{log\_security\_event(\textcolor{stringliteral}{"{}login\_attempt"{}},\ user\_id=\textcolor{stringliteral}{"{}user123"{}},\ success=\textcolor{keyword}{True})}
+\DoxyCodeLine{log\_security\_event(\textcolor{stringliteral}{"{}unauthorized\_access"{}},\ ip=\textcolor{stringliteral}{"{}192.168.1.1"{}},\ path=\textcolor{stringliteral}{"{}/admin"{}})}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3618}{}\doxysubsection{\texorpdfstring{8. Error Handling}{8. Error Handling}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3618}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3619}{}\doxysubsubsection{\texorpdfstring{Secure Error Messages}{Secure Error Messages}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3619}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{\#\ BAD\ -\/\ Exposes\ internal\ details}}
+\DoxyCodeLine{\textcolor{preprocessor}{@app.exception\_handler(Exception)}}
+\DoxyCodeLine{\textcolor{keyword}{async\ def\ }exception\_handler(request:\ Request,\ exc:\ Exception):}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ JSONResponse(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ status\_code=500,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ content=\{\textcolor{stringliteral}{"{}detail"{}}:\ str(exc)\}\ \ \textcolor{comment}{\#\ Exposes\ stack\ trace}}
+\DoxyCodeLine{\ \ \ \ )}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ GOOD\ -\/\ Generic\ message,\ log\ details}}
+\DoxyCodeLine{\textcolor{preprocessor}{@app.exception\_handler(Exception)}}
+\DoxyCodeLine{\textcolor{keyword}{async\ def\ }exception\_handler(request:\ Request,\ exc:\ Exception):}
+\DoxyCodeLine{\ \ \ \ logger.exception(f\textcolor{stringliteral}{"{}Unhandled\ exception:\ \{exc\}"{}})}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ JSONResponse(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ status\_code=500,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ content=\{\textcolor{stringliteral}{"{}detail"{}}:\ \textcolor{stringliteral}{"{}Internal\ server\ error"{}}\}}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3620}{}\doxysubsection{\texorpdfstring{9. Docker Security}{9. Docker Security}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3620}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3621}{}\doxysubsubsection{\texorpdfstring{Security Best Practices}{Security Best Practices}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3621}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\#\ Use\ specific\ version,\ not\ latest}}
+\DoxyCodeLine{FROM\ python:3.11-\/slim}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#\ Run\ as\ non-\/root}}
+\DoxyCodeLine{RUN\ useradd\ -\/m\ -\/u\ 1000\ appuser}
+\DoxyCodeLine{USER\ appuser}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#\ Don't\ copy\ unnecessary\ files}}
+\DoxyCodeLine{COPY\ requirements.txt\ .}
+\DoxyCodeLine{RUN\ pip\ install\ -\/-\/no-\/cache-\/dir\ -\/r\ requirements.txt}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#\ Use\ health\ checks}}
+\DoxyCodeLine{HEALTHCHECK\ -\/-\/interval=30s\ -\/-\/timeout=10s\ \(\backslash\)}
+\DoxyCodeLine{\ \ CMD\ python\ -\/c\ \textcolor{stringliteral}{"{}import\ requests;\ requests.get('http://localhost:7860')"{}}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#\ Set\ security\ options}}
+\DoxyCodeLine{LABEL\ security.no-\/\textcolor{keyword}{new}-\/privileges=\textcolor{keyword}{true}}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3622}{}\doxysubsubsection{\texorpdfstring{Docker Compose Security}{Docker Compose Security}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3622}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{services:}
+\DoxyCodeLine{\ \ app:}
+\DoxyCodeLine{\ \ \ \ security\_opt:}
+\DoxyCodeLine{\ \ \ \ \ \ -\/\ no-\/new-\/privileges:true}
+\DoxyCodeLine{\ \ \ \ read\_only:\ true}
+\DoxyCodeLine{\ \ \ \ tmpfs:}
+\DoxyCodeLine{\ \ \ \ \ \ -\/\ /tmp}
+\DoxyCodeLine{\ \ \ \ cap\_drop:}
+\DoxyCodeLine{\ \ \ \ \ \ -\/\ ALL}
+\DoxyCodeLine{\ \ \ \ cap\_add:}
+\DoxyCodeLine{\ \ \ \ \ \ -\/\ NET\_BIND\_SERVICE}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3623}{}\doxysubsection{\texorpdfstring{10. Regular Security Audits}{10. Regular Security Audits}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3623}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3624}{}\doxysubsubsection{\texorpdfstring{Automated Scanning}{Automated Scanning}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3624}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Python\ dependencies}
+\DoxyCodeLine{pip\ install\ safety}
+\DoxyCodeLine{safety\ check}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Code\ security}
+\DoxyCodeLine{pip\ install\ bandit}
+\DoxyCodeLine{bandit\ -\/r\ src/}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Docker\ images}
+\DoxyCodeLine{docker\ scan\ financial-\/asset-\/db:latest}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Secrets\ in\ code}
+\DoxyCodeLine{pip\ install\ detect-\/secrets}
+\DoxyCodeLine{detect-\/secrets\ scan}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3625}{}\doxysubsubsection{\texorpdfstring{Manual Reviews}{Manual Reviews}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3625}
+
+\begin{DoxyItemize}
+\item Review access logs regularly
+\item Check for suspicious patterns
+\item Update dependencies monthly
+\item Review and rotate credentials quarterly
+\item Conduct penetration testing annually
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3626}{}\doxysection{\texorpdfstring{Incident Response Plan}{Incident Response Plan}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3626}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3627}{}\doxysubsection{\texorpdfstring{If Security Issue Discovered}{If Security Issue Discovered}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3627}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Assess Impact}}
+\begin{DoxyItemize}
+\item Identify affected systems
+\item Determine data exposure
+\item Evaluate severity
+\end{DoxyItemize}
+\item {\bfseries{Contain}}
+\begin{DoxyItemize}
+\item Isolate affected systems
+\item Revoke compromised credentials
+\item Block suspicious IPs
+\end{DoxyItemize}
+\item {\bfseries{Investigate}}
+\begin{DoxyItemize}
+\item Review logs
+\item Identify root cause
+\item Document timeline
+\end{DoxyItemize}
+\item {\bfseries{Remediate}}
+\begin{DoxyItemize}
+\item Apply patches
+\item Update configurations
+\item Rotate credentials
+\end{DoxyItemize}
+\item {\bfseries{Notify}}
+\begin{DoxyItemize}
+\item Inform affected users
+\item Report to authorities if required
+\item Document lessons learned
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3628}{}\doxysection{\texorpdfstring{Security Resources}{Security Resources}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3628}
+
+\begin{DoxyItemize}
+\item \href{https://owasp.org/www-project-top-ten/}{\texttt{ OWASP Top 10}}
+\item \href{https://cwe.mitre.org/top25/}{\texttt{ CWE Top 25}}
+\item \href{https://python.readthedocs.io/en/stable/library/security_warnings.html}{\texttt{ Python Security Best Practices}}
+\item \href{https://docs.docker.com/engine/security/}{\texttt{ Docker Security Best Practices}}
+\item \href{https://www.nist.gov/cyberframework}{\texttt{ NIST Cybersecurity Framework}}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3629}{}\doxysection{\texorpdfstring{Contact}{Contact}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_autotoc_md3629}
+For security issues, contact\+: \href{mailto:mohavro@users.noreply.github.com}{\texttt{ mohavro@users.\+noreply.\+github.\+com}}
+
+{\bfseries{Never}} publish security vulnerabilities in public issues. Use responsible disclosure.
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Last Updated\+:}} October 30, 2025 {\bfseries{Version\+:}} 1.\+0 {\bfseries{Author\+:}} Git\+Hub Copilot Code Agent 

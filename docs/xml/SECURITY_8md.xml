@@ -1,0 +1,475 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="SECURITY_8md" kind="file" language="Markdown">
+    <compoundname>SECURITY.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Security<sp/>Best<sp/>Practices</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>outlines<sp/>security<sp/>considerations<sp/>and<sp/>best<sp/>practices<sp/>for<sp/>the<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Current<sp/>Security<sp/>Status</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>✅<sp/>Implemented<sp/>Security<sp/>Measures</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Code<sp/>Scanning**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>CodeQL<sp/>security<sp/>scanning<sp/>(0<sp/>alerts)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Dependency<sp/>review<sp/>on<sp/>pull<sp/>requests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Trivy<sp/>Docker<sp/>image<sp/>scanning</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Input<sp/>Validation**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Price<sp/>validation<sp/>(non-negative)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Currency<sp/>code<sp/>validation<sp/>(3-letter<sp/>ISO)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Impact<sp/>score<sp/>validation<sp/>(-1<sp/>to<sp/>1)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Date<sp/>format<sp/>validation<sp/>(ISO<sp/>8601)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Docker<sp/>Security**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Non-root<sp/>user<sp/>(appuser)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Minimal<sp/>base<sp/>image<sp/>(Python<sp/>3.11-slim)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>No<sp/>hardcoded<sp/>secrets</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Health<sp/>checks<sp/>configured</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Dependency<sp/>Management**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Requirements<sp/>pinned<sp/>with<sp/>minimum<sp/>versions</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Regular<sp/>security<sp/>scanning<sp/>in<sp/>CI/CD</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Security<sp/>Checklist</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Before<sp/>Production<sp/>Deployment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Change<sp/>all<sp/>default<sp/>passwords</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Enable<sp/>HTTPS/TLS</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Set<sp/>up<sp/>API<sp/>authentication</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Configure<sp/>rate<sp/>limiting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Enable<sp/>CORS<sp/>with<sp/>specific<sp/>origins</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Set<sp/>up<sp/>logging<sp/>and<sp/>monitoring</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Configure<sp/>backup<sp/>and<sp/>recovery</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Set<sp/>up<sp/>secrets<sp/>management</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Enable<sp/>audit<sp/>logging</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Configure<sp/>network<sp/>policies</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>For<sp/>API<sp/>Endpoints<sp/>(Future)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Implement<sp/>JWT<sp/>authentication</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Add<sp/>request<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Rate<sp/>limit<sp/>per<sp/>user/IP</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Implement<sp/>CSRF<sp/>protection</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Add<sp/>request<sp/>signing</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Enable<sp/>API<sp/>versioning</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Set<sp/>up<sp/>WAF<sp/>(Web<sp/>Application<sp/>Firewall)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>For<sp/>Database<sp/>(When<sp/>Added)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Use<sp/>connection<sp/>pooling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Enable<sp/>encryption<sp/>at<sp/>rest</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Enable<sp/>encryption<sp/>in<sp/>transit</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Set<sp/>up<sp/>user<sp/>roles<sp/>and<sp/>permissions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Enable<sp/>audit<sp/>logging</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>Regular<sp/>backups<sp/>configured</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[<sp/>]<sp/>SQL<sp/>injection<sp/>prevention<sp/>(use<sp/>parameterized<sp/>queries)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Security<sp/>Recommendations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Authentication<sp/>&amp;<sp/>Authorization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>JWT<sp/>Implementation<sp/>(for<sp/>APIs)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>fastapi<sp/>import<sp/>Depends,<sp/>HTTPException,<sp/>status</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>fastapi.security<sp/>import<sp/>HTTPBearer</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>jwt</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">security<sp/>=<sp/>HTTPBearer()</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>verify_token(credentials:<sp/>HTTPBearer<sp/>=<sp/>Depends(security)):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>try:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>payload<sp/>=<sp/>jwt.decode(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>credentials.credentials,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>SECRET_KEY,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>algorithms=[&quot;HS256&quot;]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>payload</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>except<sp/>jwt.JWTError:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>raise<sp/>HTTPException(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=status.HTTP_401_UNAUTHORIZED,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>detail=&quot;Invalid<sp/>authentication<sp/>credentials&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Role-Based<sp/>Access<sp/>Control<sp/>(RBAC)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>enum<sp/>import<sp/>Enum</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">class<sp/>Role(Enum):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ADMIN<sp/>=<sp/>&quot;admin&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>USER<sp/>=<sp/>&quot;user&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>READONLY<sp/>=<sp/>&quot;readonly&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>require_role(required_role:<sp/>Role):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>decorator(func):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>def<sp/>wrapper(*args,<sp/>**kwargs):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>user_role<sp/>=<sp/>get_current_user_role()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>user_role.value<sp/>&lt;<sp/>required_role.value:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>raise<sp/>HTTPException(status_code=403)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>func(*args,<sp/>**kwargs)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>wrapper</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>decorator</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">@require_role(Role.ADMIN)</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>delete_asset(asset_id:<sp/>str):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Input<sp/>Sanitization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>For<sp/>User-Generated<sp/>Content</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>bleach</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>html<sp/>import<sp/>escape</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>sanitize_html(content:<sp/>str)<sp/>-&gt;<sp/>str:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Sanitize<sp/>HTML<sp/>content<sp/>to<sp/>prevent<sp/>XSS.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allowed_tags<sp/>=<sp/>[&apos;p&apos;,<sp/>&apos;br&apos;,<sp/>&apos;strong&apos;,<sp/>&apos;em&apos;,<sp/>&apos;u&apos;]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>bleach.clean(content,<sp/>tags=allowed_tags,<sp/>strip=True)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>sanitize_text(text:<sp/>str,<sp/>max_length:<sp/>int<sp/>=<sp/>1000)<sp/>-&gt;<sp/>str:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Sanitize<sp/>plain<sp/>text<sp/>input.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Escape<sp/>HTML</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>text<sp/>=<sp/>escape(text)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Limit<sp/>length</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>text<sp/>=<sp/>text[:max_length]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Remove<sp/>control<sp/>characters</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>text<sp/>=<sp/>&apos;&apos;.join(char<sp/>for<sp/>char<sp/>in<sp/>text<sp/>if<sp/>ord(char)<sp/>&gt;=<sp/>32<sp/>or<sp/>char<sp/>in<sp/>&apos;\n\r\t&apos;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>text.strip()</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>For<sp/>SQL<sp/>Queries<sp/>(when<sp/>adding<sp/>database)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>sqlalchemy<sp/>import<sp/>text</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>BAD<sp/>-<sp/>SQL<sp/>injection<sp/>vulnerability</highlight></codeline>
+<codeline><highlight class="normal">query<sp/>=<sp/>f&quot;SELECT<sp/>*<sp/>FROM<sp/>assets<sp/>WHERE<sp/>id<sp/>=<sp/>&apos;{asset_id}&apos;&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>GOOD<sp/>-<sp/>Use<sp/>parameterized<sp/>queries</highlight></codeline>
+<codeline><highlight class="normal">query<sp/>=<sp/>text(&quot;SELECT<sp/>*<sp/>FROM<sp/>assets<sp/>WHERE<sp/>id<sp/>=<sp/>:asset_id&quot;)</highlight></codeline>
+<codeline><highlight class="normal">result<sp/>=<sp/>session.execute(query,<sp/>{&quot;asset_id&quot;:<sp/>asset_id})</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Secrets<sp/>Management</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Environment<sp/>Variables</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>os</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>pathlib<sp/>import<sp/>Path</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>dotenv<sp/>import<sp/>load_dotenv</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Load<sp/>from<sp/>.env<sp/>file<sp/>(development<sp/>only)</highlight></codeline>
+<codeline><highlight class="normal">load_dotenv()</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">DATABASE_URL<sp/>=<sp/>os.getenv(&apos;DATABASE_URL&apos;)</highlight></codeline>
+<codeline><highlight class="normal">SECRET_KEY<sp/>=<sp/>os.getenv(&apos;SECRET_KEY&apos;)</highlight></codeline>
+<codeline><highlight class="normal">API_KEY<sp/>=<sp/>os.getenv(&apos;API_KEY&apos;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>all([DATABASE_URL,<sp/>SECRET_KEY,<sp/>API_KEY]):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>ValueError(&quot;Missing<sp/>required<sp/>environment<sp/>variables&quot;)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Using<sp/>Secret<sp/>Managers<sp/>(Production)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>AWS<sp/>Secrets<sp/>Manager</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>boto3</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>json</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>get_secret(secret_name:<sp/>str)<sp/>-&gt;<sp/>dict:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>client<sp/>=<sp/>boto3.client(&apos;secretsmanager&apos;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>response<sp/>=<sp/>client.get_secret_value(SecretId=secret_name)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>json.loads(response[&apos;SecretString&apos;])</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Azure<sp/>Key<sp/>Vault</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>azure.keyvault.secrets<sp/>import<sp/>SecretClient</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>azure.identity<sp/>import<sp/>DefaultAzureCredential</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">credential<sp/>=<sp/>DefaultAzureCredential()</highlight></codeline>
+<codeline><highlight class="normal">client<sp/>=<sp/>SecretClient(vault_url=&quot;https://myvault.vault.azure.net/&quot;,<sp/>credential=credential)</highlight></codeline>
+<codeline><highlight class="normal">secret<sp/>=<sp/>client.get_secret(&quot;database-url&quot;).value</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Rate<sp/>Limiting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Simple<sp/>Rate<sp/>Limiter</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>fastapi<sp/>import<sp/>Request,<sp/>HTTPException</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>fastapi.responses<sp/>import<sp/>JSONResponse</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>time</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>collections<sp/>import<sp/>defaultdict</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>threading<sp/>import<sp/>Lock</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">class<sp/>RateLimiter:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>__init__(self,<sp/>requests_per_minute:<sp/>int<sp/>=<sp/>60):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.requests_per_minute<sp/>=<sp/>requests_per_minute</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.requests<sp/>=<sp/>defaultdict(list)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.lock<sp/>=<sp/>Lock()</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>def<sp/>is_allowed(self,<sp/>client_id:<sp/>str)<sp/>-&gt;<sp/>bool:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with<sp/>self.lock:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>now<sp/>=<sp/>time.time()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>minute_ago<sp/>=<sp/>now<sp/>-<sp/>60</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Clean<sp/>old<sp/>requests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.requests[client_id]<sp/>=<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>req_time<sp/>for<sp/>req_time<sp/>in<sp/>self.requests[client_id]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>req_time<sp/>&gt;<sp/>minute_ago</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Check<sp/>limit</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>len(self.requests[client_id])<sp/>&gt;=<sp/>self.requests_per_minute:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>False</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Add<sp/>current<sp/>request</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.requests[client_id].append(now)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>True</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">rate_limiter<sp/>=<sp/>RateLimiter(requests_per_minute=60)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">async<sp/>def<sp/>rate_limit_middleware(request:<sp/>Request,<sp/>call_next):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>client_id<sp/>=<sp/>request.client.host</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>not<sp/>rate_limiter.is_allowed(client_id):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>JSONResponse(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=429,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>content={&quot;detail&quot;:<sp/>&quot;Too<sp/>many<sp/>requests&quot;}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>await<sp/>call_next(request)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>5.<sp/>HTTPS/TLS<sp/>Configuration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>For<sp/>Production<sp/>Deployment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Use<sp/>SSL<sp/>certificates</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>ssl</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">ssl_context<sp/>=<sp/>ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)</highlight></codeline>
+<codeline><highlight class="normal">ssl_context.load_cert_chain(&apos;cert.pem&apos;,<sp/>&apos;key.pem&apos;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>For<sp/>Gradio</highlight></codeline>
+<codeline><highlight class="normal">interface.launch(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>server_name=&quot;0.0.0.0&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>server_port=443,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ssl_keyfile=&quot;key.pem&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ssl_certfile=&quot;cert.pem&quot;</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Let&apos;s<sp/>Encrypt<sp/>with<sp/>Certbot</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>certbot</highlight></codeline>
+<codeline><highlight class="normal">sudo<sp/>apt-get<sp/>install<sp/>certbot</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Get<sp/>certificate</highlight></codeline>
+<codeline><highlight class="normal">sudo<sp/>certbot<sp/>certonly<sp/>--standalone<sp/>-d<sp/>yourdomain.com</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Certificates<sp/>will<sp/>be<sp/>in<sp/>/etc/letsencrypt/live/yourdomain.com/</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>6.<sp/>CORS<sp/>Configuration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Secure<sp/>CORS<sp/>Setup</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>fastapi.middleware.cors<sp/>import<sp/>CORSMiddleware</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">app.add_middleware(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CORSMiddleware,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_origins=[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;https://yourdomain.com&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;https://app.yourdomain.com&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>],<sp/><sp/>#<sp/>Specific<sp/>origins<sp/>only,<sp/>not<sp/>&quot;*&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_credentials=True,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_methods=[&quot;GET&quot;,<sp/>&quot;POST&quot;],<sp/><sp/>#<sp/>Only<sp/>needed<sp/>methods</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_headers=[&quot;Authorization&quot;,<sp/>&quot;Content-Type&quot;],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>max_age=3600,</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>7.<sp/>Logging<sp/>Security<sp/>Events</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Security<sp/>Event<sp/>Logger</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>logging</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>json</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>datetime<sp/>import<sp/>datetime</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">security_logger<sp/>=<sp/>logging.getLogger(&apos;security&apos;)</highlight></codeline>
+<codeline><highlight class="normal">security_logger.setLevel(logging.INFO)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>log_security_event(event_type:<sp/>str,<sp/>user_id:<sp/>str<sp/>=<sp/>None,<sp/>**kwargs):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Log<sp/>security-relevant<sp/>events.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>event<sp/>=<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;timestamp&quot;:<sp/>datetime.utcnow().isoformat(),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;event_type&quot;:<sp/>event_type,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;user_id&quot;:<sp/>user_id,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>**kwargs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>security_logger.info(json.dumps(event))</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Usage</highlight></codeline>
+<codeline><highlight class="normal">log_security_event(&quot;login_attempt&quot;,<sp/>user_id=&quot;user123&quot;,<sp/>success=True)</highlight></codeline>
+<codeline><highlight class="normal">log_security_event(&quot;unauthorized_access&quot;,<sp/>ip=&quot;192.168.1.1&quot;,<sp/>path=&quot;/admin&quot;)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>8.<sp/>Error<sp/>Handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Secure<sp/>Error<sp/>Messages</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>BAD<sp/>-<sp/>Exposes<sp/>internal<sp/>details</highlight></codeline>
+<codeline><highlight class="normal">@app.exception_handler(Exception)</highlight></codeline>
+<codeline><highlight class="normal">async<sp/>def<sp/>exception_handler(request:<sp/>Request,<sp/>exc:<sp/>Exception):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>JSONResponse(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=500,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>content={&quot;detail&quot;:<sp/>str(exc)}<sp/><sp/>#<sp/>Exposes<sp/>stack<sp/>trace</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>GOOD<sp/>-<sp/>Generic<sp/>message,<sp/>log<sp/>details</highlight></codeline>
+<codeline><highlight class="normal">@app.exception_handler(Exception)</highlight></codeline>
+<codeline><highlight class="normal">async<sp/>def<sp/>exception_handler(request:<sp/>Request,<sp/>exc:<sp/>Exception):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.exception(f&quot;Unhandled<sp/>exception:<sp/>{exc}&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>JSONResponse(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=500,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>content={&quot;detail&quot;:<sp/>&quot;Internal<sp/>server<sp/>error&quot;}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>9.<sp/>Docker<sp/>Security</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Security<sp/>Best<sp/>Practices</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```dockerfile</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Use<sp/>specific<sp/>version,<sp/>not<sp/>latest</highlight></codeline>
+<codeline><highlight class="normal">FROM<sp/>python:3.11-slim</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>as<sp/>non-root</highlight></codeline>
+<codeline><highlight class="normal">RUN<sp/>useradd<sp/>-m<sp/>-u<sp/>1000<sp/>appuser</highlight></codeline>
+<codeline><highlight class="normal">USER<sp/>appuser</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Don&apos;t<sp/>copy<sp/>unnecessary<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">COPY<sp/>requirements.txt<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">RUN<sp/>pip<sp/>install<sp/>--no-cache-dir<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Use<sp/>health<sp/>checks</highlight></codeline>
+<codeline><highlight class="normal">HEALTHCHECK<sp/>--interval=30s<sp/>--timeout=10s<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>CMD<sp/>python<sp/>-c<sp/>&quot;import<sp/>requests;<sp/>requests.get(&apos;http://localhost:7860&apos;)&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Set<sp/>security<sp/>options</highlight></codeline>
+<codeline><highlight class="normal">LABEL<sp/>security.no-new-privileges=true</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Docker<sp/>Compose<sp/>Security</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```yaml</highlight></codeline>
+<codeline><highlight class="normal">services:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>app:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>security_opt:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>no-new-privileges:true</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>read_only:<sp/>true</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>tmpfs:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>/tmp</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cap_drop:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>ALL</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cap_add:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>NET_BIND_SERVICE</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>10.<sp/>Regular<sp/>Security<sp/>Audits</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Automated<sp/>Scanning</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Python<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>safety</highlight></codeline>
+<codeline><highlight class="normal">safety<sp/>check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Code<sp/>security</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>bandit</highlight></codeline>
+<codeline><highlight class="normal">bandit<sp/>-r<sp/>src/</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Docker<sp/>images</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>scan<sp/>financial-asset-db:latest</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Secrets<sp/>in<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>detect-secrets</highlight></codeline>
+<codeline><highlight class="normal">detect-secrets<sp/>scan</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Manual<sp/>Reviews</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Review<sp/>access<sp/>logs<sp/>regularly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Check<sp/>for<sp/>suspicious<sp/>patterns</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Update<sp/>dependencies<sp/>monthly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Review<sp/>and<sp/>rotate<sp/>credentials<sp/>quarterly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Conduct<sp/>penetration<sp/>testing<sp/>annually</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Incident<sp/>Response<sp/>Plan</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>If<sp/>Security<sp/>Issue<sp/>Discovered</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Assess<sp/>Impact**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Identify<sp/>affected<sp/>systems</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Determine<sp/>data<sp/>exposure</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Evaluate<sp/>severity</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Contain**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Isolate<sp/>affected<sp/>systems</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Revoke<sp/>compromised<sp/>credentials</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Block<sp/>suspicious<sp/>IPs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Investigate**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Review<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Identify<sp/>root<sp/>cause</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Document<sp/>timeline</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Remediate**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Apply<sp/>patches</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Update<sp/>configurations</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Rotate<sp/>credentials</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">5.<sp/>**Notify**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Inform<sp/>affected<sp/>users</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Report<sp/>to<sp/>authorities<sp/>if<sp/>required</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Document<sp/>lessons<sp/>learned</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Security<sp/>Resources</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[OWASP<sp/>Top<sp/>10](https://owasp.org/www-project-top-ten/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[CWE<sp/>Top<sp/>25](https://cwe.mitre.org/top25/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Python<sp/>Security<sp/>Best<sp/>Practices](https://python.readthedocs.io/en/stable/library/security_warnings.html)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Docker<sp/>Security<sp/>Best<sp/>Practices](https://docs.docker.com/engine/security/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[NIST<sp/>Cybersecurity<sp/>Framework](https://www.nist.gov/cyberframework)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Contact</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>security<sp/>issues,<sp/>contact:<sp/>mohavro@users.noreply.github.com</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Never**<sp/>publish<sp/>security<sp/>vulnerabilities<sp/>in<sp/>public<sp/>issues.<sp/>Use<sp/>responsible<sp/>disclosure.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Last<sp/>Updated:**<sp/>October<sp/>30,<sp/>2025</highlight></codeline>
+<codeline><highlight class="normal">**Version:**<sp/>1.0</highlight></codeline>
+<codeline><highlight class="normal">**Author:**<sp/>GitHub<sp/>Copilot<sp/>Code<sp/>Agent</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/SECURITY.md"/>
+  </compounddef>
+</doxygen>

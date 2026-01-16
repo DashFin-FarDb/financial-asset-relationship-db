@@ -1,0 +1,277 @@
+\doxysection{analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer Class Reference}
+\hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer}{}\label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+
+
+Collaboration diagram for analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=253pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a118703f1c66387e7ff7898ebbfc87d0d}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\item 
+Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a7b253376748fdef292484fcd0bd8a971}{analyze\+\_\+graph}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+list \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aafa291ce5d107e63a65a5fbc959c120d}{formulas}} = \mbox{[}$\,$\mbox{]}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_ac393a8d97c5464fcf93ac3cda02cefd5}{\+\_\+extract\+\_\+fundamental\+\_\+formulas}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph)
+\item 
+List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aad651ac5b885ea03a36eb44ed3c69b49}{\+\_\+analyze\+\_\+correlation\+\_\+patterns}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph)
+\item 
+List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a326a355ae4f68067fde89f413a44bce3}{\+\_\+extract\+\_\+valuation\+\_\+relationships}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph)
+\item 
+List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6a0fead6be894bc5b72255c28f869353}{\+\_\+analyze\+\_\+risk\+\_\+return\+\_\+relationships}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph)
+\item 
+List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a970a76093231511b7661a88134479068}{\+\_\+extract\+\_\+portfolio\+\_\+theory\+\_\+formulas}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph)
+\item 
+List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a2e5854399a1854afc24abc2784532c23}{\+\_\+analyze\+\_\+cross\+\_\+asset\+\_\+relationships}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph)
+\item 
+Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a1636db58288a06429de11c172432cc73}{\+\_\+calculate\+\_\+empirical\+\_\+relationships}} (self, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph)
+\item 
+Dict\mbox{[}str, int\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6edfe1b1add9a566f0a21d5ac5bdc877}{\+\_\+categorize\+\_\+formulas}} (self, List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aafa291ce5d107e63a65a5fbc959c120d}{formulas}})
+\item 
+Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6cb6ab251c316c496fe27567dcbfc6b1}{\+\_\+generate\+\_\+formula\+\_\+summary}} (self, List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aafa291ce5d107e63a65a5fbc959c120d}{formulas}}, Dict empirical\+\_\+relationships)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+float \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_acb73ebf4763ca00358540aa5c9e8cd90}{\+\_\+calculate\+\_\+avg\+\_\+correlation\+\_\+strength}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph)
+\item 
+float \mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a9ce86f1d047411531fe066231283a212}{\+\_\+calculate\+\_\+avg\+\_\+correlation\+\_\+strength\+\_\+from\+\_\+empirical}} (Dict empirical\+\_\+relationships)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Analyzes financial data to extract and render mathematical relationships.\end{DoxyVerb}
+ 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a118703f1c66387e7ff7898ebbfc87d0d}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a118703f1c66387e7ff7898ebbfc87d0d} 
+analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aad651ac5b885ea03a36eb44ed3c69b49}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_analyze\_correlation\_patterns@{\_analyze\_correlation\_patterns}}
+\index{\_analyze\_correlation\_patterns@{\_analyze\_correlation\_patterns}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_analyze\_correlation\_patterns()}{\_analyze\_correlation\_patterns()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aad651ac5b885ea03a36eb44ed3c69b49} 
+ List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+analyze\+\_\+correlation\+\_\+patterns (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}     }]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Analyze and formulate correlation patterns between assets\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aad651ac5b885ea03a36eb44ed3c69b49_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aad651ac5b885ea03a36eb44ed3c69b49_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a2e5854399a1854afc24abc2784532c23}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_analyze\_cross\_asset\_relationships@{\_analyze\_cross\_asset\_relationships}}
+\index{\_analyze\_cross\_asset\_relationships@{\_analyze\_cross\_asset\_relationships}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_analyze\_cross\_asset\_relationships()}{\_analyze\_cross\_asset\_relationships()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a2e5854399a1854afc24abc2784532c23} 
+ List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+analyze\+\_\+cross\+\_\+asset\+\_\+relationships (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}     }]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Analyze relationships between different asset classes\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a2e5854399a1854afc24abc2784532c23_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6a0fead6be894bc5b72255c28f869353}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_analyze\_risk\_return\_relationships@{\_analyze\_risk\_return\_relationships}}
+\index{\_analyze\_risk\_return\_relationships@{\_analyze\_risk\_return\_relationships}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_analyze\_risk\_return\_relationships()}{\_analyze\_risk\_return\_relationships()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6a0fead6be894bc5b72255c28f869353} 
+ List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+analyze\+\_\+risk\+\_\+return\+\_\+relationships (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}     }]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Analyze risk-return mathematical relationships\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6a0fead6be894bc5b72255c28f869353_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_acb73ebf4763ca00358540aa5c9e8cd90}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_calculate\_avg\_correlation\_strength@{\_calculate\_avg\_correlation\_strength}}
+\index{\_calculate\_avg\_correlation\_strength@{\_calculate\_avg\_correlation\_strength}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_calculate\_avg\_correlation\_strength()}{\_calculate\_avg\_correlation\_strength()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_acb73ebf4763ca00358540aa5c9e8cd90} 
+ float analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+calculate\+\_\+avg\+\_\+correlation\+\_\+strength (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [protected]}}
+
+\begin{DoxyVerb}Calculate average correlation strength in the graph\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_acb73ebf4763ca00358540aa5c9e8cd90_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a9ce86f1d047411531fe066231283a212}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_calculate\_avg\_correlation\_strength\_from\_empirical@{\_calculate\_avg\_correlation\_strength\_from\_empirical}}
+\index{\_calculate\_avg\_correlation\_strength\_from\_empirical@{\_calculate\_avg\_correlation\_strength\_from\_empirical}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_calculate\_avg\_correlation\_strength\_from\_empirical()}{\_calculate\_avg\_correlation\_strength\_from\_empirical()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a9ce86f1d047411531fe066231283a212} 
+ float analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+calculate\+\_\+avg\+\_\+correlation\+\_\+strength\+\_\+from\+\_\+empirical (\begin{DoxyParamCaption}\item[{Dict}]{empirical\+\_\+relationships}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [protected]}}
+
+\begin{DoxyVerb}Calculate average correlation from empirical data\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a9ce86f1d047411531fe066231283a212_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a1636db58288a06429de11c172432cc73}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_calculate\_empirical\_relationships@{\_calculate\_empirical\_relationships}}
+\index{\_calculate\_empirical\_relationships@{\_calculate\_empirical\_relationships}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_calculate\_empirical\_relationships()}{\_calculate\_empirical\_relationships()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a1636db58288a06429de11c172432cc73} 
+ Dict\mbox{[}str, Any\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+calculate\+\_\+empirical\+\_\+relationships (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}     }]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a1636db58288a06429de11c172432cc73_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6edfe1b1add9a566f0a21d5ac5bdc877}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_categorize\_formulas@{\_categorize\_formulas}}
+\index{\_categorize\_formulas@{\_categorize\_formulas}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_categorize\_formulas()}{\_categorize\_formulas()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6edfe1b1add9a566f0a21d5ac5bdc877} 
+ Dict\mbox{[}str, int\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+categorize\+\_\+formulas (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]}}]{formulas}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Categorize formulas by type\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6edfe1b1add9a566f0a21d5ac5bdc877_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_ac393a8d97c5464fcf93ac3cda02cefd5}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_extract\_fundamental\_formulas@{\_extract\_fundamental\_formulas}}
+\index{\_extract\_fundamental\_formulas@{\_extract\_fundamental\_formulas}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_extract\_fundamental\_formulas()}{\_extract\_fundamental\_formulas()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_ac393a8d97c5464fcf93ac3cda02cefd5} 
+ List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+extract\+\_\+fundamental\+\_\+formulas (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}     }]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Extract fundamental financial formulas based on asset types\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_ac393a8d97c5464fcf93ac3cda02cefd5_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a970a76093231511b7661a88134479068}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_extract\_portfolio\_theory\_formulas@{\_extract\_portfolio\_theory\_formulas}}
+\index{\_extract\_portfolio\_theory\_formulas@{\_extract\_portfolio\_theory\_formulas}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_extract\_portfolio\_theory\_formulas()}{\_extract\_portfolio\_theory\_formulas()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a970a76093231511b7661a88134479068} 
+ List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+extract\+\_\+portfolio\+\_\+theory\+\_\+formulas (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}     }]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Extract Modern Portfolio Theory formulas\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a970a76093231511b7661a88134479068_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a326a355ae4f68067fde89f413a44bce3}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_extract\_valuation\_relationships@{\_extract\_valuation\_relationships}}
+\index{\_extract\_valuation\_relationships@{\_extract\_valuation\_relationships}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_extract\_valuation\_relationships()}{\_extract\_valuation\_relationships()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a326a355ae4f68067fde89f413a44bce3} 
+ List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+extract\+\_\+valuation\+\_\+relationships (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}     }]{graph}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Extract valuation model relationships\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a326a355ae4f68067fde89f413a44bce3_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6cb6ab251c316c496fe27567dcbfc6b1}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!\_generate\_formula\_summary@{\_generate\_formula\_summary}}
+\index{\_generate\_formula\_summary@{\_generate\_formula\_summary}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_generate\_formula\_summary()}{\_generate\_formula\_summary()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6cb6ab251c316c496fe27567dcbfc6b1} 
+ Dict\mbox{[}str, Any\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+\_\+generate\+\_\+formula\+\_\+summary (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{List\mbox{[}\mbox{\hyperlink{classanalysis_1_1formulaic__analysis_1_1Formula}{Formula}}\mbox{]}}]{formulas}{, }\item[{Dict     }]{empirical\+\_\+relationships}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Generate a comprehensive summary of formulaic analysis\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6cb6ab251c316c496fe27567dcbfc6b1_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a6cb6ab251c316c496fe27567dcbfc6b1_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a7b253376748fdef292484fcd0bd8a971}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!analyze\_graph@{analyze\_graph}}
+\index{analyze\_graph@{analyze\_graph}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{analyze\_graph()}{analyze\_graph()}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a7b253376748fdef292484fcd0bd8a971} 
+ Dict\mbox{[}str, Any\mbox{]} analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+analyze\+\_\+graph (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Perform comprehensive formulaic analysis of the asset graph\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_a7b253376748fdef292484fcd0bd8a971_cgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aafa291ce5d107e63a65a5fbc959c120d}\index{analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}!formulas@{formulas}}
+\index{formulas@{formulas}!analysis.formulaic\_analysis.FormulaicdAnalyzer@{analysis.formulaic\_analysis.FormulaicdAnalyzer}}
+\doxysubsubsection{\texorpdfstring{formulas}{formulas}}
+{\footnotesize\ttfamily \label{classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_aafa291ce5d107e63a65a5fbc959c120d} 
+list analysis.\+formulaic\+\_\+analysis.\+Formulaicd\+Analyzer.\+formulas = \mbox{[}$\,$\mbox{]}}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/src/analysis/\mbox{\hyperlink{formulaic__analysis_8py}{formulaic\+\_\+analysis.\+py}}\end{DoxyCompactItemize}

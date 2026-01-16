@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__database_1_1TestSessionFactory" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_database::TestSessionFactory</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestSessionFactory_1a45b5060af6f43517a8830c7723ea3c4f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestSessionFactory.test_create_session_factory_returns_sessionmaker</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_create_session_factory_returns_sessionmaker</name>
+        <qualifiedname>tests.unit.test_database.TestSessionFactory.test_create_session_factory_returns_sessionmaker</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that session factory is created successfully.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="87" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="87" bodyend="92"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestSessionFactory_1a0349ff6c31c54361febd2909bb8260e3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestSessionFactory.test_session_factory_creates_sessions</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_session_factory_creates_sessions</name>
+        <qualifiedname>tests.unit.test_database.TestSessionFactory.test_session_factory_creates_sessions</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that session factory can create sessions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="93" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="93" bodyend="100"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestSessionFactory_1a5e99460f9b9a013dbbb3880b15e726ac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestSessionFactory.test_session_factory_bound_to_engine</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_session_factory_bound_to_engine</name>
+        <qualifiedname>tests.unit.test_database.TestSessionFactory.test_session_factory_bound_to_engine</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that created sessions are bound to the correct engine.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="101" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="101" bodyend="108"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestSessionFactory_1a43e8f8fe00855b1ce1fb9565900d8754" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestSessionFactory.test_session_factory_autocommit_false</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_session_factory_autocommit_false</name>
+        <qualifiedname>tests.unit.test_database.TestSessionFactory.test_session_factory_autocommit_false</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sessions have autocommit disabled.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="109" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="109" bodyend="118"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for session factory creation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_database.TestSessionFactory</label>
+        <link refid="classtests_1_1unit_1_1test__database_1_1TestSessionFactory"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="84" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="84" bodyend="118"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestSessionFactory_1a45b5060af6f43517a8830c7723ea3c4f" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestSessionFactory</scope><name>test_create_session_factory_returns_sessionmaker</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestSessionFactory_1a43e8f8fe00855b1ce1fb9565900d8754" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestSessionFactory</scope><name>test_session_factory_autocommit_false</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestSessionFactory_1a5e99460f9b9a013dbbb3880b15e726ac" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestSessionFactory</scope><name>test_session_factory_bound_to_engine</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestSessionFactory_1a0349ff6c31c54361febd2909bb8260e3" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestSessionFactory</scope><name>test_session_factory_creates_sessions</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

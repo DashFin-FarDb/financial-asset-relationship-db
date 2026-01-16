@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="dir_af8d33c2b670b859062a09d48b711fa1" kind="dir">
+    <compoundname>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration</compoundname>
+    <innerfile refid="tests_2integration_2____init_____8py">__init__.py</innerfile>
+    <innerfile refid="tests_2integration_2conftest_8py">conftest.py</innerfile>
+    <innerfile refid="test__api__integration_8py">test_api_integration.py</innerfile>
+    <innerfile refid="test__branch__integration_8py">test_branch_integration.py</innerfile>
+    <innerfile refid="test__debricked__workflow_8py">test_debricked_workflow.py</innerfile>
+    <innerfile refid="test__documentation__files__validation_8py">test_documentation_files_validation.py</innerfile>
+    <innerfile refid="integration_2test__documentation__validation_8py">test_documentation_validation.py</innerfile>
+    <innerfile refid="test__github__workflows_8py">test_github_workflows.py</innerfile>
+    <innerfile refid="test__github__workflows__helpers_8py">test_github_workflows_helpers.py</innerfile>
+    <innerfile refid="test__modified__config__files__validation_8py">test_modified_config_files_validation.py</innerfile>
+    <innerfile refid="test__pr__agent__config__validation_8py">test_pr_agent_config_validation.py</innerfile>
+    <innerfile refid="test__pr__agent__workflow__specific_8py">test_pr_agent_workflow_specific.py</innerfile>
+    <innerfile refid="integration_2test__repository_8py">test_repository.py</innerfile>
+    <innerfile refid="test__requirements_8py">test_requirements.py</innerfile>
+    <innerfile refid="test__requirements__dev_8py">test_requirements_dev.py</innerfile>
+    <innerfile refid="test__requirements__pyyaml_8py">test_requirements_pyyaml.py</innerfile>
+    <innerfile refid="test__requirements__validation_8py">test_requirements_validation.py</innerfile>
+    <innerfile refid="test__workflow__changes__validation_8py">test_workflow_changes_validation.py</innerfile>
+    <innerfile refid="test__workflow__config__changes_8py">test_workflow_config_changes.py</innerfile>
+    <innerfile refid="test__workflow__documentation_8py">test_workflow_documentation.py</innerfile>
+    <innerfile refid="test__workflow__requirements__integration_8py">test_workflow_requirements_integration.py</innerfile>
+    <innerfile refid="test__workflow__security__advanced_8py">test_workflow_security_advanced.py</innerfile>
+    <innerfile refid="test__workflow__yaml__validation_8py">test_workflow_yaml_validation.py</innerfile>
+    <innerfile refid="test__yaml__config__validation_8py">test_yaml_config_validation.py</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/"/>
+  </compounddef>
+</doxygen>

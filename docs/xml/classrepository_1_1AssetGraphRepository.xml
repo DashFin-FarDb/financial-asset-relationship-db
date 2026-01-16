@@ -1,0 +1,447 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classrepository_1_1AssetGraphRepository" kind="class" language="Python" prot="public">
+    <compoundname>repository::AssetGraphRepository</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>repository.AssetGraphRepository::session</definition>
+        <argsstring></argsstring>
+        <name>session</name>
+        <qualifiedname>repository.AssetGraphRepository.session</qualifiedname>
+        <initializer>=  session</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="45" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="45" bodyend="-1"/>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1ab01080fef78b7cde4ea2bf1559dee657" compoundref="repository_8py" startline="91" endline="112">repository.AssetGraphRepository.add_or_update_relationship</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a31d383c88a9bb83ee25c1f341083469a" compoundref="repository_8py" startline="73" endline="79">repository.AssetGraphRepository.delete_asset</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1ae00505be5f83de4e0bc91dad884fe985" compoundref="repository_8py" startline="190" endline="196">repository.AssetGraphRepository.delete_regulatory_event</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a0c15fade3a98caed9f7dcbbad4684a0f" compoundref="repository_8py" startline="151" endline="162">repository.AssetGraphRepository.delete_relationship</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1ae4ad44450356c87ca3e01d514329ed10" compoundref="repository_8py" startline="130" endline="148">repository.AssetGraphRepository.get_relationship</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a643bab13cf5d00966bd8ecb14e7976fd" compoundref="repository_8py" startline="59" endline="66">repository.AssetGraphRepository.list_assets</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1ae6369a631980fecc91995581f95e670e" compoundref="repository_8py" startline="184" endline="189">repository.AssetGraphRepository.list_regulatory_events</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1aa2d6867e0880cbb281110f8a980ea407" compoundref="repository_8py" startline="113" endline="127">repository.AssetGraphRepository.list_relationships</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a3542b0569bba1d26891165b3d774f988" compoundref="repository_8py" startline="50" endline="58">repository.AssetGraphRepository.upsert_asset</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a943b595340df76d9cb349e932db683c4" compoundref="repository_8py" startline="166" endline="183">repository.AssetGraphRepository.upsert_regulatory_event</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1a08a273f4985d0ccece9454b9cdc2716c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>repository.AssetGraphRepository.__init__</definition>
+        <argsstring>(self, Session session)</argsstring>
+        <name>__init__</name>
+        <qualifiedname>repository.AssetGraphRepository.__init__</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Session</type>
+          <declname>session</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="44" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="44" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1a3542b0569bba1d26891165b3d774f988" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None repository.AssetGraphRepository.upsert_asset</definition>
+        <argsstring>(self, Asset asset)</argsstring>
+        <name>upsert_asset</name>
+        <qualifiedname>repository.AssetGraphRepository.upsert_asset</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Asset</type>
+          <declname>asset</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create or update an asset record.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="50" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="50" bodyend="58"/>
+        <references refid="classrepository_1_1AssetGraphRepository_1a564cc86b0ad1d2fb5d417812cc5ed6f7" compoundref="repository_8py" startline="201" endline="231">repository.AssetGraphRepository._update_asset_orm</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1a643bab13cf5d00966bd8ecb14e7976fd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Asset]</type>
+        <definition> List[Asset] repository.AssetGraphRepository.list_assets</definition>
+        <argsstring>(self)</argsstring>
+        <name>list_assets</name>
+        <qualifiedname>repository.AssetGraphRepository.list_assets</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Return all assets as dataclass instances ordered by id.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="59" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="59" bodyend="66"/>
+        <references refid="classrepository_1_1AssetGraphRepository_1a26aa1e533080bfce2ff718a9fd52e3d3" compoundref="repository_8py" startline="233" endline="278">repository.AssetGraphRepository._to_asset_model</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a67b3df23f579645b960c7ceb152e64e4" compoundref="repository_8py" startline="67" endline="72">repository.AssetGraphRepository.get_assets_map</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1a67b3df23f579645b960c7ceb152e64e4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Asset]</type>
+        <definition> Dict[str, Asset] repository.AssetGraphRepository.get_assets_map</definition>
+        <argsstring>(self)</argsstring>
+        <name>get_assets_map</name>
+        <qualifiedname>repository.AssetGraphRepository.get_assets_map</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Return mapping of asset id to asset dataclass.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="67" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="67" bodyend="72"/>
+        <references refid="classrepository_1_1AssetGraphRepository_1a643bab13cf5d00966bd8ecb14e7976fd" compoundref="repository_8py" startline="59" endline="66">repository.AssetGraphRepository.list_assets</references>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1a31d383c88a9bb83ee25c1f341083469a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None repository.AssetGraphRepository.delete_asset</definition>
+        <argsstring>(self, str asset_id)</argsstring>
+        <name>delete_asset</name>
+        <qualifiedname>repository.AssetGraphRepository.delete_asset</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>asset_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Delete an asset and cascading relationships/events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="73" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="73" bodyend="79"/>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1ab01080fef78b7cde4ea2bf1559dee657" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None repository.AssetGraphRepository.add_or_update_relationship</definition>
+        <argsstring>(self, str source_id, str target_id, str rel_type, float strength, *, bool bidirectional)</argsstring>
+        <name>add_or_update_relationship</name>
+        <qualifiedname>repository.AssetGraphRepository.add_or_update_relationship</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>source_id</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>target_id</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>rel_type</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>strength</declname>
+        </param>
+        <param>
+          <type>*</type>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>bidirectional</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Insert or update a relationship between two assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="83" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="91" bodyend="112"/>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1aa2d6867e0880cbb281110f8a980ea407" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[<ref refid="classrepository_1_1RelationshipRecord" kindref="compound">RelationshipRecord</ref>]</type>
+        <definition> List[RelationshipRecord] repository.AssetGraphRepository.list_relationships</definition>
+        <argsstring>(self)</argsstring>
+        <name>list_relationships</name>
+        <qualifiedname>repository.AssetGraphRepository.list_relationships</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Return all relationships from the database.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="113" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="113" bodyend="127"/>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1ae4ad44450356c87ca3e01d514329ed10" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Optional[<ref refid="classrepository_1_1RelationshipRecord" kindref="compound">RelationshipRecord</ref>]</type>
+        <definition> Optional[RelationshipRecord] repository.AssetGraphRepository.get_relationship</definition>
+        <argsstring>(self, str source_id, str target_id, str rel_type)</argsstring>
+        <name>get_relationship</name>
+        <qualifiedname>repository.AssetGraphRepository.get_relationship</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>source_id</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>target_id</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>rel_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Fetch a single relationship if it exists.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="128" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="130" bodyend="148"/>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1a0c15fade3a98caed9f7dcbbad4684a0f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None repository.AssetGraphRepository.delete_relationship</definition>
+        <argsstring>(self, str source_id, str target_id, str rel_type)</argsstring>
+        <name>delete_relationship</name>
+        <qualifiedname>repository.AssetGraphRepository.delete_relationship</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>source_id</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>target_id</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>rel_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Remove a relationship.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="149" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="151" bodyend="162"/>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1a943b595340df76d9cb349e932db683c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None repository.AssetGraphRepository.upsert_regulatory_event</definition>
+        <argsstring>(self, RegulatoryEvent event)</argsstring>
+        <name>upsert_regulatory_event</name>
+        <qualifiedname>repository.AssetGraphRepository.upsert_regulatory_event</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>RegulatoryEvent</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create or update a regulatory event record.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="166" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="166" bodyend="183"/>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1ae6369a631980fecc91995581f95e670e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[RegulatoryEvent]</type>
+        <definition> List[RegulatoryEvent] repository.AssetGraphRepository.list_regulatory_events</definition>
+        <argsstring>(self)</argsstring>
+        <name>list_regulatory_events</name>
+        <qualifiedname>repository.AssetGraphRepository.list_regulatory_events</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Return all regulatory events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="184" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="184" bodyend="189"/>
+        <references refid="classrepository_1_1AssetGraphRepository_1ae87f6053e6d692b3f696bef29d19b58e" compoundref="repository_8py" startline="280" endline="291">repository.AssetGraphRepository._to_regulatory_event_model</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1ae00505be5f83de4e0bc91dad884fe985" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None repository.AssetGraphRepository.delete_regulatory_event</definition>
+        <argsstring>(self, str event_id)</argsstring>
+        <name>delete_regulatory_event</name>
+        <qualifiedname>repository.AssetGraphRepository.delete_regulatory_event</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>event_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Delete a regulatory event.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="190" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="190" bodyend="196"/>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" compoundref="real__data__fetcher_8py" startline="53">real_data_fetcher.RealDataFetcher.session</references>
+        <references refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" compoundref="repository_8py" startline="45">repository.AssetGraphRepository.session</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="protected-static-func">
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1a564cc86b0ad1d2fb5d417812cc5ed6f7" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None repository.AssetGraphRepository._update_asset_orm</definition>
+        <argsstring>(AssetORM orm, Asset asset)</argsstring>
+        <name>_update_asset_orm</name>
+        <qualifiedname>repository.AssetGraphRepository._update_asset_orm</qualifiedname>
+        <param>
+          <type><ref refid="classdb__models_1_1AssetORM" kindref="compound">AssetORM</ref></type>
+          <declname>orm</declname>
+        </param>
+        <param>
+          <type>Asset</type>
+          <declname>asset</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="201" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="201" bodyend="231"/>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a3542b0569bba1d26891165b3d774f988" compoundref="repository_8py" startline="50" endline="58">repository.AssetGraphRepository.upsert_asset</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1a26aa1e533080bfce2ff718a9fd52e3d3" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Asset</type>
+        <definition> Asset repository.AssetGraphRepository._to_asset_model</definition>
+        <argsstring>(AssetORM orm)</argsstring>
+        <name>_to_asset_model</name>
+        <qualifiedname>repository.AssetGraphRepository._to_asset_model</qualifiedname>
+        <param>
+          <type><ref refid="classdb__models_1_1AssetORM" kindref="compound">AssetORM</ref></type>
+          <declname>orm</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="233" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="233" bodyend="278"/>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a643bab13cf5d00966bd8ecb14e7976fd" compoundref="repository_8py" startline="59" endline="66">repository.AssetGraphRepository.list_assets</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classrepository_1_1AssetGraphRepository_1ae87f6053e6d692b3f696bef29d19b58e" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>RegulatoryEvent</type>
+        <definition> RegulatoryEvent repository.AssetGraphRepository._to_regulatory_event_model</definition>
+        <argsstring>(RegulatoryEventORM orm)</argsstring>
+        <name>_to_regulatory_event_model</name>
+        <qualifiedname>repository.AssetGraphRepository._to_regulatory_event_model</qualifiedname>
+        <param>
+          <type><ref refid="classdb__models_1_1RegulatoryEventORM" kindref="compound">RegulatoryEventORM</ref></type>
+          <declname>orm</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="280" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="280" bodyend="291"/>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1ae6369a631980fecc91995581f95e670e" compoundref="repository_8py" startline="184" endline="189">repository.AssetGraphRepository.list_regulatory_events</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Data access layer for the asset relationship graph.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>repository.AssetGraphRepository</label>
+        <link refid="classrepository_1_1AssetGraphRepository"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" line="41" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/repository.py" bodystart="41" bodyend="291"/>
+    <listofallmembers>
+      <member refid="classrepository_1_1AssetGraphRepository_1a08a273f4985d0ccece9454b9cdc2716c" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>__init__</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1a26aa1e533080bfce2ff718a9fd52e3d3" prot="protected" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>_to_asset_model</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1ae87f6053e6d692b3f696bef29d19b58e" prot="protected" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>_to_regulatory_event_model</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1a564cc86b0ad1d2fb5d417812cc5ed6f7" prot="protected" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>_update_asset_orm</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1ab01080fef78b7cde4ea2bf1559dee657" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>add_or_update_relationship</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1a31d383c88a9bb83ee25c1f341083469a" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>delete_asset</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1ae00505be5f83de4e0bc91dad884fe985" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>delete_regulatory_event</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1a0c15fade3a98caed9f7dcbbad4684a0f" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>delete_relationship</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1a67b3df23f579645b960c7ceb152e64e4" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>get_assets_map</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1ae4ad44450356c87ca3e01d514329ed10" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>get_relationship</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1a643bab13cf5d00966bd8ecb14e7976fd" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>list_assets</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1ae6369a631980fecc91995581f95e670e" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>list_regulatory_events</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1aa2d6867e0880cbb281110f8a980ea407" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>list_relationships</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1a04cd981d7b5ce6252c48e51c5f8717c2" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>session</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1a3542b0569bba1d26891165b3d774f988" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>upsert_asset</name></member>
+      <member refid="classrepository_1_1AssetGraphRepository_1a943b595340df76d9cb349e932db683c4" prot="public" virt="non-virtual"><scope>repository::AssetGraphRepository</scope><name>upsert_regulatory_event</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

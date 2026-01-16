@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="dir_a2fc59cc4fa4959acd1cf8ced07120d9" kind="dir">
+    <compoundname>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This directory contains comprehensive tests for the frontend API client library.</para>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3085">
+<title>Test Files</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3086">
+<title>api.test.ts (431 lines)</title><para>Original comprehensive tests for the API client covering:</para>
+<para><itemizedlist>
+<listitem><para>Client configuration</para>
+</listitem><listitem><para>All API methods (health, assets, relationships, metrics, visualization)</para>
+</listitem><listitem><para>Request parameter handling</para>
+</listitem><listitem><para>Response type validation</para>
+</listitem><listitem><para>Error handling</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3087">
+<title>api-axios-compatibility.test.ts (697 lines) ✨ NEW</title><para>Axios 1.13.2 compatibility and behavioral tests:</para>
+<para><itemizedlist>
+<listitem><para>Axios instance creation and configuration</para>
+</listitem><listitem><para>Request configuration (query params, URL encoding)</para>
+</listitem><listitem><para>Response handling (data extraction, headers)</para>
+</listitem><listitem><para>Error handling (AxiosError types, HTTP errors, timeouts)</para>
+</listitem><listitem><para>Content-Type handling</para>
+</listitem><listitem><para>URL handling (baseURL, paths)</para>
+</listitem><listitem><para>TypeScript type safety</para>
+</listitem><listitem><para>Backward compatibility with axios 1.6.0</para>
+</listitem><listitem><para>Edge cases (long URLs, concurrent requests)</para>
+</listitem><listitem><para>Interceptor compatibility</para>
+</listitem><listitem><para>Performance optimization</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>60+ tests across 13 test suites</bold></para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3088">
+<title>api-upgrade-integration.test.ts (397 lines) ✨ NEW</title><para>Integration tests for axios 1.13.2 upgrade:</para>
+<para><itemizedlist>
+<listitem><para>Production usage patterns</para>
+</listitem><listitem><para>Error recovery patterns</para>
+</listitem><listitem><para>Security improvements</para>
+</listitem><listitem><para>Breaking change detection</para>
+</listitem><listitem><para>Performance validation</para>
+</listitem><listitem><para>Environment configuration</para>
+</listitem><listitem><para>Testing tool compatibility</para>
+</listitem><listitem><para>Real-world edge cases</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>40+ tests across 10 test suites</bold></para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3089">
+<title>Running Tests</title><sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3090">
+<title>Run all API tests</title><para><programlisting filename=".bash"><codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>__tests__/lib</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3091">
+<title>Run specific test files</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Original<sp/>API<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>api.test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Axios<sp/>compatibility<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>api-axios-compatibility</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Upgrade<sp/>integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>api-upgrade-integration</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3092">
+<title>Run with coverage</title><para><programlisting filename=".bash"><codeline><highlight class="normal">npm<sp/>run<sp/>test:coverage<sp/>--<sp/>__tests__/lib</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3093">
+<title>Test Coverage</title><para>These tests provide comprehensive coverage of:</para>
+<para><itemizedlist>
+<listitem><para>✅ All API endpoints</para>
+</listitem><listitem><para>✅ Request/response handling</para>
+</listitem><listitem><para>✅ Error scenarios</para>
+</listitem><listitem><para>✅ TypeScript type safety</para>
+</listitem><listitem><para>✅ Axios 1.13.2 features</para>
+</listitem><listitem><para>✅ Backward compatibility</para>
+</listitem><listitem><para>✅ Security improvements</para>
+</listitem><listitem><para>✅ Performance characteristics</para>
+</listitem><listitem><para>✅ Production usage patterns</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3094">
+<title>Documentation</title><para>For detailed information about the axios upgrade tests:</para>
+<para><itemizedlist>
+<listitem><para>Quick Reference: <computeroutput>../../AXIOS_TESTS_QUICK_REFERENCE.md</computeroutput></para>
+</listitem><listitem><para>Detailed Report: <computeroutput>../../AXIOS_UPGRADE_TEST_REPORT.md</computeroutput></para>
+</listitem><listitem><para>Complete Summary: <computeroutput>../../TEST_GENERATION_SUMMARY_FINAL.md</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3095">
+<title>Maintenance</title><para>When updating tests:</para>
+<para><orderedlist>
+<listitem><para>Keep tests synchronized with API changes</para>
+</listitem><listitem><para>Update axios version assertions when upgrading</para>
+</listitem><listitem><para>Add tests for new API methods</para>
+</listitem><listitem><para>Validate TypeScript types on dependency updates</para>
+</listitem><listitem><para>Run full test suite before committing</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/README.md_1autotoc_md3096">
+<title>Test Statistics</title><para><itemizedlist>
+<listitem><para><bold>Total Test Files</bold>: 3</para>
+</listitem><listitem><para><bold>Total Test Lines</bold>: 1,525 lines</para>
+</listitem><listitem><para><bold>Total Test Cases</bold>: 131+ tests</para>
+</listitem><listitem><para><bold>Test Suites</bold>: 33+ describe blocks </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/__tests__/lib/"/>
+  </compounddef>
+</doxygen>

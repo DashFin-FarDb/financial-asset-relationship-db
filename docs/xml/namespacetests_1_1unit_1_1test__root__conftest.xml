@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1unit_1_1test__root__conftest" kind="namespace" language="Python">
+    <compoundname>tests::unit::test_root_conftest</compoundname>
+    <innerclass refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases" prot="public">tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCovPluginAvailable" prot="public">tests::unit::test_root_conftest::TestCovPluginAvailable</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality" prot="public">tests::unit::test_root_conftest::TestDocumentationAndCodeQuality</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests" prot="public">tests::unit::test_root_conftest::TestPytestLoadInitialConftests</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__root__conftest_1_1TestRealWorldScenarios" prot="public">tests::unit::test_root_conftest::TestRealWorldScenarios</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Unit tests for the root conftest.py pytest configuration module.
+
+This module tests the pytest configuration helpers that manage coverage-related
+command-line arguments. The root conftest.py strips coverage flags when pytest-cov
+is unavailable, allowing tests to run without the plugin installed.
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

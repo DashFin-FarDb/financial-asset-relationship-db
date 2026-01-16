@@ -1,0 +1,51 @@
+\doxysection{tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+Default\+Value\+Handling Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling}{}\label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling}\index{tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling@{tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+Default\+Value\+Handling\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=232pt]{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_ab447b5a3c69ddeb870c32eebe8cea971}{test\+\_\+missing\+\_\+optional\+\_\+fields\+\_\+have\+\_\+defaults}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_af8e9baae052bd13e20f26bed24a8cd34}{test\+\_\+workflow\+\_\+timeout\+\_\+defaults}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for default value handling in configurations.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_ab447b5a3c69ddeb870c32eebe8cea971}\index{tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling@{tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling}!test\_missing\_optional\_fields\_have\_defaults@{test\_missing\_optional\_fields\_have\_defaults}}
+\index{test\_missing\_optional\_fields\_have\_defaults@{test\_missing\_optional\_fields\_have\_defaults}!tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling@{tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling}}
+\doxysubsubsection{\texorpdfstring{test\_missing\_optional\_fields\_have\_defaults()}{test\_missing\_optional\_fields\_have\_defaults()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_ab447b5a3c69ddeb870c32eebe8cea971} 
+tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+Default\+Value\+Handling.\+test\+\_\+missing\+\_\+optional\+\_\+fields\+\_\+have\+\_\+defaults (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Ensure optional fields in .github/pr-agent-config.yml are handled and validated.
+
+Asserts that if the top-level `agent` section includes an `enabled` key, its value is a boolean; omission of `enabled` is permitted and treated as the configuration's default.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_af8e9baae052bd13e20f26bed24a8cd34}\index{tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling@{tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling}!test\_workflow\_timeout\_defaults@{test\_workflow\_timeout\_defaults}}
+\index{test\_workflow\_timeout\_defaults@{test\_workflow\_timeout\_defaults}!tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling@{tests.integration.test\_yaml\_config\_validation.TestDefaultValueHandling}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_timeout\_defaults()}{test\_workflow\_timeout\_defaults()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_af8e9baae052bd13e20f26bed24a8cd34} 
+tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+Default\+Value\+Handling.\+test\+\_\+workflow\+\_\+timeout\+\_\+defaults (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Ensure job-level workflow timeouts, when specified, are integers between 1 and 360 minutes.
+
+Checks each YAML file in .github/workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__yaml__config__validation_8py}{test\+\_\+yaml\+\_\+config\+\_\+validation.\+py}}\end{DoxyCompactItemize}

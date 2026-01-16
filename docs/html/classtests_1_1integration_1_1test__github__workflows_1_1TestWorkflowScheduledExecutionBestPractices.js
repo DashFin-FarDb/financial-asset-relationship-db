@@ -1,0 +1,5 @@
+var classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowScheduledExecutionBestPractices =
+[
+    [ "test_scheduled_workflows_not_too_frequent", "classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowScheduledExecutionBestPractices.html#aef8ca12ef82c5b520c6f51d35a7abdd5", null ],
+    [ "test_scheduled_workflows_use_valid_cron", "classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowScheduledExecutionBestPractices.html#a71c3572124fab96162b9cc0d51a23ee9", null ]
+];

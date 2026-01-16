@@ -1,0 +1,6 @@
+var classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges =
+[
+    [ "codacy_instructions_path", "classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges.html#a73be0a5b050018b97388b365ff0c4992", null ],
+    [ "test_codacy_critical_rules_present", "classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges.html#a0e4f48756404f75499f871bc537e2a24", null ],
+    [ "test_codacy_instructions_simplified", "classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges.html#abb72e09804c1f14f252b961c2d4a2c8f", null ]
+];

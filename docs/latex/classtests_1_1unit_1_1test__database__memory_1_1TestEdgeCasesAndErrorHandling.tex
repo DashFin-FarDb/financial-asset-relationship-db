@@ -1,0 +1,81 @@
+\doxysection{tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Edge\+Cases\+And\+Error\+Handling Class Reference}
+\hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling}{}\label{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling}\index{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}}
+
+
+Collaboration diagram for tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Edge\+Cases\+And\+Error\+Handling\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=297pt]{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a4a7f3bcb3a4ceba65b415396876b0d41}{test\+\_\+resolve\+\_\+sqlite\+\_\+path\+\_\+with\+\_\+memory}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a19c897121aae4ad82427b1355a0c5d05}{test\+\_\+resolve\+\_\+sqlite\+\_\+path\+\_\+with\+\_\+regular\+\_\+file}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a0fab00db9392ff501321c5aa8fc07ca9}{test\+\_\+database\+\_\+url\+\_\+environment\+\_\+variable\+\_\+required}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_afebdba2ed9f3849e90cb98cbe7e326ea}{test\+\_\+execute\+\_\+with\+\_\+memory\+\_\+db\+\_\+commits\+\_\+changes}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_abce26887532f815b87929f28955a8f7c}{test\+\_\+fetch\+\_\+value\+\_\+with\+\_\+memory\+\_\+db}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a5e6bd2196f689b975bf8c5bece452515}{test\+\_\+connection\+\_\+row\+\_\+factory\+\_\+returns\+\_\+dict\+\_\+like\+\_\+rows}} (self, monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for edge cases and error handling in database connection management.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a5e6bd2196f689b975bf8c5bece452515}\index{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}!test\_connection\_row\_factory\_returns\_dict\_like\_rows@{test\_connection\_row\_factory\_returns\_dict\_like\_rows}}
+\index{test\_connection\_row\_factory\_returns\_dict\_like\_rows@{test\_connection\_row\_factory\_returns\_dict\_like\_rows}!tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}}
+\doxysubsubsection{\texorpdfstring{test\_connection\_row\_factory\_returns\_dict\_like\_rows()}{test\_connection\_row\_factory\_returns\_dict\_like\_rows()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a5e6bd2196f689b975bf8c5bece452515} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Edge\+Cases\+And\+Error\+Handling.\+test\+\_\+connection\+\_\+row\+\_\+factory\+\_\+returns\+\_\+dict\+\_\+like\+\_\+rows (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that connections return dict-like Row objects.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a0fab00db9392ff501321c5aa8fc07ca9}\index{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}!test\_database\_url\_environment\_variable\_required@{test\_database\_url\_environment\_variable\_required}}
+\index{test\_database\_url\_environment\_variable\_required@{test\_database\_url\_environment\_variable\_required}!tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}}
+\doxysubsubsection{\texorpdfstring{test\_database\_url\_environment\_variable\_required()}{test\_database\_url\_environment\_variable\_required()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a0fab00db9392ff501321c5aa8fc07ca9} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Edge\+Cases\+And\+Error\+Handling.\+test\+\_\+database\+\_\+url\+\_\+environment\+\_\+variable\+\_\+required (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that DATABASE_URL environment variable is required.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_afebdba2ed9f3849e90cb98cbe7e326ea}\index{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}!test\_execute\_with\_memory\_db\_commits\_changes@{test\_execute\_with\_memory\_db\_commits\_changes}}
+\index{test\_execute\_with\_memory\_db\_commits\_changes@{test\_execute\_with\_memory\_db\_commits\_changes}!tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}}
+\doxysubsubsection{\texorpdfstring{test\_execute\_with\_memory\_db\_commits\_changes()}{test\_execute\_with\_memory\_db\_commits\_changes()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_afebdba2ed9f3849e90cb98cbe7e326ea} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Edge\+Cases\+And\+Error\+Handling.\+test\+\_\+execute\+\_\+with\+\_\+memory\+\_\+db\+\_\+commits\+\_\+changes (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that execute function properly commits changes to memory database.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_abce26887532f815b87929f28955a8f7c}\index{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}!test\_fetch\_value\_with\_memory\_db@{test\_fetch\_value\_with\_memory\_db}}
+\index{test\_fetch\_value\_with\_memory\_db@{test\_fetch\_value\_with\_memory\_db}!tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}}
+\doxysubsubsection{\texorpdfstring{test\_fetch\_value\_with\_memory\_db()}{test\_fetch\_value\_with\_memory\_db()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_abce26887532f815b87929f28955a8f7c} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Edge\+Cases\+And\+Error\+Handling.\+test\+\_\+fetch\+\_\+value\+\_\+with\+\_\+memory\+\_\+db (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that fetch_value works correctly with memory database.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a4a7f3bcb3a4ceba65b415396876b0d41}\index{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}!test\_resolve\_sqlite\_path\_with\_memory@{test\_resolve\_sqlite\_path\_with\_memory}}
+\index{test\_resolve\_sqlite\_path\_with\_memory@{test\_resolve\_sqlite\_path\_with\_memory}!tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}}
+\doxysubsubsection{\texorpdfstring{test\_resolve\_sqlite\_path\_with\_memory()}{test\_resolve\_sqlite\_path\_with\_memory()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a4a7f3bcb3a4ceba65b415396876b0d41} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Edge\+Cases\+And\+Error\+Handling.\+test\+\_\+resolve\+\_\+sqlite\+\_\+path\+\_\+with\+\_\+memory (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that _resolve_sqlite_path correctly handles :memory: URLs.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a19c897121aae4ad82427b1355a0c5d05}\index{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}!test\_resolve\_sqlite\_path\_with\_regular\_file@{test\_resolve\_sqlite\_path\_with\_regular\_file}}
+\index{test\_resolve\_sqlite\_path\_with\_regular\_file@{test\_resolve\_sqlite\_path\_with\_regular\_file}!tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling@{tests.unit.test\_database\_memory.TestEdgeCasesAndErrorHandling}}
+\doxysubsubsection{\texorpdfstring{test\_resolve\_sqlite\_path\_with\_regular\_file()}{test\_resolve\_sqlite\_path\_with\_regular\_file()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling_a19c897121aae4ad82427b1355a0c5d05} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+Test\+Edge\+Cases\+And\+Error\+Handling.\+test\+\_\+resolve\+\_\+sqlite\+\_\+path\+\_\+with\+\_\+regular\+\_\+file (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that _resolve_sqlite_path correctly resolves file paths.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/unit/\mbox{\hyperlink{test__database__memory_8py}{test\+\_\+database\+\_\+memory.\+py}}\end{DoxyCompactItemize}

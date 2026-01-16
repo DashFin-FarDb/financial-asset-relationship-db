@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema" kind="class" language="Python" prot="public">
+    <compoundname>api::main::TestWorkflowGitHubActionsSchema</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1a419b593ec10f184ded0e063a9c979f81" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.TestWorkflowGitHubActionsSchema.workflow_data</definition>
+        <argsstring>(self)</argsstring>
+        <name>workflow_data</name>
+        <qualifiedname>api.main.TestWorkflowGitHubActionsSchema.workflow_data</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load all workflow files as structured data.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="621" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="621" bodyend="633"/>
+      </memberdef>
+      <memberdef kind="function" id="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1ac2c53ad0ed066a0ef2852077b50cfcb2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.TestWorkflowGitHubActionsSchema.test_workflows_have_name</definition>
+        <argsstring>(self, workflow_data)</argsstring>
+        <name>test_workflows_have_name</name>
+        <qualifiedname>api.main.TestWorkflowGitHubActionsSchema.test_workflows_have_name</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1a419b593ec10f184ded0e063a9c979f81" kindref="member">workflow_data</ref></type>
+          <defname>workflow_data</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>All workflows should have a name field.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="634" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="634" bodyend="643"/>
+      </memberdef>
+      <memberdef kind="function" id="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1ac8bd103df62416cebb34dac32089f70b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.TestWorkflowGitHubActionsSchema.test_workflows_have_trigger</definition>
+        <argsstring>(self, workflow_data)</argsstring>
+        <name>test_workflows_have_trigger</name>
+        <qualifiedname>api.main.TestWorkflowGitHubActionsSchema.test_workflows_have_trigger</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1a419b593ec10f184ded0e063a9c979f81" kindref="member">workflow_data</ref></type>
+          <defname>workflow_data</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>All workflows should have at least one trigger.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="644" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="644" bodyend="675"/>
+      </memberdef>
+      <memberdef kind="function" id="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1ab704150ec4713e638dfa47aaee244b9e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.TestWorkflowGitHubActionsSchema.test_workflows_have_jobs</definition>
+        <argsstring>(self, workflow_data)</argsstring>
+        <name>test_workflows_have_jobs</name>
+        <qualifiedname>api.main.TestWorkflowGitHubActionsSchema.test_workflows_have_jobs</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1a419b593ec10f184ded0e063a9c979f81" kindref="member">workflow_data</ref></type>
+          <defname>workflow_data</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>All workflows should define at least one job.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="676" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="676" bodyend="685"/>
+      </memberdef>
+      <memberdef kind="function" id="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1a4cc5f95d5fd6bd48e9b456e62aed0494" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.TestWorkflowGitHubActionsSchema.test_jobs_have_runs_on</definition>
+        <argsstring>(self, workflow_data)</argsstring>
+        <name>test_jobs_have_runs_on</name>
+        <qualifiedname>api.main.TestWorkflowGitHubActionsSchema.test_jobs_have_runs_on</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1a419b593ec10f184ded0e063a9c979f81" kindref="member">workflow_data</ref></type>
+          <defname>workflow_data</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>All jobs should specify runs-on.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="686" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="686" bodyend="724"/>
+      </memberdef>
+      <memberdef kind="function" id="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1aa0d228ff19da793bdb0db1642c35627c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.main.TestWorkflowGitHubActionsSchema.test_jobs_have_steps_or_uses</definition>
+        <argsstring>(self, workflow_data)</argsstring>
+        <name>test_jobs_have_steps_or_uses</name>
+        <qualifiedname>api.main.TestWorkflowGitHubActionsSchema.test_jobs_have_steps_or_uses</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1a419b593ec10f184ded0e063a9c979f81" kindref="member">workflow_data</ref></type>
+          <defname>workflow_data</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Jobs should have either steps or uses (for reusable workflows).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="725" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="725" bodyend="749"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test GitHub Actions schema compliance.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>api.main.TestWorkflowGitHubActionsSchema</label>
+        <link refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" line="617" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/main.py" bodystart="617" bodyend="749"/>
+    <listofallmembers>
+      <member refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1a4cc5f95d5fd6bd48e9b456e62aed0494" prot="public" virt="non-virtual"><scope>api::main::TestWorkflowGitHubActionsSchema</scope><name>test_jobs_have_runs_on</name></member>
+      <member refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1aa0d228ff19da793bdb0db1642c35627c" prot="public" virt="non-virtual"><scope>api::main::TestWorkflowGitHubActionsSchema</scope><name>test_jobs_have_steps_or_uses</name></member>
+      <member refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1ab704150ec4713e638dfa47aaee244b9e" prot="public" virt="non-virtual"><scope>api::main::TestWorkflowGitHubActionsSchema</scope><name>test_workflows_have_jobs</name></member>
+      <member refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1ac2c53ad0ed066a0ef2852077b50cfcb2" prot="public" virt="non-virtual"><scope>api::main::TestWorkflowGitHubActionsSchema</scope><name>test_workflows_have_name</name></member>
+      <member refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1ac8bd103df62416cebb34dac32089f70b" prot="public" virt="non-virtual"><scope>api::main::TestWorkflowGitHubActionsSchema</scope><name>test_workflows_have_trigger</name></member>
+      <member refid="classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_1a419b593ec10f184ded0e063a9c979f81" prot="public" virt="non-virtual"><scope>api::main::TestWorkflowGitHubActionsSchema</scope><name>workflow_data</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

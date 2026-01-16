@@ -1,0 +1,60 @@
+\doxysection{tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+YAMLSyntax\+And\+Structure Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure}{}\label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure}\index{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure@{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+YAMLSyntax\+And\+Structure\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=232pt]{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_a70bbcfee9af23a8b27e62ceac9fa2e49}{test\+\_\+no\+\_\+duplicate\+\_\+keys\+\_\+in\+\_\+yaml}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_a689a4abed1c6d20d76093c50e0a1baef}{test\+\_\+all\+\_\+yaml\+\_\+files\+\_\+parse\+\_\+successfully}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_ad3351bf67fb72132cd877e9ad1d2d84f}{test\+\_\+yaml\+\_\+files\+\_\+use\+\_\+consistent\+\_\+indentation}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for YAML syntax and structural validity.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_a689a4abed1c6d20d76093c50e0a1baef}\index{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure@{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure}!test\_all\_yaml\_files\_parse\_successfully@{test\_all\_yaml\_files\_parse\_successfully}}
+\index{test\_all\_yaml\_files\_parse\_successfully@{test\_all\_yaml\_files\_parse\_successfully}!tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure@{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure}}
+\doxysubsubsection{\texorpdfstring{test\_all\_yaml\_files\_parse\_successfully()}{test\_all\_yaml\_files\_parse\_successfully()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_a689a4abed1c6d20d76093c50e0a1baef} 
+tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+YAMLSyntax\+And\+Structure.\+test\+\_\+all\+\_\+yaml\+\_\+files\+\_\+parse\+\_\+successfully (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Verify all YAML files have valid syntax.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_a70bbcfee9af23a8b27e62ceac9fa2e49}\index{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure@{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure}!test\_no\_duplicate\_keys\_in\_yaml@{test\_no\_duplicate\_keys\_in\_yaml}}
+\index{test\_no\_duplicate\_keys\_in\_yaml@{test\_no\_duplicate\_keys\_in\_yaml}!tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure@{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure}}
+\doxysubsubsection{\texorpdfstring{test\_no\_duplicate\_keys\_in\_yaml()}{test\_no\_duplicate\_keys\_in\_yaml()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_a70bbcfee9af23a8b27e62ceac9fa2e49} 
+tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+YAMLSyntax\+And\+Structure.\+test\+\_\+no\+\_\+duplicate\+\_\+keys\+\_\+in\+\_\+yaml (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check that no YAML files under .github contain duplicate keys by loading each file with ruamel.yaml's strict parser.
+
+Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml (typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate-key errors are collected and cause the test to fail with a consolidated error message.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_ad3351bf67fb72132cd877e9ad1d2d84f}\index{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure@{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure}!test\_yaml\_files\_use\_consistent\_indentation@{test\_yaml\_files\_use\_consistent\_indentation}}
+\index{test\_yaml\_files\_use\_consistent\_indentation@{test\_yaml\_files\_use\_consistent\_indentation}!tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure@{tests.integration.test\_yaml\_config\_validation.TestYAMLSyntaxAndStructure}}
+\doxysubsubsection{\texorpdfstring{test\_yaml\_files\_use\_consistent\_indentation()}{test\_yaml\_files\_use\_consistent\_indentation()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__yaml__config__validation_1_1TestYAMLSyntaxAndStructure_ad3351bf67fb72132cd877e9ad1d2d84f} 
+tests.\+integration.\+test\+\_\+yaml\+\_\+config\+\_\+validation.\+Test\+YAMLSyntax\+And\+Structure.\+test\+\_\+yaml\+\_\+files\+\_\+use\+\_\+consistent\+\_\+indentation (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Ensure YAML files use consistent 2-space indentation, respecting block scalars.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__yaml__config__validation_8py}{test\+\_\+yaml\+\_\+config\+\_\+validation.\+py}}\end{DoxyCompactItemize}

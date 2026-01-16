@@ -1,0 +1,66 @@
+\doxysection{tests.\+integration.\+test\+\_\+workflow\+\_\+config\+\_\+changes.\+Test\+Requirements\+Dev\+Changes Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges}{}\label{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges}\index{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges@{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+workflow\+\_\+config\+\_\+changes.\+Test\+Requirements\+Dev\+Changes\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=268pt]{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_ab800a0e27710be8736c6628d2c7e621d}{test\+\_\+requirements\+\_\+file\+\_\+exists}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_ade2e64b843551da9decdbd84e51b4e6f}{test\+\_\+pyyaml\+\_\+dependency\+\_\+added}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_afc0b87005064c947bde7f1aa0d3145a3}{test\+\_\+pyyaml\+\_\+version\+\_\+pinned}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_ad1c5fe888b0d22094b798750cee955aa}{test\+\_\+no\+\_\+duplicate\+\_\+dependencies}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for requirements-dev.txt changes.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_ad1c5fe888b0d22094b798750cee955aa}\index{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges@{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges}!test\_no\_duplicate\_dependencies@{test\_no\_duplicate\_dependencies}}
+\index{test\_no\_duplicate\_dependencies@{test\_no\_duplicate\_dependencies}!tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges@{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges}}
+\doxysubsubsection{\texorpdfstring{test\_no\_duplicate\_dependencies()}{test\_no\_duplicate\_dependencies()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_ad1c5fe888b0d22094b798750cee955aa} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+config\+\_\+changes.\+Test\+Requirements\+Dev\+Changes.\+test\+\_\+no\+\_\+duplicate\+\_\+dependencies (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Check that requirements-dev.txt contains no duplicate package entries.
+
+Ignores blank lines and comments, normalizes package names to lowercase and strips version specifiers (e.g., ==, >=, <=, ~=, >, <), and asserts there are no duplicate package names; on failure, reports the duplicated package names.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_ade2e64b843551da9decdbd84e51b4e6f}\index{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges@{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges}!test\_pyyaml\_dependency\_added@{test\_pyyaml\_dependency\_added}}
+\index{test\_pyyaml\_dependency\_added@{test\_pyyaml\_dependency\_added}!tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges@{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges}}
+\doxysubsubsection{\texorpdfstring{test\_pyyaml\_dependency\_added()}{test\_pyyaml\_dependency\_added()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_ade2e64b843551da9decdbd84e51b4e6f} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+config\+\_\+changes.\+Test\+Requirements\+Dev\+Changes.\+test\+\_\+pyyaml\+\_\+dependency\+\_\+added (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Verify PyYAML dependency is in requirements-dev.txt.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_afc0b87005064c947bde7f1aa0d3145a3}\index{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges@{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges}!test\_pyyaml\_version\_pinned@{test\_pyyaml\_version\_pinned}}
+\index{test\_pyyaml\_version\_pinned@{test\_pyyaml\_version\_pinned}!tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges@{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges}}
+\doxysubsubsection{\texorpdfstring{test\_pyyaml\_version\_pinned()}{test\_pyyaml\_version\_pinned()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_afc0b87005064c947bde7f1aa0d3145a3} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+config\+\_\+changes.\+Test\+Requirements\+Dev\+Changes.\+test\+\_\+pyyaml\+\_\+version\+\_\+pinned (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Verify PyYAML has version constraint.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_ab800a0e27710be8736c6628d2c7e621d}\index{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges@{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges}!test\_requirements\_file\_exists@{test\_requirements\_file\_exists}}
+\index{test\_requirements\_file\_exists@{test\_requirements\_file\_exists}!tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges@{tests.integration.test\_workflow\_config\_changes.TestRequirementsDevChanges}}
+\doxysubsubsection{\texorpdfstring{test\_requirements\_file\_exists()}{test\_requirements\_file\_exists()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges_ab800a0e27710be8736c6628d2c7e621d} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+config\+\_\+changes.\+Test\+Requirements\+Dev\+Changes.\+test\+\_\+requirements\+\_\+file\+\_\+exists (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Verify requirements-dev.txt exists.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__workflow__config__changes_8py}{test\+\_\+workflow\+\_\+config\+\_\+changes.\+py}}\end{DoxyCompactItemize}

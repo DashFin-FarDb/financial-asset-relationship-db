@@ -1,0 +1,77 @@
+\doxysection{database Namespace Reference}
+\hypertarget{namespacedatabase}{}\label{namespacedatabase}\index{database@{database}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Engine \mbox{\hyperlink{namespacedatabase_a22587e484701846843d1b4725cfb1be2}{create\+\_\+engine\+\_\+from\+\_\+url}} (Optional\mbox{[}str\mbox{]} url=None)
+\item 
+sessionmaker \mbox{\hyperlink{namespacedatabase_a11d8c08819b53ac86cdebd0e7d21a7a0}{create\+\_\+session\+\_\+factory}} (Engine engine)
+\item 
+None \mbox{\hyperlink{namespacedatabase_a8445480386c7ecbb9b4fe7d20e4438af}{init\+\_\+db}} (Engine engine)
+\item 
+Generator\mbox{[}Session, None, None\mbox{]} \mbox{\hyperlink{namespacedatabase_a49bd05564bdf184e6cc9d19ff2ee4aa3}{session\+\_\+scope}} (Callable\mbox{[}\mbox{[}$\,$\mbox{]}, Session\mbox{]} session\+\_\+factory)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacedatabase_a0a351bcdc86bdc97cd3c88759443bb4a}{Base}} = declarative\+\_\+base()
+\item 
+\mbox{\hyperlink{namespacedatabase_aa8d5114c83e35b31c0122f018ee555f7}{DEFAULT\+\_\+\+DATABASE\+\_\+\+URL}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Database configuration helpers for the asset relationship store.\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacedatabase_a22587e484701846843d1b4725cfb1be2}\index{database@{database}!create\_engine\_from\_url@{create\_engine\_from\_url}}
+\index{create\_engine\_from\_url@{create\_engine\_from\_url}!database@{database}}
+\doxysubsubsection{\texorpdfstring{create\_engine\_from\_url()}{create\_engine\_from\_url()}}
+{\footnotesize\ttfamily \label{namespacedatabase_a22587e484701846843d1b4725cfb1be2} 
+ Engine database.\+create\+\_\+engine\+\_\+from\+\_\+url (\begin{DoxyParamCaption}\item[{Optional\mbox{[}str\mbox{]} }]{url}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create a SQLAlchemy engine for the configured database URL.\end{DoxyVerb}
+ \Hypertarget{namespacedatabase_a11d8c08819b53ac86cdebd0e7d21a7a0}\index{database@{database}!create\_session\_factory@{create\_session\_factory}}
+\index{create\_session\_factory@{create\_session\_factory}!database@{database}}
+\doxysubsubsection{\texorpdfstring{create\_session\_factory()}{create\_session\_factory()}}
+{\footnotesize\ttfamily \label{namespacedatabase_a11d8c08819b53ac86cdebd0e7d21a7a0} 
+ sessionmaker database.\+create\+\_\+session\+\_\+factory (\begin{DoxyParamCaption}\item[{Engine}]{engine}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create a configured session factory bound to the supplied engine.\end{DoxyVerb}
+ \Hypertarget{namespacedatabase_a8445480386c7ecbb9b4fe7d20e4438af}\index{database@{database}!init\_db@{init\_db}}
+\index{init\_db@{init\_db}!database@{database}}
+\doxysubsubsection{\texorpdfstring{init\_db()}{init\_db()}}
+{\footnotesize\ttfamily \label{namespacedatabase_a8445480386c7ecbb9b4fe7d20e4438af} 
+ None database.\+init\+\_\+db (\begin{DoxyParamCaption}\item[{Engine}]{engine}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Initialise database schema if it has not been created.\end{DoxyVerb}
+ \Hypertarget{namespacedatabase_a49bd05564bdf184e6cc9d19ff2ee4aa3}\index{database@{database}!session\_scope@{session\_scope}}
+\index{session\_scope@{session\_scope}!database@{database}}
+\doxysubsubsection{\texorpdfstring{session\_scope()}{session\_scope()}}
+{\footnotesize\ttfamily \label{namespacedatabase_a49bd05564bdf184e6cc9d19ff2ee4aa3} 
+ Generator\mbox{[}Session, None, None\mbox{]} database.\+session\+\_\+scope (\begin{DoxyParamCaption}\item[{Callable\mbox{[}\mbox{[}$\,$\mbox{]}, Session\mbox{]}}]{session\+\_\+factory}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Provide a transactional scope around a series of operations.\end{DoxyVerb}
+ 
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacedatabase_a0a351bcdc86bdc97cd3c88759443bb4a}\index{database@{database}!Base@{Base}}
+\index{Base@{Base}!database@{database}}
+\doxysubsubsection{\texorpdfstring{Base}{Base}}
+{\footnotesize\ttfamily \label{namespacedatabase_a0a351bcdc86bdc97cd3c88759443bb4a} 
+database.\+Base = declarative\+\_\+base()}
+
+\Hypertarget{namespacedatabase_aa8d5114c83e35b31c0122f018ee555f7}\index{database@{database}!DEFAULT\_DATABASE\_URL@{DEFAULT\_DATABASE\_URL}}
+\index{DEFAULT\_DATABASE\_URL@{DEFAULT\_DATABASE\_URL}!database@{database}}
+\doxysubsubsection{\texorpdfstring{DEFAULT\_DATABASE\_URL}{DEFAULT\_DATABASE\_URL}}
+{\footnotesize\ttfamily \label{namespacedatabase_aa8d5114c83e35b31c0122f018ee555f7} 
+database.\+DEFAULT\+\_\+\+DATABASE\+\_\+\+URL}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ =\ \ os.getenv(}
+\DoxyCodeLine{00002\ \ \ \ \ \textcolor{stringliteral}{"{}ASSET\_GRAPH\_DATABASE\_URL"{}},\ \textcolor{stringliteral}{"{}sqlite:///./asset\_graph.db"{}}}
+\DoxyCodeLine{00003\ )}
+
+\end{DoxyCode}

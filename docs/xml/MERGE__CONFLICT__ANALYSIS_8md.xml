@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="MERGE__CONFLICT__ANALYSIS_8md" kind="file" language="Markdown">
+    <compoundname>MERGE_CONFLICT_ANALYSIS.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Merge<sp/>Conflict<sp/>Analysis<sp/>for<sp/>PR<sp/>#6</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">PR<sp/>#6<sp/>(`coderabbitai/utg/e47c649`<sp/>→<sp/>`main`)<sp/>cannot<sp/>be<sp/>merged<sp/>due<sp/>to<sp/>conflicts<sp/>in<sp/>5<sp/>test-related<sp/>files.<sp/>These<sp/>are<sp/>&quot;add/add&quot;<sp/>conflicts<sp/>where<sp/>both<sp/>branches<sp/>independently<sp/>created<sp/>the<sp/>same<sp/>files<sp/>with<sp/>different<sp/>implementations.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Conflicted<sp/>Files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>`tests/unit/test_api_main.py`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**HEAD<sp/>version<sp/>(PR<sp/>#6)**:<sp/>693<sp/>lines<sp/>-<sp/>Well-organized<sp/>test<sp/>classes<sp/>by<sp/>endpoint<sp/>type</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**main<sp/>version**:<sp/>608<sp/>lines<sp/>-<sp/>Organized<sp/>by<sp/>function<sp/>and<sp/>integration<sp/>scenarios</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Recommendation**:<sp/>Use<sp/>**main<sp/>version**<sp/>-<sp/>Already<sp/>validated<sp/>and<sp/>integrated</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>`frontend/app/lib/__tests__/api.test.ts`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**HEAD<sp/>version<sp/>(PR<sp/>#6)**:<sp/>551<sp/>lines<sp/>-<sp/>Comprehensive<sp/>with<sp/>extensive<sp/>edge<sp/>cases</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**main<sp/>version**:<sp/>257<sp/>lines<sp/>-<sp/>Basic<sp/>coverage<sp/>of<sp/>all<sp/>endpoints</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Recommendation**:<sp/>Use<sp/>**HEAD<sp/>version**<sp/>-<sp/>More<sp/>thorough<sp/>test<sp/>coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>`frontend/jest.config.js`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Conflicts**:<sp/>Module<sp/>name<sp/>mapper<sp/>patterns<sp/>and<sp/>coverage<sp/>settings</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Resolution**:<sp/>Merge<sp/>both<sp/>-<sp/>Keep<sp/>specific<sp/>patterns<sp/>from<sp/>HEAD<sp/>+<sp/>generic<sp/>pattern<sp/>from<sp/>main,<sp/>merge<sp/>exclusions,<sp/>keep<sp/>coverage<sp/>thresholds<sp/>from<sp/>HEAD</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>`frontend/jest.setup.js`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Conflicts**:<sp/>HEAD<sp/>has<sp/>more<sp/>mocks<sp/>(react-plotly.js,<sp/>env<sp/>vars,<sp/>console<sp/>suppression)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Resolution**:<sp/>Keep<sp/>all<sp/>from<sp/>HEAD<sp/>-<sp/>More<sp/>comprehensive<sp/>test<sp/>environment<sp/>setup</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>5.<sp/>`frontend/package.json`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Conflicts**:<sp/>Minor<sp/>version<sp/>differences<sp/>in<sp/>testing<sp/>libraries</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Resolution**:<sp/>Use<sp/>newer<sp/>versions<sp/>from<sp/>main<sp/>+<sp/>keep<sp/>@types/jest<sp/>from<sp/>HEAD</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Resolution<sp/>Strategy</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Since<sp/>PR<sp/>#35<sp/>is<sp/>a<sp/>sub-PR<sp/>that<sp/>depends<sp/>on<sp/>PR<sp/>#6,<sp/>the<sp/>conflicts<sp/>in<sp/>PR<sp/>#6<sp/>must<sp/>be<sp/>resolved<sp/>first.<sp/>Here&apos;s<sp/>the<sp/>recommended<sp/>approach:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>1:<sp/>Merge<sp/>main<sp/>into<sp/>PR<sp/>#6&apos;s<sp/>branch<sp/>(Recommended)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>checkout<sp/>coderabbitai/utg/e47c649</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>merge<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Resolve<sp/>each<sp/>file<sp/>as<sp/>documented<sp/>above</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>add<sp/>&lt;resolved-files&gt;</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>commit<sp/>-m<sp/>&quot;Merge<sp/>main<sp/>and<sp/>resolve<sp/>test<sp/>file<sp/>conflicts&quot;</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>coderabbitai/utg/e47c649</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>2:<sp/>Rebase<sp/>PR<sp/>#6<sp/>onto<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>checkout<sp/>coderabbitai/utg/e47c649</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>rebase<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Resolve<sp/>conflicts<sp/>during<sp/>rebase</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>--force-with-lease<sp/>origin<sp/>coderabbitai/utg/e47c649</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Detailed<sp/>Conflict<sp/>Resolutions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>jest.config.js</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```javascript</highlight></codeline>
+<codeline><highlight class="normal">moduleNameMapper:<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>//<sp/>Handle<sp/>module<sp/>aliases<sp/>-<sp/>specific<sp/>patterns<sp/>first<sp/>(from<sp/>HEAD)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/components/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/app/components/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/lib/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/app/lib/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/types/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/app/types/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/app/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/app/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>//<sp/>Generic<sp/>pattern<sp/>last<sp/>(from<sp/>main)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>collectCoverageFrom:<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;app/**/*.{js,jsx,ts,tsx}&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!app/**/*.d.ts&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!app/**/*.stories.{js,jsx,ts,tsx}&apos;,<sp/><sp/>//<sp/>from<sp/>HEAD</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!app/**/index.{js,jsx,ts,tsx}&apos;,<sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>from<sp/>HEAD</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!app/**/_*.{js,jsx,ts,tsx}&apos;,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>from<sp/>main</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!**/node_modules/**&apos;,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>from<sp/>main</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>coverageThreshold:<sp/>{<sp/><sp/>//<sp/>from<sp/>HEAD</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>global:<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>branches:<sp/>70,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>functions:<sp/>70,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>lines:<sp/>70,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>statements:<sp/>70,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>},</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>jest.setup.js</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Keep<sp/>entire<sp/>HEAD<sp/>version<sp/>including:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>React<sp/>and<sp/>plotly<sp/>mocks</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Environment<sp/>variable<sp/>setup</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Console<sp/>error<sp/>suppression</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>All<sp/>window/IntersectionObserver<sp/>mocks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>package.json</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```json</highlight></codeline>
+<codeline><highlight class="normal">&quot;devDependencies&quot;:<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;@testing-library/react&quot;:<sp/>&quot;^14.1.2&quot;,<sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>main<sp/>(newer)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;@testing-library/jest-dom&quot;:<sp/>&quot;^6.1.5&quot;,<sp/><sp/><sp/><sp/>//<sp/>main<sp/>(newer)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;@testing-library/user-event&quot;:<sp/>&quot;^14.5.1&quot;,<sp/>//<sp/>main<sp/>(newer)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;jest&quot;:<sp/>&quot;^29.7.0&quot;,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>both</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;jest-environment-jsdom&quot;:<sp/>&quot;^29.7.0&quot;,<sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>both</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;@types/jest&quot;:<sp/>&quot;^29.5.0&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>HEAD<sp/>(needed<sp/>for<sp/>TS)</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Additional<sp/>Recommendations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Coverage<sp/>Files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>main<sp/>branch<sp/>includes<sp/>coverage<sp/>report<sp/>files<sp/>(`frontend/coverage/**`)<sp/>which<sp/>should<sp/>not<sp/>be<sp/>committed.<sp/>Add<sp/>to<sp/>`.gitignore`:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```gitignore</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Test<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">coverage/</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>After<sp/>Resolution</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Run<sp/>tests<sp/>to<sp/>ensure<sp/>both<sp/>test<sp/>suites<sp/>work:<sp/>`npm<sp/>test`<sp/>(frontend)<sp/>and<sp/>`pytest`<sp/>(backend)</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Verify<sp/>no<sp/>regressions<sp/>were<sp/>introduced</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Update<sp/>PR<sp/>#35<sp/>if<sp/>needed<sp/>once<sp/>PR<sp/>#6<sp/>is<sp/>mergeable</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Impact<sp/>on<sp/>PR<sp/>#35</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">PR<sp/>#35<sp/>will<sp/>automatically<sp/>become<sp/>mergeable<sp/>once<sp/>PR<sp/>#6&apos;s<sp/>conflicts<sp/>with<sp/>main<sp/>are<sp/>resolved,<sp/>as<sp/>it<sp/>only<sp/>adds<sp/>one<sp/>commit<sp/>on<sp/>top<sp/>of<sp/>PR<sp/>#6.</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/MERGE_CONFLICT_ANALYSIS.md"/>
+  </compounddef>
+</doxygen>

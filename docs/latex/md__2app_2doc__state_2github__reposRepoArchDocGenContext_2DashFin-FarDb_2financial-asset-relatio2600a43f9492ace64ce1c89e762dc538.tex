@@ -1,0 +1,218 @@
+\chapter{Branch Cleanup Summary}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538}\index{Branch Cleanup Summary@{Branch Cleanup Summary}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md299}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md299}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md300}{}\doxysection{\texorpdfstring{Issue \#136\+: Remove All Unnecessary Branches}{Issue \#136\+: Remove All Unnecessary Branches}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md300}
+This document summarizes the branch cleanup initiative and the tools/processes implemented to maintain a clean repository.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md301}{}\doxysection{\texorpdfstring{Objectives Completed}{Objectives Completed}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md301}
+✅ {\bfseries{Identified open branches}} -\/ Created comprehensive analysis in {\ttfamily \doxylink{BRANCH__CLEANUP__ANALYSIS_8md}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.\+md}} ✅ {\bfseries{Traced commit history}} -\/ Documented all branches and their commit status ✅ {\bfseries{Provided cleanup recommendations}} -\/ Detailed action plan for each branch ✅ {\bfseries{Implemented automation}} -\/ Created tools to prevent future branch accumulation ✅ {\bfseries{Updated documentation}} -\/ Enhanced contributing guidelines with branch management best practices\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md302}{}\doxysection{\texorpdfstring{Files Created/\+Modified}{Files Created/\+Modified}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md302}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md303}{}\doxysubsection{\texorpdfstring{1. Documentation Files}{1. Documentation Files}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md303}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md304}{}\doxysubsubsection{\texorpdfstring{{\ttfamily BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.\+md} (NEW)}{{\ttfamily BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.\+md} (NEW)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md304}
+Comprehensive analysis of all branches in the repository including\+:
+
+
+\begin{DoxyItemize}
+\item Current branch inventory
+\item Commit history analysis
+\item Merge status for each branch
+\item Specific recommendations for each branch
+\item Step-\/by-\/step cleanup procedures
+\item Best practices for future branch management
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md305}{}\doxysubsection{\texorpdfstring{2. Automation Tools}{2. Automation Tools}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md305}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md306}{}\doxysubsubsection{\texorpdfstring{{\ttfamily .github/workflows/branch-\/cleanup.\+yml} (NEW)}{{\ttfamily .github/workflows/branch-\/cleanup.\+yml} (NEW)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md306}
+Automated Git\+Hub Actions workflow that\+:
+
+
+\begin{DoxyItemize}
+\item Runs weekly to identify stale branches
+\item Adds a stale branch report to the workflow run summary
+\item Provides branch activity reports
+\item Can be triggered manually for on-\/demand analysis
+\item Helps maintain repository hygiene automatically
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md307}{}\doxysubsubsection{\texorpdfstring{{\ttfamily cleanup-\/branches.\+sh} (NEW)}{{\ttfamily cleanup-\/branches.\+sh} (NEW)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md307}
+Interactive shell script for local branch cleanup\+:
+
+
+\begin{DoxyItemize}
+\item Lists all local and remote branches
+\item Identifies merged branches (safe to delete)
+\item Finds stale branches (90+ days old)
+\item Shows remote branches not tracked locally
+\item Provides interactive cleanup options
+\item Includes safety checks and confirmations
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md308}{}\doxysubsection{\texorpdfstring{3. Configuration Updates}{3. Configuration Updates}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md308}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md309}{}\doxysubsubsection{\texorpdfstring{{\ttfamily .gitignore} (UPDATED)}{{\ttfamily .gitignore} (UPDATED)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md309}
+Added coverage directory exclusions\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily coverage/} -\/ General coverage reports
+\item {\ttfamily frontend/coverage/} -\/ Frontend-\/specific coverage
+\item Prevents accidental commits of test artifacts
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md310}{}\doxysubsubsection{\texorpdfstring{{\ttfamily CONTRIBUTING.\+md} (UPDATED)}{{\ttfamily CONTRIBUTING.\+md} (UPDATED)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md310}
+Enhanced with branch management section\+:
+
+
+\begin{DoxyItemize}
+\item Branch cleanup best practices
+\item When to delete branches
+\item How to verify merge status
+\item Commands for safe branch deletion
+\item Guidelines for keeping repository clean
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md311}{}\doxysubsubsection{\texorpdfstring{{\ttfamily README.\+md} (UPDATED)}{{\ttfamily README.\+md} (UPDATED)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md311}
+Added branch management documentation link\+:
+
+
+\begin{DoxyItemize}
+\item References to {\ttfamily \doxylink{BRANCH__CLEANUP__ANALYSIS_8md}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.\+md}}
+\item Integration with existing documentation structure
+\item Easy access for contributors
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md312}{}\doxysection{\texorpdfstring{Branch Analysis Results}{Branch Analysis Results}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md312}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md313}{}\doxysubsection{\texorpdfstring{Branches Requiring Action}{Branches Requiring Action}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md313}
+Based on the analysis in {\ttfamily \doxylink{BRANCH__CLEANUP__ANALYSIS_8md}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.\+md}}, here are the key findings\+:
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Merged Branches}} -\/ Can be safely deleted after verification
+\item {\bfseries{Stale Branches}} -\/ No activity in 90+ days, candidates for archival
+\item {\bfseries{Active Development Branches}} -\/ Need review and either merge or close
+\item {\bfseries{Automated Tool Branches}} -\/ From bots like Dependabot, Code\+Rabbit, etc.
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md314}{}\doxysubsection{\texorpdfstring{Recommended Actions}{Recommended Actions}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md314}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md315}{}\doxysubsubsection{\texorpdfstring{Immediate Actions (High Priority)}{Immediate Actions (High Priority)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md315}
+
+\begin{DoxyEnumerate}
+\item Review all branches listed in {\ttfamily \doxylink{BRANCH__CLEANUP__ANALYSIS_8md}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.\+md}}
+\item Verify that important commits are merged to main
+\item Delete merged branches using the cleanup script
+\item Close stale PRs with explanation
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md316}{}\doxysubsubsection{\texorpdfstring{Short-\/term Actions (This Week)}{Short-\/term Actions (This Week)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md316}
+
+\begin{DoxyEnumerate}
+\item Run {\ttfamily ./cleanup-\/branches.sh} to identify local cleanup opportunities
+\item Review automated tool branches (Dependabot, Code\+Rabbit)
+\item Merge or close open PRs with useful changes
+\item Update branch protection rules if needed
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md317}{}\doxysubsubsection{\texorpdfstring{Long-\/term Actions (Ongoing)}{Long-\/term Actions (Ongoing)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md317}
+
+\begin{DoxyEnumerate}
+\item Enable the automated branch cleanup workflow
+\item Review branch status monthly
+\item Enforce "{}delete branch after merge"{} policy
+\item Keep only main branch as permanent
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md318}{}\doxysection{\texorpdfstring{How to Use the Cleanup Tools}{How to Use the Cleanup Tools}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md318}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md319}{}\doxysubsection{\texorpdfstring{Automated Workflow}{Automated Workflow}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md319}
+The Git\+Hub Actions workflow runs automatically but can also be triggered manually\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Via\ GitHub\ UI:}
+\DoxyCodeLine{\#\ 1.\ Go\ to\ Actions\ tab}
+\DoxyCodeLine{\#\ 2.\ Select\ "{}Branch\ Cleanup\ Report"{}}
+\DoxyCodeLine{\#\ 3.\ Click\ "{}Run\ workflow"{}}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md320}{}\doxysubsection{\texorpdfstring{Manual Cleanup Script}{Manual Cleanup Script}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md320}
+Run the interactive cleanup script\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Make\ script\ executable}
+\DoxyCodeLine{chmod\ +x\ cleanup-\/branches.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ the\ script}
+\DoxyCodeLine{./cleanup-\/branches.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Follow\ the\ interactive\ prompts}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md321}{}\doxysubsection{\texorpdfstring{Manual Branch Deletion}{Manual Branch Deletion}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md321}
+For individual branch cleanup\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Delete\ local\ branch\ (safe\ -\/\ only\ if\ merged)}
+\DoxyCodeLine{git\ branch\ -\/d\ branch-\/name}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Force\ delete\ local\ branch}
+\DoxyCodeLine{git\ branch\ -\/D\ branch-\/name}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Delete\ remote\ branch}
+\DoxyCodeLine{git\ push\ origin\ -\/-\/delete\ branch-\/name}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Prune\ deleted\ remote\ branches}
+\DoxyCodeLine{git\ fetch\ -\/-\/prune}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md322}{}\doxysection{\texorpdfstring{Branch Management Best Practices}{Branch Management Best Practices}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md322}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md323}{}\doxysubsection{\texorpdfstring{For Contributors}{For Contributors}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md323}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Create feature branches}} from main
+\item {\bfseries{Use descriptive names}} (e.\+g., {\ttfamily feature/add-\/api-\/endpoint}, {\ttfamily fix/database-\/connection})
+\item {\bfseries{Keep branches short-\/lived}} (merge within 1-\/2 weeks)
+\item {\bfseries{Delete after merge}} -\/ Always delete feature branches after PR is merged
+\item {\bfseries{Sync regularly}} -\/ Keep your branch up to date with main
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md324}{}\doxysubsection{\texorpdfstring{For Maintainers}{For Maintainers}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md324}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Review PRs promptly}} -\/ Don\textquotesingle{}t let PRs go stale
+\item {\bfseries{Merge or close}} -\/ Make decisions on old PRs
+\item {\bfseries{Delete merged branches}} -\/ Clean up after merging
+\item {\bfseries{Monitor branch count}} -\/ Keep total branches under 10
+\item {\bfseries{Use automation}} -\/ Let the workflow help identify stale branches
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md325}{}\doxysection{\texorpdfstring{Verification Steps}{Verification Steps}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md325}
+Before deleting any branch, verify\+:
+
+
+\begin{DoxyEnumerate}
+\item ✅ Branch is fully merged to main
+\item ✅ No unique commits will be lost
+\item ✅ Associated PR is closed
+\item ✅ No active work depends on it
+\item ✅ CI/\+CD pipelines don\textquotesingle{}t reference it
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md326}{}\doxysection{\texorpdfstring{Success Metrics}{Success Metrics}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md326}
+Track these metrics to measure cleanup success\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Total branch count}} -\/ Target\+: \texorpdfstring{$<$}{<} 10 branches
+\item {\bfseries{Stale branches}} -\/ Target\+: 0 branches older than 90 days
+\item {\bfseries{Merged but not deleted}} -\/ Target\+: 0 branches
+\item {\bfseries{Open PRs}} -\/ Target\+: \texorpdfstring{$<$}{<} 5 active PRs
+\item {\bfseries{Average branch age}} -\/ Target\+: \texorpdfstring{$<$}{<} 30 days
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md327}{}\doxysection{\texorpdfstring{Next Steps}{Next Steps}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md327}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Review}} the {\ttfamily \doxylink{BRANCH__CLEANUP__ANALYSIS_8md}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.\+md}} file
+\item {\bfseries{Execute}} the cleanup plan for each branch
+\item {\bfseries{Enable}} the automated workflow
+\item {\bfseries{Monitor}} branch health weekly
+\item {\bfseries{Enforce}} branch deletion policy
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md328}{}\doxysection{\texorpdfstring{Maintenance Schedule}{Maintenance Schedule}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md328}
+
+\begin{DoxyItemize}
+\item {\bfseries{Weekly}}\+: Automated stale branch detection (via Git\+Hub Actions)
+\item {\bfseries{Weekly}}\+: Review branch cleanup workflow results
+\item {\bfseries{Monthly}}\+: Manual audit of all branches
+\item {\bfseries{Quarterly}}\+: Review and update branch policies
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md329}{}\doxysection{\texorpdfstring{Support and Questions}{Support and Questions}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md329}
+For questions about branch cleanup\+:
+
+
+\begin{DoxyEnumerate}
+\item Review {\ttfamily \doxylink{BRANCH__CLEANUP__ANALYSIS_8md}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.\+md}} for detailed analysis
+\item Check {\ttfamily \doxylink{CONTRIBUTING_8md}{CONTRIBUTING.\+md}} for branch management guidelines
+\item Run {\ttfamily ./cleanup-\/branches.sh} for local branch analysis
+\item Create an issue if you need help with specific branches
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md330}{}\doxysection{\texorpdfstring{References}{References}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio2600a43f9492ace64ce1c89e762dc538_autotoc_md330}
+
+\begin{DoxyItemize}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.md}{0} -\/ Detailed branch analysis
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING}{CONTRIBUTING.md}{0} -\/ Branch management guidelines
+\item \href{https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches}{\texttt{ Git\+Hub Branch Protection}}
+\item \href{https://git-scm.com/book/en/v2/Git-Branching-Branch-Management}{\texttt{ Git Branch Management}}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Last Updated}}\+: 2025-\/11-\/12 {\bfseries{Issue}}\+: \#136 {\bfseries{Status}}\+: ✅ Completed -\/ Tools and documentation in place, ready for execution 

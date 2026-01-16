@@ -1,0 +1,119 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowAdvancedSecurity</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_1a52d062b6849ff3ced21a955ecb4a654c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowAdvancedSecurity.test_no_environment_variable_injection</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_no_environment_variable_injection</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowAdvancedSecurity.test_no_environment_variable_injection</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflows don&apos;t have potential env injection vulnerabilities.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2405" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2405" bodyend="2421"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_1aebcd0ad2826c2d435c40dce18156d178" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowAdvancedSecurity.test_no_script_injection_in_run_commands</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_no_script_injection_in_run_commands</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowAdvancedSecurity.test_no_script_injection_in_run_commands</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run commands don&apos;t have dangerous patterns.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2423" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2423" bodyend="2439"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_1affa94276d450c3b2b200a0366924651a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowAdvancedSecurity.test_secrets_not_echoed_to_logs</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_secrets_not_echoed_to_logs</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowAdvancedSecurity.test_secrets_not_echoed_to_logs</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that secrets aren&apos;t accidentally printed to logs.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2441" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2441" bodyend="2457"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_1ae7e3155c86c82920fd919e613e49a5f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowAdvancedSecurity.test_no_curl_with_user_input</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_no_curl_with_user_input</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowAdvancedSecurity.test_no_curl_with_user_input</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that curl commands don&apos;t use untrusted user input.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2459" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2459" bodyend="2472"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Advanced security tests for workflow files with bias for action.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowAdvancedSecurity</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2401" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2401" bodyend="2472"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_1ae7e3155c86c82920fd919e613e49a5f0" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowAdvancedSecurity</scope><name>test_no_curl_with_user_input</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_1a52d062b6849ff3ced21a955ecb4a654c" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowAdvancedSecurity</scope><name>test_no_environment_variable_injection</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_1aebcd0ad2826c2d435c40dce18156d178" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowAdvancedSecurity</scope><name>test_no_script_injection_in_run_commands</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_1affa94276d450c3b2b200a0366924651a" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowAdvancedSecurity</scope><name>test_secrets_not_echoed_to_logs</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

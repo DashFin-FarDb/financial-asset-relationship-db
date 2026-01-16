@@ -1,0 +1,27 @@
+\doxysection{/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/src/visualizations/graph\+\_\+2d\+\_\+visuals.py File Reference}
+\hypertarget{graph__2d__visuals_8py}{}\label{graph__2d__visuals_8py}\index{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/src/visualizations/graph\_2d\_visuals.py@{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/src/visualizations/graph\_2d\_visuals.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacegraph__2d__visuals}{graph\+\_\+2d\+\_\+visuals}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__2d__visuals_a64cb4091385f11e59bcd0eb6e77c8a3f}{graph\+\_\+2d\+\_\+visuals.\+\_\+create\+\_\+circular\+\_\+layout}} (List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__2d__visuals_aefa05cca95437bedcafcfcc83c332614}{graph\+\_\+2d\+\_\+visuals.\+\_\+create\+\_\+grid\+\_\+layout}} (List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__2d__visuals_a165b9e325029f53ba7ca0bf8605a40aa}{graph\+\_\+2d\+\_\+visuals.\+\_\+create\+\_\+spring\+\_\+layout\+\_\+2d}} (Dict\mbox{[}str, Tuple\mbox{[}float, float, float\mbox{]}\mbox{]} positions\+\_\+3d, List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+List\mbox{[}go.\+Scatter\mbox{]} \mbox{\hyperlink{namespacegraph__2d__visuals_a3c29db703c3db7f334f690de7193b3d0}{graph\+\_\+2d\+\_\+visuals.\+\_\+create\+\_\+2d\+\_\+relationship\+\_\+traces}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, Dict\mbox{[}str, Tuple\mbox{[}float, float\mbox{]}\mbox{]} positions, List\mbox{[}str\mbox{]} asset\+\_\+ids, bool show\+\_\+same\+\_\+sector=True, bool show\+\_\+market\+\_\+cap=True, bool show\+\_\+correlation=True, bool show\+\_\+corporate\+\_\+bond=True, bool show\+\_\+commodity\+\_\+currency=True, bool show\+\_\+income\+\_\+comparison=True, bool show\+\_\+regulatory=True, bool show\+\_\+all\+\_\+relationships=False)
+\item 
+go.\+Figure \mbox{\hyperlink{namespacegraph__2d__visuals_a97a7e05141b23b017dab24618910c8c8}{graph\+\_\+2d\+\_\+visuals.\+visualize\+\_\+2d\+\_\+graph}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, str layout\+\_\+type="{}spring"{}, bool show\+\_\+same\+\_\+sector=True, bool show\+\_\+market\+\_\+cap=True, bool show\+\_\+correlation=True, bool show\+\_\+corporate\+\_\+bond=True, bool show\+\_\+commodity\+\_\+currency=True, bool show\+\_\+income\+\_\+comparison=True, bool show\+\_\+regulatory=True, bool show\+\_\+all\+\_\+relationships=False)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacegraph__2d__visuals_afab3541f0c20f4ecbf3218007e938fd3}{graph\+\_\+2d\+\_\+visuals.\+logger}} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\item 
+dict \mbox{\hyperlink{namespacegraph__2d__visuals_abcc8c998067dec6d248acf8c62293914}{graph\+\_\+2d\+\_\+visuals.\+REL\+\_\+\+TYPE\+\_\+\+COLORS}}
+\end{DoxyCompactItemize}

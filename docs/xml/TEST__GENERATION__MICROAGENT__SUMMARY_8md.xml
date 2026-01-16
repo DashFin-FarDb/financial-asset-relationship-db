@@ -1,0 +1,157 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="TEST__GENERATION__MICROAGENT__SUMMARY_8md" kind="file" language="Markdown">
+    <compoundname>TEST_GENERATION_MICROAGENT_SUMMARY.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Microagent<sp/>Validation<sp/>Test<sp/>Generation<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Generated<sp/>comprehensive<sp/>unit<sp/>tests<sp/>for<sp/>the<sp/>new<sp/>`.openhands/microagents/repo_engineer_lead.md`<sp/>microagent<sp/>configuration<sp/>file.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Files<sp/>Changed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**New<sp/>Test<sp/>File**:<sp/>`tests/unit/test_microagent_validation.py`<sp/>(496<sp/>lines,<sp/>43<sp/>test<sp/>cases)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Classes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**TestMicroagentValidation**<sp/>(Base<sp/>class)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Provides<sp/>shared<sp/>fixtures<sp/>and<sp/>utilities<sp/>for<sp/>microagent<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Implements<sp/>YAML<sp/>frontmatter<sp/>parsing<sp/>with<sp/>proper<sp/>error<sp/>handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**TestRepoEngineerLead**<sp/>(24<sp/>test<sp/>cases)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>File<sp/>existence<sp/>and<sp/>basic<sp/>properties</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>YAML<sp/>frontmatter<sp/>structure<sp/>and<sp/>syntax</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Required<sp/>metadata<sp/>fields<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Content<sp/>structure<sp/>and<sp/>semantic<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Encoding<sp/>and<sp/>line<sp/>ending<sp/>validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**TestAllMicroagents**<sp/>(7<sp/>test<sp/>cases)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Cross-file<sp/>validation<sp/>for<sp/>all<sp/>microagents</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Unique<sp/>name<sp/>enforcement</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Consistent<sp/>metadata<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Optional<sp/>triggers<sp/>field<sp/>handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**TestMicroagentSemantic**<sp/>(8<sp/>test<sp/>cases)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Content<sp/>semantic<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Terminology<sp/>consistency</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Grammar<sp/>and<sp/>punctuation<sp/>checks</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Purpose<sp/>and<sp/>responsibility<sp/>validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">5.<sp/>**TestEdgeCases**<sp/>(4<sp/>test<sp/>cases)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>File<sp/>size<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Binary<sp/>content<sp/>detection</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Control<sp/>character<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Line<sp/>ending<sp/>consistency</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Key<sp/>Features</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>YAML<sp/>Frontmatter<sp/>Validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Parses<sp/>and<sp/>validates<sp/>YAML<sp/>frontmatter<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Handles<sp/>leading<sp/>whitespace<sp/>in<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>required<sp/>fields:<sp/>`name`,<sp/>`type`,<sp/>`version`,<sp/>`agent`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Checks<sp/>for<sp/>valid<sp/>semantic<sp/>versioning<sp/>(x.y.z)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>agent<sp/>types<sp/>(CodeActAgent,<sp/>PlannerAgent,<sp/>BrowsingAgent)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>microagent<sp/>types<sp/>(knowledge,<sp/>action,<sp/>hybrid)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Content<sp/>Validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Verifies<sp/>description<sp/>of<sp/>key<sp/>responsibilities:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Issue<sp/>and<sp/>PR<sp/>review</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Code<sp/>change<sp/>management</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Documentation<sp/>requirements</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Merge<sp/>conflict<sp/>resolution</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Branch<sp/>hygiene</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Commit<sp/>responsibilities</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Checks<sp/>for<sp/>autonomous/automated<sp/>nature<sp/>description</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Validates<sp/>terminology<sp/>consistency</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Ensures<sp/>appropriate<sp/>content<sp/>length<sp/>(30-1000<sp/>words)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Technical<sp/>Validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>UTF-8<sp/>encoding<sp/>verification</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Unix<sp/>line<sp/>ending<sp/>(LF)<sp/>enforcement</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>No<sp/>binary<sp/>content<sp/>detection</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Control<sp/>character<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Trailing<sp/>whitespace<sp/>detection</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Results</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Tests**:<sp/>43</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Passed**:<sp/>42</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Failed**:<sp/>1<sp/>(intentional<sp/>-<sp/>grammar<sp/>check<sp/>found<sp/>typo<sp/>in<sp/>source<sp/>file)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Validation<sp/>Finding</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>grammar<sp/>test<sp/>correctly<sp/>identified<sp/>a<sp/>typo<sp/>in<sp/>the<sp/>source<sp/>file:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Location:<sp/>`.openhands/microagents/repo_engineer_lead.md`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Issue:<sp/>Double<sp/>period<sp/>at<sp/>end<sp/>of<sp/>sentence<sp/>(&quot;code..&quot;)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>This<sp/>demonstrates<sp/>the<sp/>tests<sp/>are<sp/>working<sp/>as<sp/>intended</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Testing<sp/>Framework</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Framework**:<sp/>pytest</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Dependencies**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>pytest<sp/>&gt;=<sp/>7.0.0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>PyYAML<sp/>(already<sp/>in<sp/>project<sp/>dependencies)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Language**:<sp/>Python<sp/>3.10+</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Type<sp/>Hints**:<sp/>Full<sp/>type<sp/>annotations<sp/>using<sp/>Python<sp/>3.10+<sp/>syntax</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Best<sp/>Practices<sp/>Followed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Comprehensive<sp/>Coverage**:<sp/>Tests<sp/>cover<sp/>syntax,<sp/>semantics,<sp/>and<sp/>edge<sp/>cases</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Clear<sp/>Documentation**:<sp/>Each<sp/>test<sp/>has<sp/>descriptive<sp/>docstrings</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Reusable<sp/>Fixtures**:<sp/>Shared<sp/>fixtures<sp/>for<sp/>common<sp/>test<sp/>setup</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Descriptive<sp/>Names**:<sp/>Test<sp/>names<sp/>clearly<sp/>indicate<sp/>purpose</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Maintainability**:<sp/>Well-organized<sp/>test<sp/>classes</highlight></codeline>
+<codeline><highlight class="normal">6.<sp/>**Error<sp/>Messages**:<sp/>Informative<sp/>assertion<sp/>messages</highlight></codeline>
+<codeline><highlight class="normal">7.<sp/>**Cross-File<sp/>Validation**:<sp/>Tests<sp/>work<sp/>for<sp/>all<sp/>microagent<sp/>files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Integration<sp/>with<sp/>CI/CD</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">These<sp/>tests<sp/>integrate<sp/>seamlessly<sp/>with<sp/>the<sp/>existing<sp/>pytest<sp/>setup:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>microagent<sp/>validation<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_microagent_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_microagent_validation.py<sp/>--cov=.openhands/microagents</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Future<sp/>Enhancements</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Add<sp/>schema<sp/>validation<sp/>for<sp/>more<sp/>complex<sp/>microagent<sp/>structures</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Implement<sp/>link<sp/>validation<sp/>for<sp/>documentation<sp/>references</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Add<sp/>spell-checking<sp/>for<sp/>content<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Create<sp/>automated<sp/>frontmatter<sp/>schema<sp/>evolution<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>Add<sp/>performance<sp/>benchmarks<sp/>for<sp/>large<sp/>microagent<sp/>files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Validation<sp/>Value</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">These<sp/>tests<sp/>provide:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Quality<sp/>Assurance**:<sp/>Ensures<sp/>microagent<sp/>configs<sp/>are<sp/>valid<sp/>before<sp/>deployment</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Documentation**:<sp/>Tests<sp/>serve<sp/>as<sp/>living<sp/>documentation<sp/>of<sp/>microagent<sp/>requirements</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Regression<sp/>Prevention**:<sp/>Catches<sp/>accidental<sp/>changes<sp/>to<sp/>microagent<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Cross-File<sp/>Consistency**:<sp/>Ensures<sp/>all<sp/>microagents<sp/>follow<sp/>same<sp/>conventions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Early<sp/>Error<sp/>Detection**:<sp/>Catches<sp/>configuration<sp/>errors<sp/>before<sp/>runtime</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Conclusion</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Successfully<sp/>generated<sp/>43<sp/>comprehensive<sp/>unit<sp/>tests<sp/>for<sp/>microagent<sp/>validation,<sp/>covering<sp/>all<sp/>aspects<sp/>of<sp/>YAML<sp/>frontmatter<sp/>structure,<sp/>content<sp/>semantics,<sp/>and<sp/>technical<sp/>requirements.<sp/>The<sp/>tests<sp/>follow<sp/>pytest<sp/>best<sp/>practices<sp/>and<sp/>integrate<sp/>seamlessly<sp/>with<sp/>the<sp/>existing<sp/>test<sp/>suite.</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TEST_GENERATION_MICROAGENT_SUMMARY.md"/>
+  </compounddef>
+</doxygen>

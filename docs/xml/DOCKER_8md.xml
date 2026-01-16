@@ -1,0 +1,300 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="DOCKER_8md" kind="file" language="Markdown">
+    <compoundname>DOCKER.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Docker<sp/>Deployment<sp/>Guide</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>guide<sp/>explains<sp/>how<sp/>to<sp/>run<sp/>the<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database<sp/>using<sp/>Docker<sp/>and<sp/>Docker<sp/>Compose.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Quick<sp/>Start</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Using<sp/>Docker<sp/>Compose<sp/>(Recommended)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>and<sp/>start<sp/>the<sp/>application</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>--build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Access<sp/>the<sp/>application<sp/>at<sp/>http://localhost:7860</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Using<sp/>Docker<sp/>Directly</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>the<sp/>image</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>build<sp/>-t<sp/>financial-asset-db<sp/>.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>container</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>run<sp/>-p<sp/>7860:7860<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Access<sp/>the<sp/>application<sp/>at<sp/>http://localhost:7860</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Docker<sp/>Compose<sp/>Options</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Development<sp/>Mode</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Mount<sp/>your<sp/>source<sp/>code<sp/>for<sp/>live<sp/>development:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>The<sp/>docker-compose.yml<sp/>already<sp/>includes<sp/>volume<sp/>mounts</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Changes<sp/>to<sp/>`src/`<sp/>will<sp/>be<sp/>reflected<sp/>immediately<sp/>(may<sp/>require<sp/>app<sp/>restart).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Production<sp/>Mode</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Build<sp/>and<sp/>run<sp/>in<sp/>detached<sp/>mode:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>and<sp/>start<sp/>in<sp/>background</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>-d<sp/>--build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>logs<sp/>-f</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Stop<sp/>the<sp/>application</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>down</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>With<sp/>Database<sp/>(PostgreSQL)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Uncomment<sp/>the<sp/>`postgres`<sp/>service<sp/>in<sp/>`docker-compose.yml`:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>with<sp/>database</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>-d</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>The<sp/>database<sp/>will<sp/>be<sp/>available<sp/>at:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Host:<sp/>localhost</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Port:<sp/>5432</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Database:<sp/>financial_assets</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>User:<sp/>finuser</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Password:<sp/>changeme</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Environment<sp/>Variables</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Configure<sp/>the<sp/>application<sp/>using<sp/>environment<sp/>variables<sp/>in<sp/>`docker-compose.yml`:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```yaml</highlight></codeline>
+<codeline><highlight class="normal">environment:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>GRADIO_SERVER_NAME=0.0.0.0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>GRADIO_SERVER_PORT=7860</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>DATABASE_URL=postgresql://finuser:changeme@postgres:5432/financial_assets</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Docker<sp/>Commands</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>the<sp/>Docker<sp/>image</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>build<sp/>-t<sp/>financial-asset-db<sp/>.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>with<sp/>no<sp/>cache</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>build<sp/>--no-cache<sp/>-t<sp/>financial-asset-db<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>container</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>run<sp/>-p<sp/>7860:7860<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>in<sp/>background</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>run<sp/>-d<sp/>-p<sp/>7860:7860<sp/>--name<sp/>financial-asset-db<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>environment<sp/>variables</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>run<sp/>-p<sp/>7860:7860<sp/>-e<sp/>GRADIO_SERVER_NAME=0.0.0.0<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Manage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>List<sp/>running<sp/>containers</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>ps</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>logs<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Follow<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>logs<sp/>-f<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Stop<sp/>container</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>stop<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Remove<sp/>container</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>rm<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Remove<sp/>image</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>rmi<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Docker<sp/>Compose<sp/>Commands</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>services</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>in<sp/>background</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>-d</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Stop<sp/>services</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>down</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Stop<sp/>and<sp/>remove<sp/>volumes</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>down<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>logs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Follow<sp/>logs<sp/>for<sp/>specific<sp/>service</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>logs<sp/>-f<sp/>app</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Rebuild<sp/>images</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Rebuild<sp/>and<sp/>start</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>--build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Scale<sp/>services<sp/>(if<sp/>needed)</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>--scale<sp/>app=3</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Health<sp/>Checks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>application<sp/>includes<sp/>health<sp/>checks:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>container<sp/>health</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>inspect<sp/>--format=&apos;{{.State.Health.Status}}&apos;<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>health<sp/>check<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>inspect<sp/>--format=&apos;{{range<sp/>.State.Health.Log}}{{.Output}}{{end}}&apos;<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Troubleshooting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Container<sp/>Won&apos;t<sp/>Start</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Check<sp/>logs:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>logs<sp/>app</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Port<sp/>Already<sp/>in<sp/>Use</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Change<sp/>the<sp/>port<sp/>mapping<sp/>in<sp/>`docker-compose.yml`:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```yaml</highlight></codeline>
+<codeline><highlight class="normal">ports:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>&quot;8080:7860&quot;<sp/>#<sp/>Use<sp/>port<sp/>8080<sp/>instead</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Permission<sp/>Issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Ensure<sp/>the<sp/>non-root<sp/>user<sp/>has<sp/>permissions:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Rebuild<sp/>with<sp/>proper<sp/>permissions</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>build<sp/>--no-cache</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Database<sp/>Connection<sp/>Issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">If<sp/>using<sp/>PostgreSQL:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Ensure<sp/>the<sp/>database<sp/>service<sp/>is<sp/>running:<sp/>`docker-compose<sp/>ps`</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Check<sp/>database<sp/>logs:<sp/>`docker-compose<sp/>logs<sp/>postgres`</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Verify<sp/>connection<sp/>string<sp/>in<sp/>environment<sp/>variables</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Best<sp/>Practices</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Security**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>The<sp/>Dockerfile<sp/>uses<sp/>a<sp/>non-root<sp/>user<sp/>(appuser)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Change<sp/>default<sp/>database<sp/>passwords<sp/>in<sp/>production</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Use<sp/>secrets<sp/>management<sp/>for<sp/>sensitive<sp/>data</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Performance**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Use<sp/>`.dockerignore`<sp/>to<sp/>exclude<sp/>unnecessary<sp/>files</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Leverage<sp/>Docker<sp/>layer<sp/>caching</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Use<sp/>multi-stage<sp/>builds<sp/>for<sp/>smaller<sp/>images<sp/>(optional)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Development**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Mount<sp/>source<sp/>code<sp/>volumes<sp/>for<sp/>live<sp/>development</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Use<sp/>`docker-compose`<sp/>for<sp/>easier<sp/>management</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Keep<sp/>development<sp/>and<sp/>production<sp/>configs<sp/>separate</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Production**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Use<sp/>specific<sp/>image<sp/>tags<sp/>(not<sp/>`latest`)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Set<sp/>resource<sp/>limits<sp/>(CPU,<sp/>memory)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Configure<sp/>proper<sp/>logging<sp/>and<sp/>monitoring</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Use<sp/>health<sp/>checks<sp/>for<sp/>auto-recovery</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Multi-Stage<sp/>Build<sp/>(Advanced)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>smaller<sp/>production<sp/>images,<sp/>create<sp/>a<sp/>multi-stage<sp/>Dockerfile:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```dockerfile</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>stage</highlight></codeline>
+<codeline><highlight class="normal">FROM<sp/>python:3.11-slim<sp/>as<sp/>builder</highlight></codeline>
+<codeline><highlight class="normal">WORKDIR<sp/>/app</highlight></codeline>
+<codeline><highlight class="normal">COPY<sp/>requirements.txt<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">RUN<sp/>pip<sp/>install<sp/>--user<sp/>--no-cache-dir<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Runtime<sp/>stage</highlight></codeline>
+<codeline><highlight class="normal">FROM<sp/>python:3.11-slim</highlight></codeline>
+<codeline><highlight class="normal">WORKDIR<sp/>/app</highlight></codeline>
+<codeline><highlight class="normal">COPY<sp/>--from=builder<sp/>/root/.local<sp/>/root/.local</highlight></codeline>
+<codeline><highlight class="normal">COPY<sp/>.<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">ENV<sp/>PATH=/root/.local/bin:$PATH</highlight></codeline>
+<codeline><highlight class="normal">CMD<sp/>[&quot;python&quot;,<sp/>&quot;app.py&quot;]</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Kubernetes<sp/>Deployment<sp/>(Optional)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>Kubernetes<sp/>deployment,<sp/>create<sp/>manifests:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```yaml</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>deployment.yaml</highlight></codeline>
+<codeline><highlight class="normal">apiVersion:<sp/>apps/v1</highlight></codeline>
+<codeline><highlight class="normal">kind:<sp/>Deployment</highlight></codeline>
+<codeline><highlight class="normal">metadata:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>name:<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal">spec:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>replicas:<sp/>3</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>selector:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>matchLabels:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>app:<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>template:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>metadata:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>labels:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>app:<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>spec:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>containers:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>app</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>image:<sp/>financial-asset-db:latest</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ports:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>containerPort:<sp/>7860</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>env:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>GRADIO_SERVER_NAME</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>value:<sp/>&quot;0.0.0.0&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Resources</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[Docker<sp/>Documentation](https://docs.docker.com/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Docker<sp/>Compose<sp/>Documentation](https://docs.docker.com/compose/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Best<sp/>Practices](https://docs.docker.com/develop/dev-best-practices/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Gradio<sp/>Docker<sp/>Guide](https://gradio.app/docs/)</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/DOCKER.md"/>
+  </compounddef>
+</doxygen>

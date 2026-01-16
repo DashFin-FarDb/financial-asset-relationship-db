@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetest__db__module" kind="namespace" language="Python">
+    <compoundname>test_db_module</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetest__db__module_1a6a68f8140500cd450b3c8cf631164574" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_db_module.level</definition>
+        <argsstring></argsstring>
+        <name>level</name>
+        <qualifiedname>test_db_module.level</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" line="10" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetest__db__module_1a4d3c6b2ba86c09410f950bb704d8c079" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_db_module.INFO</definition>
+        <argsstring></argsstring>
+        <name>INFO</name>
+        <qualifiedname>test_db_module.INFO</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" line="10" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetest__db__module_1af8a214fe01ba9cb960b29d542b281819" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_db_module.format</definition>
+        <argsstring></argsstring>
+        <name>format</name>
+        <qualifiedname>test_db_module.format</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" line="10" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetest__db__module_1ab570fd890bb9097d6b89a94f28095284" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_db_module.logger</definition>
+        <argsstring></argsstring>
+        <name>logger</name>
+        <qualifiedname>test_db_module.logger</qualifiedname>
+        <initializer>=  logging.getLogger(__name__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" line="11" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" bodystart="11" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetest__db__module_1ab1223ec744fb29ddc0205cf1c1964525" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_db_module.success</definition>
+        <argsstring></argsstring>
+        <name>success</name>
+        <qualifiedname>test_db_module.success</qualifiedname>
+        <initializer>=  <ref refid="namespacetest__db__module_1a19159b65d737a3eb888376e5ce029ecb" kindref="member">test_database_connection</ref>()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" line="49" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" bodystart="49" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetest__db__module_1a19159b65d737a3eb888376e5ce029ecb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>test_db_module.test_database_connection</definition>
+        <argsstring>()</argsstring>
+        <name>test_database_connection</name>
+        <qualifiedname>test_db_module.test_database_connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test the database connection module</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" line="14" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" bodystart="14" bodyend="47"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test script for the database module.
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_db_module.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

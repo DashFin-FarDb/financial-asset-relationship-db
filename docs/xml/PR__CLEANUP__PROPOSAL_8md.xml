@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="PR__CLEANUP__PROPOSAL_8md" kind="file" language="Markdown">
+    <compoundname>PR_CLEANUP_PROPOSAL.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>PR<sp/>Cleanup<sp/>Proposal</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Completed<sp/>Actions<sp/>✅</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**PR<sp/>#239**<sp/>-<sp/>Merged<sp/>successfully</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**PR<sp/>#254**<sp/>-<sp/>Merged<sp/>successfully</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**PR<sp/>#322**<sp/>-<sp/>Merged<sp/>successfully</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Issues<sp/>Identified</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Unrelated<sp/>Git<sp/>Histories</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">43<sp/>PRs<sp/>cannot<sp/>be<sp/>merged<sp/>due<sp/>to<sp/>&quot;unrelated<sp/>histories&quot;<sp/>error.<sp/>These<sp/>branches<sp/>were<sp/>likely:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Created<sp/>from<sp/>non-main<sp/>bases</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Generated<sp/>by<sp/>automated<sp/>tools<sp/>without<sp/>proper<sp/>branching</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Imported<sp/>from<sp/>external<sp/>sources</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Bot-Generated<sp/>PRs<sp/>with<sp/>Conflicts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Multiple<sp/>automated<sp/>PRs<sp/>from:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`coderabbitai/*`<sp/>-<sp/>6<sp/>PRs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`cubic-fix-*`<sp/>-<sp/>10+<sp/>PRs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`copilot/*`<sp/>-<sp/>8+<sp/>PRs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`multi-launch-*`<sp/>-<sp/>2<sp/>PRs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">These<sp/>target<sp/>files<sp/>that<sp/>don&apos;t<sp/>exist<sp/>in<sp/>main<sp/>or<sp/>have<sp/>significant<sp/>conflicts.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Cascading<sp/>Dependencies</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Many<sp/>PRs<sp/>state<sp/>&quot;merges<sp/>into<sp/>#XXX&quot;<sp/>where<sp/>the<sp/>base<sp/>PR<sp/>also<sp/>has<sp/>conflicts,<sp/>creating<sp/>chains<sp/>of<sp/>unmergeable<sp/>PRs.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Recommendations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Immediate<sp/>Actions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Close<sp/>stale<sp/>bot<sp/>PRs**<sp/>(older<sp/>than<sp/>7<sp/>days<sp/>with<sp/>conflicts)</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Close<sp/>duplicate<sp/>PRs**<sp/>(multiple<sp/>PRs<sp/>fixing<sp/>same<sp/>issue)</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Close<sp/>PRs<sp/>targeting<sp/>non-existent<sp/>files**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>For<sp/>PRs<sp/>with<sp/>Valid<sp/>Changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Extract<sp/>the<sp/>actual<sp/>code<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Recreate<sp/>on<sp/>fresh<sp/>branch<sp/>from<sp/>current<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Submit<sp/>as<sp/>new<sp/>PR<sp/>with<sp/>proper<sp/>history</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Process<sp/>Improvements</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Configure<sp/>branch<sp/>protection<sp/>to<sp/>prevent<sp/>unrelated<sp/>histories</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Set<sp/>up<sp/>bot<sp/>PR<sp/>auto-close<sp/>after<sp/>48h<sp/>if<sp/>unmergeable</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Require<sp/>all<sp/>PRs<sp/>to<sp/>have<sp/>CI<sp/>passing<sp/>before<sp/>merge</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Add<sp/>pre-commit<sp/>hooks<sp/>to<sp/>validate<sp/>branch<sp/>ancestry</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>PRs<sp/>Recommended<sp/>for<sp/>Closure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Category<sp/>A:<sp/>Bot<sp/>PRs<sp/>with<sp/>Unrelated<sp/>Histories<sp/>(Age<sp/>&gt;<sp/>7<sp/>days)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>#181,<sp/>#286,<sp/>#323-326,<sp/>#331-334,<sp/>#339,<sp/>#343,<sp/>#345-346,<sp/>#364,<sp/>#366,<sp/>#369-370,<sp/>#378-379,<sp/>#381-389,<sp/>#394-395,<sp/>#398,<sp/>#424</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Category<sp/>B:<sp/>Documentation-only<sp/>PRs<sp/>with<sp/>Conflicts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Multiple<sp/>test<sp/>documentation<sp/>PRs<sp/>that<sp/>conflict<sp/>with<sp/>merged<sp/>changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Manual<sp/>Review<sp/>Needed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Some<sp/>PRs<sp/>may<sp/>contain<sp/>valuable<sp/>changes<sp/>that<sp/>should<sp/>be<sp/>preserved:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Review<sp/>each<sp/>PR&apos;s<sp/>diff</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Extract<sp/>meaningful<sp/>code<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Apply<sp/>to<sp/>fresh<sp/>branches</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/PR_CLEANUP_PROPOSAL.md"/>
+  </compounddef>
+</doxygen>

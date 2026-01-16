@@ -1,0 +1,11 @@
+<map id="graph_2d_visuals.visualize_2d_graph" name="graph_2d_visuals.visualize_2d_graph">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,101,203,141"/>
+<area shape="rect" id="Node000002" href="$namespacegraph__2d__visuals.html#a3c29db703c3db7f334f690de7193b3d0" title=" " alt="" coords="251,5,437,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,99,250,55,269,48,271,53,252,60,150,104"/>
+<area shape="rect" id="Node000003" href="$namespacegraph__2d__visuals.html#a64cb4091385f11e59bcd0eb6e77c8a3f" title=" " alt="" coords="251,69,437,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,106,237,101,238,106,203,111"/>
+<area shape="rect" id="Node000004" href="$namespacegraph__2d__visuals.html#aefa05cca95437bedcafcfcc83c332614" title=" " alt="" coords="251,133,437,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="203,132,238,136,237,142,203,137"/>
+<area shape="rect" id="Node000005" href="$namespacegraph__2d__visuals.html#a165b9e325029f53ba7ca0bf8605a40aa" title=" " alt="" coords="251,197,437,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="150,139,252,183,271,190,269,195,250,188,148,144"/>
+</map>

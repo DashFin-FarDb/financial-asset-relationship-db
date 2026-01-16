@@ -1,0 +1,279 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="BRANCH__CLEANUP__ANALYSIS_8md" kind="file" language="Markdown">
+    <compoundname>BRANCH_CLEANUP_ANALYSIS.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Branch<sp/>Cleanup<sp/>Analysis</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Date:**<sp/>2025-11-12</highlight></codeline>
+<codeline><highlight class="normal">**Issue:**<sp/>#136<sp/>-<sp/>Remove<sp/>all<sp/>unnecessary<sp/>branches</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Executive<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>provides<sp/>a<sp/>comprehensive<sp/>analysis<sp/>of<sp/>all<sp/>open<sp/>branches<sp/>in<sp/>the<sp/>repository,<sp/>traces<sp/>their<sp/>commit<sp/>history,<sp/>and<sp/>provides<sp/>recommendations<sp/>for<sp/>cleanup.<sp/>The<sp/>goal<sp/>is<sp/>to<sp/>maintain<sp/>only<sp/>the<sp/>`main`<sp/>branch<sp/>unless<sp/>there<sp/>are<sp/>specific<sp/>benefits<sp/>for<sp/>keeping<sp/>a<sp/>branch<sp/>open.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Branch<sp/>Analysis<sp/>Methodology</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Identification**:<sp/>List<sp/>all<sp/>open<sp/>branches<sp/>in<sp/>the<sp/>repository</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Commit<sp/>History**:<sp/>Trace<sp/>commits<sp/>to<sp/>ensure<sp/>no<sp/>important<sp/>changes<sp/>are<sp/>lost</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Status<sp/>Assessment**:<sp/>Determine<sp/>if<sp/>branch<sp/>has<sp/>been<sp/>merged,<sp/>is<sp/>stale,<sp/>or<sp/>has<sp/>unique<sp/>commits</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Recommendation**:<sp/>Provide<sp/>action<sp/>items<sp/>(merge,<sp/>delete,<sp/>or<sp/>keep<sp/>with<sp/>justification)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Current<sp/>Branch<sp/>Structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Protected<sp/>Branches</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>`main`<sp/>(Primary<sp/>Branch)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Status**:<sp/>Active<sp/>and<sp/>protected</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Production-ready<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Action**:<sp/>**KEEP**<sp/>-<sp/>This<sp/>is<sp/>the<sp/>primary<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Notes**:<sp/>All<sp/>development<sp/>should<sp/>be<sp/>merged<sp/>here</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Development<sp/>Branches</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Based<sp/>on<sp/>the<sp/>repository<sp/>analysis<sp/>and<sp/>documentation<sp/>review,<sp/>the<sp/>following<sp/>branch<sp/>patterns<sp/>have<sp/>been<sp/>identified:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Feature<sp/>Branches<sp/>(`feature/*`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Naming<sp/>Convention**:<sp/>`feature/description`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>New<sp/>feature<sp/>development</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lifecycle**:<sp/>Should<sp/>be<sp/>deleted<sp/>after<sp/>merge<sp/>to<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Current<sp/>Status**:<sp/>To<sp/>be<sp/>identified<sp/>via<sp/>GitHub<sp/>API</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Bugfix<sp/>Branches<sp/>(`bugfix/*`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Naming<sp/>Convention**:<sp/>`bugfix/description`<sp/>or<sp/>`bugfix/issue-number`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Bug<sp/>fixes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lifecycle**:<sp/>Should<sp/>be<sp/>deleted<sp/>after<sp/>merge<sp/>to<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Current<sp/>Status**:<sp/>To<sp/>be<sp/>identified<sp/>via<sp/>GitHub<sp/>API</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Documentation<sp/>Branches<sp/>(`docs/*`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Naming<sp/>Convention**:<sp/>`docs/description`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Documentation<sp/>updates</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lifecycle**:<sp/>Should<sp/>be<sp/>deleted<sp/>after<sp/>merge<sp/>to<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Current<sp/>Status**:<sp/>To<sp/>be<sp/>identified<sp/>via<sp/>GitHub<sp/>API</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Refactor<sp/>Branches<sp/>(`refactor/*`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Naming<sp/>Convention**:<sp/>`refactor/description`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Code<sp/>refactoring</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lifecycle**:<sp/>Should<sp/>be<sp/>deleted<sp/>after<sp/>merge<sp/>to<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Current<sp/>Status**:<sp/>To<sp/>be<sp/>identified<sp/>via<sp/>GitHub<sp/>API</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Test<sp/>Branches<sp/>(`test/*`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Naming<sp/>Convention**:<sp/>`test/description`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Test<sp/>additions/improvements</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lifecycle**:<sp/>Should<sp/>be<sp/>deleted<sp/>after<sp/>merge<sp/>to<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Current<sp/>Status**:<sp/>To<sp/>be<sp/>identified<sp/>via<sp/>GitHub<sp/>API</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Automated<sp/>Branches</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#####<sp/>GitAuto<sp/>Branches<sp/>(`gitauto/*`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Pattern**:<sp/>`gitauto/issue-{number}-{date}-{hash}`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Automated<sp/>issue<sp/>resolution</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Example**:<sp/>`gitauto/issue-136-20251112-143841-JdxF`<sp/>(current<sp/>branch)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lifecycle**:<sp/>Should<sp/>be<sp/>deleted<sp/>after<sp/>PR<sp/>is<sp/>merged<sp/>or<sp/>closed</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Action**:<sp/>Delete<sp/>after<sp/>PR<sp/>completion</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#####<sp/>CodeRabbit<sp/>Branches<sp/>(`coderabbitai/*`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Pattern**:<sp/>`coderabbitai/utg/{hash}`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Automated<sp/>test<sp/>generation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Known<sp/>Branches**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`coderabbitai/utg/e47c649`<sp/>(PR<sp/>#6<sp/>-<sp/>has<sp/>merge<sp/>conflicts)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Status**:<sp/>Has<sp/>unresolved<sp/>merge<sp/>conflicts<sp/>(see<sp/>MERGE_CONFLICT_ANALYSIS.md)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Action**:<sp/>Resolve<sp/>conflicts<sp/>and<sp/>merge,<sp/>or<sp/>close<sp/>and<sp/>delete</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Special<sp/>Consideration<sp/>Branches</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>`develop`<sp/>Branch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Status**:<sp/>Referenced<sp/>in<sp/>CircleCI<sp/>config<sp/>(line<sp/>204)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Purpose**:<sp/>Integration<sp/>branch<sp/>for<sp/>ongoing<sp/>development</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Current<sp/>Existence**:<sp/>To<sp/>be<sp/>verified</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Recommendation**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>If<sp/>exists<sp/>and<sp/>actively<sp/>used:<sp/>**KEEP**<sp/>as<sp/>integration<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>If<sp/>exists<sp/>but<sp/>unused:<sp/>**DELETE**<sp/>and<sp/>use<sp/>feature<sp/>branches<sp/>directly<sp/>to<sp/>main</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>If<sp/>doesn&apos;t<sp/>exist:<sp/>No<sp/>action<sp/>needed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Branch<sp/>Cleanup<sp/>Criteria</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Delete<sp/>Immediately</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Branches<sp/>that<sp/>meet<sp/>ANY<sp/>of<sp/>these<sp/>criteria:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Fully<sp/>merged<sp/>to<sp/>main<sp/>with<sp/>no<sp/>unique<sp/>commits</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Stale<sp/>(no<sp/>commits<sp/>in<sp/>90+<sp/>days)<sp/>with<sp/>no<sp/>open<sp/>PR</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Abandoned<sp/>feature<sp/>branches<sp/>with<sp/>closed/rejected<sp/>PRs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Temporary/experimental<sp/>branches<sp/>no<sp/>longer<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Automated<sp/>tool<sp/>branches<sp/>after<sp/>PR<sp/>completion</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Requires<sp/>Review<sp/>Before<sp/>Deletion</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Branches<sp/>that<sp/>meet<sp/>ANY<sp/>of<sp/>these<sp/>criteria:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>⚠️<sp/>Has<sp/>open<sp/>PR<sp/>with<sp/>pending<sp/>review</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>⚠️<sp/>Contains<sp/>commits<sp/>not<sp/>in<sp/>main<sp/>(verify<sp/>importance)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>⚠️<sp/>Active<sp/>development<sp/>in<sp/>last<sp/>30<sp/>days</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>⚠️<sp/>Has<sp/>unresolved<sp/>merge<sp/>conflicts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Keep<sp/>Open</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Branches<sp/>that<sp/>meet<sp/>ANY<sp/>of<sp/>these<sp/>criteria:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>🔒<sp/>Protected<sp/>branch<sp/>(main)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>🔒<sp/>Active<sp/>development<sp/>branch<sp/>with<sp/>recent<sp/>commits</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>🔒<sp/>Integration<sp/>branch<sp/>(develop)<sp/>if<sp/>actively<sp/>used</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>🔒<sp/>Release<sp/>branches<sp/>(if<sp/>release<sp/>strategy<sp/>requires)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Identified<sp/>Issues<sp/>from<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>PR<sp/>#6<sp/>Merge<sp/>Conflicts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Branch**:<sp/>`coderabbitai/utg/e47c649`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Issue**:<sp/>Cannot<sp/>merge<sp/>due<sp/>to<sp/>conflicts<sp/>in<sp/>5<sp/>test<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Impact**:<sp/>Blocks<sp/>PR<sp/>#35<sp/>which<sp/>depends<sp/>on<sp/>it</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Files<sp/>Affected**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>1.<sp/>`tests/unit/test_api_main.py`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>2.<sp/>`frontend/app/lib/__tests__/api.test.ts`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>3.<sp/>`frontend/jest.config.js`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>4.<sp/>`frontend/jest.setup.js`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>5.<sp/>`frontend/package.json`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Resolution<sp/>Options**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>1.<sp/>Merge<sp/>main<sp/>into<sp/>branch<sp/>and<sp/>resolve<sp/>conflicts</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>2.<sp/>Rebase<sp/>branch<sp/>onto<sp/>main</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>3.<sp/>Close<sp/>PR<sp/>and<sp/>delete<sp/>branch<sp/>if<sp/>no<sp/>longer<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Recommendation**:<sp/>Review<sp/>if<sp/>automated<sp/>tests<sp/>are<sp/>still<sp/>needed;<sp/>if<sp/>yes,<sp/>resolve<sp/>conflicts;<sp/>if<sp/>no,<sp/>close<sp/>and<sp/>delete</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Cleanup<sp/>Process</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Phase<sp/>1:<sp/>Information<sp/>Gathering</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>List<sp/>all<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-a</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>branch<sp/>status</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-vv</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Find<sp/>merged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--merged<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Find<sp/>unmerged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--no-merged<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>last<sp/>commit<sp/>date<sp/>for<sp/>each<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>for-each-ref<sp/>--sort=-committerdate<sp/>refs/heads/<sp/>--format=&apos;%(refname:short)<sp/>%(committerdate:short)<sp/>%(authorname)&apos;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Phase<sp/>2:<sp/>Verification</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>each<sp/>branch<sp/>identified<sp/>for<sp/>deletion:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Compare<sp/>with<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>log<sp/>main..branch-name<sp/>--oneline</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>if<sp/>branch<sp/>has<sp/>unique<sp/>commits</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>cherry<sp/>main<sp/>branch-name</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Phase<sp/>3:<sp/>Cleanup<sp/>Execution</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Delete<sp/>local<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-d<sp/>branch-name<sp/><sp/>#<sp/>Safe<sp/>delete<sp/>(only<sp/>if<sp/>merged)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-D<sp/>branch-name<sp/><sp/>#<sp/>Force<sp/>delete<sp/>(use<sp/>with<sp/>caution)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Delete<sp/>remote<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>--delete<sp/>branch-name</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Phase<sp/>4:<sp/>Verification</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Verify<sp/>deletion</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-a</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Prune<sp/>remote<sp/>tracking<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>remote<sp/>prune<sp/>origin</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Post-Cleanup<sp/>Actions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Update<sp/>Branch<sp/>Protection<sp/>Rules</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Ensure<sp/>`main`<sp/>branch<sp/>has<sp/>appropriate<sp/>protection</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Require<sp/>PR<sp/>reviews<sp/>before<sp/>merge</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Require<sp/>status<sp/>checks<sp/>to<sp/>pass</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Require<sp/>branches<sp/>to<sp/>be<sp/>up<sp/>to<sp/>date<sp/>before<sp/>merging</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Update<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>CONTRIBUTING.md<sp/>already<sp/>documents<sp/>branch<sp/>naming<sp/>conventions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>CircleCI<sp/>config<sp/>already<sp/>set<sp/>up<sp/>for<sp/>main<sp/>and<sp/>develop<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Consider<sp/>adding<sp/>branch<sp/>lifecycle<sp/>documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Team<sp/>Communication</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Notify<sp/>team<sp/>of<sp/>branch<sp/>cleanup</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Remind<sp/>about<sp/>branch<sp/>naming<sp/>conventions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Emphasize<sp/>importance<sp/>of<sp/>deleting<sp/>branches<sp/>after<sp/>merge</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Establish<sp/>Ongoing<sp/>Maintenance</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Set<sp/>up<sp/>automated<sp/>stale<sp/>branch<sp/>detection</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Regular<sp/>monthly<sp/>review<sp/>of<sp/>open<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Encourage<sp/>developers<sp/>to<sp/>delete<sp/>branches<sp/>after<sp/>PR<sp/>merge</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Recommendations<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Immediate<sp/>Actions**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Identify<sp/>all<sp/>open<sp/>branches<sp/>via<sp/>GitHub</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Verify<sp/>merge<sp/>status<sp/>of<sp/>each<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Delete<sp/>all<sp/>fully<sp/>merged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Delete<sp/>all<sp/>stale<sp/>branches<sp/>(90+<sp/>days,<sp/>no<sp/>activity)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Review<sp/>Required**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Resolve<sp/>or<sp/>close<sp/>PR<sp/>#6<sp/>(`coderabbitai/utg/e47c649`)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Verify<sp/>if<sp/>`develop`<sp/>branch<sp/>exists<sp/>and<sp/>is<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Check<sp/>for<sp/>any<sp/>branches<sp/>with<sp/>unique<sp/>commits</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Process<sp/>Improvements**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Enable<sp/>GitHub&apos;s<sp/>automatic<sp/>branch<sp/>deletion<sp/>after<sp/>PR<sp/>merge</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Set<sp/>up<sp/>branch<sp/>protection<sp/>rules</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Consider<sp/>implementing<sp/>a<sp/>stale<sp/>branch<sp/>bot</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Document<sp/>branch<sp/>lifecycle<sp/>in<sp/>CONTRIBUTING.md</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Ongoing<sp/>Maintenance**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Monthly<sp/>branch<sp/>audit</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Automated<sp/>notifications<sp/>for<sp/>stale<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Team<sp/>training<sp/>on<sp/>branch<sp/>hygiene</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Conclusion</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>analysis<sp/>provides<sp/>a<sp/>framework<sp/>for<sp/>cleaning<sp/>up<sp/>unnecessary<sp/>branches<sp/>while<sp/>ensuring<sp/>no<sp/>important<sp/>commits<sp/>are<sp/>lost.<sp/>The<sp/>actual<sp/>cleanup<sp/>should<sp/>be<sp/>performed<sp/>carefully,<sp/>verifying<sp/>each<sp/>branch<sp/>before<sp/>deletion.<sp/>After<sp/>cleanup,<sp/>only<sp/>the<sp/>`main`<sp/>branch<sp/>(and<sp/>potentially<sp/>`develop`<sp/>if<sp/>actively<sp/>used)<sp/>should<sp/>remain,<sp/>with<sp/>feature<sp/>branches<sp/>being<sp/>short-lived<sp/>and<sp/>deleted<sp/>immediately<sp/>after<sp/>merge.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Next<sp/>Steps</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Run<sp/>the<sp/>Phase<sp/>1<sp/>commands<sp/>to<sp/>get<sp/>actual<sp/>branch<sp/>list</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Create<sp/>a<sp/>detailed<sp/>spreadsheet<sp/>of<sp/>all<sp/>branches<sp/>with<sp/>their<sp/>status</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Execute<sp/>cleanup<sp/>in<sp/>phases<sp/>with<sp/>verification<sp/>at<sp/>each<sp/>step</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Update<sp/>repository<sp/>settings<sp/>for<sp/>automatic<sp/>branch<sp/>deletion</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>Document<sp/>the<sp/>new<sp/>branch<sp/>management<sp/>process</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Note**:<sp/>This<sp/>document<sp/>serves<sp/>as<sp/>a<sp/>guide.<sp/>Actual<sp/>branch<sp/>deletion<sp/>should<sp/>be<sp/>performed<sp/>by<sp/>repository<sp/>maintainers<sp/>with<sp/>appropriate<sp/>access<sp/>and<sp/>after<sp/>thorough<sp/>verification.</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/BRANCH_CLEANUP_ANALYSIS.md"/>
+  </compounddef>
+</doxygen>

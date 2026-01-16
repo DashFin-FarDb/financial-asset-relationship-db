@@ -1,0 +1,39 @@
+\doxysection{workflow\+\_\+validator Namespace Reference}
+\hypertarget{namespaceworkflow__validator}{}\label{namespaceworkflow__validator}\index{workflow\_validator@{workflow\_validator}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classworkflow__validator_1_1ValidationResult}{Validation\+Result}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classworkflow__validator_1_1ValidationResult}{Validation\+Result}} \mbox{\hyperlink{namespaceworkflow__validator_adb8a36ffdb73a11262e46b7a4fbe3441}{validate\+\_\+workflow}} (str workflow\+\_\+path)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceworkflow__validator_adb8a36ffdb73a11262e46b7a4fbe3441}\index{workflow\_validator@{workflow\_validator}!validate\_workflow@{validate\_workflow}}
+\index{validate\_workflow@{validate\_workflow}!workflow\_validator@{workflow\_validator}}
+\doxysubsubsection{\texorpdfstring{validate\_workflow()}{validate\_workflow()}}
+{\footnotesize\ttfamily \label{namespaceworkflow__validator_adb8a36ffdb73a11262e46b7a4fbe3441} 
+ \mbox{\hyperlink{classworkflow__validator_1_1ValidationResult}{Validation\+Result}} workflow\+\_\+validator.\+validate\+\_\+workflow (\begin{DoxyParamCaption}\item[{str}]{workflow\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Validate a workflow YAML file located at the given filesystem path.
+
+
+
+Performs YAML parsing and verifies the file is a mapping with a top-level
+'jobs' key. On success returns a ValidationResult with is_valid set to True
+and the parsed workflow data; on failure returns a ValidationResult with
+is_valid set to False and a list of human-readable error messages describing
+the problem (e.g., missing file, syntax error, invalid structure).
+
+Parameters:
+    workflow_path (str): Filesystem path to the workflow YAML file.
+
+Returns:
+    ValidationResult: Validation outcome containing
+        `is_valid`, `errors`, and `workflow_data`.
+\end{DoxyVerb}
+ 

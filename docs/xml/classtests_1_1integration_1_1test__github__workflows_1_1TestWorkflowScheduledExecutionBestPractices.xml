@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowScheduledExecutionBestPractices" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowScheduledExecutionBestPractices</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowScheduledExecutionBestPractices_1a71c3572124fab96162b9cc0d51a23ee9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowScheduledExecutionBestPractices.test_scheduled_workflows_use_valid_cron</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_scheduled_workflows_use_valid_cron</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowScheduledExecutionBestPractices.test_scheduled_workflows_use_valid_cron</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cron expressions are valid.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2859" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2859" bodyend="2884"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowScheduledExecutionBestPractices_1aef8ca12ef82c5b520c6f51d35a7abdd5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowScheduledExecutionBestPractices.test_scheduled_workflows_not_too_frequent</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_scheduled_workflows_not_too_frequent</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowScheduledExecutionBestPractices.test_scheduled_workflows_not_too_frequent</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that scheduled workflows aren&apos;t overly frequent.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2886" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2886" bodyend="2897"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for scheduled workflow best practices.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowScheduledExecutionBestPractices</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowScheduledExecutionBestPractices"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2855" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2855" bodyend="2897"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowScheduledExecutionBestPractices_1aef8ca12ef82c5b520c6f51d35a7abdd5" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowScheduledExecutionBestPractices</scope><name>test_scheduled_workflows_not_too_frequent</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowScheduledExecutionBestPractices_1a71c3572124fab96162b9cc0d51a23ee9" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowScheduledExecutionBestPractices</scope><name>test_scheduled_workflows_use_valid_cron</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

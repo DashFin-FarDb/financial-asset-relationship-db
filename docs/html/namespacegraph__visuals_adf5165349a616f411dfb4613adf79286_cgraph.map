@@ -1,0 +1,9 @@
+<map id="graph_visuals._add_directional_arrows_to_figure" name="graph_visuals._add_directional_arrows_to_figure">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,30,155,85"/>
+<area shape="rect" id="Node000002" href="$namespacegraph__visuals.html#a41e2aa4282d406d57e0c1b69abc42480" title=" " alt="" coords="203,37,367,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,55,189,55,189,60,155,60"/>
+<area shape="rect" id="Node000003" href="$namespacegraph__visuals.html#a0b234963e74afc0d696565e612ad410c" title=" " alt="" coords="415,5,569,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="366,42,401,37,402,42,367,47"/>
+<area shape="rect" id="Node000004" href="$namespacegraph__visuals.html#a632734f64a969060dc90f97e0f207d59" title=" " alt="" coords="415,69,569,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="367,67,402,73,401,78,366,73"/>
+</map>

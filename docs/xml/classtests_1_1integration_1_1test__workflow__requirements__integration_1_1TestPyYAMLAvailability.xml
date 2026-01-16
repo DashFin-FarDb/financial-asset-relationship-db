@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestPyYAMLAvailability" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_requirements_integration::TestPyYAMLAvailability</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestPyYAMLAvailability_1af10b21d315d67e956efa5fcc7a2447be" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_requirements_integration.TestPyYAMLAvailability.test_pyyaml_in_requirements_for_workflow_validation</definition>
+        <argsstring>()</argsstring>
+        <name>test_pyyaml_in_requirements_for_workflow_validation</name>
+        <qualifiedname>tests.integration.test_workflow_requirements_integration.TestPyYAMLAvailability.test_pyyaml_in_requirements_for_workflow_validation</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure PyYAML is listed in requirements-dev.txt so workflow YAML files can be parsed for validation.
+
+Checks that requirements-dev.txt exists and that a package whose normalized name is &apos;pyyaml&apos; appears among the declared requirements (comparison is case-insensitive).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="134" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="134" bodyend="148"/>
+        <references refid="namespacetests_1_1integration_1_1test__workflow__requirements__integration_1a63e7e0d436ce7ab55f806e31476dea98" compoundref="test__workflow__requirements__integration_8py" startline="20" endline="53">tests.integration.test_workflow_requirements_integration.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestPyYAMLAvailability_1a544839ba25cced92681af96f2fa7b16b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_requirements_integration.TestPyYAMLAvailability.test_pyyaml_can_parse_workflow_files</definition>
+        <argsstring>()</argsstring>
+        <name>test_pyyaml_can_parse_workflow_files</name>
+        <qualifiedname>tests.integration.test_workflow_requirements_integration.TestPyYAMLAvailability.test_pyyaml_can_parse_workflow_files</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that installed PyYAML can successfully parse workflow files.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="150" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="150" bodyend="163"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestPyYAMLAvailability_1a92f8e36989a761d3ee2369f6f279a8f7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_requirements_integration.TestPyYAMLAvailability.test_types_pyyaml_provides_type_hints</definition>
+        <argsstring>()</argsstring>
+        <name>test_types_pyyaml_provides_type_hints</name>
+        <qualifiedname>tests.integration.test_workflow_requirements_integration.TestPyYAMLAvailability.test_types_pyyaml_provides_type_hints</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that types-PyYAML is available for type checking.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="165" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="165" bodyend="176"/>
+        <references refid="namespacetests_1_1integration_1_1test__workflow__requirements__integration_1a63e7e0d436ce7ab55f806e31476dea98" compoundref="test__workflow__requirements__integration_8py" startline="20" endline="53">tests.integration.test_workflow_requirements_integration.parse_requirements</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that PyYAML is properly configured for use in workflow tests.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_requirements_integration.TestPyYAMLAvailability</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestPyYAMLAvailability"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="130" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="130" bodyend="176"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestPyYAMLAvailability_1a544839ba25cced92681af96f2fa7b16b" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_requirements_integration::TestPyYAMLAvailability</scope><name>test_pyyaml_can_parse_workflow_files</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestPyYAMLAvailability_1af10b21d315d67e956efa5fcc7a2447be" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_requirements_integration::TestPyYAMLAvailability</scope><name>test_pyyaml_in_requirements_for_workflow_validation</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestPyYAMLAvailability_1a92f8e36989a761d3ee2369f6f279a8f7" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_requirements_integration::TestPyYAMLAvailability</scope><name>test_types_pyyaml_provides_type_hints</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

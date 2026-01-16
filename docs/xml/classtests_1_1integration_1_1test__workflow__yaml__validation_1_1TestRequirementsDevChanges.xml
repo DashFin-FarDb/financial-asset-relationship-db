@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestRequirementsDevChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_yaml_validation::TestRequirementsDevChanges</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestRequirementsDevChanges_1ab562490078598e374614cd32fbaa5cd2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_yaml_validation.TestRequirementsDevChanges.test_requirements_dev_file_exists</definition>
+        <argsstring>()</argsstring>
+        <name>test_requirements_dev_file_exists</name>
+        <qualifiedname>tests.integration.test_workflow_yaml_validation.TestRequirementsDevChanges.test_requirements_dev_file_exists</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that requirements-dev.txt exists at the repository root.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" line="100" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" bodystart="100" bodyend="104"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestRequirementsDevChanges_1a3e081cba2fa645f4f75354969e97bf94" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_yaml_validation.TestRequirementsDevChanges.test_pyyaml_present_in_requirements_dev</definition>
+        <argsstring>()</argsstring>
+        <name>test_pyyaml_present_in_requirements_dev</name>
+        <qualifiedname>tests.integration.test_workflow_yaml_validation.TestRequirementsDevChanges.test_pyyaml_present_in_requirements_dev</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that PyYAML is declared in requirements-dev.txt.
+
+Reads the repository&apos;s requirements-dev.txt, ignores blank lines and comments,
+and asserts that a dependency beginning with &quot;PyYAML&quot; (case-insensitive) is present.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" line="106" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" bodystart="106" bodyend="120"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Validate requirements-dev.txt modifications.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_yaml_validation.TestRequirementsDevChanges</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestRequirementsDevChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" line="96" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" bodystart="96" bodyend="120"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestRequirementsDevChanges_1a3e081cba2fa645f4f75354969e97bf94" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_yaml_validation::TestRequirementsDevChanges</scope><name>test_pyyaml_present_in_requirements_dev</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestRequirementsDevChanges_1ab562490078598e374614cd32fbaa5cd2" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_yaml_validation::TestRequirementsDevChanges</scope><name>test_requirements_dev_file_exists</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

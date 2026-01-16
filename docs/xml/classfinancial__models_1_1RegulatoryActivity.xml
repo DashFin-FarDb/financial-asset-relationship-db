@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classfinancial__models_1_1RegulatoryActivity" kind="class" language="Python" prot="public">
+    <compoundname>financial_models::RegulatoryActivity</compoundname>
+    <basecompoundref refid="classEnum" prot="public" virt="non-virtual">Enum</basecompoundref>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryActivity_1a0cf86c020a5e94fe3437ef62ec2bf314" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str financial_models.RegulatoryActivity::EARNINGS_REPORT</definition>
+        <argsstring></argsstring>
+        <name>EARNINGS_REPORT</name>
+        <qualifiedname>financial_models.RegulatoryActivity.EARNINGS_REPORT</qualifiedname>
+        <initializer>=  &quot;Earnings Report&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="17" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryActivity_1a7b2c20d2f24eb8ce2e8d323f69d33f0e" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str financial_models.RegulatoryActivity::SEC_FILING</definition>
+        <argsstring></argsstring>
+        <name>SEC_FILING</name>
+        <qualifiedname>financial_models.RegulatoryActivity.SEC_FILING</qualifiedname>
+        <initializer>=  &quot;SEC Filing&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryActivity_1a42dbe5976f13eeb32d81598b1a21042f" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str financial_models.RegulatoryActivity::DIVIDEND_ANNOUNCEMENT</definition>
+        <argsstring></argsstring>
+        <name>DIVIDEND_ANNOUNCEMENT</name>
+        <qualifiedname>financial_models.RegulatoryActivity.DIVIDEND_ANNOUNCEMENT</qualifiedname>
+        <initializer>=  &quot;Dividend Announcement&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="19" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryActivity_1a04e052598ad36ed1a418fc1017b6776b" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str financial_models.RegulatoryActivity::BOND_ISSUANCE</definition>
+        <argsstring></argsstring>
+        <name>BOND_ISSUANCE</name>
+        <qualifiedname>financial_models.RegulatoryActivity.BOND_ISSUANCE</qualifiedname>
+        <initializer>=  &quot;Bond Issuance&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="20" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryActivity_1a88bb78c7fd3d8ec03008a1a0c703b7e8" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str financial_models.RegulatoryActivity::ACQUISITION</definition>
+        <argsstring></argsstring>
+        <name>ACQUISITION</name>
+        <qualifiedname>financial_models.RegulatoryActivity.ACQUISITION</qualifiedname>
+        <initializer>=  &quot;Acquisition&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="21" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1RegulatoryActivity_1a70474b619f70ec947d2be432669e7083" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str financial_models.RegulatoryActivity::BANKRUPTCY</definition>
+        <argsstring></argsstring>
+        <name>BANKRUPTCY</name>
+        <qualifiedname>financial_models.RegulatoryActivity.BANKRUPTCY</qualifiedname>
+        <initializer>=  &quot;Bankruptcy&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="22" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="22" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>Enum</label>
+        <link refid="classEnum"/>
+      </node>
+      <node id="1">
+        <label>financial_models.RegulatoryActivity</label>
+        <link refid="classfinancial__models_1_1RegulatoryActivity"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>Enum</label>
+        <link refid="classEnum"/>
+      </node>
+      <node id="1">
+        <label>financial_models.RegulatoryActivity</label>
+        <link refid="classfinancial__models_1_1RegulatoryActivity"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>+ACQUISITION</edgelabel>
+          <edgelabel>+BANKRUPTCY</edgelabel>
+          <edgelabel>+BOND_ISSUANCE</edgelabel>
+          <edgelabel>+DIVIDEND_ANNOUNCEMENT</edgelabel>
+          <edgelabel>+EARNINGS_REPORT</edgelabel>
+          <edgelabel>+SEC_FILING</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>str</label>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="16" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="16" bodyend="25"/>
+    <listofallmembers>
+      <member refid="classfinancial__models_1_1RegulatoryActivity_1a88bb78c7fd3d8ec03008a1a0c703b7e8" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryActivity</scope><name>ACQUISITION</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryActivity_1a70474b619f70ec947d2be432669e7083" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryActivity</scope><name>BANKRUPTCY</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryActivity_1a04e052598ad36ed1a418fc1017b6776b" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryActivity</scope><name>BOND_ISSUANCE</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryActivity_1a42dbe5976f13eeb32d81598b1a21042f" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryActivity</scope><name>DIVIDEND_ANNOUNCEMENT</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryActivity_1a0cf86c020a5e94fe3437ef62ec2bf314" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryActivity</scope><name>EARNINGS_REPORT</name></member>
+      <member refid="classfinancial__models_1_1RegulatoryActivity_1a7b2c20d2f24eb8ce2e8d323f69d33f0e" prot="public" virt="non-virtual"><scope>financial_models::RegulatoryActivity</scope><name>SEC_FILING</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

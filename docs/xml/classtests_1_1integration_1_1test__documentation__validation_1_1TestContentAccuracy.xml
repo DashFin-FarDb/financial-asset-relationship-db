@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_documentation_validation::TestContentAccuracy</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a63381f3a2d0b2de3f28dd5e61d8e88b1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_workflow_file</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_mentions_workflow_file</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_workflow_file</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document mentions the pr-agent.yml workflow.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="145" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="145" bodyend="151"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a76766717d423bcdf6cd41fe15da13e58" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_duplicate_keys_issue</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_mentions_duplicate_keys_issue</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_duplicate_keys_issue</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document mentions the duplicate keys issue that was fixed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="153" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="153" bodyend="158"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a0e4bc4733f33e2a1ff496974e5dac58f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_pytest</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_mentions_pytest</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_pytest</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document mentions pytest.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="160" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="160" bodyend="165"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1ab1ba07d33f75599fc6c5161c7133c558" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestContentAccuracy.test_has_code_examples</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_has_code_examples</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestContentAccuracy.test_has_code_examples</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document includes code examples.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="167" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="167" bodyend="170"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1ad784f673d195c92eb6062204d4671b59" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_yaml</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_mentions_yaml</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_yaml</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document mentions YAML.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="172" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="172" bodyend="177"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1af8569ea1bee34a1c8d517710407f1a8c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_test_classes</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_mentions_test_classes</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_test_classes</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document describes test classes.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="179" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="179" bodyend="188"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a815c1fd57997a46d4866a288a8b4db56" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestContentAccuracy.test_includes_file_paths</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_includes_file_paths</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestContentAccuracy.test_includes_file_paths</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document includes actual file paths.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="190" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="190" bodyend="196"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a642612b9300f56f0fc971b47ca6ac75f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_requirements</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_mentions_requirements</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestContentAccuracy.test_mentions_requirements</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document mentions requirements or dependencies.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="198" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="198" bodyend="205"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for content accuracy validation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_documentation_validation.TestContentAccuracy</label>
+        <link refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="141" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="141" bodyend="205"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1ab1ba07d33f75599fc6c5161c7133c558" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestContentAccuracy</scope><name>test_has_code_examples</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a815c1fd57997a46d4866a288a8b4db56" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestContentAccuracy</scope><name>test_includes_file_paths</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a76766717d423bcdf6cd41fe15da13e58" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestContentAccuracy</scope><name>test_mentions_duplicate_keys_issue</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a0e4bc4733f33e2a1ff496974e5dac58f" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestContentAccuracy</scope><name>test_mentions_pytest</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a642612b9300f56f0fc971b47ca6ac75f" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestContentAccuracy</scope><name>test_mentions_requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1af8569ea1bee34a1c8d517710407f1a8c" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestContentAccuracy</scope><name>test_mentions_test_classes</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1a63381f3a2d0b2de3f28dd5e61d8e88b1" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestContentAccuracy</scope><name>test_mentions_workflow_file</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestContentAccuracy_1ad784f673d195c92eb6062204d4671b59" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestContentAccuracy</scope><name>test_mentions_yaml</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

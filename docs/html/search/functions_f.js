@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['sample_5fanalysis_5fresults_0',['sample_analysis_results',['../classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#aec8ef22cea7beea398b7e2852d6687dc',1,'tests::unit::test_formulaic_visuals::TestFormulaicVisualizer']]],
+  ['sample_5fbond_1',['sample_bond',['../namespacetests_1_1conftest.html#add92eade8caea489cbc96089fc8c3f05',1,'tests::conftest']]],
+  ['sample_5fcommodity_2',['sample_commodity',['../namespacetests_1_1conftest.html#aeed13c141ccd21c59e7770a32f8347ef',1,'tests::conftest']]],
+  ['sample_5fcurrency_3',['sample_currency',['../namespacetests_1_1conftest.html#a790e4399549396a15f133c23ba82d0c9',1,'tests::conftest']]],
+  ['sample_5fequity_4',['sample_equity',['../namespacetests_1_1conftest.html#a98351be069dd528fb4ae48c24af4a326',1,'tests::conftest']]],
+  ['sample_5fformula_5',['sample_formula',['../classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a229053ffb505cac73c1aa5cd2966fd56',1,'tests::unit::test_formulaic_visuals::TestFormulaicVisualizer']]],
+  ['sample_5fregulatory_5fevent_6',['sample_regulatory_event',['../namespacetests_1_1conftest.html#ad223d1994c93a4f64faa44b2afd6bdac',1,'tests::conftest']]],
+  ['scan_5fjob_7',['scan_job',['../namespacetests_1_1integration_1_1test__debricked__workflow.html#ae2243366a273d46cff5a97888e982040',1,'tests::integration::test_debricked_workflow']]],
+  ['section_5fheaders_8',['section_headers',['../classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections.html#a88ae95228116c687ec57232b80ddeab1',1,'tests::integration::test_workflow_documentation::TestDocumentationSections']]],
+  ['serialize_5fasset_9',['serialize_asset',['../namespaceapi_1_1main.html#a01d5b997c7c518457e2a8503526bf65a',1,'api::main']]],
+  ['session_10',['session',['../namespacetests_1_1integration_1_1test__repository.html#aaa2012689b66a94b4ad98339b0b2576f',1,'tests::integration::test_repository']]],
+  ['session_5fscope_11',['session_scope',['../namespacedatabase.html#a49bd05564bdf184e6cc9d19ff2ee4aa3',1,'database']]],
+  ['set_5fgraph_12',['set_graph',['../namespaceapi_1_1main.html#a96faa5bda5e638da3b325540aedcf235',1,'api::main']]],
+  ['set_5fgraph_5ffactory_13',['set_graph_factory',['../namespaceapi_1_1main.html#ab9d3f7110a39d7e2cee8a046527783d6',1,'api::main']]],
+  ['show_5fformula_5fdetails_14',['show_formula_details',['../classapp_1_1FinancialAssetApp.html#ab0e6e196bf509a805682ab8e46e85e48',1,'app::FinancialAssetApp']]],
+  ['summary_5fcontent_15',['summary_content',['../namespacetests_1_1integration_1_1test__documentation__validation.html#af64d55317e7d37eb57db580e1cebd192',1,'tests::integration::test_documentation_validation']]],
+  ['summary_5ffile_16',['summary_file',['../classtests_1_1integration_1_1test__github__workflows_1_1TestAutoAssignDocumentation.html#a88f0c6f1fc082cdc3a179a2ad6f41898',1,'tests::integration::test_github_workflows::TestAutoAssignDocumentation']]],
+  ['summary_5flines_17',['summary_lines',['../namespacetests_1_1integration_1_1test__documentation__validation.html#ad536e2b153616a14e831cfb39bec79a5',1,'tests::integration::test_documentation_validation']]]
+];

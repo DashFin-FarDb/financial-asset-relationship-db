@@ -1,0 +1,156 @@
+\doxysection{asset\+\_\+graph.\+Asset\+Relationship\+Graph Class Reference}
+\hypertarget{classasset__graph_1_1AssetRelationshipGraph}{}\label{classasset__graph_1_1AssetRelationshipGraph}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+
+
+Collaboration diagram for asset\+\_\+graph.\+Asset\+Relationship\+Graph\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=296pt]{classasset__graph_1_1AssetRelationshipGraph__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_aa6c62c1b113ad562dfb9ddcf97d38b86}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, str\texorpdfstring{$\vert$}{|}None \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_a87821f9c64c8aa516954160303e4ba86}{database\+\_\+url}}=None)
+\item 
+None \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_abe2dea358b031d9c57ecf2a139792ca9}{add\+\_\+asset}} (self, Asset asset)
+\item 
+None \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_aa20a244b9799fc502de34c5cbea524c1}{add\+\_\+regulatory\+\_\+event}} (self, Regulatory\+Event event)
+\item 
+None \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_ad847e0bc5cda0217fd3e2fe9f00049ed}{build\+\_\+relationships}} (self)
+\item 
+None \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_a53064383022d9a044d164243d0b346aa}{add\+\_\+relationship}} (self, str source\+\_\+id, str target\+\_\+id, str rel\+\_\+type, float strength, bool bidirectional=False)
+\item 
+Dict\mbox{[}str, Any\mbox{]} \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_a01cbbf020e31125a5c10328ecac61035}{calculate\+\_\+metrics}} (self)
+\item 
+Tuple\mbox{[}np.\+ndarray, List\mbox{[}str\mbox{]}, List\mbox{[}str\mbox{]}, List\mbox{[}str\mbox{]}\mbox{]} \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_a7a92a86fe692e1e717c20172b8f82b1f}{get\+\_\+3d\+\_\+visualization\+\_\+data\+\_\+enhanced}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+dict \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_a806e28fc29a9bec55268ff5ab5accf56}{assets}} = \{\}
+\item 
+dict \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_a971621902401e635c323426965f3cd39}{relationships}} = \{\}
+\item 
+list \mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_abe2017f0b1ad1fed67cfb85189f4c10b}{regulatory\+\_\+events}} = \mbox{[}$\,$\mbox{]}
+\item 
+\mbox{\hyperlink{classasset__graph_1_1AssetRelationshipGraph_a87821f9c64c8aa516954160303e4ba86}{database\+\_\+url}} = database\+\_\+url
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Interface used by visualization and reporting code.
+
+
+
+Attributes:
+    assets: Dict[str, Asset] mapping asset IDs to Asset objects.
+    relationships: Dict[source_id, List[(target_id, rel_type, strength)]]
+    regulatory_events: List[RegulatoryEvent]
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classasset__graph_1_1AssetRelationshipGraph_aa6c62c1b113ad562dfb9ddcf97d38b86}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_aa6c62c1b113ad562dfb9ddcf97d38b86} 
+ None asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str \texorpdfstring{$\vert$}{|} None }]{database\+\_\+url}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classasset__graph_1_1AssetRelationshipGraph_abe2dea358b031d9c57ecf2a139792ca9}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!add\_asset@{add\_asset}}
+\index{add\_asset@{add\_asset}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{add\_asset()}{add\_asset()}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_abe2dea358b031d9c57ecf2a139792ca9} 
+ None asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+add\+\_\+asset (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Asset}]{asset}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Add an asset to the graph.\end{DoxyVerb}
+ \Hypertarget{classasset__graph_1_1AssetRelationshipGraph_aa20a244b9799fc502de34c5cbea524c1}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!add\_regulatory\_event@{add\_regulatory\_event}}
+\index{add\_regulatory\_event@{add\_regulatory\_event}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{add\_regulatory\_event()}{add\_regulatory\_event()}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_aa20a244b9799fc502de34c5cbea524c1} 
+ None asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+add\+\_\+regulatory\+\_\+event (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Regulatory\+Event}]{event}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Add a regulatory event to the graph.\end{DoxyVerb}
+ \Hypertarget{classasset__graph_1_1AssetRelationshipGraph_a53064383022d9a044d164243d0b346aa}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!add\_relationship@{add\_relationship}}
+\index{add\_relationship@{add\_relationship}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{add\_relationship()}{add\_relationship()}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_a53064383022d9a044d164243d0b346aa} 
+ None asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+add\+\_\+relationship (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{source\+\_\+id}{, }\item[{str}]{target\+\_\+id}{, }\item[{str}]{rel\+\_\+type}{, }\item[{float}]{strength}{, }\item[{bool }]{bidirectional}{ = {\ttfamily False}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Manually add a relationship to the graph.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classasset__graph_1_1AssetRelationshipGraph_a53064383022d9a044d164243d0b346aa_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classasset__graph_1_1AssetRelationshipGraph_ad847e0bc5cda0217fd3e2fe9f00049ed}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!build\_relationships@{build\_relationships}}
+\index{build\_relationships@{build\_relationships}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{build\_relationships()}{build\_relationships()}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_ad847e0bc5cda0217fd3e2fe9f00049ed} 
+ None asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+build\+\_\+relationships (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Automatically discover relationships between assets
+based on business rules.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classasset__graph_1_1AssetRelationshipGraph_ad847e0bc5cda0217fd3e2fe9f00049ed_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classasset__graph_1_1AssetRelationshipGraph_a01cbbf020e31125a5c10328ecac61035}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!calculate\_metrics@{calculate\_metrics}}
+\index{calculate\_metrics@{calculate\_metrics}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{calculate\_metrics()}{calculate\_metrics()}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_a01cbbf020e31125a5c10328ecac61035} 
+ Dict\mbox{[}str, Any\mbox{]} asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+calculate\+\_\+metrics (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Calculate network statistics and distributions.\end{DoxyVerb}
+ \Hypertarget{classasset__graph_1_1AssetRelationshipGraph_a7a92a86fe692e1e717c20172b8f82b1f}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!get\_3d\_visualization\_data\_enhanced@{get\_3d\_visualization\_data\_enhanced}}
+\index{get\_3d\_visualization\_data\_enhanced@{get\_3d\_visualization\_data\_enhanced}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{get\_3d\_visualization\_data\_enhanced()}{get\_3d\_visualization\_data\_enhanced()}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_a7a92a86fe692e1e717c20172b8f82b1f} 
+ Tuple\mbox{[}np.\+ndarray, List\mbox{[}str\mbox{]}, List\mbox{[}str\mbox{]}, List\mbox{[}str\mbox{]}\mbox{]} asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+get\+\_\+3d\+\_\+visualization\+\_\+data\+\_\+enhanced (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return positions, asset_ids, colors, hover_texts for visualization.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classasset__graph_1_1AssetRelationshipGraph_a806e28fc29a9bec55268ff5ab5accf56}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!assets@{assets}}
+\index{assets@{assets}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{assets}{assets}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_a806e28fc29a9bec55268ff5ab5accf56} 
+dict asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+assets = \{\}}
+
+\Hypertarget{classasset__graph_1_1AssetRelationshipGraph_a87821f9c64c8aa516954160303e4ba86}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!database\_url@{database\_url}}
+\index{database\_url@{database\_url}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{database\_url}{database\_url}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_a87821f9c64c8aa516954160303e4ba86} 
+asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+database\+\_\+url = database\+\_\+url}
+
+\Hypertarget{classasset__graph_1_1AssetRelationshipGraph_abe2017f0b1ad1fed67cfb85189f4c10b}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!regulatory\_events@{regulatory\_events}}
+\index{regulatory\_events@{regulatory\_events}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{regulatory\_events}{regulatory\_events}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_abe2017f0b1ad1fed67cfb85189f4c10b} 
+asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+regulatory\+\_\+events = \mbox{[}$\,$\mbox{]}}
+
+\Hypertarget{classasset__graph_1_1AssetRelationshipGraph_a971621902401e635c323426965f3cd39}\index{asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}!relationships@{relationships}}
+\index{relationships@{relationships}!asset\_graph.AssetRelationshipGraph@{asset\_graph.AssetRelationshipGraph}}
+\doxysubsubsection{\texorpdfstring{relationships}{relationships}}
+{\footnotesize\ttfamily \label{classasset__graph_1_1AssetRelationshipGraph_a971621902401e635c323426965f3cd39} 
+dict asset\+\_\+graph.\+Asset\+Relationship\+Graph.\+relationships = \{\}}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/src/logic/\mbox{\hyperlink{asset__graph_8py}{asset\+\_\+graph.\+py}}\end{DoxyCompactItemize}

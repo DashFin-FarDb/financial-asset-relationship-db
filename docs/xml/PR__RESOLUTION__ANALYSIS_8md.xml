@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="PR__RESOLUTION__ANALYSIS_8md" kind="file" language="Markdown">
+    <compoundname>PR_RESOLUTION_ANALYSIS.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Open<sp/>PRs<sp/>Resolution<sp/>Analysis</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Generated<sp/>on:<sp/>2025-12-08</highlight></codeline>
+<codeline><highlight class="normal">Total<sp/>Open<sp/>PRs:<sp/>43</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Successfully<sp/>Merged<sp/>PRs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**PR<sp/>#239**:<sp/>Align<sp/>pr-agent<sp/>workflow<sp/>tests<sp/>with<sp/>trigger<sp/>job<sp/>key<sp/>-<sp/>✅<sp/>MERGED</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**PR<sp/>#254**:<sp/>Fix<sp/>pr-agent<sp/>workflow<sp/>parsing<sp/>and<sp/>dev<sp/>requirements<sp/>formatting<sp/>-<sp/>✅<sp/>MERGED</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**PR<sp/>#322**:<sp/>Remove<sp/>duplicated<sp/>empty<sp/>test<sp/>causing<sp/>IndentationError<sp/>-<sp/>✅<sp/>MERGED</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>PRs<sp/>with<sp/>Unrelated<sp/>Histories<sp/>(Cannot<sp/>be<sp/>merged)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">These<sp/>PRs<sp/>have<sp/>branches<sp/>with<sp/>completely<sp/>unrelated<sp/>Git<sp/>histories<sp/>and<sp/>cannot<sp/>be<sp/>merged<sp/>into<sp/>main:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>PR<sp/>#181<sp/>(patch<sp/>branch)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>PR<sp/>#286<sp/>(codex/fix-env-var-naming-test-issue)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>PR<sp/>#395<sp/>(copilot/sub-pr-394)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Many<sp/>others</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Root<sp/>Cause</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>branches<sp/>were<sp/>created<sp/>from<sp/>different<sp/>base<sp/>commits<sp/>or<sp/>imported<sp/>from<sp/>external<sp/>sources,<sp/>causing<sp/>Git<sp/>to<sp/>reject<sp/>merges<sp/>with<sp/>&quot;fatal:<sp/>refusing<sp/>to<sp/>merge<sp/>unrelated<sp/>histories&quot;.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>PRs<sp/>Targeting<sp/>Non-existent<sp/>Files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Many<sp/>PRs<sp/>attempt<sp/>to<sp/>modify<sp/>files<sp/>that<sp/>don&apos;t<sp/>exist<sp/>in<sp/>the<sp/>main<sp/>branch:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`tests/integration/test_pr_agent_config_validation.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Various<sp/>test<sp/>and<sp/>documentation<sp/>files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Recommended<sp/>Actions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Close<sp/>Stale<sp/>PRs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">PRs<sp/>older<sp/>than<sp/>30<sp/>days<sp/>with<sp/>unrelated<sp/>histories<sp/>or<sp/>targeting<sp/>non-existent<sp/>files<sp/>should<sp/>be<sp/>closed<sp/>with<sp/>explanation.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Recreate<sp/>Valid<sp/>Changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">If<sp/>any<sp/>PR<sp/>contains<sp/>valid<sp/>changes:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Cherry-pick<sp/>the<sp/>changes<sp/>into<sp/>a<sp/>new<sp/>branch<sp/>from<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Create<sp/>a<sp/>fresh<sp/>PR<sp/>with<sp/>proper<sp/>history</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Consolidate<sp/>Duplicate<sp/>PRs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Many<sp/>PRs<sp/>have<sp/>similar<sp/>titles<sp/>and<sp/>goals.<sp/>Consolidate<sp/>these<sp/>into<sp/>single<sp/>PRs.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Next<sp/>Steps</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Review<sp/>each<sp/>PR<sp/>individually</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Close<sp/>PRs<sp/>that<sp/>cannot<sp/>be<sp/>merged</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Extract<sp/>and<sp/>recreate<sp/>valid<sp/>changes<sp/>in<sp/>fresh<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Update<sp/>documentation<sp/>to<sp/>prevent<sp/>future<sp/>unrelated<sp/>history<sp/>issues</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/PR_RESOLUTION_ANALYSIS.md"/>
+  </compounddef>
+</doxygen>

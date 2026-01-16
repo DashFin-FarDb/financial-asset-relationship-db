@@ -1,0 +1,376 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX</compoundname>
+    <title>Test Files Index - Complete Reference</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4800"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4801">
+<title>New Files Created in This Session</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4802">
+<title>Test Files (2 files, 589 lines)</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4803">
+<title>1. tests/integration/test_documentation_files_validation.py</title><para><itemizedlist>
+<listitem><para><bold>Lines</bold>: 292</para>
+</listitem><listitem><para><bold>Classes</bold>: 3</para>
+</listitem><listitem><para><bold>Tests</bold>: 15</para>
+</listitem><listitem><para><bold>Purpose</bold>: Validates all markdown documentation files</para>
+</listitem><listitem><para><bold>Covers</bold>: File structure, formatting, links, content quality</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Test Classes</bold>:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>TestDocumentationFilesValidation</computeroutput> - Core validation (10 tests)</para>
+</listitem><listitem><para><computeroutput>TestMarkdownContentQuality</computeroutput> - Quality metrics (3 tests)</para>
+</listitem><listitem><para><computeroutput>TestDocumentationConsistency</computeroutput> - Consistency checks (2 tests)</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4804">
+<title>2. tests/integration/test_modified_config_files_validation.py</title><para><itemizedlist>
+<listitem><para><bold>Lines</bold>: 297</para>
+</listitem><listitem><para><bold>Classes</bold>: 6</para>
+</listitem><listitem><para><bold>Tests</bold>: 26</para>
+</listitem><listitem><para><bold>Purpose</bold>: Validates configuration file modifications</para>
+</listitem><listitem><para><bold>Covers</bold>: PR agent config, workflows, requirements, gitignore, deletions</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Test Classes</bold>:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>TestPRAgentConfigChanges</computeroutput> - Config validation (8 tests)</para>
+</listitem><listitem><para><computeroutput>TestWorkflowSimplifications</computeroutput> - Workflow changes (4 tests)</para>
+</listitem><listitem><para><computeroutput>TestDeletedFilesImpact</computeroutput> - Deletion verification (6 tests)</para>
+</listitem><listitem><para><computeroutput>TestRequirementsDevChanges</computeroutput> - Requirements validation (3 tests)</para>
+</listitem><listitem><para><computeroutput>TestGitignoreChanges</computeroutput> - Gitignore validation (3 tests)</para>
+</listitem><listitem><para><computeroutput>TestCodacyInstructionsChanges</computeroutput> - Codacy docs (2 tests)</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4805">
+<title>Documentation Files (3 files, 477 lines)</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4806">
+<title>3. TEST_VALIDATION_COMPREHENSIVE_SUMMARY.md</title><para><itemizedlist>
+<listitem><para><bold>Lines</bold>: 365</para>
+</listitem><listitem><para><bold>Purpose</bold>: Complete documentation of validation tests</para>
+</listitem><listitem><para><bold>Sections</bold>: Overview, test coverage, running tests, integration guide</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4807">
+<title>4. COMPLETE_TEST_QUICK_REFERENCE.md</title><para><itemizedlist>
+<listitem><para><bold>Lines</bold>: 112</para>
+</listitem><listitem><para><bold>Purpose</bold>: Quick command reference for all tests</para>
+</listitem><listitem><para><bold>Sections</bold>: Commands, coverage, troubleshooting, CI/CD integration</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4808">
+<title>5. FINAL_TEST_GENERATION_COMPLETE.md</title><para><itemizedlist>
+<listitem><para><bold>Lines</bold>: Current file</para>
+</listitem><listitem><para><bold>Purpose</bold>: Executive summary and final status</para>
+</listitem><listitem><para><bold>Sections</bold>: Deliverables, coverage, achievements, conclusion</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4810">
+<title>All Test Files in Repository</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4811">
+<title>Python Tests (tests/integration/)</title><para><table rows="11" cols="5"><row>
+<entry thead="yes"><para>File   </para>
+</entry><entry thead="yes"><para>Lines   </para>
+</entry><entry thead="yes"><para>Tests   </para>
+</entry><entry thead="yes"><para>Status   </para>
+</entry><entry thead="yes"><para>Purpose    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><ref refid="test__github__workflows_8py" kindref="compound">test_github_workflows.py</ref>   </para>
+</entry><entry thead="no"><para>2,592   </para>
+</entry><entry thead="no"><para>50+   </para>
+</entry><entry thead="no"><para>Existing   </para>
+</entry><entry thead="no"><para>Workflow validation    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><ref refid="test__github__workflows__helpers_8py" kindref="compound">test_github_workflows_helpers.py</ref>   </para>
+</entry><entry thead="no"><para>500   </para>
+</entry><entry thead="no"><para>20+   </para>
+</entry><entry thead="no"><para>Existing   </para>
+</entry><entry thead="no"><para>Helper functions    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><ref refid="test__requirements__dev_8py" kindref="compound">test_requirements_dev.py</ref>   </para>
+</entry><entry thead="no"><para>481   </para>
+</entry><entry thead="no"><para>15+   </para>
+</entry><entry thead="no"><para>Existing   </para>
+</entry><entry thead="no"><para>Requirements    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>test_documentation_validation.py   </para>
+</entry><entry thead="no"><para>385   </para>
+</entry><entry thead="no"><para>10+   </para>
+</entry><entry thead="no"><para>Existing   </para>
+</entry><entry thead="no"><para>Doc compliance    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><ref refid="test__branch__integration_8py" kindref="compound">test_branch_integration.py</ref>   </para>
+</entry><entry thead="no"><para>369   </para>
+</entry><entry thead="no"><para>16   </para>
+</entry><entry thead="no"><para>Existing   </para>
+</entry><entry thead="no"><para>Integration    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><ref refid="test__pr__agent__config__validation_8py" kindref="compound">test_pr_agent_config_validation.py</ref>   </para>
+</entry><entry thead="no"><para>267   </para>
+</entry><entry thead="no"><para>13   </para>
+</entry><entry thead="no"><para>Existing   </para>
+</entry><entry thead="no"><para>PR agent config    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><ref refid="test__workflow__requirements__integration_8py" kindref="compound">test_workflow_requirements_integration.py</ref>   </para>
+</entry><entry thead="no"><para>221   </para>
+</entry><entry thead="no"><para>8+   </para>
+</entry><entry thead="no"><para>Existing   </para>
+</entry><entry thead="no"><para>Workflow-requirements    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold><ref refid="test__documentation__files__validation_8py" kindref="compound">test_documentation_files_validation.py</ref></bold>   </para>
+</entry><entry thead="no"><para><bold>292</bold>   </para>
+</entry><entry thead="no"><para><bold>15</bold>   </para>
+</entry><entry thead="no"><para><bold>NEW</bold>   </para>
+</entry><entry thead="no"><para><bold>Doc quality</bold>    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold><ref refid="test__modified__config__files__validation_8py" kindref="compound">test_modified_config_files_validation.py</ref></bold>   </para>
+</entry><entry thead="no"><para><bold>297</bold>   </para>
+</entry><entry thead="no"><para><bold>26</bold>   </para>
+</entry><entry thead="no"><para><bold>NEW</bold>   </para>
+</entry><entry thead="no"><para><bold>Config changes</bold>    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Total</bold>   </para>
+</entry><entry thead="no"><para>**~5,400**   </para>
+</entry><entry thead="no"><para>**~170**   </para>
+</entry><entry thead="no"><para>-   </para>
+</entry><entry thead="no"><para><bold>Complete</bold>   </para>
+</entry></row>
+</table>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4812">
+<title>Frontend Tests (frontend/**tests**/)</title><para><table rows="10" cols="5"><row>
+<entry thead="yes"><para>File   </para>
+</entry><entry thead="yes"><para>Lines   </para>
+</entry><entry thead="yes"><para>Tests   </para>
+</entry><entry thead="yes"><para>Status   </para>
+</entry><entry thead="yes"><para>Purpose    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>test-utils.test.ts   </para>
+</entry><entry thead="no"><para>1,009   </para>
+</entry><entry thead="no"><para>143+   </para>
+</entry><entry thead="no"><para>Enhanced   </para>
+</entry><entry thead="no"><para>Test utilities    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>api.test.ts   </para>
+</entry><entry thead="no"><para>500+   </para>
+</entry><entry thead="no"><para>30+   </para>
+</entry><entry thead="no"><para>Enhanced   </para>
+</entry><entry thead="no"><para>API client    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>page.test.tsx   </para>
+</entry><entry thead="no"><para>400+   </para>
+</entry><entry thead="no"><para>20+   </para>
+</entry><entry thead="no"><para>Enhanced   </para>
+</entry><entry thead="no"><para>Main page    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>MetricsDashboard.test.tsx   </para>
+</entry><entry thead="no"><para>300+   </para>
+</entry><entry thead="no"><para>15+   </para>
+</entry><entry thead="no"><para>Enhanced   </para>
+</entry><entry thead="no"><para>Dashboard    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>NetworkVisualization.test.tsx   </para>
+</entry><entry thead="no"><para>300+   </para>
+</entry><entry thead="no"><para>15+   </para>
+</entry><entry thead="no"><para>Enhanced   </para>
+</entry><entry thead="no"><para>Visualization    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>AssetList.test.tsx   </para>
+</entry><entry thead="no"><para>200+   </para>
+</entry><entry thead="no"><para>10+   </para>
+</entry><entry thead="no"><para>Enhanced   </para>
+</entry><entry thead="no"><para>Asset list    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>component-integration.test.tsx   </para>
+</entry><entry thead="no"><para>400+   </para>
+</entry><entry thead="no"><para>20+   </para>
+</entry><entry thead="no"><para>Enhanced   </para>
+</entry><entry thead="no"><para>Integration    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>test-utils.ts   </para>
+</entry><entry thead="no"><para>50   </para>
+</entry><entry thead="no"><para>-   </para>
+</entry><entry thead="no"><para>Enhanced   </para>
+</entry><entry thead="no"><para>Test utilities    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Total</bold>   </para>
+</entry><entry thead="no"><para>**~3,100**   </para>
+</entry><entry thead="no"><para>**~250**   </para>
+</entry><entry thead="no"><para>-   </para>
+</entry><entry thead="no"><para><bold>Complete</bold>   </para>
+</entry></row>
+</table>
+</para>
+<para><hruler/>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4814">
+<title>Running Tests</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4815">
+<title>Quick Commands</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>All<sp/>new<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_documentation_files_validation.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tests/integration/test_modified_config_files_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>All<sp/>Python<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/<sp/>-v<sp/>--cov</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>All<sp/>frontend<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Everything</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/<sp/>--cov<sp/>&amp;&amp;<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4816">
+<title>By Category</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Documentation<sp/>validation<sp/>(15<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_documentation_files_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Configuration<sp/>validation<sp/>(26<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_modified_config_files_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Workflow<sp/>validation<sp/>(50+<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Integration<sp/>tests<sp/>(16<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_branch_integration.py<sp/>-v</highlight></codeline>
+</programlisting></para>
+<para><hruler/>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4818">
+<title>Test Coverage Summary</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4819">
+<title>Files Covered</title><para><table rows="7" cols="3"><row>
+<entry thead="yes"><para>Category   </para>
+</entry><entry thead="yes"><para>Count   </para>
+</entry><entry thead="yes"><para>Coverage    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Python Tests</bold>   </para>
+</entry><entry thead="no"><para>9 files   </para>
+</entry><entry thead="no"><para>100%    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Frontend Tests</bold>   </para>
+</entry><entry thead="no"><para>8 files   </para>
+</entry><entry thead="no"><para>100%    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Documentation</bold>   </para>
+</entry><entry thead="no"><para>32 files   </para>
+</entry><entry thead="no"><para>100% (NEW)    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Configuration</bold>   </para>
+</entry><entry thead="no"><para>7 files   </para>
+</entry><entry thead="no"><para>100% (NEW)    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Deleted Files</bold>   </para>
+</entry><entry thead="no"><para>5 files   </para>
+</entry><entry thead="no"><para>100% (NEW)    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Total Validated</bold>   </para>
+</entry><entry thead="no"><para>61 files   </para>
+</entry><entry thead="no"><para>100%   </para>
+</entry></row>
+</table>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4820">
+<title>Test Statistics</title><para><table rows="6" cols="2"><row>
+<entry thead="yes"><para>Metric   </para>
+</entry><entry thead="yes"><para>Value    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Total Test Files   </para>
+</entry><entry thead="no"><para>17 (9 Python + 8 Frontend)    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Total Test Lines   </para>
+</entry><entry thead="no"><para>~8,500    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Total Test Methods   </para>
+</entry><entry thead="no"><para>~420    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Coverage Threshold   </para>
+</entry><entry thead="no"><para>80% (Python), 75% (Frontend)    </para>
+</entry></row>
+<row>
+<entry thead="no"><para>Current Coverage   </para>
+</entry><entry thead="no"><para>&gt;85% (both)   </para>
+</entry></row>
+</table>
+</para>
+<para><hruler/>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4822">
+<title>Documentation Reference</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4823">
+<title>Test Documentation</title><para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatioa7d8d850345c24bd4c628e7a83830f00" kindref="compound">TEST_VALIDATION_COMPREHENSIVE_SUMMARY.md</ref> - Complete validation guide</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio88ff4d37ba5a33a4038b5b1b5e28e238" kindref="compound">COMPLETE_TEST_QUICK_REFERENCE.md</ref> - Quick commands</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatioc7884839c0de23bf840aa975d0cf4b44" kindref="compound">FINAL_TEST_GENERATION_COMPLETE.md</ref> - Executive summary</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX" kindref="compound">TEST_FILES_INDEX.md</ref> - This file</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4824">
+<title>General Documentation</title><para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE" kindref="compound">TESTING_GUIDE.md</ref> - General testing guidelines</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatioe4e5f34deb3c39bb93dfbfc0c6ea57f0" kindref="compound">COMPREHENSIVE_TEST_SUMMARY.md</ref> - Overall summary</para>
+</listitem><listitem><para><ref refid="README_8md" kindref="compound">README.md</ref> - Project readme</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4825">
+<title>Branch-Specific Documentation</title><para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio912bd028d37dfdc9272a679dc51e9149" kindref="compound">ADDITIONAL_TESTS_SUMMARY.md</ref> - Additional tests summary</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof6a93638b6fafc0560822eac7f344cc8" kindref="compound">WORKFLOW_TESTS_GENERATION_SUMMARY.md</ref> - Workflow tests</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatioc7455f4da89b9d48b110a653cc6f5100" kindref="compound">TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md</ref> - Branch summary</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__FILES__INDEX_1autotoc_md4827">
+<title>File Locations</title></sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TEST_FILES_INDEX.md"/>
+  </compounddef>
+</doxygen>

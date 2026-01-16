@@ -1,0 +1,385 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY</compoundname>
+    <title>Vercel Next.js Integration - Implementation Summary</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3142"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3143">
+<title>Overview</title><para>This document summarizes the integration of a Next.js frontend with FastAPI backend for deployment on Vercel. The integration provides a modern web interface while maintaining the existing Gradio application.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3144">
+<title>What Was Added</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3145">
+<title>1. FastAPI Backend (<computeroutput>/api</computeroutput>)</title><para><bold>File: <computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput></bold></para>
+<para><itemizedlist>
+<listitem><para>RESTful API that exposes the asset relationship graph functionality</para>
+</listitem><listitem><para>Built with FastAPI for high performance and automatic API documentation</para>
+</listitem><listitem><para>CORS-enabled for Next.js frontend communication</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Key Endpoints:</bold></para>
+<para><itemizedlist>
+<listitem><para><computeroutput>GET /api/health</computeroutput> - Health check</para>
+</listitem><listitem><para><computeroutput>GET /api/assets</computeroutput> - List all assets (with filters)</para>
+</listitem><listitem><para><computeroutput>GET /api/assets/{id}</computeroutput> - Get asset details</para>
+</listitem><listitem><para><computeroutput>GET /api/assets/{id}/relationships</computeroutput> - Get asset relationships</para>
+</listitem><listitem><para><computeroutput>GET /api/relationships</computeroutput> - Get all relationships</para>
+</listitem><listitem><para><computeroutput>GET /api/metrics</computeroutput> - Get network metrics</para>
+</listitem><listitem><para><computeroutput>GET /api/visualization</computeroutput> - Get 3D visualization data</para>
+</listitem><listitem><para><computeroutput>GET /api/asset-classes</computeroutput> - Get available asset classes</para>
+</listitem><listitem><para><computeroutput>GET /api/sectors</computeroutput> - Get available sectors</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Features:</bold></para>
+<para><itemizedlist>
+<listitem><para>Reuses existing graph logic from <computeroutput><ref refid="asset__graph_8py" kindref="compound">src/logic/asset_graph.py</ref></computeroutput></para>
+</listitem><listitem><para>Uses real data from <computeroutput><ref refid="real__data__fetcher_8py" kindref="compound">src/data/real_data_fetcher.py</ref></computeroutput></para>
+</listitem><listitem><para>Pydantic models for request/response validation</para>
+</listitem><listitem><para>Comprehensive error handling and logging</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3146">
+<title>2. Next.js Frontend (<computeroutput>/frontend</computeroutput>)</title><para><bold>Application Structure:</bold></para>
+<para><programlisting><codeline><highlight class="normal">frontend/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>app/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>components/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>React<sp/>components</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>AssetList.tsx<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Filterable<sp/>asset<sp/>table</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>MetricsDashboard.tsx<sp/><sp/><sp/><sp/>#<sp/>Metrics<sp/>display</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>NetworkVisualization.tsx<sp/>#<sp/>3D<sp/>graph<sp/>visualization</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>lib/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>api.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>API<sp/>client<sp/>library</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>types/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>api.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>TypeScript<sp/>type<sp/>definitions</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>globals.css<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Global<sp/>styles</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>layout.tsx<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Root<sp/>layout</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>page.tsx<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Main<sp/>page<sp/>with<sp/>tabs</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>package.json<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tsconfig.json<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>TypeScript<sp/>config</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>next.config.js<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Next.js<sp/>config</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tailwind.config.js<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Tailwind<sp/>CSS<sp/>config</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>postcss.config.js<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>PostCSS<sp/>config</highlight></codeline>
+</programlisting></para>
+<para><bold>Key Components:</bold></para>
+<para><orderedlist>
+<listitem><para><bold>NetworkVisualization.tsx</bold><itemizedlist>
+<listitem><para>3D interactive graph using Plotly</para>
+</listitem><listitem><para>Displays nodes (assets) and edges (relationships)</para>
+</listitem><listitem><para>Supports rotation, zoom, and hover interactions</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>MetricsDashboard.tsx</bold><itemizedlist>
+<listitem><para>Displays network statistics</para>
+</listitem><listitem><para>Shows asset class distribution</para>
+</listitem><listitem><para>Network density and degree metrics</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>AssetList.tsx</bold><itemizedlist>
+<listitem><para>Searchable/filterable asset table</para>
+</listitem><listitem><para>Filter by asset class and sector</para>
+</listitem><listitem><para>Displays key asset information</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+<para><bold>Technologies:</bold></para>
+<para><itemizedlist>
+<listitem><para>Next.js 14 (App Router)</para>
+</listitem><listitem><para>React 18</para>
+</listitem><listitem><para>TypeScript</para>
+</listitem><listitem><para>Tailwind CSS for styling</para>
+</listitem><listitem><para>Plotly.js for 3D visualization</para>
+</listitem><listitem><para>Axios for API communication</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3147">
+<title>3. Deployment Configuration</title><para><bold>File: <computeroutput>vercel.json</computeroutput></bold></para>
+<para><itemizedlist>
+<listitem><para>Configures Vercel deployment</para>
+</listitem><listitem><para>Routes API requests to Python backend</para>
+</listitem><listitem><para>Routes frontend requests to Next.js</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>File: <computeroutput>.env.example</computeroutput></bold></para>
+<para><itemizedlist>
+<listitem><para>Template for environment variables</para>
+</listitem><listitem><para>API URL configuration</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>File: <computeroutput>run-dev.sh</computeroutput> / <computeroutput>run-dev.bat</computeroutput></bold></para>
+<para><itemizedlist>
+<listitem><para>Development scripts for both platforms</para>
+</listitem><listitem><para>Starts both backend and frontend together</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3148">
+<title>4. Documentation</title><para><bold>File: <computeroutput><ref refid="DEPLOYMENT_8md" kindref="compound">DEPLOYMENT.md</ref></computeroutput></bold></para>
+<para><itemizedlist>
+<listitem><para>Comprehensive deployment guide</para>
+</listitem><listitem><para>Local development setup</para>
+</listitem><listitem><para>Vercel deployment instructions</para>
+</listitem><listitem><para>API endpoint documentation</para>
+</listitem><listitem><para>Troubleshooting guide</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Updated Files:</bold></para>
+<para><itemizedlist>
+<listitem><para><computeroutput>README.md</computeroutput> - Added Next.js integration section</para>
+</listitem><listitem><para><computeroutput>requirements.txt</computeroutput> - Added FastAPI, Uvicorn, Pydantic</para>
+</listitem><listitem><para><computeroutput>.gitignore</computeroutput> - Added Next.js and build artifacts</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3149">
+<title>Architecture</title><para><programlisting><codeline><highlight class="normal">┌─────────────────────────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>User&apos;s<sp/>Browser<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────┬───────────────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>HTTP/HTTPS</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────────────▼───────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Next.js<sp/>Frontend<sp/>(Port<sp/>3000)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────┐<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>React<sp/>Components:<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>3D<sp/>Network<sp/>Visualization<sp/>(Plotly)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Metrics<sp/>Dashboard<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Asset<sp/>Explorer<sp/>Table<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────┘<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────┬───────────────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>REST<sp/>API<sp/>Calls</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────────────▼───────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>FastAPI<sp/>Backend<sp/>(Port<sp/>8000)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────┐<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>API<sp/>Endpoints:<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>/api/assets<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>/api/metrics<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>/api/visualization<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>/api/relationships<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────┘<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────┬───────────────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Function<sp/>Calls</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────────────▼───────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Existing<sp/>Python<sp/>Logic<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────┐<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>AssetRelationshipGraph<sp/>(asset_graph.py)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Real<sp/>Data<sp/>Fetcher<sp/>(real_data_fetcher.py)<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Financial<sp/>Models<sp/>(financial_models.py)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Visualization<sp/>Logic<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────┘<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────────────────────────────────────────┘</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3150">
+<title>Deployment Options</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3151">
+<title>Option 1: Original Gradio UI (Preserved)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>app.py</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Access<sp/>at<sp/>http://localhost:7860</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3152">
+<title>Option 2: New Next.js Frontend + FastAPI Backend</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Start<sp/>both<sp/>servers</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh<sp/><sp/>#<sp/>Linux/Mac</highlight></codeline>
+<codeline><highlight class="normal">run-dev.bat<sp/><sp/><sp/>#<sp/>Windows</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>manually:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Terminal<sp/>1:<sp/>python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--port<sp/>8000</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Terminal<sp/>2:<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>run<sp/>dev</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3153">
+<title>Option 3: Deploy to Vercel</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Using<sp/>Vercel<sp/>CLI</highlight></codeline>
+<codeline><highlight class="normal">vercel</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>connect<sp/>GitHub<sp/>repo<sp/>to<sp/>Vercel<sp/>dashboard</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3154">
+<title>Key Benefits</title><para><orderedlist>
+<listitem><para><bold>Modern Web Interface</bold>: React-based UI with better UX</para>
+</listitem><listitem><para><bold>RESTful API</bold>: Standardized API endpoints for integration</para>
+</listitem><listitem><para><bold>Scalable</bold>: Serverless deployment on Vercel</para>
+</listitem><listitem><para><bold>TypeScript</bold>: Type-safe frontend development</para>
+</listitem><listitem><para><bold>Responsive</bold>: Works on desktop and mobile devices</para>
+</listitem><listitem><para><bold>API Documentation</bold>: Auto-generated with FastAPI</para>
+</listitem><listitem><para><bold>Dual Mode</bold>: Both Gradio and Next.js UIs available</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3155">
+<title>Development Workflow</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3156">
+<title>Adding New Features</title><para><orderedlist>
+<listitem><para><bold>Backend (API endpoint):</bold><itemizedlist>
+<listitem><para>Add endpoint to <computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput></para>
+</listitem><listitem><para>Add Pydantic models if needed</para>
+</listitem><listitem><para>Test with <computeroutput>/docs</computeroutput> endpoint</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Frontend (React component):</bold><itemizedlist>
+<listitem><para>Add TypeScript types to <computeroutput>app/types/api.ts</computeroutput></para>
+</listitem><listitem><para>Add API call to <computeroutput>app/lib/api.ts</computeroutput></para>
+</listitem><listitem><para>Create React component in <computeroutput>app/components/</computeroutput></para>
+</listitem><listitem><para>Integrate into <computeroutput>app/page.tsx</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3157">
+<title>Testing</title><para><bold>Backend:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>test<sp/>script</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>test_api.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>use<sp/>FastAPI<sp/>test<sp/>client</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>See<sp/>api/main.py<sp/>for<sp/>examples</highlight></codeline>
+</programlisting></para>
+<para><bold>Frontend:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>build<sp/><sp/>#<sp/>Test<sp/>production<sp/>build</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>lint<sp/><sp/><sp/>#<sp/>Check<sp/>for<sp/>issues</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3158">
+<title>Environment Variables</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3159">
+<title>Development</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Backend:<sp/>No<sp/>special<sp/>env<sp/>vars<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Frontend:<sp/>.env.local</highlight></codeline>
+<codeline><highlight class="normal">NEXT_PUBLIC_API_URL=http://localhost:8000</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3160">
+<title>Production (Vercel)</title><para>Set in Vercel dashboard:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3161">
+<title>File Changes Summary</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3162">
+<title>New Files (22 total)</title><para><itemizedlist>
+<listitem><para><computeroutput><ref refid="api_2____init_____8py" kindref="compound">api/__init__.py</ref></computeroutput></para>
+</listitem><listitem><para><computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/components/AssetList.tsx</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/components/MetricsDashboard.tsx</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/components/NetworkVisualization.tsx</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/globals.css</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/layout.tsx</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/page.tsx</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/types/api.ts</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/lib/api.ts</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/lib/index.ts</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/next.config.js</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/package.json</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/postcss.config.js</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/tailwind.config.js</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/tsconfig.json</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/.eslintrc.json</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/.gitignore</computeroutput></para>
+</listitem><listitem><para><computeroutput><ref refid="frontend_2README_8md" kindref="compound">frontend/README.md</ref></computeroutput></para>
+</listitem><listitem><para><computeroutput>vercel.json</computeroutput></para>
+</listitem><listitem><para><computeroutput>.env.example</computeroutput></para>
+</listitem><listitem><para><computeroutput><ref refid="DEPLOYMENT_8md" kindref="compound">DEPLOYMENT.md</ref></computeroutput></para>
+</listitem><listitem><para><computeroutput><ref refid="INTEGRATION__SUMMARY_8md" kindref="compound">INTEGRATION_SUMMARY.md</ref></computeroutput> (this file)</para>
+</listitem><listitem><para><computeroutput>run-dev.sh</computeroutput></para>
+</listitem><listitem><para><computeroutput>run-dev.bat</computeroutput></para>
+</listitem><listitem><para><computeroutput>test_api.py</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3163">
+<title>Modified Files (3 total)</title><para><itemizedlist>
+<listitem><para><computeroutput>README.md</computeroutput> - Added Next.js integration documentation</para>
+</listitem><listitem><para><computeroutput>requirements.txt</computeroutput> - Added FastAPI dependencies</para>
+</listitem><listitem><para><computeroutput>.gitignore</computeroutput> - Added Next.js build artifacts</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3164">
+<title>Migration Path</title><para>The integration is designed to work alongside the existing Gradio application:</para>
+<para><orderedlist>
+<listitem><para><bold>Phase 1</bold> (Current): Both UIs available<itemizedlist>
+<listitem><para>Gradio: <computeroutput>python <ref refid="app_8py" kindref="compound">app.py</ref></computeroutput> → Port 7860</para>
+</listitem><listitem><para>Next.js: <computeroutput>./run-dev.sh</computeroutput> → Port 3000</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Phase 2</bold> (Optional): Gradual migration<itemizedlist>
+<listitem><para>Users can choose which UI to use</para>
+</listitem><listitem><para>Both share the same backend logic</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Phase 3</bold> (Future): Full migration<itemizedlist>
+<listitem><para>Deprecate Gradio UI if desired</para>
+</listitem><listitem><para>Next.js becomes primary interface</para>
+</listitem><listitem><para>Remove Gradio dependencies</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3165">
+<title>Maintenance</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3166">
+<title>Keeping APIs in Sync</title><para>When modifying <computeroutput><ref refid="asset__graph_8py" kindref="compound">src/logic/asset_graph.py</ref></computeroutput>:</para>
+<para><orderedlist>
+<listitem><para>Update <computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput> endpoints if needed</para>
+</listitem><listitem><para>Update TypeScript types in <computeroutput>app/types/api.ts</computeroutput></para>
+</listitem><listitem><para>Update API client in <computeroutput>app/lib/api.ts</computeroutput></para>
+</listitem><listitem><para>Test both backend and frontend</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3167">
+<title>Dependencies</title><para><itemizedlist>
+<listitem><para><bold>Backend</bold>: <computeroutput>pip install -r requirements.txt</computeroutput></para>
+</listitem><listitem><para><bold>Frontend</bold>: <computeroutput>cd frontend &amp;&amp; npm install</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3168">
+<title>Updating Documentation</title><para>Keep these files updated:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput><ref refid="DEPLOYMENT_8md" kindref="compound">DEPLOYMENT.md</ref></computeroutput> - Deployment procedures</para>
+</listitem><listitem><para><computeroutput>README.md</computeroutput> - Quick start guide</para>
+</listitem><listitem><para><computeroutput><ref refid="frontend_2README_8md" kindref="compound">frontend/README.md</ref></computeroutput> - Frontend specifics</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3169">
+<title>Next Steps</title><para>Suggested improvements:</para>
+<para><orderedlist>
+<listitem><para>Add authentication/authorization</para>
+</listitem><listitem><para>Implement caching (Redis)</para>
+</listitem><listitem><para>Add real-time updates (WebSockets)</para>
+</listitem><listitem><para>Add more interactive visualizations</para>
+</listitem><listitem><para>Implement data export features</para>
+</listitem><listitem><para>Add unit and integration tests</para>
+</listitem><listitem><para>Set up CI/CD pipeline</para>
+</listitem><listitem><para>Add monitoring and analytics</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3170">
+<title>Support</title><para>For issues or questions:</para>
+<para><orderedlist>
+<listitem><para>Check <computeroutput><ref refid="DEPLOYMENT_8md" kindref="compound">DEPLOYMENT.md</ref></computeroutput> for troubleshooting</para>
+</listitem><listitem><para>Review API docs at <computeroutput><ulink url="http://localhost:8000/docs">http://localhost:8000/docs</ulink></computeroutput></para>
+</listitem><listitem><para>Check browser console for frontend errors</para>
+</listitem><listitem><para>Review backend logs for API errors</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_1autotoc_md3171">
+<title>License</title><para>Same as the main project (MIT License) </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/INTEGRATION_SUMMARY.md"/>
+  </compounddef>
+</doxygen>

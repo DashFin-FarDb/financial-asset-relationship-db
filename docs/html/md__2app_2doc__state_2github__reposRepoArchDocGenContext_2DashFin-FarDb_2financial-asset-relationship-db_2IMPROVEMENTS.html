@@ -1,0 +1,578 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: Code Quality Improvements and Recommendations</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">Code Quality Improvements and Recommendations</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md3109"></a></p>
+<p>This document outlines additional improvements, error-prone patterns identified, and recommendations for future development.</p>
+<h1><a class="anchor" id="autotoc_md3110"></a>
+Issues Identified and Recommendations</h1>
+<h2><a class="anchor" id="autotoc_md3111"></a>
+1. Broad Exception Handling ⚠️</h2>
+<p><b>Location:</b> <code><a class="el" href="real__data__fetcher_8py.html">src/data/real_data_fetcher.py</a></code> and <code><a class="el" href="sample__data_8py.html">src/data/sample_data.py</a></code></p>
+<p><b>Issue:</b> Using <code>except Exception</code> catches too many exceptions, making debugging difficult.</p>
+<p><b>Found in:</b></p>
+<ul>
+<li><code><a class="el" href="real__data__fetcher_8py.html">real_data_fetcher.py</a></code>: 5 instances</li>
+<li><code><a class="el" href="sample__data_8py.html">sample_data.py</a></code>: 1 instance</li>
+</ul>
+<p><b>Recommendation:</b></p>
+<div class="fragment"><div class="line"><span class="comment"># Instead of:</span></div>
+<div class="line"><span class="keywordflow">try</span>:</div>
+<div class="line">    data = fetch_data()</div>
+<div class="line"><span class="keywordflow">except</span> Exception <span class="keyword">as</span> e:</div>
+<div class="line">    logger.error(f<span class="stringliteral">&quot;Error: {e}&quot;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Use specific exceptions:</span></div>
+<div class="line"><span class="keywordflow">try</span>:</div>
+<div class="line">    data = fetch_data()</div>
+<div class="line"><span class="keywordflow">except</span> (ValueError, KeyError, TypeError) <span class="keyword">as</span> e:</div>
+<div class="line">    logger.error(f<span class="stringliteral">&quot;Data error: {e}&quot;</span>)</div>
+<div class="line"><span class="keywordflow">except</span> ConnectionError <span class="keyword">as</span> e:</div>
+<div class="line">    logger.error(f<span class="stringliteral">&quot;Network error: {e}&quot;</span>)</div>
+<div class="line"><span class="keywordflow">except</span> Exception <span class="keyword">as</span> e:</div>
+<div class="line">    logger.exception(f<span class="stringliteral">&quot;Unexpected error: {e}&quot;</span>)</div>
+<div class="line">    <span class="keywordflow">raise</span>  <span class="comment"># Re-raise unexpected errors</span></div>
+</div><!-- fragment --><p><b>Status:</b> Documented for future improvement (not critical for current functionality)</p>
+<h2><a class="anchor" id="autotoc_md3112"></a>
+2. Type Hints Coverage</h2>
+<p><b>Current State:</b> Partial type hints in core modules</p>
+<p><b>Recommendation:</b> Add comprehensive type hints to all functions:</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Dict, List, Optional, Tuple</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>calculate_metrics(self) -&gt; Dict[str, Any]:</div>
+<div class="line">    <span class="stringliteral">&quot;&quot;&quot;Calculate metrics with full type annotations.&quot;&quot;&quot;</span></div>
+<div class="line">    <span class="keywordflow">pass</span></div>
+</div><!-- fragment --><p><b>Priority:</b> Medium (improves IDE support and catches type errors)</p>
+<h2><a class="anchor" id="autotoc_md3113"></a>
+3. Configuration Management</h2>
+<p><b>Issue:</b> Hardcoded values scattered throughout code</p>
+<p><b>Examples:</b></p>
+<ul>
+<li>Random seed: <code>np.random.seed(42)</code></li>
+<li>Relationship strengths: <code>0.7</code>, <code>0.8</code>, <code>0.9</code></li>
+<li>Gradio port: <code>7860</code></li>
+</ul>
+<p><b>Recommendation:</b> Create <code>src/config.py</code>:</p>
+<div class="fragment"><div class="line"><span class="comment"># src/config.py</span></div>
+<div class="line"><span class="keyword">class </span>Config:</div>
+<div class="line">    <span class="comment"># Visualization</span></div>
+<div class="line">    RANDOM_SEED = 42</div>
+<div class="line">    LINE_LENGTH = 120</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment"># Relationship strengths</span></div>
+<div class="line">    SAME_SECTOR_STRENGTH = 0.7</div>
+<div class="line">    CURRENCY_EXPOSURE_STRENGTH = 0.8</div>
+<div class="line">    CORPORATE_BOND_STRENGTH = 0.9</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment"># Server</span></div>
+<div class="line">    GRADIO_PORT = 7860</div>
+<div class="line">    GRADIO_HOST = <span class="stringliteral">&quot;0.0.0.0&quot;</span></div>
+</div><!-- fragment --><p><b>Status:</b> Recommended for future release</p>
+<h2><a class="anchor" id="autotoc_md3114"></a>
+4. Logging Enhancement</h2>
+<p><b>Current State:</b> Basic logging configured in <code><a class="el" href="app_8py.html">app.py</a></code></p>
+<p><b>Recommendation:</b> Implement structured logging:</p>
+<div class="fragment"><div class="line"><span class="keyword">import</span> logging</div>
+<div class="line"><span class="keyword">import</span> json</div>
+<div class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">class </span>StructuredLogger:</div>
+<div class="line">    <span class="keyword">def </span>__init__(self, name: str):</div>
+<div class="line">        self.logger = logging.getLogger(name)</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">def </span>log_event(self, level: str, event: str, **kwargs):</div>
+<div class="line">        log_data = {</div>
+<div class="line">            <span class="stringliteral">&quot;timestamp&quot;</span>: datetime.utcnow().isoformat(),</div>
+<div class="line">            <span class="stringliteral">&quot;level&quot;</span>: level,</div>
+<div class="line">            <span class="stringliteral">&quot;event&quot;</span>: event,</div>
+<div class="line">            **kwargs</div>
+<div class="line">        }</div>
+<div class="line">        self.logger.info(json.dumps(log_data))</div>
+</div><!-- fragment --><p><b>Priority:</b> Medium (useful for production monitoring)</p>
+<h2><a class="anchor" id="autotoc_md3115"></a>
+5. Input Validation Enhancement</h2>
+<p><b>Current State:</b> Basic validation in dataclass <code>__post_init__</code></p>
+<p><b>Recommendation:</b> Add validation decorators:</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> wraps</div>
+<div class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Callable</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>validate_price(func: Callable) -&gt; Callable:</div>
+<div class="line">    <span class="preprocessor">@wraps(func)</span></div>
+<div class="line">    <span class="keyword">def </span>wrapper(self, *args, **kwargs):</div>
+<div class="line">        <span class="keywordflow">if</span> hasattr(self, <span class="stringliteral">&#39;price&#39;</span>) <span class="keywordflow">and</span> self.price &lt; 0:</div>
+<div class="line">            <span class="keywordflow">raise</span> ValueError(<span class="stringliteral">&quot;Price must be non-negative&quot;</span>)</div>
+<div class="line">        <span class="keywordflow">return</span> func(self, *args, **kwargs)</div>
+<div class="line">    <span class="keywordflow">return</span> wrapper</div>
+</div><!-- fragment --><p><b>Priority:</b> Low (current validation is adequate)</p>
+<h2><a class="anchor" id="autotoc_md3116"></a>
+6. Performance Optimizations</h2>
+<p><b>Potential Improvements:</b></p>
+<ol type="1">
+<li><b>Caching for expensive operations:</b></li>
+</ol>
+<div class="fragment"><div class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> lru_cache</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">@lru_cache(maxsize=128)</span></div>
+<div class="line"><span class="keyword">def </span>calculate_relationship_strength(asset1_id: str, asset2_id: str) -&gt; float:</div>
+<div class="line">    <span class="comment"># Cache results for frequently accessed pairs</span></div>
+<div class="line">    <span class="keywordflow">pass</span></div>
+</div><!-- fragment --><ol type="1">
+<li><b>Lazy loading for visualizations:</b></li>
+</ol>
+<div class="fragment"><div class="line"><span class="preprocessor">@property</span></div>
+<div class="line"><span class="keyword">def </span>visualization_data(self):</div>
+<div class="line">    <span class="keywordflow">if</span> <span class="keywordflow">not</span> hasattr(self, <span class="stringliteral">&#39;_viz_data&#39;</span>):</div>
+<div class="line">        self._viz_data = self._compute_visualization()</div>
+<div class="line">    <span class="keywordflow">return</span> self._viz_data</div>
+</div><!-- fragment --><ol type="1">
+<li><b>Database connection pooling</b> (when adding PostgreSQL):</li>
+</ol>
+<div class="fragment"><div class="line"><span class="keyword">from</span> sqlalchemy <span class="keyword">import</span> create_engine</div>
+<div class="line"><span class="keyword">from</span> sqlalchemy.pool <span class="keyword">import</span> QueuePool</div>
+<div class="line"> </div>
+<div class="line">engine = create_engine(</div>
+<div class="line">    DATABASE_URL,</div>
+<div class="line">    poolclass=QueuePool,</div>
+<div class="line">    pool_size=10,</div>
+<div class="line">    max_overflow=20</div>
+<div class="line">)</div>
+</div><!-- fragment --><p><b>Priority:</b> Low (premature optimization, measure first)</p>
+<h2><a class="anchor" id="autotoc_md3117"></a>
+7. Error Messages</h2>
+<p><b>Current State:</b> Some error messages lack context</p>
+<p><b>Recommendation:</b> Add contextual information:</p>
+<div class="fragment"><div class="line"><span class="comment"># Instead of:</span></div>
+<div class="line"><span class="keywordflow">raise</span> ValueError(<span class="stringliteral">&quot;Invalid input&quot;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Use:</span></div>
+<div class="line"><span class="keywordflow">raise</span> ValueError(</div>
+<div class="line">    f<span class="stringliteral">&quot;Invalid input: expected price &gt;= 0, got {price}. &quot;</span></div>
+<div class="line">    f<span class="stringliteral">&quot;Asset: {self.symbol} ({self.id})&quot;</span></div>
+<div class="line">)</div>
+</div><!-- fragment --><p><b>Priority:</b> Medium</p>
+<h2><a class="anchor" id="autotoc_md3118"></a>
+8. Testing Enhancements</h2>
+<p><b>Current State:</b> 30+ unit tests</p>
+<p><b>Recommendations:</b></p>
+<ol type="1">
+<li><b>Add integration tests:</b></li>
+</ol>
+<div class="fragment"><div class="line"><span class="comment"># tests/integration/test_workflow.py</span></div>
+<div class="line"><span class="keyword">def </span>test_full_workflow():</div>
+<div class="line">    <span class="stringliteral">&quot;&quot;&quot;Test complete workflow from data loading to visualization.&quot;&quot;&quot;</span></div>
+<div class="line">    graph = <a class="code hl_class" href="classAssetRelationshipGraph.html">AssetRelationshipGraph</a>()</div>
+<div class="line">    <span class="comment"># Load data</span></div>
+<div class="line">    <span class="comment"># Build relationships</span></div>
+<div class="line">    <span class="comment"># Generate visualization</span></div>
+<div class="line">    <span class="comment"># Verify output</span></div>
+<div class="ttc" id="aclassAssetRelationshipGraph_html"><div class="ttname"><a href="classAssetRelationshipGraph.html">AssetRelationshipGraph</a></div></div>
+</div><!-- fragment --><ol type="1">
+<li><b>Add property-based tests:</b></li>
+</ol>
+<div class="fragment"><div class="line"><span class="keyword">from</span> hypothesis <span class="keyword">import</span> given, strategies <span class="keyword">as</span> st</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">@given(st.floats(min_value=0, max_value=1)</span>)</div>
+<div class="line"><span class="keyword">def </span>test_relationship_strength_bounds(strength):</div>
+<div class="line">    <span class="stringliteral">&quot;&quot;&quot;Verify strength is always clamped to [0, 1].&quot;&quot;&quot;</span></div>
+<div class="line">    <span class="comment"># Test with random valid inputs</span></div>
+</div><!-- fragment --><ol type="1">
+<li><b>Add performance tests:</b></li>
+</ol>
+<div class="fragment"><div class="line"><span class="keyword">import</span> pytest</div>
+<div class="line"><span class="keyword">import</span> time</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">@pytest.mark.slow</span></div>
+<div class="line"><span class="keyword">def </span>test_large_graph_performance():</div>
+<div class="line">    <span class="stringliteral">&quot;&quot;&quot;Ensure performance with 1000+ assets.&quot;&quot;&quot;</span></div>
+<div class="line">    start = time.time()</div>
+<div class="line">    <span class="comment"># Create large graph</span></div>
+<div class="line">    <span class="comment"># Verify completion within threshold</span></div>
+<div class="line">    <span class="keyword">assert</span> time.time() - start &lt; 5.0  <span class="comment"># 5 second threshold</span></div>
+</div><!-- fragment --><p><b>Priority:</b> High (expand test coverage)</p>
+<h1><a class="anchor" id="autotoc_md3119"></a>
+Security Enhancements</h1>
+<h2><a class="anchor" id="autotoc_md3120"></a>
+1. Dependency Scanning</h2>
+<p><b>Implemented:</b></p>
+<ul>
+<li>✅ CodeQL security scanning</li>
+<li>✅ Dependency review on PRs</li>
+<li>✅ Trivy Docker image scanning</li>
+</ul>
+<p><b>Additional Recommendations:</b></p>
+<ul>
+<li>Add <code>safety</code> to CI for Python dependency vulnerabilities</li>
+<li>Add <code>bandit</code> for Python security linting</li>
+<li>Regular dependency updates with Dependabot</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md3121"></a>
+2. Input Sanitization</h2>
+<p><b>Current State:</b> Basic validation on dataclass fields</p>
+<p><b>Recommendation:</b> Add sanitization for user inputs:</p>
+<div class="fragment"><div class="line"><span class="keyword">import</span> re</div>
+<div class="line"><span class="keyword">from</span> html <span class="keyword">import</span> escape</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>sanitize_input(value: str) -&gt; str:</div>
+<div class="line">    <span class="stringliteral">&quot;&quot;&quot;Sanitize user input to prevent injection attacks.&quot;&quot;&quot;</span></div>
+<div class="line">    <span class="comment"># Remove potentially dangerous characters</span></div>
+<div class="line">    value = escape(value)</div>
+<div class="line">    <span class="comment"># Validate format</span></div>
+<div class="line">    <span class="keywordflow">if</span> <span class="keywordflow">not</span> re.match(<span class="stringliteral">r&#39;^[a-zA-Z0-9\s\-_\.]+$&#39;</span>, value):</div>
+<div class="line">        <span class="keywordflow">raise</span> ValueError(<span class="stringliteral">&quot;Invalid characters in input&quot;</span>)</div>
+<div class="line">    <span class="keywordflow">return</span> value.strip()</div>
+</div><!-- fragment --><p><b>Priority:</b> Medium (depends on user input surface area)</p>
+<h2><a class="anchor" id="autotoc_md3122"></a>
+3. Secrets Management</h2>
+<p><b>Recommendation:</b> Use environment variables and secret managers:</p>
+<div class="fragment"><div class="line"><span class="keyword">import</span> os</div>
+<div class="line"><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Load from environment or .env file</span></div>
+<div class="line">DATABASE_URL = os.getenv(<span class="stringliteral">&#39;DATABASE_URL&#39;</span>)</div>
+<div class="line">API_KEY = os.getenv(<span class="stringliteral">&#39;API_KEY&#39;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># For production, use secret manager</span></div>
+<div class="line"><span class="comment"># from azure.keyvault.secrets import SecretClient</span></div>
+<div class="line"><span class="comment"># secret = client.get_secret(&quot;database-url&quot;).value</span></div>
+</div><!-- fragment --><p><b>Priority:</b> High (before production deployment)</p>
+<h1><a class="anchor" id="autotoc_md3123"></a>
+Architecture Improvements</h1>
+<h2><a class="anchor" id="autotoc_md3124"></a>
+1. Repository Pattern</h2>
+<p><b>Recommendation:</b> Abstract data access:</p>
+<div class="fragment"><div class="line"><span class="comment"># src/repositories/asset_repository.py</span></div>
+<div class="line"><span class="keyword">class </span>AssetRepository:</div>
+<div class="line">    <span class="keyword">def </span>get_by_id(self, asset_id: str) -&gt; Optional[Asset]:</div>
+<div class="line">        <span class="keywordflow">pass</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">def </span>get_all(self) -&gt; List[Asset]:</div>
+<div class="line">        <span class="keywordflow">pass</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">def </span>save(self, asset: Asset) -&gt; <span class="keywordtype">None</span>:</div>
+<div class="line">        <span class="keywordflow">pass</span></div>
+</div><!-- fragment --><p><b>Priority:</b> Medium (useful when adding persistence)</p>
+<h2><a class="anchor" id="autotoc_md3125"></a>
+2. Service Layer</h2>
+<p><b>Recommendation:</b> Separate business logic:</p>
+<div class="fragment"><div class="line"><span class="comment"># src/services/asset_service.py</span></div>
+<div class="line"><span class="keyword">class </span>AssetService:</div>
+<div class="line">    <span class="keyword">def </span>__init__(self, repository: AssetRepository):</div>
+<div class="line">        self.repository = repository</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">def </span>calculate_portfolio_risk(self, assets: List[Asset]) -&gt; float:</div>
+<div class="line">        <span class="comment"># Business logic here</span></div>
+<div class="line">        <span class="keywordflow">pass</span></div>
+</div><!-- fragment --><p><b>Priority:</b> Medium (helps with testability)</p>
+<h2><a class="anchor" id="autotoc_md3126"></a>
+3. Dependency Injection</h2>
+<p><b>Recommendation:</b> Use dependency injection for better testing:</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Protocol</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">class </span>DataFetcher(Protocol):</div>
+<div class="line">    <span class="keyword">def </span>fetch(self, symbol: str) -&gt; Asset:</div>
+<div class="line">        <span class="keywordflow">pass</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">class </span>AssetService:</div>
+<div class="line">    <span class="keyword">def </span>__init__(self, fetcher: DataFetcher):</div>
+<div class="line">        self.fetcher = fetcher  <span class="comment"># Can inject mock for testing</span></div>
+</div><!-- fragment --><p><b>Priority:</b> Low (current design is adequate)</p>
+<h1><a class="anchor" id="autotoc_md3127"></a>
+Documentation Improvements</h1>
+<h2><a class="anchor" id="autotoc_md3128"></a>
+1. API Documentation</h2>
+<p><b>Recommendation:</b> Add OpenAPI/Swagger for API endpoints:</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</div>
+<div class="line"><span class="keyword">from</span> fastapi.openapi.utils <span class="keyword">import</span> get_openapi</div>
+<div class="line"> </div>
+<div class="line">app = FastAPI()</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>custom_openapi():</div>
+<div class="line">    <span class="keywordflow">if</span> app.openapi_schema:</div>
+<div class="line">        <span class="keywordflow">return</span> app.openapi_schema</div>
+<div class="line">    openapi_schema = get_openapi(</div>
+<div class="line">        title=<span class="stringliteral">&quot;Financial Asset API&quot;</span>,</div>
+<div class="line">        version=<span class="stringliteral">&quot;1.0.0&quot;</span>,</div>
+<div class="line">        description=<span class="stringliteral">&quot;API for financial asset relationships&quot;</span>,</div>
+<div class="line">        routes=app.routes,</div>
+<div class="line">    )</div>
+<div class="line">    app.openapi_schema = openapi_schema</div>
+<div class="line">    <span class="keywordflow">return</span> app.openapi_schema</div>
+<div class="line"> </div>
+<div class="line">app.openapi = custom_openapi</div>
+</div><!-- fragment --><p><b>Priority:</b> Medium (if exposing API)</p>
+<h2><a class="anchor" id="autotoc_md3129"></a>
+2. Architecture Diagrams</h2>
+<p><b>Recommendation:</b> Add diagrams to documentation:</p>
+<ul>
+<li>System architecture</li>
+<li>Data flow diagrams</li>
+<li>Sequence diagrams for key operations</li>
+</ul>
+<p><b>Tools:</b> Mermaid, PlantUML, or diagrams.net</p>
+<p><b>Priority:</b> Medium</p>
+<h2><a class="anchor" id="autotoc_md3130"></a>
+3. Code Examples</h2>
+<p><b>Recommendation:</b> Add runnable examples:</p>
+<div class="fragment"><div class="line"><span class="comment"># examples/basic_usage.py</span></div>
+<div class="line"><span class="stringliteral">&quot;&quot;&quot;</span></div>
+<div class="line"><span class="stringliteral">Basic usage example for Financial Asset Relationship Database.</span></div>
+<div class="line"><span class="stringliteral"></span> </div>
+<div class="line"><span class="stringliteral">Run: python examples/basic_usage.py</span></div>
+<div class="line"><span class="stringliteral">&quot;&quot;&quot;</span></div>
+<div class="line"><span class="keyword">from</span> src.logic.asset_graph <span class="keyword">import</span> AssetRelationshipGraph</div>
+<div class="line"><span class="keyword">from</span> src.models.financial_models <span class="keyword">import</span> Equity, AssetClass</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Create graph</span></div>
+<div class="line">graph = <a class="code hl_class" href="classAssetRelationshipGraph.html">AssetRelationshipGraph</a>()</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Add assets</span></div>
+<div class="line">apple = Equity(</div>
+<div class="line">    id=<span class="stringliteral">&quot;AAPL&quot;</span>,</div>
+<div class="line">    symbol=<span class="stringliteral">&quot;AAPL&quot;</span>,</div>
+<div class="line">    name=<span class="stringliteral">&quot;Apple Inc.&quot;</span>,</div>
+<div class="line">    asset_class=AssetClass.EQUITY,</div>
+<div class="line">    sector=<span class="stringliteral">&quot;Technology&quot;</span>,</div>
+<div class="line">    price=150.00</div>
+<div class="line">)</div>
+<div class="line">graph.add_asset(apple)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Build relationships</span></div>
+<div class="line">graph.build_relationships()</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Get metrics</span></div>
+<div class="line">metrics = graph.calculate_metrics()</div>
+<div class="line">print(f<span class="stringliteral">&quot;Total assets: {metrics[&#39;total_assets&#39;]}&quot;</span>)</div>
+</div><!-- fragment --><p><b>Priority:</b> Medium</p>
+<h1><a class="anchor" id="autotoc_md3131"></a>
+Monitoring and Observability</h1>
+<h2><a class="anchor" id="autotoc_md3132"></a>
+1. Metrics Collection</h2>
+<p><b>Recommendation:</b> Add Prometheus metrics:</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> prometheus_client <span class="keyword">import</span> Counter, Histogram, start_http_server</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Define metrics</span></div>
+<div class="line">request_count = Counter(<span class="stringliteral">&#39;app_requests_total&#39;</span>, <span class="stringliteral">&#39;Total requests&#39;</span>)</div>
+<div class="line">request_duration = Histogram(<span class="stringliteral">&#39;app_request_duration_seconds&#39;</span>, <span class="stringliteral">&#39;Request duration&#39;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Use in code</span></div>
+<div class="line"><span class="keyword">with</span> request_duration.time():</div>
+<div class="line">    result = expensive_operation()</div>
+<div class="line">request_count.inc()</div>
+</div><!-- fragment --><p><b>Priority:</b> Low (for production)</p>
+<h2><a class="anchor" id="autotoc_md3133"></a>
+2. Health Checks</h2>
+<p><b>Recommendation:</b> Add comprehensive health checks:</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, status</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">@app.get(&quot;/health&quot;, status_code=status.HTTP_200_OK)</span></div>
+<div class="line"><span class="keyword">def </span>health_check():</div>
+<div class="line">    <span class="stringliteral">&quot;&quot;&quot;Health check endpoint.&quot;&quot;&quot;</span></div>
+<div class="line">    <span class="keywordflow">return</span> {</div>
+<div class="line">        <span class="stringliteral">&quot;status&quot;</span>: <span class="stringliteral">&quot;healthy&quot;</span>,</div>
+<div class="line">        <span class="stringliteral">&quot;database&quot;</span>: check_database(),</div>
+<div class="line">        <span class="stringliteral">&quot;cache&quot;</span>: check_cache(),</div>
+<div class="line">        <span class="stringliteral">&quot;version&quot;</span>: <span class="stringliteral">&quot;1.0.0&quot;</span></div>
+<div class="line">    }</div>
+</div><!-- fragment --><p><b>Priority:</b> Medium</p>
+<h2><a class="anchor" id="autotoc_md3134"></a>
+3. Distributed Tracing</h2>
+<p><b>Recommendation:</b> Add OpenTelemetry for tracing:</p>
+<div class="fragment"><div class="line"><span class="keyword">from</span> opentelemetry <span class="keyword">import</span> trace</div>
+<div class="line"><span class="keyword">from</span> opentelemetry.sdk.trace <span class="keyword">import</span> TracerProvider</div>
+<div class="line"> </div>
+<div class="line">tracer = trace.get_tracer(__name__)</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">with</span> tracer.start_as_current_span(<span class="stringliteral">&quot;calculate_metrics&quot;</span>):</div>
+<div class="line">    metrics = graph.calculate_metrics()</div>
+</div><!-- fragment --><p><b>Priority:</b> Low (for microservices)</p>
+<h1><a class="anchor" id="autotoc_md3135"></a>
+Future Features</h1>
+<h2><a class="anchor" id="autotoc_md3136"></a>
+1. Machine Learning Integration</h2>
+<p><b>Ideas:</b></p>
+<ul>
+<li>Predictive relationship discovery</li>
+<li>Anomaly detection in asset relationships</li>
+<li>Portfolio optimization</li>
+<li>Risk prediction</li>
+</ul>
+<p><b>Tools:</b> scikit-learn, TensorFlow, PyTorch</p>
+<h2><a class="anchor" id="autotoc_md3137"></a>
+2. Real-time Updates</h2>
+<p><b>Ideas:</b></p>
+<ul>
+<li>WebSocket support for live data</li>
+<li>Event-driven architecture</li>
+<li>Message queue integration (RabbitMQ, Kafka)</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md3138"></a>
+3. Advanced Analytics</h2>
+<p><b>Ideas:</b></p>
+<ul>
+<li>Time-series analysis</li>
+<li>Correlation matrices</li>
+<li>Network centrality measures</li>
+<li>Community detection algorithms</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md3139"></a>
+4. Multi-tenancy</h2>
+<p><b>Ideas:</b></p>
+<ul>
+<li>User authentication</li>
+<li>Per-user data isolation</li>
+<li>Role-based access control</li>
+<li>API rate limiting</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3140"></a>
+Conclusion</h1>
+<p>This document provides a roadmap for future improvements. Prioritize based on:</p>
+<ol type="1">
+<li><b>Security</b> (High): Secrets management, input sanitization</li>
+<li><b>Testing</b> (High): Integration tests, performance tests</li>
+<li><b>Monitoring</b> (Medium): Health checks, logging</li>
+<li><b>Features</b> (Medium): ML integration, real-time updates</li>
+<li><b>Optimization</b> (Low): Measure before optimizing</li>
+</ol>
+<p>All current code is production-ready for the current use case. These improvements are for scaling and enterprise deployment.</p>
+<hr  />
+<p><b>Last Updated:</b> October 30, 2025 <b>Version:</b> 1.0 <b>Author:</b> GitHub Copilot Code Agent </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

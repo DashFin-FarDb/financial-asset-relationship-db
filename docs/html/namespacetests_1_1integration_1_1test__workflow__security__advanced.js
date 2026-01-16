@@ -1,0 +1,7 @@
+var namespacetests_1_1integration_1_1test__workflow__security__advanced =
+[
+    [ "TestWorkflowInjectionPrevention", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowInjectionPrevention.html", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowInjectionPrevention" ],
+    [ "TestWorkflowPermissionsHardening", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening.html", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening" ],
+    [ "TestWorkflowSecretHandling", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowSecretHandling.html", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowSecretHandling" ],
+    [ "TestWorkflowSupplyChainSecurity", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowSupplyChainSecurity.html", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowSupplyChainSecurity" ]
+];

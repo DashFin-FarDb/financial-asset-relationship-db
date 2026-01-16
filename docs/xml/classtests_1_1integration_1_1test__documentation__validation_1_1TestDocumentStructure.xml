@@ -1,0 +1,179 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_documentation_validation::TestDocumentStructure</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1a67b45418c6a15d881966aec6e87d10dc" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentStructure.test_file_exists</definition>
+        <argsstring>()</argsstring>
+        <name>test_file_exists</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentStructure.test_file_exists</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the summary file exists.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="38" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="38" bodyend="41"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1a0f2a4cbbb1352c6b7a8402276b6d332b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentStructure.test_file_is_not_empty</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_file_is_not_empty</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentStructure.test_file_is_not_empty</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the file contains content.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="43" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="43" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1af3b515ce6028e4384f656f35d858aa79" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentStructure.test_file_has_title</definition>
+        <argsstring>(List[str] summary_lines)</argsstring>
+        <name>test_file_has_title</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentStructure.test_file_has_title</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>summary_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file starts with a markdown title.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="48" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="48" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1adc768e923a843f42ae63948015e38d92" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_overview_section</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_has_overview_section</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_overview_section</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document has an Overview section.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="59" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="59" bodyend="64"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1a3aa7641a8970e4919b8f97d90a2cd40b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_generated_files_section</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_has_generated_files_section</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_generated_files_section</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document describes generated files.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="66" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="66" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1ac5f97bd5eb7154d22cc708cf35c3f441" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_test_suite_structure_section</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_has_test_suite_structure_section</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_test_suite_structure_section</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document describes test suite structure.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="73" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="73" bodyend="78"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1a9c48b907a7d2de29daf73433cdbd7d6e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_running_tests_section</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_has_running_tests_section</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_running_tests_section</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document includes running instructions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="80" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="80" bodyend="85"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1accfa0e1b11d6bc6b5e4a0137e0b93d8a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_benefits_section</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_has_benefits_section</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentStructure.test_has_benefits_section</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document lists benefits.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="87" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="87" bodyend="93"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for document structure validation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_documentation_validation.TestDocumentStructure</label>
+        <link refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="34" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="34" bodyend="93"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1a67b45418c6a15d881966aec6e87d10dc" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentStructure</scope><name>test_file_exists</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1af3b515ce6028e4384f656f35d858aa79" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentStructure</scope><name>test_file_has_title</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1a0f2a4cbbb1352c6b7a8402276b6d332b" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentStructure</scope><name>test_file_is_not_empty</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1accfa0e1b11d6bc6b5e4a0137e0b93d8a" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentStructure</scope><name>test_has_benefits_section</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1a3aa7641a8970e4919b8f97d90a2cd40b" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentStructure</scope><name>test_has_generated_files_section</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1adc768e923a843f42ae63948015e38d92" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentStructure</scope><name>test_has_overview_section</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1a9c48b907a7d2de29daf73433cdbd7d6e" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentStructure</scope><name>test_has_running_tests_section</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentStructure_1ac5f97bd5eb7154d22cc708cf35c3f441" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentStructure</scope><name>test_has_test_suite_structure_section</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

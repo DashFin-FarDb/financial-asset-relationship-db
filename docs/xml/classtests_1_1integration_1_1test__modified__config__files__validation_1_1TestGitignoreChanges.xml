@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_modified_config_files_validation::TestGitignoreChanges</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges_1a0b5d5ff3ff56a6d60a501f89f217a10e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Path</type>
+        <definition> Path tests.integration.test_modified_config_files_validation.TestGitignoreChanges.gitignore_path</definition>
+        <argsstring>(self)</argsstring>
+        <name>gitignore_path</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestGitignoreChanges.gitignore_path</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get the Path to the repository root .gitignore file.
+
+Returns:
+    Path: Path to the .gitignore file at the repository root.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="329" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="329" bodyend="337"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges_1a67929717c8714458aa4d4f9662022f3f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestGitignoreChanges.test_codacy_instructions_ignored</definition>
+        <argsstring>(Path gitignore_path)</argsstring>
+        <name>test_codacy_instructions_ignored</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestGitignoreChanges.test_codacy_instructions_ignored</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>gitignore_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify .gitignore includes &apos;codacy.instructions.md&apos;.
+
+Checks the repository .gitignore content for the presence of the filename &apos;codacy.instructions.md&apos; and fails the test if it is missing.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="339" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="339" bodyend="351"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges_1a18fcf4c078dcddb564ceb10db96884c4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestGitignoreChanges.test_test_artifacts_not_ignored</definition>
+        <argsstring>(Path gitignore_path)</argsstring>
+        <name>test_test_artifacts_not_ignored</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestGitignoreChanges.test_test_artifacts_not_ignored</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>gitignore_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure the repository .gitignore does not ignore test database files.
+
+Asserts that the pattern &apos;test_*.db&apos; is not present in the .gitignore file located at gitignore_path.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="353" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="353" bodyend="367"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges_1a3b6bd990e5bf79e9e0a5a48cb63f336a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestGitignoreChanges.test_standard_ignores_present</definition>
+        <argsstring>(Path gitignore_path)</argsstring>
+        <name>test_standard_ignores_present</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestGitignoreChanges.test_standard_ignores_present</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>gitignore_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify standard ignore patterns are present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="369" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="369" bodyend="386"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Validate changes to .gitignore.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_modified_config_files_validation.TestGitignoreChanges</label>
+        <link refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="325" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="325" bodyend="386"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges_1a0b5d5ff3ff56a6d60a501f89f217a10e" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestGitignoreChanges</scope><name>gitignore_path</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges_1a67929717c8714458aa4d4f9662022f3f" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestGitignoreChanges</scope><name>test_codacy_instructions_ignored</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges_1a3b6bd990e5bf79e9e0a5a48cb63f336a" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestGitignoreChanges</scope><name>test_standard_ignores_present</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestGitignoreChanges_1a18fcf4c078dcddb564ceb10db96884c4" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestGitignoreChanges</scope><name>test_test_artifacts_not_ignored</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

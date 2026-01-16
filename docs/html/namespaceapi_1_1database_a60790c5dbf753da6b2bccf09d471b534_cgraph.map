@@ -1,0 +1,12 @@
+<map id="api.database.initialize_schema" name="api.database.initialize_schema">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,172,63"/>
+<area shape="rect" id="Node000002" href="$namespaceapi_1_1database.html#ad11e531eb65a89c7f8f2b4a41dd57b7d" title=" " alt="" coords="220,31,381,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,41,206,41,206,46,172,46"/>
+<area shape="rect" id="Node000003" href="$namespaceapi_1_1database.html#a6e6aa213df0f9401217ec521935184c5" title=" " alt="" coords="429,31,639,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="381,41,416,41,416,46,381,46"/>
+<area shape="rect" id="Node000004" href="$namespaceapi_1_1database.html#add5bd37c7ccad20f0844cf169de107d2" title=" " alt="" coords="687,5,855,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="639,29,673,26,673,31,639,35"/>
+<area shape="rect" id="Node000005" href="$namespaceapi_1_1database.html#a2b55d2e5b55f35ea1fdaefbf1fd87ac3" title=" " alt="" coords="903,31,1116,56"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="639,41,889,41,889,46,639,46"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="855,24,889,28,889,33,855,30"/>
+</map>

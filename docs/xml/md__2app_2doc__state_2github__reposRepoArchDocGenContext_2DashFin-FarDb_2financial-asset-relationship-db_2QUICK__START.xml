@@ -1,0 +1,271 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START</compoundname>
+    <title>Quick Start Guide - Next.js + FastAPI Integration</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3484"/></para>
+<para>This guide will get you up and running with the new Next.js frontend in under 5 minutes.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3485">
+<title>Prerequisites</title><para><itemizedlist>
+<listitem><para>Python 3.8 or higher</para>
+</listitem><listitem><para>Node.js 18 or higher</para>
+</listitem><listitem><para>Git</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3486">
+<title>Option 1: Automated Setup (Recommended)</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3487">
+<title>Linux/macOS</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Make<sp/>the<sp/>script<sp/>executable</highlight></codeline>
+<codeline><highlight class="normal">chmod<sp/>+x<sp/>run-dev.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>development<sp/>environment</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3488">
+<title>Windows</title><para><programlisting filename=".cmd"><codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>development<sp/>environment</highlight></codeline>
+<codeline><highlight class="normal">run-dev.bat</highlight></codeline>
+</programlisting></para>
+<para>That&apos;s it! The script will:</para>
+<para><orderedlist>
+<listitem><para>Create a Python virtual environment</para>
+</listitem><listitem><para>Install Python dependencies</para>
+</listitem><listitem><para>Install Node.js dependencies</para>
+</listitem><listitem><para>Start the FastAPI backend on port 8000</para>
+</listitem><listitem><para>Start the Next.js frontend on port 3000</para>
+</listitem></orderedlist>
+</para>
+<para><bold>Access the application:</bold></para>
+<para><itemizedlist>
+<listitem><para>Frontend: <ulink url="http://localhost:3000">http://localhost:3000</ulink></para>
+</listitem><listitem><para>Backend API: <ulink url="http://localhost:8000">http://localhost:8000</ulink></para>
+</listitem><listitem><para>API Documentation: <ulink url="http://localhost:8000/docs">http://localhost:8000/docs</ulink></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3489">
+<title>Option 2: Manual Setup</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3490">
+<title>Step 1: Backend Setup</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Create<sp/>and<sp/>activate<sp/>virtual<sp/>environment</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Linux/macOS</highlight></codeline>
+<codeline><highlight class="normal">source<sp/>.venv/bin/activate</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Windows</highlight></codeline>
+<codeline><highlight class="normal">.venv\Scripts\activate</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>the<sp/>backend</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--port<sp/>8000</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3491">
+<title>Step 2: Frontend Setup (in a new terminal)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Navigate<sp/>to<sp/>frontend<sp/>directory</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Copy<sp/>environment<sp/>file<sp/>from<sp/>project<sp/>root</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>(the<sp/>.env.example<sp/>file<sp/>is<sp/>located<sp/>in<sp/>the<sp/>project<sp/>root<sp/>directory)</highlight></codeline>
+<codeline><highlight class="normal">cp<sp/>../.env.example<sp/>.env.local</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>the<sp/>development<sp/>server</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3492">
+<title>What You&apos;ll See</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3493">
+<title>Backend (Port 8000)</title><para><programlisting><codeline><highlight class="normal">INFO:<sp/><sp/><sp/><sp/><sp/>Uvicorn<sp/>running<sp/>on<sp/>http://0.0.0.0:8000</highlight></codeline>
+<codeline><highlight class="normal">INFO:<sp/><sp/><sp/><sp/><sp/>Application<sp/>startup<sp/>complete.</highlight></codeline>
+</programlisting></para>
+<para>Visit <ulink url="http://localhost:8000/docs">http://localhost:8000/docs</ulink> to see the interactive API documentation.</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3494">
+<title>Frontend (Port 3000)</title><para><programlisting><codeline><highlight class="normal">-<sp/>ready<sp/>started<sp/>server<sp/>on<sp/>0.0.0.0:3000,<sp/>url:<sp/>http://localhost:3000</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>event<sp/>compiled<sp/>client<sp/>and<sp/>server<sp/>successfully</highlight></codeline>
+</programlisting></para>
+<para>Visit <ulink url="http://localhost:3000">http://localhost:3000</ulink> to see the application.</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3495">
+<title>Using the Application</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3496">
+<title>1. 3D Visualization Tab</title><para><itemizedlist>
+<listitem><para>Interactive 3D network graph</para>
+</listitem><listitem><para>Rotate: Click and drag</para>
+</listitem><listitem><para>Zoom: Scroll wheel</para>
+</listitem><listitem><para>Hover: View asset details</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3497">
+<title>2. Metrics &amp; Analytics Tab</title><para><itemizedlist>
+<listitem><para>Total assets and relationships</para>
+</listitem><listitem><para>Network statistics</para>
+</listitem><listitem><para>Asset class distribution</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3498">
+<title>3. Asset Explorer Tab</title><para><itemizedlist>
+<listitem><para>Filterable table of all assets</para>
+</listitem><listitem><para>Filter by asset class or sector</para>
+</listitem><listitem><para>View detailed asset information</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3499">
+<title>Testing the API</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3500">
+<title>Using curl</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Health<sp/>check</highlight></codeline>
+<codeline><highlight class="normal">curl<sp/>http://localhost:8000/api/health</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Get<sp/>all<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">curl<sp/>http://localhost:8000/api/assets</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Get<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal">curl<sp/>http://localhost:8000/api/metrics</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3501">
+<title>Using Python</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>test<sp/>script</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>test_api.py</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3502">
+<title>Using Browser</title><para>Visit <ulink url="http://localhost:8000/docs">http://localhost:8000/docs</ulink> for interactive API testing.</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3503">
+<title>Troubleshooting</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3504">
+<title>Backend Issues</title><para><bold>Problem: Port 8000 already in use</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Find<sp/>and<sp/>kill<sp/>the<sp/>process</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Linux/macOS</highlight></codeline>
+<codeline><highlight class="normal">lsof<sp/>-ti:8000<sp/>|<sp/>xargs<sp/>kill<sp/>-9</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Windows</highlight></codeline>
+<codeline><highlight class="normal">netstat<sp/>-ano<sp/>|<sp/>findstr<sp/>:8000</highlight></codeline>
+<codeline><highlight class="normal">taskkill<sp/>/PID<sp/>&lt;PID&gt;<sp/>/F</highlight></codeline>
+</programlisting></para>
+<para><bold>Problem: Module not found errors</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Ensure<sp/>virtual<sp/>environment<sp/>is<sp/>activated</highlight></codeline>
+<codeline><highlight class="normal">source<sp/>.venv/bin/activate<sp/><sp/>#<sp/>Linux/macOS</highlight></codeline>
+<codeline><highlight class="normal">.venv\Scripts\activate<sp/><sp/><sp/><sp/><sp/>#<sp/>Windows</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Reinstall<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3505">
+<title>Frontend Issues</title><para><bold>Problem: Port 3000 already in use</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>The<sp/>frontend<sp/>will<sp/>automatically<sp/>use<sp/>the<sp/>next<sp/>available<sp/>port</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>kill<sp/>the<sp/>process<sp/>manually:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Linux/macOS</highlight></codeline>
+<codeline><highlight class="normal">lsof<sp/>-ti:3000<sp/>|<sp/>xargs<sp/>kill<sp/>-9</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Windows</highlight></codeline>
+<codeline><highlight class="normal">netstat<sp/>-ano<sp/>|<sp/>findstr<sp/>:3000</highlight></codeline>
+<codeline><highlight class="normal">taskkill<sp/>/PID<sp/>&lt;PID&gt;<sp/>/F</highlight></codeline>
+</programlisting></para>
+<para><bold>Problem: API connection errors</bold></para>
+<para><itemizedlist>
+<listitem><para>Check that backend is running on port 8000</para>
+</listitem><listitem><para>Verify <computeroutput>NEXT_PUBLIC_API_URL</computeroutput> in <computeroutput>.env.local</computeroutput></para>
+</listitem><listitem><para>Check browser console for CORS errors</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Problem: Module not found</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">rm<sp/>-rf<sp/>node_modules<sp/>.next</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3506">
+<title>Common Commands</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3507">
+<title>Backend</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Start<sp/>backend</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--port<sp/>8000</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>with<sp/>custom<sp/>host</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--host<sp/>0.0.0.0<sp/>--port<sp/>8000</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>without<sp/>auto-reload<sp/>(production-like)</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--port<sp/>8000</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3508">
+<title>Frontend</title><para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Development<sp/>server</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Production<sp/>build</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>production<sp/>server</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>start</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Lint<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>lint</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3509">
+<title>Next Steps</title><para><orderedlist>
+<listitem><para><bold>Explore the code</bold><itemizedlist>
+<listitem><para>Backend: <computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput></para>
+</listitem><listitem><para>Frontend: <computeroutput>frontend/app/page.tsx</computeroutput></para>
+</listitem><listitem><para>Components: <computeroutput>frontend/app/components/</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Read the documentation</bold><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref> - Full deployment guide</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY" kindref="compound">INTEGRATION_SUMMARY.md</ref> - Technical details</para>
+</listitem><listitem><para><ref refid="frontend_2README_8md" kindref="compound">frontend/README.md</ref> - Frontend specifics</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Deploy to Vercel</bold><itemizedlist>
+<listitem><para>See <ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref> for instructions</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Customize</bold><itemizedlist>
+<listitem><para>Modify components in <computeroutput>frontend/app/components/</computeroutput></para>
+</listitem><listitem><para>Add new API endpoints in <computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput></para>
+</listitem><listitem><para>Update styles in <computeroutput>frontend/app/globals.css</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3510">
+<title>Getting Help</title><para><orderedlist>
+<listitem><para>Check the error messages in your terminal</para>
+</listitem><listitem><para>Review the browser console for frontend errors</para>
+</listitem><listitem><para>Visit the API docs at <ulink url="http://localhost:8000/docs">http://localhost:8000/docs</ulink></para>
+</listitem><listitem><para>See <ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref> for detailed troubleshooting</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_1autotoc_md3511">
+<title>Compare with Gradio UI</title><para>You can still use the original Gradio interface:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>app.py</highlight></codeline>
+</programlisting></para>
+<para>Access at <ulink url="http://localhost:7860">http://localhost:7860</ulink></para>
+<para>Both UIs use the same underlying data and logic, so you can use whichever you prefer!</para>
+<para><hruler/>
+</para>
+<para><bold>Happy Coding! 🚀</bold> </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/QUICK_START.md"/>
+  </compounddef>
+</doxygen>

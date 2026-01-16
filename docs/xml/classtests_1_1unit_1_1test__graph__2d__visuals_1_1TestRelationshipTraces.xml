@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_graph_2d_visuals::TestRelationshipTraces</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1ad01325e167e0a5c65410304e6dab0838" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_with_relationships</definition>
+        <argsstring>(self, populated_graph)</argsstring>
+        <name>test_create_2d_relationship_traces_with_relationships</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_with_relationships</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test creating relationship traces with existing relationships.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="283" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="283" bodyend="308"/>
+        <references refid="namespacetests_1_1unit_1_1test__graph__2d__visuals_1a03fd2463d6b5b3764bfe8f8d073365cf" compoundref="test__graph__2d__visuals_8py" startline="23" endline="38">tests.unit.test_graph_2d_visuals.create_relationship_traces_with_defaults</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1ad625b4fe2f3e3ab7ff331ac1088f73fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_show_all</definition>
+        <argsstring>(self, populated_graph)</argsstring>
+        <name>test_create_2d_relationship_traces_show_all</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_show_all</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test creating traces with show_all_relationships=True.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="309" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="309" bodyend="331"/>
+        <references refid="namespacetests_1_1unit_1_1test__graph__2d__visuals_1a03fd2463d6b5b3764bfe8f8d073365cf" compoundref="test__graph__2d__visuals_8py" startline="23" endline="38">tests.unit.test_graph_2d_visuals.create_relationship_traces_with_defaults</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1ac2cff09e847754065131d3f5a0a95bfc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_selective_filtering</definition>
+        <argsstring>(self, populated_graph)</argsstring>
+        <name>test_create_2d_relationship_traces_selective_filtering</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_selective_filtering</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test selective relationship filtering.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="332" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="332" bodyend="354"/>
+        <references refid="namespacetests_1_1unit_1_1test__graph__2d__visuals_1a03fd2463d6b5b3764bfe8f8d073365cf" compoundref="test__graph__2d__visuals_8py" startline="23" endline="38">tests.unit.test_graph_2d_visuals.create_relationship_traces_with_defaults</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1aae72c9de4d091460fbc557904916212f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_empty_graph</definition>
+        <argsstring>(self, empty_graph)</argsstring>
+        <name>test_create_2d_relationship_traces_empty_graph</name>
+        <qualifiedname>tests.unit.test_graph_2d_visuals.TestRelationshipTraces.test_create_2d_relationship_traces_empty_graph</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test creating traces with empty graph.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="355" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="355" bodyend="372"/>
+        <references refid="namespacetests_1_1unit_1_1test__graph__2d__visuals_1a03fd2463d6b5b3764bfe8f8d073365cf" compoundref="test__graph__2d__visuals_8py" startline="23" endline="38">tests.unit.test_graph_2d_visuals.create_relationship_traces_with_defaults</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for relationship trace creation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_graph_2d_visuals.TestRelationshipTraces</label>
+        <link refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" line="280" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_2d_visuals.py" bodystart="280" bodyend="372"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1aae72c9de4d091460fbc557904916212f" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_2d_visuals::TestRelationshipTraces</scope><name>test_create_2d_relationship_traces_empty_graph</name></member>
+      <member refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1ac2cff09e847754065131d3f5a0a95bfc" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_2d_visuals::TestRelationshipTraces</scope><name>test_create_2d_relationship_traces_selective_filtering</name></member>
+      <member refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1ad625b4fe2f3e3ab7ff331ac1088f73fb" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_2d_visuals::TestRelationshipTraces</scope><name>test_create_2d_relationship_traces_show_all</name></member>
+      <member refid="classtests_1_1unit_1_1test__graph__2d__visuals_1_1TestRelationshipTraces_1ad01325e167e0a5c65410304e6dab0838" prot="public" virt="non-virtual"><scope>tests::unit::test_graph_2d_visuals::TestRelationshipTraces</scope><name>test_create_2d_relationship_traces_with_relationships</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

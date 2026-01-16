@@ -1,0 +1,296 @@
+\chapter{Quick Start Guide -\/ Next.\+js + Fast\+API Integration}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START}\index{Quick Start Guide -\/ Next.js + FastAPI Integration@{Quick Start Guide -\/ Next.js + FastAPI Integration}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3484}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3484}%
+
+
+This guide will get you up and running with the new Next.\+js frontend in under 5 minutes.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3485}{}\doxysection{\texorpdfstring{Prerequisites}{Prerequisites}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3485}
+
+\begin{DoxyItemize}
+\item Python 3.\+8 or higher
+\item Node.\+js 18 or higher
+\item Git
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3486}{}\doxysection{\texorpdfstring{Option 1\+: Automated Setup (Recommended)}{Option 1\+: Automated Setup (Recommended)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3486}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3487}{}\doxysubsection{\texorpdfstring{Linux/mac\+OS}{Linux/mac\+OS}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3487}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Make\ the\ script\ executable}
+\DoxyCodeLine{chmod\ +x\ run-\/dev.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ the\ development\ environment}
+\DoxyCodeLine{./run-\/dev.sh}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3488}{}\doxysubsection{\texorpdfstring{Windows}{Windows}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3488}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ the\ development\ environment}
+\DoxyCodeLine{run-\/dev.bat}
+
+\end{DoxyCode}
+
+
+That\textquotesingle{}s it! The script will\+:
+
+
+\begin{DoxyEnumerate}
+\item Create a Python virtual environment
+\item Install Python dependencies
+\item Install Node.\+js dependencies
+\item Start the Fast\+API backend on port 8000
+\item Start the Next.\+js frontend on port 3000
+\end{DoxyEnumerate}
+
+{\bfseries{Access the application\+:}}
+
+
+\begin{DoxyItemize}
+\item Frontend\+: \href{http://localhost:3000}{\texttt{ http\+://localhost\+:3000}}
+\item Backend API\+: \href{http://localhost:8000}{\texttt{ http\+://localhost\+:8000}}
+\item API Documentation\+: \href{http://localhost:8000/docs}{\texttt{ http\+://localhost\+:8000/docs}}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3489}{}\doxysection{\texorpdfstring{Option 2\+: Manual Setup}{Option 2\+: Manual Setup}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3489}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3490}{}\doxysubsection{\texorpdfstring{Step 1\+: Backend Setup}{Step 1\+: Backend Setup}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3490}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Create\ and\ activate\ virtual\ environment}
+\DoxyCodeLine{python\ -\/m\ venv\ .venv}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Linux/macOS}
+\DoxyCodeLine{source\ .venv/bin/activate}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Windows}
+\DoxyCodeLine{.venv\(\backslash\)Scripts\(\backslash\)activate}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Install\ dependencies}
+\DoxyCodeLine{pip\ install\ -\/r\ requirements.txt}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Start\ the\ backend}
+\DoxyCodeLine{python\ -\/m\ uvicorn\ api.main:app\ -\/-\/reload\ -\/-\/port\ 8000}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3491}{}\doxysubsection{\texorpdfstring{Step 2\+: Frontend Setup (in a new terminal)}{Step 2\+: Frontend Setup (in a new terminal)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3491}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Navigate\ to\ frontend\ directory}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Install\ dependencies}
+\DoxyCodeLine{npm\ install}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Copy\ environment\ file\ from\ project\ root}
+\DoxyCodeLine{\#\ (the\ .env.example\ file\ is\ located\ in\ the\ project\ root\ directory)}
+\DoxyCodeLine{cp\ ../.env.example\ .env.local}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Start\ the\ development\ server}
+\DoxyCodeLine{npm\ run\ dev}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3492}{}\doxysection{\texorpdfstring{What You\textquotesingle{}ll See}{What You\textquotesingle{}ll See}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3492}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3493}{}\doxysubsection{\texorpdfstring{Backend (Port 8000)}{Backend (Port 8000)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3493}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{INFO:\ \ \ \ \ Uvicorn\ running\ on\ http://0.0.0.0:8000}
+\DoxyCodeLine{INFO:\ \ \ \ \ Application\ startup\ complete.}
+
+\end{DoxyCode}
+
+
+Visit \href{http://localhost:8000/docs}{\texttt{ http\+://localhost\+:8000/docs}} to see the interactive API documentation.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3494}{}\doxysubsection{\texorpdfstring{Frontend (Port 3000)}{Frontend (Port 3000)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3494}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/\ ready\ started\ server\ on\ 0.0.0.0:3000,\ url:\ http://localhost:3000}
+\DoxyCodeLine{-\/\ event\ compiled\ client\ and\ server\ successfully}
+
+\end{DoxyCode}
+
+
+Visit \href{http://localhost:3000}{\texttt{ http\+://localhost\+:3000}} to see the application.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3495}{}\doxysection{\texorpdfstring{Using the Application}{Using the Application}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3495}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3496}{}\doxysubsection{\texorpdfstring{1. 3D Visualization Tab}{1. 3D Visualization Tab}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3496}
+
+\begin{DoxyItemize}
+\item Interactive 3D network graph
+\item Rotate\+: Click and drag
+\item Zoom\+: Scroll wheel
+\item Hover\+: View asset details
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3497}{}\doxysubsection{\texorpdfstring{2. Metrics \& Analytics Tab}{2. Metrics \& Analytics Tab}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3497}
+
+\begin{DoxyItemize}
+\item Total assets and relationships
+\item Network statistics
+\item Asset class distribution
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3498}{}\doxysubsection{\texorpdfstring{3. Asset Explorer Tab}{3. Asset Explorer Tab}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3498}
+
+\begin{DoxyItemize}
+\item Filterable table of all assets
+\item Filter by asset class or sector
+\item View detailed asset information
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3499}{}\doxysection{\texorpdfstring{Testing the API}{Testing the API}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3499}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3500}{}\doxysubsection{\texorpdfstring{Using curl}{Using curl}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3500}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Health\ check}
+\DoxyCodeLine{curl\ http://localhost:8000/api/health}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Get\ all\ assets}
+\DoxyCodeLine{curl\ http://localhost:8000/api/assets}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Get\ metrics}
+\DoxyCodeLine{curl\ http://localhost:8000/api/metrics}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3501}{}\doxysubsection{\texorpdfstring{Using Python}{Using Python}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3501}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ the\ test\ script}
+\DoxyCodeLine{python\ test\_api.py}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3502}{}\doxysubsection{\texorpdfstring{Using Browser}{Using Browser}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3502}
+Visit \href{http://localhost:8000/docs}{\texttt{ http\+://localhost\+:8000/docs}} for interactive API testing.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3503}{}\doxysection{\texorpdfstring{Troubleshooting}{Troubleshooting}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3503}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3504}{}\doxysubsection{\texorpdfstring{Backend Issues}{Backend Issues}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3504}
+{\bfseries{Problem\+: Port 8000 already in use}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Find\ and\ kill\ the\ process}
+\DoxyCodeLine{\#\ Linux/macOS}
+\DoxyCodeLine{lsof\ -\/ti:8000\ |\ xargs\ kill\ -\/9}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Windows}
+\DoxyCodeLine{netstat\ -\/ano\ |\ findstr\ :8000}
+\DoxyCodeLine{taskkill\ /PID\ <PID>\ /F}
+
+\end{DoxyCode}
+
+
+{\bfseries{Problem\+: Module not found errors}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Ensure\ virtual\ environment\ is\ activated}
+\DoxyCodeLine{source\ .venv/bin/activate\ \ \#\ Linux/macOS}
+\DoxyCodeLine{.venv\(\backslash\)Scripts\(\backslash\)activate\ \ \ \ \ \#\ Windows}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Reinstall\ dependencies}
+\DoxyCodeLine{pip\ install\ -\/r\ requirements.txt}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3505}{}\doxysubsection{\texorpdfstring{Frontend Issues}{Frontend Issues}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3505}
+{\bfseries{Problem\+: Port 3000 already in use}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ The\ frontend\ will\ automatically\ use\ the\ next\ available\ port}
+\DoxyCodeLine{\#\ Or\ kill\ the\ process\ manually:}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Linux/macOS}
+\DoxyCodeLine{lsof\ -\/ti:3000\ |\ xargs\ kill\ -\/9}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Windows}
+\DoxyCodeLine{netstat\ -\/ano\ |\ findstr\ :3000}
+\DoxyCodeLine{taskkill\ /PID\ <PID>\ /F}
+
+\end{DoxyCode}
+
+
+{\bfseries{Problem\+: API connection errors}}
+
+
+\begin{DoxyItemize}
+\item Check that backend is running on port 8000
+\item Verify {\ttfamily NEXT\+\_\+\+PUBLIC\+\_\+\+API\+\_\+\+URL} in {\ttfamily .env.\+local}
+\item Check browser console for CORS errors
+\end{DoxyItemize}
+
+{\bfseries{Problem\+: Module not found}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{rm\ -\/rf\ node\_modules\ .next}
+\DoxyCodeLine{npm\ install}
+\DoxyCodeLine{npm\ run\ dev}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3506}{}\doxysection{\texorpdfstring{Common Commands}{Common Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3506}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3507}{}\doxysubsection{\texorpdfstring{Backend}{Backend}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3507}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Start\ backend}
+\DoxyCodeLine{python\ -\/m\ uvicorn\ api.main:app\ -\/-\/reload\ -\/-\/port\ 8000}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Start\ with\ custom\ host}
+\DoxyCodeLine{python\ -\/m\ uvicorn\ api.main:app\ -\/-\/host\ 0.0.0.0\ -\/-\/port\ 8000}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Start\ without\ auto-\/reload\ (production-\/like)}
+\DoxyCodeLine{python\ -\/m\ uvicorn\ api.main:app\ -\/-\/port\ 8000}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3508}{}\doxysubsection{\texorpdfstring{Frontend}{Frontend}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3508}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Development\ server}
+\DoxyCodeLine{npm\ run\ dev}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Production\ build}
+\DoxyCodeLine{npm\ run\ build}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Start\ production\ server}
+\DoxyCodeLine{npm\ start}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Lint\ code}
+\DoxyCodeLine{npm\ run\ lint}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3509}{}\doxysection{\texorpdfstring{Next Steps}{Next Steps}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3509}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Explore the code}}
+\begin{DoxyItemize}
+\item Backend\+: {\ttfamily \doxylink{api_2main_8py}{api/main.\+py}}
+\item Frontend\+: {\ttfamily frontend/app/page.\+tsx}
+\item Components\+: {\ttfamily frontend/app/components/}
+\end{DoxyItemize}
+\item {\bfseries{Read the documentation}}
+\begin{DoxyItemize}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT}{DEPLOYMENT.md}{0} -\/ Full deployment guide
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY}{INTEGRATION\+\_\+\+SUMMARY.md}{0} -\/ Technical details
+\item \doxylink{frontend_2README_8md}{frontend/\+README.md} -\/ Frontend specifics
+\end{DoxyItemize}
+\item {\bfseries{Deploy to Vercel}}
+\begin{DoxyItemize}
+\item See \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT}{DEPLOYMENT.md}{0} for instructions
+\end{DoxyItemize}
+\item {\bfseries{Customize}}
+\begin{DoxyItemize}
+\item Modify components in {\ttfamily frontend/app/components/}
+\item Add new API endpoints in {\ttfamily \doxylink{api_2main_8py}{api/main.\+py}}
+\item Update styles in {\ttfamily frontend/app/globals.\+css}
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3510}{}\doxysection{\texorpdfstring{Getting Help}{Getting Help}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3510}
+
+\begin{DoxyEnumerate}
+\item Check the error messages in your terminal
+\item Review the browser console for frontend errors
+\item Visit the API docs at \href{http://localhost:8000/docs}{\texttt{ http\+://localhost\+:8000/docs}}
+\item See \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT}{DEPLOYMENT.md}{0} for detailed troubleshooting
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3511}{}\doxysection{\texorpdfstring{Compare with Gradio UI}{Compare with Gradio UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START_autotoc_md3511}
+You can still use the original Gradio interface\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ app.py}
+
+\end{DoxyCode}
+
+
+Access at \href{http://localhost:7860}{\texttt{ http\+://localhost\+:7860}}
+
+Both UIs use the same underlying data and logic, so you can use whichever you prefer!
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Happy Coding! 🚀}} 

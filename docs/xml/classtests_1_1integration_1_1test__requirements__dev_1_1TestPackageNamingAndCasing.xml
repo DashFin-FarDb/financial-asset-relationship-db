@@ -1,0 +1,119 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestPackageNamingAndCasing</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing_1a6d2a335e8a3fd1768a1139099d89e266" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.TestPackageNamingAndCasing.requirements</definition>
+        <argsstring>(parsed_requirements)</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPackageNamingAndCasing.requirements</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get parsed requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="555" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="555" bodyend="558"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing_1a009394278b5b17fa421f411a81700676" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPackageNamingAndCasing.test_package_name_casing_preserved</definition>
+        <argsstring>(self, List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_package_name_casing_preserved</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPackageNamingAndCasing.test_package_name_casing_preserved</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that package name casing is preserved as written.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="559" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="559" bodyend="573"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing_1a3cf2980bab356694dab6f4804b296a10" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPackageNamingAndCasing.test_no_underscore_hyphen_conflicts</definition>
+        <argsstring>(self, List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_no_underscore_hyphen_conflicts</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPackageNamingAndCasing.test_no_underscore_hyphen_conflicts</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that there are no packages differing only in underscore/hyphen.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="574" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="574" bodyend="585"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing_1a5677e438b06fbde1fe05cc02d3cb58ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPackageNamingAndCasing.test_common_package_name_patterns</definition>
+        <argsstring>(self, List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_common_package_name_patterns</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPackageNamingAndCasing.test_common_package_name_patterns</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that package names follow common patterns.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="586" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="586" bodyend="597"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test package naming conventions and casing consistency.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestPackageNamingAndCasing</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="550" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="550" bodyend="597"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing_1a6d2a335e8a3fd1768a1139099d89e266" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPackageNamingAndCasing</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing_1a5677e438b06fbde1fe05cc02d3cb58ad" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPackageNamingAndCasing</scope><name>test_common_package_name_patterns</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing_1a3cf2980bab356694dab6f4804b296a10" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPackageNamingAndCasing</scope><name>test_no_underscore_hyphen_conflicts</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageNamingAndCasing_1a009394278b5b17fa421f411a81700676" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPackageNamingAndCasing</scope><name>test_package_name_casing_preserved</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

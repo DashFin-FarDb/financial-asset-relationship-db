@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__schema__report_1_1TestReportConsistency" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_schema_report::TestReportConsistency</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestReportConsistency_1a47101f44ffe40da921dfe71e30b3c90e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestReportConsistency.test_metrics_match_graph_state</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_metrics_match_graph_state</name>
+        <qualifiedname>tests.unit.test_schema_report.TestReportConsistency.test_metrics_match_graph_state</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that reported metrics match actual graph state.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="401" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="401" bodyend="411"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestReportConsistency_1a9f65b3573800e1ef5bbe519a5913b5e2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestReportConsistency.test_asset_class_counts_match</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_asset_class_counts_match</name>
+        <qualifiedname>tests.unit.test_schema_report.TestReportConsistency.test_asset_class_counts_match</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that asset class counts in report match actual counts.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="413" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="413" bodyend="421"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestReportConsistency_1ae486c1125996b4775a9f994649f3fc28" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestReportConsistency.test_quality_score_is_valid</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_quality_score_is_valid</name>
+        <qualifiedname>tests.unit.test_schema_report.TestReportConsistency.test_quality_score_is_valid</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that quality score is within valid range.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="423" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="423" bodyend="436"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for report consistency.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_schema_report.TestReportConsistency</label>
+        <link refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportConsistency"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="397" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="397" bodyend="436"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportConsistency_1a9f65b3573800e1ef5bbe519a5913b5e2" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestReportConsistency</scope><name>test_asset_class_counts_match</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportConsistency_1a47101f44ffe40da921dfe71e30b3c90e" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestReportConsistency</scope><name>test_metrics_match_graph_state</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestReportConsistency_1ae486c1125996b4775a9f994649f3fc28" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestReportConsistency</scope><name>test_quality_score_is_valid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

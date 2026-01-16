@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="QUICK__TEST__REFERENCE__WORKFLOW__VALIDATOR_8md" kind="file" language="Markdown">
+    <compoundname>QUICK_TEST_REFERENCE_WORKFLOW_VALIDATOR.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Quick<sp/>Test<sp/>Reference:<sp/>workflow_validator.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Running<sp/>the<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Basic<sp/>Commands</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>tests<sp/>for<sp/>workflow_validator</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>--cov=src.workflow_validator<sp/>--cov-report=term-missing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>a<sp/>specific<sp/>test<sp/>class</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py::TestValidateWorkflow<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>a<sp/>single<sp/>test</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py::TestValidateWorkflow::test_valid_minimal_workflow_file<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Quick<sp/>Test<sp/>Examples</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Test<sp/>1:<sp/>Valid<sp/>Workflow</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>test_valid_minimal_workflow_file(self):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Test<sp/>validation<sp/>of<sp/>a<sp/>minimal<sp/>valid<sp/>workflow<sp/>file&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Validates**:<sp/>Basic<sp/>workflow<sp/>structure<sp/>with<sp/>jobs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Test<sp/>2:<sp/>Missing<sp/>Jobs<sp/>Key</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>test_workflow_missing_jobs_key(self):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Test<sp/>detection<sp/>of<sp/>missing<sp/>&apos;jobs&apos;<sp/>key&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Validates**:<sp/>Error<sp/>detection<sp/>for<sp/>missing<sp/>required<sp/>keys</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Test<sp/>3:<sp/>Invalid<sp/>YAML</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>test_workflow_invalid_yaml_syntax(self):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Test<sp/>handling<sp/>of<sp/>invalid<sp/>YAML<sp/>syntax&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Validates**:<sp/>Proper<sp/>error<sp/>handling<sp/>for<sp/>malformed<sp/>YAML</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Organization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Classes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**TestValidationResult**<sp/>-<sp/>ValidationResult<sp/>class<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**TestValidateWorkflow**<sp/>-<sp/>Main<sp/>validation<sp/>function<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**TestEdgeCases**<sp/>-<sp/>Boundary<sp/>conditions<sp/>and<sp/>edge<sp/>cases</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**TestErrorHandling**<sp/>-<sp/>Exception<sp/>and<sp/>error<sp/>scenarios</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**TestIntegrationWithActualWorkflows**<sp/>-<sp/>Real<sp/>project<sp/>file<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">6.<sp/>**TestValidationResultDataStructure**<sp/>-<sp/>Data<sp/>structure<sp/>integrity</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Coverage<sp/>Report</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Generate<sp/>and<sp/>view<sp/>coverage:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Generate<sp/>HTML<sp/>coverage<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>--cov=src.workflow_validator<sp/>--cov-report=html</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Open<sp/>in<sp/>browser</highlight></codeline>
+<codeline><highlight class="normal">open<sp/>htmlcov/index.html<sp/><sp/>#<sp/>macOS</highlight></codeline>
+<codeline><highlight class="normal">xdg-open<sp/>htmlcov/index.html<sp/><sp/>#<sp/>Linux</highlight></codeline>
+<codeline><highlight class="normal">start<sp/>htmlcov/index.html<sp/><sp/>#<sp/>Windows</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Common<sp/>Test<sp/>Patterns</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Creating<sp/>Test<sp/>Workflow<sp/>Files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">with<sp/>tempfile.NamedTemporaryFile(mode=&apos;w&apos;,<sp/>suffix=&apos;.yml&apos;,<sp/>delete=False)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>f.write(workflow_yaml_content)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>f.flush()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>try:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>validate_workflow(f.name)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>assertions<sp/>here</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>finally:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Path(f.name).unlink()</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Assertion<sp/>Patterns</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Valid<sp/>workflow</highlight></codeline>
+<codeline><highlight class="normal">assert<sp/>result.is_valid<sp/>is<sp/>True</highlight></codeline>
+<codeline><highlight class="normal">assert<sp/>len(result.errors)<sp/>==<sp/>0</highlight></codeline>
+<codeline><highlight class="normal">assert<sp/>&apos;jobs&apos;<sp/>in<sp/>result.workflow_data</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Invalid<sp/>workflow</highlight></codeline>
+<codeline><highlight class="normal">assert<sp/>result.is_valid<sp/>is<sp/>False</highlight></codeline>
+<codeline><highlight class="normal">assert<sp/>len(result.errors)<sp/>&gt;=<sp/>1</highlight></codeline>
+<codeline><highlight class="normal">assert<sp/>&quot;expected<sp/>error<sp/>message&quot;<sp/>in<sp/>result.errors[0]</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Troubleshooting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Import<sp/>Errors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">If<sp/>you<sp/>see<sp/>import<sp/>errors:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Ensure<sp/>src<sp/>is<sp/>in<sp/>Python<sp/>path</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>PYTHONPATH=&quot;${PYTHONPATH}:${PWD}/src&quot;</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Discovery<sp/>Issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>test<sp/>discovery</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>--collect-only</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_workflow_validator.py<sp/>-vv</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Expected<sp/>Test<sp/>Output</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/QUICK_TEST_REFERENCE_WORKFLOW_VALIDATOR.md"/>
+  </compounddef>
+</doxygen>

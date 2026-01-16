@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="DATABASE_8md" kind="file" language="Markdown">
+    <compoundname>DATABASE.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Database<sp/>Integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>project<sp/>uses<sp/>Supabase<sp/>as<sp/>the<sp/>database<sp/>provider.<sp/>The<sp/>integration<sp/>supports<sp/>both<sp/>the<sp/>Supabase<sp/>API<sp/>client<sp/>and<sp/>direct<sp/>PostgreSQL<sp/>connections.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Configuration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Add<sp/>the<sp/>following<sp/>environment<sp/>variables<sp/>to<sp/>your<sp/>`.env`<sp/>file:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Supabase<sp/>Configuration</highlight></codeline>
+<codeline><highlight class="normal">SUPABASE_URL=https://your-project-id.supabase.co</highlight></codeline>
+<codeline><highlight class="normal">SUPABASE_KEY=your-supabase-anon-key</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Direct<sp/>PostgreSQL<sp/>Connection<sp/>(Optional)</highlight></codeline>
+<codeline><highlight class="normal">DATABASE_URL=postgresql://postgres.your-project-id:your-password@aws-1-us-east-1.pooler.supabase.com:6543/postgres</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Usage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>database<sp/>module<sp/>provides<sp/>a<sp/>simple<sp/>interface<sp/>for<sp/>connecting<sp/>to<sp/>and<sp/>querying<sp/>the<sp/>database:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>src.data.database<sp/>import<sp/>get_db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Get<sp/>database<sp/>connection</highlight></codeline>
+<codeline><highlight class="normal">db<sp/>=<sp/>get_db()</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Connect<sp/>to<sp/>the<sp/>database</highlight></codeline>
+<codeline><highlight class="normal">db.connect()</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Query<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">assets<sp/>=<sp/>db.query(&quot;assets&quot;,<sp/>limit=10)</highlight></codeline>
+<codeline><highlight class="normal">print(assets)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Close<sp/>connection<sp/>when<sp/>done</highlight></codeline>
+<codeline><highlight class="normal">db.close()</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Connection<sp/>Methods</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>database<sp/>module<sp/>will<sp/>attempt<sp/>to<sp/>connect<sp/>using<sp/>the<sp/>Supabase<sp/>client<sp/>first,<sp/>and<sp/>fall<sp/>back<sp/>to<sp/>a<sp/>direct<sp/>PostgreSQL<sp/>connection<sp/>if<sp/>that<sp/>fails.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Supabase<sp/>Client</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>Supabase<sp/>client<sp/>provides<sp/>a<sp/>high-level<sp/>API<sp/>for<sp/>interacting<sp/>with<sp/>your<sp/>Supabase<sp/>database,<sp/>including:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Authentication</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Storage</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Realtime<sp/>subscriptions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Database<sp/>queries<sp/>with<sp/>Row<sp/>Level<sp/>Security</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Direct<sp/>PostgreSQL<sp/>Connection</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>direct<sp/>PostgreSQL<sp/>connection<sp/>provides<sp/>lower-level<sp/>access<sp/>to<sp/>the<sp/>database<sp/>using<sp/>the<sp/>`psycopg2`<sp/>library.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Required<sp/>Dependencies</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Install<sp/>the<sp/>required<sp/>dependencies:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>supabase<sp/>psycopg2-binary<sp/>python-dotenv</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Database<sp/>Schema</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>database<sp/>schema<sp/>will<sp/>be<sp/>automatically<sp/>created<sp/>when<sp/>you<sp/>first<sp/>connect<sp/>to<sp/>the<sp/>database.<sp/>The<sp/>schema<sp/>includes<sp/>the<sp/>following<sp/>tables:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`assets`:<sp/>Stores<sp/>information<sp/>about<sp/>financial<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`relationships`:<sp/>Stores<sp/>relationships<sp/>between<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`metrics`:<sp/>Stores<sp/>metrics<sp/>for<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`users`:<sp/>Stores<sp/>user<sp/>information</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Testing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">You<sp/>can<sp/>test<sp/>the<sp/>database<sp/>connection<sp/>using<sp/>the<sp/>provided<sp/>test<sp/>scripts:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>test_db_module.py</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/DATABASE.md"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,563 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON</compoundname>
+    <title>UI Comparison: Gradio vs Next.js</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5576"/></para>
+<para>This document compares the two available user interfaces for the Financial Asset Relationship Database.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5577">
+<title>Overview</title><para><table rows="6" cols="3"><row>
+<entry thead="yes"><para>Feature   </para>
+</entry><entry thead="yes"><para>Gradio UI   </para>
+</entry><entry thead="yes"><para>Next.js UI    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Launch Command</bold>   </para>
+</entry><entry thead="no"><para><computeroutput>python <ref refid="app_8py" kindref="compound">app.py</ref></computeroutput>   </para>
+</entry><entry thead="no"><para><computeroutput>./run-dev.sh</computeroutput>    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Port</bold>   </para>
+</entry><entry thead="no"><para>7860   </para>
+</entry><entry thead="no"><para>3000    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Technology</bold>   </para>
+</entry><entry thead="no"><para>Python + Gradio   </para>
+</entry><entry thead="no"><para>TypeScript + React + Next.js    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>API</bold>   </para>
+</entry><entry thead="no"><para>Direct function calls   </para>
+</entry><entry thead="no"><para>REST API (FastAPI)    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Deployment</bold>   </para>
+</entry><entry thead="no"><para>Docker, HuggingFace Spaces   </para>
+</entry><entry thead="no"><para>Vercel, Netlify, any Node host   </para>
+</entry></row>
+</table>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5578">
+<title>Detailed Comparison</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5579">
+<title>1. User Interface</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5580">
+<title>Gradio UI</title><para><itemizedlist>
+<listitem><para><bold>Pros:</bold><itemizedlist>
+<listitem><para>Native Python UI framework</para>
+</listitem><listitem><para>Rapid prototyping</para>
+</listitem><listitem><para>Built-in input/output handling</para>
+</listitem><listitem><para>Automatic layout management</para>
+</listitem><listitem><para>Easy to modify for Python developers</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Cons:</bold><itemizedlist>
+<listitem><para>Limited customization options</para>
+</listitem><listitem><para>Less modern look and feel</para>
+</listitem><listitem><para>Fewer interactive features</para>
+</listitem><listitem><para>Limited mobile responsiveness</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5581">
+<title>Next.js UI</title><para><itemizedlist>
+<listitem><para><bold>Pros:</bold><itemizedlist>
+<listitem><para>Modern, responsive design</para>
+</listitem><listitem><para>Fully customizable with Tailwind CSS</para>
+</listitem><listitem><para>Rich interactive components</para>
+</listitem><listitem><para>Better mobile experience</para>
+</listitem><listitem><para>Industry-standard web framework</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Cons:</bold><itemizedlist>
+<listitem><para>Requires frontend development knowledge</para>
+</listitem><listitem><para>More complex setup</para>
+</listitem><listitem><para>Requires separate backend API</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5582">
+<title>2. Features Comparison</title><para><table rows="13" cols="4"><row>
+<entry thead="yes"><para>Feature   </para>
+</entry><entry thead="yes"><para>Gradio   </para>
+</entry><entry thead="yes"><para>Next.js   </para>
+</entry><entry thead="yes"><para>Notes    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>3D Network Visualization</bold>   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>Both use Plotly    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Metrics Dashboard</bold>   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>Similar functionality    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Asset Explorer</bold>   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>Next.js has better filters    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Schema Report</bold>   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>❌   </para>
+</entry><entry thead="no"><para>Gradio-only feature    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Documentation Tab</bold>   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>❌   </para>
+</entry><entry thead="no"><para>Gradio-only feature    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>2D Visualization</bold>   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>❌   </para>
+</entry><entry thead="no"><para>Can be added to Next.js    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Formulaic Analysis</bold>   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>❌   </para>
+</entry><entry thead="no"><para>Can be added to Next.js    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Real-time Updates</bold>   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>⚠️   </para>
+</entry><entry thead="no"><para>Next.js needs WebSocket    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Export Features</bold>   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>⚠️   </para>
+</entry><entry thead="no"><para>Can be added to Next.js    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Responsive Mobile</bold>   </para>
+</entry><entry thead="no"><para>⚠️   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>Next.js is mobile-first    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Custom Branding</bold>   </para>
+</entry><entry thead="no"><para>⚠️   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>Next.js fully customizable    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>API Access</bold>   </para>
+</entry><entry thead="no"><para>❌   </para>
+</entry><entry thead="no"><para>✅   </para>
+</entry><entry thead="no"><para>Next.js exposes REST API   </para>
+</entry></row>
+</table>
+</para>
+<para>Legend: ✅ Fully supported | ⚠️ Partially supported | ❌ Not available</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5583">
+<title>3. Development Experience</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5584">
+<title>Gradio UI</title><para><bold>Setup Time</bold>: ~5 minutes</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+<codeline><highlight class="normal">source<sp/>.venv/bin/activate</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>app.py</highlight></codeline>
+</programlisting></para>
+<para><bold>Pros:</bold></para>
+<para><itemizedlist>
+<listitem><para>Single-language development (Python)</para>
+</listitem><listitem><para>Quick to prototype new features</para>
+</listitem><listitem><para>No build step required</para>
+</listitem><listitem><para>Hot reload built-in</para>
+</listitem><listitem><para>Easy to debug</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Cons:</bold></para>
+<para><itemizedlist>
+<listitem><para>Limited to Gradio&apos;s component library</para>
+</listitem><listitem><para>Harder to implement custom UI logic</para>
+</listitem><listitem><para>Less control over layout</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Best For:</bold></para>
+<para><itemizedlist>
+<listitem><para>Python developers</para>
+</listitem><listitem><para>Data scientists</para>
+</listitem><listitem><para>Quick demonstrations</para>
+</listitem><listitem><para>Internal tools</para>
+</listitem><listitem><para>Jupyter-like environments</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5585">
+<title>Next.js UI</title><para><bold>Setup Time</bold>: ~10 minutes</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Terminal<sp/>1:<sp/>Backend</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Terminal<sp/>2:<sp/>Frontend</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+</programlisting></para>
+<para><bold>Pros:</bold></para>
+<para><itemizedlist>
+<listitem><para>Full control over UI/UX</para>
+</listitem><listitem><para>Industry-standard tooling</para>
+</listitem><listitem><para>TypeScript for type safety</para>
+</listitem><listitem><para>Rich ecosystem of React components</para>
+</listitem><listitem><para>Better testing tools</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Cons:</bold></para>
+<para><itemizedlist>
+<listitem><para>Requires JavaScript/TypeScript knowledge</para>
+</listitem><listitem><para>More complex architecture</para>
+</listitem><listitem><para>Longer build times</para>
+</listitem><listitem><para>Two processes to manage</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Best For:</bold></para>
+<para><itemizedlist>
+<listitem><para>Web developers</para>
+</listitem><listitem><para>Production deployments</para>
+</listitem><listitem><para>Public-facing applications</para>
+</listitem><listitem><para>Custom branding requirements</para>
+</listitem><listitem><para>API-first architecture</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5586">
+<title>4. Performance</title><para><table rows="7" cols="4"><row>
+<entry thead="yes"><para>Aspect   </para>
+</entry><entry thead="yes"><para>Gradio   </para>
+</entry><entry thead="yes"><para>Next.js   </para>
+</entry><entry thead="yes"><para>Winner    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Initial Load Time</bold>   </para>
+</entry><entry thead="no"><para>~2-3s   </para>
+</entry><entry thead="no"><para>~1-2s   </para>
+</entry><entry thead="no"><para>Next.js    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Visualization Render</bold>   </para>
+</entry><entry thead="no"><para>Similar   </para>
+</entry><entry thead="no"><para>Similar   </para>
+</entry><entry thead="no"><para>Tie    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Memory Usage</bold>   </para>
+</entry><entry thead="no"><para>~500MB   </para>
+</entry><entry thead="no"><para>~300MB   </para>
+</entry><entry thead="no"><para>Next.js    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>API Response Time</bold>   </para>
+</entry><entry thead="no"><para>N/A   </para>
+</entry><entry thead="no"><para>~100-500ms   </para>
+</entry><entry thead="no"><para>N/A    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Scalability</bold>   </para>
+</entry><entry thead="no"><para>Moderate   </para>
+</entry><entry thead="no"><para>High   </para>
+</entry><entry thead="no"><para>Next.js    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Cold Start</bold>   </para>
+</entry><entry thead="no"><para>Fast   </para>
+</entry><entry thead="no"><para>Slow (serverless)   </para>
+</entry><entry thead="no"><para>Gradio   </para>
+</entry></row>
+</table>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5587">
+<title>5. Deployment Options</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5588">
+<title>Gradio UI</title><para><bold>Supported Platforms:</bold></para>
+<para><itemizedlist>
+<listitem><para>Docker containers</para>
+</listitem><listitem><para>Hugging Face Spaces</para>
+</listitem><listitem><para>Railway</para>
+</listitem><listitem><para>Render</para>
+</listitem><listitem><para>Any Python hosting</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Pros:</bold></para>
+<para><itemizedlist>
+<listitem><para>Simple deployment</para>
+</listitem><listitem><para>Single container</para>
+</listitem><listitem><para>Works on any Python host</para>
+</listitem><listitem><para>Easy to containerize</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Cons:</bold></para>
+<para><itemizedlist>
+<listitem><para>Limited scalability</para>
+</listitem><listitem><para>Requires Python runtime</para>
+</listitem><listitem><para>Less serverless-friendly</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Example Deployment:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">docker-compose<sp/>up<sp/>--build</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5589">
+<title>Next.js UI</title><para><bold>Supported Platforms:</bold></para>
+<para><itemizedlist>
+<listitem><para>Vercel (recommended)</para>
+</listitem><listitem><para>Netlify</para>
+</listitem><listitem><para>AWS Amplify</para>
+</listitem><listitem><para>Azure Static Web Apps</para>
+</listitem><listitem><para>Any Node.js hosting</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Pros:</bold></para>
+<para><itemizedlist>
+<listitem><para>Serverless-friendly</para>
+</listitem><listitem><para>Auto-scaling</para>
+</listitem><listitem><para>Global CDN</para>
+</listitem><listitem><para>Preview deployments</para>
+</listitem><listitem><para>GitHub integration</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Cons:</bold></para>
+<para><itemizedlist>
+<listitem><para>Requires two services (frontend + backend)</para>
+</listitem><listitem><para>More complex configuration</para>
+</listitem><listitem><para>Potential cold starts</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Example Deployment:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">vercel<sp/>--prod</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5590">
+<title>6. Use Cases</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5591">
+<title>When to Use Gradio UI</title><para><orderedlist>
+<listitem><para><bold>Internal Tools</bold>: For team use only</para>
+</listitem><listitem><para><bold>Prototyping</bold>: Quick demos and experiments</para>
+</listitem><listitem><para><bold>Data Science</bold>: Familiar environment for Python developers</para>
+</listitem><listitem><para><bold>Teaching</bold>: Educational demonstrations</para>
+</listitem><listitem><para><bold>Research</bold>: Academic projects</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5592">
+<title>When to Use Next.js UI</title><para><orderedlist>
+<listitem><para><bold>Production</bold>: Public-facing applications</para>
+</listitem><listitem><para><bold>Enterprise</bold>: Custom branding and features</para>
+</listitem><listitem><para><bold>Mobile</bold>: Mobile-first requirements</para>
+</listitem><listitem><para><bold>API Integration</bold>: Need to integrate with other services</para>
+</listitem><listitem><para><bold>Scalability</bold>: High-traffic scenarios</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5593">
+<title>7. Maintenance</title><para><table rows="6" cols="4"><row>
+<entry thead="yes"><para>Task   </para>
+</entry><entry thead="yes"><para>Gradio   </para>
+</entry><entry thead="yes"><para>Next.js   </para>
+</entry><entry thead="yes"><para>Notes    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Update Dependencies</bold>   </para>
+</entry><entry thead="no"><para><computeroutput>pip install -U</computeroutput>   </para>
+</entry><entry thead="no"><para><computeroutput>npm update</computeroutput>   </para>
+</entry><entry thead="no"><para>Similar effort    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Add New Feature</bold>   </para>
+</entry><entry thead="no"><para>Single file   </para>
+</entry><entry thead="no"><para>Multiple files   </para>
+</entry><entry thead="no"><para>Gradio simpler    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Bug Fixes</bold>   </para>
+</entry><entry thead="no"><para>Quick   </para>
+</entry><entry thead="no"><para>Moderate   </para>
+</entry><entry thead="no"><para>Gradio advantage    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>UI Customization</bold>   </para>
+</entry><entry thead="no"><para>Limited   </para>
+</entry><entry thead="no"><para>Extensive   </para>
+</entry><entry thead="no"><para>Next.js advantage    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><bold>Security Updates</bold>   </para>
+</entry><entry thead="no"><para>Python packages   </para>
+</entry><entry thead="no"><para>npm packages + Python   </para>
+</entry><entry thead="no"><para>Similar   </para>
+</entry></row>
+</table>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5594">
+<title>8. Cost Analysis</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5595">
+<title>Gradio UI</title><para><itemizedlist>
+<listitem><para><bold>Hosting</bold>: $10-30/month (basic VM)</para>
+</listitem><listitem><para><bold>Scaling</bold>: Manual, requires bigger VM</para>
+</listitem><listitem><para><bold>Total</bold>: ~$10-50/month</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5596">
+<title>Next.js UI</title><para><itemizedlist>
+<listitem><para><bold>Hosting</bold>:<itemizedlist>
+<listitem><para>Vercel: Free tier available, $20+/month for teams</para>
+</listitem><listitem><para>Backend: $0-10/month (serverless)</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Scaling</bold>: Automatic, pay per use</para>
+</listitem><listitem><para><bold>Total</bold>: ~$0-30/month (starts free)</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5597">
+<title>9. Learning Curve</title><para><programlisting><codeline><highlight class="normal">Easy<sp/>───────────────────────────────────────<sp/>Hard</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Gradio<sp/>UI<sp/>(Python<sp/>developers)</highlight></codeline>
+<codeline><highlight class="normal">├─────────┤</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Next.js<sp/>UI<sp/>(Python<sp/>developers)</highlight></codeline>
+<codeline><highlight class="normal">├──────────────────────────────┤</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Next.js<sp/>UI<sp/>(JavaScript<sp/>developers)</highlight></codeline>
+<codeline><highlight class="normal">├────────────┤</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Gradio<sp/>UI<sp/>(JavaScript<sp/>developers)</highlight></codeline>
+<codeline><highlight class="normal">├──────────────────┤</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5598">
+<title>10. Future Roadmap</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5599">
+<title>Gradio UI</title><para><itemizedlist>
+<listitem><para>✅ Stable and feature-complete</para>
+</listitem><listitem><para>✅ Maintained for backward compatibility</para>
+</listitem><listitem><para>⚠️ Limited new features planned</para>
+</listitem><listitem><para>✅ Recommended for existing users</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5600">
+<title>Next.js UI</title><para><itemizedlist>
+<listitem><para>🚀 Active development</para>
+</listitem><listitem><para>🚀 New features being added</para>
+</listitem><listitem><para>🚀 Modern architecture</para>
+</listitem><listitem><para>🚀 Recommended for new projects</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5601">
+<title>Migration Path</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5602">
+<title>From Gradio to Next.js</title><para><orderedlist>
+<listitem><para><bold>Phase 1</bold>: Deploy both UIs in parallel</para>
+</listitem><listitem><para><bold>Phase 2</bold>: Gather user feedback on Next.js</para>
+</listitem><listitem><para><bold>Phase 3</bold>: Migrate users gradually</para>
+</listitem><listitem><para><bold>Phase 4</bold>: Deprecate Gradio if desired</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5603">
+<title>Feature Parity Roadmap</title><para>To achieve feature parity with Gradio:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Add Schema Report endpoint and UI</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Add Documentation tab</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Add 2D Visualization support</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Add Formulaic Analysis</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Add Export features</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Add real-time updates</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5604">
+<title>Recommendation</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5605">
+<title>Choose Gradio UI if:</title><para><itemizedlist>
+<listitem><para>✅ You&apos;re primarily a Python developer</para>
+</listitem><listitem><para>✅ You need quick prototyping</para>
+</listitem><listitem><para>✅ It&apos;s an internal tool</para>
+</listitem><listitem><para>✅ You want minimal setup</para>
+</listitem><listitem><para>✅ You prefer single-language development</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5606">
+<title>Choose Next.js UI if:</title><para><itemizedlist>
+<listitem><para>✅ You need a production-ready application</para>
+</listitem><listitem><para>✅ You want modern UI/UX</para>
+</listitem><listitem><para>✅ You need mobile support</para>
+</listitem><listitem><para>✅ You want API access</para>
+</listitem><listitem><para>✅ You need custom branding</para>
+</listitem><listitem><para>✅ You plan to scale</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5607">
+<title>Hybrid Approach (Recommended)</title><para>You don&apos;t have to choose! Both UIs can coexist:</para>
+<para><orderedlist>
+<listitem><para><bold>Development</bold>: Use Gradio for quick experiments</para>
+</listitem><listitem><para><bold>Production</bold>: Deploy Next.js for end users</para>
+</listitem><listitem><para><bold>API</bold>: Next.js backend serves both UIs</para>
+</listitem><listitem><para><bold>Flexibility</bold>: Switch between UIs as needed</para>
+</listitem></orderedlist>
+</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Use<sp/>Gradio<sp/>for<sp/>development</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>app.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Use<sp/>Next.js<sp/>for<sp/>production</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_1autotoc_md5608">
+<title>Conclusion</title><para>Both UIs are powerful and serve different purposes:</para>
+<para><itemizedlist>
+<listitem><para><bold>Gradio</bold>: Perfect for Python-centric workflows and rapid development</para>
+</listitem><listitem><para><bold>Next.js</bold>: Ideal for production deployments and modern web applications</para>
+</listitem></itemizedlist>
+</para>
+<para>Choose based on your specific needs, or use both!</para>
+<para><hruler/>
+</para>
+<para>For more information:</para>
+<para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START" kindref="compound">QUICK_START.md</ref> - Getting started</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref> - Deployment guide</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE" kindref="compound">ARCHITECTURE.md</ref> - Technical architecture </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/UI_COMPARISON.md"/>
+  </compounddef>
+</doxygen>

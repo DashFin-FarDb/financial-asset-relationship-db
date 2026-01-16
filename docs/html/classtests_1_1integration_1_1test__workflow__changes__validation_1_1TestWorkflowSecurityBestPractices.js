@@ -1,0 +1,5 @@
+var classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices =
+[
+    [ "test_workflows_limit_github_token_permissions", "classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices.html#a069be9218be78086ee299dcd3155989a", null ],
+    [ "test_workflows_use_pinned_action_versions", "classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices.html#aa425b563587bdb07ff0b22c2050d4e40", null ]
+];

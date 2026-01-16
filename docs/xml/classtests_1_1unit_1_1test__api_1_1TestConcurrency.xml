@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api_1_1TestConcurrency" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api::TestConcurrency</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestConcurrency_1aca3cc0a795591cdc72e49ba082014482" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestConcurrency.test_multiple_concurrent_requests</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_multiple_concurrent_requests</name>
+        <qualifiedname>tests.unit.test_api.TestConcurrency.test_multiple_concurrent_requests</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling multiple concurrent requests.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="602" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="602" bodyend="621"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test concurrent request handling.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api.TestConcurrency</label>
+        <link refid="classtests_1_1unit_1_1test__api_1_1TestConcurrency"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="598" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="598" bodyend="621"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestConcurrency_1aca3cc0a795591cdc72e49ba082014482" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestConcurrency</scope><name>test_multiple_concurrent_requests</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

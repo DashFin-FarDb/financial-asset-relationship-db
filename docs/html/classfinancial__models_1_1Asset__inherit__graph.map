@@ -1,0 +1,11 @@
+<map id="financial_models.Asset" name="financial_models.Asset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="320,5,484,171"/>
+<area shape="rect" id="Node000002" href="$classfinancial__models_1_1Bond.html" title=" " alt="" coords="5,219,167,364"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="309,142,179,221,168,229,165,224,177,216,306,138"/>
+<area shape="rect" id="Node000003" href="$classfinancial__models_1_1Commodity.html" title=" " alt="" coords="191,239,395,344"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="353,184,323,240,318,237,349,182"/>
+<area shape="rect" id="Node000004" href="$classfinancial__models_1_1Currency.html" title=" " alt="" coords="419,239,606,344"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="456,182,487,237,482,240,451,184"/>
+<area shape="rect" id="Node000005" href="$classfinancial__models_1_1Equity.html" title=" " alt="" coords="631,229,800,354"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="497,141,619,216,634,226,631,231,617,221,494,145"/>
+</map>

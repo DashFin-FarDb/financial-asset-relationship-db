@@ -1,0 +1,242 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="BRANCH__CLEANUP__QUICK__REFERENCE_8md" kind="file" language="Markdown">
+    <compoundname>BRANCH_CLEANUP_QUICK_REFERENCE.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Branch<sp/>Cleanup<sp/>Quick<sp/>Reference</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Quick<sp/>commands<sp/>and<sp/>procedures<sp/>for<sp/>maintaining<sp/>a<sp/>clean<sp/>repository.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🚀<sp/>Quick<sp/>Start</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>automated<sp/>cleanup<sp/>script</highlight></codeline>
+<codeline><highlight class="normal">chmod<sp/>+x<sp/>cleanup-branches.sh</highlight></codeline>
+<codeline><highlight class="normal">./cleanup-branches.sh</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>📋<sp/>Common<sp/>Commands</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>View<sp/>Branches</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>List<sp/>all<sp/>local<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-a</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>List<sp/>branches<sp/>with<sp/>last<sp/>commit<sp/>info</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-vv</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>List<sp/>remote<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-r</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Show<sp/>merged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--merged<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Show<sp/>unmerged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--no-merged<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Delete<sp/>Branches</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Delete<sp/>local<sp/>branch<sp/>(safe<sp/>-<sp/>only<sp/>if<sp/>merged)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-d<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Force<sp/>delete<sp/>local<sp/>branch<sp/>(use<sp/>with<sp/>caution)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-D<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Delete<sp/>remote<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>--delete<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Delete<sp/>multiple<sp/>local<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--merged<sp/>main<sp/>|<sp/>grep<sp/>-v<sp/>&quot;^\*&quot;<sp/>|<sp/>grep<sp/>-v<sp/>&quot;main&quot;<sp/>|<sp/>xargs<sp/>-r<sp/>git<sp/>branch<sp/>-d</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Cleanup<sp/>Remote<sp/>References</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Remove<sp/>stale<sp/>remote-tracking<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>fetch<sp/>--prune</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>use<sp/>the<sp/>shorthand</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>fetch<sp/>-p</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Remove<sp/>all<sp/>remote-tracking<sp/>branches<sp/>that<sp/>no<sp/>longer<sp/>exist</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>remote<sp/>prune<sp/>origin</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Check<sp/>Branch<sp/>Status</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Show<sp/>branches<sp/>and<sp/>their<sp/>tracking<sp/>status</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-vv</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Show<sp/>last<sp/>commit<sp/>date<sp/>for<sp/>each<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>for-each-ref<sp/>--sort=-committerdate<sp/>refs/heads/<sp/>--format=&apos;%(committerdate:short)<sp/>%(refname:short)&apos;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Find<sp/>branches<sp/>older<sp/>than<sp/>90<sp/>days</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>for-each-ref<sp/>--sort=-committerdate<sp/>refs/heads/<sp/>--format=&apos;%(committerdate:short)<sp/>%(refname:short)&apos;<sp/>|<sp/>awk<sp/>&apos;$1<sp/>&lt;<sp/>&quot;&apos;$(date<sp/>-d<sp/>&apos;90<sp/>days<sp/>ago&apos;<sp/>+%Y-%m-%d)&apos;&quot;&apos;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🔍<sp/>Branch<sp/>Analysis</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Check<sp/>if<sp/>Branch<sp/>is<sp/>Merged</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>if<sp/>branch<sp/>is<sp/>merged<sp/>into<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--merged<sp/>main<sp/>|<sp/>grep<sp/>branch-name</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>commits<sp/>unique<sp/>to<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>log<sp/>main..branch-name<sp/>--oneline</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>if<sp/>branch<sp/>has<sp/>unique<sp/>commits</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>cherry<sp/>-v<sp/>main<sp/>branch-name</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Find<sp/>Stale<sp/>Branches</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Branches<sp/>with<sp/>no<sp/>commits<sp/>in<sp/>last<sp/>90<sp/>days</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>branch<sp/>in<sp/>$(git<sp/>branch<sp/>|<sp/>sed<sp/>&apos;s/^..//&apos;);<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[<sp/>&quot;$branch&quot;<sp/>!=<sp/>&quot;main&quot;<sp/>];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>last_commit=$(git<sp/>log<sp/>-1<sp/>--format=%ci<sp/>&quot;$branch&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>echo<sp/>&quot;$branch:<sp/>$last_commit&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal">done</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>⚠️<sp/>Safety<sp/>Checks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Before<sp/>deleting<sp/>any<sp/>branch:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Verify<sp/>it&apos;s<sp/>merged**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>git<sp/>branch<sp/>--merged<sp/>main<sp/>|<sp/>grep<sp/>branch-name</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Check<sp/>for<sp/>unique<sp/>commits**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>git<sp/>log<sp/>main..branch-name</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Ensure<sp/>no<sp/>active<sp/>work**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>git<sp/>log<sp/>-1<sp/>branch-name</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Check<sp/>PR<sp/>status**<sp/>on<sp/>GitHub</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🤖<sp/>Automated<sp/>Workflow</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>repository<sp/>includes<sp/>an<sp/>automated<sp/>workflow<sp/>that<sp/>runs<sp/>weekly:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Location**:<sp/>`.github/workflows/branch-cleanup.yml`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Schedule**:<sp/>Every<sp/>Monday<sp/>at<sp/>9<sp/>AM<sp/>UTC</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Manual<sp/>trigger**:<sp/>Actions<sp/>tab<sp/>→<sp/>&quot;Branch<sp/>Cleanup<sp/>Report&quot;<sp/>→<sp/>&quot;Run<sp/>workflow&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>📝<sp/>Branch<sp/>Naming<sp/>Conventions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Use<sp/>descriptive<sp/>branch<sp/>names:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`feature/description`<sp/>-<sp/>New<sp/>features</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`fix/description`<sp/>-<sp/>Bug<sp/>fixes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`docs/description`<sp/>-<sp/>Documentation<sp/>updates</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`refactor/description`<sp/>-<sp/>Code<sp/>refactoring</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test/description`<sp/>-<sp/>Test<sp/>additions/updates</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`chore/description`<sp/>-<sp/>Maintenance<sp/>tasks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🎯<sp/>Best<sp/>Practices</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>For<sp/>Contributors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>✅<sp/>Create<sp/>branches<sp/>from<sp/>`main`</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>✅<sp/>Keep<sp/>branches<sp/>short-lived<sp/>(&lt;<sp/>2<sp/>weeks)</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>✅<sp/>Sync<sp/>with<sp/>main<sp/>regularly</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>✅<sp/>Delete<sp/>after<sp/>merge</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>✅<sp/>Use<sp/>descriptive<sp/>names</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>For<sp/>Maintainers</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>✅<sp/>Review<sp/>PRs<sp/>promptly</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>✅<sp/>Merge<sp/>or<sp/>close<sp/>stale<sp/>PRs</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>✅<sp/>Delete<sp/>merged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>✅<sp/>Run<sp/>cleanup<sp/>script<sp/>monthly</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>✅<sp/>Monitor<sp/>branch<sp/>count</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🔧<sp/>Troubleshooting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Branch<sp/>Won&apos;t<sp/>Delete</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>If<sp/>branch<sp/>has<sp/>unmerged<sp/>commits</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-D<sp/>branch-name<sp/><sp/>#<sp/>Force<sp/>delete<sp/>(careful!)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>If<sp/>remote<sp/>branch<sp/>won&apos;t<sp/>delete</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>--delete<sp/>branch-name<sp/>--force</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Restore<sp/>Deleted<sp/>Branch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Find<sp/>the<sp/>commit<sp/>SHA</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>reflog</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Recreate<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>branch-name<sp/>&lt;commit-sha&gt;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Sync<sp/>Fork<sp/>with<sp/>Upstream</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Add<sp/>upstream<sp/>remote<sp/>(if<sp/>not<sp/>already<sp/>added)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>remote<sp/>add<sp/>upstream<sp/>https://github.com/original/repo.git</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Fetch<sp/>upstream<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>fetch<sp/>upstream</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Merge<sp/>upstream<sp/>main<sp/>into<sp/>your<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>checkout<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>merge<sp/>upstream/main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Push<sp/>to<sp/>your<sp/>fork</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>📊<sp/>Repository<sp/>Health<sp/>Metrics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Target<sp/>metrics<sp/>for<sp/>a<sp/>healthy<sp/>repository:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>branches**:<sp/>&lt;<sp/>10</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Stale<sp/>branches**<sp/>(90+<sp/>days):<sp/>0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Merged<sp/>but<sp/>not<sp/>deleted**:<sp/>0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Open<sp/>PRs**:<sp/>&lt;<sp/>5</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Average<sp/>branch<sp/>age**:<sp/>&lt;<sp/>30<sp/>days</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🔗<sp/>Related<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[BRANCH_CLEANUP_ANALYSIS.md](BRANCH_CLEANUP_ANALYSIS.md)<sp/>-<sp/>Detailed<sp/>analysis</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[BRANCH_CLEANUP_SUMMARY.md](BRANCH_CLEANUP_SUMMARY.md)<sp/>-<sp/>Executive<sp/>summary</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[CONTRIBUTING.md](CONTRIBUTING.md)<sp/>-<sp/>Full<sp/>contributing<sp/>guidelines</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>💡<sp/>Tips</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Use<sp/>`git<sp/>fetch<sp/>--prune`<sp/>regularly<sp/>to<sp/>clean<sp/>up<sp/>remote<sp/>references</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Enable<sp/>&quot;Automatically<sp/>delete<sp/>head<sp/>branches&quot;<sp/>in<sp/>GitHub<sp/>repository<sp/>settings</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Set<sp/>up<sp/>branch<sp/>protection<sp/>rules<sp/>for<sp/>`main`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Use<sp/>the<sp/>automated<sp/>workflow<sp/>to<sp/>stay<sp/>informed</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Review<sp/>branches<sp/>monthly,<sp/>not<sp/>just<sp/>when<sp/>they<sp/>become<sp/>a<sp/>problem</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Quick<sp/>Help**:<sp/>Run<sp/>`./cleanup-branches.sh`<sp/>for<sp/>an<sp/>interactive<sp/>cleanup<sp/>session</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/BRANCH_CLEANUP_QUICK_REFERENCE.md"/>
+  </compounddef>
+</doxygen>

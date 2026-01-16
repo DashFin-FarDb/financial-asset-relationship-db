@@ -1,0 +1,274 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_database_memory::TestIsMemoryDb</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a2f1d10912b8dc0c2259409d35093f481" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_literal_memory</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_is_memory_db_with_literal_memory</name>
+        <qualifiedname>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_literal_memory</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _is_memory_db returns True for literal &apos;:memory:&apos; string.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="114" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="116" bodyend="123"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a6ec0aa025765c27e2677fb1bab417b5f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_file_uri_memory</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_is_memory_db_with_file_uri_memory</name>
+        <qualifiedname>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_file_uri_memory</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _is_memory_db returns True for file::memory: URI format.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="124" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="126" bodyend="136"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1ab16c9157e8d312ac2b58843aa3c9dc3d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_regular_file_path</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_is_memory_db_with_regular_file_path</name>
+        <qualifiedname>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_regular_file_path</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _is_memory_db returns False for regular file paths.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="137" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="139" bodyend="145"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a52833aa2e99e167999eeab8afa9df292" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_file_prefix_but_not_memory</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_is_memory_db_with_file_prefix_but_not_memory</name>
+        <qualifiedname>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_file_prefix_but_not_memory</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _is_memory_db returns False for file: URIs that aren&apos;t memory databases.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="146" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="148" bodyend="153"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a0c6583badcc8faedbda70e47d8c1f9fd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_memory_in_path_but_not_memory_db</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_is_memory_db_with_memory_in_path_but_not_memory_db</name>
+        <qualifiedname>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_memory_in_path_but_not_memory_db</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _is_memory_db returns False when &apos;memory&apos; appears in path but it&apos;s not a memory DB.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="154" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="156" bodyend="162"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a8176a8dd03468294923a7f331406df84" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_none_uses_module_database_path</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_is_memory_db_with_none_uses_module_database_path</name>
+        <qualifiedname>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_none_uses_module_database_path</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _is_memory_db with None parameter uses the module&apos;s DATABASE_PATH.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="163" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="165" bodyend="173"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1afc538add4b7628344549e5ee4c41e68b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_empty_string</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_is_memory_db_with_empty_string</name>
+        <qualifiedname>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_empty_string</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _is_memory_db returns False for empty string.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="174" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="174" bodyend="177"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1ac0541dc2bf868c9c5e2601dedf02bfc2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_various_uri_formats</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_is_memory_db_with_various_uri_formats</name>
+        <qualifiedname>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_with_various_uri_formats</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test _is_memory_db with various URI-style memory database formats.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="178" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="180" bodyend="203"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a85631e1e8285ce1174b9b34ef5d67be5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_case_sensitivity</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_is_memory_db_case_sensitivity</name>
+        <qualifiedname>tests.unit.test_database_memory.TestIsMemoryDb.test_is_memory_db_case_sensitivity</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _is_memory_db is case-sensitive.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="204" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="204" bodyend="211"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive tests for the _is_memory_db function.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_database_memory.TestIsMemoryDb</label>
+        <link refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="111" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="111" bodyend="211"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a85631e1e8285ce1174b9b34ef5d67be5" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestIsMemoryDb</scope><name>test_is_memory_db_case_sensitivity</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1afc538add4b7628344549e5ee4c41e68b" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestIsMemoryDb</scope><name>test_is_memory_db_with_empty_string</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a52833aa2e99e167999eeab8afa9df292" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestIsMemoryDb</scope><name>test_is_memory_db_with_file_prefix_but_not_memory</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a6ec0aa025765c27e2677fb1bab417b5f" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestIsMemoryDb</scope><name>test_is_memory_db_with_file_uri_memory</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a2f1d10912b8dc0c2259409d35093f481" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestIsMemoryDb</scope><name>test_is_memory_db_with_literal_memory</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a0c6583badcc8faedbda70e47d8c1f9fd" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestIsMemoryDb</scope><name>test_is_memory_db_with_memory_in_path_but_not_memory_db</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1a8176a8dd03468294923a7f331406df84" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestIsMemoryDb</scope><name>test_is_memory_db_with_none_uses_module_database_path</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1ab16c9157e8d312ac2b58843aa3c9dc3d" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestIsMemoryDb</scope><name>test_is_memory_db_with_regular_file_path</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb_1ac0541dc2bf868c9c5e2601dedf02bfc2" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestIsMemoryDb</scope><name>test_is_memory_db_with_various_uri_formats</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

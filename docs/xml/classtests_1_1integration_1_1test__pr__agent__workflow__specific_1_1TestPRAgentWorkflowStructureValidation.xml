@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_pr_agent_workflow_specific::TestPRAgentWorkflowStructureValidation</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a1015b610f5004775020249ce50b3cbb6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.workflow_content</definition>
+        <argsstring>(self)</argsstring>
+        <name>workflow_content</name>
+        <qualifiedname>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.workflow_content</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load and parse the repository&apos;s pr-agent GitHub Actions workflow YAML.
+
+Returns:
+    dict: The workflow content parsed from .github/workflows/pr-agent.yml as a mapping of YAML keys to Python objects.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" line="113" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" bodystart="113" bodyend="122"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1aece9f3b7e7449ed564e73449242ebb65" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_has_pr_agent_trigger_job</definition>
+        <argsstring>(self, Dict[str, Any] workflow_content)</argsstring>
+        <name>test_has_pr_agent_trigger_job</name>
+        <qualifiedname>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_has_pr_agent_trigger_job</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_content</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify the workflow defines a top-level job named &quot;pr-agent-trigger&quot;.
+
+Parameters:
+    workflow_content (Dict[str, Any]): Parsed YAML content of the workflow file.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" line="123" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" bodystart="123" bodyend="134"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1ac1af4bbff2009e09cdb1ca4d8126db80" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_has_auto_merge_check_job</definition>
+        <argsstring>(self, Dict[str, Any] workflow_content)</argsstring>
+        <name>test_has_auto_merge_check_job</name>
+        <qualifiedname>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_has_auto_merge_check_job</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_content</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow has the auto-merge-check job.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" line="135" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" bodystart="135" bodyend="140"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a3817dab7ccaf38eb423982f73dcb5e8f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_has_dependency_update_job</definition>
+        <argsstring>(self, Dict[str, Any] workflow_content)</argsstring>
+        <name>test_has_dependency_update_job</name>
+        <qualifiedname>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_has_dependency_update_job</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_content</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow has the dependency-update job.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" line="141" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" bodystart="141" bodyend="146"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a8656f92731ae66f0a098e00e28a4f847" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_trigger_on_pr_events</definition>
+        <argsstring>(self, Dict[str, Any] workflow_content)</argsstring>
+        <name>test_trigger_on_pr_events</name>
+        <qualifiedname>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_trigger_on_pr_events</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_content</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow triggers on appropriate PR events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" line="147" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" bodystart="147" bodyend="162"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a2ae56d40a0ebf17b124209b1a1fd9177" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_trigger_on_pr_review</definition>
+        <argsstring>(self, Dict[str, Any] workflow_content)</argsstring>
+        <name>test_trigger_on_pr_review</name>
+        <qualifiedname>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_trigger_on_pr_review</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_content</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow triggers on PR review events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" line="163" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" bodystart="163" bodyend="169"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a726db0ae937c6bcd5ff633b32f3dbb89" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_trigger_on_issue_comment</definition>
+        <argsstring>(self, Dict[str, Any] workflow_content)</argsstring>
+        <name>test_trigger_on_issue_comment</name>
+        <qualifiedname>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation.test_trigger_on_issue_comment</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_content</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that the workflow includes an `issue_comment` trigger (used for @copilot mentions).
+
+Parameters:
+    workflow_content (Dict[str, Any]): Parsed workflow YAML as a dictionary.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" line="170" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" bodystart="170" bodyend="182"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Validate the overall structure of pr-agent.yml.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_pr_agent_workflow_specific.TestPRAgentWorkflowStructureValidation</label>
+        <link refid="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" line="109" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_workflow_specific.py" bodystart="109" bodyend="182"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1ac1af4bbff2009e09cdb1ca4d8126db80" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_workflow_specific::TestPRAgentWorkflowStructureValidation</scope><name>test_has_auto_merge_check_job</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a3817dab7ccaf38eb423982f73dcb5e8f" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_workflow_specific::TestPRAgentWorkflowStructureValidation</scope><name>test_has_dependency_update_job</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1aece9f3b7e7449ed564e73449242ebb65" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_workflow_specific::TestPRAgentWorkflowStructureValidation</scope><name>test_has_pr_agent_trigger_job</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a726db0ae937c6bcd5ff633b32f3dbb89" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_workflow_specific::TestPRAgentWorkflowStructureValidation</scope><name>test_trigger_on_issue_comment</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a8656f92731ae66f0a098e00e28a4f847" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_workflow_specific::TestPRAgentWorkflowStructureValidation</scope><name>test_trigger_on_pr_events</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a2ae56d40a0ebf17b124209b1a1fd9177" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_workflow_specific::TestPRAgentWorkflowStructureValidation</scope><name>test_trigger_on_pr_review</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowStructureValidation_1a1015b610f5004775020249ce50b3cbb6" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_workflow_specific::TestPRAgentWorkflowStructureValidation</scope><name>workflow_content</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

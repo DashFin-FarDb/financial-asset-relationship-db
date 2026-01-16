@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataReproducibility" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_sample_data::TestSampleDataReproducibility</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataReproducibility_1a04c168f10882ac45fea418b4538a42eb" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDataReproducibility.test_multiple_calls_produce_consistent_asset_count</definition>
+        <argsstring>()</argsstring>
+        <name>test_multiple_calls_produce_consistent_asset_count</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDataReproducibility.test_multiple_calls_produce_consistent_asset_count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that multiple calls produce same number of assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="358" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="358" bodyend="364"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataReproducibility_1a1fabc15aae6f058b58a9db1412c5148d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDataReproducibility.test_multiple_calls_produce_same_asset_ids</definition>
+        <argsstring>()</argsstring>
+        <name>test_multiple_calls_produce_same_asset_ids</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDataReproducibility.test_multiple_calls_produce_same_asset_ids</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that multiple calls produce same asset IDs.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="366" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="366" bodyend="376"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for sample data reproducibility.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_sample_data.TestSampleDataReproducibility</label>
+        <link refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataReproducibility"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="354" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="354" bodyend="376"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataReproducibility_1a04c168f10882ac45fea418b4538a42eb" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDataReproducibility</scope><name>test_multiple_calls_produce_consistent_asset_count</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataReproducibility_1a1fabc15aae6f058b58a9db1412c5148d" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDataReproducibility</scope><name>test_multiple_calls_produce_same_asset_ids</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,164 @@
+\doxysection{db\+\_\+models.\+Asset\+Relationship\+ORM Class Reference}
+\hypertarget{classdb__models_1_1AssetRelationshipORM}{}\label{classdb__models_1_1AssetRelationshipORM}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+
+
+Inheritance diagram for db\+\_\+models.\+Asset\+Relationship\+ORM\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=258pt]{classdb__models_1_1AssetRelationshipORM__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for db\+\_\+models.\+Asset\+Relationship\+ORM\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classdb__models_1_1AssetRelationshipORM__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_ad04928e9bba81d475082ea29ff8cf364}{id}} = mapped\+\_\+column(Integer, primary\+\_\+key=True, autoincrement=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_ad92fb25792b45f88a04070f72897df7d}{source\+\_\+asset\+\_\+id}}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_aa49af28c0dd90d712a22977b221bdfda}{target\+\_\+asset\+\_\+id}}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_a3866aa21a2115178cbca31c0ebb0e23f}{relationship\+\_\+type}} = mapped\+\_\+column(String, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_a32fc27baf44240e3fc4467fd7e8a0817}{strength}} = mapped\+\_\+column(Float, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_a0a03c88549b119b471ad8d5016ecc695}{bidirectional}} = mapped\+\_\+column(Boolean, default=False, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_ab767df7c180d93da946cffb10a2e509a}{source}}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_a4fe795df5db7238e49e1ba52d45ac07d}{target}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_a8b580eca7c5bd3d11c9036668ea680c3}{\+\_\+\+\_\+tablename\+\_\+\+\_\+}} = "{}asset\+\_\+relationships"{}
+\item 
+tuple \mbox{\hyperlink{classdb__models_1_1AssetRelationshipORM_aa6a86d8ebcccc265a349df1fa1abe5d9}{\+\_\+\+\_\+table\+\_\+args\+\_\+\+\_\+}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Stores directed relationships between assets.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_aa6a86d8ebcccc265a349df1fa1abe5d9}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!\_\_table\_args\_\_@{\_\_table\_args\_\_}}
+\index{\_\_table\_args\_\_@{\_\_table\_args\_\_}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{\_\_table\_args\_\_}{\_\_table\_args\_\_}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_aa6a86d8ebcccc265a349df1fa1abe5d9} 
+tuple db\+\_\+models.\+Asset\+Relationship\+ORM.\+\_\+\+\_\+table\+\_\+args\+\_\+\+\_\+\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ (}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ UniqueConstraint(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}source\_asset\_id"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target\_asset\_id"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}relationship\_type"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ name=\textcolor{stringliteral}{"{}uq\_relationship"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_a8b580eca7c5bd3d11c9036668ea680c3}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!\_\_tablename\_\_@{\_\_tablename\_\_}}
+\index{\_\_tablename\_\_@{\_\_tablename\_\_}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{\_\_tablename\_\_}{\_\_tablename\_\_}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_a8b580eca7c5bd3d11c9036668ea680c3} 
+str db\+\_\+models.\+Asset\+Relationship\+ORM.\+\_\+\+\_\+tablename\+\_\+\+\_\+ = "{}asset\+\_\+relationships"{}\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_a0a03c88549b119b471ad8d5016ecc695}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!bidirectional@{bidirectional}}
+\index{bidirectional@{bidirectional}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{bidirectional}{bidirectional}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_a0a03c88549b119b471ad8d5016ecc695} 
+Mapped db\+\_\+models.\+Asset\+Relationship\+ORM.\+bidirectional = mapped\+\_\+column(Boolean, default=False, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_ad04928e9bba81d475082ea29ff8cf364}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!id@{id}}
+\index{id@{id}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{id}{id}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_ad04928e9bba81d475082ea29ff8cf364} 
+Mapped db\+\_\+models.\+Asset\+Relationship\+ORM.\+id = mapped\+\_\+column(Integer, primary\+\_\+key=True, autoincrement=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_a3866aa21a2115178cbca31c0ebb0e23f}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!relationship\_type@{relationship\_type}}
+\index{relationship\_type@{relationship\_type}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{relationship\_type}{relationship\_type}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_a3866aa21a2115178cbca31c0ebb0e23f} 
+Mapped db\+\_\+models.\+Asset\+Relationship\+ORM.\+relationship\+\_\+type = mapped\+\_\+column(String, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_ab767df7c180d93da946cffb10a2e509a}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!source@{source}}
+\index{source@{source}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{source}{source}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_ab767df7c180d93da946cffb10a2e509a} 
+Mapped db\+\_\+models.\+Asset\+Relationship\+ORM.\+source\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ relationship(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}AssetORM"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ foreign\_keys=[source\_asset\_id],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ back\_populates=\textcolor{stringliteral}{"{}outgoing\_relationships"{}},}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_ad92fb25792b45f88a04070f72897df7d}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!source\_asset\_id@{source\_asset\_id}}
+\index{source\_asset\_id@{source\_asset\_id}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{source\_asset\_id}{source\_asset\_id}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_ad92fb25792b45f88a04070f72897df7d} 
+Mapped db\+\_\+models.\+Asset\+Relationship\+ORM.\+source\+\_\+asset\+\_\+id\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ mapped\_column(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ForeignKey(\textcolor{stringliteral}{"{}assets.id"{}},\ ondelete=\textcolor{stringliteral}{"{}CASCADE"{}}),\ nullable=\textcolor{keyword}{False}}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_a32fc27baf44240e3fc4467fd7e8a0817}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!strength@{strength}}
+\index{strength@{strength}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{strength}{strength}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_a32fc27baf44240e3fc4467fd7e8a0817} 
+Mapped db\+\_\+models.\+Asset\+Relationship\+ORM.\+strength = mapped\+\_\+column(Float, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_a4fe795df5db7238e49e1ba52d45ac07d}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!target@{target}}
+\index{target@{target}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{target}{target}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_a4fe795df5db7238e49e1ba52d45ac07d} 
+Mapped db\+\_\+models.\+Asset\+Relationship\+ORM.\+target\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ relationship(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}AssetORM"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ foreign\_keys=[target\_asset\_id],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ back\_populates=\textcolor{stringliteral}{"{}incoming\_relationships"{}},}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classdb__models_1_1AssetRelationshipORM_aa49af28c0dd90d712a22977b221bdfda}\index{db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}!target\_asset\_id@{target\_asset\_id}}
+\index{target\_asset\_id@{target\_asset\_id}!db\_models.AssetRelationshipORM@{db\_models.AssetRelationshipORM}}
+\doxysubsubsection{\texorpdfstring{target\_asset\_id}{target\_asset\_id}}
+{\footnotesize\ttfamily \label{classdb__models_1_1AssetRelationshipORM_aa49af28c0dd90d712a22977b221bdfda} 
+Mapped db\+\_\+models.\+Asset\+Relationship\+ORM.\+target\+\_\+asset\+\_\+id\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ mapped\_column(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ForeignKey(\textcolor{stringliteral}{"{}assets.id"{}},\ ondelete=\textcolor{stringliteral}{"{}CASCADE"{}}),\ nullable=\textcolor{keyword}{False}}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/src/data/\mbox{\hyperlink{db__models_8py}{db\+\_\+models.\+py}}\end{DoxyCompactItemize}

@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api_1_1TestEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api::TestEdgeCases</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestEdgeCases_1a6e8ced8ba5823678d79fb1cb9712a6e2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestEdgeCases.test_empty_graph</definition>
+        <argsstring>(self, mock_graph_instance, client)</argsstring>
+        <name>test_empty_graph</name>
+        <qualifiedname>tests.unit.test_api.TestEdgeCases.test_empty_graph</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of empty graph.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="555" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="555" bodyend="570"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestEdgeCases_1a04b31e45a258cdf08fd004e24e2fa995" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestEdgeCases.test_special_characters_in_asset_id</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_special_characters_in_asset_id</name>
+        <qualifiedname>tests.unit.test_api.TestEdgeCases.test_special_characters_in_asset_id</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of special characters in asset IDs.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="572" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="572" bodyend="583"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestEdgeCases_1af2065a5abd8edb9a3a3a25e25b424d92" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestEdgeCases.test_filter_no_matches</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_filter_no_matches</name>
+        <qualifiedname>tests.unit.test_api.TestEdgeCases.test_filter_no_matches</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test filter that returns no results.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="585" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="585" bodyend="597"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases and error conditions.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api.TestEdgeCases</label>
+        <link refid="classtests_1_1unit_1_1test__api_1_1TestEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="551" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="551" bodyend="597"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestEdgeCases_1a6e8ced8ba5823678d79fb1cb9712a6e2" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestEdgeCases</scope><name>test_empty_graph</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestEdgeCases_1af2065a5abd8edb9a3a3a25e25b424d92" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestEdgeCases</scope><name>test_filter_no_matches</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestEdgeCases_1a04b31e45a258cdf08fd004e24e2fa995" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestEdgeCases</scope><name>test_special_characters_in_asset_id</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

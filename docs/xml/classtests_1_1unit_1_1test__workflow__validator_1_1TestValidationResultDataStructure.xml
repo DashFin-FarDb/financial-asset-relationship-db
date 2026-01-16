@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultDataStructure" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_workflow_validator::TestValidationResultDataStructure</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultDataStructure_1aab3c26e6a81febea64ac7f3e2caa8f46" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidationResultDataStructure.test_validation_result_attributes_accessible</definition>
+        <argsstring>()</argsstring>
+        <name>test_validation_result_attributes_accessible</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidationResultDataStructure.test_validation_result_attributes_accessible</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that ValidationResult attributes are accessible</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="494" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="494" bodyend="505"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultDataStructure_1a935dad9f76416d6a7663cc6b2cb0d308" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidationResultDataStructure.test_validation_result_errors_is_list</definition>
+        <argsstring>()</argsstring>
+        <name>test_validation_result_errors_is_list</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidationResultDataStructure.test_validation_result_errors_is_list</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that errors attribute is a list</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="507" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="507" bodyend="512"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultDataStructure_1a55fcf395c585e9947fbaae97f0f50695" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidationResultDataStructure.test_validation_result_workflow_data_is_dict</definition>
+        <argsstring>()</argsstring>
+        <name>test_validation_result_workflow_data_is_dict</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidationResultDataStructure.test_validation_result_workflow_data_is_dict</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow_data is typically a dict</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="514" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="514" bodyend="520"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test ValidationResult data structure integrity</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_workflow_validator.TestValidationResultDataStructure</label>
+        <link refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultDataStructure"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="490" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="490" bodyend="520"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultDataStructure_1aab3c26e6a81febea64ac7f3e2caa8f46" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidationResultDataStructure</scope><name>test_validation_result_attributes_accessible</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultDataStructure_1a935dad9f76416d6a7663cc6b2cb0d308" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidationResultDataStructure</scope><name>test_validation_result_errors_is_list</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidationResultDataStructure_1a55fcf395c585e9947fbaae97f0f50695" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidationResultDataStructure</scope><name>test_validation_result_workflow_data_is_dict</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

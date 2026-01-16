@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__workflow__validator_1_1TestErrorHandling" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_workflow_validator::TestErrorHandling</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestErrorHandling_1aa6df7666ff19db4d158207330cbb11d2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestErrorHandling.test_workflow_permission_denied</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_permission_denied</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestErrorHandling.test_workflow_permission_denied</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of permission denied error</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="383" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="383" bodyend="399"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestErrorHandling_1a1b30d0f3cadb3fc99251ca3f13573af4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestErrorHandling.test_workflow_with_duplicate_keys</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_duplicate_keys</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestErrorHandling.test_workflow_with_duplicate_keys</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with duplicate keys</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="401" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="401" bodyend="425"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test error handling and exception scenarios</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_workflow_validator.TestErrorHandling</label>
+        <link refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestErrorHandling"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="379" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="379" bodyend="425"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestErrorHandling_1aa6df7666ff19db4d158207330cbb11d2" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestErrorHandling</scope><name>test_workflow_permission_denied</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestErrorHandling_1a1b30d0f3cadb3fc99251ca3f13573af4" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestErrorHandling</scope><name>test_workflow_with_duplicate_keys</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classBaseModel" kind="class" language="Python" prot="public">
+    <compoundname>BaseModel</compoundname>
+    <derivedcompoundref refid="classapi_1_1auth_1_1Token" prot="public" virt="non-virtual">api.auth.Token</derivedcompoundref>
+    <derivedcompoundref refid="classapi_1_1auth_1_1TokenData" prot="public" virt="non-virtual">api.auth.TokenData</derivedcompoundref>
+    <derivedcompoundref refid="classapi_1_1auth_1_1User" prot="public" virt="non-virtual">api.auth.User</derivedcompoundref>
+    <derivedcompoundref refid="classapi_1_1main_1_1AssetResponse" prot="public" virt="non-virtual">api.main.AssetResponse</derivedcompoundref>
+    <derivedcompoundref refid="classapi_1_1main_1_1MetricsResponse" prot="public" virt="non-virtual">api.main.MetricsResponse</derivedcompoundref>
+    <derivedcompoundref refid="classapi_1_1main_1_1RelationshipResponse" prot="public" virt="non-virtual">api.main.RelationshipResponse</derivedcompoundref>
+    <derivedcompoundref refid="classapi_1_1main_1_1VisualizationDataResponse" prot="public" virt="non-virtual">api.main.VisualizationDataResponse</derivedcompoundref>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>BaseModel</label>
+        <link refid="classBaseModel"/>
+      </node>
+      <node id="2">
+        <label>api.auth.Token</label>
+        <link refid="classapi_1_1auth_1_1Token"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>api.auth.TokenData</label>
+        <link refid="classapi_1_1auth_1_1TokenData"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>api.auth.User</label>
+        <link refid="classapi_1_1auth_1_1User"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>api.main.AssetResponse</label>
+        <link refid="classapi_1_1main_1_1AssetResponse"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>api.main.MetricsResponse</label>
+        <link refid="classapi_1_1main_1_1MetricsResponse"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>api.main.RelationshipResponse</label>
+        <link refid="classapi_1_1main_1_1RelationshipResponse"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>api.main.VisualizationDataResponse</label>
+        <link refid="classapi_1_1main_1_1VisualizationDataResponse"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>BaseModel</label>
+        <link refid="classBaseModel"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="35" column="1"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

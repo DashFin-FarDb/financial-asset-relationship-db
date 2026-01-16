@@ -1,0 +1,11 @@
+<map id="db_models.RegulatoryEventAssetORM" name="db_models.RegulatoryEventAssetORM">
+<area shape="rect" id="Node000001" title=" " alt="" coords="62,192,259,272"/>
+<area shape="rect" id="Node000002" href="$classBase.html" title=" " alt="" coords="5,5,52,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="41,83,56,125,79,166,101,190,98,194,75,170,51,128,36,85"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="76,5,107,71"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="88,71,85,118,88,143,95,167,101,178,96,180,90,169,83,144,80,118,82,71"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="207,5,253,71"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="229,71,219,118,203,169,199,178,194,176,198,167,214,117,223,70"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="333,5,399,71"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="368,71,359,121,349,147,333,170,307,192,276,208,274,204,304,188,329,166,344,144,354,119,363,70"/>
+</map>

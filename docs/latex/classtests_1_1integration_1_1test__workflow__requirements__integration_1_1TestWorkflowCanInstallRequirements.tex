@@ -1,0 +1,48 @@
+\doxysection{tests.\+integration.\+test\+\_\+workflow\+\_\+requirements\+\_\+integration.\+Test\+Workflow\+Can\+Install\+Requirements Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements}{}\label{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements}\index{tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements@{tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+workflow\+\_\+requirements\+\_\+integration.\+Test\+Workflow\+Can\+Install\+Requirements\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=265pt]{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_a4f5b66c1e33cfe5121a834989f9cda42}{test\+\_\+pr\+\_\+agent\+\_\+workflow\+\_\+has\+\_\+install\+\_\+dependencies\+\_\+step}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_a4bbbdd90ee7600b4b76f9d5e629144f3}{test\+\_\+workflow\+\_\+installs\+\_\+before\+\_\+running\+\_\+tests}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test that workflows have steps to install the dependencies from requirements-dev.txt.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_a4f5b66c1e33cfe5121a834989f9cda42}\index{tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements@{tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements}!test\_pr\_agent\_workflow\_has\_install\_dependencies\_step@{test\_pr\_agent\_workflow\_has\_install\_dependencies\_step}}
+\index{test\_pr\_agent\_workflow\_has\_install\_dependencies\_step@{test\_pr\_agent\_workflow\_has\_install\_dependencies\_step}!tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements@{tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements}}
+\doxysubsubsection{\texorpdfstring{test\_pr\_agent\_workflow\_has\_install\_dependencies\_step()}{test\_pr\_agent\_workflow\_has\_install\_dependencies\_step()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_a4f5b66c1e33cfe5121a834989f9cda42} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+requirements\+\_\+integration.\+Test\+Workflow\+Can\+Install\+Requirements.\+test\+\_\+pr\+\_\+agent\+\_\+workflow\+\_\+has\+\_\+install\+\_\+dependencies\+\_\+step (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that pr-agent workflow has a step to install Python dependencies.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_a4bbbdd90ee7600b4b76f9d5e629144f3}\index{tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements@{tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements}!test\_workflow\_installs\_before\_running\_tests@{test\_workflow\_installs\_before\_running\_tests}}
+\index{test\_workflow\_installs\_before\_running\_tests@{test\_workflow\_installs\_before\_running\_tests}!tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements@{tests.integration.test\_workflow\_requirements\_integration.TestWorkflowCanInstallRequirements}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_installs\_before\_running\_tests()}{test\_workflow\_installs\_before\_running\_tests()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_a4bbbdd90ee7600b4b76f9d5e629144f3} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+requirements\+\_\+integration.\+Test\+Workflow\+Can\+Install\+Requirements.\+test\+\_\+workflow\+\_\+installs\+\_\+before\+\_\+running\+\_\+tests (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Assert that in pr-agent.yml each job installs dependencies before running tests.
+
+Skips the test if pr-agent.yml is not present. For each job, if both a dependency-install step (contains 'pip install' or 'requirements') and a test step (contains 'pytest' in the run or 'test' in the step name) are found, this test asserts the install step appears earlier than the test step.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__workflow__requirements__integration_8py}{test\+\_\+workflow\+\_\+requirements\+\_\+integration.\+py}}\end{DoxyCompactItemize}

@@ -1,0 +1,220 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_pyyaml::TestPyYAMLDependencyAddition</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1a613bc6124df5e1c62f59c7196cda9620" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Path</type>
+        <definition> Path tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.requirements_file</definition>
+        <argsstring>(self)</argsstring>
+        <name>requirements_file</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.requirements_file</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Return the Path to the repository&apos;s requirements-dev.txt file.
+
+Returns:
+    Path: Path object pointing to &apos;requirements-dev.txt&apos; at the repository root.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="17" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="17" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1a58e3c0475ed8d99d20bcf5ac273777bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.requirements_content</definition>
+        <argsstring>(self, Path requirements_file)</argsstring>
+        <name>requirements_content</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.requirements_content</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>requirements_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get the UTF-8 text contents of the requirements-dev.txt file.
+
+Parameters:
+    requirements_file (Path): Path to the requirements-dev.txt file to read.
+
+
+Returns:
+    str: File contents decoded as UTF-8.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="27" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="27" bodyend="40"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1adf5a812162dc81fff6be127f66ab67c4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[str]</type>
+        <definition> List[str] tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.requirements_lines</definition>
+        <argsstring>(str requirements_content)</argsstring>
+        <name>requirements_lines</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.requirements_lines</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>requirements_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extracts the non-empty, non-comment lines from the contents of a requirements file.
+
+Parameters:
+    requirements_content (str): Full text of a requirements file.
+
+Returns:
+    List[str]: Lines from the file with surrounding whitespace removed, excluding blank lines and lines beginning with `#`.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="43" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="43" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1ae5e1ca62a591a27ae81d2a52b21be139" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_pyyaml_present</definition>
+        <argsstring>(List[str] requirements_lines)</argsstring>
+        <name>test_pyyaml_present</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_pyyaml_present</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>requirements_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that PyYAML is in requirements-dev.txt.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="61" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="61" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1a4a7272a96eb2dcaa3172d9ee22cc074f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_types_pyyaml_present</definition>
+        <argsstring>(List[str] requirements_lines)</argsstring>
+        <name>test_types_pyyaml_present</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_types_pyyaml_present</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>requirements_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that types-PyYAML is in requirements-dev.txt.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="67" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="67" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1aca38d3ff96954cd63603aa65e6414aa7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_pyyaml_version_specified</definition>
+        <argsstring>(List[str] requirements_lines)</argsstring>
+        <name>test_pyyaml_version_specified</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_pyyaml_version_specified</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>requirements_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that PyYAML has a version specifier.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="73" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="73" bodyend="79"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1ad20bd86d76c586ba6f06a00ec23c47d6" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_pyyaml_version_at_least_6</definition>
+        <argsstring>(List[str] requirements_lines)</argsstring>
+        <name>test_pyyaml_version_at_least_6</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_pyyaml_version_at_least_6</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>requirements_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure any &apos;PyYAML&apos; entries with a &apos;&gt;=&apos; minimum version in requirements_lines specify version 6.0 or higher.
+
+Parameters:
+        requirements_lines (List[str]): List of non-empty, non-comment lines from requirements-dev.txt.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="81" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="81" bodyend="95"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1ab23d9f70bccc9f04b0a96dd3055bd166" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_types_pyyaml_matches_pyyaml_version</definition>
+        <argsstring>(List[str] requirements_lines)</argsstring>
+        <name>test_types_pyyaml_matches_pyyaml_version</name>
+        <qualifiedname>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition.test_types_pyyaml_matches_pyyaml_version</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>requirements_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Assert that the major version of types-PyYAML equals the major version of PyYAML when both are specified with &apos;&gt;=&apos; in the given requirements lines.
+
+Parameters:
+    requirements_lines (List[str]): Non-comment, non-empty lines from requirements-dev.txt to inspect for `PyYAML&gt;=` and `types-PyYAML&gt;=` entries.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="97" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="97" bodyend="123"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that PyYAML dependencies were properly added.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_pyyaml.TestPyYAMLDependencyAddition</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" line="13" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_pyyaml.py" bodystart="13" bodyend="123"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1a58e3c0475ed8d99d20bcf5ac273777bb" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestPyYAMLDependencyAddition</scope><name>requirements_content</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1a613bc6124df5e1c62f59c7196cda9620" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestPyYAMLDependencyAddition</scope><name>requirements_file</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1adf5a812162dc81fff6be127f66ab67c4" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestPyYAMLDependencyAddition</scope><name>requirements_lines</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1ae5e1ca62a591a27ae81d2a52b21be139" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestPyYAMLDependencyAddition</scope><name>test_pyyaml_present</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1ad20bd86d76c586ba6f06a00ec23c47d6" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestPyYAMLDependencyAddition</scope><name>test_pyyaml_version_at_least_6</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1aca38d3ff96954cd63603aa65e6414aa7" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestPyYAMLDependencyAddition</scope><name>test_pyyaml_version_specified</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1ab23d9f70bccc9f04b0a96dd3055bd166" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestPyYAMLDependencyAddition</scope><name>test_types_pyyaml_matches_pyyaml_version</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__pyyaml_1_1TestPyYAMLDependencyAddition_1a4a7272a96eb2dcaa3172d9ee22cc074f" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_pyyaml::TestPyYAMLDependencyAddition</scope><name>test_types_pyyaml_present</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentMaintainability" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_documentation_validation::TestDocumentMaintainability</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentMaintainability_1aa19ac9872adb66cd80be853e0d02161f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentMaintainability.test_line_length_reasonable</definition>
+        <argsstring>(List[str] summary_lines)</argsstring>
+        <name>test_line_length_reasonable</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentMaintainability.test_line_length_reasonable</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>summary_lines</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that lines aren&apos;t excessively long.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="210" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="210" bodyend="221"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentMaintainability_1a56ec1846f23fd3619152bebfefd528d4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentMaintainability.test_has_clear_structure</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_has_clear_structure</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentMaintainability.test_has_clear_structure</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document has clear hierarchical structure.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="223" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="223" bodyend="230"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentMaintainability_1ad9e5679582d0d9a8a3bdfc4443103673" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_documentation_validation.TestDocumentMaintainability.test_sections_have_content</definition>
+        <argsstring>(str summary_content)</argsstring>
+        <name>test_sections_have_content</name>
+        <qualifiedname>tests.integration.test_documentation_validation.TestDocumentMaintainability.test_sections_have_content</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>summary_content</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that major sections have substantial content.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="232" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="232" bodyend="244"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for document maintainability.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_documentation_validation.TestDocumentMaintainability</label>
+        <link refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentMaintainability"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" line="206" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_documentation_validation.py" bodystart="206" bodyend="244"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentMaintainability_1a56ec1846f23fd3619152bebfefd528d4" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentMaintainability</scope><name>test_has_clear_structure</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentMaintainability_1aa19ac9872adb66cd80be853e0d02161f" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentMaintainability</scope><name>test_line_length_reasonable</name></member>
+      <member refid="classtests_1_1integration_1_1test__documentation__validation_1_1TestDocumentMaintainability_1ad9e5679582d0d9a8a3bdfc4443103673" prot="public" virt="non-virtual"><scope>tests::integration::test_documentation_validation::TestDocumentMaintainability</scope><name>test_sections_have_content</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

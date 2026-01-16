@@ -1,0 +1,398 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespaceapi_1_1auth" kind="namespace" language="Python">
+    <compoundname>api::auth</compoundname>
+    <innerclass refid="classapi_1_1auth_1_1Token" prot="public">api::auth::Token</innerclass>
+    <innerclass refid="classapi_1_1auth_1_1TokenData" prot="public">api::auth::TokenData</innerclass>
+    <innerclass refid="classapi_1_1auth_1_1User" prot="public">api::auth::User</innerclass>
+    <innerclass refid="classapi_1_1auth_1_1UserRepository" prot="public">api::auth::UserRepository</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceapi_1_1auth_1a44cbca77fc0d01b2ce76dfd967ebfe2b" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::auth.SECRET_KEY</definition>
+        <argsstring></argsstring>
+        <name>SECRET_KEY</name>
+        <qualifiedname>api.auth.SECRET_KEY</qualifiedname>
+        <initializer>=  os.getenv(&quot;SECRET_KEY&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="20" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1auth_1af90cfd31d8e6f3e5b483e1d37cb6ebfe" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str api::auth.ALGORITHM</definition>
+        <argsstring></argsstring>
+        <name>ALGORITHM</name>
+        <qualifiedname>api.auth.ALGORITHM</qualifiedname>
+        <initializer>=  &quot;HS256&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="26" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1auth_1ae994d098458504a4f7ed11df844cbfe2" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int api::auth.ACCESS_TOKEN_EXPIRE_MINUTES</definition>
+        <argsstring></argsstring>
+        <name>ACCESS_TOKEN_EXPIRE_MINUTES</name>
+        <qualifiedname>api.auth.ACCESS_TOKEN_EXPIRE_MINUTES</qualifiedname>
+        <initializer>=  30</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="27" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1auth_1af55af27d801444ba78475210180a1a08" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::auth.pwd_context</definition>
+        <argsstring></argsstring>
+        <name>pwd_context</name>
+        <qualifiedname>api.auth.pwd_context</qualifiedname>
+        <initializer>=  CryptContext(schemes=[&quot;pbkdf2_sha256&quot;], deprecated=&quot;auto&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="30" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1auth_1a277d87bde350c525aa8252cd5dc11ac6" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::auth.oauth2_scheme</definition>
+        <argsstring></argsstring>
+        <name>oauth2_scheme</name>
+        <qualifiedname>api.auth.oauth2_scheme</qualifiedname>
+        <initializer>=  OAuth2PasswordBearer(tokenUrl=&quot;token&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="31" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1auth_1a3af2868ac5c11d24b509e5fe6bf8cf6c" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>api::auth.user_repository</definition>
+        <argsstring></argsstring>
+        <name>user_repository</name>
+        <qualifiedname>api.auth.user_repository</qualifiedname>
+        <initializer>=  <ref refid="classapi_1_1auth_1_1UserRepository" kindref="compound">UserRepository</ref>()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="156" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="156" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceapi_1_1auth_1a4b72d63ef8f4087e0b511d807a1c0637" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition> bool api.auth._is_truthy</definition>
+        <argsstring>(str|None value)</argsstring>
+        <name>_is_truthy</name>
+        <qualifiedname>api.auth._is_truthy</qualifiedname>
+        <param>
+          <type>str|None</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Determine whether a string value represents a truthy boolean.
+
+Parameters:
+    value (str | None): Input string to evaluate; recognised truthy forms are
+        &quot;true&quot;, &quot;1&quot;, &quot;yes&quot; and &quot;on&quot; (case-insensitive).
+
+Returns:
+    bool: True if `value` matches a recognised truthy form,
+        False otherwise.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="52" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="52" bodyend="66"/>
+        <referencedby refid="namespaceapi_1_1auth_1a3e573991ddd0d8eed854d8037ced147d" compoundref="auth_8py" startline="182" endline="210">api.auth._seed_credentials_from_env</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1auth_1a62205ca839bdfe149312b664a59a030c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.auth.verify_password</definition>
+        <argsstring>(plain_password, hashed_password)</argsstring>
+        <name>verify_password</name>
+        <qualifiedname>api.auth.verify_password</qualifiedname>
+        <param>
+          <type>plain_password</type>
+          <defname>plain_password</defname>
+        </param>
+        <param>
+          <type>hashed_password</type>
+          <defname>hashed_password</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify whether a plaintext password matches a stored hashed password.
+
+Returns:
+    `True` if the plaintext password matches the hashed password, `False` otherwise.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="159" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="159" bodyend="168"/>
+        <referencedby refid="namespaceapi_1_1auth_1a11727c41cdedef612db529a3ea92cf60" compoundref="auth_8py" startline="243" endline="263">api.auth.authenticate_user</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1auth_1af93dff0b7760a50336e6702283294fc9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.auth.get_password_hash</definition>
+        <argsstring>(password)</argsstring>
+        <name>get_password_hash</name>
+        <qualifiedname>api.auth.get_password_hash</qualifiedname>
+        <param>
+          <type>password</type>
+          <defname>password</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Hash a plaintext password using the configured password-hashing context.
+
+Parameters:
+    password (str): Plaintext password to hash.
+
+Returns:
+    str: The hashed password.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="169" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="169" bodyend="181"/>
+        <referencedby refid="namespaceapi_1_1auth_1a3e573991ddd0d8eed854d8037ced147d" compoundref="auth_8py" startline="182" endline="210">api.auth._seed_credentials_from_env</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1auth_1a3e573991ddd0d8eed854d8037ced147d" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None api.auth._seed_credentials_from_env</definition>
+        <argsstring>(UserRepository repository)</argsstring>
+        <name>_seed_credentials_from_env</name>
+        <qualifiedname>api.auth._seed_credentials_from_env</qualifiedname>
+        <param>
+          <type><ref refid="classapi_1_1auth_1_1UserRepository" kindref="compound">UserRepository</ref></type>
+          <declname>repository</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Seed an administrative user into the repository from environment variables.
+
+If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that
+user in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME and
+ADMIN_DISABLED (interpreted as a truthy flag). The provided password is
+stored hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, no
+changes are made.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="182" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="182" bodyend="210"/>
+        <references refid="namespaceapi_1_1auth_1a4b72d63ef8f4087e0b511d807a1c0637" compoundref="auth_8py" startline="52" endline="66">api.auth._is_truthy</references>
+        <references refid="namespaceapi_1_1auth_1a3e573991ddd0d8eed854d8037ced147d" compoundref="auth_8py" startline="182" endline="210">api.auth._seed_credentials_from_env</references>
+        <references refid="namespaceapi_1_1auth_1af93dff0b7760a50336e6702283294fc9" compoundref="auth_8py" startline="169" endline="181">api.auth.get_password_hash</references>
+        <referencedby refid="namespaceapi_1_1auth_1a3e573991ddd0d8eed854d8037ced147d" compoundref="auth_8py" startline="182" endline="210">api.auth._seed_credentials_from_env</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1auth_1a5e8641d87f691958e7a3c0ff1a682b76" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Optional[UserInDB]</type>
+        <definition> Optional[UserInDB] api.auth.get_user</definition>
+        <argsstring>(str username, Optional[UserRepository] repository=None)</argsstring>
+        <name>get_user</name>
+        <qualifiedname>api.auth.get_user</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>username</declname>
+        </param>
+        <param>
+          <type>Optional</type>
+          <declname>repository</declname>
+          <array>[UserRepository]</array>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Retrieve a user by username.
+
+Parameters:
+    repository (Optional[UserRepository]): Repository to query;
+        if omitted the module-level `user_repository` is used.
+
+Returns:
+    Optional[UserInDB]: The matching UserInDB instance, or `None` if no
+        user exists with that username.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="220" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="223" bodyend="238"/>
+        <referencedby refid="namespaceapi_1_1auth_1a11727c41cdedef612db529a3ea92cf60" compoundref="auth_8py" startline="243" endline="263">api.auth.authenticate_user</referencedby>
+        <referencedby refid="namespaceapi_1_1auth_1acfa6a39adead4b0cb1275bd4233515b6" compoundref="auth_8py" startline="289" endline="329">api.auth.get_current_user</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1auth_1a11727c41cdedef612db529a3ea92cf60" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>UserInDB|bool</type>
+        <definition> UserInDB | bool api.auth.authenticate_user</definition>
+        <argsstring>(str username, str password, Optional[UserRepository] repository=None)</argsstring>
+        <name>authenticate_user</name>
+        <qualifiedname>api.auth.authenticate_user</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>username</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>password</declname>
+        </param>
+        <param>
+          <type>Optional</type>
+          <declname>repository</declname>
+          <array>[UserRepository]</array>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Authenticate a username and password and return the corresponding stored user.
+
+Parameters:
+    username (str): Username to authenticate.
+    password (str): Plaintext password to verify.
+    repository (Optional[UserRepository]): Repository to query for the user; if
+        omitted the module-level repository is used.
+
+Returns:
+    UserInDB when authentication succeeds, `False` otherwise.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="239" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="243" bodyend="263"/>
+        <references refid="namespaceapi_1_1auth_1a5e8641d87f691958e7a3c0ff1a682b76" compoundref="auth_8py" startline="223" endline="238">api.auth.get_user</references>
+        <references refid="namespaceapi_1_1auth_1a62205ca839bdfe149312b664a59a030c" compoundref="auth_8py" startline="159" endline="168">api.auth.verify_password</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1auth_1ad0a4e0a1fde64da14403d1dda521af92" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.auth.create_access_token</definition>
+        <argsstring>(dict data, Optional[timedelta] expires_delta=None)</argsstring>
+        <name>create_access_token</name>
+        <qualifiedname>api.auth.create_access_token</qualifiedname>
+        <param>
+          <type>dict</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>Optional</type>
+          <declname>expires_delta</declname>
+          <array>[timedelta]</array>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a JWT access token that includes an expiry (`exp`) claim.
+
+Parameters:
+    data (dict):
+        Claims to include in the token payload.
+        The function will add or overwrite the `exp` claim.
+    expires_delta (Optional[timedelta]):
+        Time span after which the token expires; if omitted the token
+        expires in 15 minutes.
+
+Returns:
+    str: Encoded JWT as a compact string.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="264" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="264" bodyend="288"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1auth_1acfa6a39adead4b0cb1275bd4233515b6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.auth.get_current_user</definition>
+        <argsstring>(str token=Depends(oauth2_scheme))</argsstring>
+        <name>get_current_user</name>
+        <qualifiedname>api.auth.get_current_user</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>token</declname>
+          <defval>Depends(<ref refid="namespaceapi_1_1auth_1a277d87bde350c525aa8252cd5dc11ac6" kindref="member">oauth2_scheme</ref>)</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Return the user represented by the provided JWT.
+
+
+Returns:
+    User: The User model corresponding to the token&apos;s subject.
+
+Raises:
+    HTTPException: 401 with detail &quot;Token has expired&quot; if the token has expired.
+    HTTPException: 401 with detail &quot;Could not validate credentials&quot;
+        if the token is invalid,
+        missing the subject, or no matching user is found.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="289" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="289" bodyend="329"/>
+        <references refid="namespaceapi_1_1auth_1a5e8641d87f691958e7a3c0ff1a682b76" compoundref="auth_8py" startline="223" endline="238">api.auth.get_user</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1auth_1aa09247ce61392982ae2d023373b390e2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.auth.get_current_active_user</definition>
+        <argsstring>(User current_user=Depends(get_current_user))</argsstring>
+        <name>get_current_active_user</name>
+        <qualifiedname>api.auth.get_current_active_user</qualifiedname>
+        <param>
+          <type><ref refid="classapi_1_1auth_1_1User" kindref="compound">User</ref></type>
+          <declname>current_user</declname>
+          <defval>Depends(<ref refid="namespaceapi_1_1auth_1acfa6a39adead4b0cb1275bd4233515b6" kindref="member">get_current_user</ref>)</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get the currently authenticated active user.
+
+Raises:
+    HTTPException: 400 with detail &quot;Inactive user&quot; if the user&apos;s account is
+    disabled.
+
+Returns:
+    The authenticated user&apos;s public profile as a `User` instance.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="330" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" bodystart="330" bodyend="344"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Authentication module for the Financial Asset Relationship Database API</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/auth.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

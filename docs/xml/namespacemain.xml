@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacemain" kind="namespace" language="Python">
+    <compoundname>main</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacemain_1ac7c3e724888f8970185b6700a5e23480" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>main.DATABASE_URL</definition>
+        <argsstring></argsstring>
+        <name>DATABASE_URL</name>
+        <qualifiedname>main.DATABASE_URL</qualifiedname>
+        <initializer>=  os.getenv(&quot;DATABASE_URL&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="12" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemain_1a6ae7a142738d3da435d6a12acac9cee9" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>main.SUPABASE_URL</definition>
+        <argsstring></argsstring>
+        <name>SUPABASE_URL</name>
+        <qualifiedname>main.SUPABASE_URL</qualifiedname>
+        <initializer>=  os.getenv(&quot;SUPABASE_URL&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="13" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="13" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemain_1a8448f75dbb0a13e3f93f6159aced604d" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>main.SUPABASE_KEY</definition>
+        <argsstring></argsstring>
+        <name>SUPABASE_KEY</name>
+        <qualifiedname>main.SUPABASE_KEY</qualifiedname>
+        <initializer>=  os.getenv(&quot;SUPABASE_KEY&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="14" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="14" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemain_1ab2fc4beca5ea50467e02d215a5f83c97" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>main.CERT_PATH</definition>
+        <argsstring></argsstring>
+        <name>CERT_PATH</name>
+        <qualifiedname>main.CERT_PATH</qualifiedname>
+        <initializer>=  os.path.join(os.path.dirname(os.path.abspath(__file__)), &quot;prod-ca-2021.crt&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="17" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemain_1ae85c3b07de28b8cfd2db3c505539bf7b" prot="public" static="no" mutable="no">
+        <type>Client</type>
+        <definition>Client main.supabase</definition>
+        <argsstring></argsstring>
+        <name>supabase</name>
+        <qualifiedname>main.supabase</qualifiedname>
+        <initializer>=  create_client(<ref refid="namespacemain_1a6ae7a142738d3da435d6a12acac9cee9" kindref="member">SUPABASE_URL</ref>, <ref refid="namespacemain_1a8448f75dbb0a13e3f93f6159aced604d" kindref="member">SUPABASE_KEY</ref>)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="29" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemain_1a3deb03c0fa62bbd5a94d0a2a9a82122c" prot="public" static="no" mutable="no">
+        <type>Client</type>
+        <definition>Client main::response</definition>
+        <argsstring></argsstring>
+        <name>response</name>
+        <qualifiedname>main.response</qualifiedname>
+        <initializer>=  supabase.table(&quot;transactions&quot;).select(&quot;*&quot;).limit(1).execute()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="35" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemain_1a3e16089d2114f551b9d0c3cef0192abc" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>main.updated_db_url</definition>
+        <argsstring></argsstring>
+        <name>updated_db_url</name>
+        <qualifiedname>main.updated_db_url</qualifiedname>
+        <initializer>=  <ref refid="namespacemain_1ac7c3e724888f8970185b6700a5e23480" kindref="member">DATABASE_URL</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="64" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemain_1accdd965a6793cbd3ef392b9d0dd07144" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>main.connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>main.connection</qualifiedname>
+        <initializer>=  psycopg2.connect(
+            <ref refid="namespacemain_1a3e16089d2114f551b9d0c3cef0192abc" kindref="member">updated_db_url</ref>,
+            sslmode=&quot;require&quot;,
+            sslrootcert=<ref refid="namespacemain_1ab2fc4beca5ea50467e02d215a5f83c97" kindref="member">CERT_PATH</ref>,
+        )</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="75" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemain_1aca1fa5ef8f4afcee47fccb54716d59be" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>main.cursor</definition>
+        <argsstring></argsstring>
+        <name>cursor</name>
+        <qualifiedname>main.cursor</qualifiedname>
+        <initializer>=  connection.cursor()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="88" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemain_1af5054e7cee59f93add27ee4d97cb586a" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>main.result</definition>
+        <argsstring></argsstring>
+        <name>result</name>
+        <qualifiedname>main.result</qualifiedname>
+        <initializer>=  cursor.fetchone()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="93" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" bodystart="93" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/main.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

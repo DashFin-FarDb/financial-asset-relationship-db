@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classAssetRelationshipGraph" kind="class" language="Python" prot="public">
+    <compoundname>AssetRelationshipGraph</compoundname>
+    <derivedcompoundref refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph" prot="public" virt="non-virtual">tests.unit.test_graph_visuals.DummyGraph</derivedcompoundref>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>AssetRelationshipGraph</label>
+        <link refid="classAssetRelationshipGraph"/>
+      </node>
+      <node id="2">
+        <label>tests.unit.test_graph_visuals.DummyGraph</label>
+        <link refid="classtests_1_1unit_1_1test__graph__visuals_1_1DummyGraph"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>AssetRelationshipGraph</label>
+        <link refid="classAssetRelationshipGraph"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_graph_visuals.py" line="15" column="1"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

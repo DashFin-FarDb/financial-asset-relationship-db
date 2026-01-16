@@ -1,0 +1,67 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Outputs\+And\+Artifacts Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts}\index{tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts@{tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Outputs\+And\+Artifacts\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_ad2b3b5e30e6778a65225da247fdf6298}{test\+\_\+workflow\+\_\+artifacts\+\_\+have\+\_\+retention}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_a941e5e855eb901b51a134b82e6be0e19}{test\+\_\+workflow\+\_\+outputs\+\_\+referenced\+\_\+correctly}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for workflow outputs and artifact handling.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_ad2b3b5e30e6778a65225da247fdf6298}\index{tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts@{tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts}!test\_workflow\_artifacts\_have\_retention@{test\_workflow\_artifacts\_have\_retention}}
+\index{test\_workflow\_artifacts\_have\_retention@{test\_workflow\_artifacts\_have\_retention}!tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts@{tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_artifacts\_have\_retention()}{test\_workflow\_artifacts\_have\_retention()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_ad2b3b5e30e6778a65225da247fdf6298} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Outputs\+And\+Artifacts.\+test\+\_\+workflow\+\_\+artifacts\+\_\+have\+\_\+retention (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Report when artifact upload steps do not specify a `retention-days` value.
+
+Scans the workflow's jobs and for any step that uses `actions/upload-artifact` prints an informational message if the step's `with` mapping does not include `retention-days`.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file to inspect.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_ad2b3b5e30e6778a65225da247fdf6298_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_a941e5e855eb901b51a134b82e6be0e19}\index{tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts@{tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts}!test\_workflow\_outputs\_referenced\_correctly@{test\_workflow\_outputs\_referenced\_correctly}}
+\index{test\_workflow\_outputs\_referenced\_correctly@{test\_workflow\_outputs\_referenced\_correctly}!tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts@{tests.integration.test\_github\_workflows.TestWorkflowOutputsAndArtifacts}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_outputs\_referenced\_correctly()}{test\_workflow\_outputs\_referenced\_correctly()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_a941e5e855eb901b51a134b82e6be0e19} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Outputs\+And\+Artifacts.\+test\+\_\+workflow\+\_\+outputs\+\_\+referenced\+\_\+correctly (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that job outputs are defined when referenced by other jobs.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_a941e5e855eb901b51a134b82e6be0e19_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

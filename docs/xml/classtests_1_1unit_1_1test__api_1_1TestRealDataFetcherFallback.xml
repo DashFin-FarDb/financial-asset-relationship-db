@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api::TestRealDataFetcherFallback</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1a8afbb0edb30ed60cf9c8f5b789a831bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_complete_failure_fallback</definition>
+        <argsstring>(self, mock_ticker)</argsstring>
+        <name>test_real_data_fetcher_complete_failure_fallback</name>
+        <qualifiedname>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_complete_failure_fallback</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_ticker</type>
+          <defname>mock_ticker</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that RealDataFetcher falls back to sample data when fetching fails completely.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="675" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="675" bodyend="695"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1afc870d29f79d13650ca5ecfcc38b3349" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_partial_fetch_success</definition>
+        <argsstring>(self, mock_ticker)</argsstring>
+        <name>test_real_data_fetcher_partial_fetch_success</name>
+        <qualifiedname>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_partial_fetch_success</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_ticker</type>
+          <defname>mock_ticker</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test RealDataFetcher when all individual fetches fail gracefully (empty lists).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="697" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="697" bodyend="712"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1aeb64cd2a682cbe02ff440abdec76a378" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRealDataFetcherFallback.test_fetcher_falls_back_on_unhandled_exception</definition>
+        <argsstring>(self, mock_fetch_equity)</argsstring>
+        <name>test_fetcher_falls_back_on_unhandled_exception</name>
+        <qualifiedname>tests.unit.test_api.TestRealDataFetcherFallback.test_fetcher_falls_back_on_unhandled_exception</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_fetch_equity</type>
+          <defname>mock_fetch_equity</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that unhandled exceptions in create_real_database trigger fallback.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="714" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="714" bodyend="729"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1abd56725db1fc95cd3ecb0ba78f43e896" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_empty_history_graceful_handling</definition>
+        <argsstring>(self, mock_ticker)</argsstring>
+        <name>test_real_data_fetcher_empty_history_graceful_handling</name>
+        <qualifiedname>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_empty_history_graceful_handling</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_ticker</type>
+          <defname>mock_ticker</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test RealDataFetcher handles empty ticker history gracefully.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="731" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="731" bodyend="748"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1ad3acec07cb48a942dac96940b6958fbe" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_logs_fallback_on_exception</definition>
+        <argsstring>(mock_fetch_equity, mock_logger)</argsstring>
+        <name>test_real_data_fetcher_logs_fallback_on_exception</name>
+        <qualifiedname>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_logs_fallback_on_exception</qualifiedname>
+        <param>
+          <type>mock_fetch_equity</type>
+          <defname>mock_fetch_equity</defname>
+        </param>
+        <param>
+          <type>mock_logger</type>
+          <defname>mock_logger</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that RealDataFetcher logs when falling back to sample data.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="752" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="752" bodyend="768"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1a206e51f2585d515fa6a01a8409ad9da3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRealDataFetcherFallback.test_individual_asset_class_fetch_failures_logged</definition>
+        <argsstring>(mock_ticker, mock_logger)</argsstring>
+        <name>test_individual_asset_class_fetch_failures_logged</name>
+        <qualifiedname>tests.unit.test_api.TestRealDataFetcherFallback.test_individual_asset_class_fetch_failures_logged</qualifiedname>
+        <param>
+          <type>mock_ticker</type>
+          <defname>mock_ticker</defname>
+        </param>
+        <param>
+          <type>mock_logger</type>
+          <defname>mock_logger</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that individual asset class fetch failures are logged properly.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="772" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="772" bodyend="784"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1a4b9e34ace8b7f54b039d6af45bb5edf4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_loads_from_cache</definition>
+        <argsstring>(tmp_path)</argsstring>
+        <name>test_real_data_fetcher_loads_from_cache</name>
+        <qualifiedname>tests.unit.test_api.TestRealDataFetcherFallback.test_real_data_fetcher_loads_from_cache</qualifiedname>
+        <param>
+          <type>tmp_path</type>
+          <defname>tmp_path</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>RealDataFetcher should return cached dataset when available.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="786" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="786" bodyend="800"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test RealDataFetcher fallback behavior when external APIs fail.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api.TestRealDataFetcherFallback</label>
+        <link refid="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="671" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="671" bodyend="800"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1aeb64cd2a682cbe02ff440abdec76a378" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRealDataFetcherFallback</scope><name>test_fetcher_falls_back_on_unhandled_exception</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1a206e51f2585d515fa6a01a8409ad9da3" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRealDataFetcherFallback</scope><name>test_individual_asset_class_fetch_failures_logged</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1a8afbb0edb30ed60cf9c8f5b789a831bf" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRealDataFetcherFallback</scope><name>test_real_data_fetcher_complete_failure_fallback</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1abd56725db1fc95cd3ecb0ba78f43e896" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRealDataFetcherFallback</scope><name>test_real_data_fetcher_empty_history_graceful_handling</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1a4b9e34ace8b7f54b039d6af45bb5edf4" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRealDataFetcherFallback</scope><name>test_real_data_fetcher_loads_from_cache</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1ad3acec07cb48a942dac96940b6958fbe" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRealDataFetcherFallback</scope><name>test_real_data_fetcher_logs_fallback_on_exception</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestRealDataFetcherFallback_1afc870d29f79d13650ca5ecfcc38b3349" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestRealDataFetcherFallback</scope><name>test_real_data_fetcher_partial_fetch_success</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

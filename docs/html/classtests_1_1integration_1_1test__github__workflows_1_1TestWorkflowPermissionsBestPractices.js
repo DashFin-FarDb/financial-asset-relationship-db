@@ -1,0 +1,5 @@
+var classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPermissionsBestPractices =
+[
+    [ "test_permissions_follow_least_privilege", "classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPermissionsBestPractices.html#af8706218b28023b67be6b4faf351412f", null ],
+    [ "test_write_permissions_have_justification", "classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPermissionsBestPractices.html#a7f3bedce94f9c2c334216f0da9e37bd9", null ]
+];

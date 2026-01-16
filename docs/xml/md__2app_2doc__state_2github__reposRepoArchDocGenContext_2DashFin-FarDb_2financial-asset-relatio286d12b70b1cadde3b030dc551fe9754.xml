@@ -1,0 +1,230 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2MERGE__CONFLICT__RESOLUTION</compoundname>
+    <title>Merge Conflict Resolution - PR #181</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3191"/></para>
+<para><bold>Date</bold>: 2025-01-11 <bold>Branch</bold>: <computeroutput>chore-review-resolve-pr-181-patch</computeroutput> <bold>Status</bold>: ✅ <bold>RESOLVED</bold></para>
+<para><hruler/>
+</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3193">
+<title>Issue Encountered</title><para>After the initial merge of PR #181 (patch branch), a merge conflict marker was discovered in <computeroutput>bandit-report.json</computeroutput>:</para>
+<para><programlisting filename=".json"><codeline><highlight class="normal"><sp/><sp/>&quot;results&quot;:<sp/>[]</highlight></codeline>
+<codeline><highlight class="normal">&lt;&lt;&lt;&lt;&lt;&lt;&lt;<sp/>HEAD</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal">=======</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal">&gt;&gt;&gt;&gt;&gt;&gt;&gt;<sp/>patch</highlight></codeline>
+</programlisting></para>
+<para>This conflict marker was left unresolved during the automated conflict resolution process.</para>
+<para><hruler/>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3195">
+<title>Root Cause</title><para>The conflict occurred because:</para>
+<para><orderedlist>
+<listitem><para>Both <computeroutput>main</computeroutput> and <computeroutput>patch</computeroutput> branches had the same <computeroutput>bandit-report.json</computeroutput> file</para>
+</listitem><listitem><para>Both versions had identical closing braces <computeroutput>}</computeroutput></para>
+</listitem><listitem><para>The automated conflict resolution script (<computeroutput>git checkout --ours</computeroutput>) didn&apos;t fully resolve this file</para>
+</listitem><listitem><para>The merge conflict markers were committed with the merge</para>
+</listitem></orderedlist>
+</para>
+<para><hruler/>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3197">
+<title>Resolution</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3198">
+<title>Step 1: Identified the Conflict</title><para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>status<sp/><sp/>#<sp/>Showed<sp/>clean<sp/>working<sp/>tree</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Manual<sp/>inspection<sp/>of<sp/>bandit-report.json<sp/>found<sp/>the<sp/>markers</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3199">
+<title>Step 2: Fixed the File</title><para>Removed the merge conflict markers, keeping a single closing brace:</para>
+<para><programlisting filename=".json"><codeline><highlight class="normal"><sp/><sp/>},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;results&quot;:<sp/>[]</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3200">
+<title>Step 3: Validated JSON</title><para><programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>-c<sp/>&quot;import<sp/>json;<sp/>json.load(open(&apos;bandit-report.json&apos;));<sp/>print(&apos;✓<sp/>Valid<sp/>JSON&apos;)&quot;</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Result:<sp/>✓<sp/>Valid<sp/>JSON</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3201">
+<title>Step 4: Committed the Fix</title><para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>add<sp/>bandit-report.json</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>commit<sp/>-m<sp/>&quot;Fix<sp/>merge<sp/>conflict<sp/>in<sp/>bandit-report.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Commit:<sp/>d6cc8d90</highlight></codeline>
+</programlisting></para>
+<para><hruler/>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3203">
+<title>Verification</title><para>✅ <bold>JSON Validity</bold>: Confirmed with Python json.load() ✅ <bold>Git Status</bold>: Clean working tree ✅ <bold>No Other Conflicts</bold>: Checked all JSON files ✅ <bold>Commit History</bold>: Proper linear history maintained</para>
+<para><hruler/>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3205">
+<title>Impact</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3206">
+<title>Before Fix</title><para><itemizedlist>
+<listitem><para>❌ <computeroutput>bandit-report.json</computeroutput> had merge conflict markers</para>
+</listitem><listitem><para>❌ File was technically invalid JSON (would fail strict parsers)</para>
+</listitem><listitem><para>❌ CI/CD might fail on JSON validation</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3207">
+<title>After Fix</title><para><itemizedlist>
+<listitem><para>✅ Valid JSON structure</para>
+</listitem><listitem><para>✅ No merge conflict markers</para>
+</listitem><listitem><para>✅ Ready for CI/CD</para>
+</listitem><listitem><para>✅ Clean commit history</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3209">
+<title>Lessons Learned</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3210">
+<title>For Future Merges</title><para><orderedlist>
+<listitem><para><bold>Always verify conflict resolution</bold><itemizedlist>
+<listitem><para>Don&apos;t trust automated scripts completely</para>
+</listitem><listitem><para>Manually inspect files after merge</para>
+</listitem><listitem><para>Run validators (JSON, YAML, Python syntax)</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Check for merge markers</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Search<sp/>for<sp/>conflict<sp/>markers</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>diff<sp/>--check</highlight></codeline>
+<codeline><highlight class="normal">grep<sp/>-r<sp/>&quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<sp/>HEAD&quot;<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">grep<sp/>-r<sp/>&quot;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<sp/>&quot;<sp/>.</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Validate all file types</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>JSON<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">find<sp/>.<sp/>-name<sp/>&quot;*.json&quot;<sp/>-exec<sp/>python<sp/>-c<sp/>&quot;import<sp/>json;<sp/>json.load(open(&apos;{}&apos;))&quot;<sp/>\;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>YAML<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">find<sp/>.<sp/>-name<sp/>&quot;*.yml&quot;<sp/>-exec<sp/>python<sp/>-c<sp/>&quot;import<sp/>yaml;<sp/>yaml.safe_load(open(&apos;{}&apos;))&quot;<sp/>\;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Python<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">find<sp/>.<sp/>-name<sp/>&quot;*.py&quot;<sp/>-exec<sp/>python<sp/>-m<sp/>py_compile<sp/>{}<sp/>\;</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Improve conflict resolution script</bold><itemizedlist>
+<listitem><para>Add post-merge validation</para>
+</listitem><listitem><para>Check for conflict markers</para>
+</listitem><listitem><para>Validate file formats</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+<para><hruler/>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3212">
+<title>Updated Script for Future Use</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#!/bin/bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>resolve_conflicts_with_validation.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Resolve<sp/>conflicts<sp/>(as<sp/>before)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>checkout<sp/>--ours<sp/>.circleci/config.yml</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>checkout<sp/>--ours<sp/>.github/</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>...<sp/>etc<sp/>...</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">git<sp/>add<sp/>-A</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>NEW:<sp/>Validate<sp/>resolution</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;Validating<sp/>conflict<sp/>resolution...&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>for<sp/>merge<sp/>markers</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>grep<sp/>-r<sp/>&quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<sp/>HEAD&quot;<sp/>.<sp/>--exclude-dir=.git;<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;❌<sp/>ERROR:<sp/>Merge<sp/>conflict<sp/>markers<sp/>found!&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>1</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>grep<sp/>-r<sp/>&quot;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<sp/>&quot;<sp/>.<sp/>--exclude-dir=.git;<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;❌<sp/>ERROR:<sp/>Merge<sp/>conflict<sp/>markers<sp/>found!&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>1</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Validate<sp/>JSON<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;Validating<sp/>JSON<sp/>files...&quot;</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>file<sp/>in<sp/>$(find<sp/>.<sp/>-name<sp/>&quot;*.json&quot;<sp/>-not<sp/>-path<sp/>&quot;./.venv/*&quot;<sp/>-not<sp/>-path<sp/>&quot;./.git/*&quot;);<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>!<sp/>python<sp/>-c<sp/>&quot;import<sp/>json;<sp/>json.load(open(&apos;$file&apos;))&quot;<sp/>2&gt;/dev/null;<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>echo<sp/>&quot;❌<sp/>ERROR:<sp/>Invalid<sp/>JSON<sp/>in<sp/>$file&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit<sp/>1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal">done</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Validate<sp/>Python<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;Validating<sp/>Python<sp/>files...&quot;</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>file<sp/>in<sp/>$(find<sp/>.<sp/>-name<sp/>&quot;*.py&quot;<sp/>-not<sp/>-path<sp/>&quot;./.venv/*&quot;<sp/>-not<sp/>-path<sp/>&quot;./.git/*&quot;);<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>!<sp/>python<sp/>-m<sp/>py_compile<sp/>&quot;$file&quot;<sp/>2&gt;/dev/null;<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>echo<sp/>&quot;❌<sp/>ERROR:<sp/>Syntax<sp/>error<sp/>in<sp/>$file&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit<sp/>1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal">done</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;✅<sp/>All<sp/>validations<sp/>passed&quot;</highlight></codeline>
+</programlisting></para>
+<para><hruler/>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3214">
+<title>Current Branch Status</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3215">
+<title>Commit History</title><para><programlisting><codeline><highlight class="normal">d6cc8d90<sp/>-<sp/>Fix<sp/>merge<sp/>conflict<sp/>in<sp/>bandit-report.json</highlight></codeline>
+<codeline><highlight class="normal">6d912f73<sp/>-<sp/>Add<sp/>task<sp/>completion<sp/>report<sp/>for<sp/>PR<sp/>#181<sp/>resolution</highlight></codeline>
+<codeline><highlight class="normal">12012476<sp/>-<sp/>Add<sp/>comprehensive<sp/>documentation<sp/>for<sp/>PR<sp/>#181<sp/>resolution</highlight></codeline>
+<codeline><highlight class="normal">4d3b81ad<sp/>-<sp/>Merge<sp/>PR<sp/>#181<sp/>(patch<sp/>branch)<sp/>into<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">6c2fba8f<sp/>-<sp/>Add<sp/>GitHub<sp/>Actions<sp/>workflow<sp/>for<sp/>auto-assigning<sp/>issues</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3216">
+<title>Files Changed (Total)</title><para><itemizedlist>
+<listitem><para>68 files changed</para>
+</listitem><listitem><para>18,900+ insertions</para>
+</listitem><listitem><para>All conflicts resolved</para>
+</listitem><listitem><para>All files validated</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3217">
+<title>Status Checks</title><para><itemizedlist>
+<listitem><para>✅ Git status: Clean</para>
+</listitem><listitem><para>✅ JSON validation: All pass</para>
+</listitem><listitem><para>✅ Python syntax: All pass</para>
+</listitem><listitem><para>✅ Imports: All working</para>
+</listitem><listitem><para>✅ Merge complete: Yes</para>
+</listitem><listitem><para>✅ Ready for review: Yes</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3219">
+<title>Next Steps</title><para><orderedlist>
+<listitem><para>✅ <bold>Merge conflict resolved</bold> - bandit-report.json fixed</para>
+</listitem><listitem><para>⏳ <bold>Run full test suite</bold> - Verify no regressions</para>
+</listitem><listitem><para>⏳ <bold>Submit PR</bold> - Create PR to merge to main</para>
+</listitem><listitem><para>⏳ <bold>Close PR #181</bold> - Mark as resolved</para>
+</listitem><listitem><para>⏳ <bold>Execute cleanup plan</bold> - Close 15-20+ dependent PRs</para>
+</listitem></orderedlist>
+</para>
+<para><hruler/>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio286d12b70b1cadde3b030dc551fe9754_1autotoc_md3221">
+<title>Conclusion</title><para>The merge conflict in <computeroutput>bandit-report.json</computeroutput> has been successfully resolved. The file now has valid JSON structure, and all validation checks pass. The PR #181 merge is complete and ready for final review and merge to main.</para>
+<para><bold>Status</bold>: ✅ <bold>READY FOR FINAL REVIEW</bold></para>
+<para><hruler/>
+</para>
+<para><bold>Fixed</bold>: 2025-01-11 <bold>Commit</bold>: d6cc8d90 <bold>File</bold>: bandit-report.json <bold>Validation</bold>: ✅ All checks passed </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/MERGE_CONFLICT_RESOLUTION.md"/>
+  </compounddef>
+</doxygen>

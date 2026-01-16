@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1unit_1_1test__database__memory" kind="namespace" language="Python">
+    <compoundname>tests::unit::test_database_memory</compoundname>
+    <innerclass refid="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb" prot="public">tests::unit::test_database_memory::TestConnectWithMemoryDb</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling" prot="public">tests::unit::test_database_memory::TestEdgeCasesAndErrorHandling</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__database__memory_1_1TestGetConnectionWithMemoryDb" prot="public">tests::unit::test_database_memory::TestGetConnectionWithMemoryDb</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb" prot="public">tests::unit::test_database_memory::TestIsMemoryDb</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__database__memory_1_1TestThreadSafety" prot="public">tests::unit::test_database_memory::TestThreadSafety</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__database__memory_1_1TestUriMemoryDatabaseIntegration" prot="public">tests::unit::test_database_memory::TestUriMemoryDatabaseIntegration</innerclass>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Iterator[None]</type>
+        <definition> Iterator[None] tests.unit.test_database_memory.restore_database_module</definition>
+        <argsstring>(monkeypatch)</argsstring>
+        <name>restore_database_module</name>
+        <qualifiedname>tests.unit.test_database_memory.restore_database_module</qualifiedname>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Preserve and restore api.database state and the DATABASE_URL environment variable around a test.
+
+Yields control to the test. After the test completes, closes and clears any in-memory SQLite connection on api.database (if present), restores DATABASE_URL to its original value or removes it if it was not set, and reloads the api.database module to reset its state.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="15" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="15" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__database__memory_1af9fe4dba5ed6a9005c3070cc6d52e131" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.test_in_memory_database_persists_schema_and_data</definition>
+        <argsstring>(monkeypatch, restore_database_module)</argsstring>
+        <name>test_in_memory_database_persists_schema_and_data</name>
+        <qualifiedname>tests.unit.test_database_memory.test_in_memory_database_persists_schema_and_data</qualifiedname>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify an in-memory SQLite configuration reuses a single connection instance and preserves schema and data across operations.
+
+Sets DATABASE_URL to use an in-memory SQLite database, reloads the database module and initialises the schema, inserts a user row using one connection, then reads it using a second connection. Asserts the inserted row is present and that both context-managed connections are the same object.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="39" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="41" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacetests_1_1unit_1_1test__database__memory_1afacca4beb06d9b2a998038ebb6751b4f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.test_uri_style_memory_database_persists_schema_and_data</definition>
+        <argsstring>(monkeypatch, restore_database_module)</argsstring>
+        <name>test_uri_style_memory_database_persists_schema_and_data</name>
+        <qualifiedname>tests.unit.test_database_memory.test_uri_style_memory_database_persists_schema_and_data</qualifiedname>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify URI-style in-memory SQLite configuration is correctly detected and reuses a single connection instance.
+
+Sets DATABASE_URL to use a URI-style in-memory SQLite database (file::memory:?cache=shared), reloads the database module and initialises the schema, inserts a user row using one connection, then reads it using a second connection. Asserts the inserted row is present and that both context-managed connections are the same object.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="76" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="78" bodyend="110"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for in-memory SQLite connection persistence in api.database.</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

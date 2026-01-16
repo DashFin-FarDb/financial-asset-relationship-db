@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api_main::TestValidateOrigin</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a890af2204686b869ffc7f15136fab542" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_http_localhost_development</definition>
+        <argsstring>()</argsstring>
+        <name>test_validate_origin_http_localhost_development</name>
+        <qualifiedname>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_http_localhost_development</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test HTTP localhost is allowed in development.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="33" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="33" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a72607222ad0c4181e2f328c4feeffafb" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_http_localhost_production</definition>
+        <argsstring>()</argsstring>
+        <name>test_validate_origin_http_localhost_production</name>
+        <qualifiedname>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_http_localhost_production</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test HTTP localhost is rejected in production.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="41" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="41" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1aec528698e074651eb9cf8dbdd51587c3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_https_localhost</definition>
+        <argsstring>()</argsstring>
+        <name>test_validate_origin_https_localhost</name>
+        <qualifiedname>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_https_localhost</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test HTTPS localhost is always allowed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="48" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="48" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a9835a955a5d30bdc517dd76c3890a83a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_vercel_urls</definition>
+        <argsstring>()</argsstring>
+        <name>test_validate_origin_vercel_urls</name>
+        <qualifiedname>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_vercel_urls</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test Vercel deployment URLs are validated correctly.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="54" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="54" bodyend="60"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a6aa991b1777731e2dfc4dd0005711c8d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_https_valid_domains</definition>
+        <argsstring>()</argsstring>
+        <name>test_validate_origin_https_valid_domains</name>
+        <qualifiedname>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_https_valid_domains</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test valid HTTPS URLs with proper domains.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="62" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="62" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a7fc5da558d343f81bf287987b2298513" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_invalid_schemes</definition>
+        <argsstring>()</argsstring>
+        <name>test_validate_origin_invalid_schemes</name>
+        <qualifiedname>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_invalid_schemes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test invalid URL schemes are rejected.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="69" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="69" bodyend="74"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1adf376c4c42b953ae893dc3dd7b533b8a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_malformed_urls</definition>
+        <argsstring>()</argsstring>
+        <name>test_validate_origin_malformed_urls</name>
+        <qualifiedname>tests.unit.test_api_main.TestValidateOrigin.test_validate_origin_malformed_urls</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test malformed URLs are rejected.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="76" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="76" bodyend="83"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test the validate_origin function for CORS configuration.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api_main.TestValidateOrigin</label>
+        <link refid="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="29" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="29" bodyend="83"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a890af2204686b869ffc7f15136fab542" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestValidateOrigin</scope><name>test_validate_origin_http_localhost_development</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a72607222ad0c4181e2f328c4feeffafb" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestValidateOrigin</scope><name>test_validate_origin_http_localhost_production</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1aec528698e074651eb9cf8dbdd51587c3" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestValidateOrigin</scope><name>test_validate_origin_https_localhost</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a6aa991b1777731e2dfc4dd0005711c8d" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestValidateOrigin</scope><name>test_validate_origin_https_valid_domains</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a7fc5da558d343f81bf287987b2298513" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestValidateOrigin</scope><name>test_validate_origin_invalid_schemes</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1adf376c4c42b953ae893dc3dd7b533b8a" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestValidateOrigin</scope><name>test_validate_origin_malformed_urls</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestValidateOrigin_1a9835a955a5d30bdc517dd76c3890a83a" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestValidateOrigin</scope><name>test_validate_origin_vercel_urls</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,299 @@
+\doxysection{api.\+auth Namespace Reference}
+\hypertarget{namespaceapi_1_1auth}{}\label{namespaceapi_1_1auth}\index{api.auth@{api.auth}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classapi_1_1auth_1_1Token}{Token}}
+\item 
+class \mbox{\hyperlink{classapi_1_1auth_1_1TokenData}{Token\+Data}}
+\item 
+class \mbox{\hyperlink{classapi_1_1auth_1_1User}{User}}
+\item 
+class \mbox{\hyperlink{classapi_1_1auth_1_1UserRepository}{User\+Repository}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{namespaceapi_1_1auth_a4b72d63ef8f4087e0b511d807a1c0637}{\+\_\+is\+\_\+truthy}} (str\texorpdfstring{$\vert$}{|}None value)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1auth_a62205ca839bdfe149312b664a59a030c}{verify\+\_\+password}} (plain\+\_\+password, hashed\+\_\+password)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1auth_af93dff0b7760a50336e6702283294fc9}{get\+\_\+password\+\_\+hash}} (password)
+\item 
+None \mbox{\hyperlink{namespaceapi_1_1auth_a3e573991ddd0d8eed854d8037ced147d}{\+\_\+seed\+\_\+credentials\+\_\+from\+\_\+env}} (\mbox{\hyperlink{classapi_1_1auth_1_1UserRepository}{User\+Repository}} repository)
+\item 
+Optional\mbox{[}User\+In\+DB\mbox{]} \mbox{\hyperlink{namespaceapi_1_1auth_a5e8641d87f691958e7a3c0ff1a682b76}{get\+\_\+user}} (str username, Optional\mbox{[}\mbox{\hyperlink{classapi_1_1auth_1_1UserRepository}{User\+Repository}}\mbox{]} repository=None)
+\item 
+User\+In\+DB\texorpdfstring{$\vert$}{|}bool \mbox{\hyperlink{namespaceapi_1_1auth_a11727c41cdedef612db529a3ea92cf60}{authenticate\+\_\+user}} (str username, str password, Optional\mbox{[}\mbox{\hyperlink{classapi_1_1auth_1_1UserRepository}{User\+Repository}}\mbox{]} repository=None)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1auth_ad0a4e0a1fde64da14403d1dda521af92}{create\+\_\+access\+\_\+token}} (dict data, Optional\mbox{[}timedelta\mbox{]} expires\+\_\+delta=None)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1auth_acfa6a39adead4b0cb1275bd4233515b6}{get\+\_\+current\+\_\+user}} (str token=Depends(\mbox{\hyperlink{namespaceapi_1_1auth_a277d87bde350c525aa8252cd5dc11ac6}{oauth2\+\_\+scheme}}))
+\item 
+\mbox{\hyperlink{namespaceapi_1_1auth_aa09247ce61392982ae2d023373b390e2}{get\+\_\+current\+\_\+active\+\_\+user}} (\mbox{\hyperlink{classapi_1_1auth_1_1User}{User}} current\+\_\+user=Depends(\mbox{\hyperlink{namespaceapi_1_1auth_acfa6a39adead4b0cb1275bd4233515b6}{get\+\_\+current\+\_\+user}}))
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespaceapi_1_1auth_a44cbca77fc0d01b2ce76dfd967ebfe2b}{SECRET\+\_\+\+KEY}} = os.\+getenv("{}SECRET\+\_\+\+KEY"{})
+\item 
+str \mbox{\hyperlink{namespaceapi_1_1auth_af90cfd31d8e6f3e5b483e1d37cb6ebfe}{ALGORITHM}} = "{}HS256"{}
+\item 
+int \mbox{\hyperlink{namespaceapi_1_1auth_ae994d098458504a4f7ed11df844cbfe2}{ACCESS\+\_\+\+TOKEN\+\_\+\+EXPIRE\+\_\+\+MINUTES}} = 30
+\item 
+\mbox{\hyperlink{namespaceapi_1_1auth_af55af27d801444ba78475210180a1a08}{pwd\+\_\+context}} = Crypt\+Context(schemes=\mbox{[}"{}pbkdf2\+\_\+sha256"{}\mbox{]}, deprecated="{}auto"{})
+\item 
+\mbox{\hyperlink{namespaceapi_1_1auth_a277d87bde350c525aa8252cd5dc11ac6}{oauth2\+\_\+scheme}} = OAuth2\+Password\+Bearer(token\+Url="{}token"{})
+\item 
+\mbox{\hyperlink{namespaceapi_1_1auth_a3af2868ac5c11d24b509e5fe6bf8cf6c}{user\+\_\+repository}} = \mbox{\hyperlink{classapi_1_1auth_1_1UserRepository}{User\+Repository}}()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Authentication module for the Financial Asset Relationship Database API\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceapi_1_1auth_a4b72d63ef8f4087e0b511d807a1c0637}\index{api.auth@{api.auth}!\_is\_truthy@{\_is\_truthy}}
+\index{\_is\_truthy@{\_is\_truthy}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{\_is\_truthy()}{\_is\_truthy()}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_a4b72d63ef8f4087e0b511d807a1c0637} 
+ bool api.\+auth.\+\_\+is\+\_\+truthy (\begin{DoxyParamCaption}\item[{str \texorpdfstring{$\vert$}{|} None}]{value}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Determine whether a string value represents a truthy boolean.
+
+Parameters:
+    value (str | None): Input string to evaluate; recognised truthy forms are
+        "true", "1", "yes" and "on" (case-insensitive).
+
+Returns:
+    bool: True if `value` matches a recognised truthy form,
+        False otherwise.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceapi_1_1auth_a4b72d63ef8f4087e0b511d807a1c0637_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespaceapi_1_1auth_a3e573991ddd0d8eed854d8037ced147d}\index{api.auth@{api.auth}!\_seed\_credentials\_from\_env@{\_seed\_credentials\_from\_env}}
+\index{\_seed\_credentials\_from\_env@{\_seed\_credentials\_from\_env}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{\_seed\_credentials\_from\_env()}{\_seed\_credentials\_from\_env()}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_a3e573991ddd0d8eed854d8037ced147d} 
+ None api.\+auth.\+\_\+seed\+\_\+credentials\+\_\+from\+\_\+env (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classapi_1_1auth_1_1UserRepository}{User\+Repository}}}]{repository}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Seed an administrative user into the repository from environment variables.
+
+If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that
+user in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME and
+ADMIN_DISABLED (interpreted as a truthy flag). The provided password is
+stored hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, no
+changes are made.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceapi_1_1auth_a3e573991ddd0d8eed854d8037ced147d_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=227pt]{namespaceapi_1_1auth_a3e573991ddd0d8eed854d8037ced147d_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespaceapi_1_1auth_a11727c41cdedef612db529a3ea92cf60}\index{api.auth@{api.auth}!authenticate\_user@{authenticate\_user}}
+\index{authenticate\_user@{authenticate\_user}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{authenticate\_user()}{authenticate\_user()}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_a11727c41cdedef612db529a3ea92cf60} 
+ User\+In\+DB \texorpdfstring{$\vert$}{|} bool api.\+auth.\+authenticate\+\_\+user (\begin{DoxyParamCaption}\item[{str}]{username}{, }\item[{str}]{password}{, }\item[{Optional\mbox{[}\mbox{\hyperlink{classapi_1_1auth_1_1UserRepository}{User\+Repository}}\mbox{]} }]{repository}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Authenticate a username and password and return the corresponding stored user.
+
+Parameters:
+    username (str): Username to authenticate.
+    password (str): Plaintext password to verify.
+    repository (Optional[UserRepository]): Repository to query for the user; if
+        omitted the module-level repository is used.
+
+Returns:
+    UserInDB when authentication succeeds, `False` otherwise.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceapi_1_1auth_a11727c41cdedef612db529a3ea92cf60_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespaceapi_1_1auth_ad0a4e0a1fde64da14403d1dda521af92}\index{api.auth@{api.auth}!create\_access\_token@{create\_access\_token}}
+\index{create\_access\_token@{create\_access\_token}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{create\_access\_token()}{create\_access\_token()}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_ad0a4e0a1fde64da14403d1dda521af92} 
+api.\+auth.\+create\+\_\+access\+\_\+token (\begin{DoxyParamCaption}\item[{dict}]{data}{, }\item[{Optional\mbox{[}timedelta\mbox{]} }]{expires\+\_\+delta}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create a JWT access token that includes an expiry (`exp`) claim.
+
+Parameters:
+    data (dict):
+        Claims to include in the token payload.
+        The function will add or overwrite the `exp` claim.
+    expires_delta (Optional[timedelta]):
+        Time span after which the token expires; if omitted the token
+        expires in 15 minutes.
+
+Returns:
+    str: Encoded JWT as a compact string.
+\end{DoxyVerb}
+ \Hypertarget{namespaceapi_1_1auth_aa09247ce61392982ae2d023373b390e2}\index{api.auth@{api.auth}!get\_current\_active\_user@{get\_current\_active\_user}}
+\index{get\_current\_active\_user@{get\_current\_active\_user}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{get\_current\_active\_user()}{get\_current\_active\_user()}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_aa09247ce61392982ae2d023373b390e2} 
+api.\+auth.\+get\+\_\+current\+\_\+active\+\_\+user (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classapi_1_1auth_1_1User}{User}} }]{current\+\_\+user}{ = {\ttfamily Depends(\mbox{\hyperlink{namespaceapi_1_1auth_acfa6a39adead4b0cb1275bd4233515b6}{get\+\_\+current\+\_\+user}})}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get the currently authenticated active user.
+
+Raises:
+    HTTPException: 400 with detail "Inactive user" if the user's account is
+    disabled.
+
+Returns:
+    The authenticated user's public profile as a `User` instance.
+\end{DoxyVerb}
+ \Hypertarget{namespaceapi_1_1auth_acfa6a39adead4b0cb1275bd4233515b6}\index{api.auth@{api.auth}!get\_current\_user@{get\_current\_user}}
+\index{get\_current\_user@{get\_current\_user}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{get\_current\_user()}{get\_current\_user()}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_acfa6a39adead4b0cb1275bd4233515b6} 
+api.\+auth.\+get\+\_\+current\+\_\+user (\begin{DoxyParamCaption}\item[{str }]{token}{ = {\ttfamily Depends(\mbox{\hyperlink{namespaceapi_1_1auth_a277d87bde350c525aa8252cd5dc11ac6}{oauth2\+\_\+scheme}})}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return the user represented by the provided JWT.
+
+
+Returns:
+    User: The User model corresponding to the token's subject.
+
+Raises:
+    HTTPException: 401 with detail "Token has expired" if the token has expired.
+    HTTPException: 401 with detail "Could not validate credentials"
+        if the token is invalid,
+        missing the subject, or no matching user is found.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceapi_1_1auth_acfa6a39adead4b0cb1275bd4233515b6_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespaceapi_1_1auth_af93dff0b7760a50336e6702283294fc9}\index{api.auth@{api.auth}!get\_password\_hash@{get\_password\_hash}}
+\index{get\_password\_hash@{get\_password\_hash}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{get\_password\_hash()}{get\_password\_hash()}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_af93dff0b7760a50336e6702283294fc9} 
+api.\+auth.\+get\+\_\+password\+\_\+hash (\begin{DoxyParamCaption}\item[{}]{password}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Hash a plaintext password using the configured password-hashing context.
+
+Parameters:
+    password (str): Plaintext password to hash.
+
+Returns:
+    str: The hashed password.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceapi_1_1auth_af93dff0b7760a50336e6702283294fc9_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespaceapi_1_1auth_a5e8641d87f691958e7a3c0ff1a682b76}\index{api.auth@{api.auth}!get\_user@{get\_user}}
+\index{get\_user@{get\_user}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{get\_user()}{get\_user()}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_a5e8641d87f691958e7a3c0ff1a682b76} 
+ Optional\mbox{[}User\+In\+DB\mbox{]} api.\+auth.\+get\+\_\+user (\begin{DoxyParamCaption}\item[{str}]{username}{, }\item[{Optional\mbox{[}\mbox{\hyperlink{classapi_1_1auth_1_1UserRepository}{User\+Repository}}\mbox{]} }]{repository}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Retrieve a user by username.
+
+Parameters:
+    repository (Optional[UserRepository]): Repository to query;
+        if omitted the module-level `user_repository` is used.
+
+Returns:
+    Optional[UserInDB]: The matching UserInDB instance, or `None` if no
+        user exists with that username.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceapi_1_1auth_a5e8641d87f691958e7a3c0ff1a682b76_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespaceapi_1_1auth_a62205ca839bdfe149312b664a59a030c}\index{api.auth@{api.auth}!verify\_password@{verify\_password}}
+\index{verify\_password@{verify\_password}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{verify\_password()}{verify\_password()}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_a62205ca839bdfe149312b664a59a030c} 
+api.\+auth.\+verify\+\_\+password (\begin{DoxyParamCaption}\item[{}]{plain\+\_\+password}{, }\item[{}]{hashed\+\_\+password}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify whether a plaintext password matches a stored hashed password.
+
+Returns:
+    `True` if the plaintext password matches the hashed password, `False` otherwise.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceapi_1_1auth_a62205ca839bdfe149312b664a59a030c_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceapi_1_1auth_ae994d098458504a4f7ed11df844cbfe2}\index{api.auth@{api.auth}!ACCESS\_TOKEN\_EXPIRE\_MINUTES@{ACCESS\_TOKEN\_EXPIRE\_MINUTES}}
+\index{ACCESS\_TOKEN\_EXPIRE\_MINUTES@{ACCESS\_TOKEN\_EXPIRE\_MINUTES}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{ACCESS\_TOKEN\_EXPIRE\_MINUTES}{ACCESS\_TOKEN\_EXPIRE\_MINUTES}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_ae994d098458504a4f7ed11df844cbfe2} 
+int api.\+auth.\+ACCESS\+\_\+\+TOKEN\+\_\+\+EXPIRE\+\_\+\+MINUTES = 30}
+
+\Hypertarget{namespaceapi_1_1auth_af90cfd31d8e6f3e5b483e1d37cb6ebfe}\index{api.auth@{api.auth}!ALGORITHM@{ALGORITHM}}
+\index{ALGORITHM@{ALGORITHM}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{ALGORITHM}{ALGORITHM}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_af90cfd31d8e6f3e5b483e1d37cb6ebfe} 
+str api.\+auth.\+ALGORITHM = "{}HS256"{}}
+
+\Hypertarget{namespaceapi_1_1auth_a277d87bde350c525aa8252cd5dc11ac6}\index{api.auth@{api.auth}!oauth2\_scheme@{oauth2\_scheme}}
+\index{oauth2\_scheme@{oauth2\_scheme}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{oauth2\_scheme}{oauth2\_scheme}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_a277d87bde350c525aa8252cd5dc11ac6} 
+api.\+auth.\+oauth2\+\_\+scheme = OAuth2\+Password\+Bearer(token\+Url="{}token"{})}
+
+\Hypertarget{namespaceapi_1_1auth_af55af27d801444ba78475210180a1a08}\index{api.auth@{api.auth}!pwd\_context@{pwd\_context}}
+\index{pwd\_context@{pwd\_context}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{pwd\_context}{pwd\_context}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_af55af27d801444ba78475210180a1a08} 
+api.\+auth.\+pwd\+\_\+context = Crypt\+Context(schemes=\mbox{[}"{}pbkdf2\+\_\+sha256"{}\mbox{]}, deprecated="{}auto"{})}
+
+\Hypertarget{namespaceapi_1_1auth_a44cbca77fc0d01b2ce76dfd967ebfe2b}\index{api.auth@{api.auth}!SECRET\_KEY@{SECRET\_KEY}}
+\index{SECRET\_KEY@{SECRET\_KEY}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{SECRET\_KEY}{SECRET\_KEY}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_a44cbca77fc0d01b2ce76dfd967ebfe2b} 
+api.\+auth.\+SECRET\+\_\+\+KEY = os.\+getenv("{}SECRET\+\_\+\+KEY"{})}
+
+\Hypertarget{namespaceapi_1_1auth_a3af2868ac5c11d24b509e5fe6bf8cf6c}\index{api.auth@{api.auth}!user\_repository@{user\_repository}}
+\index{user\_repository@{user\_repository}!api.auth@{api.auth}}
+\doxysubsubsection{\texorpdfstring{user\_repository}{user\_repository}}
+{\footnotesize\ttfamily \label{namespaceapi_1_1auth_a3af2868ac5c11d24b509e5fe6bf8cf6c} 
+api.\+auth.\+user\+\_\+repository = \mbox{\hyperlink{classapi_1_1auth_1_1UserRepository}{User\+Repository}}()}
+

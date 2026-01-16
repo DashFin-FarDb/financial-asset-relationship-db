@@ -1,0 +1,90 @@
+\doxysection{tests.\+integration.\+test\+\_\+requirements Namespace Reference}
+\hypertarget{namespacetests_1_1integration_1_1test__requirements}{}\label{namespacetests_1_1integration_1_1test__requirements}\index{tests.integration.test\_requirements@{tests.integration.test\_requirements}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation}{Test\+Comprehensive\+Validation}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases}{Test\+Edge\+Cases}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestFileOrganization}{Test\+File\+Organization}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency}{Test\+Package\+Consistency}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestRequiredPackages}{Test\+Required\+Packages}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileExists}{Test\+Requirements\+File\+Exists}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat}{Test\+Requirements\+File\+Format}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestSecurityAndCompliance}{Test\+Security\+And\+Compliance}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications}{Test\+Version\+Specifications}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__requirements_a979f85cc6fc4eaa1143477069cb8b99a}{parse\+\_\+requirements}} (Path file\+\_\+path)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{namespacetests_1_1integration_1_1test__requirements_a74f1a9ad4502de77613aec1cc7ad3260}{REQUIREMENTS\+\_\+\+FILE}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent / "{}requirements.\+txt"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Integration tests for requirements.txt file.
+
+This module validates that the production requirements file is well-
+formatted, contains required packages, has valid version specifications,
+and includes security-pinned dependencies.
+
+Note: Bandit B101 (assert_used) is suppressed for this test file as assert
+statements are the standard and required pattern in pytest test files.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetests_1_1integration_1_1test__requirements_a979f85cc6fc4eaa1143477069cb8b99a}\index{tests.integration.test\_requirements@{tests.integration.test\_requirements}!parse\_requirements@{parse\_requirements}}
+\index{parse\_requirements@{parse\_requirements}!tests.integration.test\_requirements@{tests.integration.test\_requirements}}
+\doxysubsubsection{\texorpdfstring{parse\_requirements()}{parse\_requirements()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__requirements_a979f85cc6fc4eaa1143477069cb8b99a} 
+ List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} tests.\+integration.\+test\+\_\+requirements.\+parse\+\_\+requirements (\begin{DoxyParamCaption}\item[{Path}]{file\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse requirements file and return list of (package, version_spec) tuples.
+
+Examples:
+    Input line: "requests>=2.25.0"
+    Output: ("requests", ">=2.25.0")
+
+    Input line: "pytest>=6.0,<7.0 # testing framework"
+    Output: ("pytest", ">=6.0,<7.0")
+
+    Input line: "pandas"
+    Output: ("pandas", "")
+
+    Input line: "package[extra1,extra2]>=1.0"
+    Output: ("package", ">=1.0")
+
+Raises:
+    ValueError: If a requirement line is malformed.
+    OSError: If the requirements file could not be opened or read.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1integration_1_1test__requirements_a979f85cc6fc4eaa1143477069cb8b99a_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetests_1_1integration_1_1test__requirements_a74f1a9ad4502de77613aec1cc7ad3260}\index{tests.integration.test\_requirements@{tests.integration.test\_requirements}!REQUIREMENTS\_FILE@{REQUIREMENTS\_FILE}}
+\index{REQUIREMENTS\_FILE@{REQUIREMENTS\_FILE}!tests.integration.test\_requirements@{tests.integration.test\_requirements}}
+\doxysubsubsection{\texorpdfstring{REQUIREMENTS\_FILE}{REQUIREMENTS\_FILE}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__requirements_a74f1a9ad4502de77613aec1cc7ad3260} 
+str tests.\+integration.\+test\+\_\+requirements.\+REQUIREMENTS\+\_\+\+FILE = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent / "{}requirements.\+txt"{}}
+

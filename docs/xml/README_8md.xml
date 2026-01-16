@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="README_8md" kind="file" language="Markdown">
+    <compoundname>README.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">A<sp/>comprehensive<sp/>3D<sp/>visualization<sp/>system<sp/>for<sp/>interconnected<sp/>financial<sp/>assets<sp/>across<sp/>all<sp/>major<sp/>classes:<sp/>**Equities,<sp/>Bonds,<sp/>Commodities,<sp/>Currencies,<sp/>and<sp/>Regulatory<sp/>Events**.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🚀<sp/>Quick<sp/>Start</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Prerequisites</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Python<sp/>3.10+</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Node.js<sp/>18+<sp/>(for<sp/>Next.js<sp/>frontend)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Virtual<sp/>environment<sp/>(recommended)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>1:<sp/>Gradio<sp/>UI<sp/>(Original)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Clone<sp/>the<sp/>repository**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>git<sp/>clone<sp/>&lt;repository-url&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>cd<sp/>financial-asset-relationship-db</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Set<sp/>up<sp/>Python<sp/>environment**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Activate<sp/>virtual<sp/>environment**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>**Windows<sp/>(PowerShell):**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>```powershell</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>.\.venv\Scripts\Activate.ps1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>```</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>**Windows<sp/>(Command<sp/>Prompt):**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>```cmd</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>.venv\Scripts\activate.bat</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>```</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>**macOS/Linux:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>source<sp/>.venv/bin/activate</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Install<sp/>dependencies**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">5.<sp/>**Run<sp/>the<sp/>application**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>python<sp/>app.py</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>application<sp/>will<sp/>launch<sp/>in<sp/>your<sp/>browser<sp/>automatically<sp/>at<sp/>`http://localhost:7860`.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>2:<sp/>Next.js<sp/>Frontend<sp/>+<sp/>FastAPI<sp/>Backend<sp/>(New)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>the<sp/>modern<sp/>web<sp/>frontend<sp/>with<sp/>REST<sp/>API:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Quick<sp/>Start<sp/>(Both<sp/>Servers):**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Linux/Mac</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Windows</highlight></codeline>
+<codeline><highlight class="normal">run-dev.bat</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>will<sp/>start<sp/>both<sp/>the<sp/>FastAPI<sp/>backend<sp/>(port<sp/>8000)<sp/>and<sp/>Next.js<sp/>frontend<sp/>(port<sp/>3000).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Manual<sp/>Setup:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Start<sp/>the<sp/>FastAPI<sp/>backend:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>source<sp/>.venv/bin/activate<sp/><sp/>#<sp/>On<sp/>Windows:<sp/>.venv\Scripts\activate</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--port<sp/>8000</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Start<sp/>the<sp/>Next.js<sp/>frontend<sp/>(in<sp/>a<sp/>new<sp/>terminal):**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>npm<sp/>run<sp/>dev</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Access<sp/>the<sp/>application:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Frontend:<sp/>`http://localhost:3000`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Backend<sp/>API:<sp/>`http://localhost:8000`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>API<sp/>Documentation:<sp/>`http://localhost:8000/docs`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">See<sp/>[DEPLOYMENT.md](DEPLOYMENT.md)<sp/>for<sp/>detailed<sp/>deployment<sp/>instructions<sp/>and<sp/>Vercel<sp/>integration.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>🐳<sp/>Docker<sp/>Installation<sp/>(Alternative)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>containerized<sp/>deployment:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Using<sp/>Docker<sp/>Compose<sp/>(recommended)**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>docker-compose<sp/>up<sp/>--build</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Using<sp/>Docker<sp/>directly**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>docker<sp/>build<sp/>-t<sp/>financial-asset-db<sp/>.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>docker<sp/>run<sp/>-p<sp/>7860:7860<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Using<sp/>Makefile**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>make<sp/>docker-compose-up</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">See<sp/>[DOCKER.md](DOCKER.md)<sp/>for<sp/>detailed<sp/>Docker<sp/>deployment<sp/>guide.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>📊<sp/>Features</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Core<sp/>Functionality</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**3D<sp/>Network<sp/>Visualization**:<sp/>Interactive<sp/>3D<sp/>graph<sp/>of<sp/>asset<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Cross-Asset<sp/>Analysis**:<sp/>Automatic<sp/>relationship<sp/>discovery<sp/>between<sp/>asset<sp/>classes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Regulatory<sp/>Integration**:<sp/>Corporate<sp/>events<sp/>and<sp/>SEC<sp/>filings<sp/>impact<sp/>modeling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Real-time<sp/>Metrics**:<sp/>Network<sp/>statistics<sp/>and<sp/>relationship<sp/>strength<sp/>analysis</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Asset<sp/>Classes<sp/>Supported</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Equities**:<sp/>Stocks<sp/>with<sp/>P/E<sp/>ratios,<sp/>dividend<sp/>yields,<sp/>EPS</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Fixed<sp/>Income**:<sp/>Bonds<sp/>with<sp/>yield,<sp/>duration,<sp/>credit<sp/>ratings</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Commodities**:<sp/>Futures<sp/>and<sp/>spot<sp/>prices<sp/>with<sp/>contract<sp/>specifications</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Currencies**:<sp/>FX<sp/>pairs<sp/>with<sp/>exchange<sp/>rates<sp/>and<sp/>monetary<sp/>policy<sp/>links</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Regulatory<sp/>Events**:<sp/>Earnings,<sp/>SEC<sp/>filings,<sp/>M&amp;A<sp/>activities</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Relationship<sp/>Types</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Sector<sp/>Affinity**:<sp/>Assets<sp/>in<sp/>same<sp/>industry<sp/>sector</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Corporate<sp/>Links**:<sp/>Bonds<sp/>issued<sp/>by<sp/>stock<sp/>companies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Commodity<sp/>Exposure**:<sp/>Equity<sp/>companies<sp/>exposed<sp/>to<sp/>commodity<sp/>prices</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Currency<sp/>Risk**:<sp/>FX<sp/>exposure<sp/>for<sp/>non-USD<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Income<sp/>Comparison**:<sp/>Dividends<sp/>vs<sp/>bond<sp/>yields</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Event<sp/>Impact**:<sp/>Regulatory<sp/>events<sp/>affecting<sp/>multiple<sp/>assets</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🏗️<sp/>Architecture</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Key<sp/>Components</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**`app.py`**:<sp/>Gradio<sp/>web<sp/>interface<sp/>and<sp/>event<sp/>handlers</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**`src/logic/asset_graph.py`**:<sp/>Core<sp/>graph<sp/>algorithms<sp/>and<sp/>relationship<sp/>engine</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**`src/models/financial_models.py`**:<sp/>Domain<sp/>model<sp/>dataclasses<sp/>and<sp/>enums</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**`src/data/sample_data.py`**:<sp/>Sample<sp/>dataset<sp/>creation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**`src/visualizations/`**:<sp/>Plotly-based<sp/>charts<sp/>and<sp/>3D<sp/>graphs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**`src/reports/`**:<sp/>Schema<sp/>and<sp/>business<sp/>rules<sp/>reporting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Data<sp/>Model</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">Assets<sp/>-&gt;<sp/>Relationships<sp/>-&gt;<sp/>Regulatory<sp/>Events</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>↓<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>↓<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>↓</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>Attributes<sp/><sp/>Strength<sp/><sp/><sp/><sp/>Impact<sp/>Score</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Relationship<sp/>Strength**:<sp/>Normalized<sp/>0.0-1.0<sp/>scale</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Regulatory<sp/>Impact**:<sp/>-1<sp/>to<sp/>+1<sp/>scale<sp/>(negative<sp/>to<sp/>positive)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**3D<sp/>Positions**:<sp/>Deterministic<sp/>layout<sp/>with<sp/>seed=42<sp/>for<sp/>consistency</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🧪<sp/>Development</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Project<sp/>Structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">.</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>app.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Main<sp/>application<sp/>entry<sp/>point</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements.txt<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Python<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>.github/copilot-instructions.md<sp/>#<sp/>AI<sp/>agent<sp/>guidance</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>src/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>data/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>sample_data.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Sample<sp/>database<sp/>creation</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>logic/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>asset_graph.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Core<sp/>relationship<sp/>engine</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>models/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>financial_models.py<sp/><sp/><sp/><sp/>#<sp/>Domain<sp/>model<sp/>classes</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>reports/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>schema_report.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Schema<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>visualizations/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>graph_visuals.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>3D<sp/>network<sp/>visualization</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──<sp/>metric_visuals.py<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Analytics<sp/>charts</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Key<sp/>Patterns</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Bidirectional<sp/>Relationships**:<sp/>Some<sp/>relationships<sp/>are<sp/>symmetric<sp/>(e.g.,<sp/>`same_sector`)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Directional<sp/>Relationships**:<sp/>Others<sp/>flow<sp/>one<sp/>way<sp/>(e.g.,<sp/>`corporate_bond_to_equity`)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Deterministic<sp/>Positions**:<sp/>3D<sp/>layout<sp/>uses<sp/>fixed<sp/>random<sp/>seed<sp/>for<sp/>consistency</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Relationship<sp/>Discovery**:<sp/>Automatic<sp/>relationship<sp/>detection<sp/>via<sp/>`_find_relationships()`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>📈<sp/>Usage<sp/>Examples</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Adding<sp/>New<sp/>Asset<sp/>Types</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>src.models.financial_models<sp/>import<sp/>Asset,<sp/>AssetClass</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Extend<sp/>Asset<sp/>for<sp/>new<sp/>types</highlight></codeline>
+<codeline><highlight class="normal">@dataclass</highlight></codeline>
+<codeline><highlight class="normal">class<sp/>Derivative(Asset):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>underlying_asset:<sp/>str</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>expiration_date:<sp/>str</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>strike_price:<sp/>Optional[float]<sp/>=<sp/>None</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Custom<sp/>Relationship<sp/>Rules</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Add<sp/>to<sp/>_find_relationships()<sp/>in<sp/>AssetRelationshipGraph</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>isinstance(asset1,<sp/>Derivative)<sp/>and<sp/>isinstance(asset2,<sp/>Equity):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>asset1.underlying_asset<sp/>==<sp/>asset2.symbol:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>relationships.append((&quot;derivative_underlying&quot;,<sp/>0.95,<sp/>False))</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🛠️<sp/>API<sp/>Reference</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Core<sp/>Methods</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`AssetRelationshipGraph.add_asset(asset)`<sp/>-<sp/>Add<sp/>asset<sp/>to<sp/>graph</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`AssetRelationshipGraph.add_relationship(source,<sp/>target,<sp/>type,<sp/>strength)`<sp/>-<sp/>Create<sp/>relationship</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`AssetRelationshipGraph.build_relationships()`<sp/>-<sp/>Auto-discover<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`AssetRelationshipGraph.calculate_metrics()`<sp/>-<sp/>Generate<sp/>network<sp/>statistics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`AssetRelationshipGraph.get_3d_visualization_data()`<sp/>-<sp/>Export<sp/>for<sp/>visualization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🧪<sp/>Testing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>project<sp/>includes<sp/>comprehensive<sp/>test<sp/>coverage:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Backend<sp/>(Python)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>--cov=src<sp/>--cov-report=html</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>use<sp/>Makefile</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>(Next.js/React)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Note:**<sp/>Coverage<sp/>reports<sp/>are<sp/>generated<sp/>locally<sp/>in<sp/>`frontend/coverage/`<sp/>and<sp/>are<sp/>excluded<sp/>from<sp/>version<sp/>control.<sp/>These<sp/>files<sp/>are<sp/>auto-generated<sp/>by<sp/>Jest/Istanbul<sp/>and<sp/>should<sp/>not<sp/>be<sp/>committed.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">See<sp/>[CONTRIBUTING.md](CONTRIBUTING.md)<sp/>for<sp/>detailed<sp/>testing<sp/>guidelines.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🔧<sp/>Development<sp/>Tools</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Testing:**<sp/>pytest<sp/>with<sp/>coverage<sp/>reporting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Linting:**<sp/>flake8,<sp/>pylint</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Formatting:**<sp/>black,<sp/>isort</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Type<sp/>Checking:**<sp/>mypy</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Pre-commit<sp/>Hooks:**<sp/>Automatic<sp/>quality<sp/>checks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Install<sp/>development<sp/>dependencies:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements-dev.txt</highlight></codeline>
+<codeline><highlight class="normal">pre-commit<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Or<sp/>use<sp/>the<sp/>Makefile:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>install-dev</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>pre-commit</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>📝<sp/>License</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">MIT<sp/>License<sp/>-<sp/>see<sp/>LICENSE<sp/>file<sp/>for<sp/>details.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>🤝<sp/>Contributing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">We<sp/>welcome<sp/>contributions!<sp/>Please<sp/>see<sp/>[CONTRIBUTING.md](CONTRIBUTING.md)<sp/>for<sp/>detailed<sp/>guidelines.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Quick<sp/>start:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Fork<sp/>the<sp/>repository</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Create<sp/>a<sp/>feature<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Make<sp/>your<sp/>changes<sp/>with<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Run<sp/>`make<sp/>check`<sp/>to<sp/>verify<sp/>quality</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>Submit<sp/>a<sp/>pull<sp/>request</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>AI<sp/>agents:<sp/>see<sp/>`.github/copilot-instructions.md`<sp/>for<sp/>development<sp/>guidelines.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>📚<sp/>Additional<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Getting<sp/>Started<sp/>(NEW)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[QUICK_START.md](QUICK_START.md)<sp/>-<sp/>**Get<sp/>started<sp/>in<sp/>under<sp/>5<sp/>minutes**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[UI_COMPARISON.md](UI_COMPARISON.md)<sp/>-<sp/>**Compare<sp/>Gradio<sp/>vs<sp/>Next.js<sp/>interfaces**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Deployment<sp/>&amp;<sp/>Integration<sp/>(NEW)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[DEPLOYMENT.md](DEPLOYMENT.md)<sp/>-<sp/>**Vercel<sp/>Next.js<sp/>deployment<sp/>guide**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[VERCEL_DEPLOYMENT_CHECKLIST.md](VERCEL_DEPLOYMENT_CHECKLIST.md)<sp/>-<sp/>**Step-by-step<sp/>deployment<sp/>checklist**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md)<sp/>-<sp/>**Technical<sp/>integration<sp/>details**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[ARCHITECTURE.md](ARCHITECTURE.md)<sp/>-<sp/>**System<sp/>architecture<sp/>diagrams**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Original<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[AUDIT_REPORT.md](AUDIT_REPORT.md)<sp/>-<sp/>Comprehensive<sp/>code<sp/>audit<sp/>and<sp/>improvements</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[CHANGELOG.md](CHANGELOG.md)<sp/>-<sp/>Version<sp/>history<sp/>and<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[CONTRIBUTING.md](CONTRIBUTING.md)<sp/>-<sp/>Development<sp/>guidelines</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[AI_RULES.md](AI_RULES.md)<sp/>-<sp/>Tech<sp/>stack<sp/>and<sp/>coding<sp/>conventions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[DOCKER.md](DOCKER.md)<sp/>-<sp/>Docker<sp/>deployment<sp/>guide</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[IMPROVEMENTS.md](IMPROVEMENTS.md)<sp/>-<sp/>Code<sp/>quality<sp/>recommendations</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[SECURITY.md](SECURITY.md)<sp/>-<sp/>Security<sp/>best<sp/>practices</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[BRANCH_CLEANUP_ANALYSIS.md](BRANCH_CLEANUP_ANALYSIS.md)<sp/>-<sp/>Branch<sp/>management<sp/>and<sp/>cleanup<sp/>guide</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>[![Repography<sp/>logo](https://images.repography.com/logo.svg)](https://repography.com)<sp/>/<sp/>Structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">[![Structure](https://images.repography.com/101385307/DashFin/financial-asset-relationship-db/structure/arjWaynlR5rCs456RmPMMMqHEGw9SkWddam5SrE3whs/T4MviKoggvFTqpIOb8tlmjs-DCZZlG84-xtfxwZ4i5w_table.svg)](https://github.com/DashFin/financial-asset-relationship-db)</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/README.md"/>
+  </compounddef>
+</doxygen>

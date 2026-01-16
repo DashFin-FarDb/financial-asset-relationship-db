@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="schema__report_8py" kind="file" language="Python">
+    <compoundname>schema_report.py</compoundname>
+    <innernamespace refid="namespaceschema__report">schema_report</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespaceschema__report" refkind="compound"><highlight class="keyword">from</highlight><highlight class="normal"><sp/>src.logic.asset_graph<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>AssetRelationshipGraph</highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4" refid="namespaceschema__report_1a6f52f51c26b720ebbe332e563bf7f5d9" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceschema__report_1a6f52f51c26b720ebbe332e563bf7f5d9" kindref="member">generate_schema_report</ref>(graph:<sp/>AssetRelationshipGraph)<sp/>-&gt;<sp/>str:</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Generate<sp/>schema<sp/>and<sp/>rules<sp/>report&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"><sp/><sp/><sp/><sp/>metrics<sp/>=<sp/>graph.calculate_metrics()</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;#<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database<sp/>Schema<sp/>&amp;<sp/>Rules</highlight></codeline>
+<codeline lineno="9"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="10"><highlight class="stringliteral">##<sp/>Schema<sp/>Overview</highlight></codeline>
+<codeline lineno="11"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="12"><highlight class="stringliteral">###<sp/>Entity<sp/>Types</highlight></codeline>
+<codeline lineno="13"><highlight class="stringliteral">1.<sp/>**Equity**<sp/>-<sp/>Stock<sp/>instruments<sp/>with<sp/>P/E<sp/>ratio,<sp/>dividend<sp/>yield,<sp/>EPS</highlight></codeline>
+<codeline lineno="14"><highlight class="stringliteral">2.<sp/>**Bond**<sp/>-<sp/>Fixed<sp/>income<sp/>with<sp/>yield,<sp/>coupon,<sp/>maturity,<sp/>credit<sp/>rating</highlight></codeline>
+<codeline lineno="15"><highlight class="stringliteral">3.<sp/>**Commodity**<sp/>-<sp/>Physical<sp/>assets<sp/>with<sp/>contracts<sp/>and<sp/>delivery<sp/>dates</highlight></codeline>
+<codeline lineno="16"><highlight class="stringliteral">4.<sp/>**Currency**<sp/>-<sp/>FX<sp/>pairs<sp/>or<sp/>single-currency<sp/>proxies<sp/>with<sp/>exchange<sp/>rates<sp/>and<sp/>policy<sp/>links</highlight></codeline>
+<codeline lineno="17"><highlight class="stringliteral">5.<sp/>**Regulatory<sp/>Events**<sp/>-<sp/>Corporate<sp/>actions<sp/>and<sp/>SEC<sp/>filings</highlight></codeline>
+<codeline lineno="18"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="19"><highlight class="stringliteral">###<sp/>Relationship<sp/>Types</highlight></codeline>
+<codeline lineno="20"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>rel_type,<sp/>count<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>sorted(</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>metrics[</highlight><highlight class="stringliteral">&quot;relationship_distribution&quot;</highlight><highlight class="normal">].items(),<sp/>key=</highlight><highlight class="keyword">lambda</highlight><highlight class="normal"><sp/>x:<sp/>x[1],<sp/>reverse=</highlight><highlight class="keyword">True</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>):</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>report<sp/>+=<sp/>f</highlight><highlight class="stringliteral">&quot;-<sp/>**{rel_type}**:<sp/>{count}<sp/>instances\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/>f</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="28"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="29"><highlight class="stringliteral">##<sp/>Calculated<sp/>Metrics</highlight></codeline>
+<codeline lineno="30"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="31"><highlight class="stringliteral">###<sp/>Network<sp/>Statistics</highlight></codeline>
+<codeline lineno="32"><highlight class="stringliteral">-<sp/>**Total<sp/>Assets**:<sp/>{metrics[&quot;total_assets&quot;]}</highlight></codeline>
+<codeline lineno="33"><highlight class="stringliteral">-<sp/>**Total<sp/>Relationships**:<sp/>{metrics[&quot;total_relationships&quot;]}</highlight></codeline>
+<codeline lineno="34"><highlight class="stringliteral">-<sp/>**Average<sp/>Relationship<sp/>Strength**:<sp/>{metrics[&quot;average_relationship_strength&quot;]:.3f}</highlight></codeline>
+<codeline lineno="35"><highlight class="stringliteral">-<sp/>**Relationship<sp/>Density**:<sp/>{metrics[&quot;relationship_density&quot;]:.2f}%</highlight></codeline>
+<codeline lineno="36"><highlight class="stringliteral">-<sp/>**Regulatory<sp/>Events**:<sp/>{metrics[&quot;regulatory_event_count&quot;]}</highlight></codeline>
+<codeline lineno="37"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="38"><highlight class="stringliteral">###<sp/>Asset<sp/>Class<sp/>Distribution</highlight></codeline>
+<codeline lineno="39"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>asset_class,<sp/>count<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>sorted(metrics[</highlight><highlight class="stringliteral">&quot;asset_class_distribution&quot;</highlight><highlight class="normal">].items()):</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>report<sp/>+=<sp/>f</highlight><highlight class="stringliteral">&quot;-<sp/>**{asset_class}**:<sp/>{count}<sp/>assets\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="45"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="46"><highlight class="stringliteral">##<sp/>Top<sp/>Relationships</highlight></codeline>
+<codeline lineno="47"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>idx,<sp/>(source,<sp/>target,<sp/>rel_type,<sp/>strength)<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>enumerate(</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>metrics[</highlight><highlight class="stringliteral">&quot;top_relationships&quot;</highlight><highlight class="normal">],<sp/>1</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>):</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>report<sp/>+=<sp/>f</highlight><highlight class="stringliteral">&quot;{idx}.<sp/>{source}<sp/>→<sp/>{target}<sp/>({rel_type}):<sp/>{strength:.2%}\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="55"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="56"><highlight class="stringliteral">##<sp/>Business<sp/>Rules<sp/>&amp;<sp/>Constraints</highlight></codeline>
+<codeline lineno="57"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="58"><highlight class="stringliteral">###<sp/>Cross-Asset<sp/>Rules</highlight></codeline>
+<codeline lineno="59"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/>(</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;1.<sp/>**Corporate<sp/>Bond<sp/>Linkage**:<sp/>Corporate<sp/>bonds<sp/>link<sp/>to<sp/>issuing<sp/>company<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;equity<sp/>(directional)\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;2.<sp/>**Sector<sp/>Affinity**:<sp/>Assets<sp/>in<sp/>same<sp/>sector<sp/>have<sp/>baseline<sp/>relationship<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;strength<sp/>of<sp/>0.7<sp/>(bidirectional)\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;3.<sp/>**Currency<sp/>Exposure**:<sp/>Non-USD<sp/>assets<sp/>link<sp/>to<sp/>their<sp/>native<sp/>currency<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;asset<sp/>when<sp/>available\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;4.<sp/>**Income<sp/>Linkage**:<sp/>Equity<sp/>dividends<sp/>compared<sp/>to<sp/>bond<sp/>yields<sp/>using<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;similarity<sp/>score\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;5.<sp/>**Commodity<sp/>Exposure**:<sp/>Energy<sp/>equities<sp/>link<sp/>to<sp/>crude<sp/>oil;<sp/>miners<sp/>link<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;to<sp/>metal<sp/>commodities\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="73"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="74"><highlight class="stringliteral">###<sp/>Regulatory<sp/>Rules</highlight></codeline>
+<codeline lineno="75"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/>(</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;1.<sp/>**Event<sp/>Propagation**:<sp/>Earnings<sp/>events<sp/>impact<sp/>related<sp/>bond<sp/>and<sp/>currency<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;assets\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;2.<sp/>**Impact<sp/>Scoring**:<sp/>Events<sp/>range<sp/>from<sp/>-1<sp/>(negative)<sp/>to<sp/>+1<sp/>(positive)\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;3.<sp/>**Related<sp/>Assets**:<sp/>Each<sp/>event<sp/>automatically<sp/>creates<sp/>relationships<sp/>to<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;impacted<sp/>securities\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="84"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="85"><highlight class="stringliteral">###<sp/>Valuation<sp/>Rules</highlight></codeline>
+<codeline lineno="86"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/>(</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;1.<sp/>**Bond-Stock<sp/>Spread**:<sp/>Corporate<sp/>bond<sp/>yield<sp/>-<sp/>equity<sp/>dividend<sp/>yield<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;indicates<sp/>relative<sp/>value\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;2.<sp/>**Sector<sp/>Rotation**:<sp/>Commodity<sp/>prices<sp/>trigger<sp/>evaluation<sp/>of<sp/>sector<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;exposure\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;3.<sp/>**Currency<sp/>Adjustment**:<sp/>All<sp/>cross-border<sp/>assets<sp/>adjusted<sp/>for<sp/>FX<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;exposure\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="96"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="97"><highlight class="stringliteral">##<sp/>Schema<sp/>Optimization<sp/>Metrics</highlight></codeline>
+<codeline lineno="98"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="99"><highlight class="stringliteral">###<sp/>Data<sp/>Quality<sp/>Score:<sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/>quality_score<sp/>=<sp/>min(</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>1.0,</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>metrics[</highlight><highlight class="stringliteral">&quot;average_relationship_strength&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>+<sp/>(metrics[</highlight><highlight class="stringliteral">&quot;regulatory_event_count&quot;</highlight><highlight class="normal">]<sp/>/<sp/>10),</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/>f</highlight><highlight class="stringliteral">&quot;{quality_score:.1%}\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;\n###<sp/>Recommendation:<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>metrics[</highlight><highlight class="stringliteral">&quot;relationship_density&quot;</highlight><highlight class="normal">]<sp/>&gt;<sp/>30:</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;High<sp/>connectivity<sp/>-<sp/>consider<sp/>normalization&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">elif</highlight><highlight class="normal"><sp/>metrics[</highlight><highlight class="stringliteral">&quot;relationship_density&quot;</highlight><highlight class="normal">]<sp/>&gt;<sp/>10:</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;Well-balanced<sp/>relationship<sp/>graph<sp/>-<sp/>optimal<sp/>for<sp/>most<sp/>use<sp/>cases&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;Sparse<sp/>connections<sp/>-<sp/>consider<sp/>adding<sp/>more<sp/>relationships&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;\n\n##<sp/>Implementation<sp/>Notes\n-<sp/>All<sp/>timestamps<sp/>in<sp/>ISO<sp/>8601<sp/>format\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;-<sp/>Relationship<sp/>strengths<sp/>normalized<sp/>to<sp/>0-1<sp/>range\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/></highlight><highlight class="stringliteral">&quot;-<sp/>Impact<sp/>scores<sp/>on<sp/>-1<sp/>to<sp/>+1<sp/>scale<sp/>for<sp/>comparability\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/>report<sp/>+=<sp/>(</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;-<sp/>Relationship<sp/>directionality:<sp/>some<sp/>types<sp/>are<sp/>bidirectional<sp/>(e.g.,\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;<sp/><sp/>same_sector,<sp/>income_comparison);\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;<sp/><sp/>others<sp/>are<sp/>directional\n&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>report</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/reports/schema_report.py"/>
+  </compounddef>
+</doxygen>

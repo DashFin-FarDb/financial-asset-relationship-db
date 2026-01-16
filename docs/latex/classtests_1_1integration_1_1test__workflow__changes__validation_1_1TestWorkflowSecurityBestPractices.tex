@@ -1,0 +1,48 @@
+\doxysection{tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+Security\+Best\+Practices Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices}{}\label{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices}\index{tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+Security\+Best\+Practices\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=261pt]{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_aa425b563587bdb07ff0b22c2050d4e40}{test\+\_\+workflows\+\_\+use\+\_\+pinned\+\_\+action\+\_\+versions}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_a069be9218be78086ee299dcd3155989a}{test\+\_\+workflows\+\_\+limit\+\_\+github\+\_\+token\+\_\+permissions}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test security best practices in modified workflows.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_a069be9218be78086ee299dcd3155989a}\index{tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices}!test\_workflows\_limit\_github\_token\_permissions@{test\_workflows\_limit\_github\_token\_permissions}}
+\index{test\_workflows\_limit\_github\_token\_permissions@{test\_workflows\_limit\_github\_token\_permissions}!tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices}}
+\doxysubsubsection{\texorpdfstring{test\_workflows\_limit\_github\_token\_permissions()}{test\_workflows\_limit\_github\_token\_permissions()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_a069be9218be78086ee299dcd3155989a} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+Security\+Best\+Practices.\+test\+\_\+workflows\+\_\+limit\+\_\+github\+\_\+token\+\_\+permissions (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Verify workflows follow least-privilege principle.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_aa425b563587bdb07ff0b22c2050d4e40}\index{tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices}!test\_workflows\_use\_pinned\_action\_versions@{test\_workflows\_use\_pinned\_action\_versions}}
+\index{test\_workflows\_use\_pinned\_action\_versions@{test\_workflows\_use\_pinned\_action\_versions}!tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowSecurityBestPractices}}
+\doxysubsubsection{\texorpdfstring{test\_workflows\_use\_pinned\_action\_versions()}{test\_workflows\_use\_pinned\_action\_versions()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_aa425b563587bdb07ff0b22c2050d4e40} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+Security\+Best\+Practices.\+test\+\_\+workflows\+\_\+use\+\_\+pinned\+\_\+action\+\_\+versions (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Ensure workflow steps that use actions specify a pinned version and do not use 'latest' or 'master'.
+
+Asserts that every step with a `uses` reference includes a version specifier (contains '@') and that the specified version is not '@latest' or '@master' (case-insensitive).
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__workflow__changes__validation_8py}{test\+\_\+workflow\+\_\+changes\+\_\+validation.\+py}}\end{DoxyCompactItemize}

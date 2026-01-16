@@ -1,0 +1,378 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: Quick Start Guide - Next.js + FastAPI Integration</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">Quick Start Guide - Next.js + FastAPI Integration</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md3484"></a></p>
+<p>This guide will get you up and running with the new Next.js frontend in under 5 minutes.</p>
+<h1><a class="anchor" id="autotoc_md3485"></a>
+Prerequisites</h1>
+<ul>
+<li>Python 3.8 or higher</li>
+<li>Node.js 18 or higher</li>
+<li>Git</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3486"></a>
+Option 1: Automated Setup (Recommended)</h1>
+<h2><a class="anchor" id="autotoc_md3487"></a>
+Linux/macOS</h2>
+<div class="fragment"><div class="line"># Make the script executable</div>
+<div class="line">chmod +x run-dev.sh</div>
+<div class="line"> </div>
+<div class="line"># Run the development environment</div>
+<div class="line">./run-dev.sh</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3488"></a>
+Windows</h2>
+<div class="fragment"><div class="line"># Run the development environment</div>
+<div class="line">run-dev.bat</div>
+</div><!-- fragment --><p>That's it! The script will:</p>
+<ol type="1">
+<li>Create a Python virtual environment</li>
+<li>Install Python dependencies</li>
+<li>Install Node.js dependencies</li>
+<li>Start the FastAPI backend on port 8000</li>
+<li>Start the Next.js frontend on port 3000</li>
+</ol>
+<p><b>Access the application:</b></p>
+<ul>
+<li>Frontend: <a href="http://localhost:3000">http://localhost:3000</a></li>
+<li>Backend API: <a href="http://localhost:8000">http://localhost:8000</a></li>
+<li>API Documentation: <a href="http://localhost:8000/docs">http://localhost:8000/docs</a></li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3489"></a>
+Option 2: Manual Setup</h1>
+<h2><a class="anchor" id="autotoc_md3490"></a>
+Step 1: Backend Setup</h2>
+<div class="fragment"><div class="line"># Create and activate virtual environment</div>
+<div class="line">python -m venv .venv</div>
+<div class="line"> </div>
+<div class="line"># Linux/macOS</div>
+<div class="line">source .venv/bin/activate</div>
+<div class="line"> </div>
+<div class="line"># Windows</div>
+<div class="line">.venv\Scripts\activate</div>
+<div class="line"> </div>
+<div class="line"># Install dependencies</div>
+<div class="line">pip install -r requirements.txt</div>
+<div class="line"> </div>
+<div class="line"># Start the backend</div>
+<div class="line">python -m uvicorn api.main:app --reload --port 8000</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3491"></a>
+Step 2: Frontend Setup (in a new terminal)</h2>
+<div class="fragment"><div class="line"># Navigate to frontend directory</div>
+<div class="line">cd frontend</div>
+<div class="line"> </div>
+<div class="line"># Install dependencies</div>
+<div class="line">npm install</div>
+<div class="line"> </div>
+<div class="line"># Copy environment file from project root</div>
+<div class="line"># (the .env.example file is located in the project root directory)</div>
+<div class="line">cp ../.env.example .env.local</div>
+<div class="line"> </div>
+<div class="line"># Start the development server</div>
+<div class="line">npm run dev</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md3492"></a>
+What You'll See</h1>
+<h2><a class="anchor" id="autotoc_md3493"></a>
+Backend (Port 8000)</h2>
+<div class="fragment"><div class="line">INFO:     Uvicorn running on http://0.0.0.0:8000</div>
+<div class="line">INFO:     Application startup complete.</div>
+</div><!-- fragment --><p>Visit <a href="http://localhost:8000/docs">http://localhost:8000/docs</a> to see the interactive API documentation.</p>
+<h2><a class="anchor" id="autotoc_md3494"></a>
+Frontend (Port 3000)</h2>
+<div class="fragment"><div class="line">- ready started server on 0.0.0.0:3000, url: http://localhost:3000</div>
+<div class="line">- event compiled client and server successfully</div>
+</div><!-- fragment --><p>Visit <a href="http://localhost:3000">http://localhost:3000</a> to see the application.</p>
+<h1><a class="anchor" id="autotoc_md3495"></a>
+Using the Application</h1>
+<h2><a class="anchor" id="autotoc_md3496"></a>
+1. 3D Visualization Tab</h2>
+<ul>
+<li>Interactive 3D network graph</li>
+<li>Rotate: Click and drag</li>
+<li>Zoom: Scroll wheel</li>
+<li>Hover: View asset details</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md3497"></a>
+2. Metrics &amp; Analytics Tab</h2>
+<ul>
+<li>Total assets and relationships</li>
+<li>Network statistics</li>
+<li>Asset class distribution</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md3498"></a>
+3. Asset Explorer Tab</h2>
+<ul>
+<li>Filterable table of all assets</li>
+<li>Filter by asset class or sector</li>
+<li>View detailed asset information</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3499"></a>
+Testing the API</h1>
+<h2><a class="anchor" id="autotoc_md3500"></a>
+Using curl</h2>
+<div class="fragment"><div class="line"># Health check</div>
+<div class="line">curl http://localhost:8000/api/health</div>
+<div class="line"> </div>
+<div class="line"># Get all assets</div>
+<div class="line">curl http://localhost:8000/api/assets</div>
+<div class="line"> </div>
+<div class="line"># Get metrics</div>
+<div class="line">curl http://localhost:8000/api/metrics</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3501"></a>
+Using Python</h2>
+<div class="fragment"><div class="line"># Run the test script</div>
+<div class="line">python test_api.py</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3502"></a>
+Using Browser</h2>
+<p>Visit <a href="http://localhost:8000/docs">http://localhost:8000/docs</a> for interactive API testing.</p>
+<h1><a class="anchor" id="autotoc_md3503"></a>
+Troubleshooting</h1>
+<h2><a class="anchor" id="autotoc_md3504"></a>
+Backend Issues</h2>
+<p><b>Problem: Port 8000 already in use</b></p>
+<div class="fragment"><div class="line"># Find and kill the process</div>
+<div class="line"># Linux/macOS</div>
+<div class="line">lsof -ti:8000 | xargs kill -9</div>
+<div class="line"> </div>
+<div class="line"># Windows</div>
+<div class="line">netstat -ano | findstr :8000</div>
+<div class="line">taskkill /PID &lt;PID&gt; /F</div>
+</div><!-- fragment --><p><b>Problem: Module not found errors</b></p>
+<div class="fragment"><div class="line"># Ensure virtual environment is activated</div>
+<div class="line">source .venv/bin/activate  # Linux/macOS</div>
+<div class="line">.venv\Scripts\activate     # Windows</div>
+<div class="line"> </div>
+<div class="line"># Reinstall dependencies</div>
+<div class="line">pip install -r requirements.txt</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3505"></a>
+Frontend Issues</h2>
+<p><b>Problem: Port 3000 already in use</b></p>
+<div class="fragment"><div class="line"># The frontend will automatically use the next available port</div>
+<div class="line"># Or kill the process manually:</div>
+<div class="line"> </div>
+<div class="line"># Linux/macOS</div>
+<div class="line">lsof -ti:3000 | xargs kill -9</div>
+<div class="line"> </div>
+<div class="line"># Windows</div>
+<div class="line">netstat -ano | findstr :3000</div>
+<div class="line">taskkill /PID &lt;PID&gt; /F</div>
+</div><!-- fragment --><p><b>Problem: API connection errors</b></p>
+<ul>
+<li>Check that backend is running on port 8000</li>
+<li>Verify <code>NEXT_PUBLIC_API_URL</code> in <code>.env.local</code></li>
+<li>Check browser console for CORS errors</li>
+</ul>
+<p><b>Problem: Module not found</b></p>
+<div class="fragment"><div class="line">cd frontend</div>
+<div class="line">rm -rf node_modules .next</div>
+<div class="line">npm install</div>
+<div class="line">npm run dev</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md3506"></a>
+Common Commands</h1>
+<h2><a class="anchor" id="autotoc_md3507"></a>
+Backend</h2>
+<div class="fragment"><div class="line"># Start backend</div>
+<div class="line">python -m uvicorn api.main:app --reload --port 8000</div>
+<div class="line"> </div>
+<div class="line"># Start with custom host</div>
+<div class="line">python -m uvicorn api.main:app --host 0.0.0.0 --port 8000</div>
+<div class="line"> </div>
+<div class="line"># Start without auto-reload (production-like)</div>
+<div class="line">python -m uvicorn api.main:app --port 8000</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3508"></a>
+Frontend</h2>
+<div class="fragment"><div class="line">cd frontend</div>
+<div class="line"> </div>
+<div class="line"># Development server</div>
+<div class="line">npm run dev</div>
+<div class="line"> </div>
+<div class="line"># Production build</div>
+<div class="line">npm run build</div>
+<div class="line"> </div>
+<div class="line"># Start production server</div>
+<div class="line">npm start</div>
+<div class="line"> </div>
+<div class="line"># Lint code</div>
+<div class="line">npm run lint</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md3509"></a>
+Next Steps</h1>
+<ol type="1">
+<li><b>Explore the code</b><ul>
+<li>Backend: <code><a class="el" href="api_2main_8py.html">api/main.py</a></code></li>
+<li>Frontend: <code>frontend/app/page.tsx</code></li>
+<li>Components: <code>frontend/app/components/</code></li>
+</ul>
+</li>
+<li><b>Read the documentation</b><ul>
+<li><a class="el" href="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT.html">DEPLOYMENT.md</a> - Full deployment guide</li>
+<li><a class="el" href="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY.html">INTEGRATION_SUMMARY.md</a> - Technical details</li>
+<li><a class="el" href="frontend_2README_8md.html">frontend/README.md</a> - Frontend specifics</li>
+</ul>
+</li>
+<li><b>Deploy to Vercel</b><ul>
+<li>See <a class="el" href="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT.html">DEPLOYMENT.md</a> for instructions</li>
+</ul>
+</li>
+<li><b>Customize</b><ul>
+<li>Modify components in <code>frontend/app/components/</code></li>
+<li>Add new API endpoints in <code><a class="el" href="api_2main_8py.html">api/main.py</a></code></li>
+<li>Update styles in <code>frontend/app/globals.css</code></li>
+</ul>
+</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md3510"></a>
+Getting Help</h1>
+<ol type="1">
+<li>Check the error messages in your terminal</li>
+<li>Review the browser console for frontend errors</li>
+<li>Visit the API docs at <a href="http://localhost:8000/docs">http://localhost:8000/docs</a></li>
+<li>See <a class="el" href="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT.html">DEPLOYMENT.md</a> for detailed troubleshooting</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md3511"></a>
+Compare with Gradio UI</h1>
+<p>You can still use the original Gradio interface:</p>
+<div class="fragment"><div class="line">python app.py</div>
+</div><!-- fragment --><p>Access at <a href="http://localhost:7860">http://localhost:7860</a></p>
+<p>Both UIs use the same underlying data and logic, so you can use whichever you prefer!</p>
+<hr  />
+<p><b>Happy Coding! 🚀</b> </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

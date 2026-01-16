@@ -1,0 +1,200 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="README__NEW__TESTS_8md" kind="file" language="Markdown">
+    <compoundname>README_NEW_TESTS.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>New<sp/>Validation<sp/>Tests<sp/>README</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>directory<sp/>contains<sp/>comprehensive<sp/>validation<sp/>tests<sp/>for<sp/>configuration<sp/>and<sp/>documentation<sp/>files<sp/>modified<sp/>in<sp/>the<sp/>current<sp/>branch.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>New<sp/>Test<sp/>Files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>test_documentation_files_validation.py<sp/>(292<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Validates<sp/>all<sp/>markdown<sp/>documentation<sp/>files<sp/>in<sp/>the<sp/>repository</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Classes**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDocumentationFilesValidation`<sp/>(10<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>File<sp/>existence<sp/>and<sp/>readability</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Non-empty<sp/>file<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Proper<sp/>heading<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Code<sp/>block<sp/>language<sp/>identifiers</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Table<sp/>formatting<sp/>consistency</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Internal<sp/>link<sp/>validity</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Trailing<sp/>whitespace<sp/>checks</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Summary<sp/>file<sp/>requirements</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Reference<sp/>file<sp/>examples</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestMarkdownContentQuality`<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Test<sp/>generation<sp/>file<sp/>statistics</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Comprehensive<sp/>file<sp/>size<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Quick<sp/>reference<sp/>conciseness</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDocumentationConsistency`<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Terminology<sp/>consistency</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Test<sp/>file<sp/>reference<sp/>validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Coverage**:<sp/>32<sp/>markdown<sp/>documentation<sp/>files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>test_modified_config_files_validation.py<sp/>(297<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Validates<sp/>configuration<sp/>file<sp/>modifications<sp/>in<sp/>the<sp/>branch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Classes**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestPRAgentConfigChanges`<sp/>(8<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Version<sp/>validation<sp/>(1.0.0)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Context<sp/>chunking<sp/>removal</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Fallback<sp/>strategies<sp/>removal</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Essential<sp/>sections<sp/>present</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Token<sp/>management<sp/>simplification</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Quality<sp/>standards<sp/>preservation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestWorkflowSimplifications`<sp/>(4<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>PR<sp/>agent<sp/>workflow<sp/>simplified</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>APIsec<sp/>workflow<sp/>no<sp/>conditional</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Label<sp/>workflow<sp/>simplified</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Greetings<sp/>simple<sp/>messages</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestDeletedFilesImpact`<sp/>(6<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>labeler.yml<sp/>removed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>context_chunker.py<sp/>removed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>scripts/README.md<sp/>removed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>codecov.yaml<sp/>removed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>.vscode/settings.json<sp/>removed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>No<sp/>references<sp/>to<sp/>deleted<sp/>files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestRequirementsDevChanges`<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>PyYAML<sp/>added</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>tiktoken<sp/>removed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Essential<sp/>dependencies<sp/>present</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestGitignoreChanges`<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>codacy<sp/>instructions<sp/>ignored</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Test<sp/>artifacts<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Standard<sp/>patterns<sp/>present</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestCodacyInstructionsChanges`<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Instructions<sp/>simplified</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Critical<sp/>rules<sp/>preserved</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Coverage**:<sp/>7<sp/>configuration<sp/>files<sp/>+<sp/>5<sp/>deleted<sp/>files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Running<sp/>the<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Quick<sp/>Start</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>both<sp/>new<sp/>test<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>test_documentation_files_validation.py<sp/>test_modified_config_files_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>documentation<sp/>tests<sp/>only</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>test_documentation_files_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>configuration<sp/>tests<sp/>only</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>test_modified_config_files_validation.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>With<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>test_documentation_files_validation.py<sp/>test_modified_config_files_validation.py<sp/>--cov</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>Specific<sp/>Test<sp/>Classes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Documentation<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>test_documentation_files_validation.py::TestDocumentationFilesValidation<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Configuration<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>test_modified_config_files_validation.py::TestPRAgentConfigChanges<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Deleted<sp/>files<sp/>verification</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>test_modified_config_files_validation.py::TestDeletedFilesImpact<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>Specific<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>markdown<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>test_documentation_files_validation.py::TestDocumentationFilesValidation::test_markdown_has_proper_headings<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>PR<sp/>agent<sp/>version</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>test_modified_config_files_validation.py::TestPRAgentConfigChanges::test_version_is_correct<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Dependencies</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Required</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>pytest<sp/>(already<sp/>in<sp/>requirements.txt)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>PyYAML<sp/>(already<sp/>in<sp/>requirements-dev.txt)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Optional</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>pytest-cov<sp/>(for<sp/>coverage<sp/>reports)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>CI/CD<sp/>Integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">These<sp/>tests<sp/>run<sp/>automatically<sp/>in<sp/>the<sp/>CI/CD<sp/>pipeline:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```yaml</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>.github/workflows/ci.yml</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>name:<sp/>Run<sp/>Python<sp/>Tests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>run:<sp/>pytest<sp/>tests/<sp/>-v<sp/>--cov</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Fixtures</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Common<sp/>Fixtures</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">@pytest.fixture</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>doc_root(self)<sp/>-&gt;<sp/>Path:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Get<sp/>the<sp/>repository<sp/>root<sp/>directory.&quot;&quot;&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">@pytest.fixture</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>markdown_files(self,<sp/>doc_root:<sp/>Path)<sp/>-&gt;<sp/>List[Path]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Get<sp/>all<sp/>markdown<sp/>files<sp/>in<sp/>repository<sp/>root.&quot;&quot;&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">@pytest.fixture</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>config_path(self)<sp/>-&gt;<sp/>Path:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Get<sp/>path<sp/>to<sp/>PR<sp/>agent<sp/>config.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Writing<sp/>New<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Add<sp/>Documentation<sp/>Test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>test_new_markdown_validation(self,<sp/>markdown_files:<sp/>List[Path]):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Test<sp/>for<sp/>new<sp/>markdown<sp/>requirement.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>md_file<sp/>in<sp/>markdown_files:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>content<sp/>=<sp/>md_file.read_text(encoding=&apos;utf-8&apos;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Add<sp/>validation<sp/>logic</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>some_condition,<sp/>f&quot;Validation<sp/>failed<sp/>for<sp/>{md_file.name}&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Add<sp/>Configuration<sp/>Test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>test_new_config_validation(self,<sp/>config_path:<sp/>Path):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Test<sp/>for<sp/>new<sp/>config<sp/>requirement.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>with<sp/>open(config_path,<sp/>&apos;r&apos;)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>config_data<sp/>=<sp/>yaml.safe_load(f)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Add<sp/>validation<sp/>logic</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>assert<sp/>&apos;key&apos;<sp/>in<sp/>config_data,<sp/>&quot;Required<sp/>key<sp/>missing&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Organization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>File<sp/>Structure</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/README_NEW_TESTS.md"/>
+  </compounddef>
+</doxygen>

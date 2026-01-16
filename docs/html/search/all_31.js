@@ -1,0 +1,4 @@
+var searchData=
+[
+  ['⭐_0',['⭐',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiob495e9502ba65e1201d060aedafd3e66.html#autotoc_md2845',1,'1. TestDocumentationEdgeCases (9 tests) ⭐'],['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiob495e9502ba65e1201d060aedafd3e66.html#autotoc_md2846',1,'2. TestDocumentationPerformance (3 tests) ⭐'],['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiob495e9502ba65e1201d060aedafd3e66.html#autotoc_md2847',1,'3. TestDocumentationRobustness (5 tests) ⭐'],['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiob495e9502ba65e1201d060aedafd3e66.html#autotoc_md2848',1,'4. TestDocumentationSchemaValidation (6 tests) ⭐']]]
+];

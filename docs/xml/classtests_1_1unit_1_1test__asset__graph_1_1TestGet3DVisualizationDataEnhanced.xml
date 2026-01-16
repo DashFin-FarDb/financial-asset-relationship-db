@@ -1,0 +1,214 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a3ff1a6697f1d4f4be2b6157a1e07a767" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_empty_graph_returns_placeholder</definition>
+        <argsstring>()</argsstring>
+        <name>test_empty_graph_returns_placeholder</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_empty_graph_returns_placeholder</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that empty graph returns a single placeholder node.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="42" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="42" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a849791341f07cfb9202e03930b09eff9" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_single_relationship_returns_two_nodes</definition>
+        <argsstring>()</argsstring>
+        <name>test_single_relationship_returns_two_nodes</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_single_relationship_returns_two_nodes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test graph with single relationship returns two nodes.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="55" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="55" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a14e95168d3a78d9a8f348d7722f47dd5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_multiple_relationships_circular_layout</definition>
+        <argsstring>()</argsstring>
+        <name>test_multiple_relationships_circular_layout</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_multiple_relationships_circular_layout</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that multiple assets are laid out in a circle.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="70" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="70" bodyend="89"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a597cfcc5e0f984cfaf8cb614b6a05783" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_positions_are_numpy_array</definition>
+        <argsstring>()</argsstring>
+        <name>test_positions_are_numpy_array</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_positions_are_numpy_array</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that positions are returned as numpy array.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="92" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="92" bodyend="102"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a8d4619342f2402dd80ef7df46069c552" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_colors_are_consistent</definition>
+        <argsstring>()</argsstring>
+        <name>test_colors_are_consistent</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_colors_are_consistent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all nodes get the same color.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="105" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="105" bodyend="114"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a3d38c235c49acba267befeb0feadaf25" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_hover_texts_format</definition>
+        <argsstring>()</argsstring>
+        <name>test_hover_texts_format</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_hover_texts_format</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that hover texts are properly formatted.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="117" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="117" bodyend="126"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1af34f3bb0748302261a7815555604015d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_asset_ids_are_sorted</definition>
+        <argsstring>()</argsstring>
+        <name>test_asset_ids_are_sorted</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_asset_ids_are_sorted</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that asset IDs are returned in sorted order.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="129" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="129" bodyend="138"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1afee41f996524699b8b3a64bc1de89397" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_bidirectional_relationships_single_nodes</definition>
+        <argsstring>()</argsstring>
+        <name>test_bidirectional_relationships_single_nodes</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_bidirectional_relationships_single_nodes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that bidirectional relationships don&apos;t duplicate nodes.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="141" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="141" bodyend="151"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1abe6e3e9ec5d9f88bc3b01f7e04825bcf" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_complex_graph_with_multiple_targets</definition>
+        <argsstring>()</argsstring>
+        <name>test_complex_graph_with_multiple_targets</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_complex_graph_with_multiple_targets</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test graph where one source has multiple targets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="154" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="154" bodyend="171"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1ae2fb2479f2994b2e5b1c3d30068243e5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_isolated_target_nodes</definition>
+        <argsstring>()</argsstring>
+        <name>test_isolated_target_nodes</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_isolated_target_nodes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that target nodes without outgoing relationships are included.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="173" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="173" bodyend="183"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a58049a56d4f6ac9222cdcb84a70f1f92" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_return_types</definition>
+        <argsstring>()</argsstring>
+        <name>test_return_types</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_return_types</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all return values have correct types.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="185" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="185" bodyend="199"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a80b78b2a1244099e7f87959a47eda809" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_consistent_list_lengths</definition>
+        <argsstring>()</argsstring>
+        <name>test_consistent_list_lengths</name>
+        <qualifiedname>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced.test_consistent_list_lengths</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all returned lists have the same length.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="201" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="201" bodyend="213"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for get_3d_visualization_data_enhanced method.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_asset_graph.TestGet3DVisualizationDataEnhanced</label>
+        <link refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" line="38" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_asset_graph.py" bodystart="38" bodyend="213"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1af34f3bb0748302261a7815555604015d" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_asset_ids_are_sorted</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1afee41f996524699b8b3a64bc1de89397" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_bidirectional_relationships_single_nodes</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a8d4619342f2402dd80ef7df46069c552" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_colors_are_consistent</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1abe6e3e9ec5d9f88bc3b01f7e04825bcf" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_complex_graph_with_multiple_targets</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a80b78b2a1244099e7f87959a47eda809" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_consistent_list_lengths</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a3ff1a6697f1d4f4be2b6157a1e07a767" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_empty_graph_returns_placeholder</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a3d38c235c49acba267befeb0feadaf25" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_hover_texts_format</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1ae2fb2479f2994b2e5b1c3d30068243e5" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_isolated_target_nodes</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a14e95168d3a78d9a8f348d7722f47dd5" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_multiple_relationships_circular_layout</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a597cfcc5e0f984cfaf8cb614b6a05783" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_positions_are_numpy_array</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a58049a56d4f6ac9222cdcb84a70f1f92" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_return_types</name></member>
+      <member refid="classtests_1_1unit_1_1test__asset__graph_1_1TestGet3DVisualizationDataEnhanced_1a849791341f07cfb9202e03930b09eff9" prot="public" virt="non-virtual"><scope>tests::unit::test_asset_graph::TestGet3DVisualizationDataEnhanced</scope><name>test_single_relationship_returns_two_nodes</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

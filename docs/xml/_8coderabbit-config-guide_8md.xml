@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="_8coderabbit-config-guide_8md" kind="file" language="Markdown">
+    <compoundname>.coderabbit-config-guide.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>CodeRabbit<sp/>Configuration<sp/>Guide</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>explains<sp/>the<sp/>`.coderabbit.yaml`<sp/>configuration<sp/>file<sp/>structure<sp/>for<sp/>this<sp/>repository.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Configuration<sp/>Structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Top-Level<sp/>Settings</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`language`:<sp/>Set<sp/>to<sp/>`en-GB`<sp/>for<sp/>British<sp/>English</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`early_access`:<sp/>Enable<sp/>early<sp/>access<sp/>features</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`inheritance`:<sp/>Enable<sp/>configuration<sp/>inheritance</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Reviews<sp/>Section</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Controls<sp/>how<sp/>CodeRabbit<sp/>reviews<sp/>pull<sp/>requests:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`request_changes_workflow`:<sp/>Request<sp/>changes<sp/>when<sp/>issues<sp/>are<sp/>found</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`high_level_summary_in_walkthrough`:<sp/>Include<sp/>summary<sp/>in<sp/>PR<sp/>walkthrough</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`auto_apply_labels`:<sp/>Automatically<sp/>apply<sp/>labels<sp/>based<sp/>on<sp/>PR<sp/>content</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`auto_assign_reviewers`:<sp/>Automatically<sp/>assign<sp/>reviewers</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Labeling<sp/>Instructions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Defines<sp/>rules<sp/>for<sp/>applying<sp/>labels:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**bug**:<sp/>Applied<sp/>to<sp/>PRs<sp/>fixing<sp/>defects,<sp/>crashes,<sp/>or<sp/>incorrect<sp/>behavior</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**documentation**:<sp/>Applied<sp/>to<sp/>PRs<sp/>changing<sp/>docs<sp/>without<sp/>runtime<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**security**:<sp/>Applied<sp/>to<sp/>PRs<sp/>addressing<sp/>security<sp/>issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Auto<sp/>Review</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`enabled`:<sp/>Auto-review<sp/>is<sp/>enabled</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`drafts`:<sp/>Review<sp/>draft<sp/>PRs<sp/>as<sp/>well</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`base_branches`:<sp/>Regex<sp/>pattern<sp/>`.*`<sp/>matches<sp/>all<sp/>branches</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Knowledge<sp/>Base<sp/>Section</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Configures<sp/>CodeRabbit&apos;s<sp/>knowledge<sp/>resources:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>MCP<sp/>(Model<sp/>Context<sp/>Protocol)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`usage`:<sp/>enabled</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`documents`:<sp/>Reference<sp/>documents<sp/>for<sp/>context</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`tech_spec.md`<sp/>-<sp/>Technical<sp/>specifications</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`DashFin-financial-asset-relationship-db-wiki-v2.md`<sp/>-<sp/>Wiki<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`ARCHITECTURE.md`<sp/>-<sp/>System<sp/>architecture</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Code<sp/>Guidelines</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`enabled`:<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`filePatterns`:<sp/>Files<sp/>containing<sp/>coding<sp/>guidelines</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`AI_RULES.md`<sp/>-<sp/>AI<sp/>coding<sp/>rules<sp/>and<sp/>conventions</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`CONTRIBUTING.md`<sp/>-<sp/>Contribution<sp/>guidelines</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`CODE_OF_CONDUCT.md`<sp/>-<sp/>Code<sp/>of<sp/>conduct</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Issue<sp/>Enrichment<sp/>Section</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`auto_enrich.enabled`:<sp/>Automatically<sp/>enrich<sp/>issues</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`labeling.auto_apply_labels`:<sp/>Auto-apply<sp/>labels<sp/>to<sp/>issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Common<sp/>Issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Duplicate<sp/>Sections</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Problem**:<sp/>Multiple<sp/>`knowledge_base:`,<sp/>`reviews:`,<sp/>or<sp/>other<sp/>top-level<sp/>sections.</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:<sp/>Consolidate<sp/>into<sp/>single<sp/>sections<sp/>with<sp/>all<sp/>required<sp/>fields.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Incorrect<sp/>Nesting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Problem**:<sp/>`auto_review`<sp/>placed<sp/>under<sp/>`knowledge_base`<sp/>instead<sp/>of<sp/>`reviews`.</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:<sp/>Ensure<sp/>proper<sp/>hierarchy<sp/>-<sp/>`auto_review`<sp/>belongs<sp/>under<sp/>`reviews`.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Invalid<sp/>YAML<sp/>Syntax</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Problem**:<sp/>Incorrect<sp/>indentation<sp/>or<sp/>missing<sp/>colons.</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:<sp/>Validate<sp/>with<sp/>`python3<sp/>-c<sp/>&quot;import<sp/>yaml;<sp/>yaml.safe_load(open(&apos;.coderabbit.yaml&apos;))&quot;`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">To<sp/>validate<sp/>the<sp/>configuration<sp/>file:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>-c<sp/>&quot;import<sp/>yaml;<sp/>yaml.safe_load(open(&apos;.coderabbit.yaml&apos;))&quot;<sp/>&amp;&amp;<sp/>echo<sp/>&quot;✓<sp/>Valid<sp/>YAML&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Resources</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Schema:<sp/>https://docs.coderabbit.ai/schema/schema.v2.json</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Documentation:<sp/>https://docs.coderabbit.ai/</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/.coderabbit-config-guide.md"/>
+  </compounddef>
+</doxygen>

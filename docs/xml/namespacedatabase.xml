@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacedatabase" kind="namespace" language="Python">
+    <compoundname>database</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacedatabase_1a0a351bcdc86bdc97cd3c88759443bb4a" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>database.Base</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <qualifiedname>database.Base</qualifiedname>
+        <initializer>=  declarative_base()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" line="14" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" bodystart="14" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacedatabase_1aa8d5114c83e35b31c0122f018ee555f7" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>database.DEFAULT_DATABASE_URL</definition>
+        <argsstring></argsstring>
+        <name>DEFAULT_DATABASE_URL</name>
+        <qualifiedname>database.DEFAULT_DATABASE_URL</qualifiedname>
+        <initializer>=  os.getenv(
+    &quot;ASSET_GRAPH_DATABASE_URL&quot;, &quot;sqlite:///./asset_graph.db&quot;
+)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" line="17" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" bodystart="17" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacedatabase_1a22587e484701846843d1b4725cfb1be2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Engine</type>
+        <definition> Engine database.create_engine_from_url</definition>
+        <argsstring>(Optional[str] url=None)</argsstring>
+        <name>create_engine_from_url</name>
+        <qualifiedname>database.create_engine_from_url</qualifiedname>
+        <param>
+          <type>Optional</type>
+          <declname>url</declname>
+          <array>[str]</array>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a SQLAlchemy engine for the configured database URL.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" line="22" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" bodystart="22" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacedatabase_1a11d8c08819b53ac86cdebd0e7d21a7a0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sessionmaker</type>
+        <definition> sessionmaker database.create_session_factory</definition>
+        <argsstring>(Engine engine)</argsstring>
+        <name>create_session_factory</name>
+        <qualifiedname>database.create_session_factory</qualifiedname>
+        <param>
+          <type>Engine</type>
+          <declname>engine</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a configured session factory bound to the supplied engine.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" line="38" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" bodystart="38" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacedatabase_1a8445480386c7ecbb9b4fe7d20e4438af" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None database.init_db</definition>
+        <argsstring>(Engine engine)</argsstring>
+        <name>init_db</name>
+        <qualifiedname>database.init_db</qualifiedname>
+        <param>
+          <type>Engine</type>
+          <declname>engine</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Initialise database schema if it has not been created.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" line="43" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" bodystart="43" bodyend="48"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacedatabase_1a49bd05564bdf184e6cc9d19ff2ee4aa3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Generator[Session, None, None]</type>
+        <definition> Generator[Session, None, None] database.session_scope</definition>
+        <argsstring>(Callable[[], Session] session_factory)</argsstring>
+        <name>session_scope</name>
+        <qualifiedname>database.session_scope</qualifiedname>
+        <param>
+          <type>Callable</type>
+          <defname>session_factory</defname>
+          <array>[[]</array>
+        </param>
+        <param>
+          <type>Session]</type>
+          <declname>session_factory</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide a transactional scope around a series of operations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" line="49" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" bodystart="51" bodyend="63"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Database configuration helpers for the asset relationship store.</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/database.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

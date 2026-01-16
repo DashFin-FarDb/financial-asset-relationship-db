@@ -1,0 +1,328 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.analyzer</definition>
+        <argsstring>(self)</argsstring>
+        <name>analyzer</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.analyzer</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a FormulaicdAnalyzer instance.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="383" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="383" bodyend="386"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1accfbd6c8fa27e704bd85d8a1f66cc868" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_pe_examples</definition>
+        <argsstring>(analyzer, empty_graph, sample_equity)</argsstring>
+        <name>test_calculate_pe_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_pe_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>sample_equity</type>
+          <defname>sample_equity</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test PE ratio example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="388" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="388" bodyend="399"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a265aa358411e0072ba7a863467567dd8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_dividend_examples</definition>
+        <argsstring>(analyzer, empty_graph, dividend_stock)</argsstring>
+        <name>test_calculate_dividend_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_dividend_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>dividend_stock</type>
+          <defname>dividend_stock</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test dividend yield example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="401" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="401" bodyend="411"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a45fa0b244bd964d357798eed0d425591" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_ytm_examples</definition>
+        <argsstring>(analyzer, empty_graph, sample_bond)</argsstring>
+        <name>test_calculate_ytm_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_ytm_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>sample_bond</type>
+          <defname>sample_bond</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test YTM example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="413" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="413" bodyend="423"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a414ecaad2a2a22853196c15d18cfb2cd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_market_cap_examples</definition>
+        <argsstring>(analyzer, empty_graph, sample_equity)</argsstring>
+        <name>test_calculate_market_cap_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_market_cap_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>sample_equity</type>
+          <defname>sample_equity</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test market cap example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="425" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="425" bodyend="435"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a5d3d06ba04c0ca61149cad453d0a9be2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_beta_examples</definition>
+        <argsstring>(analyzer, populated_graph)</argsstring>
+        <name>test_calculate_beta_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_beta_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test beta example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="437" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="437" bodyend="445"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a02fb705b6e70f150c479db20a7335660" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_correlation_examples</definition>
+        <argsstring>(analyzer, populated_graph)</argsstring>
+        <name>test_calculate_correlation_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_correlation_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test correlation example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="447" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="447" bodyend="454"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1ae8452b8eb6357f5942880a14ff9dd85c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_pb_examples</definition>
+        <argsstring>(analyzer, empty_graph)</argsstring>
+        <name>test_calculate_pb_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_pb_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test P/B ratio example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="456" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="456" bodyend="479"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a44325c6a9ac5d10a60d9a66122b5eb46" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_sharpe_examples</definition>
+        <argsstring>(analyzer, populated_graph)</argsstring>
+        <name>test_calculate_sharpe_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_sharpe_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test Sharpe ratio example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="481" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="481" bodyend="489"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a164e7fbcd1baea4f1fd589cf007e5acf" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_volatility_examples</definition>
+        <argsstring>(analyzer, empty_graph, sample_commodity)</argsstring>
+        <name>test_calculate_volatility_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_volatility_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>sample_commodity</type>
+          <defname>sample_commodity</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test volatility example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="491" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="491" bodyend="500"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1aa471bbebc2b6af433d9bd8cc7cba55e8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_portfolio_return_examples</definition>
+        <argsstring>(analyzer, populated_graph)</argsstring>
+        <name>test_calculate_portfolio_return_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_portfolio_return_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test portfolio return example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="502" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="502" bodyend="510"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1af6a5d7155abd986e741e349146a8326f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_portfolio_variance_examples</definition>
+        <argsstring>(analyzer, populated_graph)</argsstring>
+        <name>test_calculate_portfolio_variance_examples</name>
+        <qualifiedname>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods.test_calculate_portfolio_variance_examples</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" kindref="member">analyzer</ref></type>
+          <defname>analyzer</defname>
+        </param>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test portfolio variance example calculations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="512" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="512" bodyend="543"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for example calculation methods.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_formulaic_analysis.TestExampleCalculationMethods</label>
+        <link refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" line="379" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_formulaic_analysis.py" bodystart="379" bodyend="543"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a93368939c2052775d0f587c0c1c0e27a" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>analyzer</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a5d3d06ba04c0ca61149cad453d0a9be2" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_beta_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a02fb705b6e70f150c479db20a7335660" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_correlation_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a265aa358411e0072ba7a863467567dd8" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_dividend_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a414ecaad2a2a22853196c15d18cfb2cd" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_market_cap_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1ae8452b8eb6357f5942880a14ff9dd85c" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_pb_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1accfbd6c8fa27e704bd85d8a1f66cc868" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_pe_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1aa471bbebc2b6af433d9bd8cc7cba55e8" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_portfolio_return_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1af6a5d7155abd986e741e349146a8326f" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_portfolio_variance_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a44325c6a9ac5d10a60d9a66122b5eb46" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_sharpe_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a164e7fbcd1baea4f1fd589cf007e5acf" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_volatility_examples</name></member>
+      <member refid="classtests_1_1unit_1_1test__formulaic__analysis_1_1TestExampleCalculationMethods_1a45fa0b244bd964d357798eed0d425591" prot="public" virt="non-virtual"><scope>tests::unit::test_formulaic_analysis::TestExampleCalculationMethods</scope><name>test_calculate_ytm_examples</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

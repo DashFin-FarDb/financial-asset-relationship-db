@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1integration_1_1test__pr__agent__config__validation" kind="namespace" language="Python">
+    <compoundname>tests::integration::test_pr_agent_config_validation</compoundname>
+    <innerclass refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity" prot="public">tests::integration::test_pr_agent_config_validation::TestPRAgentConfigRemovedComplexity</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity" prot="public">tests::integration::test_pr_agent_config_validation::TestPRAgentConfigSecurity</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSimplification" prot="public">tests::integration::test_pr_agent_config_validation::TestPRAgentConfigSimplification</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity" prot="public">tests::integration::test_pr_agent_config_validation::TestPRAgentConfigYAMLValidity</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Validation tests for PR agent configuration changes.
+
+Tests the simplified PR agent configuration, ensuring:
+- Version downgrade from 1.1.0 to 1.0.0
+- Removal of context chunking features
+- Removal of tiktoken dependencies
+- Simplified configuration structure
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

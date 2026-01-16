@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api_1_1TestResponseValidation" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api::TestResponseValidation</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestResponseValidation_1aef3724571ea152ba53f5290e64bec01f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestResponseValidation.test_asset_response_schema</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_asset_response_schema</name>
+        <qualifiedname>tests.unit.test_api.TestResponseValidation.test_asset_response_schema</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test asset response matches Pydantic schema.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="626" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="626" bodyend="650"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestResponseValidation_1afe44732e173df44d4cae1495d476f886" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestResponseValidation.test_relationship_response_schema</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_relationship_response_schema</name>
+        <qualifiedname>tests.unit.test_api.TestResponseValidation.test_relationship_response_schema</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test relationship response matches schema.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="652" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="652" bodyend="670"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test response data validation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api.TestResponseValidation</label>
+        <link refid="classtests_1_1unit_1_1test__api_1_1TestResponseValidation"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="622" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="622" bodyend="670"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestResponseValidation_1aef3724571ea152ba53f5290e64bec01f" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestResponseValidation</scope><name>test_asset_response_schema</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestResponseValidation_1afe44732e173df44d4cae1495d476f886" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestResponseValidation</scope><name>test_relationship_response_schema</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

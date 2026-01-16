@@ -1,0 +1,443 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="CONTRIBUTING_8md" kind="file" language="Markdown">
+    <compoundname>CONTRIBUTING.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Contributing<sp/>to<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Thank<sp/>you<sp/>for<sp/>your<sp/>interest<sp/>in<sp/>contributing!<sp/>This<sp/>document<sp/>provides<sp/>guidelines<sp/>and<sp/>instructions<sp/>for<sp/>contributing<sp/>to<sp/>this<sp/>project.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>📋<sp/>Table<sp/>of<sp/>Contents</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[Code<sp/>of<sp/>Conduct](#code-of-conduct)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Getting<sp/>Started](#getting-started)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Development<sp/>Setup](#development-setup)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Development<sp/>Workflow](#development-workflow)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Coding<sp/>Standards](#coding-standards)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Testing<sp/>Guidelines](#testing-guidelines)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Submitting<sp/>Changes](#submitting-changes)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Project<sp/>Structure](#project-structure)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Code<sp/>of<sp/>Conduct</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>project<sp/>adheres<sp/>to<sp/>a<sp/>code<sp/>of<sp/>conduct<sp/>that<sp/>fosters<sp/>an<sp/>open<sp/>and<sp/>welcoming<sp/>environment.<sp/>Please<sp/>be<sp/>respectful<sp/>and<sp/>professional<sp/>in<sp/>all<sp/>interactions.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Getting<sp/>Started</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Prerequisites</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Python<sp/>3.8<sp/>or<sp/>higher</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Git</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Virtual<sp/>environment<sp/>tool<sp/>(venv,<sp/>virtualenv,<sp/>or<sp/>conda)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Installation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Fork<sp/>the<sp/>repository<sp/>on<sp/>GitHub</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Clone<sp/>your<sp/>fork<sp/>locally:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>git<sp/>clone<sp/>https://github.com/YOUR_USERNAME/financial-asset-relationship-db.git</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>cd<sp/>financial-asset-relationship-db</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>Add<sp/>the<sp/>upstream<sp/>repository:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>git<sp/>remote<sp/>add<sp/>upstream<sp/>https://github.com/mohavro/financial-asset-relationship-db.git</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Development<sp/>Setup</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Create<sp/>a<sp/>Virtual<sp/>Environment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Activate<sp/>the<sp/>Virtual<sp/>Environment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Windows<sp/>(PowerShell):**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```powershell</highlight></codeline>
+<codeline><highlight class="normal">.\.venv\Scripts\Activate.ps1</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Windows<sp/>(Command<sp/>Prompt):**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```cmd</highlight></codeline>
+<codeline><highlight class="normal">.venv\Scripts\activate.bat</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**macOS/Linux:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">source<sp/>.venv/bin/activate</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Install<sp/>Dependencies</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>production<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>development<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements-dev.txt</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Or<sp/>use<sp/>the<sp/>Makefile:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>install-dev</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Install<sp/>Pre-commit<sp/>Hooks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">pre-commit<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Or<sp/>use<sp/>the<sp/>Makefile:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>pre-commit</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Development<sp/>Workflow</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>Create<sp/>a<sp/>Branch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Always<sp/>create<sp/>a<sp/>new<sp/>branch<sp/>for<sp/>your<sp/>work:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>checkout<sp/>-b<sp/>feature/your-feature-name</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>or</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>checkout<sp/>-b<sp/>bugfix/issue-number</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Branch<sp/>naming<sp/>conventions:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`feature/description`<sp/>-<sp/>New<sp/>features</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`bugfix/description`<sp/>-<sp/>Bug<sp/>fixes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`docs/description`<sp/>-<sp/>Documentation<sp/>updates</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`refactor/description`<sp/>-<sp/>Code<sp/>refactoring</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test/description`<sp/>-<sp/>Test<sp/>additions/improvements</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Make<sp/>Your<sp/>Changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Follow<sp/>the<sp/>coding<sp/>standards<sp/>(see<sp/>below)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Write<sp/>or<sp/>update<sp/>tests<sp/>for<sp/>your<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Update<sp/>documentation<sp/>as<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Keep<sp/>commits<sp/>small<sp/>and<sp/>focused</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Run<sp/>Checks<sp/>Locally</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Before<sp/>committing,<sp/>run<sp/>all<sp/>checks:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Format<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>format</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>linters</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>lint</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>type<sp/>checker</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>type-check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>run<sp/>all<sp/>checks<sp/>at<sp/>once</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>check</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Commit<sp/>Your<sp/>Changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Write<sp/>clear,<sp/>descriptive<sp/>commit<sp/>messages:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>add<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>commit<sp/>-m<sp/>&quot;Add<sp/>feature:<sp/>brief<sp/>description</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">More<sp/>detailed<sp/>explanation<sp/>of<sp/>what<sp/>changed<sp/>and<sp/>why.</highlight></codeline>
+<codeline><highlight class="normal">Reference<sp/>any<sp/>related<sp/>issues:<sp/>#123&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Commit<sp/>message<sp/>guidelines:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Use<sp/>present<sp/>tense<sp/>(&quot;Add<sp/>feature&quot;<sp/>not<sp/>&quot;Added<sp/>feature&quot;)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>First<sp/>line<sp/>should<sp/>be<sp/>concise<sp/>(50<sp/>chars<sp/>or<sp/>less)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Separate<sp/>subject<sp/>from<sp/>body<sp/>with<sp/>blank<sp/>line</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Body<sp/>should<sp/>explain<sp/>what<sp/>and<sp/>why,<sp/>not<sp/>how</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>5.<sp/>Push<sp/>and<sp/>Create<sp/>Pull<sp/>Request</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>your-branch-name</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Then<sp/>create<sp/>a<sp/>pull<sp/>request<sp/>on<sp/>GitHub<sp/>with:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Clear<sp/>description<sp/>of<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Reference<sp/>to<sp/>related<sp/>issues</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Screenshots<sp/>(if<sp/>UI<sp/>changes)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Test<sp/>results</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Coding<sp/>Standards</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Python<sp/>Style</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">We<sp/>follow<sp/>PEP<sp/>8<sp/>with<sp/>some<sp/>modifications:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Line<sp/>length:**<sp/>120<sp/>characters<sp/>(not<sp/>79)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Formatting:**<sp/>Use<sp/>Black<sp/>for<sp/>automatic<sp/>formatting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Import<sp/>sorting:**<sp/>Use<sp/>isort</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Type<sp/>hints:**<sp/>Add<sp/>type<sp/>hints<sp/>to<sp/>all<sp/>functions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Docstrings:**<sp/>Use<sp/>Google<sp/>or<sp/>NumPy<sp/>style</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Code<sp/>Organization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Standard<sp/>library<sp/>imports</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>os</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>typing<sp/>import<sp/>Dict,<sp/>List</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Third-party<sp/>imports</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>numpy<sp/>as<sp/>np</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>plotly.graph_objects<sp/>as<sp/>go</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Local<sp/>imports</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>src.models.financial_models<sp/>import<sp/>Asset</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>src.logic.asset_graph<sp/>import<sp/>AssetRelationshipGraph</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Naming<sp/>Conventions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Variables/Functions:**<sp/>`snake_case`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Classes:**<sp/>`PascalCase`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Constants:**<sp/>`UPPER_CASE`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Private<sp/>methods:**<sp/>`_leading_underscore`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Every<sp/>public<sp/>class<sp/>and<sp/>function<sp/>should<sp/>have<sp/>a<sp/>docstring:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">def<sp/>calculate_metrics(self)<sp/>-&gt;<sp/>Dict[str,<sp/>Any]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Calculate<sp/>relationship<sp/>strength<sp/>metrics.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Dict<sp/>containing<sp/>metrics<sp/>including<sp/>total_assets,<sp/>total_relationships,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>average_relationship_strength,<sp/>and<sp/>more.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>Raises:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ValueError:<sp/>If<sp/>graph<sp/>is<sp/>empty<sp/>or<sp/>invalid.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Testing<sp/>Guidelines</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">tests/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>conftest.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Shared<sp/>fixtures</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>unit/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Unit<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>test_models.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>test_graph.py</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>integration/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>└──<sp/>test_workflows.py</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Writing<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Use<sp/>descriptive<sp/>test<sp/>names:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```python</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>def<sp/>test_asset_creation_with_valid_data():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;Test<sp/>that<sp/>a<sp/>valid<sp/>asset<sp/>can<sp/>be<sp/>created.&quot;&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Use<sp/>fixtures<sp/>from<sp/>conftest.py:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```python</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>def<sp/>test_add_asset(empty_graph,<sp/>sample_equity):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>empty_graph.add_asset(sample_equity)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>len(empty_graph.assets)<sp/>==<sp/>1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Test<sp/>edge<sp/>cases:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Empty<sp/>inputs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Null/None<sp/>values</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Boundary<sp/>conditions</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Invalid<sp/>data</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Use<sp/>pytest<sp/>markers:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```python</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>@pytest.mark.unit</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>def<sp/>test_something():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>@pytest.mark.slow</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>def<sp/>test_something_slow():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pass</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Running<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_models.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>--cov=src</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>only<sp/>unit<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-m<sp/>unit</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Or<sp/>use<sp/>the<sp/>Makefile:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>With<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test-fast<sp/><sp/><sp/>#<sp/>Without<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Coverage<sp/>Goals</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Target:**<sp/>80%<sp/>or<sp/>higher</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**New<sp/>features:**<sp/>Must<sp/>have<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Bug<sp/>fixes:**<sp/>Add<sp/>test<sp/>that<sp/>would<sp/>have<sp/>caught<sp/>the<sp/>bug</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Submitting<sp/>Changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Pull<sp/>Request<sp/>Process</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Update<sp/>documentation:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Update<sp/>README.md<sp/>if<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Update<sp/>docstrings</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Add<sp/>comments<sp/>for<sp/>complex<sp/>logic</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Ensure<sp/>all<sp/>checks<sp/>pass:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>All<sp/>tests<sp/>pass</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Linters<sp/>show<sp/>no<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Type<sp/>checking<sp/>passes</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Code<sp/>is<sp/>formatted</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Update<sp/>CHANGELOG.md**<sp/>(if<sp/>exists)<sp/>with:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Type<sp/>of<sp/>change<sp/>(Added,<sp/>Changed,<sp/>Fixed,<sp/>etc.)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Brief<sp/>description</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Issue<sp/>reference<sp/>if<sp/>applicable</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Create<sp/>Pull<sp/>Request:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Use<sp/>descriptive<sp/>title</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Fill<sp/>out<sp/>PR<sp/>template</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Request<sp/>review<sp/>from<sp/>maintainers</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Link<sp/>related<sp/>issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>PR<sp/>Review<sp/>Process</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Maintainers<sp/>will<sp/>review<sp/>your<sp/>PR</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Address<sp/>any<sp/>feedback<sp/>or<sp/>requested<sp/>changes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Keep<sp/>discussion<sp/>focused<sp/>and<sp/>professional</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Be<sp/>patient<sp/>-<sp/>reviews<sp/>take<sp/>time</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>After<sp/>PR<sp/>is<sp/>Merged</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Delete<sp/>your<sp/>feature<sp/>branch<sp/>(both<sp/>locally<sp/>and<sp/>on<sp/>GitHub)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Pull<sp/>the<sp/>latest<sp/>changes<sp/>from<sp/>upstream:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>git<sp/>checkout<sp/>main</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>git<sp/>pull<sp/>upstream<sp/>main</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Branch<sp/>Cleanup<sp/>Best<sp/>Practices</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">To<sp/>keep<sp/>the<sp/>repository<sp/>clean<sp/>and<sp/>organized:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Delete<sp/>merged<sp/>branches:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>GitHub<sp/>can<sp/>automatically<sp/>delete<sp/>branches<sp/>after<sp/>PR<sp/>merge</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Manually<sp/>delete<sp/>local<sp/>branches:<sp/>`git<sp/>branch<sp/>-d<sp/>branch-name`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Delete<sp/>remote<sp/>branches:<sp/>`git<sp/>push<sp/>origin<sp/>--delete<sp/>branch-name`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Avoid<sp/>long-lived<sp/>feature<sp/>branches:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Keep<sp/>branches<sp/>short-lived<sp/>(ideally<sp/>&lt;<sp/>2<sp/>weeks)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Break<sp/>large<sp/>features<sp/>into<sp/>smaller<sp/>PRs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Regularly<sp/>sync<sp/>with<sp/>main<sp/>to<sp/>avoid<sp/>conflicts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Stale<sp/>branch<sp/>policy:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Branches<sp/>inactive<sp/>for<sp/>90+<sp/>days<sp/>may<sp/>be<sp/>automatically<sp/>deleted</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>You&apos;ll<sp/>receive<sp/>a<sp/>warning<sp/>before<sp/>deletion</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Important<sp/>branches<sp/>should<sp/>be<sp/>documented<sp/>in<sp/>issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Branch<sp/>naming:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Use<sp/>descriptive<sp/>names<sp/>that<sp/>indicate<sp/>purpose</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Follow<sp/>the<sp/>naming<sp/>conventions<sp/>listed<sp/>above</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Avoid<sp/>generic<sp/>names<sp/>like<sp/>&quot;test&quot;<sp/>or<sp/>&quot;temp&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">See<sp/>[BRANCH_CLEANUP_ANALYSIS.md](BRANCH_CLEANUP_ANALYSIS.md)<sp/>for<sp/>detailed<sp/>branch<sp/>management<sp/>guidelines.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Project<sp/>Structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">financial-asset-relationship-db/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>.github/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>workflows/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>CI/CD<sp/>workflows</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>copilot-instructions.md</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>src/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>analysis/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Analysis<sp/>algorithms</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>data/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Data<sp/>management</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>logic/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Core<sp/>business<sp/>logic</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>models/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Data<sp/>models</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>reports/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Report<sp/>generation</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>visualizations/<sp/><sp/><sp/><sp/><sp/>#<sp/>Visualization<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tests/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>unit/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Unit<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>integration/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>app.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Main<sp/>application</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements.txt<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Production<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements-dev.txt<sp/><sp/><sp/><sp/>#<sp/>Development<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>pyproject.toml<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Project<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>Makefile<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Development<sp/>commands</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>README.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Project<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Key<sp/>Files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**app.py:**<sp/>Main<sp/>Gradio<sp/>application<sp/>entry<sp/>point</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**src/logic/asset_graph.py:**<sp/>Core<sp/>graph<sp/>algorithms</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**src/models/financial_models.py:**<sp/>Domain<sp/>models</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**src/data/sample_data.py:**<sp/>Sample<sp/>data<sp/>generation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**pyproject.toml:**<sp/>Tool<sp/>configurations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Need<sp/>Help?</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Check<sp/>existing<sp/>issues<sp/>and<sp/>pull<sp/>requests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Read<sp/>the<sp/>documentation<sp/>in<sp/>README.md</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Review<sp/>AI_RULES.md<sp/>for<sp/>tech<sp/>stack<sp/>guidelines</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Ask<sp/>questions<sp/>in<sp/>issue<sp/>comments</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Contact<sp/>maintainers</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Recognition</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Contributors<sp/>will<sp/>be<sp/>recognized<sp/>in:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>GitHub<sp/>contributors<sp/>list</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Release<sp/>notes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Project<sp/>documentation<sp/>(if<sp/>significant<sp/>contribution)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Thank<sp/>you<sp/>for<sp/>contributing!<sp/>🎉</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/CONTRIBUTING.md"/>
+  </compounddef>
+</doxygen>

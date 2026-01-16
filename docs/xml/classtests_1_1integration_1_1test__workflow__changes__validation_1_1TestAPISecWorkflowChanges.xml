@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_changes_validation::TestAPISecWorkflowChanges</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges_1a3d4c03cae4547b015010505a94c497e4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestAPISecWorkflowChanges.apisec_workflow</definition>
+        <argsstring>()</argsstring>
+        <name>apisec_workflow</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestAPISecWorkflowChanges.apisec_workflow</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Retrieve the parsed APISec workflow YAML.
+
+Returns:
+    workflow (dict): Parsed content of .github/workflows/apisec-scan.yml.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="186" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="186" bodyend="196"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges_1a2d3103b8ebb0104eb193c1fb8bad3979" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestAPISecWorkflowChanges.test_apisec_no_credential_checks</definition>
+        <argsstring>(apisec_workflow)</argsstring>
+        <name>test_apisec_no_credential_checks</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestAPISecWorkflowChanges.test_apisec_no_credential_checks</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges_1a3d4c03cae4547b015010505a94c497e4" kindref="member">apisec_workflow</ref></type>
+          <defname>apisec_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure the APISec Trigger_APIsec_scan job contains no credential-checking steps.
+
+Asserts that no step name within the job contains both &quot;check&quot; and &quot;credential&quot; (case-insensitive).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="198" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="198" bodyend="210"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges_1a7706642187d5a3016c1bac64518e1d5b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestAPISecWorkflowChanges.test_apisec_no_conditional_if</definition>
+        <argsstring>(apisec_workflow)</argsstring>
+        <name>test_apisec_no_conditional_if</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestAPISecWorkflowChanges.test_apisec_no_conditional_if</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges_1a3d4c03cae4547b015010505a94c497e4" kindref="member">apisec_workflow</ref></type>
+          <defname>apisec_workflow</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify APISec job doesn&apos;t have conditional execution.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="212" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="212" bodyend="217"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test APISec workflow changes.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_changes_validation.TestAPISecWorkflowChanges</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="181" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="181" bodyend="217"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges_1a3d4c03cae4547b015010505a94c497e4" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestAPISecWorkflowChanges</scope><name>apisec_workflow</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges_1a7706642187d5a3016c1bac64518e1d5b" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestAPISecWorkflowChanges</scope><name>test_apisec_no_conditional_if</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestAPISecWorkflowChanges_1a2d3103b8ebb0104eb193c1fb8bad3979" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestAPISecWorkflowChanges</scope><name>test_apisec_no_credential_checks</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

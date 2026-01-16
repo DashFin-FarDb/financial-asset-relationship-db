@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements::TestEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1aa616898584d423d3221b145553e7de8f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestEdgeCases.test_parse_with_extras</definition>
+        <argsstring>()</argsstring>
+        <name>test_parse_with_extras</name>
+        <qualifiedname>tests.integration.test_requirements.TestEdgeCases.test_parse_with_extras</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test parsing packages with extras.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="389" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="389" bodyend="396"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements_1a979f85cc6fc4eaa1143477069cb8b99a" compoundref="test__requirements_8py" startline="25" endline="78">tests.integration.test_requirements.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1a9a97af0b2c8fd13af81ccf66004a990b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestEdgeCases.test_parse_with_environment_markers</definition>
+        <argsstring>()</argsstring>
+        <name>test_parse_with_environment_markers</name>
+        <qualifiedname>tests.integration.test_requirements.TestEdgeCases.test_parse_with_environment_markers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test parsing packages with environment markers.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="398" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="398" bodyend="405"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements_1a979f85cc6fc4eaa1143477069cb8b99a" compoundref="test__requirements_8py" startline="25" endline="78">tests.integration.test_requirements.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1ab074b855a77a265f11b8fbdc4fda978c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestEdgeCases.test_parse_with_inline_comments</definition>
+        <argsstring>()</argsstring>
+        <name>test_parse_with_inline_comments</name>
+        <qualifiedname>tests.integration.test_requirements.TestEdgeCases.test_parse_with_inline_comments</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that inline comments are properly handled.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="407" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="407" bodyend="414"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements_1a979f85cc6fc4eaa1143477069cb8b99a" compoundref="test__requirements_8py" startline="25" endline="78">tests.integration.test_requirements.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1a9d608758c292ac5c36bd748e595e1ffc" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestEdgeCases.test_empty_lines_ignored</definition>
+        <argsstring>()</argsstring>
+        <name>test_empty_lines_ignored</name>
+        <qualifiedname>tests.integration.test_requirements.TestEdgeCases.test_empty_lines_ignored</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that empty lines and comment-only lines are ignored.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="416" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="416" bodyend="424"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements_1a979f85cc6fc4eaa1143477069cb8b99a" compoundref="test__requirements_8py" startline="25" endline="78">tests.integration.test_requirements.parse_requirements</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases and error handling in requirements parsing.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements.TestEdgeCases</label>
+        <link refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="385" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="385" bodyend="424"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1a9d608758c292ac5c36bd748e595e1ffc" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestEdgeCases</scope><name>test_empty_lines_ignored</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1a9a97af0b2c8fd13af81ccf66004a990b" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestEdgeCases</scope><name>test_parse_with_environment_markers</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1aa616898584d423d3221b145553e7de8f" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestEdgeCases</scope><name>test_parse_with_extras</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1ab074b855a77a265f11b8fbdc4fda978c" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestEdgeCases</scope><name>test_parse_with_inline_comments</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

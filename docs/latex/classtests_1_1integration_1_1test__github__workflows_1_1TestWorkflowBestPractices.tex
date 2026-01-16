@@ -1,0 +1,87 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Best\+Practices Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices}\index{tests.integration.test\_github\_workflows.TestWorkflowBestPractices@{tests.integration.test\_github\_workflows.TestWorkflowBestPractices}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Best\+Practices\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_a0ce2923f5e1dd253407a952b42f15558}{test\+\_\+workflow\+\_\+uses\+\_\+concurrency\+\_\+for\+\_\+prs}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_ab6a30940d504f97c52a2803b6bd233f4}{test\+\_\+workflow\+\_\+timeout\+\_\+specified}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_a0df09fc28e96fb258dbbdbf72f11b141}{test\+\_\+workflow\+\_\+shell\+\_\+explicitly\+\_\+set}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for workflow best practices and recommendations.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_a0df09fc28e96fb258dbbdbf72f11b141}\index{tests.integration.test\_github\_workflows.TestWorkflowBestPractices@{tests.integration.test\_github\_workflows.TestWorkflowBestPractices}!test\_workflow\_shell\_explicitly\_set@{test\_workflow\_shell\_explicitly\_set}}
+\index{test\_workflow\_shell\_explicitly\_set@{test\_workflow\_shell\_explicitly\_set}!tests.integration.test\_github\_workflows.TestWorkflowBestPractices@{tests.integration.test\_github\_workflows.TestWorkflowBestPractices}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_shell\_explicitly\_set()}{test\_workflow\_shell\_explicitly\_set()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_a0df09fc28e96fb258dbbdbf72f11b141} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Best\+Practices.\+test\+\_\+workflow\+\_\+shell\+\_\+explicitly\+\_\+set (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check workflow steps that use multi-line `run` commands and recommend setting `shell` if missing.
+
+For each job in the workflow file, any step whose `run` value is a string containing a newline is considered a multi-line command; if such a step does not specify a `shell` key, a recommendation message is printed identifying the workflow file, job name and step index.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file to inspect.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_a0df09fc28e96fb258dbbdbf72f11b141_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_ab6a30940d504f97c52a2803b6bd233f4}\index{tests.integration.test\_github\_workflows.TestWorkflowBestPractices@{tests.integration.test\_github\_workflows.TestWorkflowBestPractices}!test\_workflow\_timeout\_specified@{test\_workflow\_timeout\_specified}}
+\index{test\_workflow\_timeout\_specified@{test\_workflow\_timeout\_specified}!tests.integration.test\_github\_workflows.TestWorkflowBestPractices@{tests.integration.test\_github\_workflows.TestWorkflowBestPractices}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_timeout\_specified()}{test\_workflow\_timeout\_specified()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_ab6a30940d504f97c52a2803b6bd233f4} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Best\+Practices.\+test\+\_\+workflow\+\_\+timeout\+\_\+specified (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check that each job in the workflow specifies timeout-minutes.
+
+For any job missing `timeout-minutes` this test prints a recommendation identifying the job and the workflow file.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_ab6a30940d504f97c52a2803b6bd233f4_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_a0ce2923f5e1dd253407a952b42f15558}\index{tests.integration.test\_github\_workflows.TestWorkflowBestPractices@{tests.integration.test\_github\_workflows.TestWorkflowBestPractices}!test\_workflow\_uses\_concurrency\_for\_prs@{test\_workflow\_uses\_concurrency\_for\_prs}}
+\index{test\_workflow\_uses\_concurrency\_for\_prs@{test\_workflow\_uses\_concurrency\_for\_prs}!tests.integration.test\_github\_workflows.TestWorkflowBestPractices@{tests.integration.test\_github\_workflows.TestWorkflowBestPractices}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_uses\_concurrency\_for\_prs()}{test\_workflow\_uses\_concurrency\_for\_prs()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_a0ce2923f5e1dd253407a952b42f15558} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Best\+Practices.\+test\+\_\+workflow\+\_\+uses\+\_\+concurrency\+\_\+for\+\_\+prs (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test if PR workflows use concurrency to cancel outdated runs.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowBestPractices_a0ce2923f5e1dd253407a952b42f15558_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

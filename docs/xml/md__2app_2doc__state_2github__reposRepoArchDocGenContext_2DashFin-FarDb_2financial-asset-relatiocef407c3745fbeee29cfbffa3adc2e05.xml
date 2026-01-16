@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2PR__ANALYSIS__DETAILED</compoundname>
+    <title>PR Resolution Analysis Report - 2025-12-20</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3318"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3319">
+<title>Executive Summary</title><para>Successfully analyzed <bold>27 PR branches</bold> from codex/copilot automated systems. All branches have unrelated Git histories but <bold>17 contain valuable changes</bold> that can be extracted and recreated.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3320">
+<title>Detailed Findings</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3321">
+<title>Mergeability Assessment</title><para><itemizedlist>
+<listitem><para><bold>Total branches analyzed</bold>: 27</para>
+</listitem><listitem><para><bold>Directly mergeable</bold>: 0 (0%)</para>
+</listitem><listitem><para><bold>Unrelated history</bold>: 27 (100%)</para>
+</listitem><listitem><para><bold>Branches with extractable value</bold>: 17 (63%)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3322">
+<title>High-Value Branches Identified</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3323">
+<title>Test Improvements (Priority 1)</title><para><orderedlist>
+<listitem><para><bold>origin/codex/fix-codex-review-issues-in-tests</bold><itemizedlist>
+<listitem><para>30+ test-related files and documentation</para>
+</listitem><listitem><para>Contains comprehensive test generation workflows</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>origin/codex/github-mention-fix-pr-agent-workflow-integration-tests</bold><itemizedlist>
+<listitem><para><computeroutput><ref refid="test__github__workflows_8py" kindref="compound">tests/integration/test_github_workflows.py</ref></computeroutput> improvements</para>
+</listitem><listitem><para>GitHub workflow integration fixes</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>origin/copilot/sub-pr-383</bold><itemizedlist>
+<listitem><para><computeroutput><ref refid="test__pr__agent__config__validation_8py" kindref="compound">tests/integration/test_pr_agent_config_validation.py</ref></computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3324">
+<title>Code Quality &amp; Validation (Priority 2)</title><para><orderedlist>
+<listitem><para><bold>origin/copilot/sub-pr-368</bold><itemizedlist>
+<listitem><para><computeroutput><ref refid="workflow__validator_8py" kindref="compound">src/workflow_validator.py</ref></computeroutput> improvements</para>
+</listitem><listitem><para>Critical for CI/CD validation</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>origin/copilot/sub-pr-332</bold><itemizedlist>
+<listitem><para><computeroutput><ref refid="test__requirements__dev_8py" kindref="compound">tests/integration/test_requirements_dev.py</ref></computeroutput></para>
+</listitem><listitem><para><computeroutput>.github/instructions/codacy.instructions.md</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3325">
+<title>Documentation &amp; Workflow (Priority 3)</title><para><orderedlist>
+<listitem><para><bold>Multiple test generation branches</bold><itemizedlist>
+<listitem><para>Various FINAL*TEST_GENERATION**.md files</para>
+</listitem><listitem><para>Comprehensive test coverage documentation</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3326">
+<title>Resolution Strategy</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3327">
+<title>Immediate Actions</title><para><orderedlist>
+<listitem><para><bold>Extract Priority 1 test improvements</bold></para>
+</listitem><listitem><para><bold>Apply workflow validator fixes</bold></para>
+</listitem><listitem><para><bold>Create clean branches</bold> for each valuable change set</para>
+</listitem><listitem><para><bold>Document source attribution</bold> for all extracted changes</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3328">
+<title>Success Metrics</title><para><itemizedlist>
+<listitem><para>✅ SQLAlchemy dependency extracted (already completed)</para>
+</listitem><listitem><para>🔄 Test improvements extraction (in progress)</para>
+</listitem><listitem><para>⏳ Workflow validator fixes (planned)</para>
+</listitem><listitem><para>⏳ Documentation improvements (planned)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocef407c3745fbeee29cfbffa3adc2e05_1autotoc_md3329">
+<title>Next Steps</title><para><orderedlist>
+<listitem><para>Extract <ref refid="test__github__workflows_8py" kindref="compound">test_github_workflows.py</ref> improvements</para>
+</listitem><listitem><para>Apply <ref refid="workflow__validator_8py" kindref="compound">workflow_validator.py</ref> fixes</para>
+</listitem><listitem><para>Create test validation improvements</para>
+</listitem><listitem><para>Generate final resolution report with clean PRs </para>
+</listitem></orderedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/PR_ANALYSIS_DETAILED.md"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_root_conftest::TestDocumentationAndCodeQuality</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1a2fdc65f76957bd7db9cedb0346e86153" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_module_has_docstring</definition>
+        <argsstring>()</argsstring>
+        <name>test_module_has_docstring</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_module_has_docstring</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the conftest module has a docstring.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="325" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="325" bodyend="331"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1aaa9ae55c2fa1bd765656076e8e74a0ca" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_module_docstring_explains_purpose</definition>
+        <argsstring>()</argsstring>
+        <name>test_module_docstring_explains_purpose</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_module_docstring_explains_purpose</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the module docstring explains the purpose.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="333" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="333" bodyend="342"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1aac340f126e68f8fdf87da636830165bd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_cov_plugin_available_has_docstring</definition>
+        <argsstring>()</argsstring>
+        <name>test_cov_plugin_available_has_docstring</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_cov_plugin_available_has_docstring</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _cov_plugin_available has a docstring.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="344" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="344" bodyend="350"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1aa083b699896a9905b7ee796ea031781d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_pytest_load_initial_conftests_has_docstring</definition>
+        <argsstring>()</argsstring>
+        <name>test_pytest_load_initial_conftests_has_docstring</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_pytest_load_initial_conftests_has_docstring</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pytest_load_initial_conftests has a docstring.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="352" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="352" bodyend="358"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1a736727e74c30d5b26d4312f3f7bb33f1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_uses_type_hints</definition>
+        <argsstring>()</argsstring>
+        <name>test_uses_type_hints</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_uses_type_hints</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the module uses type hints appropriately.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="360" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="360" bodyend="369"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1a99182ea6d185c0255e93f0d068e81642" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_imports_are_minimal</definition>
+        <argsstring>()</argsstring>
+        <name>test_imports_are_minimal</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_imports_are_minimal</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the module only imports what it needs.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="371" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="371" bodyend="377"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1a1267d6398a149ef9cff7146f79998871" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_pragma_no_cover_on_hook</definition>
+        <argsstring>()</argsstring>
+        <name>test_pragma_no_cover_on_hook</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality.test_pragma_no_cover_on_hook</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pytest hook has pragma no cover comment.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="379" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="379" bodyend="389"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test documentation and code quality aspects of conftest.py.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_root_conftest.TestDocumentationAndCodeQuality</label>
+        <link refid="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="321" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="321" bodyend="389"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1aac340f126e68f8fdf87da636830165bd" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestDocumentationAndCodeQuality</scope><name>test_cov_plugin_available_has_docstring</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1a99182ea6d185c0255e93f0d068e81642" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestDocumentationAndCodeQuality</scope><name>test_imports_are_minimal</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1aaa9ae55c2fa1bd765656076e8e74a0ca" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestDocumentationAndCodeQuality</scope><name>test_module_docstring_explains_purpose</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1a2fdc65f76957bd7db9cedb0346e86153" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestDocumentationAndCodeQuality</scope><name>test_module_has_docstring</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1a1267d6398a149ef9cff7146f79998871" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestDocumentationAndCodeQuality</scope><name>test_pragma_no_cover_on_hook</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1aa083b699896a9905b7ee796ea031781d" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestDocumentationAndCodeQuality</scope><name>test_pytest_load_initial_conftests_has_docstring</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestDocumentationAndCodeQuality_1a736727e74c30d5b26d4312f3f7bb33f1" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestDocumentationAndCodeQuality</scope><name>test_uses_type_hints</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

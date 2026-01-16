@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_debricked_workflow::TestComplianceWithIssue492</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a4ecdda28271d8a95629dbb24588ab4c1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_workflow_location</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_location</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_workflow_location</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow is at the correct location.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="383" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="383" bodyend="389"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a1e3e7b745aae5e142b7af4241c875051" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_supports_all_required_triggers</definition>
+        <argsstring>(Dict[str, Any] workflow_config)</argsstring>
+        <name>test_supports_all_required_triggers</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_supports_all_required_triggers</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_config</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow supports all required trigger events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="391" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="391" bodyend="408"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a704772e8b4c6c695af36a995bea07568" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_uses_github_secrets</definition>
+        <argsstring>(List[Dict[str, Any]] job_steps)</argsstring>
+        <name>test_uses_github_secrets</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_uses_github_secrets</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>job_steps</declname>
+          <array>[Dict[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow uses GitHub Actions secrets for authentication.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="410" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="410" bodyend="421"/>
+        <references refid="namespacetests_1_1integration_1_1test__debricked__workflow_1a7a8664136c911367ca7337cfc5446fab" compoundref="test__debricked__workflow_8py" startline="66" endline="77">tests.integration.test_debricked_workflow.get_steps_by_action</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a24caba780441f0e02b3c8726161a0718" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_minimal_permissions</definition>
+        <argsstring>(Dict[str, Any] scan_job)</argsstring>
+        <name>test_minimal_permissions</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_minimal_permissions</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>scan_job</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow uses minimal required permissions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="423" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="423" bodyend="440"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a149e4d8c91b5befaa69ca3177a5291c0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_ubuntu_runner</definition>
+        <argsstring>(Dict[str, Any] scan_job)</argsstring>
+        <name>test_ubuntu_runner</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestComplianceWithIssue492.test_ubuntu_runner</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>scan_job</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow uses a supported Ubuntu runner.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="442" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="442" bodyend="448"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test compliance with specific requirements from issue #492.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_debricked_workflow.TestComplianceWithIssue492</label>
+        <link refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="379" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="379" bodyend="448"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a24caba780441f0e02b3c8726161a0718" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestComplianceWithIssue492</scope><name>test_minimal_permissions</name></member>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a1e3e7b745aae5e142b7af4241c875051" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestComplianceWithIssue492</scope><name>test_supports_all_required_triggers</name></member>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a149e4d8c91b5befaa69ca3177a5291c0" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestComplianceWithIssue492</scope><name>test_ubuntu_runner</name></member>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a704772e8b4c6c695af36a995bea07568" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestComplianceWithIssue492</scope><name>test_uses_github_secrets</name></member>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestComplianceWithIssue492_1a4ecdda28271d8a95629dbb24588ab4c1" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestComplianceWithIssue492</scope><name>test_workflow_location</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

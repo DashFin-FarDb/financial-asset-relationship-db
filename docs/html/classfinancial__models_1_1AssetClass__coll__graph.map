@@ -1,0 +1,7 @@
+<map id="financial_models.AssetClass" name="financial_models.AssetClass">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,192,204,257"/>
+<area shape="rect" id="Node000002" href="$classEnum.html" title=" " alt="" coords="47,5,98,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,84,102,191,97,192,78,85"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="123,5,153,71"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,71,116,176,111,175,130,70"/>
+</map>

@@ -1,0 +1,522 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="test__github__workflows__helpers_8py" kind="file" language="Python">
+    <compoundname>test_github_workflows_helpers.py</compoundname>
+    <innernamespace refid="namespacetests">tests</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration">tests::integration</innernamespace>
+    <innernamespace refid="namespacetests_1_1integration_1_1test__github__workflows__helpers">tests::integration::test_github_workflows_helpers</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers" refkind="compound"><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="2"><highlight class="stringliteral">Unit<sp/>tests<sp/>for<sp/>helper<sp/>functions<sp/>in<sp/>test_github_workflows.py<sp/>module.</highlight></codeline>
+<codeline lineno="3"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal">This<sp/>test<sp/>suite<sp/>validates<sp/>the<sp/>utility<sp/>functions<sp/>used<sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>GitHub<sp/>Actions<sp/>workflow</highlight></codeline>
+<codeline lineno="5"><highlight class="normal">testing,<sp/>ensuring<sp/>they<sp/>correctly<sp/>identify<sp/>workflow<sp/>files,<sp/>parse<sp/>YAML,<sp/></highlight><highlight class="keywordflow">and</highlight><highlight class="normal"><sp/>detect</highlight></codeline>
+<codeline lineno="6"><highlight class="normal">duplicate<sp/>keys.</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="8"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="9"><highlight class="stringliteral">from<sp/>pathlib<sp/>import<sp/>Path</highlight></codeline>
+<codeline lineno="10"><highlight class="stringliteral">from<sp/>typing<sp/>import<sp/>List</highlight></codeline>
+<codeline lineno="11"><highlight class="stringliteral">from<sp/>unittest.mock<sp/>import<sp/>patch</highlight></codeline>
+<codeline lineno="12"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="13"><highlight class="stringliteral">import<sp/>pytest</highlight></codeline>
+<codeline lineno="14"><highlight class="stringliteral">import<sp/>yaml</highlight></codeline>
+<codeline lineno="15"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="16"><highlight class="stringliteral">#<sp/>Import<sp/>functions<sp/>from<sp/>the<sp/>module<sp/>we&apos;re<sp/>testing</highlight></codeline>
+<codeline lineno="17"><highlight class="stringliteral">from<sp/>tests.integration.test_github_workflows<sp/>import<sp/>(</highlight></codeline>
+<codeline lineno="18"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>WORKFLOWS_DIR,</highlight></codeline>
+<codeline lineno="19"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>check_duplicate_keys,</highlight></codeline>
+<codeline lineno="20"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>get_workflow_files,</highlight></codeline>
+<codeline lineno="21"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>load_yaml_safe,</highlight></codeline>
+<codeline lineno="22"><highlight class="stringliteral">)</highlight></codeline>
+<codeline lineno="23"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="24"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="25"><highlight class="stringliteral">class<sp/>TestGetWorkflowFiles:</highlight></codeline>
+<codeline lineno="26"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>suite<sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>get_workflow_files()<sp/>function.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="27"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="28"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>@staticmethod</highlight></codeline>
+<codeline lineno="29"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_returns_list():</highlight></codeline>
+<codeline lineno="30"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>get_workflow_files<sp/>returns<sp/>a<sp/>list.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="31"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="32"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>isinstance(result,<sp/>list)</highlight></codeline>
+<codeline lineno="33"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="34"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_returns_path_objects(self):</highlight></codeline>
+<codeline lineno="35"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>all<sp/>returned<sp/>items<sp/>are<sp/>Path<sp/>objects.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="36"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="37"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>item<sp/>in<sp/>result:</highlight></codeline>
+<codeline lineno="38"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>isinstance(item,<sp/>Path)</highlight></codeline>
+<codeline lineno="39"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="40"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_only_returns_yaml_files(self):</highlight></codeline>
+<codeline lineno="41"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>only<sp/>.yml<sp/></highlight><highlight class="keywordflow">and</highlight><highlight class="normal"><sp/>.yaml<sp/>files<sp/>are<sp/>returned.</highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="42"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="43"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>workflow_file<sp/>in<sp/>result:</highlight></codeline>
+<codeline lineno="44"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>workflow_file.suffix<sp/>in<sp/>[</highlight></codeline>
+<codeline lineno="45"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;.yml&quot;,</highlight></codeline>
+<codeline lineno="46"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;.yaml&quot;,</highlight></codeline>
+<codeline lineno="47"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>],<sp/>f&quot;File<sp/>{workflow_file}<sp/>has<sp/>invalid<sp/>extension<sp/>{workflow_file.suffix}&quot;</highlight></codeline>
+<codeline lineno="48"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="49"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>def<sp/>test_returns_empty_list_when_directory_missing(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="50"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal">Test<sp/>that<sp/>empty<sp/>list<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/>returned<sp/>when<sp/>workflows<sp/>directory<sp/>doesn</highlight><highlight class="stringliteral">&apos;t<sp/>exist.&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="51"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>nonexistent_dir<sp/>=<sp/>tmp_path<sp/>/<sp/>&quot;nonexistent&quot;</highlight><highlight class="normal"><sp/>/<sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>patch(</highlight><highlight class="stringliteral">&quot;tests.integration.test_github_workflows.WORKFLOWS_DIR&quot;</highlight><highlight class="normal">,<sp/>nonexistent_dir):</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result<sp/>==<sp/>[]</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_finds_yml_files(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>.yml<sp/>files<sp/>are<sp/>found.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir.mkdir()</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yml_file<sp/>=<sp/>workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;test.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yml_file.write_text(</highlight><highlight class="stringliteral">&quot;name:<sp/>Test&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>patch(</highlight><highlight class="stringliteral">&quot;tests.integration.test_github_workflows.WORKFLOWS_DIR&quot;</highlight><highlight class="normal">,<sp/>workflows_dir):</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(result)<sp/>==<sp/>1</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[0].name<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;test.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_finds_yaml_files(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>.yaml<sp/>files<sp/>are<sp/>found.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir.mkdir()</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;test.yaml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(</highlight><highlight class="stringliteral">&quot;name:<sp/>Test&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>patch(</highlight><highlight class="stringliteral">&quot;tests.integration.test_github_workflows.WORKFLOWS_DIR&quot;</highlight><highlight class="normal">,<sp/>workflows_dir):</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(result)<sp/>==<sp/>1</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[0].name<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;test.yaml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_finds_both_yml_and_yaml(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>both<sp/>.yml<sp/>and<sp/>.yaml<sp/>files<sp/>are<sp/>found<sp/>together.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir.mkdir()</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yml_file<sp/>=<sp/>workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;test1.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yml_file.write_text(</highlight><highlight class="stringliteral">&quot;name:<sp/>Test1&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;test2.yaml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(</highlight><highlight class="stringliteral">&quot;name:<sp/>Test2&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>patch(</highlight><highlight class="stringliteral">&quot;tests.integration.test_github_workflows.WORKFLOWS_DIR&quot;</highlight><highlight class="normal">,<sp/>workflows_dir):</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(result)<sp/>==<sp/>2</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>names<sp/>=<sp/>{f.name<sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>f<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result}</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>names<sp/>==<sp/>{</highlight><highlight class="stringliteral">&quot;test1.yml&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;test2.yaml&quot;</highlight><highlight class="normal">}</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_ignores_non_yaml_files(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>non<sp/>-<sp/>YAML<sp/>files<sp/>are<sp/>ignored.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir.mkdir()</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;test.yml&quot;</highlight><highlight class="normal">).write_text(</highlight><highlight class="stringliteral">&quot;name:<sp/>Test&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;readme.md&quot;</highlight><highlight class="normal">).write_text(</highlight><highlight class="stringliteral">&quot;#<sp/>README&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;script.sh&quot;</highlight><highlight class="normal">).write_text(</highlight><highlight class="stringliteral">&quot;#!/bin/bash&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;data.json&quot;</highlight><highlight class="normal">).write_text(</highlight><highlight class="stringliteral">&quot;{}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>patch(</highlight><highlight class="stringliteral">&quot;tests.integration.test_github_workflows.WORKFLOWS_DIR&quot;</highlight><highlight class="normal">,<sp/>workflows_dir):</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(result)<sp/>==<sp/>1</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[0].name<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;test.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_only_returns_files_not_directories(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>directories<sp/>with<sp/>.yml<sp/>/<sp/>.yaml<sp/>names<sp/>are<sp/>not<sp/>returned.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir.mkdir()</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Create<sp/>a<sp/>directory<sp/>with<sp/>.yml<sp/>extension</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dir_with_yml_name<sp/>=<sp/>workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;notafile.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dir_with_yml_name.mkdir()</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Create<sp/>an<sp/>actual<sp/>file</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;realfile.yml&quot;</highlight><highlight class="normal">).write_text(</highlight><highlight class="stringliteral">&quot;name:<sp/>Real&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>patch(</highlight><highlight class="stringliteral">&quot;tests.integration.test_github_workflows.WORKFLOWS_DIR&quot;</highlight><highlight class="normal">,<sp/>workflows_dir):</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(result)<sp/>==<sp/>1</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[0].name<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;realfile.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[0].is_file()</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">TestLoadYamlSafe:</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>suite<sp/>for<sp/>load_yaml_safe()<sp/>function.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_loads_valid_yaml(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>valid<sp/>YAML<sp/>is<sp/>loaded<sp/>correctly.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;test.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(</highlight><highlight class="stringliteral">&quot;name:<sp/>Test\nvalue:<sp/>123&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>load_yaml_safe(yaml_file)</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result<sp/>==<sp/>{</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">:<sp/></highlight><highlight class="stringliteral">&quot;Test&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;value&quot;</highlight><highlight class="normal">:<sp/>123}</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_loads_empty_yaml(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>empty<sp/>YAML<sp/>file<sp/>returns<sp/>None.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;empty.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>load_yaml_safe(yaml_file)</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal"></highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_loads_yaml_with_lists(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>YAML<sp/>with<sp/>lists<sp/>is<sp/>loaded<sp/>correctly.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="156"><highlight class="stringliteral">items:</highlight></codeline>
+<codeline lineno="157"><highlight class="stringliteral"><sp/><sp/>-<sp/>name:<sp/>first</highlight></codeline>
+<codeline lineno="158"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>value:<sp/>1</highlight></codeline>
+<codeline lineno="159"><highlight class="stringliteral"><sp/><sp/>-<sp/>name:<sp/>second</highlight></codeline>
+<codeline lineno="160"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>value:<sp/>2</highlight></codeline>
+<codeline lineno="161"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;list.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>load_yaml_safe(yaml_file)</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;items&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(result[</highlight><highlight class="stringliteral">&quot;items&quot;</highlight><highlight class="normal">])<sp/>==<sp/>2</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;items&quot;</highlight><highlight class="normal">][0][</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">]<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;first&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;items&quot;</highlight><highlight class="normal">][1][</highlight><highlight class="stringliteral">&quot;value&quot;</highlight><highlight class="normal">]<sp/>==<sp/>2</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_loads_yaml_with_nested_structures(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>nested<sp/>YAML<sp/>structures<sp/>are<sp/>loaded<sp/>correctly.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="174"><highlight class="stringliteral">level1:</highlight></codeline>
+<codeline lineno="175"><highlight class="stringliteral"><sp/><sp/>level2:</highlight></codeline>
+<codeline lineno="176"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>level3:</highlight></codeline>
+<codeline lineno="177"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>value:<sp/>deep</highlight></codeline>
+<codeline lineno="178"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;nested.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"></highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>load_yaml_safe(yaml_file)</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;level1&quot;</highlight><highlight class="normal">][</highlight><highlight class="stringliteral">&quot;level2&quot;</highlight><highlight class="normal">][</highlight><highlight class="stringliteral">&quot;level3&quot;</highlight><highlight class="normal">][</highlight><highlight class="stringliteral">&quot;value&quot;</highlight><highlight class="normal">]<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;deep&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="184"><highlight class="normal"></highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_raises_on_invalid_yaml(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>invalid<sp/>YAML<sp/>raises<sp/>YAMLError.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;invalid.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(</highlight><highlight class="stringliteral">&quot;invalid:<sp/>yaml:<sp/>content:<sp/>[unclosed&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"></highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>pytest.raises(yaml.YAMLError):</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>load_yaml_safe(yaml_file)</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"></highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_handles_special_yaml_types(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>YAML<sp/>special<sp/>types(null,<sp/>boolean)<sp/>are<sp/>handled.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="196"><highlight class="stringliteral">null_value:<sp/>null</highlight></codeline>
+<codeline lineno="197"><highlight class="stringliteral">true_value:<sp/>true</highlight></codeline>
+<codeline lineno="198"><highlight class="stringliteral">false_value:<sp/>false</highlight></codeline>
+<codeline lineno="199"><highlight class="stringliteral">number:<sp/>42</highlight></codeline>
+<codeline lineno="200"><highlight class="stringliteral">float_val:<sp/>3.14</highlight></codeline>
+<codeline lineno="201"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;types.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"></highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>load_yaml_safe(yaml_file)</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;null_value&quot;</highlight><highlight class="normal">]<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;true_value&quot;</highlight><highlight class="normal">]<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">True</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;false_value&quot;</highlight><highlight class="normal">]<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;number&quot;</highlight><highlight class="normal">]<sp/>==<sp/>42</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;float_val&quot;</highlight><highlight class="normal">]<sp/>==<sp/>3.14</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"></highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_handles_multiline_strings(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>multiline<sp/>strings<sp/>are<sp/>loaded<sp/>correctly.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="215"><highlight class="stringliteral">script:<sp/>|</highlight></codeline>
+<codeline lineno="216"><highlight class="stringliteral"><sp/><sp/>echo<sp/>&quot;line<sp/>1&quot;</highlight></codeline>
+<codeline lineno="217"><highlight class="stringliteral"><sp/><sp/>echo<sp/>&quot;line<sp/>2&quot;</highlight></codeline>
+<codeline lineno="218"><highlight class="stringliteral"><sp/><sp/>echo<sp/>&quot;line<sp/>3&quot;</highlight></codeline>
+<codeline lineno="219"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;multiline.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"></highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>load_yaml_safe(yaml_file)</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;line<sp/>1&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;script&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;line<sp/>2&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;script&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;line<sp/>3&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;script&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"></highlight></codeline>
+<codeline lineno="228"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_handles_utf8_content(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>UTF<sp/>-<sp/>8<sp/>encoded<sp/>content<sp/>is<sp/>loaded<sp/>correctly.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="231"><highlight class="stringliteral">name:<sp/>Test<sp/>UTF<sp/>-<sp/>8</highlight></codeline>
+<codeline lineno="232"><highlight class="stringliteral">emoji:<sp/>🚀</highlight></codeline>
+<codeline lineno="233"><highlight class="stringliteral">chinese:<sp/>中文</highlight></codeline>
+<codeline lineno="234"><highlight class="stringliteral">arabic:<sp/>العربية</highlight></codeline>
+<codeline lineno="235"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;utf8.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="237"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content,<sp/>encoding=</highlight><highlight class="stringliteral">&quot;utf-8&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="238"><highlight class="normal"></highlight></codeline>
+<codeline lineno="239"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>load_yaml_safe(yaml_file)</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;emoji&quot;</highlight><highlight class="normal">]<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;🚀&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;chinese&quot;</highlight><highlight class="normal">]<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;中文&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result[</highlight><highlight class="stringliteral">&quot;arabic&quot;</highlight><highlight class="normal">]<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;العربية&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="243"><highlight class="normal"></highlight></codeline>
+<codeline lineno="244"><highlight class="normal"></highlight></codeline>
+<codeline lineno="245"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">TestCheckDuplicateKeys:</highlight></codeline>
+<codeline lineno="246"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>suite<sp/>for<sp/>check_duplicate_keys()<sp/>function.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="247"><highlight class="normal"></highlight></codeline>
+<codeline lineno="248"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_no_duplicates_returns_empty_list(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>YAML<sp/>with<sp/>no<sp/>duplicate<sp/>keys<sp/>returns<sp/>empty<sp/>list.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="250"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="251"><highlight class="stringliteral">name:<sp/>Test</highlight></codeline>
+<codeline lineno="252"><highlight class="stringliteral">version:<sp/>1.0</highlight></codeline>
+<codeline lineno="253"><highlight class="stringliteral">author:<sp/>Someone</highlight></codeline>
+<codeline lineno="254"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="255"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;no_dup.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="256"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="257"><highlight class="normal"></highlight></codeline>
+<codeline lineno="258"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>check_duplicate_keys(yaml_file)</highlight></codeline>
+<codeline lineno="259"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result<sp/>==<sp/>[]</highlight></codeline>
+<codeline lineno="260"><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_detects_top_level_duplicate(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>top<sp/>-<sp/>level<sp/>duplicate<sp/>keys<sp/>are<sp/>detected.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="263"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="264"><highlight class="stringliteral">name:<sp/>First</highlight></codeline>
+<codeline lineno="265"><highlight class="stringliteral">version:<sp/>1.0</highlight></codeline>
+<codeline lineno="266"><highlight class="stringliteral">name:<sp/>Second</highlight></codeline>
+<codeline lineno="267"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="268"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;dup.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="269"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="270"><highlight class="normal"></highlight></codeline>
+<codeline lineno="271"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>check_duplicate_keys(yaml_file)</highlight></codeline>
+<codeline lineno="272"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result</highlight></codeline>
+<codeline lineno="273"><highlight class="normal"></highlight></codeline>
+<codeline lineno="274"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_detects_nested_duplicate(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="275"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>nested<sp/>duplicate<sp/>keys<sp/>are<sp/>detected.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="276"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="277"><highlight class="stringliteral">config:</highlight></codeline>
+<codeline lineno="278"><highlight class="stringliteral"><sp/><sp/>setting:<sp/>first</highlight></codeline>
+<codeline lineno="279"><highlight class="stringliteral"><sp/><sp/>value:<sp/>123</highlight></codeline>
+<codeline lineno="280"><highlight class="stringliteral"><sp/><sp/>setting:<sp/>second</highlight></codeline>
+<codeline lineno="281"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;nested_dup.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="283"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"></highlight></codeline>
+<codeline lineno="285"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>check_duplicate_keys(yaml_file)</highlight></codeline>
+<codeline lineno="286"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;setting&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result</highlight></codeline>
+<codeline lineno="287"><highlight class="normal"></highlight></codeline>
+<codeline lineno="288"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_detects_multiple_duplicates(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>multiple<sp/>duplicate<sp/>keys<sp/>are<sp/>all<sp/>detected.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="290"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="291"><highlight class="stringliteral">name:<sp/>First</highlight></codeline>
+<codeline lineno="292"><highlight class="stringliteral">name:<sp/>Second</highlight></codeline>
+<codeline lineno="293"><highlight class="stringliteral">version:<sp/>1.0</highlight></codeline>
+<codeline lineno="294"><highlight class="stringliteral">version:<sp/>2.0</highlight></codeline>
+<codeline lineno="295"><highlight class="stringliteral">version:<sp/>3.0</highlight></codeline>
+<codeline lineno="296"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="297"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;multi_dup.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="298"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="299"><highlight class="normal"></highlight></codeline>
+<codeline lineno="300"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>check_duplicate_keys(yaml_file)</highlight></codeline>
+<codeline lineno="301"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result</highlight></codeline>
+<codeline lineno="302"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;version&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result.count(</highlight><highlight class="stringliteral">&quot;version&quot;</highlight><highlight class="normal">)<sp/>==<sp/>2</highlight></codeline>
+<codeline lineno="304"><highlight class="normal"></highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_ignores_same_keys_in_different_contexts(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>same<sp/>keys<sp/>in<sp/>different<sp/>objects<sp/>don&apos;t<sp/>count<sp/>as<sp/>duplicates.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="307"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="308" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1a7a8d78bde53f844808d3cc5294a53215" refkind="member"><highlight class="stringliteral">job1:</highlight></codeline>
+<codeline lineno="309" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1a80e299270fba1a15651a8287af2748dc" refkind="member"><highlight class="stringliteral"><sp/><sp/>name:<sp/>Job<sp/>One</highlight></codeline>
+<codeline lineno="310" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1ada93f529d47017ec6ba2be8459ea39b6" refkind="member"><highlight class="stringliteral"><sp/><sp/>steps:</highlight></codeline>
+<codeline lineno="311"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Step<sp/>1</highlight></codeline>
+<codeline lineno="312" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1aba9d0790585dab82e14b385eed7f8cf6" refkind="member"><highlight class="stringliteral">job2:</highlight></codeline>
+<codeline lineno="313"><highlight class="stringliteral"><sp/><sp/>name:<sp/>Job<sp/>Two</highlight></codeline>
+<codeline lineno="314"><highlight class="stringliteral"><sp/><sp/>steps:</highlight></codeline>
+<codeline lineno="315"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Step<sp/>2</highlight></codeline>
+<codeline lineno="316"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="317"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;different_context.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="318"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="319"><highlight class="normal"></highlight></codeline>
+<codeline lineno="320"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>check_duplicate_keys(yaml_file)</highlight></codeline>
+<codeline lineno="321"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result<sp/>==<sp/>[]</highlight></codeline>
+<codeline lineno="322"><highlight class="normal"></highlight></codeline>
+<codeline lineno="323"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_handles_empty_file(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="324"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>empty<sp/>file<sp/>returns<sp/>empty<sp/>list.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="325"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;empty.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="326"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="327"><highlight class="normal"></highlight></codeline>
+<codeline lineno="328"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>check_duplicate_keys(yaml_file)</highlight></codeline>
+<codeline lineno="329"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>result<sp/>==<sp/>[]</highlight></codeline>
+<codeline lineno="330"><highlight class="normal"></highlight></codeline>
+<codeline lineno="331"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_handles_invalid_yaml_gracefully(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="332"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>invalid<sp/>YAML<sp/>is<sp/>handled<sp/>gracefully.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="333"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;invalid.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="334"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(</highlight><highlight class="stringliteral">&quot;invalid:<sp/>yaml:<sp/>[unclosed&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="335"><highlight class="normal"></highlight></codeline>
+<codeline lineno="336"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>check_duplicate_keys(yaml_file)</highlight></codeline>
+<codeline lineno="337"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>isinstance(result,<sp/>list)</highlight></codeline>
+<codeline lineno="338"><highlight class="normal"></highlight></codeline>
+<codeline lineno="339"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_github_actions_pr_agent_scenario(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="340"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>the<sp/>specific<sp/>PR<sp/>Agent<sp/>workflow<sp/>duplicate<sp/>key<sp/>scenario.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="341"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="342"><highlight class="stringliteral">name:<sp/>PR<sp/>Agent</highlight></codeline>
+<codeline lineno="343" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1abf0a1c222ccc3f52698662d396eec79a" refkind="member"><highlight class="stringliteral">on:</highlight></codeline>
+<codeline lineno="344" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1afbb25324d5d3968d0f473de44c5db6b8" refkind="member"><highlight class="stringliteral"><sp/><sp/>pull_request:</highlight></codeline>
+<codeline lineno="345" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1aea2a22e5a87029d071cd62ed4d01201a" refkind="member"><highlight class="stringliteral">jobs:</highlight></codeline>
+<codeline lineno="346" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1a25d9dcd32d306e069db6365a1f2c53f1" refkind="member"><highlight class="stringliteral"><sp/><sp/>review:</highlight></codeline>
+<codeline lineno="347"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>runs<sp/>-<sp/>on:<sp/>ubuntu<sp/>-<sp/>latest</highlight></codeline>
+<codeline lineno="348"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>steps:</highlight></codeline>
+<codeline lineno="349"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Checkout</highlight></codeline>
+<codeline lineno="350" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1ab704e23e89add46bc717035239a983a8" refkind="member"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uses:<sp/>actions<sp/>/<sp/>checkout<sp/>@<sp/>v4</highlight></codeline>
+<codeline lineno="351"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Setup<sp/>Python</highlight></codeline>
+<codeline lineno="352"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uses:<sp/>actions<sp/>/<sp/>setup<sp/>-<sp/>python<sp/>@<sp/>v5</highlight></codeline>
+<codeline lineno="353" refid="namespacetests_1_1integration_1_1test__github__workflows__helpers_1a81eb88405dbc141b03e600c91d34e338" refkind="member"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with:</highlight></codeline>
+<codeline lineno="354"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>python<sp/>-<sp/>version:<sp/>&apos;3.11&apos;</highlight></codeline>
+<codeline lineno="355"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Setup<sp/>Python</highlight></codeline>
+<codeline lineno="356"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uses:<sp/>actions<sp/>/<sp/>setup<sp/>-<sp/>python<sp/>@<sp/>v5</highlight></codeline>
+<codeline lineno="357"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with:</highlight></codeline>
+<codeline lineno="358"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>python<sp/>-<sp/>version:<sp/>&apos;3.11&apos;</highlight></codeline>
+<codeline lineno="359"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="360"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;pr_agent.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="361"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="362"><highlight class="normal"></highlight></codeline>
+<codeline lineno="363"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>check_duplicate_keys(yaml_file)</highlight></codeline>
+<codeline lineno="364"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>isinstance(result,<sp/>list)</highlight></codeline>
+<codeline lineno="365"><highlight class="normal"></highlight></codeline>
+<codeline lineno="366"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_detects_duplicate_in_list_of_mappings(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="367"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>detection<sp/>of<sp/>duplicates<sp/>within<sp/>a<sp/>mapping<sp/>that&apos;s<sp/>in<sp/>a<sp/>list.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="368"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_content<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="369"><highlight class="stringliteral">items:</highlight></codeline>
+<codeline lineno="370"><highlight class="stringliteral"><sp/><sp/>-<sp/>key:<sp/>value1</highlight></codeline>
+<codeline lineno="371"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>key:<sp/>value2</highlight></codeline>
+<codeline lineno="372"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="373"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;list_dup.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="374"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>yaml_file.write_text(yaml_content)</highlight></codeline>
+<codeline lineno="375"><highlight class="normal"></highlight></codeline>
+<codeline lineno="376"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>result<sp/>=<sp/>check_duplicate_keys(yaml_file)</highlight></codeline>
+<codeline lineno="377"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;key&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>result</highlight></codeline>
+<codeline lineno="378"><highlight class="normal"></highlight></codeline>
+<codeline lineno="379"><highlight class="normal"></highlight></codeline>
+<codeline lineno="380"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">TestWorkflowsDirectoryConstant:</highlight></codeline>
+<codeline lineno="381"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>suite<sp/>for<sp/>WORKFLOWS_DIR<sp/>constant.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="382"><highlight class="normal"></highlight></codeline>
+<codeline lineno="383"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="preprocessor">@staticmethod</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="384"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_workflows_dir_is_path_object():</highlight></codeline>
+<codeline lineno="385"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>WORKFLOWS_DIR<sp/>is<sp/>a<sp/>Path<sp/>object.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="386"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>isinstance(WORKFLOWS_DIR,<sp/>Path)</highlight></codeline>
+<codeline lineno="387"><highlight class="normal"></highlight></codeline>
+<codeline lineno="388"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_workflows_dir_points_to_github_workflows(self):</highlight></codeline>
+<codeline lineno="389"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>WORKFLOWS_DIR<sp/>points<sp/>to<sp/>.github<sp/>/<sp/>workflows.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="390"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>WORKFLOWS_DIR.name<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="391"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>WORKFLOWS_DIR.parent.name<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;.github&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="392"><highlight class="normal"></highlight></codeline>
+<codeline lineno="393"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="preprocessor">@staticmethod</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="394"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_workflows_dir_is_absolute_or_relative_to_repo():</highlight></codeline>
+<codeline lineno="395"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>WORKFLOWS_DIR<sp/>path<sp/>makes<sp/>sense.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="396"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>path_str<sp/>=<sp/>str(WORKFLOWS_DIR)</highlight></codeline>
+<codeline lineno="397"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;.github&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>path_str</highlight></codeline>
+<codeline lineno="398"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>path_str</highlight></codeline>
+<codeline lineno="399"><highlight class="normal"></highlight></codeline>
+<codeline lineno="400"><highlight class="normal"></highlight></codeline>
+<codeline lineno="401"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">TestIntegrationScenarios:</highlight></codeline>
+<codeline lineno="402"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Integration<sp/>tests<sp/>combining<sp/>multiple<sp/>helper<sp/>functions.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="403"><highlight class="normal"></highlight></codeline>
+<codeline lineno="404"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_full_workflow_discovery_and_validation(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="405"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>complete<sp/>flow:<sp/>discover<sp/>workflows,<sp/>load<sp/>them,<sp/>check<sp/>for<sp/>duplicates.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="406"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="407"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir.mkdir()</highlight></codeline>
+<codeline lineno="408"><highlight class="normal"></highlight></codeline>
+<codeline lineno="409"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>valid_workflow<sp/>=<sp/>workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;valid.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="410"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>valid_workflow.write_text(</highlight></codeline>
+<codeline lineno="411"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="412"><highlight class="stringliteral">name:<sp/>Valid<sp/>Workflow</highlight></codeline>
+<codeline lineno="413"><highlight class="stringliteral">on:<sp/>push</highlight></codeline>
+<codeline lineno="414"><highlight class="stringliteral">jobs:</highlight></codeline>
+<codeline lineno="415"><highlight class="stringliteral"><sp/><sp/>test:</highlight></codeline>
+<codeline lineno="416"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>runs<sp/>-<sp/>on:<sp/>ubuntu<sp/>-<sp/>latest</highlight></codeline>
+<codeline lineno="417"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>steps:</highlight></codeline>
+<codeline lineno="418"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>uses:<sp/>actions<sp/>/<sp/>checkout<sp/>@<sp/>v4</highlight></codeline>
+<codeline lineno="419"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="420"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="421"><highlight class="normal"></highlight></codeline>
+<codeline lineno="422"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dup_workflow<sp/>=<sp/>workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;duplicate.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="423"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dup_workflow.write_text(</highlight></codeline>
+<codeline lineno="424"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="425"><highlight class="stringliteral">name:<sp/>Duplicate<sp/>Workflow</highlight></codeline>
+<codeline lineno="426"><highlight class="stringliteral">name:<sp/>Another<sp/>Name</highlight></codeline>
+<codeline lineno="427"><highlight class="stringliteral">on:<sp/>push</highlight></codeline>
+<codeline lineno="428"><highlight class="stringliteral">jobs:</highlight></codeline>
+<codeline lineno="429"><highlight class="stringliteral"><sp/><sp/>test:</highlight></codeline>
+<codeline lineno="430"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>runs<sp/>-<sp/>on:<sp/>ubuntu<sp/>-<sp/>latest</highlight></codeline>
+<codeline lineno="431"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="432"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="433"><highlight class="normal"></highlight></codeline>
+<codeline lineno="434"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>patch(</highlight><highlight class="stringliteral">&quot;tests.integration.test_github_workflows.WORKFLOWS_DIR&quot;</highlight><highlight class="normal">,<sp/>workflows_dir):</highlight></codeline>
+<codeline lineno="435"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="436"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(workflows)<sp/>==<sp/>2</highlight></codeline>
+<codeline lineno="437"><highlight class="normal"></highlight></codeline>
+<codeline lineno="438"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>workflow_file<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>workflows:</highlight></codeline>
+<codeline lineno="439"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>config<sp/>=<sp/>load_yaml_safe(workflow_file)</highlight></codeline>
+<codeline lineno="440"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>config<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="441"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>config<sp/></highlight><highlight class="keywordflow">or</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;on&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>config</highlight></codeline>
+<codeline lineno="442"><highlight class="normal"></highlight></codeline>
+<codeline lineno="443"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>duplicates<sp/>=<sp/>check_duplicate_keys(workflow_file)</highlight></codeline>
+<codeline lineno="444"><highlight class="normal"></highlight></codeline>
+<codeline lineno="445"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>workflow_file.name<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;valid.yml&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="446"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(duplicates)<sp/>==<sp/>0</highlight></codeline>
+<codeline lineno="447"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">elif</highlight><highlight class="normal"><sp/>workflow_file.name<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;duplicate.yml&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="448"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(duplicates)<sp/>&gt;<sp/>0</highlight></codeline>
+<codeline lineno="449"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>duplicates</highlight></codeline>
+<codeline lineno="450"><highlight class="normal"></highlight></codeline>
+<codeline lineno="451"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_edge_case_workflow_with_complex_structure(self,<sp/>tmp_path):</highlight></codeline>
+<codeline lineno="452"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>handling<sp/>of<sp/>complex<sp/>real<sp/>-<sp/>world<sp/>workflow<sp/>structure.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="453"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir<sp/>=<sp/>tmp_path<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;workflows&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="454"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows_dir.mkdir()</highlight></codeline>
+<codeline lineno="455"><highlight class="normal"></highlight></codeline>
+<codeline lineno="456"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>complex_workflow<sp/>=<sp/>workflows_dir<sp/>/<sp/></highlight><highlight class="stringliteral">&quot;complex.yml&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="457"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>complex_workflow.write_text(</highlight></codeline>
+<codeline lineno="458"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="459"><highlight class="stringliteral">name:<sp/>Complex<sp/>CI<sp/>/<sp/>CD</highlight></codeline>
+<codeline lineno="460"><highlight class="stringliteral">on:</highlight></codeline>
+<codeline lineno="461"><highlight class="stringliteral"><sp/><sp/>push:</highlight></codeline>
+<codeline lineno="462"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>branches:<sp/>[main,<sp/>develop]</highlight></codeline>
+<codeline lineno="463"><highlight class="stringliteral"><sp/><sp/>pull_request:</highlight></codeline>
+<codeline lineno="464"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>types:<sp/>[opened,<sp/>synchronize]</highlight></codeline>
+<codeline lineno="465"><highlight class="stringliteral">env:</highlight></codeline>
+<codeline lineno="466"><highlight class="stringliteral"><sp/><sp/>NODE_VERSION:<sp/>&apos;18&apos;</highlight></codeline>
+<codeline lineno="467"><highlight class="stringliteral"><sp/><sp/>PYTHON_VERSION:<sp/>&apos;3.11&apos;</highlight></codeline>
+<codeline lineno="468"><highlight class="stringliteral">jobs:</highlight></codeline>
+<codeline lineno="469"><highlight class="stringliteral"><sp/><sp/>test:</highlight></codeline>
+<codeline lineno="470"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>runs<sp/>-<sp/>on:<sp/>ubuntu<sp/>-<sp/>latest</highlight></codeline>
+<codeline lineno="471"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>strategy:</highlight></codeline>
+<codeline lineno="472"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>matrix:</highlight></codeline>
+<codeline lineno="473"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>python<sp/>-<sp/>version:<sp/>[&apos;3.9&apos;,<sp/>&apos;3.10&apos;,<sp/>&apos;3.11&apos;]</highlight></codeline>
+<codeline lineno="474"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>steps:</highlight></codeline>
+<codeline lineno="475"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>uses:<sp/>actions<sp/>/<sp/>checkout<sp/>@<sp/>v4</highlight></codeline>
+<codeline lineno="476"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with:</highlight></codeline>
+<codeline lineno="477"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="478"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="479"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fetch<sp/>-<sp/>depth:<sp/>0</highlight></codeline>
+<codeline lineno="480"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Setup<sp/>Python</highlight></codeline>
+<codeline lineno="481"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uses:<sp/>actions/setup-python</highlight><highlight class="preprocessor">@v5</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="482"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="483"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>python-version:<sp/>${{<sp/>matrix.python-version<sp/>}}</highlight></codeline>
+<codeline lineno="484"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cache:<sp/></highlight><highlight class="stringliteral">&apos;pip&apos;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="485"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline lineno="486"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>|</highlight></codeline>
+<codeline lineno="487"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline lineno="488"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pip<sp/>install<sp/>-r<sp/>requirements-dev.txt</highlight></codeline>
+<codeline lineno="489"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Run<sp/>tests</highlight></codeline>
+<codeline lineno="490"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>pytest<sp/>tests/<sp/>--cov</highlight></codeline>
+<codeline lineno="491"><highlight class="normal"></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="492"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="493"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="494"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with<sp/>patch(&quot;tests.integration.test_github_workflows.WORKFLOWS_DIR&quot;,<sp/>workflows_dir):</highlight></codeline>
+<codeline lineno="495"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>workflows<sp/>=<sp/>get_workflow_files()</highlight></codeline>
+<codeline lineno="496"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>len(workflows)<sp/>==<sp/>1</highlight></codeline>
+<codeline lineno="497"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="498"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>config<sp/>=<sp/>load_yaml_safe(workflows[0])</highlight></codeline>
+<codeline lineno="499"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>config[&quot;name&quot;]<sp/>==<sp/>&quot;Complex<sp/>CI/CD&quot;</highlight></codeline>
+<codeline lineno="500"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>&quot;push&quot;<sp/>in<sp/>config[&quot;on&quot;]</highlight></codeline>
+<codeline lineno="501"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>&quot;pull_request&quot;<sp/>in<sp/>config[&quot;on&quot;]</highlight></codeline>
+<codeline lineno="502"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>&quot;strategy&quot;<sp/>in<sp/>config[&quot;jobs&quot;][&quot;test&quot;]</highlight></codeline>
+<codeline lineno="503"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>&quot;matrix&quot;<sp/>in<sp/>config[&quot;jobs&quot;][&quot;test&quot;][&quot;strategy&quot;]</highlight></codeline>
+<codeline lineno="504"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="505"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>duplicates<sp/>=<sp/>check_duplicate_keys(workflows[0])</highlight></codeline>
+<codeline lineno="506"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>assert<sp/>len(duplicates)<sp/>==<sp/>0</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows_helpers.py"/>
+  </compounddef>
+</doxygen>

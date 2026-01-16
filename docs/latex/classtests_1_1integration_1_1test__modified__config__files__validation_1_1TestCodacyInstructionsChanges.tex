@@ -1,0 +1,67 @@
+\doxysection{tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Codacy\+Instructions\+Changes Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges}{}\label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges}\index{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges@{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Codacy\+Instructions\+Changes\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=260pt]{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+Path \mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_a73be0a5b050018b97388b365ff0c4992}{codacy\+\_\+instructions\+\_\+path}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_abb72e09804c1f14f252b961c2d4a2c8f}{test\+\_\+codacy\+\_\+instructions\+\_\+simplified}} (Path \mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_a73be0a5b050018b97388b365ff0c4992}{codacy\+\_\+instructions\+\_\+path}})
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_a0e4f48756404f75499f871bc537e2a24}{test\+\_\+codacy\+\_\+critical\+\_\+rules\+\_\+present}} (Path \mbox{\hyperlink{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_a73be0a5b050018b97388b365ff0c4992}{codacy\+\_\+instructions\+\_\+path}})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Validate changes to Codacy instructions.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_a73be0a5b050018b97388b365ff0c4992}\index{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges@{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges}!codacy\_instructions\_path@{codacy\_instructions\_path}}
+\index{codacy\_instructions\_path@{codacy\_instructions\_path}!tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges@{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges}}
+\doxysubsubsection{\texorpdfstring{codacy\_instructions\_path()}{codacy\_instructions\_path()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_a73be0a5b050018b97388b365ff0c4992} 
+ Path tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Codacy\+Instructions\+Changes.\+codacy\+\_\+instructions\+\_\+path (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Compute the path to the repository's Codacy instructions file.
+
+Returns:
+    Path: Path to `.github/instructions/codacy.instructions.md` within the repository.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_a0e4f48756404f75499f871bc537e2a24}\index{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges@{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges}!test\_codacy\_critical\_rules\_present@{test\_codacy\_critical\_rules\_present}}
+\index{test\_codacy\_critical\_rules\_present@{test\_codacy\_critical\_rules\_present}!tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges@{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges}}
+\doxysubsubsection{\texorpdfstring{test\_codacy\_critical\_rules\_present()}{test\_codacy\_critical\_rules\_present()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_a0e4f48756404f75499f871bc537e2a24} 
+tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Codacy\+Instructions\+Changes.\+test\+\_\+codacy\+\_\+critical\+\_\+rules\+\_\+present (\begin{DoxyParamCaption}\item[{Path}]{codacy\+\_\+instructions\+\_\+path}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Check that the Codacy instructions file contains required critical rules.
+
+Asserts that the file includes the string 'codacy_cli_analyze' and the marker 'CRITICAL'.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_abb72e09804c1f14f252b961c2d4a2c8f}\index{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges@{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges}!test\_codacy\_instructions\_simplified@{test\_codacy\_instructions\_simplified}}
+\index{test\_codacy\_instructions\_simplified@{test\_codacy\_instructions\_simplified}!tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges@{tests.integration.test\_modified\_config\_files\_validation.TestCodacyInstructionsChanges}}
+\doxysubsubsection{\texorpdfstring{test\_codacy\_instructions\_simplified()}{test\_codacy\_instructions\_simplified()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_abb72e09804c1f14f252b961c2d4a2c8f} 
+tests.\+integration.\+test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+Test\+Codacy\+Instructions\+Changes.\+test\+\_\+codacy\+\_\+instructions\+\_\+simplified (\begin{DoxyParamCaption}\item[{Path}]{codacy\+\_\+instructions\+\_\+path}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Check that the Codacy instructions have been simplified and do not include repository-specific or prescriptive phrases.
+
+Skips the test if the file does not exist. Fails if the file contains either 'git remote -v' or 'unless really necessary'.
+
+Parameters:
+        codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__modified__config__files__validation_8py}{test\+\_\+modified\+\_\+config\+\_\+files\+\_\+validation.\+py}}\end{DoxyCompactItemize}

@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements::TestComprehensiveValidation</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation_1a02970a0221b1c9f67e107e1dd5955903" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements.TestComprehensiveValidation.requirements</definition>
+        <argsstring>()</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements.TestComprehensiveValidation.requirements</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse requirements and return list of (package, version) tuples.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="430" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="430" bodyend="433"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements_1a979f85cc6fc4eaa1143477069cb8b99a" compoundref="test__requirements_8py" startline="25" endline="78">tests.integration.test_requirements.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation_1a05969584064346f848b69fb3c38ea54e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestComprehensiveValidation.test_all_packages_have_versions_or_pins</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_all_packages_have_versions_or_pins</name>
+        <qualifiedname>tests.integration.test_requirements.TestComprehensiveValidation.test_all_packages_have_versions_or_pins</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that critical packages have version specifications.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="435" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="435" bodyend="442"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation_1a6afa90a695cad177dfea61b8fd6a2eb1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestComprehensiveValidation.test_version_consistency</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_version_consistency</name>
+        <qualifiedname>tests.integration.test_requirements.TestComprehensiveValidation.test_version_consistency</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that version specifications are consistent in style.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="444" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="444" bodyend="461"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation_1ae4c4fc2866ed18ad00d3b3f4e0de70ee" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements.TestComprehensiveValidation.test_transitive_dependencies_documented</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_transitive_dependencies_documented</name>
+        <qualifiedname>tests.integration.test_requirements.TestComprehensiveValidation.test_transitive_dependencies_documented</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that transitive dependencies are documented if pinned.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="463" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="463" bodyend="475"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive validation tests for the requirements file.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements.TestComprehensiveValidation</label>
+        <link refid="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="425" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="425" bodyend="475"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation_1a02970a0221b1c9f67e107e1dd5955903" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestComprehensiveValidation</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation_1a05969584064346f848b69fb3c38ea54e" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestComprehensiveValidation</scope><name>test_all_packages_have_versions_or_pins</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation_1ae4c4fc2866ed18ad00d3b3f4e0de70ee" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestComprehensiveValidation</scope><name>test_transitive_dependencies_documented</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation_1a6afa90a695cad177dfea61b8fd6a2eb1" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements::TestComprehensiveValidation</scope><name>test_version_consistency</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

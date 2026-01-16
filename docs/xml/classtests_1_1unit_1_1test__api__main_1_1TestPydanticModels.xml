@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api_main::TestPydanticModels</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1a016bcea0b6b9378014c3eceb822157d9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestPydanticModels.test_asset_response_model_valid</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_asset_response_model_valid</name>
+        <qualifiedname>tests.unit.test_api_main.TestPydanticModels.test_asset_response_model_valid</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test AssetResponse with valid data.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="145" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="145" bodyend="161"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1a7fdd724532ea55e8ff9708ed9267f0c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestPydanticModels.test_asset_response_model_optional_fields</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_asset_response_model_optional_fields</name>
+        <qualifiedname>tests.unit.test_api_main.TestPydanticModels.test_asset_response_model_optional_fields</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test AssetResponse with optional fields omitted.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="162" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="162" bodyend="175"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1ad534f87c7a44f4fb6a164d719e670564" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestPydanticModels.test_relationship_response_model</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_relationship_response_model</name>
+        <qualifiedname>tests.unit.test_api_main.TestPydanticModels.test_relationship_response_model</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test RelationshipResponse model.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="176" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="176" bodyend="186"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1ac4114eadbecd5fcf45a48bd8e18c4892" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestPydanticModels.test_metrics_response_model</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_metrics_response_model</name>
+        <qualifiedname>tests.unit.test_api_main.TestPydanticModels.test_metrics_response_model</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test MetricsResponse model.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="187" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="187" bodyend="199"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1a1775509f6e085336ba62826351314f45" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestPydanticModels.test_visualization_data_response_model</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_visualization_data_response_model</name>
+        <qualifiedname>tests.unit.test_api_main.TestPydanticModels.test_visualization_data_response_model</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test VisualizationDataResponse model.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="200" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="200" bodyend="209"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test Pydantic response models.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api_main.TestPydanticModels</label>
+        <link refid="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="142" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="142" bodyend="209"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1a7fdd724532ea55e8ff9708ed9267f0c7" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestPydanticModels</scope><name>test_asset_response_model_optional_fields</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1a016bcea0b6b9378014c3eceb822157d9" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestPydanticModels</scope><name>test_asset_response_model_valid</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1ac4114eadbecd5fcf45a48bd8e18c4892" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestPydanticModels</scope><name>test_metrics_response_model</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1ad534f87c7a44f4fb6a164d719e670564" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestPydanticModels</scope><name>test_relationship_response_model</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestPydanticModels_1a1775509f6e085336ba62826351314f45" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestPydanticModels</scope><name>test_visualization_data_response_model</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestVersionSpecifications</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a5a02ff57c3ba6f8b77f49775eefea1db" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.TestVersionSpecifications.requirements</definition>
+        <argsstring>(parsed_requirements)</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestVersionSpecifications.requirements</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse and return requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="278" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="278" bodyend="281"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a08e5ba80131e00acc847fd9c84ef1818" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestVersionSpecifications.test_all_packages_have_versions</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_all_packages_have_versions</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestVersionSpecifications.test_all_packages_have_versions</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all packages specify version constraints.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="283" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="283" bodyend="287"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a9cc4807de28cef9276c257932da6f325" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestVersionSpecifications.test_version_format_valid</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_version_format_valid</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestVersionSpecifications.test_version_format_valid</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that version specifications use valid format.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="289" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="289" bodyend="296"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a968f3cc2d840b0d1526bae012de37816" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestVersionSpecifications.test_pyyaml_version</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_pyyaml_version</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestVersionSpecifications.test_pyyaml_version</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that PyYAML has appropriate version constraint.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="298" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="298" bodyend="303"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a3461f0cdd1deda02fe5032a3cb324d8d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestVersionSpecifications.test_uses_minimum_versions</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_uses_minimum_versions</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestVersionSpecifications.test_uses_minimum_versions</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that packages use &gt;= for version specifications.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="305" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="305" bodyend="311"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that version specifications are valid and reasonable.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestVersionSpecifications</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="273" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="273" bodyend="311"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a5a02ff57c3ba6f8b77f49775eefea1db" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestVersionSpecifications</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a08e5ba80131e00acc847fd9c84ef1818" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestVersionSpecifications</scope><name>test_all_packages_have_versions</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a968f3cc2d840b0d1526bae012de37816" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestVersionSpecifications</scope><name>test_pyyaml_version</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a3461f0cdd1deda02fe5032a3cb324d8d" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestVersionSpecifications</scope><name>test_uses_minimum_versions</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestVersionSpecifications_1a9cc4807de28cef9276c257932da6f325" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestVersionSpecifications</scope><name>test_version_format_valid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

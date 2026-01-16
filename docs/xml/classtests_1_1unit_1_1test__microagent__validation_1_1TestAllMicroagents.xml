@@ -1,0 +1,223 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_microagent_validation::TestAllMicroagents</compoundname>
+    <basecompoundref refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation" prot="public" virt="non-virtual">tests.unit.test_microagent_validation.TestMicroagentValidation</basecompoundref>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1a7161fadac4c695f14a22e166a7cb60f5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_have_valid_structure</definition>
+        <argsstring>(List[Path] microagent_files)</argsstring>
+        <name>test_all_microagents_have_valid_structure</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_have_valid_structure</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>microagent_files</declname>
+          <array>[Path]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all microagent files have valid structure.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="291" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="291" bodyend="302"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1a09be53fb2e8aad36c073c631cedee99e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_have_required_fields</definition>
+        <argsstring>(self, List[Path] microagent_files)</argsstring>
+        <name>test_all_microagents_have_required_fields</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_have_required_fields</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>microagent_files</declname>
+          <array>[Path]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all microagent files have required frontmatter fields.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="303" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="303" bodyend="315"/>
+        <references refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation_1a497652f84032b4dc895d13b0d68d76f6" compoundref="test__microagent__validation_8py" startline="41" endline="70">tests.unit.test_microagent_validation.TestMicroagentValidation.parse_frontmatter</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1ad38bc01851aac52e8ee8eb55bb8c8194" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_have_unique_names</definition>
+        <argsstring>(self, List[Path] microagent_files)</argsstring>
+        <name>test_all_microagents_have_unique_names</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_have_unique_names</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>microagent_files</declname>
+          <array>[Path]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all microagent names are unique.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="316" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="316" bodyend="328"/>
+        <references refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation_1a497652f84032b4dc895d13b0d68d76f6" compoundref="test__microagent__validation_8py" startline="41" endline="70">tests.unit.test_microagent_validation.TestMicroagentValidation.parse_frontmatter</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1ae3ac3223f8e66adb78f5c14ae2cb5f2c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_valid_versions</definition>
+        <argsstring>(self, List[Path] microagent_files)</argsstring>
+        <name>test_all_microagents_valid_versions</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_valid_versions</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>microagent_files</declname>
+          <array>[Path]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all microagents have valid semantic versions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="329" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="329" bodyend="341"/>
+        <references refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation_1a497652f84032b4dc895d13b0d68d76f6" compoundref="test__microagent__validation_8py" startline="41" endline="70">tests.unit.test_microagent_validation.TestMicroagentValidation.parse_frontmatter</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1afb2192993f18182aa3a59d6022c7f0fc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_valid_types</definition>
+        <argsstring>(self, List[Path] microagent_files)</argsstring>
+        <name>test_all_microagents_valid_types</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_valid_types</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>microagent_files</declname>
+          <array>[Path]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all microagents have valid type values.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="342" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="342" bodyend="356"/>
+        <references refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation_1a497652f84032b4dc895d13b0d68d76f6" compoundref="test__microagent__validation_8py" startline="41" endline="70">tests.unit.test_microagent_validation.TestMicroagentValidation.parse_frontmatter</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1a02a7dc0afbc7c06a72f9ebda06d90ac3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_valid_agents</definition>
+        <argsstring>(self, List[Path] microagent_files)</argsstring>
+        <name>test_all_microagents_valid_agents</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestAllMicroagents.test_all_microagents_valid_agents</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>microagent_files</declname>
+          <array>[Path]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all microagents have valid agent values.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="357" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="357" bodyend="369"/>
+        <references refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation_1a497652f84032b4dc895d13b0d68d76f6" compoundref="test__microagent__validation_8py" startline="41" endline="70">tests.unit.test_microagent_validation.TestMicroagentValidation.parse_frontmatter</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1a40e6bc283ffce913aad8e5c7fa801759" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestAllMicroagents.test_triggers_field_is_optional</definition>
+        <argsstring>(self, List[Path] microagent_files)</argsstring>
+        <name>test_triggers_field_is_optional</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestAllMicroagents.test_triggers_field_is_optional</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>microagent_files</declname>
+          <array>[Path]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that triggers field is optional and properly formatted when present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="370" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="370" bodyend="388"/>
+        <references refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation_1a497652f84032b4dc895d13b0d68d76f6" compoundref="test__microagent__validation_8py" startline="41" endline="70">tests.unit.test_microagent_validation.TestMicroagentValidation.parse_frontmatter</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for all microagent files in the directory.</verbatim> </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>tests.unit.test_microagent_validation.TestAllMicroagents</label>
+        <link refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>tests.unit.test_microagent_validation.TestMicroagentValidation</label>
+        <link refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_microagent_validation.TestAllMicroagents</label>
+        <link refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>tests.unit.test_microagent_validation.TestMicroagentValidation</label>
+        <link refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="287" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="287" bodyend="388"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation_1ae1964dbf5d42e16dcce64ee6e879dc9f" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>microagent_files</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation_1abf450f8425751abe6fefb15206e72907" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>microagents_dir</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation_1a497652f84032b4dc895d13b0d68d76f6" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>parse_frontmatter</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1a09be53fb2e8aad36c073c631cedee99e" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>test_all_microagents_have_required_fields</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1ad38bc01851aac52e8ee8eb55bb8c8194" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>test_all_microagents_have_unique_names</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1a7161fadac4c695f14a22e166a7cb60f5" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>test_all_microagents_have_valid_structure</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1a02a7dc0afbc7c06a72f9ebda06d90ac3" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>test_all_microagents_valid_agents</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1afb2192993f18182aa3a59d6022c7f0fc" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>test_all_microagents_valid_types</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1ae3ac3223f8e66adb78f5c14ae2cb5f2c" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>test_all_microagents_valid_versions</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents_1a40e6bc283ffce913aad8e5c7fa801759" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestAllMicroagents</scope><name>test_triggers_field_is_optional</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

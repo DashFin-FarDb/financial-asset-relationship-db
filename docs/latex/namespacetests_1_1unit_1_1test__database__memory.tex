@@ -1,0 +1,64 @@
+\doxysection{tests.\+unit.\+test\+\_\+database\+\_\+memory Namespace Reference}
+\hypertarget{namespacetests_1_1unit_1_1test__database__memory}{}\label{namespacetests_1_1unit_1_1test__database__memory}\index{tests.unit.test\_database\_memory@{tests.unit.test\_database\_memory}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb}{Test\+Connect\+With\+Memory\+Db}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestEdgeCasesAndErrorHandling}{Test\+Edge\+Cases\+And\+Error\+Handling}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestGetConnectionWithMemoryDb}{Test\+Get\+Connection\+With\+Memory\+Db}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestIsMemoryDb}{Test\+Is\+Memory\+Db}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestThreadSafety}{Test\+Thread\+Safety}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__database__memory_1_1TestUriMemoryDatabaseIntegration}{Test\+Uri\+Memory\+Database\+Integration}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Iterator\mbox{[}None\mbox{]} \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}} (monkeypatch)
+\item 
+\mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_af9fe4dba5ed6a9005c3070cc6d52e131}{test\+\_\+in\+\_\+memory\+\_\+database\+\_\+persists\+\_\+schema\+\_\+and\+\_\+data}} (monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\item 
+\mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_afacca4beb06d9b2a998038ebb6751b4f}{test\+\_\+uri\+\_\+style\+\_\+memory\+\_\+database\+\_\+persists\+\_\+schema\+\_\+and\+\_\+data}} (monkeypatch, \mbox{\hyperlink{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}{restore\+\_\+database\+\_\+module}})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tests for in-memory SQLite connection persistence in api.database.\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7}\index{tests.unit.test\_database\_memory@{tests.unit.test\_database\_memory}!restore\_database\_module@{restore\_database\_module}}
+\index{restore\_database\_module@{restore\_database\_module}!tests.unit.test\_database\_memory@{tests.unit.test\_database\_memory}}
+\doxysubsubsection{\texorpdfstring{restore\_database\_module()}{restore\_database\_module()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1unit_1_1test__database__memory_a1329394b3da9d667d9772cac20dcbaf7} 
+ Iterator\mbox{[}None\mbox{]} tests.\+unit.\+test\+\_\+database\+\_\+memory.\+restore\+\_\+database\+\_\+module (\begin{DoxyParamCaption}\item[{}]{monkeypatch}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Preserve and restore api.database state and the DATABASE_URL environment variable around a test.
+
+Yields control to the test. After the test completes, closes and clears any in-memory SQLite connection on api.database (if present), restores DATABASE_URL to its original value or removes it if it was not set, and reloads the api.database module to reset its state.
+\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1unit_1_1test__database__memory_af9fe4dba5ed6a9005c3070cc6d52e131}\index{tests.unit.test\_database\_memory@{tests.unit.test\_database\_memory}!test\_in\_memory\_database\_persists\_schema\_and\_data@{test\_in\_memory\_database\_persists\_schema\_and\_data}}
+\index{test\_in\_memory\_database\_persists\_schema\_and\_data@{test\_in\_memory\_database\_persists\_schema\_and\_data}!tests.unit.test\_database\_memory@{tests.unit.test\_database\_memory}}
+\doxysubsubsection{\texorpdfstring{test\_in\_memory\_database\_persists\_schema\_and\_data()}{test\_in\_memory\_database\_persists\_schema\_and\_data()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1unit_1_1test__database__memory_af9fe4dba5ed6a9005c3070cc6d52e131} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+test\+\_\+in\+\_\+memory\+\_\+database\+\_\+persists\+\_\+schema\+\_\+and\+\_\+data (\begin{DoxyParamCaption}\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify an in-memory SQLite configuration reuses a single connection instance and preserves schema and data across operations.
+
+Sets DATABASE_URL to use an in-memory SQLite database, reloads the database module and initialises the schema, inserts a user row using one connection, then reads it using a second connection. Asserts the inserted row is present and that both context-managed connections are the same object.
+\end{DoxyVerb}
+ \Hypertarget{namespacetests_1_1unit_1_1test__database__memory_afacca4beb06d9b2a998038ebb6751b4f}\index{tests.unit.test\_database\_memory@{tests.unit.test\_database\_memory}!test\_uri\_style\_memory\_database\_persists\_schema\_and\_data@{test\_uri\_style\_memory\_database\_persists\_schema\_and\_data}}
+\index{test\_uri\_style\_memory\_database\_persists\_schema\_and\_data@{test\_uri\_style\_memory\_database\_persists\_schema\_and\_data}!tests.unit.test\_database\_memory@{tests.unit.test\_database\_memory}}
+\doxysubsubsection{\texorpdfstring{test\_uri\_style\_memory\_database\_persists\_schema\_and\_data()}{test\_uri\_style\_memory\_database\_persists\_schema\_and\_data()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1unit_1_1test__database__memory_afacca4beb06d9b2a998038ebb6751b4f} 
+tests.\+unit.\+test\+\_\+database\+\_\+memory.\+test\+\_\+uri\+\_\+style\+\_\+memory\+\_\+database\+\_\+persists\+\_\+schema\+\_\+and\+\_\+data (\begin{DoxyParamCaption}\item[{}]{monkeypatch}{, }\item[{}]{restore\+\_\+database\+\_\+module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify URI-style in-memory SQLite configuration is correctly detected and reuses a single connection instance.
+
+Sets DATABASE_URL to use a URI-style in-memory SQLite database (file::memory:?cache=shared), reloads the database module and initialises the schema, inserts a user row using one connection, then reads it using a second connection. Asserts the inserted row is present and that both context-managed connections are the same object.
+\end{DoxyVerb}
+ 

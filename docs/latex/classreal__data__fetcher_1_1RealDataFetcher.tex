@@ -1,0 +1,244 @@
+\doxysection{real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher Class Reference}
+\hypertarget{classreal__data__fetcher_1_1RealDataFetcher}{}\label{classreal__data__fetcher_1_1RealDataFetcher}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+
+
+Collaboration diagram for real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=227pt]{classreal__data__fetcher_1_1RealDataFetcher__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_afc2770e8add77e393fb5312b13e5d663}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, \texorpdfstring{$\ast$}{*}, Optional\mbox{[}str\mbox{]} \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a54e951b8cd77f20a15791873a6c6c251}{cache\+\_\+path}}=None, Optional\mbox{[}Callable\mbox{[}\mbox{[}$\,$\mbox{]}, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}\mbox{]}\mbox{]} \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a19d8a5e39ab0918aafa3055c9561e12e}{fallback\+\_\+factory}}=None, bool \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_aae0a0954804a2cdbff249219723ea468}{enable\+\_\+network}}=True)
+\item 
+\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a9a0b50ea3d53d8cd924fe836f2e15f3e}{create\+\_\+real\+\_\+database}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a9a47a0eca11cf2ffbbf3c3b331c1138f}{session}} = None
+\item 
+\mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a54e951b8cd77f20a15791873a6c6c251}{cache\+\_\+path}} = Path(cache\+\_\+path) if cache\+\_\+path else None
+\item 
+\mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a19d8a5e39ab0918aafa3055c9561e12e}{fallback\+\_\+factory}} = fallback\+\_\+factory
+\item 
+\mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_aae0a0954804a2cdbff249219723ea468}{enable\+\_\+network}} = enable\+\_\+network
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a02af871fd47c69a47316f98a338852bd}{\+\_\+fallback}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\mbox{[}Equity\mbox{]} \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_ad74ac0bf89faaba50d6c6789f18ef6a3}{\+\_\+fetch\+\_\+equity\+\_\+data}} ()
+\item 
+List\mbox{[}Bond\mbox{]} \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a60db7c3d12d520782fc8fd3251d4c3e1}{\+\_\+fetch\+\_\+bond\+\_\+data}} ()
+\item 
+List\mbox{[}Commodity\mbox{]} \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a7bc07e5c8019a3c37a97856bf3a85086}{\+\_\+fetch\+\_\+commodity\+\_\+data}} ()
+\item 
+List\mbox{[}Currency\mbox{]} \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a4d9154b41313c16038447fab3ea25441}{\+\_\+fetch\+\_\+currency\+\_\+data}} ()
+\item 
+List\mbox{[}Regulatory\+Event\mbox{]} \mbox{\hyperlink{classreal__data__fetcher_1_1RealDataFetcher_a9cd5f5e7404e03b5b0cf41657a363b08}{\+\_\+create\+\_\+regulatory\+\_\+events}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Fetches real financial data from Yahoo Finance and other sources\end{DoxyVerb}
+ 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_afc2770e8add77e393fb5312b13e5d663}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_afc2770e8add77e393fb5312b13e5d663} 
+real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\texorpdfstring{$\ast$}{*}}]{}{, }\item[{Optional\mbox{[}str\mbox{]} }]{cache\+\_\+path}{ = {\ttfamily None}, }\item[{Optional\mbox{[}Callable\mbox{[}\mbox{[}$\,$\mbox{]}, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}\mbox{]}\mbox{]} }]{fallback\+\_\+factory}{ = {\ttfamily None}, }\item[{bool }]{enable\+\_\+network}{ = {\ttfamily True}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Initialise the RealDataFetcher with optional cache, fallback and network controls.
+
+Parameters:
+    cache_path (Optional[str]): Path to a JSON cache file to load a
+        previously persisted AssetRelationshipGraph
+        from and to save the constructed graph to.
+        If omitted, no file-based caching is used.
+    fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
+        Callable that returns a fallback AssetRelationshipGraph to use
+        when network access is disabled or real-data fetch fails.
+        If omitted, the module's bundled sample dataset is used
+        as a fallback.
+    enable_network (bool):
+        Controls whether network access is permitted
+        for fetching live data.
+        When False, the fetcher will not attempt network calls
+        and will use the fallback dataset.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_a9cd5f5e7404e03b5b0cf41657a363b08}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!\_create\_regulatory\_events@{\_create\_regulatory\_events}}
+\index{\_create\_regulatory\_events@{\_create\_regulatory\_events}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{\_create\_regulatory\_events()}{\_create\_regulatory\_events()}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_a9cd5f5e7404e03b5b0cf41657a363b08} 
+ List\mbox{[}Regulatory\+Event\mbox{]} real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+\_\+create\+\_\+regulatory\+\_\+events (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [protected]}}
+
+\begin{DoxyVerb}Create realistic regulatory events for the fetched assets\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classreal__data__fetcher_1_1RealDataFetcher_a9cd5f5e7404e03b5b0cf41657a363b08_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_a02af871fd47c69a47316f98a338852bd}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!\_fallback@{\_fallback}}
+\index{\_fallback@{\_fallback}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{\_fallback()}{\_fallback()}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_a02af871fd47c69a47316f98a338852bd} 
+ \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+\_\+fallback (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Selects a fallback AssetRelationshipGraph to use when real data cannot be
+fetched.
+If a `fallback_factory` was provided to the instance, this calls it and
+returns its result; otherwise it constructs and returns the built-
+in sample database.
+
+Returns:
+    An `AssetRelationshipGraph` instance either from the provided
+    fallback factory or from the module sample dataset.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classreal__data__fetcher_1_1RealDataFetcher_a02af871fd47c69a47316f98a338852bd_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_a60db7c3d12d520782fc8fd3251d4c3e1}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!\_fetch\_bond\_data@{\_fetch\_bond\_data}}
+\index{\_fetch\_bond\_data@{\_fetch\_bond\_data}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{\_fetch\_bond\_data()}{\_fetch\_bond\_data()}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_a60db7c3d12d520782fc8fd3251d4c3e1} 
+ List\mbox{[}Bond\mbox{]} real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+\_\+fetch\+\_\+bond\+\_\+data (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [protected]}}
+
+\begin{DoxyVerb}Fetch real bond/treasury data\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classreal__data__fetcher_1_1RealDataFetcher_a60db7c3d12d520782fc8fd3251d4c3e1_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_a7bc07e5c8019a3c37a97856bf3a85086}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!\_fetch\_commodity\_data@{\_fetch\_commodity\_data}}
+\index{\_fetch\_commodity\_data@{\_fetch\_commodity\_data}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{\_fetch\_commodity\_data()}{\_fetch\_commodity\_data()}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_a7bc07e5c8019a3c37a97856bf3a85086} 
+ List\mbox{[}Commodity\mbox{]} real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+\_\+fetch\+\_\+commodity\+\_\+data (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [protected]}}
+
+\begin{DoxyVerb}Fetch real commodity data\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classreal__data__fetcher_1_1RealDataFetcher_a7bc07e5c8019a3c37a97856bf3a85086_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_a4d9154b41313c16038447fab3ea25441}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!\_fetch\_currency\_data@{\_fetch\_currency\_data}}
+\index{\_fetch\_currency\_data@{\_fetch\_currency\_data}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{\_fetch\_currency\_data()}{\_fetch\_currency\_data()}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_a4d9154b41313c16038447fab3ea25441} 
+ List\mbox{[}Currency\mbox{]} real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+\_\+fetch\+\_\+currency\+\_\+data (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [protected]}}
+
+\begin{DoxyVerb}Fetch real currency exchange rate data\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classreal__data__fetcher_1_1RealDataFetcher_a4d9154b41313c16038447fab3ea25441_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_ad74ac0bf89faaba50d6c6789f18ef6a3}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!\_fetch\_equity\_data@{\_fetch\_equity\_data}}
+\index{\_fetch\_equity\_data@{\_fetch\_equity\_data}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{\_fetch\_equity\_data()}{\_fetch\_equity\_data()}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_ad74ac0bf89faaba50d6c6789f18ef6a3} 
+ List\mbox{[}Equity\mbox{]} real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+\_\+fetch\+\_\+equity\+\_\+data (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [protected]}}
+
+\begin{DoxyVerb}Fetches current market data for a predefined set of major equities and
+returns them as Equity objects.
+
+Returns:
+    List[Equity]: Equity instances populated with market fields including
+        id, symbol, name, asset_class, sector, price, market_cap,
+        pe_ratio, dividend_yield, earnings_per_share and book_value.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classreal__data__fetcher_1_1RealDataFetcher_ad74ac0bf89faaba50d6c6789f18ef6a3_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_a9a0b50ea3d53d8cd924fe836f2e15f3e}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!create\_real\_database@{create\_real\_database}}
+\index{create\_real\_database@{create\_real\_database}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{create\_real\_database()}{create\_real\_database()}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_a9a0b50ea3d53d8cd924fe836f2e15f3e} 
+ \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+create\+\_\+real\+\_\+database (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create an AssetRelationshipGraph populated with real financial data.
+Load from cache when available, otherwise fetch live data (if network
+is enabled), and fall back to the provided factory or sample data on
+network disablement or fetch failure.
+Persist the freshly built graph to cache when possible.
+
+Returns:
+    graph (AssetRelationshipGraph): The constructed graph containing
+        assets, regulatory events and relationships.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classreal__data__fetcher_1_1RealDataFetcher_a9a0b50ea3d53d8cd924fe836f2e15f3e_cgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_a54e951b8cd77f20a15791873a6c6c251}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!cache\_path@{cache\_path}}
+\index{cache\_path@{cache\_path}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{cache\_path}{cache\_path}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_a54e951b8cd77f20a15791873a6c6c251} 
+real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+cache\+\_\+path = Path(cache\+\_\+path) if cache\+\_\+path else None}
+
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_aae0a0954804a2cdbff249219723ea468}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!enable\_network@{enable\_network}}
+\index{enable\_network@{enable\_network}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{enable\_network}{enable\_network}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_aae0a0954804a2cdbff249219723ea468} 
+real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+enable\+\_\+network = enable\+\_\+network}
+
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_a19d8a5e39ab0918aafa3055c9561e12e}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!fallback\_factory@{fallback\_factory}}
+\index{fallback\_factory@{fallback\_factory}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{fallback\_factory}{fallback\_factory}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_a19d8a5e39ab0918aafa3055c9561e12e} 
+real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+fallback\+\_\+factory = fallback\+\_\+factory}
+
+\Hypertarget{classreal__data__fetcher_1_1RealDataFetcher_a9a47a0eca11cf2ffbbf3c3b331c1138f}\index{real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}!session@{session}}
+\index{session@{session}!real\_data\_fetcher.RealDataFetcher@{real\_data\_fetcher.RealDataFetcher}}
+\doxysubsubsection{\texorpdfstring{session}{session}}
+{\footnotesize\ttfamily \label{classreal__data__fetcher_1_1RealDataFetcher_a9a47a0eca11cf2ffbbf3c3b331c1138f} 
+real\+\_\+data\+\_\+fetcher.\+Real\+Data\+Fetcher.\+session = None}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/src/data/\mbox{\hyperlink{real__data__fetcher_8py}{real\+\_\+data\+\_\+fetcher.\+py}}\end{DoxyCompactItemize}

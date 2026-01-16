@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestPytestEcosystem</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1a52953691c9977f1b45c2a81e7e2f1839" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.TestPytestEcosystem.requirements</definition>
+        <argsstring>(parsed_requirements)</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPytestEcosystem.requirements</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get parsed requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="652" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="652" bodyend="655"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1a562571696ab186bd40f19b7f663b091b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[str]</type>
+        <definition> List[str] tests.integration.test_requirements_dev.TestPytestEcosystem.package_names</definition>
+        <argsstring>(parsed_requirements)</argsstring>
+        <name>package_names</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPytestEcosystem.package_names</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extract package names.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="658" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="658" bodyend="661"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1aefe620f586dc2bd024e87257e873ad7e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPytestEcosystem.test_pytest_version_sufficient</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_pytest_version_sufficient</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPytestEcosystem.test_pytest_version_sufficient</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pytest version is recent enough.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="663" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="663" bodyend="674"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1a14045a5bd7a313bff98caa00d9e1960f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPytestEcosystem.test_pytest_plugins_compatible</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_pytest_plugins_compatible</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPytestEcosystem.test_pytest_plugins_compatible</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pytest plugins have compatible versions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="676" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="676" bodyend="685"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1a89d46daf834d8a64447931b1d97c93c5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPytestEcosystem.test_pytest_cov_present_for_coverage</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_pytest_cov_present_for_coverage</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPytestEcosystem.test_pytest_cov_present_for_coverage</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pytest-cov is present for coverage reporting.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="687" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="687" bodyend="695"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test pytest and related plugins.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestPytestEcosystem</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="647" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="647" bodyend="695"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1a562571696ab186bd40f19b7f663b091b" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPytestEcosystem</scope><name>package_names</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1a52953691c9977f1b45c2a81e7e2f1839" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPytestEcosystem</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1a89d46daf834d8a64447931b1d97c93c5" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPytestEcosystem</scope><name>test_pytest_cov_present_for_coverage</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1a14045a5bd7a313bff98caa00d9e1960f" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPytestEcosystem</scope><name>test_pytest_plugins_compatible</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPytestEcosystem_1aefe620f586dc2bd024e87257e873ad7e" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPytestEcosystem</scope><name>test_pytest_version_sufficient</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

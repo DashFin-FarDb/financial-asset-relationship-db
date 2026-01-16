@@ -1,0 +1,9 @@
+var namespacetests_1_1integration_1_1test__workflow__config__changes =
+[
+    [ "TestAPISecScanWorkflowChanges", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestAPISecScanWorkflowChanges.html", null ],
+    [ "TestGreetingsWorkflowChanges", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges.html", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestGreetingsWorkflowChanges" ],
+    [ "TestLabelWorkflowChanges", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges.html", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestLabelWorkflowChanges" ],
+    [ "TestPRAgentConfigChanges", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges.html", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentConfigChanges" ],
+    [ "TestPRAgentWorkflowChanges", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentWorkflowChanges.html", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestPRAgentWorkflowChanges" ],
+    [ "TestRequirementsDevChanges", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges.html", "classtests_1_1integration_1_1test__workflow__config__changes_1_1TestRequirementsDevChanges" ]
+];

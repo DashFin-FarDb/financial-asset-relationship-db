@@ -1,0 +1,192 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="AUTO__ASSIGN__TEST__DOCUMENTATION_8md" kind="file" language="Markdown">
+    <compoundname>AUTO_ASSIGN_TEST_DOCUMENTATION.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Auto-Assign<sp/>Workflow<sp/>-<sp/>Complete<sp/>Test<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Executive<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Successfully<sp/>generated<sp/>**37<sp/>comprehensive<sp/>unit<sp/>tests**<sp/>to<sp/>enhance<sp/>the<sp/>auto-assign<sp/>workflow<sp/>testing<sp/>beyond<sp/>the<sp/>original<sp/>28<sp/>tests,<sp/>bringing<sp/>total<sp/>test<sp/>coverage<sp/>to<sp/>**65<sp/>test<sp/>methods**<sp/>across<sp/>3<sp/>test<sp/>classes.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>File<sp/>Changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**File**:<sp/>`tests/integration/test_github_workflows.py`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Lines**:<sp/>2,645<sp/>lines</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lines<sp/>Added**:<sp/>483<sp/>lines<sp/>of<sp/>new<sp/>test<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Test<sp/>Classes**:<sp/>3</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Test<sp/>Methods**:<sp/>65</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Class<sp/>Structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>TestAutoAssignWorkflow<sp/>(Line<sp/>881)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**28<sp/>original<sp/>tests**<sp/>covering<sp/>fundamental<sp/>workflow<sp/>validation:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Basic<sp/>Structure<sp/>(5<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_name`<sp/>-<sp/>Validates<sp/>workflow<sp/>name</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_triggers_on_issues`<sp/>-<sp/>Issue<sp/>event<sp/>triggers</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_triggers_on_pull_requests`<sp/>-<sp/>PR<sp/>event<sp/>triggers</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_has_run_job`<sp/>-<sp/>Job<sp/>existence</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_runs_on_ubuntu`<sp/>-<sp/>Runner<sp/>specification</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Permissions<sp/>&amp;<sp/>Security<sp/>(5<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_permissions_defined`<sp/>-<sp/>Permission<sp/>presence</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_has_issues_write_permission`<sp/>-<sp/>Issues<sp/>write<sp/>access</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_has_pull_requests_write_permission`<sp/>-<sp/>PR<sp/>write<sp/>access</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_permissions_minimal`<sp/>-<sp/>Least<sp/>privilege<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_security_permissions_scoped`<sp/>-<sp/>Job-level<sp/>scoping</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Step<sp/>Configuration<sp/>(8<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_has_single_step`<sp/>-<sp/>Single<sp/>step<sp/>design</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_step_has_descriptive_name`<sp/>-<sp/>Naming<sp/>conventions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_uses_pozil_action`<sp/>-<sp/>Correct<sp/>action<sp/>usage</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_action_has_version`<sp/>-<sp/>Version<sp/>tag<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_step_has_with_config`<sp/>-<sp/>Configuration<sp/>block</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_uses_github_token`<sp/>-<sp/>Token<sp/>usage<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_uses_stable_action_version`<sp/>-<sp/>Stable<sp/>versioning</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_config_complete`<sp/>-<sp/>Completeness<sp/>check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Assignee<sp/>Configuration<sp/>(5<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_specifies_assignees`<sp/>-<sp/>Assignee<sp/>specification</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_assignees_valid_username`<sp/>-<sp/>Username<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_specifies_num_assignees`<sp/>-<sp/>Count<sp/>field<sp/>presence</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_num_assignees_valid`<sp/>-<sp/>Count<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_num_assignees_matches_list`<sp/>-<sp/>Consistency<sp/>check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Best<sp/>Practices<sp/>&amp;<sp/>Edge<sp/>Cases<sp/>(5<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_extra_config`<sp/>-<sp/>No<sp/>unexpected<sp/>fields</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_triggers_only_on_opened`<sp/>-<sp/>Event<sp/>type<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_job_dependencies`<sp/>-<sp/>Independence<sp/>check</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_job_conditions`<sp/>-<sp/>Unconditional<sp/>execution</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_workflow_efficient`<sp/>-<sp/>Efficiency<sp/>validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>TestAutoAssignWorkflowAdvanced<sp/>(Line<sp/>1212)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**24<sp/>advanced<sp/>tests**<sp/>for<sp/>deeper<sp/>validation:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>YAML<sp/>&amp;<sp/>Syntax<sp/>Validation<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_yaml_syntax_valid`<sp/>-<sp/>YAML<sp/>parsing<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_file_not_empty`<sp/>-<sp/>Content<sp/>presence</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_syntax_errors_in_expressions`<sp/>-<sp/>Expression<sp/>validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Security<sp/>&amp;<sp/>Trust<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_action_source_is_trusted`<sp/>-<sp/>Trusted<sp/>source<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_hardcoded_secrets`<sp/>-<sp/>Secret<sp/>scanning<sp/>(3<sp/>patterns)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Configuration<sp/>Validation<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_assignees_not_empty_string`<sp/>-<sp/>Non-empty<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_assignees_no_duplicates`<sp/>-<sp/>Duplicate<sp/>detection</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_action_inputs_documented`<sp/>-<sp/>Input<sp/>completeness</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Runner<sp/>&amp;<sp/>Environment<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_runner_is_latest`<sp/>-<sp/>Latest<sp/>runner<sp/>usage</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_environment_specified`<sp/>-<sp/>No<sp/>approval<sp/>gates</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_matrix_strategy`<sp/>-<sp/>No<sp/>matrix<sp/>configuration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Timeout<sp/>&amp;<sp/>Error<sp/>Handling<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_timeout`<sp/>-<sp/>Timeout<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_step_no_timeout`<sp/>-<sp/>Step-level<sp/>timeout</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_continue_on_error`<sp/>-<sp/>Error<sp/>handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Workflow<sp/>Design<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_outputs_defined`<sp/>-<sp/>No<sp/>unnecessary<sp/>outputs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_step_no_env_vars`<sp/>-<sp/>Config<sp/>placement<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_workflow_name_descriptive`<sp/>-<sp/>Naming<sp/>conventions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Trigger<sp/>Configuration<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_triggers_are_specific`<sp/>-<sp/>Trigger<sp/>specificity</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_concurrent_runs_config`<sp/>-<sp/>Concurrency<sp/>handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Best<sp/>Practices<sp/>(5<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_no_deprecated_syntax`<sp/>-<sp/>Deprecation<sp/>detection</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_job_name_appropriate`<sp/>-<sp/>Job<sp/>naming</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_permissions_not_overly_broad`<sp/>-<sp/>Permission<sp/>scope</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_uses_semantic_versioning`<sp/>-<sp/>Version<sp/>format</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_configuration_matches_documentation`<sp/>-<sp/>Doc<sp/>consistency</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>TestAutoAssignDocumentation<sp/>(Line<sp/>1537)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**13<sp/>documentation<sp/>quality<sp/>tests**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Documentation<sp/>Existence<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_summary_exists`<sp/>-<sp/>Summary<sp/>file<sp/>presence</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_final_report_exists`<sp/>-<sp/>Report<sp/>file<sp/>presence</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Content<sp/>Validation<sp/>(4<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_summary_not_empty`<sp/>-<sp/>Summary<sp/>content<sp/>(&gt;500<sp/>chars)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_final_report_not_empty`<sp/>-<sp/>Report<sp/>content<sp/>(&gt;1000<sp/>chars)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_summary_has_proper_markdown`<sp/>-<sp/>Markdown<sp/>syntax</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_summary_mentions_test_count`<sp/>-<sp/>Test<sp/>count<sp/>documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Documentation<sp/>Quality<sp/>(4<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_auto_assign_summary_has_execution_instructions`<sp/>-<sp/>Pytest<sp/>commands</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_final_report_has_executive_summary`<sp/>-<sp/>Executive<sp/>summary<sp/>presence</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_final_report_documents_test_coverage`<sp/>-<sp/>Coverage<sp/>breakdown</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_final_report_lists_files_modified`<sp/>-<sp/>File<sp/>change<sp/>documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Syntax<sp/>&amp;<sp/>Consistency<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`test_documentation_files_have_consistent_formatting`<sp/>-<sp/>Style<sp/>consistency</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_documentation_has_no_broken_markdown_syntax`<sp/>-<sp/>Valid<sp/>Markdown</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_documentation_references_correct_action`<sp/>-<sp/>Correct<sp/>action<sp/>reference</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Statistics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Metric<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Value<sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>---------------------------<sp/>|<sp/>------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Original<sp/>Tests**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>28<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**New<sp/>Advanced<sp/>Tests**<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>24<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**New<sp/>Documentation<sp/>Tests**<sp/>|<sp/>13<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Total<sp/>Tests**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>**65**<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Test<sp/>Classes**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>3<sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Total<sp/>Lines**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>2,645<sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Lines<sp/>Added**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>483<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Execution</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>All<sp/>Auto-Assign<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>All<sp/>65<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py<sp/>-k<sp/>&quot;AutoAssign&quot;<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>By<sp/>class</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py::TestAutoAssignWorkflow<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py::TestAutoAssignWorkflowAdvanced<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py::TestAutoAssignDocumentation<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>With<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py<sp/>-k<sp/>&quot;AutoAssign&quot;<sp/>-v<sp/>--cov=.github/workflows</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Security<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py::TestAutoAssignWorkflowAdvanced::test_auto_assign_no_hardcoded_secrets<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Documentation<sp/>check</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/test_github_workflows.py::TestAutoAssignDocumentation::test_auto_assign_summary_exists<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/AUTO_ASSIGN_TEST_DOCUMENTATION.md"/>
+  </compounddef>
+</doxygen>

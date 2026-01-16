@@ -1,0 +1,543 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: Comprehensive Testing Guide</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">Comprehensive Testing Guide</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md5510"></a></p>
+<p>This document provides an overview of all unit tests generated for the Financial Asset Relationship Database project.</p>
+<h1><a class="anchor" id="autotoc_md5511"></a>
+Overview</h1>
+<p>Comprehensive test coverage has been generated for the Next.js + FastAPI integration, covering both backend and frontend components with over <b>140+ test cases</b>.</p>
+<h1><a class="anchor" id="autotoc_md5512"></a>
+Test Statistics</h1>
+<h2><a class="anchor" id="autotoc_md5513"></a>
+Backend (Python)</h2>
+<ul>
+<li><b>Total Test Files</b>: 3 (new)</li>
+<li><b>Total Test Cases</b>: 60+ tests</li>
+<li><b>Lines of Test Code</b>: ~1,042 lines</li>
+<li><b>Coverage Areas</b>: API endpoints, CORS, configuration validation</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5514"></a>
+Frontend (TypeScript/React)</h2>
+<ul>
+<li><b>Total Test Files</b>: 5</li>
+<li><b>Total Test Cases</b>: 80+ tests</li>
+<li><b>Lines of Test Code</b>: ~937 lines</li>
+<li><b>Coverage Areas</b>: API client, React components, user interactions</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5515"></a>
+Grand Total</h2>
+<ul>
+<li><b>Test Files</b>: 8</li>
+<li><b>Test Cases</b>: 140+</li>
+<li><b>Lines of Test Code</b>: ~1,979 lines</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5516"></a>
+Test Files</h1>
+<h2><a class="anchor" id="autotoc_md5517"></a>
+Backend Tests (Python)</h2>
+<h3><a class="anchor" id="autotoc_md5518"></a>
+1. <code>tests/unit/test_api_main.py</code> (563 lines)</h3>
+<p><b>Purpose</b>: Comprehensive tests for the FastAPI backend (<code><a class="el" href="api_2main_8py.html">api/main.py</a></code>)</p>
+<p><b>Test Coverage</b>:</p>
+<ul>
+<li>✅ CORS configuration and origin validation</li>
+<li>✅ Thread-safe graph initialization</li>
+<li>✅ All API endpoints (root, health, assets, relationships, metrics, visualization)</li>
+<li>✅ Query parameter handling and filtering</li>
+<li>✅ Pydantic model validation</li>
+<li>✅ Error handling (404, 500, malformed requests)</li>
+<li>✅ Concurrent request handling</li>
+<li>✅ Metadata endpoints (asset classes, sectors)</li>
+</ul>
+<p><b>Key Test Classes</b>:</p>
+<ul>
+<li><code>TestValidateOrigin</code> - CORS security validation</li>
+<li><code>TestGetGraph</code> - Singleton pattern and thread safety</li>
+<li><code>TestAssetsEndpoint</code> - Asset retrieval and filtering</li>
+<li><code>TestRelationshipsEndpoint</code> - Relationship queries</li>
+<li><code>TestMetricsEndpoint</code> - Network metrics calculation</li>
+<li><code>TestVisualizationEndpoint</code> - 3D visualization data</li>
+<li><code>TestConcurrency</code> - Multi-threaded operations</li>
+</ul>
+<p><b>Run</b>: <code>pytest <a class="el" href="test__api__main_8py.html">tests/unit/test_api_main.py</a> -v</code></p>
+<h3><a class="anchor" id="autotoc_md5519"></a>
+2. <code>tests/unit/test_config_validation.py</code> (454 lines)</h3>
+<p><b>Purpose</b>: Validate all configuration files in the project</p>
+<p><b>Test Coverage</b>:</p>
+<ul>
+<li>✅ <code>vercel.json</code> - Vercel deployment configuration</li>
+<li>✅ <code>frontend/package.json</code> - NPM dependencies and scripts</li>
+<li>✅ <code>frontend/tsconfig.json</code> - TypeScript compiler options</li>
+<li>✅ <code>frontend/tailwind.config.js</code> - Tailwind CSS setup</li>
+<li>✅ <code>.env.example</code> - Environment variables documentation</li>
+<li>✅ <code>.gitignore</code> - Version control exclusions</li>
+<li>✅ <code>requirements.txt</code> - Python dependencies</li>
+<li>✅ Configuration consistency checks</li>
+</ul>
+<p><b>Key Test Classes</b>:</p>
+<ul>
+<li><code>TestVercelConfig</code> - Build and route configuration</li>
+<li><code>TestNextConfig</code> - Next.js framework settings</li>
+<li><code>TestPackageJson</code> - Dependencies and scripts</li>
+<li><code>TestTSConfig</code> - TypeScript configuration</li>
+<li><code>TestRequirementsTxt</code> - Python package validation</li>
+</ul>
+<p><b>Run</b>: <code>pytest <a class="el" href="test__config__validation_8py.html">tests/unit/test_config_validation.py</a> -v</code></p>
+<h3><a class="anchor" id="autotoc_md5520"></a>
+3. <code>tests/unit/test_configs.py</code> (25 lines)</h3>
+<p><b>Purpose</b>: Basic JSON syntax validation for configuration files</p>
+<p><b>Test Coverage</b>:</p>
+<ul>
+<li>✅ <code>vercel.json</code> valid JSON</li>
+<li>✅ <code>package.json</code> valid JSON</li>
+<li>✅ <code>tsconfig.json</code> valid JSON</li>
+</ul>
+<p><b>Run</b>: <code>pytest tests/unit/test_configs.py -v</code></p>
+<h2><a class="anchor" id="autotoc_md5521"></a>
+Frontend Tests (TypeScript/React)</h2>
+<h3><a class="anchor" id="autotoc_md5522"></a>
+1. <code>frontend/__tests__/lib/api.test.ts</code> (552 lines)</h3>
+<p><b>Purpose</b>: Comprehensive tests for the API client library (<code>app/lib/api.ts</code>)</p>
+<p><b>Test Coverage</b>:</p>
+<ul>
+<li>✅ Axios client configuration</li>
+<li>✅ Health check endpoint</li>
+<li>✅ Asset retrieval with filtering (class, sector, combined)</li>
+<li>✅ Asset detail queries</li>
+<li>✅ Relationship queries</li>
+<li>✅ Network metrics</li>
+<li>✅ Visualization data</li>
+<li>✅ Metadata endpoints</li>
+<li>✅ Error handling (network, HTTP, timeout)</li>
+<li>✅ Response validation</li>
+</ul>
+<p><b>Key Test Suites</b>:</p>
+<ul>
+<li><code>Client Configuration</code> - Axios setup and environment variables</li>
+<li><code>healthCheck</code> - API health monitoring</li>
+<li><code>getAssets</code> - Asset list with filters</li>
+<li><code>getAssetDetail</code> - Individual asset data</li>
+<li><code>getAllRelationships</code> - Relationship graph data</li>
+<li><code>getMetrics</code> - Network statistics</li>
+<li><code>getVisualizationData</code> - 3D graph data</li>
+<li><code>Error Handling</code> - Resilience testing</li>
+</ul>
+<p><b>Run</b>: <code>cd frontend &amp;&amp; npm test -- api.test.ts</code></p>
+<h3><a class="anchor" id="autotoc_md5523"></a>
+2. <code>frontend/__tests__/components/AssetList.test.tsx</code> (102 lines)</h3>
+<p><b>Purpose</b>: Tests for the AssetList component</p>
+<p><b>Test Coverage</b>:</p>
+<ul>
+<li>✅ Component rendering (filters, table headers)</li>
+<li>✅ Data loading from API</li>
+<li>✅ Filter functionality (asset class, sector, combined)</li>
+<li>✅ Asset display (symbols, names, prices, market caps)</li>
+<li>✅ Empty states</li>
+<li>✅ Error handling</li>
+<li>✅ Accessibility (labels, table structure)</li>
+<li>✅ Performance (useCallback optimization)</li>
+</ul>
+<p><b>Key Test Areas</b>:</p>
+<ul>
+<li>Component Rendering</li>
+<li>Data Loading</li>
+<li>Filter Functionality</li>
+<li>Asset Display</li>
+<li>Empty States</li>
+<li>Error Handling</li>
+<li>Accessibility</li>
+<li>Performance</li>
+</ul>
+<p><b>Run</b>: <code>cd frontend &amp;&amp; npm test -- AssetList.test.tsx</code></p>
+<h3><a class="anchor" id="autotoc_md5524"></a>
+3. <code>frontend/__tests__/components/MetricsDashboard.test.tsx</code> (73 lines)</h3>
+<p><b>Purpose</b>: Tests for the MetricsDashboard component</p>
+<p><b>Test Coverage</b>:</p>
+<ul>
+<li>✅ Metric card rendering</li>
+<li>✅ Data formatting (percentages, decimals)</li>
+<li>✅ Zero value handling</li>
+<li>✅ Large number handling</li>
+<li>✅ Asset class breakdown display</li>
+<li>✅ Visual styling consistency</li>
+<li>✅ Edge cases (negative values, empty data)</li>
+</ul>
+<p><b>Key Test Areas</b>:</p>
+<ul>
+<li>Component Rendering</li>
+<li>Total Assets Display</li>
+<li>Total Relationships Display</li>
+<li>Network Density Display</li>
+<li>Average Degree Display</li>
+<li>Max Degree Display</li>
+<li>Asset Classes Display</li>
+<li>Visual Styling</li>
+<li>Edge Cases</li>
+</ul>
+<p><b>Run</b>: <code>cd frontend &amp;&amp; npm test -- MetricsDashboard.test.tsx</code></p>
+<h3><a class="anchor" id="autotoc_md5525"></a>
+4. <code>frontend/__tests__/components/NetworkVisualization.test.tsx</code> (89 lines)</h3>
+<p><b>Purpose</b>: Tests for the NetworkVisualization component</p>
+<p><b>Test Coverage</b>:</p>
+<ul>
+<li>✅ Component rendering and loading states</li>
+<li>✅ Node data processing (coordinates, colors, sizes)</li>
+<li>✅ Edge data processing (connections, strength, styling)</li>
+<li>✅ Plotly configuration (3D scene, camera, layout)</li>
+<li>✅ Empty data handling</li>
+<li>✅ Data updates and re-rendering</li>
+<li>✅ Edge cases (single node, large datasets, negative coords)</li>
+</ul>
+<p><b>Key Test Areas</b>:</p>
+<ul>
+<li>Component Rendering</li>
+<li>Node Data Processing</li>
+<li>Edge Data Processing</li>
+<li>Plot Configuration</li>
+<li>Empty Data Handling</li>
+<li>Data Updates</li>
+<li>Edge Cases</li>
+</ul>
+<p><b>Run</b>: <code>cd frontend &amp;&amp; npm test -- NetworkVisualization.test.tsx</code></p>
+<h3><a class="anchor" id="autotoc_md5526"></a>
+5. <code>frontend/__tests__/app/page.test.tsx</code> (121 lines)</h3>
+<p><b>Purpose</b>: Tests for the main application page</p>
+<p><b>Test Coverage</b>:</p>
+<ul>
+<li>✅ Header and navigation rendering</li>
+<li>✅ Data loading on mount</li>
+<li>✅ Loading states</li>
+<li>✅ Tab switching functionality</li>
+<li>✅ Error handling and retry mechanism</li>
+<li>✅ Component integration</li>
+</ul>
+<p><b>Key Test Areas</b>:</p>
+<ul>
+<li>Page rendering</li>
+<li>Navigation tabs</li>
+<li>Data loading</li>
+<li>Loading states</li>
+<li>Tab switching</li>
+<li>Error handling</li>
+<li>Retry functionality</li>
+</ul>
+<p><b>Run</b>: <code>cd frontend &amp;&amp; npm test -- page.test.tsx</code></p>
+<h1><a class="anchor" id="autotoc_md5527"></a>
+Running Tests</h1>
+<h2><a class="anchor" id="autotoc_md5528"></a>
+All Backend Tests</h2>
+<div class="fragment"><div class="line"># Run all Python tests</div>
+<div class="line">pytest</div>
+<div class="line"> </div>
+<div class="line"># Run with verbose output</div>
+<div class="line">pytest -v</div>
+<div class="line"> </div>
+<div class="line"># Run with coverage report</div>
+<div class="line">pytest --cov=api --cov=src --cov-report=html</div>
+<div class="line"> </div>
+<div class="line"># Run specific test file</div>
+<div class="line">pytest tests/unit/test_api_main.py -v</div>
+<div class="line"> </div>
+<div class="line"># Run specific test class</div>
+<div class="line">pytest tests/unit/test_api_main.py::TestValidateOrigin -v</div>
+<div class="line"> </div>
+<div class="line"># Run tests matching pattern</div>
+<div class="line">pytest -k &quot;test_assets&quot; -v</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md5529"></a>
+All Frontend Tests</h2>
+<div class="fragment"><div class="line"># Navigate to frontend directory</div>
+<div class="line">cd frontend</div>
+<div class="line"> </div>
+<div class="line"># Run all tests</div>
+<div class="line">npm test</div>
+<div class="line"> </div>
+<div class="line"># Run in watch mode</div>
+<div class="line">npm run test:watch</div>
+<div class="line"> </div>
+<div class="line"># Run with coverage</div>
+<div class="line">npm run test:coverage</div>
+<div class="line"> </div>
+<div class="line"># Run specific test file</div>
+<div class="line">npm test -- api.test.ts</div>
+<div class="line"> </div>
+<div class="line"># Update snapshots if needed</div>
+<div class="line">npm test -- -u</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md5530"></a>
+Test Quality Metrics</h1>
+<h2><a class="anchor" id="autotoc_md5531"></a>
+Backend Tests</h2>
+<p>✅ <b>Happy Path Coverage</b>: All successful API calls tested ✅ <b>Edge Case Coverage</b>: Empty data, invalid inputs, missing fields ✅ <b>Error Condition Coverage</b>: 404s, 500s, network errors ✅ <b>Concurrency Testing</b>: Thread-safe operations validated ✅ <b>Security Testing</b>: CORS validation, origin checking ✅ <b>Mock Usage</b>: Isolated unit tests with proper mocking ✅ <b>Fixture-Based Setup</b>: Clean test organization</p>
+<h2><a class="anchor" id="autotoc_md5532"></a>
+Frontend Tests</h2>
+<p>✅ <b>Happy Path Coverage</b>: Normal user workflows tested ✅ <b>Edge Case Coverage</b>: Empty states, null data, large datasets ✅ <b>Error Condition Coverage</b>: API failures, network issues ✅ <b>Mock Usage</b>: API calls mocked for isolation ✅ <b>Type Validation</b>: TypeScript interfaces verified ✅ <b>User Interaction</b>: Click events, form inputs tested ✅ <b>Accessibility</b>: ARIA labels and semantic HTML checked</p>
+<h1><a class="anchor" id="autotoc_md5533"></a>
+Coverage Goals</h1>
+<h2><a class="anchor" id="autotoc_md5534"></a>
+Current Coverage</h2>
+<ul>
+<li>Backend API: <b>&gt;90%</b> of <code><a class="el" href="api_2main_8py.html">api/main.py</a></code></li>
+<li>Frontend API Client: <b>&gt;95%</b> of <code>app/lib/api.ts</code></li>
+<li>React Components: <b>&gt;80%</b> of component logic</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md5535"></a>
+Target Coverage</h2>
+<ul>
+<li>Overall Backend: <b>&gt;80%</b></li>
+<li>Overall Frontend: <b>&gt;80%</b></li>
+<li>Critical Paths: <b>100%</b></li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5536"></a>
+Best Practices</h1>
+<h2><a class="anchor" id="autotoc_md5537"></a>
+When Writing New Tests</h2>
+<ol type="1">
+<li>✅ Follow existing test patterns and naming conventions</li>
+<li>✅ Use descriptive test names that explain what is being tested</li>
+<li>✅ Test one thing per test case</li>
+<li>✅ Use appropriate mocking to isolate units under test</li>
+<li>✅ Include setup and teardown as needed</li>
+<li>✅ Test happy paths, edge cases, and error conditions</li>
+<li>✅ Keep tests fast and independent</li>
+<li>✅ Update tests when changing implementation</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md5538"></a>
+When Running Tests</h2>
+<ol type="1">
+<li>✅ Run tests before committing code</li>
+<li>✅ Ensure all tests pass locally</li>
+<li>✅ Review coverage reports</li>
+<li>✅ Fix failing tests immediately</li>
+<li>✅ Don't skip or disable tests without good reason</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md5539"></a>
+CI/CD Integration</h1>
+<p>These tests are designed to run in CI/CD pipelines. Example GitHub Actions workflow:</p>
+<div class="fragment"><div class="line">name: Run Tests</div>
+<div class="line"> </div>
+<div class="line">on: [push, pull_request]</div>
+<div class="line"> </div>
+<div class="line">jobs:</div>
+<div class="line">  backend-tests:</div>
+<div class="line">    runs-on: ubuntu-latest</div>
+<div class="line">    steps:</div>
+<div class="line">      - uses: actions/checkout@v2</div>
+<div class="line">      - name: Set up Python</div>
+<div class="line">        uses: actions/setup-python@v2</div>
+<div class="line">        with:</div>
+<div class="line">          python-version: &quot;3.8&quot;</div>
+<div class="line">      - name: Install dependencies</div>
+<div class="line">        run: pip install -r requirements.txt</div>
+<div class="line">      - name: Run tests</div>
+<div class="line">        run: pytest tests/unit/ --cov=api --cov=src</div>
+<div class="line"> </div>
+<div class="line">  frontend-tests:</div>
+<div class="line">    runs-on: ubuntu-latest</div>
+<div class="line">    steps:</div>
+<div class="line">      - uses: actions/checkout@v2</div>
+<div class="line">      - name: Set up Node</div>
+<div class="line">        uses: actions/setup-node@v2</div>
+<div class="line">        with:</div>
+<div class="line">          node-version: &quot;18&quot;</div>
+<div class="line">      - name: Install dependencies</div>
+<div class="line">        run: cd frontend &amp;&amp; npm install</div>
+<div class="line">      - name: Run tests</div>
+<div class="line">        run: cd frontend &amp;&amp; npm test -- --coverage</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md5540"></a>
+Troubleshooting</h1>
+<h2><a class="anchor" id="autotoc_md5541"></a>
+Common Issues</h2>
+<h3><a class="anchor" id="autotoc_md5542"></a>
+Backend Tests</h3>
+<p><b>Issue</b>: Import errors <b>Solution</b>: Ensure virtual environment is activated and dependencies installed</p>
+<p><b>Issue</b>: Database/fixture errors <b>Solution</b>: Check that test fixtures are properly defined in <code>conftest.py</code></p>
+<h3><a class="anchor" id="autotoc_md5543"></a>
+Frontend Tests</h3>
+<p><b>Issue</b>: Module not found <b>Solution</b>: Run <code>npm install</code> in frontend directory</p>
+<p><b>Issue</b>: Timeout errors <b>Solution</b>: Increase timeout in jest.config.js or specific tests</p>
+<p><b>Issue</b>: Mock issues <b>Solution</b>: Verify mock paths match actual module structure</p>
+<h1><a class="anchor" id="autotoc_md5544"></a>
+Future Enhancements</h1>
+<h2><a class="anchor" id="autotoc_md5545"></a>
+Planned Test Additions</h2>
+<ol type="1">
+<li><b>Component Tests</b>: Additional React component tests</li>
+<li><b>Integration Tests</b>: Full frontend-backend integration</li>
+<li><b>E2E Tests</b>: User workflow validation with Playwright/Cypress</li>
+<li><b>Performance Tests</b>: Load testing for API endpoints</li>
+<li><b>Security Tests</b>: Penetration testing and vulnerability scanning</li>
+<li><b>Visual Regression Tests</b>: Screenshot comparison for UI changes</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md5546"></a>
+Test Infrastructure Improvements</h2>
+<ol type="1">
+<li><b>Parallel Execution</b>: Speed up test runs</li>
+<li><b>Test Data Builders</b>: Easier test data creation</li>
+<li><b>Custom Matchers</b>: Domain-specific assertions</li>
+<li><b>Test Reports</b>: Better visualization of results</li>
+<li><b>Coverage Thresholds</b>: Enforce minimum coverage</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md5547"></a>
+Documentation</h1>
+<ul>
+<li><a class="el" href="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY.html">TEST_SUMMARY.md</a> - High-level test overview</li>
+<li><a class="el" href="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT.html">DEPLOYMENT.md</a> - Deployment procedures</li>
+<li><a class="el" href="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE.html">ARCHITECTURE.md</a> - System architecture</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5548"></a>
+Support</h1>
+<p>For questions about the test suite:</p>
+<ol type="1">
+<li>Review test file documentation and inline comments</li>
+<li>Check pytest/Jest documentation</li>
+<li>Examine existing test patterns</li>
+<li>Open an issue on GitHub</li>
+</ol>
+<hr  />
+<p><b>Last Updated</b>: 2024 <b>Test Framework Versions</b>:</p>
+<ul>
+<li>pytest: Latest compatible with Python 3.8+</li>
+<li>Jest: ^29.7.0</li>
+<li>@testing-library/react: ^14.1.0</li>
+<li>@testing-library/jest-dom: ^6.1.4 </li>
+</ul>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

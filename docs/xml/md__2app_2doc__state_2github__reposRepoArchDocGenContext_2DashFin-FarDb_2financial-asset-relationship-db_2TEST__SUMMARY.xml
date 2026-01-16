@@ -1,0 +1,183 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY</compoundname>
+    <title>Unit Test Generation Summary</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5448"/></para>
+<para>This document summarizes the comprehensive unit tests generated for the Financial Asset Relationship Database Next.js integration.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5449">
+<title>Overview</title><para>Generated comprehensive test coverage for the new FastAPI backend (<computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput>) and frontend TypeScript code added in this branch.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5450">
+<title>Files Generated</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5451">
+<title>Python Backend Tests</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5452">
+<title><computeroutput>tests/unit/test_api_main.py</computeroutput> (609 lines, 22KB)</title><para><itemizedlist>
+<listitem><para><bold>9 Test Classes</bold></para>
+</listitem><listitem><para><bold>43 Test Methods</bold></para>
+</listitem><listitem><para><bold>Coverage Areas:</bold></para>
+</listitem></itemizedlist>
+<orderedlist>
+<listitem><para><bold>TestValidateOrigin</bold> (8 tests)<itemizedlist>
+<listitem><para>HTTP localhost validation in development/production</para>
+</listitem><listitem><para>HTTPS localhost validation</para>
+</listitem><listitem><para>Vercel deployment URL validation</para>
+</listitem><listitem><para>Valid/invalid HTTPS domain patterns</para>
+</listitem><listitem><para>Invalid URL schemes</para>
+</listitem><listitem><para>Malformed URLs</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>TestGetGraph</bold> (3 tests)<itemizedlist>
+<listitem><para>Graph initialization on first call</para>
+</listitem><listitem><para>Singleton pattern verification</para>
+</listitem><listitem><para>Thread-safe double-check locking</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>TestPydanticModels</bold> (5 tests)<itemizedlist>
+<listitem><para>AssetResponse model validation</para>
+</listitem><listitem><para>Optional fields handling</para>
+</listitem><listitem><para>RelationshipResponse model</para>
+</listitem><listitem><para>MetricsResponse model</para>
+</listitem><listitem><para>VisualizationDataResponse model</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>TestAPIEndpoints</bold> (15 tests)<itemizedlist>
+<listitem><para>Root endpoint</para>
+</listitem><listitem><para>Health check endpoint</para>
+</listitem><listitem><para>Get all assets (with/without filters)</para>
+</listitem><listitem><para>Filter by asset class</para>
+</listitem><listitem><para>Filter by sector</para>
+</listitem><listitem><para>Combined filters</para>
+</listitem><listitem><para>Asset detail retrieval</para>
+</listitem><listitem><para>Asset relationships</para>
+</listitem><listitem><para>All relationships</para>
+</listitem><listitem><para>Network metrics</para>
+</listitem><listitem><para>3D visualization data</para>
+</listitem><listitem><para>Asset classes metadata</para>
+</listitem><listitem><para>Sectors metadata</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>TestErrorHandling</bold> (5 tests)<itemizedlist>
+<listitem><para>Server error handling</para>
+</listitem><listitem><para>Metrics calculation errors</para>
+</listitem><listitem><para>Invalid HTTP methods (405)</para>
+</listitem><listitem><para>404 responses</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>TestCORSConfiguration</bold> (2 tests)<itemizedlist>
+<listitem><para>CORS headers present</para>
+</listitem><listitem><para>Development origins allowed</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>TestAdditionalFields</bold> (2 tests)<itemizedlist>
+<listitem><para>Equity-specific fields</para>
+</listitem><listitem><para>Bond-specific fields</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>TestVisualizationDataProcessing</bold> (3 tests)<itemizedlist>
+<listitem><para>Coordinate type validation</para>
+</listitem><listitem><para>Node default values</para>
+</listitem><listitem><para>Edge default values</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>TestIntegrationScenarios</bold> (3 tests)<itemizedlist>
+<listitem><para>Full asset exploration workflow</para>
+</listitem><listitem><para>Visualization and metrics workflow</para>
+</listitem><listitem><para>Progressive filter refinement</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5453">
+<title>Frontend TypeScript Tests</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5454">
+<title><computeroutput>frontend/app/lib/__tests__/api.test.ts</computeroutput> (8KB)</title><para><itemizedlist>
+<listitem><para><bold>12 Test Suites</bold></para>
+</listitem><listitem><para><bold>18 Test Cases</bold></para>
+</listitem><listitem><para><bold>Coverage Areas:</bold></para>
+</listitem></itemizedlist>
+<orderedlist>
+<listitem><para><bold>API Configuration</bold><itemizedlist>
+<listitem><para>Axios instance creation</para>
+</listitem><listitem><para><ref refid="classBase" kindref="compound">Base</ref> URL configuration</para>
+</listitem><listitem><para>Environment variable usage</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Health Check</bold><itemizedlist>
+<listitem><para>Successful health check</para>
+</listitem><listitem><para>Error handling</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Asset Retrieval</bold><itemizedlist>
+<listitem><para>Fetch all assets</para>
+</listitem><listitem><para>Filter by asset class</para>
+</listitem><listitem><para>Filter by sector</para>
+</listitem><listitem><para>Multiple filters</para>
+</listitem><listitem><para>Asset detail by ID</para>
+</listitem><listitem><para>404 handling</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Relationships</bold><itemizedlist>
+<listitem><para>Asset relationships</para>
+</listitem><listitem><para>All relationships</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Metrics &amp; Visualization</bold><itemizedlist>
+<listitem><para>Network metrics</para>
+</listitem><listitem><para>Visualization data</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Metadata</bold><itemizedlist>
+<listitem><para>Asset classes</para>
+</listitem><listitem><para>Sectors</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Error Handling</bold><itemizedlist>
+<listitem><para>Network errors</para>
+</listitem><listitem><para>HTTP errors</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5455">
+<title>Test Infrastructure</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5456">
+<title><computeroutput>frontend/jest.config.js</computeroutput> (826 bytes)</title><para><itemizedlist>
+<listitem><para>Next.js-aware Jest configuration</para>
+</listitem><listitem><para>jsdom test environment</para>
+</listitem><listitem><para>Module name mapping</para>
+</listitem><listitem><para>Coverage collection settings</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5457">
+<title><computeroutput>frontend/jest.setup.js</computeroutput> (657 bytes)</title><para><itemizedlist>
+<listitem><para>Testing Library jest-dom setup</para>
+</listitem><listitem><para>window.matchMedia mock</para>
+</listitem><listitem><para>IntersectionObserver mock</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5458">
+<title><computeroutput>TESTING.md</computeroutput> (1.3KB)</title><para><itemizedlist>
+<listitem><para>Quick start guide</para>
+</listitem><listitem><para>Test execution commands</para>
+</listitem><listitem><para>Coverage areas summary</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5459">
+<title>Updated Configuration</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_1autotoc_md5460">
+<title><computeroutput>requirements.txt</computeroutput></title><para>Added testing dependencies: </para>
+</sect2>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TEST_SUMMARY.md"/>
+  </compounddef>
+</doxygen>

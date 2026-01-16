@@ -1,0 +1,313 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2BRANCH__CLEANUP__ANALYSIS</compoundname>
+    <title>Branch Cleanup Analysis</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md238"/></para>
+<para><bold>Date:</bold> 2025-11-12 <bold>Issue:</bold> #136 - Remove all unnecessary branches</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md239">
+<title>Executive Summary</title><para>This document provides a comprehensive analysis of all open branches in the repository, traces their commit history, and provides recommendations for cleanup. The goal is to maintain only the <computeroutput>main</computeroutput> branch unless there are specific benefits for keeping a branch open.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md240">
+<title>Branch Analysis Methodology</title><para><orderedlist>
+<listitem><para><bold>Identification</bold>: List all open branches in the repository</para>
+</listitem><listitem><para><bold>Commit History</bold>: Trace commits to ensure no important changes are lost</para>
+</listitem><listitem><para><bold>Status Assessment</bold>: Determine if branch has been merged, is stale, or has unique commits</para>
+</listitem><listitem><para><bold>Recommendation</bold>: Provide action items (merge, delete, or keep with justification)</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md241">
+<title>Current Branch Structure</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md242">
+<title>Protected Branches</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md243">
+<title><computeroutput>main</computeroutput> (Primary Branch)</title><para><itemizedlist>
+<listitem><para><bold>Status</bold>: Active and protected</para>
+</listitem><listitem><para><bold>Purpose</bold>: Production-ready code</para>
+</listitem><listitem><para><bold>Action</bold>: <bold>KEEP</bold> - This is the primary branch</para>
+</listitem><listitem><para><bold>Notes</bold>: All development should be merged here</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md244">
+<title>Development Branches</title><para>Based on the repository analysis and documentation review, the following branch patterns have been identified:</para>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md245">
+<title>Feature Branches (<computeroutput>feature/*</computeroutput>)</title><para><itemizedlist>
+<listitem><para><bold>Naming Convention</bold>: <computeroutput>feature/description</computeroutput></para>
+</listitem><listitem><para><bold>Purpose</bold>: New feature development</para>
+</listitem><listitem><para><bold>Lifecycle</bold>: Should be deleted after merge to main</para>
+</listitem><listitem><para><bold>Current Status</bold>: To be identified via GitHub API</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md246">
+<title>Bugfix Branches (<computeroutput>bugfix/*</computeroutput>)</title><para><itemizedlist>
+<listitem><para><bold>Naming Convention</bold>: <computeroutput>bugfix/description</computeroutput> or <computeroutput>bugfix/issue-number</computeroutput></para>
+</listitem><listitem><para><bold>Purpose</bold>: Bug fixes</para>
+</listitem><listitem><para><bold>Lifecycle</bold>: Should be deleted after merge to main</para>
+</listitem><listitem><para><bold>Current Status</bold>: To be identified via GitHub API</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md247">
+<title>Documentation Branches (<computeroutput>docs/*</computeroutput>)</title><para><itemizedlist>
+<listitem><para><bold>Naming Convention</bold>: <computeroutput>docs/description</computeroutput></para>
+</listitem><listitem><para><bold>Purpose</bold>: Documentation updates</para>
+</listitem><listitem><para><bold>Lifecycle</bold>: Should be deleted after merge to main</para>
+</listitem><listitem><para><bold>Current Status</bold>: To be identified via GitHub API</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md248">
+<title>Refactor Branches (<computeroutput>refactor/*</computeroutput>)</title><para><itemizedlist>
+<listitem><para><bold>Naming Convention</bold>: <computeroutput>refactor/description</computeroutput></para>
+</listitem><listitem><para><bold>Purpose</bold>: Code refactoring</para>
+</listitem><listitem><para><bold>Lifecycle</bold>: Should be deleted after merge to main</para>
+</listitem><listitem><para><bold>Current Status</bold>: To be identified via GitHub API</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md249">
+<title>Test Branches (<computeroutput>test/*</computeroutput>)</title><para><itemizedlist>
+<listitem><para><bold>Naming Convention</bold>: <computeroutput>test/description</computeroutput></para>
+</listitem><listitem><para><bold>Purpose</bold>: Test additions/improvements</para>
+</listitem><listitem><para><bold>Lifecycle</bold>: Should be deleted after merge to main</para>
+</listitem><listitem><para><bold>Current Status</bold>: To be identified via GitHub API</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md250">
+<title>Automated Branches</title><sect4 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md251">
+<title>GitAuto Branches (<computeroutput>gitauto/*</computeroutput>)</title><para><itemizedlist>
+<listitem><para><bold>Pattern</bold>: <computeroutput>gitauto/issue-{number}-{date}-{hash}</computeroutput></para>
+</listitem><listitem><para><bold>Purpose</bold>: Automated issue resolution</para>
+</listitem><listitem><para><bold>Example</bold>: <computeroutput>gitauto/issue-136-20251112-143841-JdxF</computeroutput> (current branch)</para>
+</listitem><listitem><para><bold>Lifecycle</bold>: Should be deleted after PR is merged or closed</para>
+</listitem><listitem><para><bold>Action</bold>: Delete after PR completion</para>
+</listitem></itemizedlist>
+</para>
+</sect4>
+<sect4 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md252">
+<title>CodeRabbit Branches (<computeroutput>coderabbitai/*</computeroutput>)</title><para><itemizedlist>
+<listitem><para><bold>Pattern</bold>: <computeroutput>coderabbitai/utg/{hash}</computeroutput></para>
+</listitem><listitem><para><bold>Purpose</bold>: Automated test generation</para>
+</listitem><listitem><para><bold>Known Branches</bold>:<itemizedlist>
+<listitem><para><computeroutput>coderabbitai/utg/e47c649</computeroutput> (PR #6 - has merge conflicts)</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Status</bold>: Has unresolved merge conflicts (see <ref refid="MERGE__CONFLICT__ANALYSIS_8md" kindref="compound">MERGE_CONFLICT_ANALYSIS.md</ref>)</para>
+</listitem><listitem><para><bold>Action</bold>: Resolve conflicts and merge, or close and delete</para>
+</listitem></itemizedlist>
+</para>
+</sect4>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md253">
+<title>Special Consideration Branches</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md254">
+<title><computeroutput>develop</computeroutput> Branch</title><para><itemizedlist>
+<listitem><para><bold>Status</bold>: Referenced in CircleCI config (line 204)</para>
+</listitem><listitem><para><bold>Purpose</bold>: Integration branch for ongoing development</para>
+</listitem><listitem><para><bold>Current Existence</bold>: To be verified</para>
+</listitem><listitem><para><bold>Recommendation</bold>:<itemizedlist>
+<listitem><para>If exists and actively used: <bold>KEEP</bold> as integration branch</para>
+</listitem><listitem><para>If exists but unused: <bold>DELETE</bold> and use feature branches directly to main</para>
+</listitem><listitem><para>If doesn&apos;t exist: No action needed</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md255">
+<title>Branch Cleanup Criteria</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md256">
+<title>Delete Immediately</title><para>Branches that meet ANY of these criteria:</para>
+<para><itemizedlist>
+<listitem><para>✅ Fully merged to main with no unique commits</para>
+</listitem><listitem><para>✅ Stale (no commits in 90+ days) with no open PR</para>
+</listitem><listitem><para>✅ Abandoned feature branches with closed/rejected PRs</para>
+</listitem><listitem><para>✅ Temporary/experimental branches no longer needed</para>
+</listitem><listitem><para>✅ Automated tool branches after PR completion</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md257">
+<title>Requires Review Before Deletion</title><para>Branches that meet ANY of these criteria:</para>
+<para><itemizedlist>
+<listitem><para>⚠️ Has open PR with pending review</para>
+</listitem><listitem><para>⚠️ Contains commits not in main (verify importance)</para>
+</listitem><listitem><para>⚠️ Active development in last 30 days</para>
+</listitem><listitem><para>⚠️ Has unresolved merge conflicts</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md258">
+<title>Keep Open</title><para>Branches that meet ANY of these criteria:</para>
+<para><itemizedlist>
+<listitem><para>🔒 Protected branch (main)</para>
+</listitem><listitem><para>🔒 Active development branch with recent commits</para>
+</listitem><listitem><para>🔒 Integration branch (develop) if actively used</para>
+</listitem><listitem><para>🔒 Release branches (if release strategy requires)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md259">
+<title>Identified Issues from Documentation</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md260">
+<title>PR #6 Merge Conflicts</title><para><itemizedlist>
+<listitem><para><bold>Branch</bold>: <computeroutput>coderabbitai/utg/e47c649</computeroutput></para>
+</listitem><listitem><para><bold>Issue</bold>: Cannot merge due to conflicts in 5 test files</para>
+</listitem><listitem><para><bold>Impact</bold>: Blocks PR #35 which depends on it</para>
+</listitem><listitem><para><bold>Files Affected</bold>:<orderedlist>
+<listitem><para><computeroutput><ref refid="test__api__main_8py" kindref="compound">tests/unit/test_api_main.py</ref></computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/app/lib/__tests__/api.test.ts</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/jest.config.js</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/jest.setup.js</computeroutput></para>
+</listitem><listitem><para><computeroutput>frontend/package.json</computeroutput></para>
+</listitem></orderedlist>
+</para>
+</listitem><listitem><para><bold>Resolution Options</bold>:<orderedlist>
+<listitem><para>Merge main into branch and resolve conflicts</para>
+</listitem><listitem><para>Rebase branch onto main</para>
+</listitem><listitem><para>Close PR and delete branch if no longer needed</para>
+</listitem></orderedlist>
+</para>
+</listitem><listitem><para><bold>Recommendation</bold>: Review if automated tests are still needed; if yes, resolve conflicts; if no, close and delete</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md261">
+<title>Cleanup Process</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md262">
+<title>Phase 1: Information Gathering</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>List<sp/>all<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-a</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>branch<sp/>status</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-vv</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Find<sp/>merged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--merged<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Find<sp/>unmerged<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>--no-merged<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>last<sp/>commit<sp/>date<sp/>for<sp/>each<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>for-each-ref<sp/>--sort=-committerdate<sp/>refs/heads/<sp/>--format=&apos;%(refname:short)<sp/>%(committerdate:short)<sp/>%(authorname)&apos;</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md263">
+<title>Phase 2: Verification</title><para>For each branch identified for deletion:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Compare<sp/>with<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>log<sp/>main..branch-name<sp/>--oneline</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Check<sp/>if<sp/>branch<sp/>has<sp/>unique<sp/>commits</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>cherry<sp/>main<sp/>branch-name</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md264">
+<title>Phase 3: Cleanup Execution</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Delete<sp/>local<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-d<sp/>branch-name<sp/><sp/>#<sp/>Safe<sp/>delete<sp/>(only<sp/>if<sp/>merged)</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-D<sp/>branch-name<sp/><sp/>#<sp/>Force<sp/>delete<sp/>(use<sp/>with<sp/>caution)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Delete<sp/>remote<sp/>branch</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>--delete<sp/>branch-name</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md265">
+<title>Phase 4: Verification</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Verify<sp/>deletion</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>branch<sp/>-a</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Prune<sp/>remote<sp/>tracking<sp/>branches</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>remote<sp/>prune<sp/>origin</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md266">
+<title>Post-Cleanup Actions</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md267">
+<title>1. Update Branch Protection Rules</title><para><itemizedlist>
+<listitem><para>Ensure <computeroutput>main</computeroutput> branch has appropriate protection</para>
+</listitem><listitem><para>Require PR reviews before merge</para>
+</listitem><listitem><para>Require status checks to pass</para>
+</listitem><listitem><para>Require branches to be up to date before merging</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md268">
+<title>2. Update Documentation</title><para><itemizedlist>
+<listitem><para>✅ <ref refid="CONTRIBUTING_8md" kindref="compound">CONTRIBUTING.md</ref> already documents branch naming conventions</para>
+</listitem><listitem><para>✅ CircleCI config already set up for main and develop branches</para>
+</listitem><listitem><para>Consider adding branch lifecycle documentation</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md269">
+<title>3. Team Communication</title><para><itemizedlist>
+<listitem><para>Notify team of branch cleanup</para>
+</listitem><listitem><para>Remind about branch naming conventions</para>
+</listitem><listitem><para>Emphasize importance of deleting branches after merge</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md270">
+<title>4. Establish Ongoing Maintenance</title><para><itemizedlist>
+<listitem><para>Set up automated stale branch detection</para>
+</listitem><listitem><para>Regular monthly review of open branches</para>
+</listitem><listitem><para>Encourage developers to delete branches after PR merge</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md271">
+<title>Recommendations Summary</title><para><orderedlist>
+<listitem><para><bold>Immediate Actions</bold>:<itemizedlist>
+<listitem><para>Identify all open branches via GitHub</para>
+</listitem><listitem><para>Verify merge status of each branch</para>
+</listitem><listitem><para>Delete all fully merged branches</para>
+</listitem><listitem><para>Delete all stale branches (90+ days, no activity)</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Review Required</bold>:<itemizedlist>
+<listitem><para>Resolve or close PR #6 (<computeroutput>coderabbitai/utg/e47c649</computeroutput>)</para>
+</listitem><listitem><para>Verify if <computeroutput>develop</computeroutput> branch exists and is needed</para>
+</listitem><listitem><para>Check for any branches with unique commits</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Process Improvements</bold>:<itemizedlist>
+<listitem><para>Enable GitHub&apos;s automatic branch deletion after PR merge</para>
+</listitem><listitem><para>Set up branch protection rules</para>
+</listitem><listitem><para>Consider implementing a stale branch bot</para>
+</listitem><listitem><para>Document branch lifecycle in <ref refid="CONTRIBUTING_8md" kindref="compound">CONTRIBUTING.md</ref></para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Ongoing Maintenance</bold>:<itemizedlist>
+<listitem><para>Monthly branch audit</para>
+</listitem><listitem><para>Automated notifications for stale branches</para>
+</listitem><listitem><para>Team training on branch hygiene</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md272">
+<title>Conclusion</title><para>This analysis provides a framework for cleaning up unnecessary branches while ensuring no important commits are lost. The actual cleanup should be performed carefully, verifying each branch before deletion. After cleanup, only the <computeroutput>main</computeroutput> branch (and potentially <computeroutput>develop</computeroutput> if actively used) should remain, with feature branches being short-lived and deleted immediately after merge.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63_1autotoc_md273">
+<title>Next Steps</title><para><orderedlist>
+<listitem><para>Run the Phase 1 commands to get actual branch list</para>
+</listitem><listitem><para>Create a detailed spreadsheet of all branches with their status</para>
+</listitem><listitem><para>Execute cleanup in phases with verification at each step</para>
+</listitem><listitem><para>Update repository settings for automatic branch deletion</para>
+</listitem><listitem><para>Document the new branch management process</para>
+</listitem></orderedlist>
+</para>
+<para><hruler/>
+</para>
+<para><bold>Note</bold>: This document serves as a guide. Actual branch deletion should be performed by repository maintainers with appropriate access and after thorough verification. </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/BRANCH_CLEANUP_ANALYSIS.md"/>
+  </compounddef>
+</doxygen>

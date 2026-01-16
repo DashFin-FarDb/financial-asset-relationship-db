@@ -1,0 +1,17 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$classBaseModel.html" title=" " alt="" coords="5,153,100,179"/>
+<area shape="rect" id="Node000001" href="$classapi_1_1auth_1_1Token.html" title=" " alt="" coords="203,5,319,31"/>
+<area shape="poly" id="edge6_Node000000_Node000001" title=" " alt="" coords="64,140,96,88,119,62,147,40,174,27,202,20,204,25,175,32,149,44,123,66,100,91,68,142"/>
+<area shape="rect" id="Node000002" href="$classapi_1_1auth_1_1TokenData.html" title=" " alt="" coords="188,55,335,80"/>
+<area shape="poly" id="edge7_Node000000_Node000002" title=" " alt="" coords="74,142,107,114,147,89,187,75,189,80,149,94,110,118,78,146"/>
+<area shape="rect" id="Node000003" href="$classapi_1_1auth_1_1User.html" title=" " alt="" coords="207,104,316,129"/>
+<area shape="poly" id="edge8_Node000000_Node000003" title=" " alt="" coords="112,147,147,138,206,125,207,130,149,143,113,152"/>
+<area shape="rect" id="Node000004" href="$classapi_1_1main_1_1AssetResponse.html" title=" " alt="" coords="170,153,353,179"/>
+<area shape="poly" id="edge9_Node000000_Node000004" title=" " alt="" coords="114,163,170,163,170,169,114,169"/>
+<area shape="rect" id="Node000005" href="$classapi_1_1main_1_1MetricsResponse.html" title=" " alt="" coords="164,203,359,228"/>
+<area shape="poly" id="edge10_Node000000_Node000005" title=" " alt="" coords="114,179,149,187,203,200,202,205,147,193,113,184"/>
+<area shape="rect" id="Node000006" href="$classapi_1_1main_1_1RelationshipResponse.html" title=" " alt="" coords="148,252,375,277"/>
+<area shape="poly" id="edge11_Node000000_Node000006" title=" " alt="" coords="78,186,111,213,149,237,183,249,182,254,147,242,107,217,75,191"/>
+<area shape="rect" id="Node000007" href="$classapi_1_1main_1_1VisualizationDataResponse.html" title=" " alt="" coords="162,302,361,342"/>
+<area shape="poly" id="edge12_Node000000_Node000007" title=" " alt="" coords="69,189,101,239,124,265,150,286,174,300,171,304,146,291,120,268,97,242,64,192"/>
+</map>

@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigRemovedComplexity</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1a4339d81d4967942b3f9b6977eb29357a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigRemovedComplexity.pr_agent_config_content</definition>
+        <argsstring>()</argsstring>
+        <name>pr_agent_config_content</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigRemovedComplexity.pr_agent_config_content</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Return the contents of .github / pr - agent - config.yml as a string.
+
+Reads the PR agent configuration file from the repository root and returns its raw text.
+
+Returns:
+    str: Raw YAML content of .github / pr - agent - config.yml.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="472" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="472" bodyend="484"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1afe36a5dac846af2f2417e344229e8d5c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigRemovedComplexity.test_no_summarization_settings</definition>
+        <argsstring>(pr_agent_config_content)</argsstring>
+        <name>test_no_summarization_settings</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigRemovedComplexity.test_no_summarization_settings</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1a4339d81d4967942b3f9b6977eb29357a" kindref="member">pr_agent_config_content</ref></type>
+          <defname>pr_agent_config_content</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify summarization settings removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="486" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="486" bodyend="490"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1ad27256c3e985e8c2e264dd1a2b7350dd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigRemovedComplexity.test_no_token_management</definition>
+        <argsstring>(pr_agent_config_content)</argsstring>
+        <name>test_no_token_management</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigRemovedComplexity.test_no_token_management</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1a4339d81d4967942b3f9b6977eb29357a" kindref="member">pr_agent_config_content</ref></type>
+          <defname>pr_agent_config_content</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify token management settings removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="492" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="492" bodyend="496"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1a0af7b6e99212de06acbc6fc9e8e4f46b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigRemovedComplexity.test_no_llm_model_references</definition>
+        <argsstring>(pr_agent_config_content)</argsstring>
+        <name>test_no_llm_model_references</name>
+        <qualifiedname>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigRemovedComplexity.test_no_llm_model_references</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1a4339d81d4967942b3f9b6977eb29357a" kindref="member">pr_agent_config_content</ref></type>
+          <defname>pr_agent_config_content</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
+
+Parameters:
+    pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="498" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="498" bodyend="507"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that complex features were properly removed.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_pr_agent_config_validation.TestPRAgentConfigRemovedComplexity</label>
+        <link refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" line="467" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_pr_agent_config_validation.py" bodystart="467" bodyend="507"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1a4339d81d4967942b3f9b6977eb29357a" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigRemovedComplexity</scope><name>pr_agent_config_content</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1a0af7b6e99212de06acbc6fc9e8e4f46b" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigRemovedComplexity</scope><name>test_no_llm_model_references</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1afe36a5dac846af2f2417e344229e8d5c" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigRemovedComplexity</scope><name>test_no_summarization_settings</name></member>
+      <member refid="classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity_1ad27256c3e985e8c2e264dd1a2b7350dd" prot="public" virt="non-virtual"><scope>tests::integration::test_pr_agent_config_validation::TestPRAgentConfigRemovedComplexity</scope><name>test_no_token_management</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

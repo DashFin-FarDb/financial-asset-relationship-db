@@ -1,0 +1,6 @@
+var searchData=
+[
+  ['❌_0',['❌',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio31f30b3cff8be77fbddaf8ab024c823f.html#autotoc_md455',1,'Before Additional Tests ❌'],['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatioa7d8d850345c24bd4c628e7a83830f00.html#autotoc_md5491',1,'Before New Tests ❌'],['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatioe27661508fc3b1b32d9cbcc754da715a.html#autotoc_md5703',1,'Before These Tests ❌'],['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio79e0bc7ce1d3e235ce9a93949806ed73.html#autotoc_md3432',1,'Option 3: Progressive Merge (Not Recommended) ❌']]],
+  ['❌_20bad_20critical_20issues_20identified_1',['❌ BAD - Critical Issues Identified',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AUDIT__REPORT.html#autotoc_md117',1,'']]],
+  ['❌_20unmergeable_20prs_2043_20prs_2',['❌ Unmergeable PRs (43 PRs)',['../md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio67dbc317cb2f93bd416d322940170910.html#autotoc_md3398',1,'']]]
+];

@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_yaml_config_validation::TestDefaultValueHandling</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_1ab447b5a3c69ddeb870c32eebe8cea971" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_yaml_config_validation.TestDefaultValueHandling.test_missing_optional_fields_have_defaults</definition>
+        <argsstring>()</argsstring>
+        <name>test_missing_optional_fields_have_defaults</name>
+        <qualifiedname>tests.integration.test_yaml_config_validation.TestDefaultValueHandling.test_missing_optional_fields_have_defaults</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure optional fields in .github/pr-agent-config.yml are handled and validated.
+
+Asserts that if the top-level `agent` section includes an `enabled` key, its value is a boolean; omission of `enabled` is permitted and treated as the configuration&apos;s default.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" line="159" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" bodystart="159" bodyend="175"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_1af8e9baae052bd13e20f26bed24a8cd34" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_yaml_config_validation.TestDefaultValueHandling.test_workflow_timeout_defaults</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_timeout_defaults</name>
+        <qualifiedname>tests.integration.test_yaml_config_validation.TestDefaultValueHandling.test_workflow_timeout_defaults</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure job-level workflow timeouts, when specified, are integers between 1 and 360 minutes.
+
+Checks each YAML file in .github/workflows for jobs that include &apos;timeout-minutes&apos; and asserts the value is an int and within the range 1–360.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" line="177" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" bodystart="177" bodyend="196"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for default value handling in configurations.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_yaml_config_validation.TestDefaultValueHandling</label>
+        <link refid="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" line="155" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_yaml_config_validation.py" bodystart="155" bodyend="196"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_1ab447b5a3c69ddeb870c32eebe8cea971" prot="public" virt="non-virtual"><scope>tests::integration::test_yaml_config_validation::TestDefaultValueHandling</scope><name>test_missing_optional_fields_have_defaults</name></member>
+      <member refid="classtests_1_1integration_1_1test__yaml__config__validation_1_1TestDefaultValueHandling_1af8e9baae052bd13e20f26bed24a8cd34" prot="public" virt="non-virtual"><scope>tests::integration::test_yaml_config_validation::TestDefaultValueHandling</scope><name>test_workflow_timeout_defaults</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

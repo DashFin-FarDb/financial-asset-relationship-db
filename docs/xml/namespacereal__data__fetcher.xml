@@ -1,0 +1,311 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacereal__data__fetcher" kind="namespace" language="Python">
+    <compoundname>real_data_fetcher</compoundname>
+    <innerclass refid="classreal__data__fetcher_1_1RealDataFetcher" prot="public">real_data_fetcher::RealDataFetcher</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacereal__data__fetcher_1a0bf812c770ef44f5a55f1669e31431fa" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>real_data_fetcher.logger</definition>
+        <argsstring></argsstring>
+        <name>logger</name>
+        <qualifiedname>real_data_fetcher.logger</qualifiedname>
+        <initializer>=  logging.getLogger(__name__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="21" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="21" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacereal__data__fetcher_1a6144b47d2e5ca1e477beee30b760d519" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+        <definition> AssetRelationshipGraph real_data_fetcher.create_real_database</definition>
+        <argsstring>()</argsstring>
+        <name>create_real_database</name>
+        <qualifiedname>real_data_fetcher.create_real_database</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Builds an AssetRelationshipGraph populated with market data, falling back to
+sample data when necessary.
+
+Creates or loads a graph containing assets, regulatory events and their
+relationships by attempting to:
+- load a cached graph if available,
+- fetch real market data when network access is enabled,
+- otherwise fall back to a provided or built sample dataset.
+
+Returns:
+    AssetRelationshipGraph: The constructed graph populated with assets,
+    regulatory events and relationship mappings; the content may come from the
+    cache, a real-data fetch, or the sample fallback.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="406" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="406" bodyend="425"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacereal__data__fetcher_1af21d5c52e7d58d6cfe7230e7f54a35f3" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Any</type>
+        <definition> Any real_data_fetcher._enum_to_value</definition>
+        <argsstring>(Any value)</argsstring>
+        <name>_enum_to_value</name>
+        <qualifiedname>real_data_fetcher._enum_to_value</qualifiedname>
+        <param>
+          <type>Any</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Convert an Enum instance to its underlying value.
+Return the input unchanged otherwise.
+
+Parameters:
+    value (Any): The value to normalise.
+        If `value` is an `Enum` member its `.value` is returned.
+
+Returns:
+    Any: The underlying value of the `Enum` member if applicable, otherwise the
+        original `value`.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="426" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="426" bodyend="443"/>
+        <referencedby refid="namespacereal__data__fetcher_1aa49e9b3286af259490d5da8498795117" compoundref="real__data__fetcher_8py" startline="444" endline="462">_serialize_dataclass</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacereal__data__fetcher_1aa49e9b3286af259490d5da8498795117" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] real_data_fetcher._serialize_dataclass</definition>
+        <argsstring>(Any obj)</argsstring>
+        <name>_serialize_dataclass</name>
+        <qualifiedname>real_data_fetcher._serialize_dataclass</qualifiedname>
+        <param>
+          <type>Any</type>
+          <declname>obj</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Serialize a dataclass instance into a JSON-friendly dictionary
+with enum values converted.
+
+Parameters:
+    obj (Any): A dataclass instance (e.g. Asset or subclass) to serialize.
+
+Returns:
+    Dict[str, Any]: A mapping of field names to values where
+    Enum members are replaced by their `.value`, and an additional
+    &quot;__type__&quot; key containing the dataclass&apos;s class name.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="444" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="444" bodyend="462"/>
+        <references refid="namespacereal__data__fetcher_1af21d5c52e7d58d6cfe7230e7f54a35f3" compoundref="real__data__fetcher_8py" startline="426" endline="443">_enum_to_value</references>
+        <referencedby refid="namespacereal__data__fetcher_1a8e813225fc6d948bb9d5f56142b9daf2" compoundref="real__data__fetcher_8py" startline="463" endline="508">_serialize_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacereal__data__fetcher_1a8e813225fc6d948bb9d5f56142b9daf2" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] real_data_fetcher._serialize_graph</definition>
+        <argsstring>(AssetRelationshipGraph graph)</argsstring>
+        <name>_serialize_graph</name>
+        <qualifiedname>real_data_fetcher._serialize_graph</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Serialize an AssetRelationshipGraph into a JSON-serialisable dictionary.
+
+Parameters:
+    graph (AssetRelationshipGraph): Graph to serialize.
+
+Returns:
+    Dict[str, Any]: Dictionary containing:
+        - &quot;assets&quot;: list of serialized asset objects
+        - &quot;regulatory_events&quot;: list of serialized regulatory event objects
+        - &quot;relationships&quot;: mapping from source id to a list of
+          outgoing relationships
+        - &quot;incoming_relationships&quot;: mapping from target id to a list of
+          incoming relationships
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="463" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="463" bodyend="508"/>
+        <references refid="namespacereal__data__fetcher_1aa49e9b3286af259490d5da8498795117" compoundref="real__data__fetcher_8py" startline="444" endline="462">_serialize_dataclass</references>
+        <referencedby refid="namespacereal__data__fetcher_1a34a36a48285836a9ee924d54d668ac17" compoundref="real__data__fetcher_8py" startline="606" endline="623">_save_to_cache</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacereal__data__fetcher_1abdf7273df04c3bbad4f9ff50ab955e7a" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Asset</type>
+        <definition> Asset real_data_fetcher._deserialize_asset</definition>
+        <argsstring>(Dict[str, Any] data)</argsstring>
+        <name>_deserialize_asset</name>
+        <qualifiedname>real_data_fetcher._deserialize_asset</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>data</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Deserialize a dictionary representation of an asset back into an Asset instance.
+
+Parameters:
+    data (Dict[str, Any]): Dictionary containing asset data
+        with a &quot;__type__&quot; key indicating the asset subclass.
+
+Returns:
+    Asset: An Asset instance (or subclass like Equity, Bond, etc.)
+        constructed from the provided data.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="509" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="509" bodyend="537"/>
+        <referencedby refid="namespacereal__data__fetcher_1a454b8e340291b892a6c6ac22628e176d" compoundref="real__data__fetcher_8py" startline="558" endline="590">_deserialize_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacereal__data__fetcher_1aa7a191723a1829e72eb81b5d5702968f" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>RegulatoryEvent</type>
+        <definition> RegulatoryEvent real_data_fetcher._deserialize_event</definition>
+        <argsstring>(Dict[str, Any] data)</argsstring>
+        <name>_deserialize_event</name>
+        <qualifiedname>real_data_fetcher._deserialize_event</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>data</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Reconstructs a RegulatoryEvent from its serialized dictionary
+representation.
+The input dictionary is copied and its &quot;event_type&quot; field is converted to
+the RegulatoryActivity enum before creating the RegulatoryEvent instance.
+
+Parameters:
+    data (Dict[str, Any]): Serialized event payload — must include an
+        &quot;event_type&quot; value compatible with RegulatoryActivity and the
+        remaining fields accepted by RegulatoryEvent.
+
+Returns:
+    RegulatoryEvent: The deserialized RegulatoryEvent instance.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="538" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="538" bodyend="557"/>
+        <referencedby refid="namespacereal__data__fetcher_1a454b8e340291b892a6c6ac22628e176d" compoundref="real__data__fetcher_8py" startline="558" endline="590">_deserialize_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacereal__data__fetcher_1a454b8e340291b892a6c6ac22628e176d" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+        <definition> AssetRelationshipGraph real_data_fetcher._deserialize_graph</definition>
+        <argsstring>(Dict[str, Any] payload)</argsstring>
+        <name>_deserialize_graph</name>
+        <qualifiedname>real_data_fetcher._deserialize_graph</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>payload</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Reconstructs an AssetRelationshipGraph from a serialized payload.
+
+Parameters:
+    payload (Dict[str, Any]): Serialized graph payload containing the keys
+        &quot;assets&quot;, &quot;regulatory_events&quot;, &quot;relationships&quot;, etc.
+
+Returns:
+    AssetRelationshipGraph: Graph reconstructed from the payload.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="558" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="558" bodyend="590"/>
+        <references refid="namespacereal__data__fetcher_1abdf7273df04c3bbad4f9ff50ab955e7a" compoundref="real__data__fetcher_8py" startline="509" endline="537">_deserialize_asset</references>
+        <references refid="namespacereal__data__fetcher_1aa7a191723a1829e72eb81b5d5702968f" compoundref="real__data__fetcher_8py" startline="538" endline="557">_deserialize_event</references>
+        <referencedby refid="namespacereal__data__fetcher_1a2710dfe9b01edbd77d126e04b9219f81" compoundref="real__data__fetcher_8py" startline="591" endline="605">_load_from_cache</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacereal__data__fetcher_1a2710dfe9b01edbd77d126e04b9219f81" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+        <definition> AssetRelationshipGraph real_data_fetcher._load_from_cache</definition>
+        <argsstring>(Path path)</argsstring>
+        <name>_load_from_cache</name>
+        <qualifiedname>real_data_fetcher._load_from_cache</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load an AssetRelationshipGraph from a JSON cache file.
+
+Parameters:
+    path (Path): Filesystem path to the cache JSON file to read.
+
+Returns:
+    AssetRelationshipGraph: The graph reconstructed from the JSON payload.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="591" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="591" bodyend="605"/>
+        <references refid="namespacereal__data__fetcher_1a454b8e340291b892a6c6ac22628e176d" compoundref="real__data__fetcher_8py" startline="558" endline="590">_deserialize_graph</references>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacereal__data__fetcher_1a34a36a48285836a9ee924d54d668ac17" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None real_data_fetcher._save_to_cache</definition>
+        <argsstring>(AssetRelationshipGraph graph, Path path)</argsstring>
+        <name>_save_to_cache</name>
+        <qualifiedname>real_data_fetcher._save_to_cache</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Persist an AssetRelationshipGraph to a JSON file at the given filesystem path.
+
+The function serialises the provided graph to JSON
+(UTF-8, pretty-printed with two-space indentation),
+creates parent directories if necessary,
+and overwrites any existing file at the path.
+
+Parameters:
+    graph (AssetRelationshipGraph): The graph to persist.
+    path (Path): Filesystem path where the JSON representation will be written.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="606" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="606" bodyend="623"/>
+        <references refid="namespacereal__data__fetcher_1a8e813225fc6d948bb9d5f56142b9daf2" compoundref="real__data__fetcher_8py" startline="463" endline="508">_serialize_graph</references>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

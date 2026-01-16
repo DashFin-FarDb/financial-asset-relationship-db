@@ -1,0 +1,63 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Syntax Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax}\index{tests.integration.test\_github\_workflows.TestWorkflowSyntax@{tests.integration.test\_github\_workflows.TestWorkflowSyntax}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Syntax\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_ab4957f63edfa254d0fd41e6878449cab}{test\+\_\+workflow\+\_\+valid\+\_\+yaml\+\_\+syntax}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_a672aad296bc320e419104c605a171ff0}{test\+\_\+workflow\+\_\+no\+\_\+duplicate\+\_\+keys}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_a3d34de9e464b590dd7ec0ed48c4a4ba2}{test\+\_\+workflow\+\_\+readable}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test suite for GitHub Actions workflow YAML syntax validation.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_a672aad296bc320e419104c605a171ff0}\index{tests.integration.test\_github\_workflows.TestWorkflowSyntax@{tests.integration.test\_github\_workflows.TestWorkflowSyntax}!test\_workflow\_no\_duplicate\_keys@{test\_workflow\_no\_duplicate\_keys}}
+\index{test\_workflow\_no\_duplicate\_keys@{test\_workflow\_no\_duplicate\_keys}!tests.integration.test\_github\_workflows.TestWorkflowSyntax@{tests.integration.test\_github\_workflows.TestWorkflowSyntax}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_no\_duplicate\_keys()}{test\_workflow\_no\_duplicate\_keys()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_a672aad296bc320e419104c605a171ff0} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Syntax.\+test\+\_\+workflow\+\_\+no\+\_\+duplicate\+\_\+keys (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that workflow files do not contain duplicate keys.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_a672aad296bc320e419104c605a171ff0_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_a3d34de9e464b590dd7ec0ed48c4a4ba2}\index{tests.integration.test\_github\_workflows.TestWorkflowSyntax@{tests.integration.test\_github\_workflows.TestWorkflowSyntax}!test\_workflow\_readable@{test\_workflow\_readable}}
+\index{test\_workflow\_readable@{test\_workflow\_readable}!tests.integration.test\_github\_workflows.TestWorkflowSyntax@{tests.integration.test\_github\_workflows.TestWorkflowSyntax}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_readable()}{test\_workflow\_readable()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_a3d34de9e464b590dd7ec0ed48c4a4ba2} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Syntax.\+test\+\_\+workflow\+\_\+readable (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check that a workflow file exists, is a regular file and contains non-empty UTF-8 text.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_ab4957f63edfa254d0fd41e6878449cab}\index{tests.integration.test\_github\_workflows.TestWorkflowSyntax@{tests.integration.test\_github\_workflows.TestWorkflowSyntax}!test\_workflow\_valid\_yaml\_syntax@{test\_workflow\_valid\_yaml\_syntax}}
+\index{test\_workflow\_valid\_yaml\_syntax@{test\_workflow\_valid\_yaml\_syntax}!tests.integration.test\_github\_workflows.TestWorkflowSyntax@{tests.integration.test\_github\_workflows.TestWorkflowSyntax}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_valid\_yaml\_syntax()}{test\_workflow\_valid\_yaml\_syntax()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowSyntax_ab4957f63edfa254d0fd41e6878449cab} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Syntax.\+test\+\_\+workflow\+\_\+valid\+\_\+yaml\+\_\+syntax (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that workflow files contain valid YAML syntax.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

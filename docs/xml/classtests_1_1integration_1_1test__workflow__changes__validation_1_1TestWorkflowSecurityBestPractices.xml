@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_changes_validation::TestWorkflowSecurityBestPractices</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_1aa425b563587bdb07ff0b22c2050d4e40" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestWorkflowSecurityBestPractices.test_workflows_use_pinned_action_versions</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflows_use_pinned_action_versions</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestWorkflowSecurityBestPractices.test_workflows_use_pinned_action_versions</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure workflow steps that use actions specify a pinned version and do not use &apos;latest&apos; or &apos;master&apos;.
+
+Asserts that every step with a `uses` reference includes a version specifier (contains &apos;@&apos;) and that the specified version is not &apos;@latest&apos; or &apos;@master&apos; (case-insensitive).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="260" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="260" bodyend="282"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_1a069be9218be78086ee299dcd3155989a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_changes_validation.TestWorkflowSecurityBestPractices.test_workflows_limit_github_token_permissions</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflows_limit_github_token_permissions</name>
+        <qualifiedname>tests.integration.test_workflow_changes_validation.TestWorkflowSecurityBestPractices.test_workflows_limit_github_token_permissions</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify workflows follow least-privilege principle.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="284" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="284" bodyend="300"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test security best practices in modified workflows.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_changes_validation.TestWorkflowSecurityBestPractices</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" line="256" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_changes_validation.py" bodystart="256" bodyend="300"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_1a069be9218be78086ee299dcd3155989a" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestWorkflowSecurityBestPractices</scope><name>test_workflows_limit_github_token_permissions</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowSecurityBestPractices_1aa425b563587bdb07ff0b22c2050d4e40" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_changes_validation::TestWorkflowSecurityBestPractices</scope><name>test_workflows_use_pinned_action_versions</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

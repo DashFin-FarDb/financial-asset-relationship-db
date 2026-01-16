@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classfinancial__models_1_1Commodity" kind="class" language="Python" prot="public">
+    <compoundname>financial_models::Commodity</compoundname>
+    <basecompoundref refid="classfinancial__models_1_1Asset" prot="public" virt="non-virtual">financial_models.Asset</basecompoundref>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classfinancial__models_1_1Commodity_1a8697e9f9e1a64283fed2e94813659e16" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Commodity::contract_size</definition>
+        <argsstring></argsstring>
+        <name>contract_size</name>
+        <qualifiedname>financial_models.Commodity.contract_size</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="79" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1Commodity_1a023dc25aba7379003065ab379de8cd70" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Commodity::delivery_date</definition>
+        <argsstring></argsstring>
+        <name>delivery_date</name>
+        <qualifiedname>financial_models.Commodity.delivery_date</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="80" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classfinancial__models_1_1Commodity_1a157081e55b0bc30d06ec90ede321b7f7" prot="public" static="yes" mutable="no">
+        <type>Optional</type>
+        <definition>Optional financial_models.Commodity::volatility</definition>
+        <argsstring></argsstring>
+        <name>volatility</name>
+        <qualifiedname>financial_models.Commodity.volatility</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="81" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="81" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Commodity asset</verbatim> </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>financial_models.Commodity</label>
+        <link refid="classfinancial__models_1_1Commodity"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>financial_models.Asset</label>
+        <link refid="classfinancial__models_1_1Asset"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="3">
+        <label>Optional</label>
+      </node>
+      <node id="1">
+        <label>financial_models.Commodity</label>
+        <link refid="classfinancial__models_1_1Commodity"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>+contract_size</edgelabel>
+          <edgelabel>+delivery_date</edgelabel>
+          <edgelabel>+volatility</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>financial_models.Asset</label>
+        <link refid="classfinancial__models_1_1Asset"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>+market_cap</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>+currency</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>str</label>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" line="76" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/models/financial_models.py" bodystart="76" bodyend="84"/>
+    <listofallmembers>
+      <member refid="classfinancial__models_1_1Asset_1a64a6076fccb749bf5743383c89d40da2" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>__post_init__</name></member>
+      <member refid="classfinancial__models_1_1Commodity_1a8697e9f9e1a64283fed2e94813659e16" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>contract_size</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a31f95d0dfb2b7b755b1310e1ea1f14b3" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>currency</name></member>
+      <member refid="classfinancial__models_1_1Commodity_1a023dc25aba7379003065ab379de8cd70" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>delivery_date</name></member>
+      <member refid="classfinancial__models_1_1Asset_1ae9887b9d0db8d69b46d769865ffd3fc5" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>id</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a38a25ce11801121108b00783c7a87892" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>market_cap</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a802d461a988c53cee87fce1b525c2830" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>name</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a2f17a913622605f0efeab4b29d7029f5" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>price</name></member>
+      <member refid="classfinancial__models_1_1Asset_1a6caebdaf55c153c236445629d6d89af0" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>symbol</name></member>
+      <member refid="classfinancial__models_1_1Commodity_1a157081e55b0bc30d06ec90ede321b7f7" prot="public" virt="non-virtual"><scope>financial_models::Commodity</scope><name>volatility</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

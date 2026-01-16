@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_requirements_integration::TestRequirementsMatchWorkflowNeeds</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds_1aa0cb39ebc4f7da267f685a92cbb46187" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_requirements_integration.TestRequirementsMatchWorkflowNeeds.test_has_pytest_for_testing</definition>
+        <argsstring>()</argsstring>
+        <name>test_has_pytest_for_testing</name>
+        <qualifiedname>tests.integration.test_workflow_requirements_integration.TestRequirementsMatchWorkflowNeeds.test_has_pytest_for_testing</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that pytest is present in requirements-dev.txt for workflow tests.
+
+Asserts the requirements-dev.txt file exists and that one of the parsed package names equals &apos;pytest&apos; (case-insensitive).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="181" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="181" bodyend="193"/>
+        <references refid="namespacetests_1_1integration_1_1test__workflow__requirements__integration_1a63e7e0d436ce7ab55f806e31476dea98" compoundref="test__workflow__requirements__integration_8py" startline="20" endline="53">tests.integration.test_workflow_requirements_integration.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds_1ac0cd765798b9060489b4174d6030f6bb" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_requirements_integration.TestRequirementsMatchWorkflowNeeds.test_has_required_dev_tools</definition>
+        <argsstring>()</argsstring>
+        <name>test_has_required_dev_tools</name>
+        <qualifiedname>tests.integration.test_workflow_requirements_integration.TestRequirementsMatchWorkflowNeeds.test_has_required_dev_tools</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that essential development tools are in requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="195" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="195" bodyend="207"/>
+        <references refid="namespacetests_1_1integration_1_1test__workflow__requirements__integration_1a63e7e0d436ce7ab55f806e31476dea98" compoundref="test__workflow__requirements__integration_8py" startline="20" endline="53">tests.integration.test_workflow_requirements_integration.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds_1ab7e8e269ab340d2b02f26c493fabfdd2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_requirements_integration.TestRequirementsMatchWorkflowNeeds.test_requirements_support_python_version_in_workflow</definition>
+        <argsstring>()</argsstring>
+        <name>test_requirements_support_python_version_in_workflow</name>
+        <qualifiedname>tests.integration.test_workflow_requirements_integration.TestRequirementsMatchWorkflowNeeds.test_requirements_support_python_version_in_workflow</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that the pr-agent workflow&apos;s declared Python version (from a `setup-python` step) is at least Python 3.8.
+
+If the pr-agent workflow file is missing the test is skipped. The test locates the first `setup-python` step, reads its `python-version` value (if present) and asserts the major/minor version is 3.8 or greater; if no `python-version` is found the test makes no assertion.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="209" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="209" bodyend="243"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that requirements-dev.txt contains packages needed by workflows.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_requirements_integration.TestRequirementsMatchWorkflowNeeds</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="177" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="177" bodyend="243"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds_1aa0cb39ebc4f7da267f685a92cbb46187" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_requirements_integration::TestRequirementsMatchWorkflowNeeds</scope><name>test_has_pytest_for_testing</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds_1ac0cd765798b9060489b4174d6030f6bb" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_requirements_integration::TestRequirementsMatchWorkflowNeeds</scope><name>test_has_required_dev_tools</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds_1ab7e8e269ab340d2b02f26c493fabfdd2" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_requirements_integration::TestRequirementsMatchWorkflowNeeds</scope><name>test_requirements_support_python_version_in_workflow</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

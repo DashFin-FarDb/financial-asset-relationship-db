@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_database_memory::TestConnectWithMemoryDb</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a813274b83619cbe456b102edf2e018ea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_creates_shared_memory_connection</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_connect_creates_shared_memory_connection</name>
+        <qualifiedname>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_creates_shared_memory_connection</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _connect creates and reuses a single shared connection for memory databases.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="215" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="217" bodyend="231"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a62c8a84fec6ee02e60cf8717e49533b1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_with_uri_memory_database</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_connect_with_uri_memory_database</name>
+        <qualifiedname>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_with_uri_memory_database</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _connect properly handles URI-style memory databases.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="232" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="234" bodyend="246"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1abe654716cd63f96f141162ab6c06c82b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_creates_new_connection_for_file_db</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_connect_creates_new_connection_for_file_db</name>
+        <qualifiedname>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_creates_new_connection_for_file_db</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _connect creates new connections for file-based databases.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="247" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="249" bodyend="277"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a830393ee08df5329145f43860665c3d8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_sets_row_factory</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_connect_sets_row_factory</name>
+        <qualifiedname>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_sets_row_factory</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _connect sets sqlite3.Row as the row factory.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="278" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="278" bodyend="287"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a20acfd2390495fa6388dbd37a952777f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_enables_check_same_thread_false</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_connect_enables_check_same_thread_false</name>
+        <qualifiedname>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_enables_check_same_thread_false</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _connect disables check_same_thread for thread safety.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="288" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="290" bodyend="310"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a906b953cfac2962c525180eab7802d17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_with_uri_parameter</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_connect_with_uri_parameter</name>
+        <qualifiedname>tests.unit.test_database_memory.TestConnectWithMemoryDb.test_connect_with_uri_parameter</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that _connect correctly sets uri parameter for file: URIs.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="311" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="311" bodyend="320"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for _connect function with various memory database configurations.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_database_memory.TestConnectWithMemoryDb</label>
+        <link refid="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="212" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="212" bodyend="320"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1abe654716cd63f96f141162ab6c06c82b" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestConnectWithMemoryDb</scope><name>test_connect_creates_new_connection_for_file_db</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a813274b83619cbe456b102edf2e018ea" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestConnectWithMemoryDb</scope><name>test_connect_creates_shared_memory_connection</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a20acfd2390495fa6388dbd37a952777f" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestConnectWithMemoryDb</scope><name>test_connect_enables_check_same_thread_false</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a830393ee08df5329145f43860665c3d8" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestConnectWithMemoryDb</scope><name>test_connect_sets_row_factory</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a62c8a84fec6ee02e60cf8717e49533b1" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestConnectWithMemoryDb</scope><name>test_connect_with_uri_memory_database</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestConnectWithMemoryDb_1a906b953cfac2962c525180eab7802d17" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestConnectWithMemoryDb</scope><name>test_connect_with_uri_parameter</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

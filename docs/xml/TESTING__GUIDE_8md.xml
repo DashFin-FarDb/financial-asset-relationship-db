@@ -1,0 +1,456 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="TESTING__GUIDE_8md" kind="file" language="Markdown">
+    <compoundname>TESTING_GUIDE.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Comprehensive<sp/>Testing<sp/>Guide</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>provides<sp/>an<sp/>overview<sp/>of<sp/>all<sp/>unit<sp/>tests<sp/>generated<sp/>for<sp/>the<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database<sp/>project.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Comprehensive<sp/>test<sp/>coverage<sp/>has<sp/>been<sp/>generated<sp/>for<sp/>the<sp/>Next.js<sp/>+<sp/>FastAPI<sp/>integration,<sp/>covering<sp/>both<sp/>backend<sp/>and<sp/>frontend<sp/>components<sp/>with<sp/>over<sp/>**140+<sp/>test<sp/>cases**.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Statistics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Backend<sp/>(Python)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Test<sp/>Files**:<sp/>3<sp/>(new)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Test<sp/>Cases**:<sp/>60+<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lines<sp/>of<sp/>Test<sp/>Code**:<sp/>~1,042<sp/>lines</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Coverage<sp/>Areas**:<sp/>API<sp/>endpoints,<sp/>CORS,<sp/>configuration<sp/>validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>(TypeScript/React)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Test<sp/>Files**:<sp/>5</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Test<sp/>Cases**:<sp/>80+<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lines<sp/>of<sp/>Test<sp/>Code**:<sp/>~937<sp/>lines</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Coverage<sp/>Areas**:<sp/>API<sp/>client,<sp/>React<sp/>components,<sp/>user<sp/>interactions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Grand<sp/>Total</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Test<sp/>Files**:<sp/>8</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Test<sp/>Cases**:<sp/>140+</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Lines<sp/>of<sp/>Test<sp/>Code**:<sp/>~1,979<sp/>lines</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Backend<sp/>Tests<sp/>(Python)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>1.<sp/>`tests/unit/test_api_main.py`<sp/>(563<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Comprehensive<sp/>tests<sp/>for<sp/>the<sp/>FastAPI<sp/>backend<sp/>(`api/main.py`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Coverage**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>CORS<sp/>configuration<sp/>and<sp/>origin<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Thread-safe<sp/>graph<sp/>initialization</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>All<sp/>API<sp/>endpoints<sp/>(root,<sp/>health,<sp/>assets,<sp/>relationships,<sp/>metrics,<sp/>visualization)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Query<sp/>parameter<sp/>handling<sp/>and<sp/>filtering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Pydantic<sp/>model<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Error<sp/>handling<sp/>(404,<sp/>500,<sp/>malformed<sp/>requests)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Concurrent<sp/>request<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Metadata<sp/>endpoints<sp/>(asset<sp/>classes,<sp/>sectors)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Test<sp/>Classes**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestValidateOrigin`<sp/>-<sp/>CORS<sp/>security<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestGetGraph`<sp/>-<sp/>Singleton<sp/>pattern<sp/>and<sp/>thread<sp/>safety</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestAssetsEndpoint`<sp/>-<sp/>Asset<sp/>retrieval<sp/>and<sp/>filtering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestRelationshipsEndpoint`<sp/>-<sp/>Relationship<sp/>queries</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestMetricsEndpoint`<sp/>-<sp/>Network<sp/>metrics<sp/>calculation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestVisualizationEndpoint`<sp/>-<sp/>3D<sp/>visualization<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestConcurrency`<sp/>-<sp/>Multi-threaded<sp/>operations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Run**:<sp/>`pytest<sp/>tests/unit/test_api_main.py<sp/>-v`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>2.<sp/>`tests/unit/test_config_validation.py`<sp/>(454<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Validate<sp/>all<sp/>configuration<sp/>files<sp/>in<sp/>the<sp/>project</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Coverage**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`vercel.json`<sp/>-<sp/>Vercel<sp/>deployment<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`frontend/package.json`<sp/>-<sp/>NPM<sp/>dependencies<sp/>and<sp/>scripts</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`frontend/tsconfig.json`<sp/>-<sp/>TypeScript<sp/>compiler<sp/>options</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`frontend/tailwind.config.js`<sp/>-<sp/>Tailwind<sp/>CSS<sp/>setup</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`.env.example`<sp/>-<sp/>Environment<sp/>variables<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`.gitignore`<sp/>-<sp/>Version<sp/>control<sp/>exclusions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`requirements.txt`<sp/>-<sp/>Python<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Configuration<sp/>consistency<sp/>checks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Test<sp/>Classes**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`TestVercelConfig`<sp/>-<sp/>Build<sp/>and<sp/>route<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestNextConfig`<sp/>-<sp/>Next.js<sp/>framework<sp/>settings</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestPackageJson`<sp/>-<sp/>Dependencies<sp/>and<sp/>scripts</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestTSConfig`<sp/>-<sp/>TypeScript<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`TestRequirementsTxt`<sp/>-<sp/>Python<sp/>package<sp/>validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Run**:<sp/>`pytest<sp/>tests/unit/test_config_validation.py<sp/>-v`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>3.<sp/>`tests/unit/test_configs.py`<sp/>(25<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Basic<sp/>JSON<sp/>syntax<sp/>validation<sp/>for<sp/>configuration<sp/>files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Coverage**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`vercel.json`<sp/>valid<sp/>JSON</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`package.json`<sp/>valid<sp/>JSON</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>`tsconfig.json`<sp/>valid<sp/>JSON</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Run**:<sp/>`pytest<sp/>tests/unit/test_configs.py<sp/>-v`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>Tests<sp/>(TypeScript/React)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>1.<sp/>`frontend/__tests__/lib/api.test.ts`<sp/>(552<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Comprehensive<sp/>tests<sp/>for<sp/>the<sp/>API<sp/>client<sp/>library<sp/>(`app/lib/api.ts`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Coverage**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Axios<sp/>client<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Health<sp/>check<sp/>endpoint</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Asset<sp/>retrieval<sp/>with<sp/>filtering<sp/>(class,<sp/>sector,<sp/>combined)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Asset<sp/>detail<sp/>queries</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Relationship<sp/>queries</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Network<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Visualization<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Metadata<sp/>endpoints</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Error<sp/>handling<sp/>(network,<sp/>HTTP,<sp/>timeout)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Response<sp/>validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Test<sp/>Suites**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`Client<sp/>Configuration`<sp/>-<sp/>Axios<sp/>setup<sp/>and<sp/>environment<sp/>variables</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`healthCheck`<sp/>-<sp/>API<sp/>health<sp/>monitoring</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`getAssets`<sp/>-<sp/>Asset<sp/>list<sp/>with<sp/>filters</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`getAssetDetail`<sp/>-<sp/>Individual<sp/>asset<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`getAllRelationships`<sp/>-<sp/>Relationship<sp/>graph<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`getMetrics`<sp/>-<sp/>Network<sp/>statistics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`getVisualizationData`<sp/>-<sp/>3D<sp/>graph<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`Error<sp/>Handling`<sp/>-<sp/>Resilience<sp/>testing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Run**:<sp/>`cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>api.test.ts`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>2.<sp/>`frontend/__tests__/components/AssetList.test.tsx`<sp/>(102<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Tests<sp/>for<sp/>the<sp/>AssetList<sp/>component</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Coverage**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Component<sp/>rendering<sp/>(filters,<sp/>table<sp/>headers)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Data<sp/>loading<sp/>from<sp/>API</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Filter<sp/>functionality<sp/>(asset<sp/>class,<sp/>sector,<sp/>combined)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Asset<sp/>display<sp/>(symbols,<sp/>names,<sp/>prices,<sp/>market<sp/>caps)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Empty<sp/>states</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Error<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Accessibility<sp/>(labels,<sp/>table<sp/>structure)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Performance<sp/>(useCallback<sp/>optimization)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Test<sp/>Areas**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Component<sp/>Rendering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Data<sp/>Loading</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Filter<sp/>Functionality</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Asset<sp/>Display</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Empty<sp/>States</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Error<sp/>Handling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Accessibility</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Performance</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Run**:<sp/>`cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>AssetList.test.tsx`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>3.<sp/>`frontend/__tests__/components/MetricsDashboard.test.tsx`<sp/>(73<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Tests<sp/>for<sp/>the<sp/>MetricsDashboard<sp/>component</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Coverage**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Metric<sp/>card<sp/>rendering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Data<sp/>formatting<sp/>(percentages,<sp/>decimals)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Zero<sp/>value<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Large<sp/>number<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Asset<sp/>class<sp/>breakdown<sp/>display</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Visual<sp/>styling<sp/>consistency</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Edge<sp/>cases<sp/>(negative<sp/>values,<sp/>empty<sp/>data)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Test<sp/>Areas**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Component<sp/>Rendering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Total<sp/>Assets<sp/>Display</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Total<sp/>Relationships<sp/>Display</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Network<sp/>Density<sp/>Display</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Average<sp/>Degree<sp/>Display</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Max<sp/>Degree<sp/>Display</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Asset<sp/>Classes<sp/>Display</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Visual<sp/>Styling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Edge<sp/>Cases</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Run**:<sp/>`cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>MetricsDashboard.test.tsx`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>4.<sp/>`frontend/__tests__/components/NetworkVisualization.test.tsx`<sp/>(89<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Tests<sp/>for<sp/>the<sp/>NetworkVisualization<sp/>component</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Coverage**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Component<sp/>rendering<sp/>and<sp/>loading<sp/>states</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Node<sp/>data<sp/>processing<sp/>(coordinates,<sp/>colors,<sp/>sizes)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Edge<sp/>data<sp/>processing<sp/>(connections,<sp/>strength,<sp/>styling)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Plotly<sp/>configuration<sp/>(3D<sp/>scene,<sp/>camera,<sp/>layout)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Empty<sp/>data<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Data<sp/>updates<sp/>and<sp/>re-rendering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Edge<sp/>cases<sp/>(single<sp/>node,<sp/>large<sp/>datasets,<sp/>negative<sp/>coords)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Test<sp/>Areas**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Component<sp/>Rendering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Node<sp/>Data<sp/>Processing</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Edge<sp/>Data<sp/>Processing</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Plot<sp/>Configuration</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Empty<sp/>Data<sp/>Handling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Data<sp/>Updates</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Edge<sp/>Cases</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Run**:<sp/>`cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>NetworkVisualization.test.tsx`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>5.<sp/>`frontend/__tests__/app/page.test.tsx`<sp/>(121<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Tests<sp/>for<sp/>the<sp/>main<sp/>application<sp/>page</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Coverage**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Header<sp/>and<sp/>navigation<sp/>rendering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Data<sp/>loading<sp/>on<sp/>mount</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Loading<sp/>states</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Tab<sp/>switching<sp/>functionality</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Error<sp/>handling<sp/>and<sp/>retry<sp/>mechanism</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Component<sp/>integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Test<sp/>Areas**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Page<sp/>rendering</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Navigation<sp/>tabs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Data<sp/>loading</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Loading<sp/>states</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tab<sp/>switching</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Error<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Retry<sp/>functionality</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Run**:<sp/>`cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>page.test.tsx`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Running<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>All<sp/>Backend<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>Python<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>--cov=api<sp/>--cov=src<sp/>--cov-report=html</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_api_main.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>class</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_api_main.py::TestValidateOrigin<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests<sp/>matching<sp/>pattern</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-k<sp/>&quot;test_assets&quot;<sp/>-v</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>All<sp/>Frontend<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Navigate<sp/>to<sp/>frontend<sp/>directory</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>in<sp/>watch<sp/>mode</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>test:watch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>test:coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>api.test.ts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Update<sp/>snapshots<sp/>if<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>-u</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Quality<sp/>Metrics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Backend<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">✅<sp/>**Happy<sp/>Path<sp/>Coverage**:<sp/>All<sp/>successful<sp/>API<sp/>calls<sp/>tested</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Edge<sp/>Case<sp/>Coverage**:<sp/>Empty<sp/>data,<sp/>invalid<sp/>inputs,<sp/>missing<sp/>fields</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Error<sp/>Condition<sp/>Coverage**:<sp/>404s,<sp/>500s,<sp/>network<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Concurrency<sp/>Testing**:<sp/>Thread-safe<sp/>operations<sp/>validated</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Security<sp/>Testing**:<sp/>CORS<sp/>validation,<sp/>origin<sp/>checking</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Mock<sp/>Usage**:<sp/>Isolated<sp/>unit<sp/>tests<sp/>with<sp/>proper<sp/>mocking</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Fixture-Based<sp/>Setup**:<sp/>Clean<sp/>test<sp/>organization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">✅<sp/>**Happy<sp/>Path<sp/>Coverage**:<sp/>Normal<sp/>user<sp/>workflows<sp/>tested</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Edge<sp/>Case<sp/>Coverage**:<sp/>Empty<sp/>states,<sp/>null<sp/>data,<sp/>large<sp/>datasets</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Error<sp/>Condition<sp/>Coverage**:<sp/>API<sp/>failures,<sp/>network<sp/>issues</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Mock<sp/>Usage**:<sp/>API<sp/>calls<sp/>mocked<sp/>for<sp/>isolation</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Type<sp/>Validation**:<sp/>TypeScript<sp/>interfaces<sp/>verified</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**User<sp/>Interaction**:<sp/>Click<sp/>events,<sp/>form<sp/>inputs<sp/>tested</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>**Accessibility**:<sp/>ARIA<sp/>labels<sp/>and<sp/>semantic<sp/>HTML<sp/>checked</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Coverage<sp/>Goals</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Current<sp/>Coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Backend<sp/>API:<sp/>**&gt;90%**<sp/>of<sp/>`api/main.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Frontend<sp/>API<sp/>Client:<sp/>**&gt;95%**<sp/>of<sp/>`app/lib/api.ts`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>React<sp/>Components:<sp/>**&gt;80%**<sp/>of<sp/>component<sp/>logic</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Target<sp/>Coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Overall<sp/>Backend:<sp/>**&gt;80%**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Overall<sp/>Frontend:<sp/>**&gt;80%**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Critical<sp/>Paths:<sp/>**100%**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Best<sp/>Practices</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>When<sp/>Writing<sp/>New<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>✅<sp/>Follow<sp/>existing<sp/>test<sp/>patterns<sp/>and<sp/>naming<sp/>conventions</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>✅<sp/>Use<sp/>descriptive<sp/>test<sp/>names<sp/>that<sp/>explain<sp/>what<sp/>is<sp/>being<sp/>tested</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>✅<sp/>Test<sp/>one<sp/>thing<sp/>per<sp/>test<sp/>case</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>✅<sp/>Use<sp/>appropriate<sp/>mocking<sp/>to<sp/>isolate<sp/>units<sp/>under<sp/>test</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>✅<sp/>Include<sp/>setup<sp/>and<sp/>teardown<sp/>as<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">6.<sp/>✅<sp/>Test<sp/>happy<sp/>paths,<sp/>edge<sp/>cases,<sp/>and<sp/>error<sp/>conditions</highlight></codeline>
+<codeline><highlight class="normal">7.<sp/>✅<sp/>Keep<sp/>tests<sp/>fast<sp/>and<sp/>independent</highlight></codeline>
+<codeline><highlight class="normal">8.<sp/>✅<sp/>Update<sp/>tests<sp/>when<sp/>changing<sp/>implementation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>When<sp/>Running<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>✅<sp/>Run<sp/>tests<sp/>before<sp/>committing<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>✅<sp/>Ensure<sp/>all<sp/>tests<sp/>pass<sp/>locally</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>✅<sp/>Review<sp/>coverage<sp/>reports</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>✅<sp/>Fix<sp/>failing<sp/>tests<sp/>immediately</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>✅<sp/>Don&apos;t<sp/>skip<sp/>or<sp/>disable<sp/>tests<sp/>without<sp/>good<sp/>reason</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>CI/CD<sp/>Integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">These<sp/>tests<sp/>are<sp/>designed<sp/>to<sp/>run<sp/>in<sp/>CI/CD<sp/>pipelines.<sp/>Example<sp/>GitHub<sp/>Actions<sp/>workflow:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```yaml</highlight></codeline>
+<codeline><highlight class="normal">name:<sp/>Run<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">on:<sp/>[push,<sp/>pull_request]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">jobs:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>backend-tests:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>runs-on:<sp/>ubuntu-latest</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>steps:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>uses:<sp/>actions/checkout@v2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Set<sp/>up<sp/>Python</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uses:<sp/>actions/setup-python@v2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>python-version:<sp/>&quot;3.8&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>pytest<sp/>tests/unit/<sp/>--cov=api<sp/>--cov=src</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>frontend-tests:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>runs-on:<sp/>ubuntu-latest</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>steps:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>uses:<sp/>actions/checkout@v2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Set<sp/>up<sp/>Node</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uses:<sp/>actions/setup-node@v2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>node-version:<sp/>&quot;18&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Troubleshooting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Common<sp/>Issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Backend<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Issue**:<sp/>Import<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:<sp/>Ensure<sp/>virtual<sp/>environment<sp/>is<sp/>activated<sp/>and<sp/>dependencies<sp/>installed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Issue**:<sp/>Database/fixture<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:<sp/>Check<sp/>that<sp/>test<sp/>fixtures<sp/>are<sp/>properly<sp/>defined<sp/>in<sp/>`conftest.py`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Frontend<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Issue**:<sp/>Module<sp/>not<sp/>found</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:<sp/>Run<sp/>`npm<sp/>install`<sp/>in<sp/>frontend<sp/>directory</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Issue**:<sp/>Timeout<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:<sp/>Increase<sp/>timeout<sp/>in<sp/>jest.config.js<sp/>or<sp/>specific<sp/>tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Issue**:<sp/>Mock<sp/>issues</highlight></codeline>
+<codeline><highlight class="normal">**Solution**:<sp/>Verify<sp/>mock<sp/>paths<sp/>match<sp/>actual<sp/>module<sp/>structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Future<sp/>Enhancements</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Planned<sp/>Test<sp/>Additions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Component<sp/>Tests**:<sp/>Additional<sp/>React<sp/>component<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Integration<sp/>Tests**:<sp/>Full<sp/>frontend-backend<sp/>integration</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**E2E<sp/>Tests**:<sp/>User<sp/>workflow<sp/>validation<sp/>with<sp/>Playwright/Cypress</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Performance<sp/>Tests**:<sp/>Load<sp/>testing<sp/>for<sp/>API<sp/>endpoints</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Security<sp/>Tests**:<sp/>Penetration<sp/>testing<sp/>and<sp/>vulnerability<sp/>scanning</highlight></codeline>
+<codeline><highlight class="normal">6.<sp/>**Visual<sp/>Regression<sp/>Tests**:<sp/>Screenshot<sp/>comparison<sp/>for<sp/>UI<sp/>changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Test<sp/>Infrastructure<sp/>Improvements</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Parallel<sp/>Execution**:<sp/>Speed<sp/>up<sp/>test<sp/>runs</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Test<sp/>Data<sp/>Builders**:<sp/>Easier<sp/>test<sp/>data<sp/>creation</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Custom<sp/>Matchers**:<sp/>Domain-specific<sp/>assertions</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Test<sp/>Reports**:<sp/>Better<sp/>visualization<sp/>of<sp/>results</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Coverage<sp/>Thresholds**:<sp/>Enforce<sp/>minimum<sp/>coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[TEST_SUMMARY.md](./TEST_SUMMARY.md)<sp/>-<sp/>High-level<sp/>test<sp/>overview</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[DEPLOYMENT.md](./DEPLOYMENT.md)<sp/>-<sp/>Deployment<sp/>procedures</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[ARCHITECTURE.md](./ARCHITECTURE.md)<sp/>-<sp/>System<sp/>architecture</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Support</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>questions<sp/>about<sp/>the<sp/>test<sp/>suite:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Review<sp/>test<sp/>file<sp/>documentation<sp/>and<sp/>inline<sp/>comments</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Check<sp/>pytest/Jest<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Examine<sp/>existing<sp/>test<sp/>patterns</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Open<sp/>an<sp/>issue<sp/>on<sp/>GitHub</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Last<sp/>Updated**:<sp/>2024</highlight></codeline>
+<codeline><highlight class="normal">**Test<sp/>Framework<sp/>Versions**:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>pytest:<sp/>Latest<sp/>compatible<sp/>with<sp/>Python<sp/>3.8+</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Jest:<sp/>^29.7.0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>@testing-library/react:<sp/>^14.1.0</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>@testing-library/jest-dom:<sp/>^6.1.4</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TESTING_GUIDE.md"/>
+  </compounddef>
+</doxygen>

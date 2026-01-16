@@ -1,0 +1,27 @@
+var classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer =
+[
+    [ "sample_analysis_results", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#aec8ef22cea7beea398b7e2852d6687dc", null ],
+    [ "sample_formula", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a229053ffb505cac73c1aa5cd2966fd56", null ],
+    [ "test_color_scheme_completeness", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a9753bb7452d6b665cad61bbfd5ec2c23", null ],
+    [ "test_correlation_network_with_many_correlations", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#aff46ef076e3ff7ac0ede61e27e567a1a", null ],
+    [ "test_create_correlation_network_edge_colors", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#afb8329690983e07239e7cdc592fd3794", null ],
+    [ "test_create_correlation_network_node_positioning", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a09418cc9c5ce7303c945cfd215b969e4", null ],
+    [ "test_create_correlation_network_with_data", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a213371460a40b58bde69f78789a4cacf", null ],
+    [ "test_create_correlation_network_without_data", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a09219ad31f167a2c3d4a12ceb6ffe631", null ],
+    [ "test_create_formula_dashboard_categories_pie_chart", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a102f790ff94eb595514ed6f071eacf1e", null ],
+    [ "test_create_formula_dashboard_correlation_heatmap", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#aff43ff44b86007ce10c7c27885eb04d9", null ],
+    [ "test_create_formula_dashboard_reliability_bar_chart", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a9b2a6f204d7422d59074d8ec6b931a49", null ],
+    [ "test_create_formula_dashboard_with_empty_data", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a6ab8aebcbb9def7b9a9b0f9ee179684a", null ],
+    [ "test_create_formula_dashboard_with_full_data", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a0b0481df240c8c18e3670c3d924ff933", null ],
+    [ "test_create_formula_dashboard_with_table", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#af9c1f9874c1f1945de91aaf2fd2001ba", null ],
+    [ "test_create_formula_detail_view", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a5141f2e79922866a5a48233a60a5a19d", null ],
+    [ "test_create_formula_detail_view_includes_all_fields", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a86442941bfd020f745567e4865c876a7", null ],
+    [ "test_create_metric_comparison_chart", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a55a2f6200fdf45abf6bd188b64292bc6", null ],
+    [ "test_create_metric_comparison_chart_multiple_categories", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#ac5ac6dd155728e151196a8a3aa16e923", null ],
+    [ "test_create_metric_comparison_chart_with_empty_formulas", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a82edab5835708b23da9e4317febc0609", null ],
+    [ "test_formula_dashboard_handles_large_correlation_matrix", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a70fc9b4f02bd0ed35031e3cf6a8170c0", null ],
+    [ "test_formula_detail_view_with_special_characters", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a0db9ad6d2f588a1e341ff37c8d49b8a6", null ],
+    [ "test_metric_comparison_calculates_averages_correctly", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a055e8d28916d9d686767bca66fe2791b", null ],
+    [ "test_visualizer_initialization", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a6e3ceb94c0af6268a63e3f167119e8f3", null ],
+    [ "visualizer", "classtests_1_1unit_1_1test__formulaic__visuals_1_1TestFormulaicVisualizer.html#a03aed6bdd74e89d7ae692fcdabc9965e", null ]
+];

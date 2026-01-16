@@ -1,0 +1,11 @@
+<map id="db_models.AssetRelationshipORM" name="db_models.AssetRelationshipORM">
+<area shape="rect" id="Node000001" title=" " alt="" coords="42,265,279,331"/>
+<area shape="rect" id="Node000002" href="$classBase.html" title=" " alt="" coords="5,5,52,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="31,84,33,120,40,161,52,202,72,240,96,263,92,267,68,243,47,204,35,162,28,121,25,84"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="76,5,107,71"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="86,71,80,108,78,151,82,197,95,240,102,252,98,255,90,242,76,198,72,151,75,107,81,71"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="207,5,253,71"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="233,71,226,150,217,197,203,242,198,252,194,250,198,240,212,196,221,150,227,71"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="333,5,399,71"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="374,71,376,109,374,155,362,201,352,223,339,243,319,261,296,275,293,270,316,257,335,240,348,221,357,200,368,154,371,109,368,71"/>
+</map>

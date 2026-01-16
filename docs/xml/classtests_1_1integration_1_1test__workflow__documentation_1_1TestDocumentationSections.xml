@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_documentation::TestDocumentationSections</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a88ae95228116c687ec57232b80ddeab1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[str]</type>
+        <definition> List[str] tests.integration.test_workflow_documentation.TestDocumentationSections.section_headers</definition>
+        <argsstring>()</argsstring>
+        <name>section_headers</name>
+        <qualifiedname>tests.integration.test_workflow_documentation.TestDocumentationSections.section_headers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extract all section headers from the document.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" line="23" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" bodystart="23" bodyend="28"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a38be1e7d29cd27a6e173b6b1a386aa97" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_documentation.TestDocumentationSections.test_has_overview</definition>
+        <argsstring>(self, List[str] section_headers)</argsstring>
+        <name>test_has_overview</name>
+        <qualifiedname>tests.integration.test_workflow_documentation.TestDocumentationSections.test_has_overview</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>section_headers</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that there&apos;s an Overview section.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" line="29" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" bodystart="29" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a715809e6b056138118eb6bca1c0cf221" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_documentation.TestDocumentationSections.test_has_generated_files_section</definition>
+        <argsstring>(self, List[str] section_headers)</argsstring>
+        <name>test_has_generated_files_section</name>
+        <qualifiedname>tests.integration.test_workflow_documentation.TestDocumentationSections.test_has_generated_files_section</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>section_headers</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that there&apos;s a section about generated files.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" line="34" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" bodystart="34" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a6e90b6e3a8299fbca2e3590c3ff3d9db" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_documentation.TestDocumentationSections.test_has_running_section</definition>
+        <argsstring>(self, List[str] section_headers)</argsstring>
+        <name>test_has_running_section</name>
+        <qualifiedname>tests.integration.test_workflow_documentation.TestDocumentationSections.test_has_running_section</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>section_headers</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that there&apos;s a section about running tests.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" line="43" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" bodystart="43" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a92fc1f9fd8681310244891e168c254df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_documentation.TestDocumentationSections.test_has_sufficient_sections</definition>
+        <argsstring>(self, List[str] section_headers)</argsstring>
+        <name>test_has_sufficient_sections</name>
+        <qualifiedname>tests.integration.test_workflow_documentation.TestDocumentationSections.test_has_sufficient_sections</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>section_headers</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that document has sufficient number of sections.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" line="48" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" bodystart="48" bodyend="53"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that all expected sections are present.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_documentation.TestDocumentationSections</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_documentation.py" bodystart="18" bodyend="53"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a88ae95228116c687ec57232b80ddeab1" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_documentation::TestDocumentationSections</scope><name>section_headers</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a715809e6b056138118eb6bca1c0cf221" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_documentation::TestDocumentationSections</scope><name>test_has_generated_files_section</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a38be1e7d29cd27a6e173b6b1a386aa97" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_documentation::TestDocumentationSections</scope><name>test_has_overview</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a6e90b6e3a8299fbca2e3590c3ff3d9db" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_documentation::TestDocumentationSections</scope><name>test_has_running_section</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__documentation_1_1TestDocumentationSections_1a92fc1f9fd8681310244891e168c254df" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_documentation::TestDocumentationSections</scope><name>test_has_sufficient_sections</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

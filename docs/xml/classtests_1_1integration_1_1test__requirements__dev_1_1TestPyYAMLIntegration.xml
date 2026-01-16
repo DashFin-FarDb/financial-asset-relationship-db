@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestPyYAMLIntegration</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration_1a72a305debf2a07530295f41c04117018" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.TestPyYAMLIntegration.requirements</definition>
+        <argsstring>(parsed_requirements)</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPyYAMLIntegration.requirements</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get parsed requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="828" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="828" bodyend="831"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration_1a968a70e11f4ba8fbd2d9739fde62cff1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPyYAMLIntegration.test_pyyaml_and_types_both_present</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_pyyaml_and_types_both_present</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPyYAMLIntegration.test_pyyaml_and_types_both_present</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that both PyYAML and types-PyYAML are present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="833" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="833" bodyend="838"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration_1aec0d0d7bb9feda954e5da1614b9fdfe9" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPyYAMLIntegration.test_pyyaml_version_compatible_with_types</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_pyyaml_version_compatible_with_types</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPyYAMLIntegration.test_pyyaml_version_compatible_with_types</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that PyYAML version is compatible with types-PyYAML.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="840" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="840" bodyend="852"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration_1ad9cecc86ca7fdabea621a35f90b31f30" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPyYAMLIntegration.test_yaml_parsing_capability</definition>
+        <argsstring>()</argsstring>
+        <name>test_yaml_parsing_capability</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPyYAMLIntegration.test_yaml_parsing_capability</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that PyYAML can be imported and used (if installed).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="854" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="854" bodyend="867"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" compoundref="test__requirements__dev_8py" startline="100" endline="164">tests.integration.test_requirements_dev.parse_requirements</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test PyYAML-specific integration based on the diff changes.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestPyYAMLIntegration</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="823" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="823" bodyend="867"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration_1a72a305debf2a07530295f41c04117018" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPyYAMLIntegration</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration_1a968a70e11f4ba8fbd2d9739fde62cff1" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPyYAMLIntegration</scope><name>test_pyyaml_and_types_both_present</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration_1aec0d0d7bb9feda954e5da1614b9fdfe9" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPyYAMLIntegration</scope><name>test_pyyaml_version_compatible_with_types</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPyYAMLIntegration_1ad9cecc86ca7fdabea621a35f90b31f30" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPyYAMLIntegration</scope><name>test_yaml_parsing_capability</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

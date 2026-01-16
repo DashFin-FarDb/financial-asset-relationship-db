@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestPackageConsistency</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency_1add8286ad526fb55f130f0e05b90d6a97" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[str]</type>
+        <definition> List[str] tests.integration.test_requirements_dev.TestPackageConsistency.package_names</definition>
+        <argsstring>()</argsstring>
+        <name>package_names</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPackageConsistency.package_names</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extract package names from requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="317" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="317" bodyend="321"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" compoundref="test__requirements__dev_8py" startline="100" endline="164">tests.integration.test_requirements_dev.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency_1a7666a128a8ac520934abac3e0c63e118" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPackageConsistency.test_types_packages_match_base_packages</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_types_packages_match_base_packages</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPackageConsistency.test_types_packages_match_base_packages</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that type stub packages have corresponding base packages.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="323" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="323" bodyend="331"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency_1a93b66ba8cbbcb35b968e4cc5f10916d1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPackageConsistency.test_no_duplicate_packages</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_no_duplicate_packages</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPackageConsistency.test_no_duplicate_packages</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that no package is listed multiple times.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="333" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="333" bodyend="344"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency_1a0871e990dc4aa3c5c72fb66c7ea9072a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestPackageConsistency.test_package_names_valid</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_package_names_valid</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestPackageConsistency.test_package_names_valid</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that package names follow valid naming conventions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="346" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="346" bodyend="355"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test consistency and relationships between packages.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestPackageConsistency</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="312" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="312" bodyend="355"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency_1add8286ad526fb55f130f0e05b90d6a97" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPackageConsistency</scope><name>package_names</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency_1a93b66ba8cbbcb35b968e4cc5f10916d1" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPackageConsistency</scope><name>test_no_duplicate_packages</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency_1a0871e990dc4aa3c5c72fb66c7ea9072a" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPackageConsistency</scope><name>test_package_names_valid</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestPackageConsistency_1a7666a128a8ac520934abac3e0c63e118" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestPackageConsistency</scope><name>test_types_packages_match_base_packages</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

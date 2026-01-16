@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1integration_1_1test__requirements" kind="namespace" language="Python">
+    <compoundname>tests::integration::test_requirements</compoundname>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation" prot="public">tests::integration::test_requirements::TestComprehensiveValidation</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases" prot="public">tests::integration::test_requirements::TestEdgeCases</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements_1_1TestFileOrganization" prot="public">tests::integration::test_requirements::TestFileOrganization</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency" prot="public">tests::integration::test_requirements::TestPackageConsistency</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements_1_1TestRequiredPackages" prot="public">tests::integration::test_requirements::TestRequiredPackages</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileExists" prot="public">tests::integration::test_requirements::TestRequirementsFileExists</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements_1_1TestRequirementsFileFormat" prot="public">tests::integration::test_requirements::TestRequirementsFileFormat</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements_1_1TestSecurityAndCompliance" prot="public">tests::integration::test_requirements::TestSecurityAndCompliance</innerclass>
+    <innerclass refid="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications" prot="public">tests::integration::test_requirements::TestVersionSpecifications</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetests_1_1integration_1_1test__requirements_1a74f1a9ad4502de77613aec1cc7ad3260" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str tests::integration::test_requirements.REQUIREMENTS_FILE</definition>
+        <argsstring></argsstring>
+        <name>REQUIREMENTS_FILE</name>
+        <qualifiedname>tests.integration.test_requirements.REQUIREMENTS_FILE</qualifiedname>
+        <initializer>=  Path(__file__).parent.parent.parent / &quot;requirements.txt&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="22" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="22" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetests_1_1integration_1_1test__requirements_1a979f85cc6fc4eaa1143477069cb8b99a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements.parse_requirements</definition>
+        <argsstring>(Path file_path)</argsstring>
+        <name>parse_requirements</name>
+        <qualifiedname>tests.integration.test_requirements.parse_requirements</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>file_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse requirements file and return list of (package, version_spec) tuples.
+
+Examples:
+    Input line: &quot;requests&gt;=2.25.0&quot;
+    Output: (&quot;requests&quot;, &quot;&gt;=2.25.0&quot;)
+
+    Input line: &quot;pytest&gt;=6.0,&lt;7.0 # testing framework&quot;
+    Output: (&quot;pytest&quot;, &quot;&gt;=6.0,&lt;7.0&quot;)
+
+    Input line: &quot;pandas&quot;
+    Output: (&quot;pandas&quot;, &quot;&quot;)
+
+    Input line: &quot;package[extra1,extra2]&gt;=1.0&quot;
+    Output: (&quot;package&quot;, &quot;&gt;=1.0&quot;)
+
+Raises:
+    ValueError: If a requirement line is malformed.
+    OSError: If the requirements file could not be opened or read.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="25" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" bodystart="25" bodyend="78"/>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements_1_1TestComprehensiveValidation_1a02970a0221b1c9f67e107e1dd5955903" compoundref="test__requirements_8py" startline="430" endline="433">tests.integration.test_requirements.TestComprehensiveValidation.requirements</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements_1_1TestPackageConsistency_1ac91fb341b5166817ba5b733a0db9aa87" compoundref="test__requirements_8py" startline="260" endline="263">tests.integration.test_requirements.TestPackageConsistency.requirements</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements_1_1TestRequiredPackages_1aa1a71f943bdbeba26738655572bf9a01" compoundref="test__requirements_8py" startline="153" endline="156">tests.integration.test_requirements.TestRequiredPackages.requirements</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements_1_1TestSecurityAndCompliance_1acbd902698dae86028efdf5a733984595" compoundref="test__requirements_8py" startline="337" endline="340">tests.integration.test_requirements.TestSecurityAndCompliance.requirements</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements_1_1TestVersionSpecifications_1a0f6ad1f2d85bd00b01429f3f08ac984e" compoundref="test__requirements_8py" startline="207" endline="210">tests.integration.test_requirements.TestVersionSpecifications.requirements</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1a9d608758c292ac5c36bd748e595e1ffc" compoundref="test__requirements_8py" startline="416" endline="424">tests.integration.test_requirements.TestEdgeCases.test_empty_lines_ignored</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1a9a97af0b2c8fd13af81ccf66004a990b" compoundref="test__requirements_8py" startline="398" endline="405">tests.integration.test_requirements.TestEdgeCases.test_parse_with_environment_markers</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1aa616898584d423d3221b145553e7de8f" compoundref="test__requirements_8py" startline="389" endline="396">tests.integration.test_requirements.TestEdgeCases.test_parse_with_extras</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__requirements_1_1TestEdgeCases_1ab074b855a77a265f11b8fbdc4fda978c" compoundref="test__requirements_8py" startline="407" endline="414">tests.integration.test_requirements.TestEdgeCases.test_parse_with_inline_comments</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Integration tests for requirements.txt file.
+
+This module validates that the production requirements file is well-
+formatted, contains required packages, has valid version specifications,
+and includes security-pinned dependencies.
+
+Note: Bandit B101 (assert_used) is suppressed for this test file as assert
+statements are the standard and required pattern in pytest test files.
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

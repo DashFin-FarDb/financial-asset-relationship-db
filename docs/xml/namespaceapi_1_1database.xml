@@ -1,0 +1,366 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespaceapi_1_1database" kind="namespace" language="Python">
+    <compoundname>api::database</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceapi_1_1database_1a5014ed8f23fc4c5f66b950f75619ad58" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str api::database.DATABASE_URL</definition>
+        <argsstring></argsstring>
+        <name>DATABASE_URL</name>
+        <qualifiedname>api.database.DATABASE_URL</qualifiedname>
+        <initializer>=  <ref refid="namespaceapi_1_1database_1adaae779a24d119d106ff0a16ba2fc908" kindref="member">_get_database_url</ref>()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="87" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="87" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1database_1ade7aafc0c3e9df952ce813ab06dd518f" prot="public" static="no" mutable="no">
+        <type>str</type>
+        <definition>str api::database.DATABASE_PATH</definition>
+        <argsstring></argsstring>
+        <name>DATABASE_PATH</name>
+        <qualifiedname>api.database.DATABASE_PATH</qualifiedname>
+        <initializer>=  <ref refid="namespaceapi_1_1database_1a67db33fa9ae24bc163341385dbd406ae" kindref="member">_resolve_sqlite_path</ref>(<ref refid="namespaceapi_1_1database_1a5014ed8f23fc4c5f66b950f75619ad58" kindref="member">DATABASE_URL</ref>)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="88" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1database_1a648f6bb53e1820a79b97c45ee1850419" prot="protected" static="no" mutable="no">
+        <type>sqlite3</type>
+        <definition>sqlite3 api::database._MEMORY_CONNECTION</definition>
+        <argsstring></argsstring>
+        <name>_MEMORY_CONNECTION</name>
+        <qualifiedname>api.database._MEMORY_CONNECTION</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="91" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="91" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapi_1_1database_1aabb3043c4751dac46f440c64ebbca1ae" prot="protected" static="no" mutable="no">
+        <type></type>
+        <definition>api::database._MEMORY_CONNECTION_LOCK</definition>
+        <argsstring></argsstring>
+        <name>_MEMORY_CONNECTION_LOCK</name>
+        <qualifiedname>api.database._MEMORY_CONNECTION_LOCK</qualifiedname>
+        <initializer>=  threading.Lock()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="92" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="92" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceapi_1_1database_1adaae779a24d119d106ff0a16ba2fc908" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str api.database._get_database_url</definition>
+        <argsstring>()</argsstring>
+        <name>_get_database_url</name>
+        <qualifiedname>api.database._get_database_url</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Read the DATABASE_URL environment variable and return its value.
+
+Returns:
+    The value of the `DATABASE_URL` environment variable.
+
+Raises:
+    ValueError: If the `DATABASE_URL` environment variable is not set.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="15" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="15" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1database_1a67db33fa9ae24bc163341385dbd406ae" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str api.database._resolve_sqlite_path</definition>
+        <argsstring>(str url)</argsstring>
+        <name>_resolve_sqlite_path</name>
+        <qualifiedname>api.database._resolve_sqlite_path</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>url</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Resolve a SQLite URL to either a filesystem path or the special
+in-memory indicator.
+
+Accepts SQLite URLs with schemes like `sqlite:///relative.db`,
+`sqlite:////absolute/path.db`, and `sqlite:///:memory:`.
+Percent-encodings in the URL path are decoded before resolution.
+For in-memory URLs (`:memory:` or `/:memory:`)
+the literal string `&quot;:memory:&quot;` is returned.
+URI-style memory databases like `sqlite:///file::memory:?cache=shared`
+are returned as-is.
+
+Parameters:
+    url (str): SQLite URL to resolve.
+
+Returns:
+    str: Filesystem path for file-based URLs,
+         or the literal string `&quot;:memory:&quot;` for in-memory databases,
+         or the original path for URI-style memory databases.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="33" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="33" bodyend="86"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1database_1a2b55d2e5b55f35ea1fdaefbf1fd87ac3" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition> bool api.database._is_memory_db</definition>
+        <argsstring>(str|None path=None)</argsstring>
+        <name>_is_memory_db</name>
+        <qualifiedname>api.database._is_memory_db</qualifiedname>
+        <param>
+          <type>str|None</type>
+          <declname>path</declname>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Determine whether the given or configured database refers to an in-memory
+SQLite database.
+
+Parameters:
+    path (str | None): Optional database path or URI to evaluate.
+    If omitted, the configured DATABASE_PATH is used.
+Returns:
+    True if the path (or configured database) is an in-memory SQLite database.
+    For example, &quot;:memory:&quot; or &quot;file::memory:?cache=shared&quot;, False otherwise.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="95" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="95" bodyend="120"/>
+        <referencedby refid="namespaceapi_1_1database_1add5bd37c7ccad20f0844cf169de107d2" compoundref="api_2database_8py" startline="121" endline="162">api.database._connect</referencedby>
+        <referencedby refid="namespaceapi_1_1database_1a6e6aa213df0f9401217ec521935184c5" compoundref="api_2database_8py" startline="163" endline="181">api.database.get_connection</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1database_1add5bd37c7ccad20f0844cf169de107d2" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sqlite3.Connection</type>
+        <definition> sqlite3.Connection api.database._connect</definition>
+        <argsstring>()</argsstring>
+        <name>_connect</name>
+        <qualifiedname>api.database._connect</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Open a configured SQLite connection for the module&apos;s database path.
+
+
+Returns a persistent shared connection when the configured database is
+in-memory; for file-backed databases, returns a new connection instance.
+The connection has type detection enabled (PARSE_DECLTYPES), allows use from
+multiple threads (check_same_thread=False) and uses sqlite3.Row for rows.
+When the database path is a URI beginning with &quot;file:&quot; the connection is
+opened with URI handling enabled.
+
+Returns:
+    sqlite3.Connection: A sqlite3 connection to the configured
+        DATABASE_PATH (shared for in-memory, new per call for file-backed).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="121" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="121" bodyend="162"/>
+        <references refid="namespaceapi_1_1database_1a2b55d2e5b55f35ea1fdaefbf1fd87ac3" compoundref="api_2database_8py" startline="95" endline="120">api.database._is_memory_db</references>
+        <referencedby refid="namespaceapi_1_1database_1a6e6aa213df0f9401217ec521935184c5" compoundref="api_2database_8py" startline="163" endline="181">api.database.get_connection</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1database_1a6e6aa213df0f9401217ec521935184c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Iterator[sqlite3.Connection]</type>
+        <definition> Iterator[sqlite3.Connection] api.database.get_connection</definition>
+        <argsstring>()</argsstring>
+        <name>get_connection</name>
+        <qualifiedname>api.database.get_connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Provide a context-managed SQLite connection for the configured database.
+
+For file-backed databases the connection is closed when the context exits;
+for in-memory databases the shared connection is kept open.
+
+Returns:
+    sqlite3.Connection: The SQLite connection — closed on context exit for
+        file-backed databases, kept open for in-memory databases.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="163" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="163" bodyend="181"/>
+        <references refid="namespaceapi_1_1database_1add5bd37c7ccad20f0844cf169de107d2" compoundref="api_2database_8py" startline="121" endline="162">api.database._connect</references>
+        <references refid="namespaceapi_1_1database_1a2b55d2e5b55f35ea1fdaefbf1fd87ac3" compoundref="api_2database_8py" startline="95" endline="120">api.database._is_memory_db</references>
+        <referencedby refid="namespaceapi_1_1database_1ad11e531eb65a89c7f8f2b4a41dd57b7d" compoundref="api_2database_8py" startline="193" endline="207">api.database.execute</referencedby>
+        <referencedby refid="namespaceapi_1_1database_1a71b75b8190d8ed80254f80faa05a7948" compoundref="api_2database_8py" startline="208" endline="225">api.database.fetch_one</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1database_1a19f8482578343a9585b0b18cf5517654" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.database._cleanup_memory_connection</definition>
+        <argsstring>()</argsstring>
+        <name>_cleanup_memory_connection</name>
+        <qualifiedname>api.database._cleanup_memory_connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Clean up the global memory connection when the program exits.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="182" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="182" bodyend="189"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1database_1ad11e531eb65a89c7f8f2b4a41dd57b7d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None api.database.execute</definition>
+        <argsstring>(str query, tuple|list|None parameters=None)</argsstring>
+        <name>execute</name>
+        <qualifiedname>api.database.execute</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>query</declname>
+        </param>
+        <param>
+          <type>tuple|list|None</type>
+          <declname>parameters</declname>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Execute a SQL write statement and commit the transaction using the module&apos;s
+managed SQLite connection.
+
+Parameters:
+    query (str): SQL statement to execute.
+    parameters (tuple | list | None): Sequence of values to bind to the statement;
+        use `None` or an empty sequence if there are no parameters.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="193" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="193" bodyend="207"/>
+        <references refid="namespaceapi_1_1database_1a6e6aa213df0f9401217ec521935184c5" compoundref="api_2database_8py" startline="163" endline="181">api.database.get_connection</references>
+        <referencedby refid="namespaceapi_1_1database_1a60790c5dbf753da6b2bccf09d471b534" compoundref="api_2database_8py" startline="244" endline="268">api.database.initialize_schema</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1database_1a71b75b8190d8ed80254f80faa05a7948" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.database.fetch_one</definition>
+        <argsstring>(str query, tuple|list|None parameters=None)</argsstring>
+        <name>fetch_one</name>
+        <qualifiedname>api.database.fetch_one</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>query</declname>
+        </param>
+        <param>
+          <type>tuple|list|None</type>
+          <declname>parameters</declname>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Retrieve the first row produced by an SQL query.
+
+Parameters:
+    query (str): SQL statement to execute.
+    parameters (tuple | list | None): Optional sequence of parameters
+        to bind into the query.
+
+Returns:
+    sqlite3.Row | None: The first row of the result set
+        as a `sqlite3.Row`, or `None` if the query returned no rows.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="208" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="208" bodyend="225"/>
+        <references refid="namespaceapi_1_1database_1a6e6aa213df0f9401217ec521935184c5" compoundref="api_2database_8py" startline="163" endline="181">api.database.get_connection</references>
+        <referencedby refid="namespaceapi_1_1database_1ac1c087e886aa857ebb7fb847b74b896f" compoundref="api_2database_8py" startline="226" endline="243">api.database.fetch_value</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1database_1ac1c087e886aa857ebb7fb847b74b896f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>api.database.fetch_value</definition>
+        <argsstring>(str query, tuple|list|None parameters=None)</argsstring>
+        <name>fetch_value</name>
+        <qualifiedname>api.database.fetch_value</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>query</declname>
+        </param>
+        <param>
+          <type>tuple|list|None</type>
+          <declname>parameters</declname>
+          <defval>None</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Fetches the first column value from the first row of a query result.
+
+Parameters:
+    query (str): SQL query to execute; may include parameter placeholders.
+    parameters (tuple | list | None): Sequence of parameters for the query
+        placeholders.
+
+Returns:
+    The first column value if a row is returned, `None` otherwise.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="226" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="226" bodyend="243"/>
+        <references refid="namespaceapi_1_1database_1a71b75b8190d8ed80254f80faa05a7948" compoundref="api_2database_8py" startline="208" endline="225">api.database.fetch_one</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceapi_1_1database_1a60790c5dbf753da6b2bccf09d471b534" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None api.database.initialize_schema</definition>
+        <argsstring>()</argsstring>
+        <name>initialize_schema</name>
+        <qualifiedname>api.database.initialize_schema</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create the `user_credentials` table if it does not already exist.
+
+The table has the following columns:
+- `id`: INTEGER PRIMARY KEY AUTOINCREMENT
+- `username`: TEXT, unique and not null
+- `email`: TEXT
+- `full_name`: TEXT
+- `hashed_password`: TEXT, not null
+- `disabled`: INTEGER, not null, defaults to 0
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="244" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" bodystart="244" bodyend="268"/>
+        <references refid="namespaceapi_1_1database_1ad11e531eb65a89c7f8f2b4a41dd57b7d" compoundref="api_2database_8py" startline="193" endline="207">api.database.execute</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Lightweight database helpers for the API layer.</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/api/database.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

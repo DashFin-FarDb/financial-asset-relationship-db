@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowConditionalExecution" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowConditionalExecution</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowConditionalExecution_1a241b7de69d4b89d980338746ffe40de6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowConditionalExecution.test_if_conditions_use_valid_syntax</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_if_conditions_use_valid_syntax</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowConditionalExecution.test_if_conditions_use_valid_syntax</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that if conditions are syntactically valid.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2719" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2719" bodyend="2759"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowConditionalExecution_1afea1020f4631f14ea44d26d2b370bdf5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowConditionalExecution.test_if_conditions_handle_undefined_gracefully</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_if_conditions_handle_undefined_gracefully</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowConditionalExecution.test_if_conditions_handle_undefined_gracefully</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that if conditions handle potentially undefined values.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2761" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2761" bodyend="2775"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for conditional execution patterns.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowConditionalExecution</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowConditionalExecution"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2715" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2715" bodyend="2775"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowConditionalExecution_1afea1020f4631f14ea44d26d2b370bdf5" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowConditionalExecution</scope><name>test_if_conditions_handle_undefined_gracefully</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowConditionalExecution_1a241b7de69d4b89d980338746ffe40de6" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowConditionalExecution</scope><name>test_if_conditions_use_valid_syntax</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

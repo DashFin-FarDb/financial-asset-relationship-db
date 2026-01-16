@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api_main::TestErrorHandling</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1a8ddc4a993cec74bf4356ed57993b3162" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestErrorHandling.client</definition>
+        <argsstring>()</argsstring>
+        <name>client</name>
+        <qualifiedname>tests.unit.test_api_main.TestErrorHandling.client</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a test client.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="538" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="538" bodyend="541"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1a880e8bf78690af6d5329bcd23b6c7f7d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestErrorHandling.test_get_assets_server_error</definition>
+        <argsstring>(self, mock_graph_instance, client)</argsstring>
+        <name>test_get_assets_server_error</name>
+        <qualifiedname>tests.unit.test_api_main.TestErrorHandling.test_get_assets_server_error</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1a8ddc4a993cec74bf4356ed57993b3162" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that server errors are handled gracefully.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="543" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="543" bodyend="555"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1adfed59fa2d0e8b4f6cfdb0cc25675e1a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestErrorHandling.test_get_metrics_server_error</definition>
+        <argsstring>(self, mock_graph_instance, client)</argsstring>
+        <name>test_get_metrics_server_error</name>
+        <qualifiedname>tests.unit.test_api_main.TestErrorHandling.test_get_metrics_server_error</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1a8ddc4a993cec74bf4356ed57993b3162" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test metrics endpoint error handling.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="557" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="557" bodyend="571"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1a1b7ed7d0ea5220cdb25ac325d7ac2cd7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestErrorHandling.test_invalid_http_methods</definition>
+        <argsstring>(self, client)</argsstring>
+        <name>test_invalid_http_methods</name>
+        <qualifiedname>tests.unit.test_api_main.TestErrorHandling.test_invalid_http_methods</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1a8ddc4a993cec74bf4356ed57993b3162" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that invalid HTTP methods return 405.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="572" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="572" bodyend="583"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test error handling and edge cases.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api_main.TestErrorHandling</label>
+        <link refid="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="533" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="533" bodyend="583"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1a8ddc4a993cec74bf4356ed57993b3162" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestErrorHandling</scope><name>client</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1a880e8bf78690af6d5329bcd23b6c7f7d" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestErrorHandling</scope><name>test_get_assets_server_error</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1adfed59fa2d0e8b4f6cfdb0cc25675e1a" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestErrorHandling</scope><name>test_get_metrics_server_error</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestErrorHandling_1a1b7ed7d0ea5220cdb25ac325d7ac2cd7" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestErrorHandling</scope><name>test_invalid_http_methods</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

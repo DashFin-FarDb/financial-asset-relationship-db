@@ -1,0 +1,374 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="INTEGRATION__SUMMARY_8md" kind="file" language="Markdown">
+    <compoundname>INTEGRATION_SUMMARY.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Vercel<sp/>Next.js<sp/>Integration<sp/>-<sp/>Implementation<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>summarizes<sp/>the<sp/>integration<sp/>of<sp/>a<sp/>Next.js<sp/>frontend<sp/>with<sp/>FastAPI<sp/>backend<sp/>for<sp/>deployment<sp/>on<sp/>Vercel.<sp/>The<sp/>integration<sp/>provides<sp/>a<sp/>modern<sp/>web<sp/>interface<sp/>while<sp/>maintaining<sp/>the<sp/>existing<sp/>Gradio<sp/>application.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>What<sp/>Was<sp/>Added</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>FastAPI<sp/>Backend<sp/>(`/api`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**File:<sp/>`api/main.py`**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>RESTful<sp/>API<sp/>that<sp/>exposes<sp/>the<sp/>asset<sp/>relationship<sp/>graph<sp/>functionality</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Built<sp/>with<sp/>FastAPI<sp/>for<sp/>high<sp/>performance<sp/>and<sp/>automatic<sp/>API<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>CORS-enabled<sp/>for<sp/>Next.js<sp/>frontend<sp/>communication</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Endpoints:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/health`<sp/>-<sp/>Health<sp/>check</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/assets`<sp/>-<sp/>List<sp/>all<sp/>assets<sp/>(with<sp/>filters)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/assets/{id}`<sp/>-<sp/>Get<sp/>asset<sp/>details</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/assets/{id}/relationships`<sp/>-<sp/>Get<sp/>asset<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/relationships`<sp/>-<sp/>Get<sp/>all<sp/>relationships</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/metrics`<sp/>-<sp/>Get<sp/>network<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/visualization`<sp/>-<sp/>Get<sp/>3D<sp/>visualization<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/asset-classes`<sp/>-<sp/>Get<sp/>available<sp/>asset<sp/>classes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/sectors`<sp/>-<sp/>Get<sp/>available<sp/>sectors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Features:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Reuses<sp/>existing<sp/>graph<sp/>logic<sp/>from<sp/>`src/logic/asset_graph.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Uses<sp/>real<sp/>data<sp/>from<sp/>`src/data/real_data_fetcher.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Pydantic<sp/>models<sp/>for<sp/>request/response<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Comprehensive<sp/>error<sp/>handling<sp/>and<sp/>logging</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>Next.js<sp/>Frontend<sp/>(`/frontend`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Application<sp/>Structure:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">frontend/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>app/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>components/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>React<sp/>components</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>AssetList.tsx<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Filterable<sp/>asset<sp/>table</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>MetricsDashboard.tsx<sp/><sp/><sp/><sp/>#<sp/>Metrics<sp/>display</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>NetworkVisualization.tsx<sp/>#<sp/>3D<sp/>graph<sp/>visualization</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>lib/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>api.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>API<sp/>client<sp/>library</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>types/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>api.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>TypeScript<sp/>type<sp/>definitions</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>globals.css<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Global<sp/>styles</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>layout.tsx<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Root<sp/>layout</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>page.tsx<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Main<sp/>page<sp/>with<sp/>tabs</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>package.json<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tsconfig.json<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>TypeScript<sp/>config</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>next.config.js<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Next.js<sp/>config</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tailwind.config.js<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Tailwind<sp/>CSS<sp/>config</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>postcss.config.js<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>PostCSS<sp/>config</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Key<sp/>Components:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**NetworkVisualization.tsx**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>3D<sp/>interactive<sp/>graph<sp/>using<sp/>Plotly</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Displays<sp/>nodes<sp/>(assets)<sp/>and<sp/>edges<sp/>(relationships)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Supports<sp/>rotation,<sp/>zoom,<sp/>and<sp/>hover<sp/>interactions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**MetricsDashboard.tsx**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Displays<sp/>network<sp/>statistics</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Shows<sp/>asset<sp/>class<sp/>distribution</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Network<sp/>density<sp/>and<sp/>degree<sp/>metrics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**AssetList.tsx**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Searchable/filterable<sp/>asset<sp/>table</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Filter<sp/>by<sp/>asset<sp/>class<sp/>and<sp/>sector</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Displays<sp/>key<sp/>asset<sp/>information</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Technologies:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Next.js<sp/>14<sp/>(App<sp/>Router)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>React<sp/>18</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>TypeScript</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Tailwind<sp/>CSS<sp/>for<sp/>styling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Plotly.js<sp/>for<sp/>3D<sp/>visualization</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Axios<sp/>for<sp/>API<sp/>communication</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3.<sp/>Deployment<sp/>Configuration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**File:<sp/>`vercel.json`**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Configures<sp/>Vercel<sp/>deployment</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Routes<sp/>API<sp/>requests<sp/>to<sp/>Python<sp/>backend</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Routes<sp/>frontend<sp/>requests<sp/>to<sp/>Next.js</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**File:<sp/>`.env.example`**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Template<sp/>for<sp/>environment<sp/>variables</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>API<sp/>URL<sp/>configuration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**File:<sp/>`run-dev.sh`<sp/>/<sp/>`run-dev.bat`**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Development<sp/>scripts<sp/>for<sp/>both<sp/>platforms</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Starts<sp/>both<sp/>backend<sp/>and<sp/>frontend<sp/>together</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4.<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**File:<sp/>`DEPLOYMENT.md`**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Comprehensive<sp/>deployment<sp/>guide</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Local<sp/>development<sp/>setup</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Vercel<sp/>deployment<sp/>instructions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>API<sp/>endpoint<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Troubleshooting<sp/>guide</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Updated<sp/>Files:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`README.md`<sp/>-<sp/>Added<sp/>Next.js<sp/>integration<sp/>section</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`requirements.txt`<sp/>-<sp/>Added<sp/>FastAPI,<sp/>Uvicorn,<sp/>Pydantic</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`.gitignore`<sp/>-<sp/>Added<sp/>Next.js<sp/>and<sp/>build<sp/>artifacts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Architecture</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────────────────────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>User&apos;s<sp/>Browser<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────┬───────────────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>HTTP/HTTPS</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────────────▼───────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Next.js<sp/>Frontend<sp/>(Port<sp/>3000)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────┐<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>React<sp/>Components:<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>3D<sp/>Network<sp/>Visualization<sp/>(Plotly)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Metrics<sp/>Dashboard<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Asset<sp/>Explorer<sp/>Table<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────┘<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────┬───────────────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>REST<sp/>API<sp/>Calls</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────────────▼───────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>FastAPI<sp/>Backend<sp/>(Port<sp/>8000)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────┐<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>API<sp/>Endpoints:<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>/api/assets<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>/api/metrics<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>/api/visualization<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>/api/relationships<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────┘<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────┬───────────────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/>Function<sp/>Calls</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">┌─────────────────────▼───────────────────────────────────┐</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Existing<sp/>Python<sp/>Logic<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>┌──────────────────────────────────────────────────┐<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>AssetRelationshipGraph<sp/>(asset_graph.py)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Real<sp/>Data<sp/>Fetcher<sp/>(real_data_fetcher.py)<sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Financial<sp/>Models<sp/>(financial_models.py)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>│<sp/><sp/>-<sp/>Visualization<sp/>Logic<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>│<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/>└──────────────────────────────────────────────────┘<sp/><sp/><sp/>│</highlight></codeline>
+<codeline><highlight class="normal">└─────────────────────────────────────────────────────────┘</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Deployment<sp/>Options</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>1:<sp/>Original<sp/>Gradio<sp/>UI<sp/>(Preserved)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>app.py</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Access<sp/>at<sp/>http://localhost:7860</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>2:<sp/>New<sp/>Next.js<sp/>Frontend<sp/>+<sp/>FastAPI<sp/>Backend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>both<sp/>servers</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh<sp/><sp/>#<sp/>Linux/Mac</highlight></codeline>
+<codeline><highlight class="normal">run-dev.bat<sp/><sp/><sp/>#<sp/>Windows</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>manually:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Terminal<sp/>1:<sp/>python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--port<sp/>8000</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Terminal<sp/>2:<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>run<sp/>dev</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>3:<sp/>Deploy<sp/>to<sp/>Vercel</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Using<sp/>Vercel<sp/>CLI</highlight></codeline>
+<codeline><highlight class="normal">vercel</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>connect<sp/>GitHub<sp/>repo<sp/>to<sp/>Vercel<sp/>dashboard</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Key<sp/>Benefits</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Modern<sp/>Web<sp/>Interface**:<sp/>React-based<sp/>UI<sp/>with<sp/>better<sp/>UX</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**RESTful<sp/>API**:<sp/>Standardized<sp/>API<sp/>endpoints<sp/>for<sp/>integration</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Scalable**:<sp/>Serverless<sp/>deployment<sp/>on<sp/>Vercel</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**TypeScript**:<sp/>Type-safe<sp/>frontend<sp/>development</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Responsive**:<sp/>Works<sp/>on<sp/>desktop<sp/>and<sp/>mobile<sp/>devices</highlight></codeline>
+<codeline><highlight class="normal">6.<sp/>**API<sp/>Documentation**:<sp/>Auto-generated<sp/>with<sp/>FastAPI</highlight></codeline>
+<codeline><highlight class="normal">7.<sp/>**Dual<sp/>Mode**:<sp/>Both<sp/>Gradio<sp/>and<sp/>Next.js<sp/>UIs<sp/>available</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Development<sp/>Workflow</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Adding<sp/>New<sp/>Features</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Backend<sp/>(API<sp/>endpoint):**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Add<sp/>endpoint<sp/>to<sp/>`api/main.py`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Add<sp/>Pydantic<sp/>models<sp/>if<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Test<sp/>with<sp/>`/docs`<sp/>endpoint</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Frontend<sp/>(React<sp/>component):**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Add<sp/>TypeScript<sp/>types<sp/>to<sp/>`app/types/api.ts`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Add<sp/>API<sp/>call<sp/>to<sp/>`app/lib/api.ts`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Create<sp/>React<sp/>component<sp/>in<sp/>`app/components/`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Integrate<sp/>into<sp/>`app/page.tsx`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Testing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Backend:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>test<sp/>script</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>test_api.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>use<sp/>FastAPI<sp/>test<sp/>client</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>See<sp/>api/main.py<sp/>for<sp/>examples</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Frontend:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>build<sp/><sp/>#<sp/>Test<sp/>production<sp/>build</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>lint<sp/><sp/><sp/>#<sp/>Check<sp/>for<sp/>issues</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Environment<sp/>Variables</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Development</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Backend:<sp/>No<sp/>special<sp/>env<sp/>vars<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Frontend:<sp/>.env.local</highlight></codeline>
+<codeline><highlight class="normal">NEXT_PUBLIC_API_URL=http://localhost:8000</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Production<sp/>(Vercel)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Set<sp/>in<sp/>Vercel<sp/>dashboard:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>File<sp/>Changes<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>New<sp/>Files<sp/>(22<sp/>total)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`api/__init__.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`api/main.py`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/app/components/AssetList.tsx`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/app/components/MetricsDashboard.tsx`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/app/components/NetworkVisualization.tsx`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/app/globals.css`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/app/layout.tsx`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/app/page.tsx`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/app/types/api.ts`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/app/lib/api.ts`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/app/lib/index.ts`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/next.config.js`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/package.json`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/postcss.config.js`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/tailwind.config.js`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/tsconfig.json`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/.eslintrc.json`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/.gitignore`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/README.md`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`vercel.json`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`.env.example`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`DEPLOYMENT.md`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`INTEGRATION_SUMMARY.md`<sp/>(this<sp/>file)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`run-dev.sh`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`run-dev.bat`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`test_api.py`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Modified<sp/>Files<sp/>(3<sp/>total)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`README.md`<sp/>-<sp/>Added<sp/>Next.js<sp/>integration<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`requirements.txt`<sp/>-<sp/>Added<sp/>FastAPI<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`.gitignore`<sp/>-<sp/>Added<sp/>Next.js<sp/>build<sp/>artifacts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Migration<sp/>Path</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>integration<sp/>is<sp/>designed<sp/>to<sp/>work<sp/>alongside<sp/>the<sp/>existing<sp/>Gradio<sp/>application:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Phase<sp/>1**<sp/>(Current):<sp/>Both<sp/>UIs<sp/>available</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Gradio:<sp/>`python<sp/>app.py`<sp/>→<sp/>Port<sp/>7860</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Next.js:<sp/>`./run-dev.sh`<sp/>→<sp/>Port<sp/>3000</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Phase<sp/>2**<sp/>(Optional):<sp/>Gradual<sp/>migration</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Users<sp/>can<sp/>choose<sp/>which<sp/>UI<sp/>to<sp/>use</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Both<sp/>share<sp/>the<sp/>same<sp/>backend<sp/>logic</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Phase<sp/>3**<sp/>(Future):<sp/>Full<sp/>migration</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Deprecate<sp/>Gradio<sp/>UI<sp/>if<sp/>desired</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Next.js<sp/>becomes<sp/>primary<sp/>interface</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Remove<sp/>Gradio<sp/>dependencies</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Maintenance</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Keeping<sp/>APIs<sp/>in<sp/>Sync</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">When<sp/>modifying<sp/>`src/logic/asset_graph.py`:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Update<sp/>`api/main.py`<sp/>endpoints<sp/>if<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Update<sp/>TypeScript<sp/>types<sp/>in<sp/>`app/types/api.ts`</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Update<sp/>API<sp/>client<sp/>in<sp/>`app/lib/api.ts`</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Test<sp/>both<sp/>backend<sp/>and<sp/>frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Dependencies</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Backend**:<sp/>`pip<sp/>install<sp/>-r<sp/>requirements.txt`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Frontend**:<sp/>`cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>install`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Updating<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Keep<sp/>these<sp/>files<sp/>updated:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`DEPLOYMENT.md`<sp/>-<sp/>Deployment<sp/>procedures</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`README.md`<sp/>-<sp/>Quick<sp/>start<sp/>guide</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`frontend/README.md`<sp/>-<sp/>Frontend<sp/>specifics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Next<sp/>Steps</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Suggested<sp/>improvements:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Add<sp/>authentication/authorization</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Implement<sp/>caching<sp/>(Redis)</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Add<sp/>real-time<sp/>updates<sp/>(WebSockets)</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Add<sp/>more<sp/>interactive<sp/>visualizations</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>Implement<sp/>data<sp/>export<sp/>features</highlight></codeline>
+<codeline><highlight class="normal">6.<sp/>Add<sp/>unit<sp/>and<sp/>integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">7.<sp/>Set<sp/>up<sp/>CI/CD<sp/>pipeline</highlight></codeline>
+<codeline><highlight class="normal">8.<sp/>Add<sp/>monitoring<sp/>and<sp/>analytics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Support</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>issues<sp/>or<sp/>questions:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Check<sp/>`DEPLOYMENT.md`<sp/>for<sp/>troubleshooting</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Review<sp/>API<sp/>docs<sp/>at<sp/>`http://localhost:8000/docs`</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Check<sp/>browser<sp/>console<sp/>for<sp/>frontend<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Review<sp/>backend<sp/>logs<sp/>for<sp/>API<sp/>errors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>License</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Same<sp/>as<sp/>the<sp/>main<sp/>project<sp/>(MIT<sp/>License)</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/INTEGRATION_SUMMARY.md"/>
+  </compounddef>
+</doxygen>

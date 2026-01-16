@@ -1,0 +1,7 @@
+var namespacetests_1_1integration_1_1test__pr__agent__config__validation =
+[
+    [ "TestPRAgentConfigRemovedComplexity", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity.html", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity" ],
+    [ "TestPRAgentConfigSecurity", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity.html", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSecurity" ],
+    [ "TestPRAgentConfigSimplification", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSimplification.html", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigSimplification" ],
+    [ "TestPRAgentConfigYAMLValidity", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity.html", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigYAMLValidity" ]
+];

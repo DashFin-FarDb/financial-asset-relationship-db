@@ -1,0 +1,159 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG</compoundname>
+    <title>Changelog</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md374"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md375">
+<title><ulink url="https://github.com/mohavro/financial-asset-relationship-db/compare/v1.0.0...HEAD">Unreleased</ulink></title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md376">
+<title>Fixed</title><para><itemizedlist>
+<listitem><para>Removed inappropriate CI/CD workflow files that were causing build failures:<itemizedlist>
+<listitem><para>Deleted <computeroutput>.github/workflows/objective-c-xcode.yml</computeroutput> - Xcode/Objective-C workflow not applicable to Python/JavaScript project</para>
+</listitem><listitem><para>Deleted <computeroutput>.github/workflows/go.yml</computeroutput> - Go workflow not applicable to Python/JavaScript project</para>
+</listitem><listitem><para>Deleted <computeroutput>.github/workflows/dotnet-desktop.yml</computeroutput> - .NET Desktop workflow not applicable to Python/JavaScript project</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md377">
+<title>Improved</title><para><itemizedlist>
+<listitem><para>Cleaned up CI/CD configuration to only include relevant workflows for the project&apos;s tech stack (Python, JavaScript/TypeScript, Next.js)</para>
+</listitem><listitem><para>Reduced CI/CD execution time and resource usage by removing unnecessary workflow runs</para>
+</listitem><listitem><para>Improved maintainability by removing duplicate and conflicting workflow configurations</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md378">
+<title>Changelog</title><para>All notable changes to this project will be documented in this file.</para>
+<para>The format is based on <ulink url="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</ulink>, and this project adheres to <ulink url="https://semver.org/spec/v2.0.0.html">Semantic Versioning</ulink>.</para>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md379">
+<title><ulink url="https://github.com/mohavro/financial-asset-relationship-db/compare/v1.0.0...HEAD">Unreleased</ulink></title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md380">
+<title>Added</title><para><itemizedlist>
+<listitem><para>Comprehensive testing infrastructure with pytest</para>
+</listitem><listitem><para>Unit tests for financial models (<ref refid="test__financial__models_8py" kindref="compound">test_financial_models.py</ref>)</para>
+</listitem><listitem><para>Unit tests for asset graph logic (<ref refid="test__asset__graph_8py" kindref="compound">test_asset_graph.py</ref>)</para>
+</listitem><listitem><para>Test fixtures in conftest.py for reusable test data</para>
+</listitem><listitem><para>Development dependencies in requirements-dev.txt</para>
+</listitem><listitem><para>Linting configuration (.flake8, pyproject.toml)</para>
+</listitem><listitem><para>Code formatting tools (black, isort)</para>
+</listitem><listitem><para>Type checking with mypy</para>
+</listitem><listitem><para>Pre-commit hooks configuration</para>
+</listitem><listitem><para>EditorConfig for consistent formatting</para>
+</listitem><listitem><para>Consolidated CI workflow (.github/workflows/ci.yml)</para>
+</listitem><listitem><para>Code coverage reporting with pytest-cov</para>
+</listitem><listitem><para>Makefile for common development tasks</para>
+</listitem><listitem><para><ref refid="CONTRIBUTING_8md" kindref="compound">CONTRIBUTING.md</ref> guide for developers</para>
+</listitem><listitem><para><ref refid="AUDIT__REPORT_8md" kindref="compound">AUDIT_REPORT.md</ref> comprehensive code audit</para>
+</listitem><listitem><para><ref refid="CHANGELOG_8md" kindref="compound">CHANGELOG.md</ref> (this file)</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md381">
+<title>Changed</title><para><itemizedlist>
+<listitem><para>Consolidated redundant Python workflows into single ci.yml</para>
+</listitem><listitem><para>Updated .gitignore to include test artifacts and cache directories</para>
+</listitem><listitem><para>Improved CI/CD pipeline with dependency caching</para>
+</listitem><listitem><para>Enhanced workflow to include linting, type checking, and security scanning</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md382">
+<title>Removed</title><para><itemizedlist>
+<listitem><para>23 irrelevant workflow files (docker, .NET, Next.js, Node.js, etc.)</para>
+</listitem><listitem><para>python-app.yml (merged into ci.yml)</para>
+</listitem><listitem><para>python-package.yml (merged into ci.yml)</para>
+</listitem><listitem><para>pylint.yml (merged into ci.yml)</para>
+</listitem><listitem><para>super-linter.yml (replaced with specific linters)</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md383">
+<title><ulink url="https://github.com/mohavro/financial-asset-relationship-db/releases/tag/v1.0.0">1.0.0</ulink> - 2024-10-30</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md384">
+<title>Added</title><para><itemizedlist>
+<listitem><para>Initial release</para>
+</listitem><listitem><para>Financial Asset Relationship Database with 3D visualization</para>
+</listitem><listitem><para>Support for multiple asset classes (Equity, Bond, Commodity, Currency, Derivative)</para>
+</listitem><listitem><para>Automatic relationship discovery between assets</para>
+</listitem><listitem><para>Regulatory event tracking and impact modeling</para>
+</listitem><listitem><para>Interactive Gradio web interface</para>
+</listitem><listitem><para>3D network visualization with Plotly</para>
+</listitem><listitem><para>Metrics and analytics dashboard</para>
+</listitem><listitem><para>Schema and business rules reporting</para>
+</listitem><listitem><para>Asset explorer with detailed information</para>
+</listitem><listitem><para>Real-time data fetching with yfinance</para>
+</listitem><listitem><para>Sample data generation</para>
+</listitem><listitem><para>Comprehensive documentation (README.md, <ref refid="AI__RULES_8md" kindref="compound">AI_RULES.md</ref>)</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md385">
+<title>Asset Classes</title><para><itemizedlist>
+<listitem><para>Equities with P/E ratios, dividend yields, EPS</para>
+</listitem><listitem><para>Fixed Income with yield, duration, credit ratings</para>
+</listitem><listitem><para>Commodities with futures and spot prices</para>
+</listitem><listitem><para>Currencies with exchange rates</para>
+</listitem><listitem><para>Regulatory events with impact scoring</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md386">
+<title>Relationship Types</title><para><itemizedlist>
+<listitem><para>Sector affinity (same_sector)</para>
+</listitem><listitem><para>Corporate links (corporate_bond_to_equity)</para>
+</listitem><listitem><para>Commodity exposure</para>
+</listitem><listitem><para>Currency risk</para>
+</listitem><listitem><para>Income comparison (dividend vs yield)</para>
+</listitem><listitem><para>Event impact</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md387">
+<title>Visualizations</title><para><itemizedlist>
+<listitem><para>3D network graph with deterministic positioning</para>
+</listitem><listitem><para>Asset class color coding</para>
+</listitem><listitem><para>Relationship strength visualization</para>
+</listitem><listitem><para>Metrics dashboard</para>
+</listitem><listitem><para>Schema documentation</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md389">
+<title>Version History</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md390">
+<title>Version Numbering</title><para>This project uses <ulink url="https://semver.org/">Semantic Versioning</ulink>:</para>
+<para><itemizedlist>
+<listitem><para><bold>MAJOR</bold> version for incompatible API changes</para>
+</listitem><listitem><para><bold>MINOR</bold> version for backwards-compatible functionality additions</para>
+</listitem><listitem><para><bold>PATCH</bold> version for backwards-compatible bug fixes</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md391">
+<title>Unreleased Changes</title><para>Changes in the <computeroutput>[Unreleased]</computeroutput> section are features and fixes that have been committed but not yet released.</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_1autotoc_md392">
+<title>Release Process</title><para><orderedlist>
+<listitem><para>Update <ref refid="CHANGELOG_8md" kindref="compound">CHANGELOG.md</ref></para>
+</listitem><listitem><para>Update version in pyproject.toml</para>
+</listitem><listitem><para>Commit changes</para>
+</listitem><listitem><para>Tag release: <computeroutput>git tag -a v1.0.0 -m &quot;Release v1.0.0&quot;</computeroutput></para>
+</listitem><listitem><para>Push tags: <computeroutput>git push --tags</computeroutput></para>
+</listitem></orderedlist>
+</para>
+<para><hruler/>
+ </para>
+</sect3>
+</sect2>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/CHANGELOG.md"/>
+  </compounddef>
+</doxygen>

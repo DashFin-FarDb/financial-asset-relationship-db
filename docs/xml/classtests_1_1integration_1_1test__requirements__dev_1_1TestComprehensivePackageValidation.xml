@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestComprehensivePackageValidation</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation_1a79e52d7fda66d33b5977b8494638799a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.TestComprehensivePackageValidation.requirements</definition>
+        <argsstring>(parsed_requirements)</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestComprehensivePackageValidation.requirements</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get parsed requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="874" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="874" bodyend="877"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation_1aecf88f26d803b419de06a82501385ce5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestComprehensivePackageValidation.test_all_packages_loadable_by_pip</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_all_packages_loadable_by_pip</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestComprehensivePackageValidation.test_all_packages_loadable_by_pip</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all package specifications are valid pip requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="879" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="879" bodyend="898"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation_1adf66867d5f10023d3b6e080a408ba259" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestComprehensivePackageValidation.test_package_count_reasonable</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_package_count_reasonable</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestComprehensivePackageValidation.test_package_count_reasonable</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the number of development packages is reasonable.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="900" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="900" bodyend="906"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation_1ae6a57d68bbdff7189442a3f496d6cfed" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestComprehensivePackageValidation.test_no_missing_pytest_plugins</definition>
+        <argsstring>(List[Tuple[str, str]] requirements)</argsstring>
+        <name>test_no_missing_pytest_plugins</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestComprehensivePackageValidation.test_no_missing_pytest_plugins</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>requirements</declname>
+          <array>[Tuple[str, str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that common pytest plugins are not missing.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="908" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="908" bodyend="915"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive validation of all aspects of package specifications.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestComprehensivePackageValidation</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="868" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="868" bodyend="915"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation_1a79e52d7fda66d33b5977b8494638799a" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestComprehensivePackageValidation</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation_1aecf88f26d803b419de06a82501385ce5" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestComprehensivePackageValidation</scope><name>test_all_packages_loadable_by_pip</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation_1ae6a57d68bbdff7189442a3f496d6cfed" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestComprehensivePackageValidation</scope><name>test_no_missing_pytest_plugins</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestComprehensivePackageValidation_1adf66867d5f10023d3b6e080a408ba259" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestComprehensivePackageValidation</scope><name>test_package_count_reasonable</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

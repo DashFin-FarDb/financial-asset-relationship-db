@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestDevelopmentToolsPresence</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a2082459e3520dbf3cdc8e87e2295db29" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[str]</type>
+        <definition> List[str] tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.package_names</definition>
+        <argsstring>(parsed_requirements)</argsstring>
+        <name>package_names</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.package_names</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extract package names.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="603" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="603" bodyend="606"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a96f3828e9826c168b0e8b44a5310440c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_testing_framework</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_testing_framework</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_testing_framework</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that a testing framework is present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="608" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="608" bodyend="614"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1ad581b9a505494fd6d870664611540534" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_code_formatter</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_code_formatter</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_code_formatter</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that a code formatter is present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="616" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="616" bodyend="622"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a76522422046c92ad0229157b58cd8458" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_linter</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_linter</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_linter</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that at least one linter is present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="624" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="624" bodyend="628"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a0a5a10141f127deeba7c4e5f3651cbe7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_type_checker</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_type_checker</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_type_checker</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that a type checker is present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="630" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="630" bodyend="634"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a4ecaabfb31610b463a1a22364cabf98c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_import_sorter</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_import_sorter</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence.test_has_import_sorter</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that an import sorter is present.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="636" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="636" bodyend="646"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that essential development tools are present and properly configured.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestDevelopmentToolsPresence</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="598" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="598" bodyend="646"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a2082459e3520dbf3cdc8e87e2295db29" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestDevelopmentToolsPresence</scope><name>package_names</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1ad581b9a505494fd6d870664611540534" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestDevelopmentToolsPresence</scope><name>test_has_code_formatter</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a4ecaabfb31610b463a1a22364cabf98c" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestDevelopmentToolsPresence</scope><name>test_has_import_sorter</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a76522422046c92ad0229157b58cd8458" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestDevelopmentToolsPresence</scope><name>test_has_linter</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a96f3828e9826c168b0e8b44a5310440c" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestDevelopmentToolsPresence</scope><name>test_has_testing_framework</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestDevelopmentToolsPresence_1a0a5a10141f127deeba7c4e5f3651cbe7" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestDevelopmentToolsPresence</scope><name>test_has_type_checker</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

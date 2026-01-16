@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_debricked_workflow::TestWorkflowStructure</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1ac74f3156587df3d7796da4234b97bd35" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_has_valid_name</definition>
+        <argsstring>(self, Dict[str, Any] workflow_config)</argsstring>
+        <name>test_has_valid_name</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_has_valid_name</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_config</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow name presence and description.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="95" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="95" bodyend="102"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1a59b09b183a03f076487a936ed492d238" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_triggers_events</definition>
+        <argsstring>(self, Dict[str, Any] workflow_config)</argsstring>
+        <name>test_triggers_events</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_triggers_events</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_config</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflow triggers on necessary events (PR, push, manual dispatch).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="103" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="103" bodyend="128"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1abd85fd764516a12a4d625f275d2c0c53" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_triggers_target_main_branch</definition>
+        <argsstring>(self, Dict[str, Any] workflow_config)</argsstring>
+        <name>test_triggers_target_main_branch</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_triggers_target_main_branch</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>workflow_config</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that PR and push triggers target the main branch.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="129" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="129" bodyend="145"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1a557d124e97b5298ca9e95135b55066d8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_job_permissions</definition>
+        <argsstring>(self, Dict[str, Any] scan_job)</argsstring>
+        <name>test_job_permissions</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_job_permissions</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>scan_job</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that job has explicit permissions (Principle of Least Privilege).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="146" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="146" bodyend="154"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1ae9ea43dcec220124d90b1e4d207dea06" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_runs_on_ubuntu</definition>
+        <argsstring>(self, Dict[str, Any] scan_job)</argsstring>
+        <name>test_runs_on_ubuntu</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestWorkflowStructure.test_runs_on_ubuntu</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>scan_job</declname>
+          <array>[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that job runs on a supported Ubuntu runner.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="155" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="155" bodyend="160"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test the structure and required fields.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_debricked_workflow.TestWorkflowStructure</label>
+        <link refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="92" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="92" bodyend="160"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1ac74f3156587df3d7796da4234b97bd35" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestWorkflowStructure</scope><name>test_has_valid_name</name></member>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1a557d124e97b5298ca9e95135b55066d8" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestWorkflowStructure</scope><name>test_job_permissions</name></member>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1ae9ea43dcec220124d90b1e4d207dea06" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestWorkflowStructure</scope><name>test_runs_on_ubuntu</name></member>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1a59b09b183a03f076487a936ed492d238" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestWorkflowStructure</scope><name>test_triggers_events</name></member>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestWorkflowStructure_1abd85fd764516a12a4d625f275d2c0c53" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestWorkflowStructure</scope><name>test_triggers_target_main_branch</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

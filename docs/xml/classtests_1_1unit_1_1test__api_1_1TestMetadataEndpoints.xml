@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api_1_1TestMetadataEndpoints" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api::TestMetadataEndpoints</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestMetadataEndpoints_1a307e53dca0ba0f2855ddd23337a45dd2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestMetadataEndpoints.test_get_asset_classes</definition>
+        <argsstring>(client)</argsstring>
+        <name>test_get_asset_classes</name>
+        <qualifiedname>tests.unit.test_api.TestMetadataEndpoints.test_get_asset_classes</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test retrieving available asset classes.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="516" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="516" bodyend="528"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestMetadataEndpoints_1a6920838da3c3892c0054cd0b26f0f6e7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestMetadataEndpoints.test_get_sectors</definition>
+        <argsstring>(mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_get_sectors</name>
+        <qualifiedname>tests.unit.test_api.TestMetadataEndpoints.test_get_sectors</qualifiedname>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test retrieving available sectors.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="531" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="531" bodyend="550"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test metadata endpoints.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api.TestMetadataEndpoints</label>
+        <link refid="classtests_1_1unit_1_1test__api_1_1TestMetadataEndpoints"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="512" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="512" bodyend="550"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestMetadataEndpoints_1a307e53dca0ba0f2855ddd23337a45dd2" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestMetadataEndpoints</scope><name>test_get_asset_classes</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestMetadataEndpoints_1a6920838da3c3892c0054cd0b26f0f6e7" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestMetadataEndpoints</scope><name>test_get_sectors</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

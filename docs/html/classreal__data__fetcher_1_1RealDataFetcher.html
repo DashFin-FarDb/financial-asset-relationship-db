@@ -1,0 +1,535 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: real_data_fetcher.RealDataFetcher Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classreal__data__fetcher_1_1RealDataFetcher.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
+<a href="#pro-static-methods">Static Protected Member Functions</a> &#124;
+<a href="classreal__data__fetcher_1_1RealDataFetcher-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">real_data_fetcher.RealDataFetcher Class Reference</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="dynheader">
+Collaboration diagram for real_data_fetcher.RealDataFetcher:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classreal__data__fetcher_1_1RealDataFetcher__coll__graph.svg" width="207" height="306"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:afc2770e8add77e393fb5312b13e5d663" id="r_afc2770e8add77e393fb5312b13e5d663"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afc2770e8add77e393fb5312b13e5d663">__init__</a> (self, *, Optional[str] <a class="el" href="#a54e951b8cd77f20a15791873a6c6c251">cache_path</a>=None, Optional[Callable[[], <a class="el" href="classAssetRelationshipGraph.html">AssetRelationshipGraph</a>]] <a class="el" href="#a19d8a5e39ab0918aafa3055c9561e12e">fallback_factory</a>=None, bool <a class="el" href="#aae0a0954804a2cdbff249219723ea468">enable_network</a>=True)</td></tr>
+<tr class="separator:afc2770e8add77e393fb5312b13e5d663"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a0b50ea3d53d8cd924fe836f2e15f3e" id="r_a9a0b50ea3d53d8cd924fe836f2e15f3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classAssetRelationshipGraph.html">AssetRelationshipGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9a0b50ea3d53d8cd924fe836f2e15f3e">create_real_database</a> (self)</td></tr>
+<tr class="separator:a9a0b50ea3d53d8cd924fe836f2e15f3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a9a47a0eca11cf2ffbbf3c3b331c1138f" id="r_a9a47a0eca11cf2ffbbf3c3b331c1138f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9a47a0eca11cf2ffbbf3c3b331c1138f">session</a> = None</td></tr>
+<tr class="separator:a9a47a0eca11cf2ffbbf3c3b331c1138f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54e951b8cd77f20a15791873a6c6c251" id="r_a54e951b8cd77f20a15791873a6c6c251"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a54e951b8cd77f20a15791873a6c6c251">cache_path</a> = Path(cache_path) if cache_path else None</td></tr>
+<tr class="separator:a54e951b8cd77f20a15791873a6c6c251"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19d8a5e39ab0918aafa3055c9561e12e" id="r_a19d8a5e39ab0918aafa3055c9561e12e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a19d8a5e39ab0918aafa3055c9561e12e">fallback_factory</a> = fallback_factory</td></tr>
+<tr class="separator:a19d8a5e39ab0918aafa3055c9561e12e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae0a0954804a2cdbff249219723ea468" id="r_aae0a0954804a2cdbff249219723ea468"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aae0a0954804a2cdbff249219723ea468">enable_network</a> = enable_network</td></tr>
+<tr class="separator:aae0a0954804a2cdbff249219723ea468"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a02af871fd47c69a47316f98a338852bd" id="r_a02af871fd47c69a47316f98a338852bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classAssetRelationshipGraph.html">AssetRelationshipGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a02af871fd47c69a47316f98a338852bd">_fallback</a> (self)</td></tr>
+<tr class="separator:a02af871fd47c69a47316f98a338852bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-static-methods" name="pro-static-methods"></a>
+Static Protected Member Functions</h2></td></tr>
+<tr class="memitem:ad74ac0bf89faaba50d6c6789f18ef6a3" id="r_ad74ac0bf89faaba50d6c6789f18ef6a3"><td class="memItemLeft" align="right" valign="top">List[Equity]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad74ac0bf89faaba50d6c6789f18ef6a3">_fetch_equity_data</a> ()</td></tr>
+<tr class="separator:ad74ac0bf89faaba50d6c6789f18ef6a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60db7c3d12d520782fc8fd3251d4c3e1" id="r_a60db7c3d12d520782fc8fd3251d4c3e1"><td class="memItemLeft" align="right" valign="top">List[Bond]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60db7c3d12d520782fc8fd3251d4c3e1">_fetch_bond_data</a> ()</td></tr>
+<tr class="separator:a60db7c3d12d520782fc8fd3251d4c3e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bc07e5c8019a3c37a97856bf3a85086" id="r_a7bc07e5c8019a3c37a97856bf3a85086"><td class="memItemLeft" align="right" valign="top">List[Commodity]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7bc07e5c8019a3c37a97856bf3a85086">_fetch_commodity_data</a> ()</td></tr>
+<tr class="separator:a7bc07e5c8019a3c37a97856bf3a85086"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d9154b41313c16038447fab3ea25441" id="r_a4d9154b41313c16038447fab3ea25441"><td class="memItemLeft" align="right" valign="top">List[Currency]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4d9154b41313c16038447fab3ea25441">_fetch_currency_data</a> ()</td></tr>
+<tr class="separator:a4d9154b41313c16038447fab3ea25441"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cd5f5e7404e03b5b0cf41657a363b08" id="r_a9cd5f5e7404e03b5b0cf41657a363b08"><td class="memItemLeft" align="right" valign="top">List[RegulatoryEvent]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9cd5f5e7404e03b5b0cf41657a363b08">_create_regulatory_events</a> ()</td></tr>
+<tr class="separator:a9cd5f5e7404e03b5b0cf41657a363b08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><pre class="fragment">Fetches real financial data from Yahoo Finance and other sources</pre> </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="afc2770e8add77e393fb5312b13e5d663" name="afc2770e8add77e393fb5312b13e5d663"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc2770e8add77e393fb5312b13e5d663">&#9670;&#160;</a></span>__init__()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real_data_fetcher.RealDataFetcher.__init__ </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">*</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[str] </td>          <td class="paramname"><span class="paramname"><em>cache_path</em></span><span class="paramdefsep"> = </span><span class="paramdefval">None</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Optional[Callable[[], <a class="el" href="classAssetRelationshipGraph.html">AssetRelationshipGraph</a>]] </td>          <td class="paramname"><span class="paramname"><em>fallback_factory</em></span><span class="paramdefsep"> = </span><span class="paramdefval">None</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool </td>          <td class="paramname"><span class="paramname"><em>enable_network</em></span><span class="paramdefsep"> = </span><span class="paramdefval">True</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Initialise the RealDataFetcher with optional cache, fallback and network controls.
+
+Parameters:
+    cache_path (Optional[str]): Path to a JSON cache file to load a
+        previously persisted AssetRelationshipGraph
+        from and to save the constructed graph to.
+        If omitted, no file-based caching is used.
+    fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
+        Callable that returns a fallback AssetRelationshipGraph to use
+        when network access is disabled or real-data fetch fails.
+        If omitted, the module's bundled sample dataset is used
+        as a fallback.
+    enable_network (bool):
+        Controls whether network access is permitted
+        for fetching live data.
+        When False, the fetcher will not attempt network calls
+        and will use the fallback dataset.
+</pre> 
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a9cd5f5e7404e03b5b0cf41657a363b08" name="a9cd5f5e7404e03b5b0cf41657a363b08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cd5f5e7404e03b5b0cf41657a363b08">&#9670;&#160;</a></span>_create_regulatory_events()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> List[RegulatoryEvent] real_data_fetcher.RealDataFetcher._create_regulatory_events </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Create realistic regulatory events for the fetched assets</pre> <div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classreal__data__fetcher_1_1RealDataFetcher_a9cd5f5e7404e03b5b0cf41657a363b08_icgraph.svg" width="519" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a02af871fd47c69a47316f98a338852bd" name="a02af871fd47c69a47316f98a338852bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02af871fd47c69a47316f98a338852bd">&#9670;&#160;</a></span>_fallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> <a class="el" href="classAssetRelationshipGraph.html">AssetRelationshipGraph</a> real_data_fetcher.RealDataFetcher._fallback </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Selects a fallback AssetRelationshipGraph to use when real data cannot be
+fetched.
+If a `fallback_factory` was provided to the instance, this calls it and
+returns its result; otherwise it constructs and returns the built-
+in sample database.
+
+Returns:
+    An `AssetRelationshipGraph` instance either from the provided
+    fallback factory or from the module sample dataset.
+</pre> <div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classreal__data__fetcher_1_1RealDataFetcher_a02af871fd47c69a47316f98a338852bd_icgraph.svg" width="471" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a60db7c3d12d520782fc8fd3251d4c3e1" name="a60db7c3d12d520782fc8fd3251d4c3e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60db7c3d12d520782fc8fd3251d4c3e1">&#9670;&#160;</a></span>_fetch_bond_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> List[Bond] real_data_fetcher.RealDataFetcher._fetch_bond_data </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Fetch real bond/treasury data</pre> <div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classreal__data__fetcher_1_1RealDataFetcher_a60db7c3d12d520782fc8fd3251d4c3e1_icgraph.svg" width="471" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a7bc07e5c8019a3c37a97856bf3a85086" name="a7bc07e5c8019a3c37a97856bf3a85086"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bc07e5c8019a3c37a97856bf3a85086">&#9670;&#160;</a></span>_fetch_commodity_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> List[Commodity] real_data_fetcher.RealDataFetcher._fetch_commodity_data </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Fetch real commodity data</pre> <div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classreal__data__fetcher_1_1RealDataFetcher_a7bc07e5c8019a3c37a97856bf3a85086_icgraph.svg" width="503" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a4d9154b41313c16038447fab3ea25441" name="a4d9154b41313c16038447fab3ea25441"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d9154b41313c16038447fab3ea25441">&#9670;&#160;</a></span>_fetch_currency_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> List[Currency] real_data_fetcher.RealDataFetcher._fetch_currency_data </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Fetch real currency exchange rate data</pre> <div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classreal__data__fetcher_1_1RealDataFetcher_a4d9154b41313c16038447fab3ea25441_icgraph.svg" width="484" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad74ac0bf89faaba50d6c6789f18ef6a3" name="ad74ac0bf89faaba50d6c6789f18ef6a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad74ac0bf89faaba50d6c6789f18ef6a3">&#9670;&#160;</a></span>_fetch_equity_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> List[Equity] real_data_fetcher.RealDataFetcher._fetch_equity_data </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<pre class="fragment">Fetches current market data for a predefined set of major equities and
+returns them as Equity objects.
+
+Returns:
+    List[Equity]: Equity instances populated with market fields including
+        id, symbol, name, asset_class, sector, price, market_cap,
+        pe_ratio, dividend_yield, earnings_per_share and book_value.
+</pre> <div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classreal__data__fetcher_1_1RealDataFetcher_ad74ac0bf89faaba50d6c6789f18ef6a3_icgraph.svg" width="471" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a9a0b50ea3d53d8cd924fe836f2e15f3e" name="a9a0b50ea3d53d8cd924fe836f2e15f3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a0b50ea3d53d8cd924fe836f2e15f3e">&#9670;&#160;</a></span>create_real_database()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"> <a class="el" href="classAssetRelationshipGraph.html">AssetRelationshipGraph</a> real_data_fetcher.RealDataFetcher.create_real_database </td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>self</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<pre class="fragment">Create an AssetRelationshipGraph populated with real financial data.
+Load from cache when available, otherwise fetch live data (if network
+is enabled), and fall back to the provided factory or sample data on
+network disablement or fetch failure.
+Persist the freshly built graph to cache when possible.
+
+Returns:
+    graph (AssetRelationshipGraph): The constructed graph containing
+        assets, regulatory events and relationships.
+</pre> <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="classreal__data__fetcher_1_1RealDataFetcher_a9a0b50ea3d53d8cd924fe836f2e15f3e_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a54e951b8cd77f20a15791873a6c6c251" name="a54e951b8cd77f20a15791873a6c6c251"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54e951b8cd77f20a15791873a6c6c251">&#9670;&#160;</a></span>cache_path</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real_data_fetcher.RealDataFetcher.cache_path = Path(cache_path) if cache_path else None</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aae0a0954804a2cdbff249219723ea468" name="aae0a0954804a2cdbff249219723ea468"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae0a0954804a2cdbff249219723ea468">&#9670;&#160;</a></span>enable_network</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real_data_fetcher.RealDataFetcher.enable_network = enable_network</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a19d8a5e39ab0918aafa3055c9561e12e" name="a19d8a5e39ab0918aafa3055c9561e12e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19d8a5e39ab0918aafa3055c9561e12e">&#9670;&#160;</a></span>fallback_factory</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real_data_fetcher.RealDataFetcher.fallback_factory = fallback_factory</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9a47a0eca11cf2ffbbf3c3b331c1138f" name="a9a47a0eca11cf2ffbbf3c3b331c1138f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a47a0eca11cf2ffbbf3c3b331c1138f">&#9670;&#160;</a></span>session</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real_data_fetcher.RealDataFetcher.session = None</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
+<li>/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/<a class="el" href="real__data__fetcher_8py.html">real_data_fetcher.py</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespacereal__data__fetcher.html">real_data_fetcher</a></li><li class="navelem"><a class="el" href="classreal__data__fetcher_1_1RealDataFetcher.html">RealDataFetcher</a></li>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

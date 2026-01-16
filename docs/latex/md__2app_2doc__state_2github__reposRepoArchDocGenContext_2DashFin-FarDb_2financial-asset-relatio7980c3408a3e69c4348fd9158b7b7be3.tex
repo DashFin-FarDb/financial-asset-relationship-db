@@ -1,0 +1,184 @@
+\chapter{Script Error Handling Documentation}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3}\index{Script Error Handling Documentation@{Script Error Handling Documentation}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3571}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3571}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3572}{}\doxysection{\texorpdfstring{Overview}{Overview}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3572}
+Both PR cleanup scripts now include comprehensive error handling to address code review feedback.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3573}{}\doxysection{\texorpdfstring{Error Checks Implemented}{Error Checks Implemented}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3573}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3574}{}\doxysubsection{\texorpdfstring{close\+\_\+unmergeable\+\_\+prs.\+sh}{close\+\_\+unmergeable\+\_\+prs.\+sh}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3574}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3575}{}\doxysubsubsection{\texorpdfstring{Prerequisites Validation}{Prerequisites Validation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3575}
+
+\begin{DoxyItemize}
+\item ✅ {\bfseries{Git\+Hub CLI ({\ttfamily gh}) installation check}}
+\begin{DoxyItemize}
+\item Verifies {\ttfamily gh} command is available
+\item Exits with clear error message if missing
+\end{DoxyItemize}
+\item ✅ {\bfseries{Git\+Hub authentication check}}
+\begin{DoxyItemize}
+\item Validates user is logged in via {\ttfamily gh auth status}
+\item Prevents API call failures
+\end{DoxyItemize}
+\item ✅ {\bfseries{jq installation check}}
+\begin{DoxyItemize}
+\item Ensures JSON parsing tool is available
+\item Required for processing PR data
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3576}{}\doxysubsubsection{\texorpdfstring{Operation Error Handling}{Operation Error Handling}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3576}
+
+\begin{DoxyItemize}
+\item ✅ {\bfseries{API call failures}}
+\begin{DoxyItemize}
+\item Catches errors from {\ttfamily gh pr list}
+\item Handles JSON parsing errors from {\ttfamily jq}
+\item Exits with descriptive error messages
+\end{DoxyItemize}
+\item ✅ {\bfseries{Empty results handling}}
+\begin{DoxyItemize}
+\item Checks if conflicting\+\_\+prs.\+txt is empty or missing
+\item Provides clear "{}\+No conflicting PRs found"{} message
+\item Prevents confusion from silent failures
+\end{DoxyItemize}
+\item ✅ {\bfseries{Per-\/\+PR error handling}}
+\begin{DoxyItemize}
+\item Individual PR view failures don\textquotesingle{}t stop the script
+\item Errors logged to stderr for problematic PRs
+\item Script continues processing remaining PRs
+\end{DoxyItemize}
+\item ✅ {\bfseries{Cleanup}}
+\begin{DoxyItemize}
+\item Removes temporary file {\ttfamily /tmp/conflicting\+\_\+prs.txt}
+\item Prevents stale data from affecting subsequent runs
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3577}{}\doxysubsection{\texorpdfstring{close\+\_\+unmergeable\+\_\+prs\+\_\+script.\+sh}{close\+\_\+unmergeable\+\_\+prs\+\_\+script.\+sh}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3577}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3578}{}\doxysubsubsection{\texorpdfstring{Prerequisites Validation}{Prerequisites Validation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3578}
+
+\begin{DoxyItemize}
+\item ✅ {\bfseries{Git\+Hub CLI ({\ttfamily gh}) installation check}}
+\item ✅ {\bfseries{Git\+Hub authentication check}}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3579}{}\doxysubsubsection{\texorpdfstring{Input Validation}{Input Validation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3579}
+
+\begin{DoxyItemize}
+\item ✅ {\bfseries{Missing PR number check}}
+\begin{DoxyItemize}
+\item Validates PR argument is provided
+\item Shows usage message if missing
+\end{DoxyItemize}
+\item ✅ {\bfseries{PR number format validation}}
+\begin{DoxyItemize}
+\item Ensures PR number is numeric (positive integer)
+\item Prevents invalid API calls
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3580}{}\doxysubsubsection{\texorpdfstring{Operation Error Handling}{Operation Error Handling}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3580}
+
+\begin{DoxyItemize}
+\item ✅ {\bfseries{PR close operation failure}}
+\begin{DoxyItemize}
+\item Catches {\ttfamily gh pr close} command failures
+\item Handles invalid PR numbers
+\item Handles permission errors
+\item Provides clear error messages
+\end{DoxyItemize}
+\item ✅ {\bfseries{Success confirmation}}
+\begin{DoxyItemize}
+\item Displays "{}\+Successfully closed PR \#\+XXX"{} on success
+\item Clear feedback for successful operations
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3581}{}\doxysection{\texorpdfstring{Error Message Standards}{Error Message Standards}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3581}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3582}{}\doxysubsection{\texorpdfstring{stderr Usage}{stderr Usage}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3582}
+All error messages are directed to stderr ({\ttfamily \texorpdfstring{$>$}{>}\&2}) following best practices\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{echo\ "{}Error:\ message"{}\ >\&2}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3583}{}\doxysubsection{\texorpdfstring{Exit Codes}{Exit Codes}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3583}
+
+\begin{DoxyItemize}
+\item {\ttfamily 0} -\/ Success or no PRs found
+\item {\ttfamily 1} -\/ Error (missing tool, auth failure, operation failure)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3584}{}\doxysubsection{\texorpdfstring{Error Message Format}{Error Message Format}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3584}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Error:\ [Clear\ description\ of\ what\ went\ wrong]}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3585}{}\doxysection{\texorpdfstring{Testing}{Testing}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3585}
+Run the included test script to verify error handling\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{bash\ test\_scripts.sh}
+
+\end{DoxyCode}
+
+
+Expected output\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{✅\ gh\ CLI\ detected\ successfully}
+\DoxyCodeLine{✅\ Correctly\ requires\ PR\ number}
+\DoxyCodeLine{✅\ Correctly\ validates\ numeric\ PR\ number}
+\DoxyCodeLine{All\ error\ handling\ tests\ passed!\ ✅}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3586}{}\doxysection{\texorpdfstring{Usage Examples}{Usage Examples}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3586}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3587}{}\doxysubsection{\texorpdfstring{Safe execution of close\+\_\+unmergeable\+\_\+prs.\+sh}{Safe execution of close\+\_\+unmergeable\+\_\+prs.\+sh}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3587}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Script\ will:}
+\DoxyCodeLine{\#\ 1.\ Check\ for\ gh\ CLI\ and\ jq}
+\DoxyCodeLine{\#\ 2.\ Verify\ authentication}
+\DoxyCodeLine{\#\ 3.\ Safely\ handle\ empty\ results}
+\DoxyCodeLine{\#\ 4.\ Continue\ on\ individual\ PR\ errors}
+\DoxyCodeLine{\#\ 5.\ Clean\ up\ temporary\ files}
+\DoxyCodeLine{}
+\DoxyCodeLine{bash\ close\_unmergeable\_prs.sh}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3588}{}\doxysubsection{\texorpdfstring{Safe execution of close\+\_\+unmergeable\+\_\+prs\+\_\+script.\+sh}{Safe execution of close\+\_\+unmergeable\+\_\+prs\+\_\+script.\+sh}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3588}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Valid\ usage}
+\DoxyCodeLine{bash\ close\_unmergeable\_prs\_script.sh\ 123}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Invalid\ usage\ (caught\ by\ validation)}
+\DoxyCodeLine{bash\ close\_unmergeable\_prs\_script.sh\ abc\ \ \#\ Error:\ must\ be\ numeric}
+\DoxyCodeLine{bash\ close\_unmergeable\_prs\_script.sh\ \ \ \ \ \ \#\ Error:\ missing\ PR\ number}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3589}{}\doxysection{\texorpdfstring{Code Review Feedback Addressed}{Code Review Feedback Addressed}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3589}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{3}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Review Comment   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Implementation   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Status    }\\\cline{1-3}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Review Comment   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Implementation   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Status    }\\\cline{1-3}
+\endhead
+Check gh pr list errors   &Added error check + exit on failure   &✅    \\\cline{1-3}
+Check jq command errors   &Added error check + exit on failure   &✅    \\\cline{1-3}
+Verify file exists/non-\/empty   &Added check before loop   &✅    \\\cline{1-3}
+Check gh CLI installation   &Added at script start   &✅    \\\cline{1-3}
+Verify gh authentication   &Added at script start   &✅    \\\cline{1-3}
+Handle gh pr close errors   &Added error check + feedback   &✅    \\\cline{1-3}
+Validate PR number   &Added numeric validation   &✅   \\\cline{1-3}
+\end{longtabu}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3590}{}\doxysection{\texorpdfstring{Benefits}{Benefits}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio7980c3408a3e69c4348fd9158b7b7be3_autotoc_md3590}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{No silent failures}} -\/ All errors reported clearly
+\item {\bfseries{Early detection}} -\/ Prerequisites checked before operations
+\item {\bfseries{Clear feedback}} -\/ Users know exactly what went wrong
+\item {\bfseries{Graceful degradation}} -\/ Per-\/\+PR errors don\textquotesingle{}t stop batch processing
+\item {\bfseries{Clean execution}} -\/ Temporary files cleaned up automatically
+\item {\bfseries{Better UX}} -\/ Success/failure clearly communicated
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+
+
+Generated with \href{https://continue.dev}{\texttt{ Continue}} Co-\/authored by\+: mohavro \& Continue 

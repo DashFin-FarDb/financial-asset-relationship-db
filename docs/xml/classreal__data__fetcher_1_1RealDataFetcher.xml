@@ -1,0 +1,329 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classreal__data__fetcher_1_1RealDataFetcher" kind="class" language="Python" prot="public">
+    <compoundname>real_data_fetcher::RealDataFetcher</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>real_data_fetcher.RealDataFetcher::session</definition>
+        <argsstring></argsstring>
+        <name>session</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher.session</qualifiedname>
+        <initializer>=  None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="53" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="53" bodyend="-1"/>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1ab01080fef78b7cde4ea2bf1559dee657" compoundref="repository_8py" startline="91" endline="112">repository.AssetGraphRepository.add_or_update_relationship</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a31d383c88a9bb83ee25c1f341083469a" compoundref="repository_8py" startline="73" endline="79">repository.AssetGraphRepository.delete_asset</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1ae00505be5f83de4e0bc91dad884fe985" compoundref="repository_8py" startline="190" endline="196">repository.AssetGraphRepository.delete_regulatory_event</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a0c15fade3a98caed9f7dcbbad4684a0f" compoundref="repository_8py" startline="151" endline="162">repository.AssetGraphRepository.delete_relationship</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1ae4ad44450356c87ca3e01d514329ed10" compoundref="repository_8py" startline="130" endline="148">repository.AssetGraphRepository.get_relationship</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a643bab13cf5d00966bd8ecb14e7976fd" compoundref="repository_8py" startline="59" endline="66">repository.AssetGraphRepository.list_assets</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1ae6369a631980fecc91995581f95e670e" compoundref="repository_8py" startline="184" endline="189">repository.AssetGraphRepository.list_regulatory_events</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1aa2d6867e0880cbb281110f8a980ea407" compoundref="repository_8py" startline="113" endline="127">repository.AssetGraphRepository.list_relationships</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a3542b0569bba1d26891165b3d774f988" compoundref="repository_8py" startline="50" endline="58">repository.AssetGraphRepository.upsert_asset</referencedby>
+        <referencedby refid="classrepository_1_1AssetGraphRepository_1a943b595340df76d9cb349e932db683c4" compoundref="repository_8py" startline="166" endline="183">repository.AssetGraphRepository.upsert_regulatory_event</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="classreal__data__fetcher_1_1RealDataFetcher_1a54e951b8cd77f20a15791873a6c6c251" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>real_data_fetcher.RealDataFetcher::cache_path</definition>
+        <argsstring></argsstring>
+        <name>cache_path</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher.cache_path</qualifiedname>
+        <initializer>=  Path(cache_path) if cache_path else None</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="54" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="54" bodyend="-1"/>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="classreal__data__fetcher_1_1RealDataFetcher_1a19d8a5e39ab0918aafa3055c9561e12e" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>real_data_fetcher.RealDataFetcher::fallback_factory</definition>
+        <argsstring></argsstring>
+        <name>fallback_factory</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher.fallback_factory</qualifiedname>
+        <initializer>=  fallback_factory</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="55" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="55" bodyend="-1"/>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a02af871fd47c69a47316f98a338852bd" compoundref="real__data__fetcher_8py" startline="138" endline="155">real_data_fetcher.RealDataFetcher._fallback</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="classreal__data__fetcher_1_1RealDataFetcher_1aae0a0954804a2cdbff249219723ea468" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>real_data_fetcher.RealDataFetcher::enable_network</definition>
+        <argsstring></argsstring>
+        <name>enable_network</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher.enable_network</qualifiedname>
+        <initializer>=  enable_network</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="56" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="56" bodyend="-1"/>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classreal__data__fetcher_1_1RealDataFetcher_1afc2770e8add77e393fb5312b13e5d663" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>real_data_fetcher.RealDataFetcher.__init__</definition>
+        <argsstring>(self, *, Optional[str] cache_path=None, Optional[Callable[[], AssetRelationshipGraph]] fallback_factory=None, bool enable_network=True)</argsstring>
+        <name>__init__</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher.__init__</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>*</type>
+        </param>
+        <param>
+          <type>Optional</type>
+          <declname>cache_path</declname>
+          <array>[str]</array>
+          <defval>None</defval>
+        </param>
+        <param>
+          <type>Optional</type>
+          <defname>fallback_factory</defname>
+          <array>[Callable[[]</array>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref>]]</type>
+          <declname>fallback_factory</declname>
+          <defname>enable_network</defname>
+          <defval>None</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>enable_network</declname>
+          <defval>True</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Initialise the RealDataFetcher with optional cache, fallback and network controls.
+
+Parameters:
+    cache_path (Optional[str]): Path to a JSON cache file to load a
+        previously persisted AssetRelationshipGraph
+        from and to save the constructed graph to.
+        If omitted, no file-based caching is used.
+    fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
+        Callable that returns a fallback AssetRelationshipGraph to use
+        when network access is disabled or real-data fetch fails.
+        If omitted, the module&apos;s bundled sample dataset is used
+        as a fallback.
+    enable_network (bool):
+        Controls whether network access is permitted
+        for fetching live data.
+        When False, the fetcher will not attempt network calls
+        and will use the fallback dataset.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="27" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="33" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+        <definition> AssetRelationshipGraph real_data_fetcher.RealDataFetcher.create_real_database</definition>
+        <argsstring>(self)</argsstring>
+        <name>create_real_database</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher.create_real_database</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create an AssetRelationshipGraph populated with real financial data.
+Load from cache when available, otherwise fetch live data (if network
+is enabled), and fall back to the provided factory or sample data on
+network disablement or fetch failure.
+Persist the freshly built graph to cache when possible.
+
+Returns:
+    graph (AssetRelationshipGraph): The constructed graph containing
+        assets, regulatory events and relationships.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="58" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="58" bodyend="137"/>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a9cd5f5e7404e03b5b0cf41657a363b08" compoundref="real__data__fetcher_8py" startline="360" endline="405">real_data_fetcher.RealDataFetcher._create_regulatory_events</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a02af871fd47c69a47316f98a338852bd" compoundref="real__data__fetcher_8py" startline="138" endline="155">real_data_fetcher.RealDataFetcher._fallback</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a60db7c3d12d520782fc8fd3251d4c3e1" compoundref="real__data__fetcher_8py" startline="212" endline="267">real_data_fetcher.RealDataFetcher._fetch_bond_data</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a7bc07e5c8019a3c37a97856bf3a85086" compoundref="real__data__fetcher_8py" startline="269" endline="316">real_data_fetcher.RealDataFetcher._fetch_commodity_data</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a4d9154b41313c16038447fab3ea25441" compoundref="real__data__fetcher_8py" startline="318" endline="358">real_data_fetcher.RealDataFetcher._fetch_currency_data</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1ad74ac0bf89faaba50d6c6789f18ef6a3" compoundref="real__data__fetcher_8py" startline="157" endline="210">real_data_fetcher.RealDataFetcher._fetch_equity_data</references>
+        <references refid="namespacereal__data__fetcher_1a2710dfe9b01edbd77d126e04b9219f81" compoundref="real__data__fetcher_8py" startline="591" endline="605">real_data_fetcher._load_from_cache</references>
+        <references refid="namespacereal__data__fetcher_1a34a36a48285836a9ee924d54d668ac17" compoundref="real__data__fetcher_8py" startline="606" endline="623">real_data_fetcher._save_to_cache</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a54e951b8cd77f20a15791873a6c6c251" compoundref="real__data__fetcher_8py" startline="54">real_data_fetcher.RealDataFetcher.cache_path</references>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1aae0a0954804a2cdbff249219723ea468" compoundref="real__data__fetcher_8py" startline="56">real_data_fetcher.RealDataFetcher.enable_network</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="protected-func">
+      <memberdef kind="function" id="classreal__data__fetcher_1_1RealDataFetcher_1a02af871fd47c69a47316f98a338852bd" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+        <definition> AssetRelationshipGraph real_data_fetcher.RealDataFetcher._fallback</definition>
+        <argsstring>(self)</argsstring>
+        <name>_fallback</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher._fallback</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Selects a fallback AssetRelationshipGraph to use when real data cannot be
+fetched.
+If a `fallback_factory` was provided to the instance, this calls it and
+returns its result; otherwise it constructs and returns the built-
+in sample database.
+
+Returns:
+    An `AssetRelationshipGraph` instance either from the provided
+    fallback factory or from the module sample dataset.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="138" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="138" bodyend="155"/>
+        <references refid="classreal__data__fetcher_1_1RealDataFetcher_1a19d8a5e39ab0918aafa3055c9561e12e" compoundref="real__data__fetcher_8py" startline="55">real_data_fetcher.RealDataFetcher.fallback_factory</references>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="protected-static-func">
+      <memberdef kind="function" id="classreal__data__fetcher_1_1RealDataFetcher_1ad74ac0bf89faaba50d6c6789f18ef6a3" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Equity]</type>
+        <definition> List[Equity] real_data_fetcher.RealDataFetcher._fetch_equity_data</definition>
+        <argsstring>()</argsstring>
+        <name>_fetch_equity_data</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher._fetch_equity_data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Fetches current market data for a predefined set of major equities and
+returns them as Equity objects.
+
+Returns:
+    List[Equity]: Equity instances populated with market fields including
+        id, symbol, name, asset_class, sector, price, market_cap,
+        pe_ratio, dividend_yield, earnings_per_share and book_value.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="157" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="157" bodyend="210"/>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classreal__data__fetcher_1_1RealDataFetcher_1a60db7c3d12d520782fc8fd3251d4c3e1" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Bond]</type>
+        <definition> List[Bond] real_data_fetcher.RealDataFetcher._fetch_bond_data</definition>
+        <argsstring>()</argsstring>
+        <name>_fetch_bond_data</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher._fetch_bond_data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Fetch real bond/treasury data</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="212" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="212" bodyend="267"/>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classreal__data__fetcher_1_1RealDataFetcher_1a7bc07e5c8019a3c37a97856bf3a85086" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Commodity]</type>
+        <definition> List[Commodity] real_data_fetcher.RealDataFetcher._fetch_commodity_data</definition>
+        <argsstring>()</argsstring>
+        <name>_fetch_commodity_data</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher._fetch_commodity_data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Fetch real commodity data</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="269" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="269" bodyend="316"/>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classreal__data__fetcher_1_1RealDataFetcher_1a4d9154b41313c16038447fab3ea25441" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Currency]</type>
+        <definition> List[Currency] real_data_fetcher.RealDataFetcher._fetch_currency_data</definition>
+        <argsstring>()</argsstring>
+        <name>_fetch_currency_data</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher._fetch_currency_data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Fetch real currency exchange rate data</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="318" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="318" bodyend="358"/>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classreal__data__fetcher_1_1RealDataFetcher_1a9cd5f5e7404e03b5b0cf41657a363b08" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[RegulatoryEvent]</type>
+        <definition> List[RegulatoryEvent] real_data_fetcher.RealDataFetcher._create_regulatory_events</definition>
+        <argsstring>()</argsstring>
+        <name>_create_regulatory_events</name>
+        <qualifiedname>real_data_fetcher.RealDataFetcher._create_regulatory_events</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create realistic regulatory events for the fetched assets</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="360" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="360" bodyend="405"/>
+        <referencedby refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" compoundref="real__data__fetcher_8py" startline="58" endline="137">real_data_fetcher.RealDataFetcher.create_real_database</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Fetches real financial data from Yahoo Finance and other sources</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>real_data_fetcher.RealDataFetcher</label>
+        <link refid="classreal__data__fetcher_1_1RealDataFetcher"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" line="24" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/data/real_data_fetcher.py" bodystart="24" bodyend="405"/>
+    <listofallmembers>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1afc2770e8add77e393fb5312b13e5d663" prot="public" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>__init__</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1a9cd5f5e7404e03b5b0cf41657a363b08" prot="protected" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>_create_regulatory_events</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1a02af871fd47c69a47316f98a338852bd" prot="protected" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>_fallback</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1a60db7c3d12d520782fc8fd3251d4c3e1" prot="protected" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>_fetch_bond_data</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1a7bc07e5c8019a3c37a97856bf3a85086" prot="protected" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>_fetch_commodity_data</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1a4d9154b41313c16038447fab3ea25441" prot="protected" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>_fetch_currency_data</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1ad74ac0bf89faaba50d6c6789f18ef6a3" prot="protected" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>_fetch_equity_data</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1a54e951b8cd77f20a15791873a6c6c251" prot="public" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>cache_path</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a0b50ea3d53d8cd924fe836f2e15f3e" prot="public" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>create_real_database</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1aae0a0954804a2cdbff249219723ea468" prot="public" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>enable_network</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1a19d8a5e39ab0918aafa3055c9561e12e" prot="public" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>fallback_factory</name></member>
+      <member refid="classreal__data__fetcher_1_1RealDataFetcher_1a9a47a0eca11cf2ffbbf3c3b331c1138f" prot="public" virt="non-virtual"><scope>real_data_fetcher::RealDataFetcher</scope><name>session</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

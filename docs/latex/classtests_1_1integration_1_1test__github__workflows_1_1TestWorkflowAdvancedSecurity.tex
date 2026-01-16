@@ -1,0 +1,71 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Advanced\+Security Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity}\index{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity@{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Advanced\+Security\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_a52d062b6849ff3ced21a955ecb4a654c}{test\+\_\+no\+\_\+environment\+\_\+variable\+\_\+injection}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_aebcd0ad2826c2d435c40dce18156d178}{test\+\_\+no\+\_\+script\+\_\+injection\+\_\+in\+\_\+run\+\_\+commands}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_affa94276d450c3b2b200a0366924651a}{test\+\_\+secrets\+\_\+not\+\_\+echoed\+\_\+to\+\_\+logs}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_ae7e3155c86c82920fd919e613e49a5f0}{test\+\_\+no\+\_\+curl\+\_\+with\+\_\+user\+\_\+input}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Advanced security tests for workflow files with bias for action.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_ae7e3155c86c82920fd919e613e49a5f0}\index{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity@{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity}!test\_no\_curl\_with\_user\_input@{test\_no\_curl\_with\_user\_input}}
+\index{test\_no\_curl\_with\_user\_input@{test\_no\_curl\_with\_user\_input}!tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity@{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity}}
+\doxysubsubsection{\texorpdfstring{test\_no\_curl\_with\_user\_input()}{test\_no\_curl\_with\_user\_input()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_ae7e3155c86c82920fd919e613e49a5f0} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Advanced\+Security.\+test\+\_\+no\+\_\+curl\+\_\+with\+\_\+user\+\_\+input (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that curl commands don't use untrusted user input.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_a52d062b6849ff3ced21a955ecb4a654c}\index{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity@{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity}!test\_no\_environment\_variable\_injection@{test\_no\_environment\_variable\_injection}}
+\index{test\_no\_environment\_variable\_injection@{test\_no\_environment\_variable\_injection}!tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity@{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity}}
+\doxysubsubsection{\texorpdfstring{test\_no\_environment\_variable\_injection()}{test\_no\_environment\_variable\_injection()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_a52d062b6849ff3ced21a955ecb4a654c} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Advanced\+Security.\+test\+\_\+no\+\_\+environment\+\_\+variable\+\_\+injection (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that workflows don't have potential env injection vulnerabilities.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_aebcd0ad2826c2d435c40dce18156d178}\index{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity@{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity}!test\_no\_script\_injection\_in\_run\_commands@{test\_no\_script\_injection\_in\_run\_commands}}
+\index{test\_no\_script\_injection\_in\_run\_commands@{test\_no\_script\_injection\_in\_run\_commands}!tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity@{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity}}
+\doxysubsubsection{\texorpdfstring{test\_no\_script\_injection\_in\_run\_commands()}{test\_no\_script\_injection\_in\_run\_commands()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_aebcd0ad2826c2d435c40dce18156d178} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Advanced\+Security.\+test\+\_\+no\+\_\+script\+\_\+injection\+\_\+in\+\_\+run\+\_\+commands (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that run commands don't have dangerous patterns.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_aebcd0ad2826c2d435c40dce18156d178_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_affa94276d450c3b2b200a0366924651a}\index{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity@{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity}!test\_secrets\_not\_echoed\_to\_logs@{test\_secrets\_not\_echoed\_to\_logs}}
+\index{test\_secrets\_not\_echoed\_to\_logs@{test\_secrets\_not\_echoed\_to\_logs}!tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity@{tests.integration.test\_github\_workflows.TestWorkflowAdvancedSecurity}}
+\doxysubsubsection{\texorpdfstring{test\_secrets\_not\_echoed\_to\_logs()}{test\_secrets\_not\_echoed\_to\_logs()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowAdvancedSecurity_affa94276d450c3b2b200a0366924651a} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Advanced\+Security.\+test\+\_\+secrets\+\_\+not\+\_\+echoed\+\_\+to\+\_\+logs (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that secrets aren't accidentally printed to logs.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

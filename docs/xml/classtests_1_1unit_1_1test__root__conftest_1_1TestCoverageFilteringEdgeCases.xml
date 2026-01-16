@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a4a8a6645cf3262819eaddedf4a5692af" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_flag_at_end_with_no_value</definition>
+        <argsstring>()</argsstring>
+        <name>test_handles_cov_flag_at_end_with_no_value</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_flag_at_end_with_no_value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that --cov at the end without value doesn&apos;t cause index error.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="201" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="201" bodyend="212"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a1aefac2e1996b70a5138c7a99ada09bf" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_report_at_end_with_no_value</definition>
+        <argsstring>()</argsstring>
+        <name>test_handles_cov_report_at_end_with_no_value</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_report_at_end_with_no_value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that --cov-report at the end without value doesn&apos;t cause index error.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="214" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="214" bodyend="225"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1aab14eb5cb2f1b34b39b2336c87ac4a8c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_consecutive_coverage_flags</definition>
+        <argsstring>()</argsstring>
+        <name>test_handles_consecutive_coverage_flags</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_consecutive_coverage_flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of consecutive coverage flags.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="227" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="227" bodyend="237"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a154fdde32fd4cda2d02ad88e1fb680a4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_preserves_similar_but_different_flags</definition>
+        <argsstring>()</argsstring>
+        <name>test_preserves_similar_but_different_flags</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_preserves_similar_but_different_flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that flags similar to coverage flags are not removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="239" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="239" bodyend="256"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a5b96abd9e3e492ad0a50480b9fd5ff22" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_in_test_path</definition>
+        <argsstring>()</argsstring>
+        <name>test_handles_cov_in_test_path</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_in_test_path</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that &apos;cov&apos; in test paths doesn&apos;t cause issues.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="258" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="258" bodyend="270"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a57b56cd4326d60bd67a029f9115e2142" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_mixed_equals_and_space_syntax</definition>
+        <argsstring>()</argsstring>
+        <name>test_handles_mixed_equals_and_space_syntax</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_mixed_equals_and_space_syntax</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of mixed --flag=value and --flag value syntax.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="272" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="272" bodyend="290"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a54e76345fbf87ec28d17d14bd4ce53c7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_flags_with_complex_values</definition>
+        <argsstring>()</argsstring>
+        <name>test_handles_cov_flags_with_complex_values</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_flags_with_complex_values</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of coverage flags with complex path values.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="292" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="292" bodyend="306"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a03d050747ba55dc24aefb067b3b773b3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_skip_next_flag_resets_correctly</definition>
+        <argsstring>()</argsstring>
+        <name>test_skip_next_flag_resets_correctly</name>
+        <qualifiedname>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_skip_next_flag_resets_correctly</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that skip_next flag resets after skipping one value.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="308" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="308" bodyend="320"/>
+        <references refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">conftest.pytest_load_initial_conftests</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases and boundary conditions for coverage flag filtering.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases</label>
+        <link refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" line="197" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_root_conftest.py" bodystart="197" bodyend="320"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1aab14eb5cb2f1b34b39b2336c87ac4a8c" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</scope><name>test_handles_consecutive_coverage_flags</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a4a8a6645cf3262819eaddedf4a5692af" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</scope><name>test_handles_cov_flag_at_end_with_no_value</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a54e76345fbf87ec28d17d14bd4ce53c7" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</scope><name>test_handles_cov_flags_with_complex_values</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a5b96abd9e3e492ad0a50480b9fd5ff22" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</scope><name>test_handles_cov_in_test_path</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a1aefac2e1996b70a5138c7a99ada09bf" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</scope><name>test_handles_cov_report_at_end_with_no_value</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a57b56cd4326d60bd67a029f9115e2142" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</scope><name>test_handles_mixed_equals_and_space_syntax</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a154fdde32fd4cda2d02ad88e1fb680a4" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</scope><name>test_preserves_similar_but_different_flags</name></member>
+      <member refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a03d050747ba55dc24aefb067b3b773b3" prot="public" virt="non-virtual"><scope>tests::unit::test_root_conftest::TestCoverageFilteringEdgeCases</scope><name>test_skip_next_flag_resets_correctly</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

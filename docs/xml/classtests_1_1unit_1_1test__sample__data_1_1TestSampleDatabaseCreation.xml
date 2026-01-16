@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_sample_data::TestSampleDatabaseCreation</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1ab4aa8bc1fc2590b66ff7c6b8ce268e3e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_create_sample_database_returns_graph</definition>
+        <argsstring>()</argsstring>
+        <name>test_create_sample_database_returns_graph</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_create_sample_database_returns_graph</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that create_sample_database returns an AssetRelationshipGraph.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="19" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="19" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1ac7144c3cb26fa8f31ef4632d8ec2cfbc" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_multiple_assets</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_has_multiple_assets</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_multiple_assets</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database contains multiple assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="27" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="27" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1a80c74522f77dde258d74779b1217f604" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_all_asset_classes</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_has_all_asset_classes</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_all_asset_classes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database includes all asset classes.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="33" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="33" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1ac23e99a0bd6f429b45795e9df9b87f2e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_technology_equities</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_has_technology_equities</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_technology_equities</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database includes technology equities.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="47" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="47" bodyend="56"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1a91146eb2392afb3912a92a38812173ad" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_bonds</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_has_bonds</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_bonds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database includes bond assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="58" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="58" bodyend="64"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1aaad9eea771abb4c8c48fada939cbc846" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_commodities</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_has_commodities</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_commodities</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database includes commodity assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="66" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="66" bodyend="72"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1a4890d5442eb29f49f229c9174174c9e8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_currencies</definition>
+        <argsstring>()</argsstring>
+        <name>test_sample_database_has_currencies</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDatabaseCreation.test_sample_database_has_currencies</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that sample database includes currency assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="74" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="74" bodyend="81"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for sample database creation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_sample_data.TestSampleDatabaseCreation</label>
+        <link refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="15" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="15" bodyend="81"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1ab4aa8bc1fc2590b66ff7c6b8ce268e3e" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseCreation</scope><name>test_create_sample_database_returns_graph</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1a80c74522f77dde258d74779b1217f604" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseCreation</scope><name>test_sample_database_has_all_asset_classes</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1a91146eb2392afb3912a92a38812173ad" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseCreation</scope><name>test_sample_database_has_bonds</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1aaad9eea771abb4c8c48fada939cbc846" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseCreation</scope><name>test_sample_database_has_commodities</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1a4890d5442eb29f49f229c9174174c9e8" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseCreation</scope><name>test_sample_database_has_currencies</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1ac7144c3cb26fa8f31ef4632d8ec2cfbc" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseCreation</scope><name>test_sample_database_has_multiple_assets</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDatabaseCreation_1ac23e99a0bd6f429b45795e9df9b87f2e" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDatabaseCreation</scope><name>test_sample_database_has_technology_equities</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

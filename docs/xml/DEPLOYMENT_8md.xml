@@ -1,0 +1,298 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="DEPLOYMENT_8md" kind="file" language="Markdown">
+    <compoundname>DEPLOYMENT.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Deployment<sp/>Guide<sp/>-<sp/>Vercel<sp/>Next.js<sp/>Integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>guide<sp/>explains<sp/>how<sp/>to<sp/>deploy<sp/>the<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database<sp/>with<sp/>a<sp/>Next.js<sp/>frontend<sp/>on<sp/>Vercel.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Architecture<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>application<sp/>now<sp/>consists<sp/>of<sp/>two<sp/>main<sp/>components:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Backend<sp/>API**<sp/>(`/api`):<sp/>FastAPI<sp/>server<sp/>that<sp/>provides<sp/>REST<sp/>endpoints<sp/>for<sp/>the<sp/>asset<sp/>relationship<sp/>graph</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Frontend**<sp/>(`/frontend`):<sp/>Next.js<sp/>application<sp/>with<sp/>React<sp/>components<sp/>for<sp/>visualization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Local<sp/>Development</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Prerequisites</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Python<sp/>3.8+</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Node.js<sp/>18+<sp/>and<sp/>npm</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Virtual<sp/>environment<sp/>(recommended<sp/>for<sp/>Python)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Backend<sp/>Setup</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Create<sp/>and<sp/>activate<sp/>Python<sp/>virtual<sp/>environment:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>source<sp/>.venv/bin/activate<sp/><sp/>#<sp/>On<sp/>Windows:<sp/>.venv\Scripts\activate</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Install<sp/>Python<sp/>dependencies:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Run<sp/>the<sp/>FastAPI<sp/>backend:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>python<sp/>-m<sp/>uvicorn<sp/>api.main:app<sp/>--reload<sp/>--host<sp/>0.0.0.0<sp/>--port<sp/>8000</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>The<sp/>API<sp/>will<sp/>be<sp/>available<sp/>at<sp/>`http://localhost:8000`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>API<sp/>documentation:<sp/>`http://localhost:8000/docs`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Health<sp/>check:<sp/>`http://localhost:8000/api/health`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>Setup</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Navigate<sp/>to<sp/>the<sp/>frontend<sp/>directory:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Install<sp/>Node.js<sp/>dependencies:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**(Optional)<sp/>Create<sp/>environment<sp/>file:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>Copy<sp/>the<sp/>environment<sp/>template:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>cp<sp/>../.env.example<sp/>.env.local</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Run<sp/>the<sp/>Next.js<sp/>development<sp/>server:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>npm<sp/>run<sp/>dev</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>The<sp/>frontend<sp/>will<sp/>be<sp/>available<sp/>at<sp/>`http://localhost:3000`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Development<sp/>Workflow</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">With<sp/>both<sp/>servers<sp/>running:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Frontend:<sp/>`http://localhost:3000`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Backend<sp/>API:<sp/>`http://localhost:8000`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>API<sp/>Docs:<sp/>`http://localhost:8000/docs`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>frontend<sp/>automatically<sp/>connects<sp/>to<sp/>the<sp/>backend<sp/>API<sp/>on<sp/>port<sp/>8000.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Vercel<sp/>Deployment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>1:<sp/>Deploy<sp/>via<sp/>Vercel<sp/>CLI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Install<sp/>Vercel<sp/>CLI:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>npm<sp/>install<sp/>-g<sp/>vercel</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Login<sp/>to<sp/>Vercel:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>vercel<sp/>login</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Deploy<sp/>from<sp/>the<sp/>project<sp/>root:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>vercel</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**Follow<sp/>the<sp/>prompts<sp/>to<sp/>configure<sp/>your<sp/>project**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Option<sp/>2:<sp/>Deploy<sp/>via<sp/>GitHub<sp/>Integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Push<sp/>your<sp/>code<sp/>to<sp/>GitHub:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>git<sp/>add<sp/>.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>git<sp/>commit<sp/>-m<sp/>&quot;Add<sp/>Vercel<sp/>Next.js<sp/>integration&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>git<sp/>push<sp/>origin<sp/>main</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Connect<sp/>to<sp/>Vercel:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Go<sp/>to<sp/>[vercel.com](https://vercel.com)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Click<sp/>&quot;New<sp/>Project&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Import<sp/>your<sp/>GitHub<sp/>repository</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Vercel<sp/>will<sp/>automatically<sp/>detect<sp/>the<sp/>Next.js<sp/>app</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Configure<sp/>environment<sp/>variables<sp/>in<sp/>Vercel<sp/>dashboard:**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>`NEXT_PUBLIC_API_URL`:<sp/>Set<sp/>to<sp/>your<sp/>deployed<sp/>API<sp/>URL<sp/>(e.g.,<sp/>`https://your-project.vercel.app`)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Project<sp/>Structure<sp/>for<sp/>Vercel</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">.</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>api/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>FastAPI<sp/>backend</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>__init__.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>main.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>API<sp/>entry<sp/>point</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>frontend/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Next.js<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>app/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>components/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>lib/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>types/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>layout.tsx</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>page.tsx</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>package.json</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>tsconfig.json</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>next.config.js</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>src/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Python<sp/>source<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements.txt<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Python<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>vercel.json<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Vercel<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>DEPLOYMENT.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>This<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>API<sp/>Endpoints</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>FastAPI<sp/>backend<sp/>exposes<sp/>the<sp/>following<sp/>endpoints:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Core<sp/>Endpoints</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/`<sp/>-<sp/>API<sp/>information</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/health`<sp/>-<sp/>Health<sp/>check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Assets</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/assets`<sp/>-<sp/>Get<sp/>all<sp/>assets<sp/>(with<sp/>optional<sp/>filters)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Query<sp/>params:<sp/>`asset_class`,<sp/>`sector`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/assets/{asset_id}`<sp/>-<sp/>Get<sp/>asset<sp/>details</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/assets/{asset_id}/relationships`<sp/>-<sp/>Get<sp/>asset<sp/>relationships</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Relationships</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/relationships`<sp/>-<sp/>Get<sp/>all<sp/>relationships</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Metrics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/metrics`<sp/>-<sp/>Get<sp/>network<sp/>metrics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Visualization</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/visualization`<sp/>-<sp/>Get<sp/>3D<sp/>visualization<sp/>data</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Metadata</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/asset-classes`<sp/>-<sp/>Get<sp/>available<sp/>asset<sp/>classes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`GET<sp/>/api/sectors`<sp/>-<sp/>Get<sp/>available<sp/>sectors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Frontend<sp/>Features</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>Next.js<sp/>frontend<sp/>includes:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**3D<sp/>Visualization<sp/>Tab**:<sp/>Interactive<sp/>3D<sp/>network<sp/>graph<sp/>using<sp/>Plotly</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Metrics<sp/>&amp;<sp/>Analytics<sp/>Tab**:<sp/>Dashboard<sp/>with<sp/>key<sp/>network<sp/>statistics</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Asset<sp/>Explorer<sp/>Tab**:<sp/>Filterable<sp/>table<sp/>of<sp/>all<sp/>assets</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Environment<sp/>Variables</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Frontend<sp/>(.env.local)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">NEXT_PUBLIC_API_URL=http://localhost:8000</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>production<sp/>on<sp/>Vercel,<sp/>set<sp/>this<sp/>in<sp/>the<sp/>Vercel<sp/>dashboard:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Troubleshooting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>CORS<sp/>Issues</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">If<sp/>you<sp/>encounter<sp/>CORS<sp/>errors,<sp/>ensure<sp/>the<sp/>FastAPI<sp/>backend<sp/>has<sp/>the<sp/>correct<sp/>origins<sp/>configured<sp/>in<sp/>`api/main.py`:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```python</highlight></codeline>
+<codeline><highlight class="normal">app.add_middleware(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CORSMiddleware,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_origins=[&quot;http://localhost:3000&quot;,<sp/>&quot;https://*.vercel.app&quot;],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>...</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>API<sp/>Connection<sp/>Errors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Check<sp/>that<sp/>the<sp/>backend<sp/>is<sp/>running:<sp/>`curl<sp/>http://localhost:8000/api/health`</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Verify<sp/>the<sp/>`NEXT_PUBLIC_API_URL`<sp/>environment<sp/>variable</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Check<sp/>browser<sp/>console<sp/>for<sp/>detailed<sp/>error<sp/>messages</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Build<sp/>Errors</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>frontend<sp/>build<sp/>issues:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">rm<sp/>-rf<sp/>.next<sp/>node_modules</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>build</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>backend<sp/>issues:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>--upgrade<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Monitoring<sp/>and<sp/>Logs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Local<sp/>Development</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Backend<sp/>logs:<sp/>Visible<sp/>in<sp/>the<sp/>terminal<sp/>where<sp/>`uvicorn`<sp/>is<sp/>running</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Frontend<sp/>logs:<sp/>Visible<sp/>in<sp/>the<sp/>browser<sp/>console<sp/>and<sp/>terminal</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Vercel<sp/>Production</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>View<sp/>logs<sp/>in<sp/>the<sp/>Vercel<sp/>dashboard<sp/>under<sp/>your<sp/>project</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Real-time<sp/>logs:<sp/>`vercel<sp/>logs`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Function<sp/>logs:<sp/>Available<sp/>in<sp/>the<sp/>&quot;Functions&quot;<sp/>tab</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Performance<sp/>Considerations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Cold<sp/>Starts**:<sp/>First<sp/>API<sp/>request<sp/>may<sp/>be<sp/>slower<sp/>due<sp/>to<sp/>serverless<sp/>cold<sp/>starts</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Data<sp/>Caching**:<sp/>The<sp/>API<sp/>initializes<sp/>the<sp/>graph<sp/>on<sp/>first<sp/>request<sp/>and<sp/>keeps<sp/>it<sp/>in<sp/>memory</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Lambda<sp/>Size**:<sp/>Vercel<sp/>Python<sp/>functions<sp/>have<sp/>a<sp/>50MB<sp/>limit<sp/>(configured<sp/>in<sp/>vercel.json)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Scaling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>production<sp/>deployments<sp/>with<sp/>higher<sp/>traffic:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Consider<sp/>using<sp/>Vercel&apos;s<sp/>Edge<sp/>Functions<sp/>for<sp/>the<sp/>API</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Implement<sp/>caching<sp/>for<sp/>frequently<sp/>accessed<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Use<sp/>a<sp/>persistent<sp/>database<sp/>instead<sp/>of<sp/>in-memory<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Add<sp/>Redis<sp/>for<sp/>session/state<sp/>management</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Security</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Add<sp/>authentication/authorization<sp/>if<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Rate<sp/>limiting<sp/>for<sp/>API<sp/>endpoints</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Validate<sp/>all<sp/>input<sp/>data</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Use<sp/>HTTPS<sp/>in<sp/>production</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>Set<sp/>up<sp/>CORS<sp/>properly<sp/>for<sp/>your<sp/>domain</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Additional<sp/>Resources</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[Next.js<sp/>Documentation](https://nextjs.org/docs)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[FastAPI<sp/>Documentation](https://fastapi.tiangolo.com/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Vercel<sp/>Documentation](https://vercel.com/docs)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Plotly<sp/>React<sp/>Documentation](https://plotly.com/javascript/react/)</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/DEPLOYMENT.md"/>
+  </compounddef>
+</doxygen>

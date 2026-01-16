@@ -1,0 +1,442 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE</compoundname>
+    <title>Comprehensive Testing Guide</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5510"/></para>
+<para>This document provides an overview of all unit tests generated for the Financial Asset Relationship Database project.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5511">
+<title>Overview</title><para>Comprehensive test coverage has been generated for the Next.js + FastAPI integration, covering both backend and frontend components with over <bold>140+ test cases</bold>.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5512">
+<title>Test Statistics</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5513">
+<title>Backend (Python)</title><para><itemizedlist>
+<listitem><para><bold>Total Test Files</bold>: 3 (new)</para>
+</listitem><listitem><para><bold>Total Test Cases</bold>: 60+ tests</para>
+</listitem><listitem><para><bold>Lines of Test Code</bold>: ~1,042 lines</para>
+</listitem><listitem><para><bold>Coverage Areas</bold>: API endpoints, CORS, configuration validation</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5514">
+<title>Frontend (TypeScript/React)</title><para><itemizedlist>
+<listitem><para><bold>Total Test Files</bold>: 5</para>
+</listitem><listitem><para><bold>Total Test Cases</bold>: 80+ tests</para>
+</listitem><listitem><para><bold>Lines of Test Code</bold>: ~937 lines</para>
+</listitem><listitem><para><bold>Coverage Areas</bold>: API client, React components, user interactions</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5515">
+<title>Grand Total</title><para><itemizedlist>
+<listitem><para><bold>Test Files</bold>: 8</para>
+</listitem><listitem><para><bold>Test Cases</bold>: 140+</para>
+</listitem><listitem><para><bold>Lines of Test Code</bold>: ~1,979 lines</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5516">
+<title>Test Files</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5517">
+<title>Backend Tests (Python)</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5518">
+<title>1. <computeroutput>tests/unit/test_api_main.py</computeroutput> (563 lines)</title><para><bold>Purpose</bold>: Comprehensive tests for the FastAPI backend (<computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput>)</para>
+<para><bold>Test Coverage</bold>:</para>
+<para><itemizedlist>
+<listitem><para>✅ CORS configuration and origin validation</para>
+</listitem><listitem><para>✅ Thread-safe graph initialization</para>
+</listitem><listitem><para>✅ All API endpoints (root, health, assets, relationships, metrics, visualization)</para>
+</listitem><listitem><para>✅ Query parameter handling and filtering</para>
+</listitem><listitem><para>✅ Pydantic model validation</para>
+</listitem><listitem><para>✅ Error handling (404, 500, malformed requests)</para>
+</listitem><listitem><para>✅ Concurrent request handling</para>
+</listitem><listitem><para>✅ Metadata endpoints (asset classes, sectors)</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Key Test Classes</bold>:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>TestValidateOrigin</computeroutput> - CORS security validation</para>
+</listitem><listitem><para><computeroutput>TestGetGraph</computeroutput> - Singleton pattern and thread safety</para>
+</listitem><listitem><para><computeroutput>TestAssetsEndpoint</computeroutput> - Asset retrieval and filtering</para>
+</listitem><listitem><para><computeroutput>TestRelationshipsEndpoint</computeroutput> - Relationship queries</para>
+</listitem><listitem><para><computeroutput>TestMetricsEndpoint</computeroutput> - Network metrics calculation</para>
+</listitem><listitem><para><computeroutput>TestVisualizationEndpoint</computeroutput> - 3D visualization data</para>
+</listitem><listitem><para><computeroutput>TestConcurrency</computeroutput> - Multi-threaded operations</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Run</bold>: <computeroutput>pytest <ref refid="test__api__main_8py" kindref="compound">tests/unit/test_api_main.py</ref> -v</computeroutput></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5519">
+<title>2. <computeroutput>tests/unit/test_config_validation.py</computeroutput> (454 lines)</title><para><bold>Purpose</bold>: Validate all configuration files in the project</para>
+<para><bold>Test Coverage</bold>:</para>
+<para><itemizedlist>
+<listitem><para>✅ <computeroutput>vercel.json</computeroutput> - Vercel deployment configuration</para>
+</listitem><listitem><para>✅ <computeroutput>frontend/package.json</computeroutput> - NPM dependencies and scripts</para>
+</listitem><listitem><para>✅ <computeroutput>frontend/tsconfig.json</computeroutput> - TypeScript compiler options</para>
+</listitem><listitem><para>✅ <computeroutput>frontend/tailwind.config.js</computeroutput> - Tailwind CSS setup</para>
+</listitem><listitem><para>✅ <computeroutput>.env.example</computeroutput> - Environment variables documentation</para>
+</listitem><listitem><para>✅ <computeroutput>.gitignore</computeroutput> - Version control exclusions</para>
+</listitem><listitem><para>✅ <computeroutput>requirements.txt</computeroutput> - Python dependencies</para>
+</listitem><listitem><para>✅ Configuration consistency checks</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Key Test Classes</bold>:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>TestVercelConfig</computeroutput> - Build and route configuration</para>
+</listitem><listitem><para><computeroutput>TestNextConfig</computeroutput> - Next.js framework settings</para>
+</listitem><listitem><para><computeroutput>TestPackageJson</computeroutput> - Dependencies and scripts</para>
+</listitem><listitem><para><computeroutput>TestTSConfig</computeroutput> - TypeScript configuration</para>
+</listitem><listitem><para><computeroutput>TestRequirementsTxt</computeroutput> - Python package validation</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Run</bold>: <computeroutput>pytest <ref refid="test__config__validation_8py" kindref="compound">tests/unit/test_config_validation.py</ref> -v</computeroutput></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5520">
+<title>3. <computeroutput>tests/unit/test_configs.py</computeroutput> (25 lines)</title><para><bold>Purpose</bold>: Basic JSON syntax validation for configuration files</para>
+<para><bold>Test Coverage</bold>:</para>
+<para><itemizedlist>
+<listitem><para>✅ <computeroutput>vercel.json</computeroutput> valid JSON</para>
+</listitem><listitem><para>✅ <computeroutput>package.json</computeroutput> valid JSON</para>
+</listitem><listitem><para>✅ <computeroutput>tsconfig.json</computeroutput> valid JSON</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Run</bold>: <computeroutput>pytest tests/unit/test_configs.py -v</computeroutput></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5521">
+<title>Frontend Tests (TypeScript/React)</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5522">
+<title>1. <computeroutput>frontend/__tests__/lib/api.test.ts</computeroutput> (552 lines)</title><para><bold>Purpose</bold>: Comprehensive tests for the API client library (<computeroutput>app/lib/api.ts</computeroutput>)</para>
+<para><bold>Test Coverage</bold>:</para>
+<para><itemizedlist>
+<listitem><para>✅ Axios client configuration</para>
+</listitem><listitem><para>✅ Health check endpoint</para>
+</listitem><listitem><para>✅ Asset retrieval with filtering (class, sector, combined)</para>
+</listitem><listitem><para>✅ Asset detail queries</para>
+</listitem><listitem><para>✅ Relationship queries</para>
+</listitem><listitem><para>✅ Network metrics</para>
+</listitem><listitem><para>✅ Visualization data</para>
+</listitem><listitem><para>✅ Metadata endpoints</para>
+</listitem><listitem><para>✅ Error handling (network, HTTP, timeout)</para>
+</listitem><listitem><para>✅ Response validation</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Key Test Suites</bold>:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>Client Configuration</computeroutput> - Axios setup and environment variables</para>
+</listitem><listitem><para><computeroutput>healthCheck</computeroutput> - API health monitoring</para>
+</listitem><listitem><para><computeroutput>getAssets</computeroutput> - Asset list with filters</para>
+</listitem><listitem><para><computeroutput>getAssetDetail</computeroutput> - Individual asset data</para>
+</listitem><listitem><para><computeroutput>getAllRelationships</computeroutput> - Relationship graph data</para>
+</listitem><listitem><para><computeroutput>getMetrics</computeroutput> - Network statistics</para>
+</listitem><listitem><para><computeroutput>getVisualizationData</computeroutput> - 3D graph data</para>
+</listitem><listitem><para><computeroutput>Error Handling</computeroutput> - Resilience testing</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Run</bold>: <computeroutput>cd frontend &amp;&amp; npm test -- api.test.ts</computeroutput></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5523">
+<title>2. <computeroutput>frontend/__tests__/components/AssetList.test.tsx</computeroutput> (102 lines)</title><para><bold>Purpose</bold>: Tests for the AssetList component</para>
+<para><bold>Test Coverage</bold>:</para>
+<para><itemizedlist>
+<listitem><para>✅ Component rendering (filters, table headers)</para>
+</listitem><listitem><para>✅ Data loading from API</para>
+</listitem><listitem><para>✅ Filter functionality (asset class, sector, combined)</para>
+</listitem><listitem><para>✅ Asset display (symbols, names, prices, market caps)</para>
+</listitem><listitem><para>✅ Empty states</para>
+</listitem><listitem><para>✅ Error handling</para>
+</listitem><listitem><para>✅ Accessibility (labels, table structure)</para>
+</listitem><listitem><para>✅ Performance (useCallback optimization)</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Key Test Areas</bold>:</para>
+<para><itemizedlist>
+<listitem><para>Component Rendering</para>
+</listitem><listitem><para>Data Loading</para>
+</listitem><listitem><para>Filter Functionality</para>
+</listitem><listitem><para>Asset Display</para>
+</listitem><listitem><para>Empty States</para>
+</listitem><listitem><para>Error Handling</para>
+</listitem><listitem><para>Accessibility</para>
+</listitem><listitem><para>Performance</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Run</bold>: <computeroutput>cd frontend &amp;&amp; npm test -- AssetList.test.tsx</computeroutput></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5524">
+<title>3. <computeroutput>frontend/__tests__/components/MetricsDashboard.test.tsx</computeroutput> (73 lines)</title><para><bold>Purpose</bold>: Tests for the MetricsDashboard component</para>
+<para><bold>Test Coverage</bold>:</para>
+<para><itemizedlist>
+<listitem><para>✅ Metric card rendering</para>
+</listitem><listitem><para>✅ Data formatting (percentages, decimals)</para>
+</listitem><listitem><para>✅ Zero value handling</para>
+</listitem><listitem><para>✅ Large number handling</para>
+</listitem><listitem><para>✅ Asset class breakdown display</para>
+</listitem><listitem><para>✅ Visual styling consistency</para>
+</listitem><listitem><para>✅ Edge cases (negative values, empty data)</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Key Test Areas</bold>:</para>
+<para><itemizedlist>
+<listitem><para>Component Rendering</para>
+</listitem><listitem><para>Total Assets Display</para>
+</listitem><listitem><para>Total Relationships Display</para>
+</listitem><listitem><para>Network Density Display</para>
+</listitem><listitem><para>Average Degree Display</para>
+</listitem><listitem><para>Max Degree Display</para>
+</listitem><listitem><para>Asset Classes Display</para>
+</listitem><listitem><para>Visual Styling</para>
+</listitem><listitem><para>Edge Cases</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Run</bold>: <computeroutput>cd frontend &amp;&amp; npm test -- MetricsDashboard.test.tsx</computeroutput></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5525">
+<title>4. <computeroutput>frontend/__tests__/components/NetworkVisualization.test.tsx</computeroutput> (89 lines)</title><para><bold>Purpose</bold>: Tests for the NetworkVisualization component</para>
+<para><bold>Test Coverage</bold>:</para>
+<para><itemizedlist>
+<listitem><para>✅ Component rendering and loading states</para>
+</listitem><listitem><para>✅ Node data processing (coordinates, colors, sizes)</para>
+</listitem><listitem><para>✅ Edge data processing (connections, strength, styling)</para>
+</listitem><listitem><para>✅ Plotly configuration (3D scene, camera, layout)</para>
+</listitem><listitem><para>✅ Empty data handling</para>
+</listitem><listitem><para>✅ Data updates and re-rendering</para>
+</listitem><listitem><para>✅ Edge cases (single node, large datasets, negative coords)</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Key Test Areas</bold>:</para>
+<para><itemizedlist>
+<listitem><para>Component Rendering</para>
+</listitem><listitem><para>Node Data Processing</para>
+</listitem><listitem><para>Edge Data Processing</para>
+</listitem><listitem><para>Plot Configuration</para>
+</listitem><listitem><para>Empty Data Handling</para>
+</listitem><listitem><para>Data Updates</para>
+</listitem><listitem><para>Edge Cases</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Run</bold>: <computeroutput>cd frontend &amp;&amp; npm test -- NetworkVisualization.test.tsx</computeroutput></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5526">
+<title>5. <computeroutput>frontend/__tests__/app/page.test.tsx</computeroutput> (121 lines)</title><para><bold>Purpose</bold>: Tests for the main application page</para>
+<para><bold>Test Coverage</bold>:</para>
+<para><itemizedlist>
+<listitem><para>✅ Header and navigation rendering</para>
+</listitem><listitem><para>✅ Data loading on mount</para>
+</listitem><listitem><para>✅ Loading states</para>
+</listitem><listitem><para>✅ Tab switching functionality</para>
+</listitem><listitem><para>✅ Error handling and retry mechanism</para>
+</listitem><listitem><para>✅ Component integration</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Key Test Areas</bold>:</para>
+<para><itemizedlist>
+<listitem><para>Page rendering</para>
+</listitem><listitem><para>Navigation tabs</para>
+</listitem><listitem><para>Data loading</para>
+</listitem><listitem><para>Loading states</para>
+</listitem><listitem><para>Tab switching</para>
+</listitem><listitem><para>Error handling</para>
+</listitem><listitem><para>Retry functionality</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Run</bold>: <computeroutput>cd frontend &amp;&amp; npm test -- page.test.tsx</computeroutput></para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5527">
+<title>Running Tests</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5528">
+<title>All Backend Tests</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>Python<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>--cov=api<sp/>--cov=src<sp/>--cov-report=html</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_api_main.py<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>class</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_api_main.py::TestValidateOrigin<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests<sp/>matching<sp/>pattern</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-k<sp/>&quot;test_assets&quot;<sp/>-v</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5529">
+<title>All Frontend Tests</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Navigate<sp/>to<sp/>frontend<sp/>directory</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>in<sp/>watch<sp/>mode</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>test:watch</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>test:coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>api.test.ts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Update<sp/>snapshots<sp/>if<sp/>needed</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>-u</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5530">
+<title>Test Quality Metrics</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5531">
+<title>Backend Tests</title><para>✅ <bold>Happy Path Coverage</bold>: All successful API calls tested ✅ <bold>Edge Case Coverage</bold>: Empty data, invalid inputs, missing fields ✅ <bold>Error Condition Coverage</bold>: 404s, 500s, network errors ✅ <bold>Concurrency Testing</bold>: Thread-safe operations validated ✅ <bold>Security Testing</bold>: CORS validation, origin checking ✅ <bold>Mock Usage</bold>: Isolated unit tests with proper mocking ✅ <bold>Fixture-Based Setup</bold>: Clean test organization</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5532">
+<title>Frontend Tests</title><para>✅ <bold>Happy Path Coverage</bold>: Normal user workflows tested ✅ <bold>Edge Case Coverage</bold>: Empty states, null data, large datasets ✅ <bold>Error Condition Coverage</bold>: API failures, network issues ✅ <bold>Mock Usage</bold>: API calls mocked for isolation ✅ <bold>Type Validation</bold>: TypeScript interfaces verified ✅ <bold>User Interaction</bold>: Click events, form inputs tested ✅ <bold>Accessibility</bold>: ARIA labels and semantic HTML checked</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5533">
+<title>Coverage Goals</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5534">
+<title>Current Coverage</title><para><itemizedlist>
+<listitem><para>Backend API: <bold>&gt;90%</bold> of <computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput></para>
+</listitem><listitem><para>Frontend API Client: <bold>&gt;95%</bold> of <computeroutput>app/lib/api.ts</computeroutput></para>
+</listitem><listitem><para>React Components: <bold>&gt;80%</bold> of component logic</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5535">
+<title>Target Coverage</title><para><itemizedlist>
+<listitem><para>Overall Backend: <bold>&gt;80%</bold></para>
+</listitem><listitem><para>Overall Frontend: <bold>&gt;80%</bold></para>
+</listitem><listitem><para>Critical Paths: <bold>100%</bold></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5536">
+<title>Best Practices</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5537">
+<title>When Writing New Tests</title><para><orderedlist>
+<listitem><para>✅ Follow existing test patterns and naming conventions</para>
+</listitem><listitem><para>✅ Use descriptive test names that explain what is being tested</para>
+</listitem><listitem><para>✅ Test one thing per test case</para>
+</listitem><listitem><para>✅ Use appropriate mocking to isolate units under test</para>
+</listitem><listitem><para>✅ Include setup and teardown as needed</para>
+</listitem><listitem><para>✅ Test happy paths, edge cases, and error conditions</para>
+</listitem><listitem><para>✅ Keep tests fast and independent</para>
+</listitem><listitem><para>✅ Update tests when changing implementation</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5538">
+<title>When Running Tests</title><para><orderedlist>
+<listitem><para>✅ Run tests before committing code</para>
+</listitem><listitem><para>✅ Ensure all tests pass locally</para>
+</listitem><listitem><para>✅ Review coverage reports</para>
+</listitem><listitem><para>✅ Fix failing tests immediately</para>
+</listitem><listitem><para>✅ Don&apos;t skip or disable tests without good reason</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5539">
+<title>CI/CD Integration</title><para>These tests are designed to run in CI/CD pipelines. Example GitHub Actions workflow:</para>
+<para><programlisting filename=".yaml"><codeline><highlight class="normal">name:<sp/>Run<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">on:<sp/>[push,<sp/>pull_request]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">jobs:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>backend-tests:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>runs-on:<sp/>ubuntu-latest</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>steps:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>uses:<sp/>actions/checkout@v2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Set<sp/>up<sp/>Python</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uses:<sp/>actions/setup-python@v2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>python-version:<sp/>&quot;3.8&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>pytest<sp/>tests/unit/<sp/>--cov=api<sp/>--cov=src</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>frontend-tests:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>runs-on:<sp/>ubuntu-latest</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>steps:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>uses:<sp/>actions/checkout@v2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Set<sp/>up<sp/>Node</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uses:<sp/>actions/setup-node@v2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>node-version:<sp/>&quot;18&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Install<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>run:<sp/>cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5540">
+<title>Troubleshooting</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5541">
+<title>Common Issues</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5542">
+<title>Backend Tests</title><para><bold>Issue</bold>: Import errors <bold>Solution</bold>: Ensure virtual environment is activated and dependencies installed</para>
+<para><bold>Issue</bold>: Database/fixture errors <bold>Solution</bold>: Check that test fixtures are properly defined in <computeroutput>conftest.py</computeroutput></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5543">
+<title>Frontend Tests</title><para><bold>Issue</bold>: Module not found <bold>Solution</bold>: Run <computeroutput>npm install</computeroutput> in frontend directory</para>
+<para><bold>Issue</bold>: Timeout errors <bold>Solution</bold>: Increase timeout in jest.config.js or specific tests</para>
+<para><bold>Issue</bold>: Mock issues <bold>Solution</bold>: Verify mock paths match actual module structure</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5544">
+<title>Future Enhancements</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5545">
+<title>Planned Test Additions</title><para><orderedlist>
+<listitem><para><bold>Component Tests</bold>: Additional React component tests</para>
+</listitem><listitem><para><bold>Integration Tests</bold>: Full frontend-backend integration</para>
+</listitem><listitem><para><bold>E2E Tests</bold>: User workflow validation with Playwright/Cypress</para>
+</listitem><listitem><para><bold>Performance Tests</bold>: Load testing for API endpoints</para>
+</listitem><listitem><para><bold>Security Tests</bold>: Penetration testing and vulnerability scanning</para>
+</listitem><listitem><para><bold>Visual Regression Tests</bold>: Screenshot comparison for UI changes</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5546">
+<title>Test Infrastructure Improvements</title><para><orderedlist>
+<listitem><para><bold>Parallel Execution</bold>: Speed up test runs</para>
+</listitem><listitem><para><bold>Test Data Builders</bold>: Easier test data creation</para>
+</listitem><listitem><para><bold>Custom Matchers</bold>: Domain-specific assertions</para>
+</listitem><listitem><para><bold>Test Reports</bold>: Better visualization of results</para>
+</listitem><listitem><para><bold>Coverage Thresholds</bold>: Enforce minimum coverage</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5547">
+<title>Documentation</title><para><itemizedlist>
+<listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY" kindref="compound">TEST_SUMMARY.md</ref> - High-level test overview</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref> - Deployment procedures</para>
+</listitem><listitem><para><ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE" kindref="compound">ARCHITECTURE.md</ref> - System architecture</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TESTING__GUIDE_1autotoc_md5548">
+<title>Support</title><para>For questions about the test suite:</para>
+<para><orderedlist>
+<listitem><para>Review test file documentation and inline comments</para>
+</listitem><listitem><para>Check pytest/Jest documentation</para>
+</listitem><listitem><para>Examine existing test patterns</para>
+</listitem><listitem><para>Open an issue on GitHub</para>
+</listitem></orderedlist>
+</para>
+<para><hruler/>
+</para>
+<para><bold>Last Updated</bold>: 2024 <bold>Test Framework Versions</bold>:</para>
+<para><itemizedlist>
+<listitem><para>pytest: Latest compatible with Python 3.8+</para>
+</listitem><listitem><para>Jest: ^29.7.0</para>
+</listitem><listitem><para>@testing-library/react: ^14.1.0</para>
+</listitem><listitem><para>@testing-library/jest-dom: ^6.1.4 </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TESTING_GUIDE.md"/>
+  </compounddef>
+</doxygen>

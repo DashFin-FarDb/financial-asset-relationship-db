@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_schema_report::TestEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1a0e43e6d7b21dbef0913b70cc5b66ea61" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestEdgeCases.test_report_with_empty_graph</definition>
+        <argsstring>(empty_graph)</argsstring>
+        <name>test_report_with_empty_graph</name>
+        <qualifiedname>tests.unit.test_schema_report.TestEdgeCases.test_report_with_empty_graph</qualifiedname>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test report generation with empty graph.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="348" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="348" bodyend="354"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1a94e720f20ded09b524006024d1998eee" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestEdgeCases.test_report_with_no_relationships</definition>
+        <argsstring>(empty_graph, sample_equity)</argsstring>
+        <name>test_report_with_no_relationships</name>
+        <qualifiedname>tests.unit.test_schema_report.TestEdgeCases.test_report_with_no_relationships</qualifiedname>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>sample_equity</type>
+          <defname>sample_equity</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test report with assets but no relationships.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="356" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="356" bodyend="361"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1a546ab282933d3444dd12fd9324be671c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestEdgeCases.test_report_with_single_asset</definition>
+        <argsstring>(empty_graph, sample_equity)</argsstring>
+        <name>test_report_with_single_asset</name>
+        <qualifiedname>tests.unit.test_schema_report.TestEdgeCases.test_report_with_single_asset</qualifiedname>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>sample_equity</type>
+          <defname>sample_equity</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test report with single asset.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="363" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="363" bodyend="368"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1a3095b57bae0fb22737f32b5573e181ff" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestEdgeCases.test_report_with_no_regulatory_events</definition>
+        <argsstring>(empty_graph, sample_equity)</argsstring>
+        <name>test_report_with_no_regulatory_events</name>
+        <qualifiedname>tests.unit.test_schema_report.TestEdgeCases.test_report_with_no_regulatory_events</qualifiedname>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>sample_equity</type>
+          <defname>sample_equity</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test report with no regulatory events.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="370" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="370" bodyend="375"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1ae96e9afd05e74a6e16e10443740e3f4a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestEdgeCases.test_report_with_zero_average_strength</definition>
+        <argsstring>(populated_graph)</argsstring>
+        <name>test_report_with_zero_average_strength</name>
+        <qualifiedname>tests.unit.test_schema_report.TestEdgeCases.test_report_with_zero_average_strength</qualifiedname>
+        <param>
+          <type>populated_graph</type>
+          <defname>populated_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test report when average strength is zero.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="377" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="377" bodyend="383"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1ad519ed21644e523e15ba33e816b41f60" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_schema_report.TestEdgeCases.test_report_with_max_density</definition>
+        <argsstring>(empty_graph, sample_equity, sample_bond)</argsstring>
+        <name>test_report_with_max_density</name>
+        <qualifiedname>tests.unit.test_schema_report.TestEdgeCases.test_report_with_max_density</qualifiedname>
+        <param>
+          <type>empty_graph</type>
+          <defname>empty_graph</defname>
+        </param>
+        <param>
+          <type>sample_equity</type>
+          <defname>sample_equity</defname>
+        </param>
+        <param>
+          <type>sample_bond</type>
+          <defname>sample_bond</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test report with maximum density.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="385" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="385" bodyend="396"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases in report generation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_schema_report.TestEdgeCases</label>
+        <link refid="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" line="344" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_schema_report.py" bodystart="344" bodyend="396"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1a0e43e6d7b21dbef0913b70cc5b66ea61" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestEdgeCases</scope><name>test_report_with_empty_graph</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1ad519ed21644e523e15ba33e816b41f60" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestEdgeCases</scope><name>test_report_with_max_density</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1a3095b57bae0fb22737f32b5573e181ff" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestEdgeCases</scope><name>test_report_with_no_regulatory_events</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1a94e720f20ded09b524006024d1998eee" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestEdgeCases</scope><name>test_report_with_no_relationships</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1a546ab282933d3444dd12fd9324be671c" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestEdgeCases</scope><name>test_report_with_single_asset</name></member>
+      <member refid="classtests_1_1unit_1_1test__schema__report_1_1TestEdgeCases_1ae96e9afd05e74a6e16e10443740e3f4a" prot="public" virt="non-virtual"><scope>tests::unit::test_schema_report::TestEdgeCases</scope><name>test_report_with_zero_average_strength</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

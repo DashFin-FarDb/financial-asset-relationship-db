@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_modified_config_files_validation::TestCodacyInstructionsChanges</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_1a73be0a5b050018b97388b365ff0c4992" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Path</type>
+        <definition> Path tests.integration.test_modified_config_files_validation.TestCodacyInstructionsChanges.codacy_instructions_path</definition>
+        <argsstring>()</argsstring>
+        <name>codacy_instructions_path</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestCodacyInstructionsChanges.codacy_instructions_path</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Compute the path to the repository&apos;s Codacy instructions file.
+
+Returns:
+    Path: Path to `.github/instructions/codacy.instructions.md` within the repository.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="392" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="392" bodyend="405"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_1abb72e09804c1f14f252b961c2d4a2c8f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestCodacyInstructionsChanges.test_codacy_instructions_simplified</definition>
+        <argsstring>(Path codacy_instructions_path)</argsstring>
+        <name>test_codacy_instructions_simplified</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestCodacyInstructionsChanges.test_codacy_instructions_simplified</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>codacy_instructions_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that the Codacy instructions have been simplified and do not include repository-specific or prescriptive phrases.
+
+Skips the test if the file does not exist. Fails if the file contains either &apos;git remote -v&apos; or &apos;unless really necessary&apos;.
+
+Parameters:
+        codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="407" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="407" bodyend="426"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_1a0e4f48756404f75499f871bc537e2a24" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestCodacyInstructionsChanges.test_codacy_critical_rules_present</definition>
+        <argsstring>(Path codacy_instructions_path)</argsstring>
+        <name>test_codacy_critical_rules_present</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestCodacyInstructionsChanges.test_codacy_critical_rules_present</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>codacy_instructions_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check that the Codacy instructions file contains required critical rules.
+
+Asserts that the file includes the string &apos;codacy_cli_analyze&apos; and the marker &apos;CRITICAL&apos;.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="428" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="428" bodyend="445"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Validate changes to Codacy instructions.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_modified_config_files_validation.TestCodacyInstructionsChanges</label>
+        <link refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="387" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="387" bodyend="445"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_1a73be0a5b050018b97388b365ff0c4992" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestCodacyInstructionsChanges</scope><name>codacy_instructions_path</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_1a0e4f48756404f75499f871bc537e2a24" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestCodacyInstructionsChanges</scope><name>test_codacy_critical_rules_present</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestCodacyInstructionsChanges_1abb72e09804c1f14f252b961c2d4a2c8f" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestCodacyInstructionsChanges</scope><name>test_codacy_instructions_simplified</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

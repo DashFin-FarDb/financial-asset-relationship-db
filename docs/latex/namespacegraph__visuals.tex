@@ -1,0 +1,810 @@
+\doxysection{graph\+\_\+visuals Namespace Reference}
+\hypertarget{namespacegraph__visuals}{}\label{namespacegraph__visuals}\index{graph\_visuals@{graph\_visuals}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{namespacegraph__visuals_af2a815c0bdaadc2b6aa339387795f4bb}{\+\_\+is\+\_\+valid\+\_\+color\+\_\+format}} (str color)
+\item 
+Dict\mbox{[}str, int\mbox{]} \mbox{\hyperlink{namespacegraph__visuals_a0b234963e74afc0d696565e612ad410c}{\+\_\+build\+\_\+asset\+\_\+id\+\_\+index}} (List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+Dict\mbox{[}Tuple\mbox{[}str, str, str\mbox{]}, float\mbox{]} \mbox{\hyperlink{namespacegraph__visuals_a632734f64a969060dc90f97e0f207d59}{\+\_\+build\+\_\+relationship\+\_\+index}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, Iterable\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+go.\+Scatter3d \mbox{\hyperlink{namespacegraph__visuals_a345ff70d680ece5d645ee7c9501d2a4a}{\+\_\+create\+\_\+node\+\_\+trace}} (np.\+ndarray positions, List\mbox{[}str\mbox{]} asset\+\_\+ids, List\mbox{[}str\mbox{]} colors, List\mbox{[}str\mbox{]} hover\+\_\+texts)
+\item 
+str \mbox{\hyperlink{namespacegraph__visuals_a3aba8b14bed184d9ab46de2e8f0b3fa5}{\+\_\+generate\+\_\+dynamic\+\_\+title}} (int num\+\_\+assets, int num\+\_\+relationships, str base\+\_\+title="{}Financial Asset Network"{})
+\item 
+int \mbox{\hyperlink{namespacegraph__visuals_ae50fff61e59d784869707c6cb7cf5554}{\+\_\+calculate\+\_\+visible\+\_\+relationships}} (List\mbox{[}go.\+Scatter3d\mbox{]} relationship\+\_\+traces)
+\item 
+Tuple\mbox{[}str, Dict\mbox{[}str, object\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__visuals_a268f24b662cc93d2049a92711703834c}{\+\_\+prepare\+\_\+layout\+\_\+config}} (int num\+\_\+assets, List\mbox{[}go.\+Scatter3d\mbox{]} relationship\+\_\+traces, str base\+\_\+title="{}Financial Asset Network"{}, Optional\mbox{[}Dict\mbox{[}str, object\mbox{]}\mbox{]} layout\+\_\+options=None)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_adf5165349a616f411dfb4613adf79286}{\+\_\+add\+\_\+directional\+\_\+arrows\+\_\+to\+\_\+figure}} (go.\+Figure fig, \mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, np.\+ndarray positions, List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_a0ac5eba53e8e0b8218c2b7ccf5072f82}{\+\_\+configure\+\_\+3d\+\_\+layout}} (go.\+Figure fig, str title, Optional\mbox{[}Dict\mbox{[}str, object\mbox{]}\mbox{]} options=None)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_ab2c4f4a71bd4ac0c27552e84e6118eab}{\+\_\+validate\+\_\+positions\+\_\+array}} (np.\+ndarray positions)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_a5d2b6e0ace20321ddff80afa16911f60}{\+\_\+validate\+\_\+asset\+\_\+ids\+\_\+list}} (List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_aa96bbd15e68187307b2af5f94fd0d364}{\+\_\+validate\+\_\+colors\+\_\+list}} (List\mbox{[}str\mbox{]} colors, int expected\+\_\+length)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_a8c595f8085bc0ca1f3adf6d2708657f4}{\+\_\+validate\+\_\+hover\+\_\+texts\+\_\+list}} (List\mbox{[}str\mbox{]} hover\+\_\+texts, int expected\+\_\+length)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_a372e2fa2aab88734f03d83259f58c597}{\+\_\+validate\+\_\+asset\+\_\+ids\+\_\+uniqueness}} (List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_a870c69decb3e9db3ed97f279c6121748}{\+\_\+validate\+\_\+visualization\+\_\+data}} (np.\+ndarray positions, List\mbox{[}str\mbox{]} asset\+\_\+ids, List\mbox{[}str\mbox{]} colors, List\mbox{[}str\mbox{]} hover\+\_\+texts)
+\item 
+Dict\mbox{[}Tuple\mbox{[}str, bool\mbox{]}, List\mbox{[}dict\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__visuals_a7f6044587769ab8335e37ea20279fd8a}{\+\_\+collect\+\_\+and\+\_\+group\+\_\+relationships}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, Iterable\mbox{[}str\mbox{]} asset\+\_\+ids, Optional\mbox{[}Dict\mbox{[}str, bool\mbox{]}\mbox{]} relationship\+\_\+filters=None)
+\item 
+Tuple\mbox{[}List\mbox{[}Optional\mbox{[}float\mbox{]}\mbox{]}, List\mbox{[}Optional\mbox{[}float\mbox{]}\mbox{]}, List\mbox{[}Optional\mbox{[}float\mbox{]}\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__visuals_ae0f9ab07f0f1d5aeb10cc8a8bf4a0da6}{\+\_\+build\+\_\+edge\+\_\+coordinates\+\_\+optimized}} (List\mbox{[}dict\mbox{]} relationships, np.\+ndarray positions, Dict\mbox{[}str, int\mbox{]} asset\+\_\+id\+\_\+index)
+\item 
+List\mbox{[}Optional\mbox{[}str\mbox{]}\mbox{]} \mbox{\hyperlink{namespacegraph__visuals_ac5edbf171a6ddb6e1e3a8f61971ad627}{\+\_\+build\+\_\+hover\+\_\+texts}} (List\mbox{[}dict\mbox{]} relationships, str rel\+\_\+type, bool is\+\_\+bidirectional)
+\item 
+dict \mbox{\hyperlink{namespacegraph__visuals_a553f122c8516e6a12814996a7cd1a13e}{\+\_\+get\+\_\+line\+\_\+style}} (str rel\+\_\+type, bool is\+\_\+bidirectional)
+\item 
+str \mbox{\hyperlink{namespacegraph__visuals_aa4d02d3595ef8a27dd8ccc870d692749}{\+\_\+format\+\_\+trace\+\_\+name}} (str rel\+\_\+type, bool is\+\_\+bidirectional)
+\item 
+go.\+Scatter3d \mbox{\hyperlink{namespacegraph__visuals_a89feb243f069a64c954d913babcc0284}{\+\_\+create\+\_\+trace\+\_\+for\+\_\+group}} (str rel\+\_\+type, bool is\+\_\+bidirectional, List\mbox{[}dict\mbox{]} relationships, np.\+ndarray positions, Dict\mbox{[}str, int\mbox{]} asset\+\_\+id\+\_\+index)
+\item 
+List\mbox{[}go.\+Scatter3d\mbox{]} \mbox{\hyperlink{namespacegraph__visuals_a126c97a3aa996be29f948301ee861806}{\+\_\+create\+\_\+relationship\+\_\+traces}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, np.\+ndarray positions, List\mbox{[}str\mbox{]} asset\+\_\+ids, Optional\mbox{[}Dict\mbox{[}str, bool\mbox{]}\mbox{]} relationship\+\_\+filters=None)
+\item 
+List\mbox{[}go.\+Scatter3d\mbox{]} \mbox{\hyperlink{namespacegraph__visuals_a41e2aa4282d406d57e0c1b69abc42480}{\+\_\+create\+\_\+directional\+\_\+arrows}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, np.\+ndarray positions, List\mbox{[}str\mbox{]} asset\+\_\+ids)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_aadaf25f110e332612e1de8ce383cf8ce}{\+\_\+validate\+\_\+filter\+\_\+parameters}} (Dict\mbox{[}str, bool\mbox{]} filter\+\_\+params)
+\item 
+None \mbox{\hyperlink{namespacegraph__visuals_ac8a25682128b2e8456b0aa75229e5fb0}{\+\_\+validate\+\_\+relationship\+\_\+filters}} (Optional\mbox{[}Dict\mbox{[}str, bool\mbox{]}\mbox{]} relationship\+\_\+filters)
+\item 
+go.\+Figure \mbox{\hyperlink{namespacegraph__visuals_a828bdcb4c7a34d98e2a555a154c74576}{visualize\+\_\+3d\+\_\+graph\+\_\+with\+\_\+filters}} (\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}} graph, bool show\+\_\+same\+\_\+sector=True, bool show\+\_\+market\+\_\+cap=True, bool show\+\_\+correlation=True, bool show\+\_\+corporate\+\_\+bond=True, bool show\+\_\+commodity\+\_\+currency=True, bool show\+\_\+income\+\_\+comparison=True, bool show\+\_\+regulatory=True, bool show\+\_\+all\+\_\+relationships=True, bool toggle\+\_\+arrows=True)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacegraph__visuals_a1627440dc1df44cad149c032fdf924ae}{logger}} = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)
+\item 
+\mbox{\hyperlink{namespacegraph__visuals_ae74736d33b6cf7b933c982a12933338e}{\+\_\+graph\+\_\+access\+\_\+lock}} = threading.\+RLock()
+\item 
+\mbox{\hyperlink{namespacegraph__visuals_a0371f168febd2c079928cdde1d286fd1}{REL\+\_\+\+TYPE\+\_\+\+COLORS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacegraph__visuals_adf5165349a616f411dfb4613adf79286}\index{graph\_visuals@{graph\_visuals}!\_add\_directional\_arrows\_to\_figure@{\_add\_directional\_arrows\_to\_figure}}
+\index{\_add\_directional\_arrows\_to\_figure@{\_add\_directional\_arrows\_to\_figure}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_add\_directional\_arrows\_to\_figure()}{\_add\_directional\_arrows\_to\_figure()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_adf5165349a616f411dfb4613adf79286} 
+ None graph\+\_\+visuals.\+\_\+add\+\_\+directional\+\_\+arrows\+\_\+to\+\_\+figure (\begin{DoxyParamCaption}\item[{go.\+Figure}]{fig}{, }\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{, }\item[{np.\+ndarray}]{positions}{, }\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Add directional arrows to the figure for unidirectional
+relationships using batch operations.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_adf5165349a616f411dfb4613adf79286_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a0b234963e74afc0d696565e612ad410c}\index{graph\_visuals@{graph\_visuals}!\_build\_asset\_id\_index@{\_build\_asset\_id\_index}}
+\index{\_build\_asset\_id\_index@{\_build\_asset\_id\_index}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_build\_asset\_id\_index()}{\_build\_asset\_id\_index()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a0b234963e74afc0d696565e612ad410c} 
+ Dict\mbox{[}str, int\mbox{]} graph\+\_\+visuals.\+\_\+build\+\_\+asset\+\_\+id\+\_\+index (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Build O(1) lookup index for asset IDs to their positions.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a0b234963e74afc0d696565e612ad410c_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_ae0f9ab07f0f1d5aeb10cc8a8bf4a0da6}\index{graph\_visuals@{graph\_visuals}!\_build\_edge\_coordinates\_optimized@{\_build\_edge\_coordinates\_optimized}}
+\index{\_build\_edge\_coordinates\_optimized@{\_build\_edge\_coordinates\_optimized}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_build\_edge\_coordinates\_optimized()}{\_build\_edge\_coordinates\_optimized()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_ae0f9ab07f0f1d5aeb10cc8a8bf4a0da6} 
+ Tuple\mbox{[}List\mbox{[}Optional\mbox{[}float\mbox{]}\mbox{]}, List\mbox{[}Optional\mbox{[}float\mbox{]}\mbox{]}, List\mbox{[}Optional\mbox{[}float\mbox{]}\mbox{]}\mbox{]} graph\+\_\+visuals.\+\_\+build\+\_\+edge\+\_\+coordinates\+\_\+optimized (\begin{DoxyParamCaption}\item[{List\mbox{[}dict\mbox{]}}]{relationships}{, }\item[{np.\+ndarray}]{positions}{, }\item[{Dict\mbox{[}str, int\mbox{]}}]{asset\+\_\+id\+\_\+index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Build edge coordinate lists for relationships using optimized O(1) lookups.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_ae0f9ab07f0f1d5aeb10cc8a8bf4a0da6_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_ac5edbf171a6ddb6e1e3a8f61971ad627}\index{graph\_visuals@{graph\_visuals}!\_build\_hover\_texts@{\_build\_hover\_texts}}
+\index{\_build\_hover\_texts@{\_build\_hover\_texts}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_build\_hover\_texts()}{\_build\_hover\_texts()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_ac5edbf171a6ddb6e1e3a8f61971ad627} 
+ List\mbox{[}Optional\mbox{[}str\mbox{]}\mbox{]} graph\+\_\+visuals.\+\_\+build\+\_\+hover\+\_\+texts (\begin{DoxyParamCaption}\item[{List\mbox{[}dict\mbox{]}}]{relationships}{, }\item[{str}]{rel\+\_\+type}{, }\item[{bool }]{is\+\_\+bidirectional}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Build hover text list for relationships with pre-allocation for performance.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_ac5edbf171a6ddb6e1e3a8f61971ad627_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a632734f64a969060dc90f97e0f207d59}\index{graph\_visuals@{graph\_visuals}!\_build\_relationship\_index@{\_build\_relationship\_index}}
+\index{\_build\_relationship\_index@{\_build\_relationship\_index}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_build\_relationship\_index()}{\_build\_relationship\_index()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a632734f64a969060dc90f97e0f207d59} 
+ Dict\mbox{[}Tuple\mbox{[}str, str, str\mbox{]}, float\mbox{]} graph\+\_\+visuals.\+\_\+build\+\_\+relationship\+\_\+index (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{, }\item[{Iterable\mbox{[}str\mbox{]} }]{asset\+\_\+ids}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Build optimized relationship index for O(1) lookups with pre-filtering and
+thread safety.
+
+This function consolidates relationship data into a single index structure that
+can be efficiently queried for:
+- Checking if a relationship exists (O(1) lookup)
+- Getting relationship strength (O(1) lookup)
+- Detecting bidirectional relationships (O(1) reverse lookup)
+
+Performance optimizations:
+- Pre-filters graph.relationships to only include relevant source_ids
+- Uses set-based membership tests for O(1) lookups
+- Avoids unnecessary iterations over irrelevant relationships
+- Reduces continue statements by filtering upfront
+
+Thread Safety:
+==============
+This function uses a reentrant lock (RLock) to protect concurrent access to
+graph.relationships within this module. However, true thread safety requires
+coordination across the entire codebase.
+
+Implementation:
+- Uses threading.RLock (_graph_access_lock) to synchronize access to
+  graph.relationships
+- The lock is reentrant, allowing the same thread to acquire it multiple
+  times safely
+- Creates a snapshot of relationships within the lock to minimize lock hold
+  time
+
+Thread safety guarantees (with conditions):
+✓ SAFE: Multiple threads calling visualization functions in this module
+  concurrently
+✓ SAFE: Concurrent calls to this function with the same graph object
+⚠ CONDITIONAL: Concurrent modifications to graph.relationships are only safe
+  if:
+  - All code that modifies graph.relationships uses the same
+    _graph_access_lock, OR
+  - The graph object is treated as immutable after creation (recommended
+    approach)
+
+Recommended usage patterns for thread safety:
+1. PREFERRED: Treat graph objects as immutable after creation. Build the graph
+   completely before passing it to visualization functions. This eliminates the
+   need for locking.
+2. ALTERNATIVE: If you must modify graph.relationships concurrently, ensure all
+   modification code acquires _graph_access_lock before accessing
+   graph.relationships. This requires coordination across your entire codebase.
+
+Note: The AssetRelationshipGraph class itself does not implement any locking
+mechanisms. Thread safety for modifications must be managed by the calling
+code. If other parts of your application modify graph.relationships without
+using _graph_access_lock, race conditions may occur.
+
+Error Handling (addresses review feedback):
+===========================================
+This function implements comprehensive error handling to ensure robustness:
+- Validates that graph is an AssetRelationshipGraph instance
+- Validates that graph.relationships exists and is a properly formatted
+  dictionary
+- Validates that asset_ids is iterable and contains only strings
+- Validates each relationship tuple has the correct structure (3 elements)
+- Validates data types for target_id (string), rel_type (string), and
+  strength (numeric)
+- Provides detailed error messages indicating the exact location and nature
+  of any issues
+
+Args:
+    graph: The asset relationship graph
+    asset_ids: Iterable of asset IDs to include (will be converted to a set
+        for O(1) membership tests)
+
+Returns:
+    Dictionary mapping (source_id, target_id, rel_type) to strength for all
+    relationships
+
+Raises:
+    TypeError: If graph is not an AssetRelationshipGraph instance, or if data
+        types are invalid
+    ValueError: If graph.relationships has invalid structure or malformed
+        data
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a632734f64a969060dc90f97e0f207d59_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_ae50fff61e59d784869707c6cb7cf5554}\index{graph\_visuals@{graph\_visuals}!\_calculate\_visible\_relationships@{\_calculate\_visible\_relationships}}
+\index{\_calculate\_visible\_relationships@{\_calculate\_visible\_relationships}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_calculate\_visible\_relationships()}{\_calculate\_visible\_relationships()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_ae50fff61e59d784869707c6cb7cf5554} 
+ int graph\+\_\+visuals.\+\_\+calculate\+\_\+visible\+\_\+relationships (\begin{DoxyParamCaption}\item[{List\mbox{[}go.\+Scatter3d\mbox{]}}]{relationship\+\_\+traces}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Calculate the number of visible relationships from traces.
+
+This helper function extracts the relationship count calculation logic,
+making it reusable and testable independently of the visualization logic.
+
+Args:
+    relationship_traces: List of Scatter3d traces representing relationships
+
+Returns:
+    Number of visible relationships(edges) in the traces
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_ae50fff61e59d784869707c6cb7cf5554_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a7f6044587769ab8335e37ea20279fd8a}\index{graph\_visuals@{graph\_visuals}!\_collect\_and\_group\_relationships@{\_collect\_and\_group\_relationships}}
+\index{\_collect\_and\_group\_relationships@{\_collect\_and\_group\_relationships}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_collect\_and\_group\_relationships()}{\_collect\_and\_group\_relationships()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a7f6044587769ab8335e37ea20279fd8a} 
+ Dict\mbox{[}Tuple\mbox{[}str, bool\mbox{]}, List\mbox{[}dict\mbox{]}\mbox{]} graph\+\_\+visuals.\+\_\+collect\+\_\+and\+\_\+group\+\_\+relationships (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{, }\item[{Iterable\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{, }\item[{Optional\mbox{[}Dict\mbox{[}str, bool\mbox{]}\mbox{]} }]{relationship\+\_\+filters}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Collect and group relationships with directionality info in a single pass.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a7f6044587769ab8335e37ea20279fd8a_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a7f6044587769ab8335e37ea20279fd8a_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a0ac5eba53e8e0b8218c2b7ccf5072f82}\index{graph\_visuals@{graph\_visuals}!\_configure\_3d\_layout@{\_configure\_3d\_layout}}
+\index{\_configure\_3d\_layout@{\_configure\_3d\_layout}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_configure\_3d\_layout()}{\_configure\_3d\_layout()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a0ac5eba53e8e0b8218c2b7ccf5072f82} 
+ None graph\+\_\+visuals.\+\_\+configure\+\_\+3d\+\_\+layout (\begin{DoxyParamCaption}\item[{go.\+Figure}]{fig}{, }\item[{str}]{title}{, }\item[{Optional\mbox{[}Dict\mbox{[}str, object\mbox{]}\mbox{]} }]{options}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Configure the 3D layout for the figure.
+
+Args:
+    fig: Target Plotly figure
+    title: Title text
+    options: Optional mapping to override defaults. Supported keys:
+        - width(int)
+        - height(int)
+        - gridcolor(str)
+        - bgcolor(str)
+        - legend_bgcolor(str)
+        - legend_bordercolor(str)
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a0ac5eba53e8e0b8218c2b7ccf5072f82_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a41e2aa4282d406d57e0c1b69abc42480}\index{graph\_visuals@{graph\_visuals}!\_create\_directional\_arrows@{\_create\_directional\_arrows}}
+\index{\_create\_directional\_arrows@{\_create\_directional\_arrows}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_create\_directional\_arrows()}{\_create\_directional\_arrows()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a41e2aa4282d406d57e0c1b69abc42480} 
+ List\mbox{[}go.\+Scatter3d\mbox{]} graph\+\_\+visuals.\+\_\+create\+\_\+directional\+\_\+arrows (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{, }\item[{np.\+ndarray}]{positions}{, }\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Create arrow markers for unidirectional relationships using
+vectorized NumPy operations.
+
+Returns a list of traces for batch addition to figure.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a41e2aa4282d406d57e0c1b69abc42480_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a41e2aa4282d406d57e0c1b69abc42480_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a345ff70d680ece5d645ee7c9501d2a4a}\index{graph\_visuals@{graph\_visuals}!\_create\_node\_trace@{\_create\_node\_trace}}
+\index{\_create\_node\_trace@{\_create\_node\_trace}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_create\_node\_trace()}{\_create\_node\_trace()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a345ff70d680ece5d645ee7c9501d2a4a} 
+ go.\+Scatter3d graph\+\_\+visuals.\+\_\+create\+\_\+node\+\_\+trace (\begin{DoxyParamCaption}\item[{np.\+ndarray}]{positions}{, }\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{, }\item[{List\mbox{[}str\mbox{]}}]{colors}{, }\item[{List\mbox{[}str\mbox{]}}]{hover\+\_\+texts}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Create node trace for 3D visualization with comprehensive input validation.
+
+Validates all inputs to ensure:
+- positions is a non-empty 2D numpy array with
+  shape(n, 3) containing finite numeric values
+- asset_ids is a non-empty list or tuple of
+  non-empty strings with length matching positions
+- colors is a non-empty list or tuple of valid color strings with
+  length matching positions
+- hover_texts is a non-empty list or tuple of strings with
+  length matching positions
+
+Args:
+    positions: NumPy array of node positions with shape(n, 3)
+        containing finite numeric values
+    asset_ids: List of asset ID strings (must be non-empty strings,
+        length must match positions)
+    colors: List of node colors(length must match positions)
+    hover_texts: List of hover texts(length must match positions)
+
+Returns:
+    Plotly Scatter3d trace for nodes
+
+Raises:
+    ValueError: If input parameters are invalid,
+        have mismatched dimensions, or contain invalid data
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a345ff70d680ece5d645ee7c9501d2a4a_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a345ff70d680ece5d645ee7c9501d2a4a_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a126c97a3aa996be29f948301ee861806}\index{graph\_visuals@{graph\_visuals}!\_create\_relationship\_traces@{\_create\_relationship\_traces}}
+\index{\_create\_relationship\_traces@{\_create\_relationship\_traces}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_create\_relationship\_traces()}{\_create\_relationship\_traces()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a126c97a3aa996be29f948301ee861806} 
+ List\mbox{[}go.\+Scatter3d\mbox{]} graph\+\_\+visuals.\+\_\+create\+\_\+relationship\+\_\+traces (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{, }\item[{np.\+ndarray}]{positions}{, }\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{, }\item[{Optional\mbox{[}Dict\mbox{[}str, bool\mbox{]}\mbox{]} }]{relationship\+\_\+filters}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Create separate traces for different types of relationships
+with enhanced visibility.
+
+Returns a list of traces for batch addition to figure using
+fig.add_traces() for optimal performance.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a126c97a3aa996be29f948301ee861806_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a126c97a3aa996be29f948301ee861806_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a89feb243f069a64c954d913babcc0284}\index{graph\_visuals@{graph\_visuals}!\_create\_trace\_for\_group@{\_create\_trace\_for\_group}}
+\index{\_create\_trace\_for\_group@{\_create\_trace\_for\_group}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_create\_trace\_for\_group()}{\_create\_trace\_for\_group()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a89feb243f069a64c954d913babcc0284} 
+ go.\+Scatter3d graph\+\_\+visuals.\+\_\+create\+\_\+trace\+\_\+for\+\_\+group (\begin{DoxyParamCaption}\item[{str}]{rel\+\_\+type}{, }\item[{bool}]{is\+\_\+bidirectional}{, }\item[{List\mbox{[}dict\mbox{]}}]{relationships}{, }\item[{np.\+ndarray}]{positions}{, }\item[{Dict\mbox{[}str, int\mbox{]}}]{asset\+\_\+id\+\_\+index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Create a single trace for a relationship group with optimized performance.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a89feb243f069a64c954d913babcc0284_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a89feb243f069a64c954d913babcc0284_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_aa4d02d3595ef8a27dd8ccc870d692749}\index{graph\_visuals@{graph\_visuals}!\_format\_trace\_name@{\_format\_trace\_name}}
+\index{\_format\_trace\_name@{\_format\_trace\_name}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_format\_trace\_name()}{\_format\_trace\_name()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_aa4d02d3595ef8a27dd8ccc870d692749} 
+ str graph\+\_\+visuals.\+\_\+format\+\_\+trace\+\_\+name (\begin{DoxyParamCaption}\item[{str}]{rel\+\_\+type}{, }\item[{bool}]{is\+\_\+bidirectional}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Format trace name for legend.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_aa4d02d3595ef8a27dd8ccc870d692749_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a3aba8b14bed184d9ab46de2e8f0b3fa5}\index{graph\_visuals@{graph\_visuals}!\_generate\_dynamic\_title@{\_generate\_dynamic\_title}}
+\index{\_generate\_dynamic\_title@{\_generate\_dynamic\_title}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_generate\_dynamic\_title()}{\_generate\_dynamic\_title()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a3aba8b14bed184d9ab46de2e8f0b3fa5} 
+ str graph\+\_\+visuals.\+\_\+generate\+\_\+dynamic\+\_\+title (\begin{DoxyParamCaption}\item[{int}]{num\+\_\+assets}{, }\item[{int}]{num\+\_\+relationships}{, }\item[{str }]{base\+\_\+title}{ = {\ttfamily "{}Financial~Asset~Network"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Generate a dynamic title for the visualization based on asset
+and relationship counts.
+
+This function creates a consistent title format
+across different visualization contexts, improving modularity
+and making it easier to customize titles without modifying core logic.
+
+Args:
+    num_assets: Number of assets in the visualization
+    num_relationships: Number of relationships displayed
+    base_title: Base title text(default: "Financial Asset Network")
+
+Returns:
+    Formatted title string with asset and relationship counts
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a3aba8b14bed184d9ab46de2e8f0b3fa5_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a553f122c8516e6a12814996a7cd1a13e}\index{graph\_visuals@{graph\_visuals}!\_get\_line\_style@{\_get\_line\_style}}
+\index{\_get\_line\_style@{\_get\_line\_style}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_get\_line\_style()}{\_get\_line\_style()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a553f122c8516e6a12814996a7cd1a13e} 
+ dict graph\+\_\+visuals.\+\_\+get\+\_\+line\+\_\+style (\begin{DoxyParamCaption}\item[{str}]{rel\+\_\+type}{, }\item[{bool}]{is\+\_\+bidirectional}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Get line style configuration for a relationship
+with color validation.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a553f122c8516e6a12814996a7cd1a13e_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a553f122c8516e6a12814996a7cd1a13e_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_af2a815c0bdaadc2b6aa339387795f4bb}\index{graph\_visuals@{graph\_visuals}!\_is\_valid\_color\_format@{\_is\_valid\_color\_format}}
+\index{\_is\_valid\_color\_format@{\_is\_valid\_color\_format}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_is\_valid\_color\_format()}{\_is\_valid\_color\_format()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_af2a815c0bdaadc2b6aa339387795f4bb} 
+ bool graph\+\_\+visuals.\+\_\+is\+\_\+valid\+\_\+color\+\_\+format (\begin{DoxyParamCaption}\item[{str}]{color}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Validate if a string is a valid color format.
+
+Supports common color formats:
+- Hex colors (#RGB, #RRGGBB, #RRGGBBAA)
+- RGB/RGBA (e.g., 'rgb(255,0,0)', 'rgba(255,0,0,0.5)')
+- Named colors (delegated to Plotly)
+
+Args:
+    color: Color string to validate
+
+Returns:
+    True if color format is valid, False otherwise
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_af2a815c0bdaadc2b6aa339387795f4bb_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a268f24b662cc93d2049a92711703834c}\index{graph\_visuals@{graph\_visuals}!\_prepare\_layout\_config@{\_prepare\_layout\_config}}
+\index{\_prepare\_layout\_config@{\_prepare\_layout\_config}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_prepare\_layout\_config()}{\_prepare\_layout\_config()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a268f24b662cc93d2049a92711703834c} 
+ Tuple\mbox{[}str, Dict\mbox{[}str, object\mbox{]}\mbox{]} graph\+\_\+visuals.\+\_\+prepare\+\_\+layout\+\_\+config (\begin{DoxyParamCaption}\item[{int}]{num\+\_\+assets}{, }\item[{List\mbox{[}go.\+Scatter3d\mbox{]}}]{relationship\+\_\+traces}{, }\item[{str }]{base\+\_\+title}{ = {\ttfamily "{}Financial~Asset~Network"{}}, }\item[{Optional\mbox{[}Dict\mbox{[}str, object\mbox{]}\mbox{]} }]{layout\+\_\+options}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Prepare layout configuration with dynamic title based on visualization data.
+
+This function separates layout configuration logic from the main
+visualization function, improving modularity and making it easier to
+customize layouts in different contexts.
+
+Args:
+    num_assets: Number of assets in the visualization
+    relationship_traces: List of relationship traces to count visible
+        relationships
+    base_title: Base title text (default: "Financial Asset Network")
+    layout_options: Optional layout customization options
+
+Returns:
+    Tuple of (dynamic_title, layout_options) ready for use with
+        _configure_3d_layout
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a268f24b662cc93d2049a92711703834c_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a268f24b662cc93d2049a92711703834c_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a5d2b6e0ace20321ddff80afa16911f60}\index{graph\_visuals@{graph\_visuals}!\_validate\_asset\_ids\_list@{\_validate\_asset\_ids\_list}}
+\index{\_validate\_asset\_ids\_list@{\_validate\_asset\_ids\_list}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_validate\_asset\_ids\_list()}{\_validate\_asset\_ids\_list()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a5d2b6e0ace20321ddff80afa16911f60} 
+ None graph\+\_\+visuals.\+\_\+validate\+\_\+asset\+\_\+ids\+\_\+list (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Validate asset_ids list structure and content.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a5d2b6e0ace20321ddff80afa16911f60_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a372e2fa2aab88734f03d83259f58c597}\index{graph\_visuals@{graph\_visuals}!\_validate\_asset\_ids\_uniqueness@{\_validate\_asset\_ids\_uniqueness}}
+\index{\_validate\_asset\_ids\_uniqueness@{\_validate\_asset\_ids\_uniqueness}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_validate\_asset\_ids\_uniqueness()}{\_validate\_asset\_ids\_uniqueness()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a372e2fa2aab88734f03d83259f58c597} 
+ None graph\+\_\+visuals.\+\_\+validate\+\_\+asset\+\_\+ids\+\_\+uniqueness (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Validate that asset IDs are unique.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a372e2fa2aab88734f03d83259f58c597_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_aa96bbd15e68187307b2af5f94fd0d364}\index{graph\_visuals@{graph\_visuals}!\_validate\_colors\_list@{\_validate\_colors\_list}}
+\index{\_validate\_colors\_list@{\_validate\_colors\_list}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_validate\_colors\_list()}{\_validate\_colors\_list()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_aa96bbd15e68187307b2af5f94fd0d364} 
+ None graph\+\_\+visuals.\+\_\+validate\+\_\+colors\+\_\+list (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{colors}{, }\item[{int}]{expected\+\_\+length}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Validate colors list structure, content, and format.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_aa96bbd15e68187307b2af5f94fd0d364_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_aa96bbd15e68187307b2af5f94fd0d364_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_aadaf25f110e332612e1de8ce383cf8ce}\index{graph\_visuals@{graph\_visuals}!\_validate\_filter\_parameters@{\_validate\_filter\_parameters}}
+\index{\_validate\_filter\_parameters@{\_validate\_filter\_parameters}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_validate\_filter\_parameters()}{\_validate\_filter\_parameters()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_aadaf25f110e332612e1de8ce383cf8ce} 
+ None graph\+\_\+visuals.\+\_\+validate\+\_\+filter\+\_\+parameters (\begin{DoxyParamCaption}\item[{Dict\mbox{[}str, bool\mbox{]}}]{filter\+\_\+params}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Validate that all filter parameters are boolean values.
+
+Args:
+    filter_params: Dictionary mapping filter parameter names to
+        their boolean values.
+        Expected keys:
+            show_same_sector,
+            show_market_cap,
+            show_correlation,
+            show_corporate_bond,
+            show_commodity_currency,
+            show_income_comparison,
+            show_regulatory,
+            show_all_relationships,
+            toggle_arrows
+
+Raises:
+    TypeError: If any parameter is not a boolean or if filter_params is not
+        a dictionary
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_aadaf25f110e332612e1de8ce383cf8ce_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a8c595f8085bc0ca1f3adf6d2708657f4}\index{graph\_visuals@{graph\_visuals}!\_validate\_hover\_texts\_list@{\_validate\_hover\_texts\_list}}
+\index{\_validate\_hover\_texts\_list@{\_validate\_hover\_texts\_list}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_validate\_hover\_texts\_list()}{\_validate\_hover\_texts\_list()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a8c595f8085bc0ca1f3adf6d2708657f4} 
+ None graph\+\_\+visuals.\+\_\+validate\+\_\+hover\+\_\+texts\+\_\+list (\begin{DoxyParamCaption}\item[{List\mbox{[}str\mbox{]}}]{hover\+\_\+texts}{, }\item[{int}]{expected\+\_\+length}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Validate hover_texts list structure and content.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a8c595f8085bc0ca1f3adf6d2708657f4_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_ab2c4f4a71bd4ac0c27552e84e6118eab}\index{graph\_visuals@{graph\_visuals}!\_validate\_positions\_array@{\_validate\_positions\_array}}
+\index{\_validate\_positions\_array@{\_validate\_positions\_array}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_validate\_positions\_array()}{\_validate\_positions\_array()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_ab2c4f4a71bd4ac0c27552e84e6118eab} 
+ None graph\+\_\+visuals.\+\_\+validate\+\_\+positions\+\_\+array (\begin{DoxyParamCaption}\item[{np.\+ndarray}]{positions}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Validate positions array structure and values.\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_ab2c4f4a71bd4ac0c27552e84e6118eab_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_ac8a25682128b2e8456b0aa75229e5fb0}\index{graph\_visuals@{graph\_visuals}!\_validate\_relationship\_filters@{\_validate\_relationship\_filters}}
+\index{\_validate\_relationship\_filters@{\_validate\_relationship\_filters}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_validate\_relationship\_filters()}{\_validate\_relationship\_filters()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_ac8a25682128b2e8456b0aa75229e5fb0} 
+ None graph\+\_\+visuals.\+\_\+validate\+\_\+relationship\+\_\+filters (\begin{DoxyParamCaption}\item[{Optional\mbox{[}Dict\mbox{[}str, bool\mbox{]}\mbox{]}}]{relationship\+\_\+filters}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Validate relationship filter dictionary structure and values.
+
+Args:
+    relationship_filters: Optional dictionary mapping
+        relationship types to boolean visibility flags
+
+Raises:
+    TypeError: If relationship_filters is not None and not a dictionary
+    ValueError: If relationship_filters contains invalid keys or non-boolean
+        values
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_ac8a25682128b2e8456b0aa75229e5fb0_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a870c69decb3e9db3ed97f279c6121748}\index{graph\_visuals@{graph\_visuals}!\_validate\_visualization\_data@{\_validate\_visualization\_data}}
+\index{\_validate\_visualization\_data@{\_validate\_visualization\_data}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_validate\_visualization\_data()}{\_validate\_visualization\_data()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a870c69decb3e9db3ed97f279c6121748} 
+ None graph\+\_\+visuals.\+\_\+validate\+\_\+visualization\+\_\+data (\begin{DoxyParamCaption}\item[{np.\+ndarray}]{positions}{, }\item[{List\mbox{[}str\mbox{]}}]{asset\+\_\+ids}{, }\item[{List\mbox{[}str\mbox{]}}]{colors}{, }\item[{List\mbox{[}str\mbox{]}}]{hover\+\_\+texts}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Validate visualization data integrity to prevent runtime errors.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a870c69decb3e9db3ed97f279c6121748_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a870c69decb3e9db3ed97f279c6121748_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacegraph__visuals_a828bdcb4c7a34d98e2a555a154c74576}\index{graph\_visuals@{graph\_visuals}!visualize\_3d\_graph\_with\_filters@{visualize\_3d\_graph\_with\_filters}}
+\index{visualize\_3d\_graph\_with\_filters@{visualize\_3d\_graph\_with\_filters}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{visualize\_3d\_graph\_with\_filters()}{visualize\_3d\_graph\_with\_filters()}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a828bdcb4c7a34d98e2a555a154c74576} 
+ go.\+Figure graph\+\_\+visuals.\+visualize\+\_\+3d\+\_\+graph\+\_\+with\+\_\+filters (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classAssetRelationshipGraph}{Asset\+Relationship\+Graph}}}]{graph}{, }\item[{bool }]{show\+\_\+same\+\_\+sector}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+market\+\_\+cap}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+correlation}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+corporate\+\_\+bond}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+commodity\+\_\+currency}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+income\+\_\+comparison}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+regulatory}{ = {\ttfamily True}, }\item[{bool }]{show\+\_\+all\+\_\+relationships}{ = {\ttfamily True}, }\item[{bool }]{toggle\+\_\+arrows}{ = {\ttfamily True}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create 3D visualization with selective relationship filtering.
+
+This function dynamically creates and adds relationship traces based
+on optional filters, with comprehensive error handling to manage
+potential issues from invalid filter configurations or data
+inconsistencies.
+
+Args:
+    graph: Asset relationship graph to visualize
+    show_same_sector: Show same sector relationships (default: True)
+    show_market_cap: Show market cap relationships (default: True)
+    show_correlation: Show correlation relationships (default: True)
+    show_corporate_bond: Show corporate bond relationships (default: True)
+    show_commodity_currency: Show commodity currency relationships
+        (default: True)
+    show_income_comparison: Show income comparison relationships
+        (default: True)
+    show_regulatory: Show regulatory relationships (default: True)
+    show_all_relationships: Master toggle to show all relationships
+        (default: True)
+    toggle_arrows: Show directional arrows for unidirectional
+        relationships (default: True)
+
+Returns:
+    Plotly Figure object with 3D visualization
+
+Raises:
+    ValueError: If graph is invalid or missing required methods /
+        attributes
+    TypeError: If filter parameters are not boolean values
+\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacegraph__visuals_a828bdcb4c7a34d98e2a555a154c74576_cgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacegraph__visuals_ae74736d33b6cf7b933c982a12933338e}\index{graph\_visuals@{graph\_visuals}!\_graph\_access\_lock@{\_graph\_access\_lock}}
+\index{\_graph\_access\_lock@{\_graph\_access\_lock}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{\_graph\_access\_lock}{\_graph\_access\_lock}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_ae74736d33b6cf7b933c982a12933338e} 
+graph\+\_\+visuals.\+\_\+graph\+\_\+access\+\_\+lock = threading.\+RLock()\hspace{0.3cm}{\ttfamily [protected]}}
+
+\Hypertarget{namespacegraph__visuals_a1627440dc1df44cad149c032fdf924ae}\index{graph\_visuals@{graph\_visuals}!logger@{logger}}
+\index{logger@{logger}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{logger}{logger}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a1627440dc1df44cad149c032fdf924ae} 
+graph\+\_\+visuals.\+logger = logging.\+get\+Logger(\+\_\+\+\_\+name\+\_\+\+\_\+)}
+
+\Hypertarget{namespacegraph__visuals_a0371f168febd2c079928cdde1d286fd1}\index{graph\_visuals@{graph\_visuals}!REL\_TYPE\_COLORS@{REL\_TYPE\_COLORS}}
+\index{REL\_TYPE\_COLORS@{REL\_TYPE\_COLORS}!graph\_visuals@{graph\_visuals}}
+\doxysubsubsection{\texorpdfstring{REL\_TYPE\_COLORS}{REL\_TYPE\_COLORS}}
+{\footnotesize\ttfamily \label{namespacegraph__visuals_a0371f168febd2c079928cdde1d286fd1} 
+graph\+\_\+visuals.\+REL\+\_\+\+TYPE\+\_\+\+COLORS}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ =\ \ defaultdict(}
+\DoxyCodeLine{00002\ \ \ \ \ \textcolor{keyword}{lambda}:\ \textcolor{stringliteral}{"{}\#888888"{}},}
+\DoxyCodeLine{00003\ \ \ \ \ \{}
+\DoxyCodeLine{00004\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}same\_sector"{}}:\ \textcolor{stringliteral}{"{}\#FF6B6B"{}},\ \ \textcolor{comment}{\#\ Red\ for\ sector\ relationships}}
+\DoxyCodeLine{00005\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}market\_cap\_similar"{}}:\ \textcolor{stringliteral}{"{}\#4ECDC4"{}},\ \ \textcolor{comment}{\#\ Teal\ for\ market\ cap}}
+\DoxyCodeLine{00006\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}correlation"{}}:\ \textcolor{stringliteral}{"{}\#45B7D1"{}},\ \ \textcolor{comment}{\#\ Blue\ for\ correlations}}
+\DoxyCodeLine{00007\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}corporate\_bond\_to\_equity"{}}:\ \textcolor{stringliteral}{"{}\#96CEB4"{}},\ \ \textcolor{comment}{\#\ Green\ for\ corporate\ bonds}}
+\DoxyCodeLine{00008\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commodity\_currency"{}}:\ \textcolor{stringliteral}{"{}\#FFEAA7"{}},\ \ \textcolor{comment}{\#\ Yellow\ for\ commodity-\/currency}}
+\DoxyCodeLine{00009\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}income\_comparison"{}}:\ \textcolor{stringliteral}{"{}\#DDA0DD"{}},\ \ \textcolor{comment}{\#\ Plum\ for\ income\ comparisons}}
+\DoxyCodeLine{00010\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regulatory\_impact"{}}:\ \textcolor{stringliteral}{"{}\#FFA07A"{}},\ \ \textcolor{comment}{\#\ Light\ salmon\ for\ regulatory}}
+\DoxyCodeLine{00011\ \ \ \ \ \},}
+\DoxyCodeLine{00012\ )}
+
+\end{DoxyCode}

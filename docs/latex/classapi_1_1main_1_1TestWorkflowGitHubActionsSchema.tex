@@ -1,0 +1,81 @@
+\doxysection{api.\+main.\+Test\+Workflow\+Git\+Hub\+Actions\+Schema Class Reference}
+\hypertarget{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema}{}\label{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema}\index{api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}}
+
+
+Collaboration diagram for api.\+main.\+Test\+Workflow\+Git\+Hub\+Actions\+Schema\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=226pt]{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a419b593ec10f184ded0e063a9c979f81}{workflow\+\_\+data}} (self)
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_ac2c53ad0ed066a0ef2852077b50cfcb2}{test\+\_\+workflows\+\_\+have\+\_\+name}} (self, \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a419b593ec10f184ded0e063a9c979f81}{workflow\+\_\+data}})
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_ac8bd103df62416cebb34dac32089f70b}{test\+\_\+workflows\+\_\+have\+\_\+trigger}} (self, \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a419b593ec10f184ded0e063a9c979f81}{workflow\+\_\+data}})
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_ab704150ec4713e638dfa47aaee244b9e}{test\+\_\+workflows\+\_\+have\+\_\+jobs}} (self, \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a419b593ec10f184ded0e063a9c979f81}{workflow\+\_\+data}})
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a4cc5f95d5fd6bd48e9b456e62aed0494}{test\+\_\+jobs\+\_\+have\+\_\+runs\+\_\+on}} (self, \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a419b593ec10f184ded0e063a9c979f81}{workflow\+\_\+data}})
+\item 
+\mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_aa0d228ff19da793bdb0db1642c35627c}{test\+\_\+jobs\+\_\+have\+\_\+steps\+\_\+or\+\_\+uses}} (self, \mbox{\hyperlink{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a419b593ec10f184ded0e063a9c979f81}{workflow\+\_\+data}})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test GitHub Actions schema compliance.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a4cc5f95d5fd6bd48e9b456e62aed0494}\index{api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}!test\_jobs\_have\_runs\_on@{test\_jobs\_have\_runs\_on}}
+\index{test\_jobs\_have\_runs\_on@{test\_jobs\_have\_runs\_on}!api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}}
+\doxysubsubsection{\texorpdfstring{test\_jobs\_have\_runs\_on()}{test\_jobs\_have\_runs\_on()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a4cc5f95d5fd6bd48e9b456e62aed0494} 
+api.\+main.\+Test\+Workflow\+Git\+Hub\+Actions\+Schema.\+test\+\_\+jobs\+\_\+have\+\_\+runs\+\_\+on (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{workflow\+\_\+data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}All jobs should specify runs-on.\end{DoxyVerb}
+ \Hypertarget{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_aa0d228ff19da793bdb0db1642c35627c}\index{api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}!test\_jobs\_have\_steps\_or\_uses@{test\_jobs\_have\_steps\_or\_uses}}
+\index{test\_jobs\_have\_steps\_or\_uses@{test\_jobs\_have\_steps\_or\_uses}!api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}}
+\doxysubsubsection{\texorpdfstring{test\_jobs\_have\_steps\_or\_uses()}{test\_jobs\_have\_steps\_or\_uses()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_aa0d228ff19da793bdb0db1642c35627c} 
+api.\+main.\+Test\+Workflow\+Git\+Hub\+Actions\+Schema.\+test\+\_\+jobs\+\_\+have\+\_\+steps\+\_\+or\+\_\+uses (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{workflow\+\_\+data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Jobs should have either steps or uses (for reusable workflows).\end{DoxyVerb}
+ \Hypertarget{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_ab704150ec4713e638dfa47aaee244b9e}\index{api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}!test\_workflows\_have\_jobs@{test\_workflows\_have\_jobs}}
+\index{test\_workflows\_have\_jobs@{test\_workflows\_have\_jobs}!api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}}
+\doxysubsubsection{\texorpdfstring{test\_workflows\_have\_jobs()}{test\_workflows\_have\_jobs()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_ab704150ec4713e638dfa47aaee244b9e} 
+api.\+main.\+Test\+Workflow\+Git\+Hub\+Actions\+Schema.\+test\+\_\+workflows\+\_\+have\+\_\+jobs (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{workflow\+\_\+data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}All workflows should define at least one job.\end{DoxyVerb}
+ \Hypertarget{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_ac2c53ad0ed066a0ef2852077b50cfcb2}\index{api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}!test\_workflows\_have\_name@{test\_workflows\_have\_name}}
+\index{test\_workflows\_have\_name@{test\_workflows\_have\_name}!api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}}
+\doxysubsubsection{\texorpdfstring{test\_workflows\_have\_name()}{test\_workflows\_have\_name()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_ac2c53ad0ed066a0ef2852077b50cfcb2} 
+api.\+main.\+Test\+Workflow\+Git\+Hub\+Actions\+Schema.\+test\+\_\+workflows\+\_\+have\+\_\+name (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{workflow\+\_\+data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}All workflows should have a name field.\end{DoxyVerb}
+ \Hypertarget{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_ac8bd103df62416cebb34dac32089f70b}\index{api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}!test\_workflows\_have\_trigger@{test\_workflows\_have\_trigger}}
+\index{test\_workflows\_have\_trigger@{test\_workflows\_have\_trigger}!api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}}
+\doxysubsubsection{\texorpdfstring{test\_workflows\_have\_trigger()}{test\_workflows\_have\_trigger()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_ac8bd103df62416cebb34dac32089f70b} 
+api.\+main.\+Test\+Workflow\+Git\+Hub\+Actions\+Schema.\+test\+\_\+workflows\+\_\+have\+\_\+trigger (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{workflow\+\_\+data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}All workflows should have at least one trigger.\end{DoxyVerb}
+ \Hypertarget{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a419b593ec10f184ded0e063a9c979f81}\index{api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}!workflow\_data@{workflow\_data}}
+\index{workflow\_data@{workflow\_data}!api.main.TestWorkflowGitHubActionsSchema@{api.main.TestWorkflowGitHubActionsSchema}}
+\doxysubsubsection{\texorpdfstring{workflow\_data()}{workflow\_data()}}
+{\footnotesize\ttfamily \label{classapi_1_1main_1_1TestWorkflowGitHubActionsSchema_a419b593ec10f184ded0e063a9c979f81} 
+api.\+main.\+Test\+Workflow\+Git\+Hub\+Actions\+Schema.\+workflow\+\_\+data (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Load all workflow files as structured data.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/api/\mbox{\hyperlink{api_2main_8py}{main.\+py}}\end{DoxyCompactItemize}

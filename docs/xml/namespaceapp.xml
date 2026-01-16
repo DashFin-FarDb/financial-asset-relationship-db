@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespaceapp" kind="namespace" language="Python">
+    <compoundname>app</compoundname>
+    <innerclass refid="classapp_1_1AppConstants" prot="public">app::AppConstants</innerclass>
+    <innerclass refid="classapp_1_1FinancialAssetApp" prot="public">app::FinancialAssetApp</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceapp_1a945cd6638431171676cc257366416b8d" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.level</definition>
+        <argsstring></argsstring>
+        <name>level</name>
+        <qualifiedname>app.level</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="24" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapp_1a3501835e236154dfca58904e09f3983f" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.INFO</definition>
+        <argsstring></argsstring>
+        <name>INFO</name>
+        <qualifiedname>app.INFO</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="24" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapp_1a7cd83bd8e40fb13ae9a8f304d1bf07c0" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.format</definition>
+        <argsstring></argsstring>
+        <name>format</name>
+        <qualifiedname>app.format</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="24" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapp_1abe1dee20bb0404dca01cb33164d39182" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.logger</definition>
+        <argsstring></argsstring>
+        <name>logger</name>
+        <qualifiedname>app.logger</qualifiedname>
+        <initializer>=  logging.getLogger(__name__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="26" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapp_1a675b4ea702c13dc4b8c05f985a25b496" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.app</definition>
+        <argsstring></argsstring>
+        <name>app</name>
+        <qualifiedname>app.app</qualifiedname>
+        <initializer>=  <ref refid="classapp_1_1FinancialAssetApp" kindref="compound">FinancialAssetApp</ref>()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="774" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="774" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceapp_1a56e913d7b9cde3a7ce8b54250d96c70b" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>app.demo</definition>
+        <argsstring></argsstring>
+        <name>demo</name>
+        <qualifiedname>app.demo</qualifiedname>
+        <initializer>=  app.create_interface()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="775" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" bodystart="775" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/app.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

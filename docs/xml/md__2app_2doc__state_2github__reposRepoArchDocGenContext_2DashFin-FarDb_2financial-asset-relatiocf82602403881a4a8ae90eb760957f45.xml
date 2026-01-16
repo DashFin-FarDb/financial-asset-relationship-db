@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocf82602403881a4a8ae90eb760957f45" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__GENERATION__README</compoundname>
+    <title>Test Generation - Quick Start</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocf82602403881a4a8ae90eb760957f45_1autotoc_md5232"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocf82602403881a4a8ae90eb760957f45_1autotoc_md5233">
+<title>Generated Files</title><para>This test generation session created the following files:</para>
+<para><orderedlist>
+<listitem><para><bold><computeroutput><ref refid="test__workflow__yaml__validation_8py" kindref="compound">tests/integration/test_workflow_yaml_validation.py</ref></computeroutput></bold><itemizedlist>
+<listitem><para>New validation tests for modified workflow files</para>
+</listitem><listitem><para>121 lines, 5 tests, 2 test classes</para>
+</listitem><listitem><para>Validates YAML structure, GitHub Actions requirements, and workflow simplifications</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold><computeroutput><ref refid="BRANCH__TEST__GENERATION__SUMMARY_8md" kindref="compound">BRANCH_TEST_GENERATION_SUMMARY.md</ref></computeroutput></bold><itemizedlist>
+<listitem><para>Comprehensive analysis of all test coverage</para>
+</listitem><listitem><para>234 lines</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold><computeroutput><ref refid="FINAL__TEST__GENERATION__REPORT_8md" kindref="compound">FINAL_TEST_GENERATION_REPORT.md</ref></computeroutput></bold><itemizedlist>
+<listitem><para>Quick reference with test commands</para>
+</listitem><listitem><para>90 lines</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold><computeroutput><ref refid="TEST__GENERATION__NOTES_8md" kindref="compound">TEST_GENERATION_NOTES.md</ref></computeroutput></bold><itemizedlist>
+<listitem><para>Session notes and running instructions</para>
+</listitem><listitem><para>54 lines</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold><computeroutput><ref refid="TEST__GENERATION__COMPLETE__FINAL__SUMMARY_8md" kindref="compound">TEST_GENERATION_COMPLETE_FINAL_SUMMARY.md</ref></computeroutput></bold><itemizedlist>
+<listitem><para>Complete final summary with all details</para>
+</listitem><listitem><para>266 lines</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocf82602403881a4a8ae90eb760957f45_1autotoc_md5234">
+<title>Quick Commands</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocf82602403881a4a8ae90eb760957f45_1autotoc_md5235">
+<title>Run New Tests</title><para><programlisting filename=".bash"><codeline><highlight class="normal">pytest<sp/>tests/integration/test_workflow_yaml_validation.py<sp/>-v</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocf82602403881a4a8ae90eb760957f45_1autotoc_md5236">
+<title>Run All Tests</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Python<sp/>integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/integration/<sp/>-v<sp/>--cov</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Frontend<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocf82602403881a4a8ae90eb760957f45_1autotoc_md5237">
+<title>Test Coverage</title><para><itemizedlist>
+<listitem><para><bold>Existing</bold>: 14 test files, ~8,600 lines, 350+ tests ✅</para>
+</listitem><listitem><para><bold>New</bold>: 1 test file, 121 lines, 5 tests ✅</para>
+</listitem><listitem><para><bold>Total</bold>: 15 test files, ~8,721 lines, 355+ tests ✅</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiocf82602403881a4a8ae90eb760957f45_1autotoc_md5238">
+<title>Status</title><para>✅ <bold>All tests validated and ready for use</bold></para>
+<para><hruler/>
+</para>
+<para>For detailed information, see <computeroutput><ref refid="TEST__GENERATION__COMPLETE__FINAL__SUMMARY_8md" kindref="compound">TEST_GENERATION_COMPLETE_FINAL_SUMMARY.md</ref></computeroutput> </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/TEST_GENERATION_README.md"/>
+  </compounddef>
+</doxygen>

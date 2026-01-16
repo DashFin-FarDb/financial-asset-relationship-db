@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="frontend_2README_8md" kind="file" language="Markdown">
+    <compoundname>README.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Frontend</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>is<sp/>the<sp/>Next.js<sp/>frontend<sp/>for<sp/>the<sp/>Financial<sp/>Asset<sp/>Relationship<sp/>Database.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Getting<sp/>Started</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Prerequisites</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Node.js<sp/>18<sp/>or<sp/>higher</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>npm<sp/>or<sp/>yarn</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Installation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Install<sp/>dependencies:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>install</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>Create<sp/>environment<sp/>file:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cp<sp/>../.env.example<sp/>.env.local</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>Make<sp/>sure<sp/>the<sp/>backend<sp/>API<sp/>is<sp/>running<sp/>on<sp/>`http://localhost:8000`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Development</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Run<sp/>the<sp/>development<sp/>server:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>dev</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Open<sp/>[http://localhost:3000](http://localhost:3000)<sp/>with<sp/>your<sp/>browser.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Create<sp/>a<sp/>production<sp/>build:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>build</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Start<sp/>Production<sp/>Server</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">After<sp/>building:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>start</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Testing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Run<sp/>the<sp/>test<sp/>suite:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Run<sp/>tests<sp/>with<sp/>coverage:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>--coverage</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Note:**<sp/>Coverage<sp/>reports<sp/>are<sp/>generated<sp/>in<sp/>`frontend/coverage/`<sp/>and<sp/>are<sp/>excluded<sp/>from<sp/>version<sp/>control.<sp/>These<sp/>files<sp/>are<sp/>auto-generated<sp/>by<sp/>Jest/Istanbul<sp/>and<sp/>should<sp/>not<sp/>be<sp/>committed.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Run<sp/>tests<sp/>in<sp/>watch<sp/>mode<sp/>during<sp/>development:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>--watch</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Project<sp/>Structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">frontend/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>app/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>components/<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>React<sp/>components</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>AssetList.tsx</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>MetricsDashboard.tsx</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>NetworkVisualization.tsx</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>lib/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Utility<sp/>libraries</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>├──<sp/>api.ts<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>API<sp/>client</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>index.ts<sp/><sp/><sp/><sp/>#<sp/>Barrel<sp/>exports</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>types/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>TypeScript<sp/>type<sp/>definitions</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>│<sp/><sp/><sp/>└──<sp/>api.ts</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>globals.css<sp/><sp/><sp/><sp/><sp/>#<sp/>Global<sp/>styles</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>layout.tsx<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Root<sp/>layout</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>page.tsx<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Main<sp/>page</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>public/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Static<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>next.config.js<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Next.js<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>package.json<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tsconfig.json<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>TypeScript<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>tailwind.config.js<sp/><sp/>#<sp/>Tailwind<sp/>CSS<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Features</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**3D<sp/>Visualization**:<sp/>Interactive<sp/>3D<sp/>network<sp/>graph<sp/>using<sp/>Plotly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Metrics<sp/>Dashboard**:<sp/>Key<sp/>statistics<sp/>and<sp/>analytics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Asset<sp/>Explorer**:<sp/>Filterable<sp/>table<sp/>of<sp/>all<sp/>assets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Responsive<sp/>Design**:<sp/>Works<sp/>on<sp/>desktop<sp/>and<sp/>mobile<sp/>devices</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Type<sp/>Safety**:<sp/>Full<sp/>TypeScript<sp/>support</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Environment<sp/>Variables</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Create<sp/>a<sp/>`.env.local`<sp/>file<sp/>with:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```env</highlight></codeline>
+<codeline><highlight class="normal">NEXT_PUBLIC_API_URL=http://localhost:8000</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>production,<sp/>set<sp/>this<sp/>to<sp/>your<sp/>deployed<sp/>API<sp/>URL.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Learn<sp/>More</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>[Next.js<sp/>Documentation](https://nextjs.org/docs)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[React<sp/>Documentation](https://react.dev/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Tailwind<sp/>CSS](https://tailwindcss.com/)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>[Plotly.js](https://plotly.com/javascript/)</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/frontend/README.md"/>
+  </compounddef>
+</doxygen>

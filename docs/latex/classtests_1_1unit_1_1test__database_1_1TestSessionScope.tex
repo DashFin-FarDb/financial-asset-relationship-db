@@ -1,0 +1,81 @@
+\doxysection{tests.\+unit.\+test\+\_\+database.\+Test\+Session\+Scope Class Reference}
+\hypertarget{classtests_1_1unit_1_1test__database_1_1TestSessionScope}{}\label{classtests_1_1unit_1_1test__database_1_1TestSessionScope}\index{tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}}
+
+
+Collaboration diagram for tests.\+unit.\+test\+\_\+database.\+Test\+Session\+Scope\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=234pt]{classtests_1_1unit_1_1test__database_1_1TestSessionScope__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database_1_1TestSessionScope_ab0242fc9bfeae42fee3b8215278b6448}{test\+\_\+session\+\_\+scope\+\_\+commits\+\_\+on\+\_\+success}} (self)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database_1_1TestSessionScope_afe2065249d5364713276387c5b1c64a0}{test\+\_\+session\+\_\+scope\+\_\+rolls\+\_\+back\+\_\+on\+\_\+error}} (self)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database_1_1TestSessionScope_af0f9778bd7aa5fd608218b7500c65900}{test\+\_\+session\+\_\+scope\+\_\+closes\+\_\+session}} (self)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database_1_1TestSessionScope_a6fb2f6c2ca9d9a824942f874827a59be}{test\+\_\+session\+\_\+scope\+\_\+with\+\_\+nested\+\_\+transaction}} (self)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database_1_1TestSessionScope_a017d8b69321c7b578619a4e95825da26}{test\+\_\+session\+\_\+scope\+\_\+propagates\+\_\+exception}} (self)
+\item 
+\mbox{\hyperlink{classtests_1_1unit_1_1test__database_1_1TestSessionScope_a9c0797818ade8ce5f36db46e54c6e6a6}{test\+\_\+session\+\_\+scope\+\_\+multiple\+\_\+operations}} (self)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test cases for transactional session scope.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1unit_1_1test__database_1_1TestSessionScope_af0f9778bd7aa5fd608218b7500c65900}\index{tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}!test\_session\_scope\_closes\_session@{test\_session\_scope\_closes\_session}}
+\index{test\_session\_scope\_closes\_session@{test\_session\_scope\_closes\_session}!tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}}
+\doxysubsubsection{\texorpdfstring{test\_session\_scope\_closes\_session()}{test\_session\_scope\_closes\_session()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database_1_1TestSessionScope_af0f9778bd7aa5fd608218b7500c65900} 
+tests.\+unit.\+test\+\_\+database.\+Test\+Session\+Scope.\+test\+\_\+session\+\_\+scope\+\_\+closes\+\_\+session (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that session scope always closes the session.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database_1_1TestSessionScope_ab0242fc9bfeae42fee3b8215278b6448}\index{tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}!test\_session\_scope\_commits\_on\_success@{test\_session\_scope\_commits\_on\_success}}
+\index{test\_session\_scope\_commits\_on\_success@{test\_session\_scope\_commits\_on\_success}!tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}}
+\doxysubsubsection{\texorpdfstring{test\_session\_scope\_commits\_on\_success()}{test\_session\_scope\_commits\_on\_success()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database_1_1TestSessionScope_ab0242fc9bfeae42fee3b8215278b6448} 
+tests.\+unit.\+test\+\_\+database.\+Test\+Session\+Scope.\+test\+\_\+session\+\_\+scope\+\_\+commits\+\_\+on\+\_\+success (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that session scope commits changes on successful completion.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database_1_1TestSessionScope_a9c0797818ade8ce5f36db46e54c6e6a6}\index{tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}!test\_session\_scope\_multiple\_operations@{test\_session\_scope\_multiple\_operations}}
+\index{test\_session\_scope\_multiple\_operations@{test\_session\_scope\_multiple\_operations}!tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}}
+\doxysubsubsection{\texorpdfstring{test\_session\_scope\_multiple\_operations()}{test\_session\_scope\_multiple\_operations()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database_1_1TestSessionScope_a9c0797818ade8ce5f36db46e54c6e6a6} 
+tests.\+unit.\+test\+\_\+database.\+Test\+Session\+Scope.\+test\+\_\+session\+\_\+scope\+\_\+multiple\+\_\+operations (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test session scope with multiple database operations.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database_1_1TestSessionScope_a017d8b69321c7b578619a4e95825da26}\index{tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}!test\_session\_scope\_propagates\_exception@{test\_session\_scope\_propagates\_exception}}
+\index{test\_session\_scope\_propagates\_exception@{test\_session\_scope\_propagates\_exception}!tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}}
+\doxysubsubsection{\texorpdfstring{test\_session\_scope\_propagates\_exception()}{test\_session\_scope\_propagates\_exception()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database_1_1TestSessionScope_a017d8b69321c7b578619a4e95825da26} 
+tests.\+unit.\+test\+\_\+database.\+Test\+Session\+Scope.\+test\+\_\+session\+\_\+scope\+\_\+propagates\+\_\+exception (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that session scope propagates exceptions after rollback.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database_1_1TestSessionScope_afe2065249d5364713276387c5b1c64a0}\index{tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}!test\_session\_scope\_rolls\_back\_on\_error@{test\_session\_scope\_rolls\_back\_on\_error}}
+\index{test\_session\_scope\_rolls\_back\_on\_error@{test\_session\_scope\_rolls\_back\_on\_error}!tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}}
+\doxysubsubsection{\texorpdfstring{test\_session\_scope\_rolls\_back\_on\_error()}{test\_session\_scope\_rolls\_back\_on\_error()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database_1_1TestSessionScope_afe2065249d5364713276387c5b1c64a0} 
+tests.\+unit.\+test\+\_\+database.\+Test\+Session\+Scope.\+test\+\_\+session\+\_\+scope\+\_\+rolls\+\_\+back\+\_\+on\+\_\+error (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test that session scope rolls back changes on exception.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1unit_1_1test__database_1_1TestSessionScope_a6fb2f6c2ca9d9a824942f874827a59be}\index{tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}!test\_session\_scope\_with\_nested\_transaction@{test\_session\_scope\_with\_nested\_transaction}}
+\index{test\_session\_scope\_with\_nested\_transaction@{test\_session\_scope\_with\_nested\_transaction}!tests.unit.test\_database.TestSessionScope@{tests.unit.test\_database.TestSessionScope}}
+\doxysubsubsection{\texorpdfstring{test\_session\_scope\_with\_nested\_transaction()}{test\_session\_scope\_with\_nested\_transaction()}}
+{\footnotesize\ttfamily \label{classtests_1_1unit_1_1test__database_1_1TestSessionScope_a6fb2f6c2ca9d9a824942f874827a59be} 
+tests.\+unit.\+test\+\_\+database.\+Test\+Session\+Scope.\+test\+\_\+session\+\_\+scope\+\_\+with\+\_\+nested\+\_\+transaction (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test session scope with nested operations.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/unit/\mbox{\hyperlink{test__database_8py}{test\+\_\+database.\+py}}\end{DoxyCompactItemize}

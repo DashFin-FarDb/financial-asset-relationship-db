@@ -1,0 +1,378 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer" kind="class" language="Python" prot="public">
+    <compoundname>analysis::formulaic_analysis::FormulaicdAnalyzer</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1aafa291ce5d107e63a65a5fbc959c120d" prot="public" static="no" mutable="no">
+        <type>list</type>
+        <definition>list analysis.formulaic_analysis.FormulaicdAnalyzer::formulas</definition>
+        <argsstring></argsstring>
+        <name>formulas</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer.formulas</qualifiedname>
+        <initializer>=  []</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="28" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="28" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a118703f1c66387e7ff7898ebbfc87d0d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>analysis.formulaic_analysis.FormulaicdAnalyzer.__init__</definition>
+        <argsstring>(self)</argsstring>
+        <name>__init__</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer.__init__</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="27" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="27" bodyend="29"/>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</definition>
+        <argsstring>(self, AssetRelationshipGraph graph)</argsstring>
+        <name>analyze_graph</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Perform comprehensive formulaic analysis of the asset graph</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="30" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="30" bodyend="73"/>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1aad651ac5b885ea03a36eb44ed3c69b49" compoundref="formulaic__analysis_8py" startline="164" endline="206">analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_correlation_patterns</references>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a2e5854399a1854afc24abc2784532c23" compoundref="formulaic__analysis_8py" startline="347" endline="393">analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_cross_asset_relationships</references>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6a0fead6be894bc5b72255c28f869353" compoundref="formulaic__analysis_8py" startline="256" endline="297">analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_risk_return_relationships</references>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a1636db58288a06429de11c172432cc73" compoundref="formulaic__analysis_8py" startline="396" endline="398">analysis.formulaic_analysis.FormulaicdAnalyzer._calculate_empirical_relationships</references>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6edfe1b1add9a566f0a21d5ac5bdc877" compoundref="formulaic__analysis_8py" startline="407" endline="414">analysis.formulaic_analysis.FormulaicdAnalyzer._categorize_formulas</references>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1ac393a8d97c5464fcf93ac3cda02cefd5" compoundref="formulaic__analysis_8py" startline="76" endline="161">analysis.formulaic_analysis.FormulaicdAnalyzer._extract_fundamental_formulas</references>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a970a76093231511b7661a88134479068" compoundref="formulaic__analysis_8py" startline="300" endline="344">analysis.formulaic_analysis.FormulaicdAnalyzer._extract_portfolio_theory_formulas</references>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a326a355ae4f68067fde89f413a44bce3" compoundref="formulaic__analysis_8py" startline="209" endline="253">analysis.formulaic_analysis.FormulaicdAnalyzer._extract_valuation_relationships</references>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6cb6ab251c316c496fe27567dcbfc6b1" compoundref="formulaic__analysis_8py" startline="417" endline="442">analysis.formulaic_analysis.FormulaicdAnalyzer._generate_formula_summary</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="protected-func">
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1ac393a8d97c5464fcf93ac3cda02cefd5" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[<ref refid="classanalysis_1_1formulaic__analysis_1_1Formula" kindref="compound">Formula</ref>]</type>
+        <definition> List[Formula] analysis.formulaic_analysis.FormulaicdAnalyzer._extract_fundamental_formulas</definition>
+        <argsstring>(self, AssetRelationshipGraph graph)</argsstring>
+        <name>_extract_fundamental_formulas</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._extract_fundamental_formulas</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extract fundamental financial formulas based on asset types</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="74" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="76" bodyend="161"/>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" compoundref="formulaic__analysis_8py" startline="30" endline="73">analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1aad651ac5b885ea03a36eb44ed3c69b49" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[<ref refid="classanalysis_1_1formulaic__analysis_1_1Formula" kindref="compound">Formula</ref>]</type>
+        <definition> List[Formula] analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_correlation_patterns</definition>
+        <argsstring>(self, AssetRelationshipGraph graph)</argsstring>
+        <name>_analyze_correlation_patterns</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_correlation_patterns</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Analyze and formulate correlation patterns between assets</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="162" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="164" bodyend="206"/>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1acb73ebf4763ca00358540aa5c9e8cd90" compoundref="formulaic__analysis_8py" startline="400" endline="406">analysis.formulaic_analysis.FormulaicdAnalyzer._calculate_avg_correlation_strength</references>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" compoundref="formulaic__analysis_8py" startline="30" endline="73">analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a326a355ae4f68067fde89f413a44bce3" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[<ref refid="classanalysis_1_1formulaic__analysis_1_1Formula" kindref="compound">Formula</ref>]</type>
+        <definition> List[Formula] analysis.formulaic_analysis.FormulaicdAnalyzer._extract_valuation_relationships</definition>
+        <argsstring>(self, AssetRelationshipGraph graph)</argsstring>
+        <name>_extract_valuation_relationships</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._extract_valuation_relationships</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extract valuation model relationships</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="207" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="209" bodyend="253"/>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" compoundref="formulaic__analysis_8py" startline="30" endline="73">analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6a0fead6be894bc5b72255c28f869353" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[<ref refid="classanalysis_1_1formulaic__analysis_1_1Formula" kindref="compound">Formula</ref>]</type>
+        <definition> List[Formula] analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_risk_return_relationships</definition>
+        <argsstring>(self, AssetRelationshipGraph graph)</argsstring>
+        <name>_analyze_risk_return_relationships</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_risk_return_relationships</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Analyze risk-return mathematical relationships</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="254" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="256" bodyend="297"/>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" compoundref="formulaic__analysis_8py" startline="30" endline="73">analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a970a76093231511b7661a88134479068" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[<ref refid="classanalysis_1_1formulaic__analysis_1_1Formula" kindref="compound">Formula</ref>]</type>
+        <definition> List[Formula] analysis.formulaic_analysis.FormulaicdAnalyzer._extract_portfolio_theory_formulas</definition>
+        <argsstring>(self, AssetRelationshipGraph graph)</argsstring>
+        <name>_extract_portfolio_theory_formulas</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._extract_portfolio_theory_formulas</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extract Modern Portfolio Theory formulas</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="298" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="300" bodyend="344"/>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" compoundref="formulaic__analysis_8py" startline="30" endline="73">analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a2e5854399a1854afc24abc2784532c23" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[<ref refid="classanalysis_1_1formulaic__analysis_1_1Formula" kindref="compound">Formula</ref>]</type>
+        <definition> List[Formula] analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_cross_asset_relationships</definition>
+        <argsstring>(self, AssetRelationshipGraph graph)</argsstring>
+        <name>_analyze_cross_asset_relationships</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_cross_asset_relationships</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Analyze relationships between different asset classes</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="345" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="347" bodyend="393"/>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" compoundref="formulaic__analysis_8py" startline="30" endline="73">analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a1636db58288a06429de11c172432cc73" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] analysis.formulaic_analysis.FormulaicdAnalyzer._calculate_empirical_relationships</definition>
+        <argsstring>(self, AssetRelationshipGraph graph)</argsstring>
+        <name>_calculate_empirical_relationships</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._calculate_empirical_relationships</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="394" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="396" bodyend="398"/>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" compoundref="formulaic__analysis_8py" startline="30" endline="73">analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6edfe1b1add9a566f0a21d5ac5bdc877" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, int]</type>
+        <definition> Dict[str, int] analysis.formulaic_analysis.FormulaicdAnalyzer._categorize_formulas</definition>
+        <argsstring>(self, List[Formula] formulas)</argsstring>
+        <name>_categorize_formulas</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._categorize_formulas</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>formulas</declname>
+          <array>[Formula]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Categorize formulas by type</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="407" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="407" bodyend="414"/>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6cb6ab251c316c496fe27567dcbfc6b1" compoundref="formulaic__analysis_8py" startline="417" endline="442">analysis.formulaic_analysis.FormulaicdAnalyzer._generate_formula_summary</referencedby>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" compoundref="formulaic__analysis_8py" startline="30" endline="73">analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6cb6ab251c316c496fe27567dcbfc6b1" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Any]</type>
+        <definition> Dict[str, Any] analysis.formulaic_analysis.FormulaicdAnalyzer._generate_formula_summary</definition>
+        <argsstring>(self, List[Formula] formulas, Dict empirical_relationships)</argsstring>
+        <name>_generate_formula_summary</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._generate_formula_summary</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>formulas</declname>
+          <array>[Formula]</array>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>empirical_relationships</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Generate a comprehensive summary of formulaic analysis</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="415" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="417" bodyend="442"/>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a9ce86f1d047411531fe066231283a212" compoundref="formulaic__analysis_8py" startline="446" endline="457">analysis.formulaic_analysis.FormulaicdAnalyzer._calculate_avg_correlation_strength_from_empirical</references>
+        <references refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6edfe1b1add9a566f0a21d5ac5bdc877" compoundref="formulaic__analysis_8py" startline="407" endline="414">analysis.formulaic_analysis.FormulaicdAnalyzer._categorize_formulas</references>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" compoundref="formulaic__analysis_8py" startline="30" endline="73">analysis.formulaic_analysis.FormulaicdAnalyzer.analyze_graph</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="protected-static-func">
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1acb73ebf4763ca00358540aa5c9e8cd90" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition> float analysis.formulaic_analysis.FormulaicdAnalyzer._calculate_avg_correlation_strength</definition>
+        <argsstring>(AssetRelationshipGraph graph)</argsstring>
+        <name>_calculate_avg_correlation_strength</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._calculate_avg_correlation_strength</qualifiedname>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Calculate average correlation strength in the graph</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="400" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="400" bodyend="406"/>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1aad651ac5b885ea03a36eb44ed3c69b49" compoundref="formulaic__analysis_8py" startline="164" endline="206">analysis.formulaic_analysis.FormulaicdAnalyzer._analyze_correlation_patterns</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a9ce86f1d047411531fe066231283a212" prot="protected" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition> float analysis.formulaic_analysis.FormulaicdAnalyzer._calculate_avg_correlation_strength_from_empirical</definition>
+        <argsstring>(Dict empirical_relationships)</argsstring>
+        <name>_calculate_avg_correlation_strength_from_empirical</name>
+        <qualifiedname>analysis.formulaic_analysis.FormulaicdAnalyzer._calculate_avg_correlation_strength_from_empirical</qualifiedname>
+        <param>
+          <type>Dict</type>
+          <declname>empirical_relationships</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Calculate average correlation from empirical data</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="444" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="446" bodyend="457"/>
+        <referencedby refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6cb6ab251c316c496fe27567dcbfc6b1" compoundref="formulaic__analysis_8py" startline="417" endline="442">analysis.formulaic_analysis.FormulaicdAnalyzer._generate_formula_summary</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Analyzes financial data to extract and render mathematical relationships.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>analysis.formulaic_analysis.FormulaicdAnalyzer</label>
+        <link refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>+formulas</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>list</label>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="24" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="24" bodyend="457"/>
+    <listofallmembers>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a118703f1c66387e7ff7898ebbfc87d0d" prot="public" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>__init__</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1aad651ac5b885ea03a36eb44ed3c69b49" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_analyze_correlation_patterns</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a2e5854399a1854afc24abc2784532c23" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_analyze_cross_asset_relationships</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6a0fead6be894bc5b72255c28f869353" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_analyze_risk_return_relationships</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1acb73ebf4763ca00358540aa5c9e8cd90" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_calculate_avg_correlation_strength</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a9ce86f1d047411531fe066231283a212" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_calculate_avg_correlation_strength_from_empirical</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a1636db58288a06429de11c172432cc73" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_calculate_empirical_relationships</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6edfe1b1add9a566f0a21d5ac5bdc877" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_categorize_formulas</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1ac393a8d97c5464fcf93ac3cda02cefd5" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_extract_fundamental_formulas</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a970a76093231511b7661a88134479068" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_extract_portfolio_theory_formulas</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a326a355ae4f68067fde89f413a44bce3" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_extract_valuation_relationships</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a6cb6ab251c316c496fe27567dcbfc6b1" prot="protected" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>_generate_formula_summary</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1a7b253376748fdef292484fcd0bd8a971" prot="public" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>analyze_graph</name></member>
+      <member refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer_1aafa291ce5d107e63a65a5fbc959c120d" prot="public" virt="non-virtual"><scope>analysis::formulaic_analysis::FormulaicdAnalyzer</scope><name>formulas</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

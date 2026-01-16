@@ -1,0 +1,12 @@
+<map id="api.database.fetch_value" name="api.database.fetch_value">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,148,63"/>
+<area shape="rect" id="Node000002" href="$namespaceapi_1_1database.html#a71b75b8190d8ed80254f80faa05a7948" title=" " alt="" coords="196,31,371,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,41,182,41,182,46,148,46"/>
+<area shape="rect" id="Node000003" href="$namespaceapi_1_1database.html#a6e6aa213df0f9401217ec521935184c5" title=" " alt="" coords="419,31,628,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="371,41,405,41,405,46,371,46"/>
+<area shape="rect" id="Node000004" href="$namespaceapi_1_1database.html#add5bd37c7ccad20f0844cf169de107d2" title=" " alt="" coords="676,5,844,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="628,29,662,26,663,31,629,35"/>
+<area shape="rect" id="Node000005" href="$namespaceapi_1_1database.html#a2b55d2e5b55f35ea1fdaefbf1fd87ac3" title=" " alt="" coords="892,31,1105,56"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="628,41,878,41,878,46,628,46"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="845,24,879,28,878,33,844,30"/>
+</map>

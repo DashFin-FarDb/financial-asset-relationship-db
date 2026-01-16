@@ -1,0 +1,8 @@
+var classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications =
+[
+    [ "test_apisec_workflow_no_conditional_skip", "classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications.html#aa272ac679cd01cf33cf4ba097e4122c8", null ],
+    [ "test_greetings_workflow_simple_messages", "classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications.html#a425fbe47e68fff75b07d6b6b6d447d09", null ],
+    [ "test_label_workflow_simplified", "classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications.html#a29264f2d45a11747ada8b9d79f1e2b9c", null ],
+    [ "test_pr_agent_workflow_simplified", "classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications.html#a9025b50a1eaf6e3120597c55be67150e", null ],
+    [ "workflows_dir", "classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications.html#a0eab25e600ec11120450531aa6f064be", null ]
+];

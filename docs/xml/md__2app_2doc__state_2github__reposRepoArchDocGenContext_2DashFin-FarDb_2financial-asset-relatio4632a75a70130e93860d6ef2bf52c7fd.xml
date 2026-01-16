@@ -1,0 +1,616 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2VERCEL__DEPLOYMENT__CHECKLIST</compoundname>
+    <title>Vercel Deployment Checklist</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5623"/></para>
+<para>Use this checklist to ensure a smooth deployment to Vercel.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5624">
+<title>Pre-Deployment Checklist</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5625">
+<title>1. Code Preparation</title><para><itemizedlist>
+<listitem override="unchecked"><para>All code is committed to your Git repository</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><computeroutput>.gitignore</computeroutput> excludes build artifacts and dependencies</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>No sensitive data or secrets in code</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Environment variables are documented in <computeroutput>.env.example</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5626">
+<title>2. Local Testing</title><para><itemizedlist>
+<listitem override="unchecked"><para>Backend API runs successfully: <computeroutput>python -m uvicorn <ref refid="namespaceapi_1_1main" kindref="compound">api.main</ref>:app --port 8000</computeroutput></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Frontend builds without errors: <computeroutput>cd frontend &amp;&amp; npm run build</computeroutput></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>All API endpoints return valid responses</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>3D visualization renders correctly</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>No console errors in browser</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5627">
+<title>3. Configuration Files</title><para><itemizedlist>
+<listitem override="unchecked"><para><computeroutput>vercel.json</computeroutput> exists in project root</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><computeroutput>frontend/package.json</computeroutput> is properly configured</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><computeroutput>frontend/next.config.js</computeroutput> has correct settings</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><computeroutput>requirements.txt</computeroutput> includes all Python dependencies</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5628">
+<title>4. Dependencies Check</title><para>Python dependencies (requirements.txt):</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>fastapi&gt;=0.104.0</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>uvicorn[standard]&gt;=0.24.0</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>pydantic&gt;=2.4.0</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>gradio&gt;=4.0.0</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>plotly&gt;=5.0.0</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>numpy&gt;=1.21.0</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>yfinance&gt;=0.2.0</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>pandas&gt;=1.5.0</para>
+</listitem></itemizedlist>
+</para>
+<para>Frontend dependencies (frontend/package.json):</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>react and react-dom</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>next</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>typescript</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>tailwindcss</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>plotly.js and react-plotly.js</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>axios</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5629">
+<title>Deployment Steps</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5630">
+<title>Option 1: Deploy via GitHub Integration (Recommended)</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5631">
+<title>Step 1: Push to GitHub</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Ensure<sp/>all<sp/>changes<sp/>are<sp/>committed</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>status</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Push<sp/>to<sp/>your<sp/>repository</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>main<sp/><sp/>#<sp/>or<sp/>your<sp/>branch<sp/>name</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5632">
+<title>Step 2: Connect to Vercel</title><para><itemizedlist>
+<listitem override="unchecked"><para>Go to <ulink url="https://vercel.com">vercel.com</ulink></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Sign up or log in</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Click &quot;New Project&quot;</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Import your GitHub repository</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Vercel will auto-detect Next.js</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5633">
+<title>Step 3: Configure Project Settings</title><para><itemizedlist>
+<listitem override="unchecked"><para><bold>Framework Preset</bold>: Next.js</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><bold>Root Directory</bold>: Leave as <computeroutput>.</computeroutput> (default)</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><bold>Build Command</bold>: Leave default</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><bold>Output Directory</bold>: Leave default</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5634">
+<title>Step 4: Set Environment Variables</title><para>In the Vercel dashboard, add:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para><computeroutput>NEXT_PUBLIC_API_URL</computeroutput> = <computeroutput><ulink url="https://your-project.vercel.app">https://your-project.vercel.app</ulink></computeroutput><itemizedlist>
+<listitem><para>Note: Use your actual Vercel deployment URL</para>
+</listitem><listitem><para>This will be available after first deployment</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5635">
+<title>Step 5: Deploy</title><para><itemizedlist>
+<listitem override="unchecked"><para>Click &quot;Deploy&quot;</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Wait for build to complete (2-5 minutes)</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check deployment logs for errors</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5636">
+<title>Step 6: Update API URL</title><para>After first deployment:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Copy your Vercel project URL (e.g., <computeroutput><ulink url="https://your-project.vercel.app">https://your-project.vercel.app</ulink></computeroutput>)</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Update <computeroutput>NEXT_PUBLIC_API_URL</computeroutput> in environment variables</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Redeploy if necessary</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5637">
+<title>Option 2: Deploy via Vercel CLI</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5638">
+<title>Step 1: Install Vercel CLI</title><para><programlisting filename=".bash"><codeline><highlight class="normal">npm<sp/>install<sp/>-g<sp/>vercel</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5639">
+<title>Step 2: Login</title><para><programlisting filename=".bash"><codeline><highlight class="normal">vercel<sp/>login</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5640">
+<title>Step 3: Deploy from Project Root</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>From<sp/>the<sp/>project<sp/>root<sp/>directory</highlight></codeline>
+<codeline><highlight class="normal">vercel</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Follow<sp/>the<sp/>prompts:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Set<sp/>up<sp/>and<sp/>deploy?<sp/>Yes</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Which<sp/>scope?<sp/>Your<sp/>account</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Link<sp/>to<sp/>existing<sp/>project?<sp/>No<sp/>(for<sp/>first<sp/>deployment)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Project<sp/>name?<sp/>Your<sp/>choice</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-<sp/>Directory?<sp/>./<sp/>(current<sp/>directory)</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5641">
+<title>Step 4: Set Environment Variables</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Set<sp/>production<sp/>environment<sp/>variable</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>env<sp/>add<sp/>NEXT_PUBLIC_API_URL<sp/>production</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Enter:<sp/>https://your-project.vercel.app</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5642">
+<title>Step 5: Deploy to Production</title><para><programlisting filename=".bash"><codeline><highlight class="normal">vercel<sp/>--prod</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5643">
+<title>Post-Deployment Checklist</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5644">
+<title>1. Verify Deployment</title><para><itemizedlist>
+<listitem override="unchecked"><para>Open deployed URL in browser</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check that frontend loads without errors</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Verify API health: <computeroutput><ulink url="https://your-project.vercel.app/api/health">https://your-project.vercel.app/api/health</ulink></computeroutput></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Test API docs: <computeroutput><ulink url="https://your-project.vercel.app/docs">https://your-project.vercel.app/docs</ulink></computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5645">
+<title>2. Test Functionality</title><para><itemizedlist>
+<listitem override="unchecked"><para>3D Visualization tab loads and displays graph</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Metrics tab shows correct statistics</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Asset Explorer tab displays and filters work</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>No CORS errors in browser console</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>All interactive features work</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5646">
+<title>3. Performance Check</title><para><itemizedlist>
+<listitem override="unchecked"><para>Page load time is acceptable (&lt; 3 seconds)</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>API responses are fast (&lt; 2 seconds)</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>3D visualization renders smoothly</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>No memory leaks or errors</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5647">
+<title>4. Mobile Testing</title><para><itemizedlist>
+<listitem override="unchecked"><para>Open site on mobile device</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check responsive layout</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Test touch interactions</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Verify visualization works on mobile</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5648">
+<title>Troubleshooting</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5649">
+<title>Common Issues and Solutions</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5650">
+<title>Issue 1: Build Failed</title><para><bold>Error</bold>: Build command failed <bold>Solution</bold>:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Check build logs in Vercel dashboard</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Verify all dependencies are in package.json</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Test build locally: <computeroutput>cd frontend &amp;&amp; npm run build</computeroutput></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check for TypeScript errors</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Ensure Node.js version is compatible (18+)</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5651">
+<title>Issue 2: API Not Found (404)</title><para><bold>Error</bold>: <computeroutput>/api/</computeroutput> routes return 404 <bold>Solution</bold>:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Verify <computeroutput>vercel.json</computeroutput> is in project root</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check route configuration in vercel.json</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Ensure <computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput> exists</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check Python version compatibility</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5652">
+<title>Issue 3: CORS Errors</title><para><bold>Error</bold>: CORS policy errors in browser <bold>Solution</bold>:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Check CORS configuration in <computeroutput><ref refid="api_2main_8py" kindref="compound">api/main.py</ref></computeroutput></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Add Vercel domain to allowed origins</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Verify <computeroutput>NEXT_PUBLIC_API_URL</computeroutput> is set correctly</para>
+</listitem></itemizedlist>
+</para>
+<para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>In<sp/>api/main.py</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">app.add_middleware(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CORSMiddleware,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_origins=[</highlight><highlight class="stringliteral">&quot;https://*.vercel.app&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;https://your-domain.com&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_credentials=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_methods=[</highlight><highlight class="stringliteral">&quot;*&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_headers=[</highlight><highlight class="stringliteral">&quot;*&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5653">
+<title>Issue 4: Environment Variables Not Working</title><para><bold>Error</bold>: API_URL is undefined <bold>Solution</bold>:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Verify variable name starts with <computeroutput>NEXT_PUBLIC_</computeroutput></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Set in Vercel dashboard (Settings → Environment Variables)</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Redeploy after adding variables</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check variable is accessed correctly in code</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5654">
+<title>Issue 5: Python Dependencies Not Found</title><para><bold>Error</bold>: Module not found errors <bold>Solution</bold>:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Verify <computeroutput>requirements.txt</computeroutput> includes all dependencies</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check Python version in Vercel settings</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Use compatible package versions</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check Vercel Python runtime logs</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5655">
+<title>Issue 6: Lambda Size Exceeded</title><para><bold>Error</bold>: Deployment exceeds size limit <bold>Solution</bold>:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Increase <computeroutput>maxLambdaSize</computeroutput> in vercel.json</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Remove unused dependencies</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Use lighter alternatives where possible</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Consider serverless-friendly packages</para>
+</listitem></itemizedlist>
+</para>
+<para><programlisting filename=".json"><codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;builds&quot;:<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;src&quot;:<sp/>&quot;api/main.py&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;use&quot;:<sp/>&quot;@vercel/python&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;config&quot;:<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;maxLambdaSize&quot;:<sp/>&quot;50mb&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>]</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5656">
+<title>Continuous Deployment</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5657">
+<title>Automatic Deployments</title><para>Once connected to GitHub:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Every push to main branch triggers deployment</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Pull requests create preview deployments</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Failed builds prevent deployment</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5658">
+<title>Branch Deployments</title><para><itemizedlist>
+<listitem override="unchecked"><para><bold>Production</bold>: Deploy from <computeroutput>main</computeroutput> branch</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><bold>Staging</bold>: Deploy from <computeroutput>develop</computeroutput> branch (optional)</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><bold>Preview</bold>: Automatic for all PRs</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5659">
+<title>Monitoring</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5660">
+<title>Vercel Dashboard</title><para><itemizedlist>
+<listitem override="unchecked"><para>Check deployment status regularly</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Monitor function execution times</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Review error logs</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Check bandwidth usage</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5661">
+<title>Analytics</title><para><itemizedlist>
+<listitem override="unchecked"><para>Enable Vercel Analytics (optional)</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Monitor page views</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Track performance metrics</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Review user behavior</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5662">
+<title>Security</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5663">
+<title>Best Practices</title><para><itemizedlist>
+<listitem override="unchecked"><para>Never commit secrets to Git</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Use environment variables for sensitive data</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Enable HTTPS (automatic on Vercel)</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Set up proper CORS policies</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Regular dependency updates</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Monitor for security vulnerabilities</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5664">
+<title>Access Control</title><para><itemizedlist>
+<listitem override="unchecked"><para>Limit Vercel project access to team members</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Use separate production/staging environments</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Rotate secrets regularly</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Review access logs</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5665">
+<title>Backup Plan</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5666">
+<title>Rollback Procedure</title><para>If deployment fails or has issues:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>Go to Vercel dashboard</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Navigate to Deployments</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Find previous working deployment</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Click &quot;Promote to Production&quot;</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5667">
+<title>Local Fallback</title><para><itemizedlist>
+<listitem override="unchecked"><para>Keep Gradio UI as fallback: <computeroutput>python <ref refid="app_8py" kindref="compound">app.py</ref></computeroutput></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Document how to switch between UIs</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Maintain both deployment methods</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5668">
+<title>Resources</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5669">
+<title>Documentation Links</title><para><itemizedlist>
+<listitem override="unchecked"><para><ulink url="https://vercel.com/docs">Vercel Documentation</ulink></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><ulink url="https://nextjs.org/docs/deployment">Next.js Deployment</ulink></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para><ulink url="https://fastapi.tiangolo.com/deployment/">FastAPI Deployment</ulink></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Project-specific: <ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5670">
+<title>Support Channels</title><para><itemizedlist>
+<listitem override="unchecked"><para>Vercel Support: <ulink url="mailto:support@vercel.com">support@vercel.com</ulink></para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Vercel Community: Discord/Forum</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>GitHub Issues: For project-specific issues</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5671">
+<title>Final Checks</title><para>Before going live:</para>
+<para><itemizedlist>
+<listitem override="unchecked"><para>All tests pass</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Documentation is up to date</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Team members can access deployment</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Monitoring is set up</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Backup plan is documented</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Users are notified of new deployment</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd_1autotoc_md5673">
+<title>Quick Reference Commands</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Test<sp/>locally</highlight></codeline>
+<codeline><highlight class="normal">./run-dev.sh<sp/><sp/>#<sp/>or<sp/>run-dev.bat<sp/>on<sp/>Windows</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend<sp/>&amp;&amp;<sp/>npm<sp/>run<sp/>build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Test<sp/>API</highlight></codeline>
+<codeline><highlight class="normal">python<sp/>test_api.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Deploy<sp/>to<sp/>Vercel</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>--prod</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>logs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>List<sp/>deployments</highlight></codeline>
+<codeline><highlight class="normal">vercel<sp/>ls</highlight></codeline>
+</programlisting></para>
+<para><hruler/>
+</para>
+<para><bold>Deployment Complete?</bold> 🎉</para>
+<para>If all items are checked and deployment is successful, congratulations! Your Financial Asset Relationship Database is now live on Vercel.</para>
+<para>For maintenance and updates, see <ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT" kindref="compound">DEPLOYMENT.md</ref>. </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/VERCEL_DEPLOYMENT_CHECKLIST.md"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespaceanalysis_1_1formulaic__analysis" kind="namespace" language="Python">
+    <compoundname>analysis::formulaic_analysis</compoundname>
+    <innerclass refid="classanalysis_1_1formulaic__analysis_1_1Formula" prot="public">analysis::formulaic_analysis::Formula</innerclass>
+    <innerclass refid="classanalysis_1_1formulaic__analysis_1_1FormulaicdAnalyzer" prot="public">analysis::formulaic_analysis::FormulaicdAnalyzer</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceanalysis_1_1formulaic__analysis_1a231ed92468a799bf3c02fddf2c7c5aa5" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>analysis::formulaic_analysis.logger</definition>
+        <argsstring></argsstring>
+        <name>logger</name>
+        <qualifiedname>analysis.formulaic_analysis.logger</qualifiedname>
+        <initializer>=  logging.getLogger(__name__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="7" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" bodystart="7" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/src/analysis/formulaic_analysis.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

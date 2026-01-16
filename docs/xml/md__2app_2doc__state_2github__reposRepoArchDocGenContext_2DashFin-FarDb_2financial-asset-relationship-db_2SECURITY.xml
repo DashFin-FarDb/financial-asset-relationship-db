@@ -1,0 +1,505 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY</compoundname>
+    <title>Security Best Practices</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3592"/></para>
+<para>This document outlines security considerations and best practices for the Financial Asset Relationship Database.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3593">
+<title>Current Security Status</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3594">
+<title>✅ Implemented Security Measures</title><para><orderedlist>
+<listitem><para><bold>Code Scanning</bold><itemizedlist>
+<listitem><para>CodeQL security scanning (0 alerts)</para>
+</listitem><listitem><para>Dependency review on pull requests</para>
+</listitem><listitem><para>Trivy Docker image scanning</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Input Validation</bold><itemizedlist>
+<listitem><para>Price validation (non-negative)</para>
+</listitem><listitem><para>Currency code validation (3-letter ISO)</para>
+</listitem><listitem><para>Impact score validation (-1 to 1)</para>
+</listitem><listitem><para>Date format validation (ISO 8601)</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Docker Security</bold><itemizedlist>
+<listitem><para>Non-root user (appuser)</para>
+</listitem><listitem><para>Minimal base image (Python 3.11-slim)</para>
+</listitem><listitem><para>No hardcoded secrets</para>
+</listitem><listitem><para>Health checks configured</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Dependency Management</bold><itemizedlist>
+<listitem><para>Requirements pinned with minimum versions</para>
+</listitem><listitem><para>Regular security scanning in CI/CD</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3595">
+<title>Security Checklist</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3596">
+<title>Before Production Deployment</title><para><itemizedlist>
+<listitem override="unchecked"><para>Change all default passwords</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Enable HTTPS/TLS</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Set up API authentication</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Configure rate limiting</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Enable CORS with specific origins</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Set up logging and monitoring</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Configure backup and recovery</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Set up secrets management</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Enable audit logging</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Configure network policies</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3597">
+<title>For API Endpoints (Future)</title><para><itemizedlist>
+<listitem override="unchecked"><para>Implement JWT authentication</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Add request validation</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Rate limit per user/IP</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Implement CSRF protection</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Add request signing</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Enable API versioning</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Set up WAF (Web Application Firewall)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3598">
+<title>For Database (When Added)</title><para><itemizedlist>
+<listitem override="unchecked"><para>Use connection pooling</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Enable encryption at rest</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Enable encryption in transit</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Set up user roles and permissions</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Enable audit logging</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>Regular backups configured</para>
+</listitem></itemizedlist>
+<itemizedlist>
+<listitem override="unchecked"><para>SQL injection prevention (use parameterized queries)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3599">
+<title>Security Recommendations</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3600">
+<title>1. Authentication &amp; Authorization</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3601">
+<title>JWT Implementation (for APIs)</title><para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Depends,<sp/>HTTPException,<sp/>status</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi.security<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>HTTPBearer</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>jwt</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">security<sp/>=<sp/>HTTPBearer()</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">verify_token(credentials:<sp/>HTTPBearer<sp/>=<sp/>Depends(security)):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">try</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>payload<sp/>=<sp/>jwt.decode(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>credentials.credentials,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>SECRET_KEY,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>algorithms=[</highlight><highlight class="stringliteral">&quot;HS256&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>payload</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">except</highlight><highlight class="normal"><sp/>jwt.JWTError:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>HTTPException(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=status.HTTP_401_UNAUTHORIZED,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>detail=</highlight><highlight class="stringliteral">&quot;Invalid<sp/>authentication<sp/>credentials&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3602">
+<title>Role-Based Access Control (RBAC)</title><para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>enum<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Enum</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">Role(<ref refid="classEnum" kindref="compound">Enum</ref>):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ADMIN<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;admin&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>USER<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;user&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>READONLY<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;readonly&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">require_role(required_role:<sp/>Role):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">decorator(func):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">wrapper(*args,<sp/>**kwargs):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>user_role<sp/>=<sp/>get_current_user_role()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>user_role.value<sp/>&lt;<sp/>required_role.value:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>HTTPException(status_code=403)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>func(*args,<sp/>**kwargs)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>wrapper</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>decorator</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">@require_role(Role.ADMIN)</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">delete_asset(asset_id:<sp/>str):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3603">
+<title>2. Input Sanitization</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3604">
+<title>For User-Generated Content</title><para><programlisting filename=".py"><codeline><highlight class="keyword">import</highlight><highlight class="normal"><sp/>bleach</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>html<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>escape</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">sanitize_html(content:<sp/>str)<sp/>-&gt;<sp/>str:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Sanitize<sp/>HTML<sp/>content<sp/>to<sp/>prevent<sp/>XSS.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allowed_tags<sp/>=<sp/>[</highlight><highlight class="stringliteral">&apos;p&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;br&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;strong&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;em&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;u&apos;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>bleach.clean(content,<sp/>tags=allowed_tags,<sp/>strip=</highlight><highlight class="keyword">True</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">sanitize_text(text:<sp/>str,<sp/>max_length:<sp/>int<sp/>=<sp/>1000)<sp/>-&gt;<sp/>str:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Sanitize<sp/>plain<sp/>text<sp/>input.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Escape<sp/>HTML</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>text<sp/>=<sp/>escape(text)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Limit<sp/>length</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>text<sp/>=<sp/>text[:max_length]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Remove<sp/>control<sp/>characters</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>text<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;&apos;</highlight><highlight class="normal">.join(char<sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>char<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>text<sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>ord(char)<sp/>&gt;=<sp/>32<sp/></highlight><highlight class="keywordflow">or</highlight><highlight class="normal"><sp/>char<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&apos;\n\r\t&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>text.strip()</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3605">
+<title>For SQL Queries (when adding database)</title><para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>sqlalchemy<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>text</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>BAD<sp/>-<sp/>SQL<sp/>injection<sp/>vulnerability</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">query<sp/>=<sp/>f</highlight><highlight class="stringliteral">&quot;SELECT<sp/>*<sp/>FROM<sp/>assets<sp/>WHERE<sp/>id<sp/>=<sp/>&apos;{asset_id}&apos;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>GOOD<sp/>-<sp/>Use<sp/>parameterized<sp/>queries</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">query<sp/>=<sp/>text(</highlight><highlight class="stringliteral">&quot;SELECT<sp/>*<sp/>FROM<sp/>assets<sp/>WHERE<sp/>id<sp/>=<sp/>:asset_id&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">result<sp/>=<sp/>session.execute(query,<sp/>{</highlight><highlight class="stringliteral">&quot;asset_id&quot;</highlight><highlight class="normal">:<sp/>asset_id})</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3606">
+<title>3. Secrets Management</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3607">
+<title>Environment Variables</title><para><programlisting filename=".py"><codeline><highlight class="keyword">import</highlight><highlight class="normal"><sp/>os</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>pathlib<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Path</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>dotenv<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>load_dotenv</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Load<sp/>from<sp/>.env<sp/>file<sp/>(development<sp/>only)</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">load_dotenv()</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">DATABASE_URL<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&apos;DATABASE_URL&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">SECRET_KEY<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&apos;SECRET_KEY&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">API_KEY<sp/>=<sp/>os.getenv(</highlight><highlight class="stringliteral">&apos;API_KEY&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>all([DATABASE_URL,<sp/>SECRET_KEY,<sp/>API_KEY]):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(</highlight><highlight class="stringliteral">&quot;Missing<sp/>required<sp/>environment<sp/>variables&quot;</highlight><highlight class="normal">)</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3608">
+<title>Using Secret Managers (Production)</title><para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>AWS<sp/>Secrets<sp/>Manager</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>boto3</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>json</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">get_secret(secret_name:<sp/>str)<sp/>-&gt;<sp/>dict:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>client<sp/>=<sp/>boto3.client(</highlight><highlight class="stringliteral">&apos;secretsmanager&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>response<sp/>=<sp/>client.get_secret_value(SecretId=secret_name)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>json.loads(response[</highlight><highlight class="stringliteral">&apos;SecretString&apos;</highlight><highlight class="normal">])</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Azure<sp/>Key<sp/>Vault</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>azure.keyvault.secrets<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>SecretClient</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>azure.identity<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>DefaultAzureCredential</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">credential<sp/>=<sp/>DefaultAzureCredential()</highlight></codeline>
+<codeline><highlight class="normal">client<sp/>=<sp/>SecretClient(vault_url=</highlight><highlight class="stringliteral">&quot;https://myvault.vault.azure.net/&quot;</highlight><highlight class="normal">,<sp/>credential=credential)</highlight></codeline>
+<codeline><highlight class="normal">secret<sp/>=<sp/>client.get_secret(</highlight><highlight class="stringliteral">&quot;database-url&quot;</highlight><highlight class="normal">).value</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3609">
+<title>4. Rate Limiting</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3610">
+<title>Simple Rate Limiter</title><para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Request,<sp/>HTTPException</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi.responses<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>JSONResponse</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>time</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>collections<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>defaultdict</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>threading<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Lock</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">RateLimiter:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">__init__(self,<sp/>requests_per_minute:<sp/>int<sp/>=<sp/>60):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.requests_per_minute<sp/>=<sp/>requests_per_minute</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.requests<sp/>=<sp/>defaultdict(list)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.lock<sp/>=<sp/>Lock()</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">is_allowed(self,<sp/>client_id:<sp/>str)<sp/>-&gt;<sp/>bool:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>self.lock:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>now<sp/>=<sp/>time.time()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>minute_ago<sp/>=<sp/>now<sp/>-<sp/>60</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Clean<sp/>old<sp/>requests</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.requests[client_id]<sp/>=<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>req_time<sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>req_time<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>self.requests[client_id]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>req_time<sp/>&gt;<sp/>minute_ago</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>]</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Check<sp/>limit</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>len(self.requests[client_id])<sp/>&gt;=<sp/>self.requests_per_minute:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Add<sp/>current<sp/>request</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.requests[client_id].append(now)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">True</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">rate_limiter<sp/>=<sp/>RateLimiter(requests_per_minute=60)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">async<sp/>def<sp/></highlight><highlight class="normal">rate_limit_middleware(request:<sp/>Request,<sp/>call_next):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>client_id<sp/>=<sp/>request.client.host</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>rate_limiter.is_allowed(client_id):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>JSONResponse(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=429,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>content={</highlight><highlight class="stringliteral">&quot;detail&quot;</highlight><highlight class="normal">:<sp/></highlight><highlight class="stringliteral">&quot;Too<sp/>many<sp/>requests&quot;</highlight><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>await<sp/>call_next(request)</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3611">
+<title>5. HTTPS/TLS Configuration</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3612">
+<title>For Production Deployment</title><para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>Use<sp/>SSL<sp/>certificates</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>ssl</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">ssl_context<sp/>=<sp/>ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)</highlight></codeline>
+<codeline><highlight class="normal">ssl_context.load_cert_chain(</highlight><highlight class="stringliteral">&apos;cert.pem&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;key.pem&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>For<sp/>Gradio</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">interface.launch(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>server_name=</highlight><highlight class="stringliteral">&quot;0.0.0.0&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>server_port=443,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ssl_keyfile=</highlight><highlight class="stringliteral">&quot;key.pem&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>ssl_certfile=</highlight><highlight class="stringliteral">&quot;cert.pem&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3613">
+<title>Let&apos;s Encrypt with Certbot</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Install<sp/>certbot</highlight></codeline>
+<codeline><highlight class="normal">sudo<sp/>apt-get<sp/>install<sp/>certbot</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Get<sp/>certificate</highlight></codeline>
+<codeline><highlight class="normal">sudo<sp/>certbot<sp/>certonly<sp/>--standalone<sp/>-d<sp/>yourdomain.com</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Certificates<sp/>will<sp/>be<sp/>in<sp/>/etc/letsencrypt/live/yourdomain.com/</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3614">
+<title>6. CORS Configuration</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3615">
+<title>Secure CORS Setup</title><para><programlisting filename=".py"><codeline><highlight class="keyword">from</highlight><highlight class="normal"><sp/>fastapi.middleware.cors<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>CORSMiddleware</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">app.add_middleware(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CORSMiddleware,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_origins=[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;https://yourdomain.com&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;https://app.yourdomain.com&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>],<sp/><sp/></highlight><highlight class="comment">#<sp/>Specific<sp/>origins<sp/>only,<sp/>not<sp/>&quot;*&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_credentials=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_methods=[</highlight><highlight class="stringliteral">&quot;GET&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;POST&quot;</highlight><highlight class="normal">],<sp/><sp/></highlight><highlight class="comment">#<sp/>Only<sp/>needed<sp/>methods</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>allow_headers=[</highlight><highlight class="stringliteral">&quot;Authorization&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;Content-Type&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>max_age=3600,</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3616">
+<title>7. Logging Security Events</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3617">
+<title>Security Event Logger</title><para><programlisting filename=".py"><codeline><highlight class="keyword">import</highlight><highlight class="normal"><sp/>logging</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>json</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>datetime<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>datetime</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">security_logger<sp/>=<sp/>logging.getLogger(</highlight><highlight class="stringliteral">&apos;security&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">security_logger.setLevel(logging.INFO)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">log_security_event(event_type:<sp/>str,<sp/>user_id:<sp/>str<sp/>=<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">,<sp/>**kwargs):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Log<sp/>security-relevant<sp/>events.&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>event<sp/>=<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;timestamp&quot;</highlight><highlight class="normal">:<sp/>datetime.utcnow().isoformat(),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;event_type&quot;</highlight><highlight class="normal">:<sp/>event_type,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;user_id&quot;</highlight><highlight class="normal">:<sp/>user_id,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>**kwargs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>security_logger.info(json.dumps(event))</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Usage</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">log_security_event(</highlight><highlight class="stringliteral">&quot;login_attempt&quot;</highlight><highlight class="normal">,<sp/>user_id=</highlight><highlight class="stringliteral">&quot;user123&quot;</highlight><highlight class="normal">,<sp/>success=</highlight><highlight class="keyword">True</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">log_security_event(</highlight><highlight class="stringliteral">&quot;unauthorized_access&quot;</highlight><highlight class="normal">,<sp/>ip=</highlight><highlight class="stringliteral">&quot;192.168.1.1&quot;</highlight><highlight class="normal">,<sp/>path=</highlight><highlight class="stringliteral">&quot;/admin&quot;</highlight><highlight class="normal">)</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3618">
+<title>8. Error Handling</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3619">
+<title>Secure Error Messages</title><para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>BAD<sp/>-<sp/>Exposes<sp/>internal<sp/>details</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">@app.exception_handler(Exception)</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">async<sp/>def<sp/></highlight><highlight class="normal">exception_handler(request:<sp/>Request,<sp/>exc:<sp/>Exception):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>JSONResponse(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=500,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>content={</highlight><highlight class="stringliteral">&quot;detail&quot;</highlight><highlight class="normal">:<sp/>str(exc)}<sp/><sp/></highlight><highlight class="comment">#<sp/>Exposes<sp/>stack<sp/>trace</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>GOOD<sp/>-<sp/>Generic<sp/>message,<sp/>log<sp/>details</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">@app.exception_handler(Exception)</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">async<sp/>def<sp/></highlight><highlight class="normal">exception_handler(request:<sp/>Request,<sp/>exc:<sp/>Exception):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>logger.exception(f</highlight><highlight class="stringliteral">&quot;Unhandled<sp/>exception:<sp/>{exc}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>JSONResponse(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>status_code=500,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>content={</highlight><highlight class="stringliteral">&quot;detail&quot;</highlight><highlight class="normal">:<sp/></highlight><highlight class="stringliteral">&quot;Internal<sp/>server<sp/>error&quot;</highlight><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>)</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3620">
+<title>9. Docker Security</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3621">
+<title>Security Best Practices</title><para><programlisting filename=".dockerfile"><codeline><highlight class="preprocessor">#<sp/>Use<sp/>specific<sp/>version,<sp/>not<sp/>latest</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">FROM<sp/>python:3.11-slim</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>Run<sp/>as<sp/>non-root</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">RUN<sp/>useradd<sp/>-m<sp/>-u<sp/>1000<sp/>appuser</highlight></codeline>
+<codeline><highlight class="normal">USER<sp/>appuser</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>Don&apos;t<sp/>copy<sp/>unnecessary<sp/>files</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">COPY<sp/>requirements.txt<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">RUN<sp/>pip<sp/>install<sp/>--no-cache-dir<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>Use<sp/>health<sp/>checks</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">HEALTHCHECK<sp/>--interval=30s<sp/>--timeout=10s<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>CMD<sp/>python<sp/>-c<sp/></highlight><highlight class="stringliteral">&quot;import<sp/>requests;<sp/>requests.get(&apos;http://localhost:7860&apos;)&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>Set<sp/>security<sp/>options</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">LABEL<sp/>security.no-</highlight><highlight class="keyword">new</highlight><highlight class="normal">-privileges=</highlight><highlight class="keyword">true</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3622">
+<title>Docker Compose Security</title><para><programlisting filename=".yaml"><codeline><highlight class="normal">services:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>app:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>security_opt:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>no-new-privileges:true</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>read_only:<sp/>true</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>tmpfs:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>/tmp</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cap_drop:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>ALL</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cap_add:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>NET_BIND_SERVICE</highlight></codeline>
+</programlisting></para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3623">
+<title>10. Regular Security Audits</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3624">
+<title>Automated Scanning</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Python<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>safety</highlight></codeline>
+<codeline><highlight class="normal">safety<sp/>check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Code<sp/>security</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>bandit</highlight></codeline>
+<codeline><highlight class="normal">bandit<sp/>-r<sp/>src/</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Docker<sp/>images</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>scan<sp/>financial-asset-db:latest</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Secrets<sp/>in<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>detect-secrets</highlight></codeline>
+<codeline><highlight class="normal">detect-secrets<sp/>scan</highlight></codeline>
+</programlisting></para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3625">
+<title>Manual Reviews</title><para><itemizedlist>
+<listitem><para>Review access logs regularly</para>
+</listitem><listitem><para>Check for suspicious patterns</para>
+</listitem><listitem><para>Update dependencies monthly</para>
+</listitem><listitem><para>Review and rotate credentials quarterly</para>
+</listitem><listitem><para>Conduct penetration testing annually</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3626">
+<title>Incident Response Plan</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3627">
+<title>If Security Issue Discovered</title><para><orderedlist>
+<listitem><para><bold>Assess Impact</bold><itemizedlist>
+<listitem><para>Identify affected systems</para>
+</listitem><listitem><para>Determine data exposure</para>
+</listitem><listitem><para>Evaluate severity</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Contain</bold><itemizedlist>
+<listitem><para>Isolate affected systems</para>
+</listitem><listitem><para>Revoke compromised credentials</para>
+</listitem><listitem><para>Block suspicious IPs</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Investigate</bold><itemizedlist>
+<listitem><para>Review logs</para>
+</listitem><listitem><para>Identify root cause</para>
+</listitem><listitem><para>Document timeline</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Remediate</bold><itemizedlist>
+<listitem><para>Apply patches</para>
+</listitem><listitem><para>Update configurations</para>
+</listitem><listitem><para>Rotate credentials</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Notify</bold><itemizedlist>
+<listitem><para>Inform affected users</para>
+</listitem><listitem><para>Report to authorities if required</para>
+</listitem><listitem><para>Document lessons learned</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3628">
+<title>Security Resources</title><para><itemizedlist>
+<listitem><para><ulink url="https://owasp.org/www-project-top-ten/">OWASP Top 10</ulink></para>
+</listitem><listitem><para><ulink url="https://cwe.mitre.org/top25/">CWE Top 25</ulink></para>
+</listitem><listitem><para><ulink url="https://python.readthedocs.io/en/stable/library/security_warnings.html">Python Security Best Practices</ulink></para>
+</listitem><listitem><para><ulink url="https://docs.docker.com/engine/security/">Docker Security Best Practices</ulink></para>
+</listitem><listitem><para><ulink url="https://www.nist.gov/cyberframework">NIST Cybersecurity Framework</ulink></para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY_1autotoc_md3629">
+<title>Contact</title><para>For security issues, contact: <ulink url="mailto:mohavro@users.noreply.github.com">mohavro@users.noreply.github.com</ulink></para>
+<para><bold>Never</bold> publish security vulnerabilities in public issues. Use responsible disclosure.</para>
+<para><hruler/>
+</para>
+<para><bold>Last Updated:</bold> October 30, 2025 <bold>Version:</bold> 1.0 <bold>Author:</bold> GitHub Copilot Code Agent </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/SECURITY.md"/>
+  </compounddef>
+</doxygen>

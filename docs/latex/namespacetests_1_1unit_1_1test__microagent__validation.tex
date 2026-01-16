@@ -1,0 +1,33 @@
+\doxysection{tests.\+unit.\+test\+\_\+microagent\+\_\+validation Namespace Reference}
+\hypertarget{namespacetests_1_1unit_1_1test__microagent__validation}{}\label{namespacetests_1_1unit_1_1test__microagent__validation}\index{tests.unit.test\_microagent\_validation@{tests.unit.test\_microagent\_validation}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__microagent__validation_1_1TestAllMicroagents}{Test\+All\+Microagents}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases}{Test\+Microagent\+Edge\+Cases}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentSemantic}{Test\+Microagent\+Semantic}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentValidation}{Test\+Microagent\+Validation}}
+\item 
+class \mbox{\hyperlink{classtests_1_1unit_1_1test__microagent__validation_1_1TestRepoEngineerLead}{Test\+Repo\+Engineer\+Lead}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Unit tests for validating .openhands/microagents configuration files.
+# NOTE: One test (test_proper_grammar_and_punctuation) currently fails because it correctly
+# identified a typo in the source file .openhands/microagents/repo_engineer_lead.md:
+# There is a double period ("code..") at the end of one sentence. This demonstrates that
+# the validation tests are working as intended. The typo should be fixed in the source file.
+
+
+This module tests microagent markdown files to ensure:
+- Valid YAML frontmatter structure and syntax
+- Required metadata fields are present and valid
+- Content structure follows microagent conventions
+- Semantic consistency and correctness
+- Compatibility with OpenHands agent framework
+\end{DoxyVerb}
+ 

@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_requirements_integration::TestWorkflowCanInstallRequirements</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_1a4f5b66c1e33cfe5121a834989f9cda42" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_requirements_integration.TestWorkflowCanInstallRequirements.test_pr_agent_workflow_has_install_dependencies_step</definition>
+        <argsstring>()</argsstring>
+        <name>test_pr_agent_workflow_has_install_dependencies_step</name>
+        <qualifiedname>tests.integration.test_workflow_requirements_integration.TestWorkflowCanInstallRequirements.test_pr_agent_workflow_has_install_dependencies_step</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pr-agent workflow has a step to install Python dependencies.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="58" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="58" bodyend="88"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_1a4bbbdd90ee7600b4b76f9d5e629144f3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_requirements_integration.TestWorkflowCanInstallRequirements.test_workflow_installs_before_running_tests</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_installs_before_running_tests</name>
+        <qualifiedname>tests.integration.test_workflow_requirements_integration.TestWorkflowCanInstallRequirements.test_workflow_installs_before_running_tests</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Assert that in pr-agent.yml each job installs dependencies before running tests.
+
+Skips the test if pr-agent.yml is not present. For each job, if both a dependency-install step (contains &apos;pip install&apos; or &apos;requirements&apos;) and a test step (contains &apos;pytest&apos; in the run or &apos;test&apos; in the step name) are found, this test asserts the install step appears earlier than the test step.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="90" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="90" bodyend="129"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that workflows have steps to install the dependencies from requirements-dev.txt.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_workflow_requirements_integration.TestWorkflowCanInstallRequirements</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" line="54" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_requirements_integration.py" bodystart="54" bodyend="129"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_1a4f5b66c1e33cfe5121a834989f9cda42" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_requirements_integration::TestWorkflowCanInstallRequirements</scope><name>test_pr_agent_workflow_has_install_dependencies_step</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements_1a4bbbdd90ee7600b4b76f9d5e629144f3" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_requirements_integration::TestWorkflowCanInstallRequirements</scope><name>test_workflow_installs_before_running_tests</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api_main::TestIntegrationScenarios</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1ae28b5c5dacb54e5ae608c6e41f0ffa8b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestIntegrationScenarios.client</definition>
+        <argsstring>()</argsstring>
+        <name>client</name>
+        <qualifiedname>tests.unit.test_api_main.TestIntegrationScenarios.client</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Create a test client.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="734" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="734" bodyend="737"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1acc2171b4533f65c6f41881037be365d9" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestIntegrationScenarios.test_full_workflow_asset_exploration</definition>
+        <argsstring>(client)</argsstring>
+        <name>test_full_workflow_asset_exploration</name>
+        <qualifiedname>tests.unit.test_api_main.TestIntegrationScenarios.test_full_workflow_asset_exploration</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1ae28b5c5dacb54e5ae608c6e41f0ffa8b" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test a complete workflow: list assets, get detail, get relationships.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="739" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="739" bodyend="759"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1a008f66a7e13502accc3d5ee0a1de4cec" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestIntegrationScenarios.test_full_workflow_visualization_and_metrics</definition>
+        <argsstring>(client)</argsstring>
+        <name>test_full_workflow_visualization_and_metrics</name>
+        <qualifiedname>tests.unit.test_api_main.TestIntegrationScenarios.test_full_workflow_visualization_and_metrics</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1ae28b5c5dacb54e5ae608c6e41f0ffa8b" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow for visualization: get metrics then visualization data.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="761" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="761" bodyend="775"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1a986d9c7616ffa46d79dabb0b6081baf2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api_main.TestIntegrationScenarios.test_filter_refinement_workflow</definition>
+        <argsstring>(client)</argsstring>
+        <name>test_filter_refinement_workflow</name>
+        <qualifiedname>tests.unit.test_api_main.TestIntegrationScenarios.test_filter_refinement_workflow</qualifiedname>
+        <param>
+          <type><ref refid="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1ae28b5c5dacb54e5ae608c6e41f0ffa8b" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test progressive filter refinement.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="777" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="777" bodyend="793"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test realistic integration scenarios.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api_main.TestIntegrationScenarios</label>
+        <link refid="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" line="728" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api_main.py" bodystart="728" bodyend="793"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1ae28b5c5dacb54e5ae608c6e41f0ffa8b" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestIntegrationScenarios</scope><name>client</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1a986d9c7616ffa46d79dabb0b6081baf2" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestIntegrationScenarios</scope><name>test_filter_refinement_workflow</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1acc2171b4533f65c6f41881037be365d9" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestIntegrationScenarios</scope><name>test_full_workflow_asset_exploration</name></member>
+      <member refid="classtests_1_1unit_1_1test__api__main_1_1TestIntegrationScenarios_1a008f66a7e13502accc3d5ee0a1de4cec" prot="public" virt="non-virtual"><scope>tests::unit::test_api_main::TestIntegrationScenarios</scope><name>test_full_workflow_visualization_and_metrics</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

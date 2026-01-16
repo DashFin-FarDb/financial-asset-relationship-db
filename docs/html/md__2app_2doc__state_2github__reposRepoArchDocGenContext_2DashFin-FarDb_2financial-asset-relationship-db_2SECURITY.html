@@ -1,0 +1,615 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="financial-asset-relationship-db " />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta property="og:description" content="financial-asset-relationship-db - Custom CSS theme for html-documentation with lots of customization parameters." />
+<meta property="og:url" content="https://github.com/DashFin-FarDb/financial-asset-relationship-db" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/348492097/4f16df80-88fb-11eb-9d31-4015ff22c452" />
+<meta name="twitter:title" content="Doxygen Awesome" />
+<meta name="twitter:description" content="Custom CSS theme for doxygen html-documentation with lots of customization parameters." />
+<!-- END twitter metadata -->
+<title>financial-asset-relationship-db: Security Best Practices</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<link rel="icon" type="image/svg+xml" href="logo.drawio.svg"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript" src="doxygen-awesome-tabs.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+    DoxygenAwesomeInteractiveToc.init()
+    DoxygenAwesomeTabs.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/DashFin-FarDb/financial-asset-relationship-db" class="github-corner" title="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 250 250" width="40" height="40" style="position: absolute; top: 0; border: 0; right: 0; z-index: 99;" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">financial-asset-relationship-db
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">Security Best Practices</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="autotoc_md3592"></a></p>
+<p>This document outlines security considerations and best practices for the Financial Asset Relationship Database.</p>
+<h1><a class="anchor" id="autotoc_md3593"></a>
+Current Security Status</h1>
+<h2><a class="anchor" id="autotoc_md3594"></a>
+✅ Implemented Security Measures</h2>
+<ol type="1">
+<li><b>Code Scanning</b><ul>
+<li>CodeQL security scanning (0 alerts)</li>
+<li>Dependency review on pull requests</li>
+<li>Trivy Docker image scanning</li>
+</ul>
+</li>
+<li><b>Input Validation</b><ul>
+<li>Price validation (non-negative)</li>
+<li>Currency code validation (3-letter ISO)</li>
+<li>Impact score validation (-1 to 1)</li>
+<li>Date format validation (ISO 8601)</li>
+</ul>
+</li>
+<li><b>Docker Security</b><ul>
+<li>Non-root user (appuser)</li>
+<li>Minimal base image (Python 3.11-slim)</li>
+<li>No hardcoded secrets</li>
+<li>Health checks configured</li>
+</ul>
+</li>
+<li><b>Dependency Management</b><ul>
+<li>Requirements pinned with minimum versions</li>
+<li>Regular security scanning in CI/CD</li>
+</ul>
+</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md3595"></a>
+Security Checklist</h1>
+<h2><a class="anchor" id="autotoc_md3596"></a>
+Before Production Deployment</h2>
+<ul class="check">
+<li class="unchecked">Change all default passwords</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Enable HTTPS/TLS</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Set up API authentication</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Configure rate limiting</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Enable CORS with specific origins</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Set up logging and monitoring</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Configure backup and recovery</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Set up secrets management</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Enable audit logging</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Configure network policies</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md3597"></a>
+For API Endpoints (Future)</h2>
+<ul class="check">
+<li class="unchecked">Implement JWT authentication</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Add request validation</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Rate limit per user/IP</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Implement CSRF protection</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Add request signing</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Enable API versioning</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Set up WAF (Web Application Firewall)</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md3598"></a>
+For Database (When Added)</h2>
+<ul class="check">
+<li class="unchecked">Use connection pooling</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Enable encryption at rest</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Enable encryption in transit</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Set up user roles and permissions</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Enable audit logging</li>
+</ul>
+<ul class="check">
+<li class="unchecked">Regular backups configured</li>
+</ul>
+<ul class="check">
+<li class="unchecked">SQL injection prevention (use parameterized queries)</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3599"></a>
+Security Recommendations</h1>
+<h2><a class="anchor" id="autotoc_md3600"></a>
+1. Authentication &amp; Authorization</h2>
+<h3><a class="anchor" id="autotoc_md3601"></a>
+JWT Implementation (for APIs)</h3>
+<div class="fragment"><div class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Depends, HTTPException, status</div>
+<div class="line"><span class="keyword">from</span> fastapi.security <span class="keyword">import</span> HTTPBearer</div>
+<div class="line"><span class="keyword">import</span> jwt</div>
+<div class="line"> </div>
+<div class="line">security = HTTPBearer()</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>verify_token(credentials: HTTPBearer = Depends(security)):</div>
+<div class="line">    <span class="keywordflow">try</span>:</div>
+<div class="line">        payload = jwt.decode(</div>
+<div class="line">            credentials.credentials,</div>
+<div class="line">            SECRET_KEY,</div>
+<div class="line">            algorithms=[<span class="stringliteral">&quot;HS256&quot;</span>]</div>
+<div class="line">        )</div>
+<div class="line">        <span class="keywordflow">return</span> payload</div>
+<div class="line">    <span class="keywordflow">except</span> jwt.JWTError:</div>
+<div class="line">        <span class="keywordflow">raise</span> HTTPException(</div>
+<div class="line">            status_code=status.HTTP_401_UNAUTHORIZED,</div>
+<div class="line">            detail=<span class="stringliteral">&quot;Invalid authentication credentials&quot;</span></div>
+<div class="line">        )</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md3602"></a>
+Role-Based Access Control (RBAC)</h3>
+<div class="fragment"><div class="line"><span class="keyword">from</span> enum <span class="keyword">import</span> Enum</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">class </span>Role(<a class="code hl_class" href="classEnum.html">Enum</a>):</div>
+<div class="line">    ADMIN = <span class="stringliteral">&quot;admin&quot;</span></div>
+<div class="line">    USER = <span class="stringliteral">&quot;user&quot;</span></div>
+<div class="line">    READONLY = <span class="stringliteral">&quot;readonly&quot;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>require_role(required_role: Role):</div>
+<div class="line">    <span class="keyword">def </span>decorator(func):</div>
+<div class="line">        <span class="keyword">def </span>wrapper(*args, **kwargs):</div>
+<div class="line">            user_role = get_current_user_role()</div>
+<div class="line">            <span class="keywordflow">if</span> user_role.value &lt; required_role.value:</div>
+<div class="line">                <span class="keywordflow">raise</span> HTTPException(status_code=403)</div>
+<div class="line">            <span class="keywordflow">return</span> func(*args, **kwargs)</div>
+<div class="line">        <span class="keywordflow">return</span> wrapper</div>
+<div class="line">    <span class="keywordflow">return</span> decorator</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">@require_role(Role.ADMIN)</span></div>
+<div class="line"><span class="keyword">def </span>delete_asset(asset_id: str):</div>
+<div class="line">    <span class="keywordflow">pass</span></div>
+<div class="ttc" id="aclassEnum_html"><div class="ttname"><a href="classEnum.html">Enum</a></div></div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3603"></a>
+2. Input Sanitization</h2>
+<h3><a class="anchor" id="autotoc_md3604"></a>
+For User-Generated Content</h3>
+<div class="fragment"><div class="line"><span class="keyword">import</span> bleach</div>
+<div class="line"><span class="keyword">from</span> html <span class="keyword">import</span> escape</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>sanitize_html(content: str) -&gt; str:</div>
+<div class="line">    <span class="stringliteral">&quot;&quot;&quot;Sanitize HTML content to prevent XSS.&quot;&quot;&quot;</span></div>
+<div class="line">    allowed_tags = [<span class="stringliteral">&#39;p&#39;</span>, <span class="stringliteral">&#39;br&#39;</span>, <span class="stringliteral">&#39;strong&#39;</span>, <span class="stringliteral">&#39;em&#39;</span>, <span class="stringliteral">&#39;u&#39;</span>]</div>
+<div class="line">    <span class="keywordflow">return</span> bleach.clean(content, tags=allowed_tags, strip=<span class="keyword">True</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>sanitize_text(text: str, max_length: int = 1000) -&gt; str:</div>
+<div class="line">    <span class="stringliteral">&quot;&quot;&quot;Sanitize plain text input.&quot;&quot;&quot;</span></div>
+<div class="line">    <span class="comment"># Escape HTML</span></div>
+<div class="line">    text = escape(text)</div>
+<div class="line">    <span class="comment"># Limit length</span></div>
+<div class="line">    text = text[:max_length]</div>
+<div class="line">    <span class="comment"># Remove control characters</span></div>
+<div class="line">    text = <span class="stringliteral">&#39;&#39;</span>.join(char <span class="keywordflow">for</span> char <span class="keywordflow">in</span> text <span class="keywordflow">if</span> ord(char) &gt;= 32 <span class="keywordflow">or</span> char <span class="keywordflow">in</span> <span class="stringliteral">&#39;\n\r\t&#39;</span>)</div>
+<div class="line">    <span class="keywordflow">return</span> text.strip()</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md3605"></a>
+For SQL Queries (when adding database)</h3>
+<div class="fragment"><div class="line"><span class="keyword">from</span> sqlalchemy <span class="keyword">import</span> text</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># BAD - SQL injection vulnerability</span></div>
+<div class="line">query = f<span class="stringliteral">&quot;SELECT * FROM assets WHERE id = &#39;{asset_id}&#39;&quot;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># GOOD - Use parameterized queries</span></div>
+<div class="line">query = text(<span class="stringliteral">&quot;SELECT * FROM assets WHERE id = :asset_id&quot;</span>)</div>
+<div class="line">result = session.execute(query, {<span class="stringliteral">&quot;asset_id&quot;</span>: asset_id})</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3606"></a>
+3. Secrets Management</h2>
+<h3><a class="anchor" id="autotoc_md3607"></a>
+Environment Variables</h3>
+<div class="fragment"><div class="line"><span class="keyword">import</span> os</div>
+<div class="line"><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path</div>
+<div class="line"><span class="keyword">from</span> dotenv <span class="keyword">import</span> load_dotenv</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Load from .env file (development only)</span></div>
+<div class="line">load_dotenv()</div>
+<div class="line"> </div>
+<div class="line">DATABASE_URL = os.getenv(<span class="stringliteral">&#39;DATABASE_URL&#39;</span>)</div>
+<div class="line">SECRET_KEY = os.getenv(<span class="stringliteral">&#39;SECRET_KEY&#39;</span>)</div>
+<div class="line">API_KEY = os.getenv(<span class="stringliteral">&#39;API_KEY&#39;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="keywordflow">if</span> <span class="keywordflow">not</span> all([DATABASE_URL, SECRET_KEY, API_KEY]):</div>
+<div class="line">    <span class="keywordflow">raise</span> ValueError(<span class="stringliteral">&quot;Missing required environment variables&quot;</span>)</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md3608"></a>
+Using Secret Managers (Production)</h3>
+<div class="fragment"><div class="line"><span class="comment"># AWS Secrets Manager</span></div>
+<div class="line"><span class="keyword">import</span> boto3</div>
+<div class="line"><span class="keyword">import</span> json</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>get_secret(secret_name: str) -&gt; dict:</div>
+<div class="line">    client = boto3.client(<span class="stringliteral">&#39;secretsmanager&#39;</span>)</div>
+<div class="line">    response = client.get_secret_value(SecretId=secret_name)</div>
+<div class="line">    <span class="keywordflow">return</span> json.loads(response[<span class="stringliteral">&#39;SecretString&#39;</span>])</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Azure Key Vault</span></div>
+<div class="line"><span class="keyword">from</span> azure.keyvault.secrets <span class="keyword">import</span> SecretClient</div>
+<div class="line"><span class="keyword">from</span> azure.identity <span class="keyword">import</span> DefaultAzureCredential</div>
+<div class="line"> </div>
+<div class="line">credential = DefaultAzureCredential()</div>
+<div class="line">client = SecretClient(vault_url=<span class="stringliteral">&quot;https://myvault.vault.azure.net/&quot;</span>, credential=credential)</div>
+<div class="line">secret = client.get_secret(<span class="stringliteral">&quot;database-url&quot;</span>).value</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3609"></a>
+4. Rate Limiting</h2>
+<h3><a class="anchor" id="autotoc_md3610"></a>
+Simple Rate Limiter</h3>
+<div class="fragment"><div class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Request, HTTPException</div>
+<div class="line"><span class="keyword">from</span> fastapi.responses <span class="keyword">import</span> JSONResponse</div>
+<div class="line"><span class="keyword">import</span> time</div>
+<div class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</div>
+<div class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Lock</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">class </span>RateLimiter:</div>
+<div class="line">    <span class="keyword">def </span>__init__(self, requests_per_minute: int = 60):</div>
+<div class="line">        self.requests_per_minute = requests_per_minute</div>
+<div class="line">        self.requests = defaultdict(list)</div>
+<div class="line">        self.lock = Lock()</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">def </span>is_allowed(self, client_id: str) -&gt; bool:</div>
+<div class="line">        <span class="keyword">with</span> self.lock:</div>
+<div class="line">            now = time.time()</div>
+<div class="line">            minute_ago = now - 60</div>
+<div class="line"> </div>
+<div class="line">            <span class="comment"># Clean old requests</span></div>
+<div class="line">            self.requests[client_id] = [</div>
+<div class="line">                req_time <span class="keywordflow">for</span> req_time <span class="keywordflow">in</span> self.requests[client_id]</div>
+<div class="line">                <span class="keywordflow">if</span> req_time &gt; minute_ago</div>
+<div class="line">            ]</div>
+<div class="line"> </div>
+<div class="line">            <span class="comment"># Check limit</span></div>
+<div class="line">            <span class="keywordflow">if</span> len(self.requests[client_id]) &gt;= self.requests_per_minute:</div>
+<div class="line">                <span class="keywordflow">return</span> <span class="keyword">False</span></div>
+<div class="line"> </div>
+<div class="line">            <span class="comment"># Add current request</span></div>
+<div class="line">            self.requests[client_id].append(now)</div>
+<div class="line">            <span class="keywordflow">return</span> <span class="keyword">True</span></div>
+<div class="line"> </div>
+<div class="line">rate_limiter = RateLimiter(requests_per_minute=60)</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">async def </span>rate_limit_middleware(request: Request, call_next):</div>
+<div class="line">    client_id = request.client.host</div>
+<div class="line">    <span class="keywordflow">if</span> <span class="keywordflow">not</span> rate_limiter.is_allowed(client_id):</div>
+<div class="line">        <span class="keywordflow">return</span> JSONResponse(</div>
+<div class="line">            status_code=429,</div>
+<div class="line">            content={<span class="stringliteral">&quot;detail&quot;</span>: <span class="stringliteral">&quot;Too many requests&quot;</span>}</div>
+<div class="line">        )</div>
+<div class="line">    <span class="keywordflow">return</span> await call_next(request)</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3611"></a>
+5. HTTPS/TLS Configuration</h2>
+<h3><a class="anchor" id="autotoc_md3612"></a>
+For Production Deployment</h3>
+<div class="fragment"><div class="line"><span class="comment"># Use SSL certificates</span></div>
+<div class="line"><span class="keyword">import</span> ssl</div>
+<div class="line"> </div>
+<div class="line">ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)</div>
+<div class="line">ssl_context.load_cert_chain(<span class="stringliteral">&#39;cert.pem&#39;</span>, <span class="stringliteral">&#39;key.pem&#39;</span>)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># For Gradio</span></div>
+<div class="line">interface.launch(</div>
+<div class="line">    server_name=<span class="stringliteral">&quot;0.0.0.0&quot;</span>,</div>
+<div class="line">    server_port=443,</div>
+<div class="line">    ssl_keyfile=<span class="stringliteral">&quot;key.pem&quot;</span>,</div>
+<div class="line">    ssl_certfile=<span class="stringliteral">&quot;cert.pem&quot;</span></div>
+<div class="line">)</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md3613"></a>
+Let's Encrypt with Certbot</h3>
+<div class="fragment"><div class="line"># Install certbot</div>
+<div class="line">sudo apt-get install certbot</div>
+<div class="line"> </div>
+<div class="line"># Get certificate</div>
+<div class="line">sudo certbot certonly --standalone -d yourdomain.com</div>
+<div class="line"> </div>
+<div class="line"># Certificates will be in /etc/letsencrypt/live/yourdomain.com/</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3614"></a>
+6. CORS Configuration</h2>
+<h3><a class="anchor" id="autotoc_md3615"></a>
+Secure CORS Setup</h3>
+<div class="fragment"><div class="line"><span class="keyword">from</span> fastapi.middleware.cors <span class="keyword">import</span> CORSMiddleware</div>
+<div class="line"> </div>
+<div class="line">app.add_middleware(</div>
+<div class="line">    CORSMiddleware,</div>
+<div class="line">    allow_origins=[</div>
+<div class="line">        <span class="stringliteral">&quot;https://yourdomain.com&quot;</span>,</div>
+<div class="line">        <span class="stringliteral">&quot;https://app.yourdomain.com&quot;</span></div>
+<div class="line">    ],  <span class="comment"># Specific origins only, not &quot;*&quot;</span></div>
+<div class="line">    allow_credentials=<span class="keyword">True</span>,</div>
+<div class="line">    allow_methods=[<span class="stringliteral">&quot;GET&quot;</span>, <span class="stringliteral">&quot;POST&quot;</span>],  <span class="comment"># Only needed methods</span></div>
+<div class="line">    allow_headers=[<span class="stringliteral">&quot;Authorization&quot;</span>, <span class="stringliteral">&quot;Content-Type&quot;</span>],</div>
+<div class="line">    max_age=3600,</div>
+<div class="line">)</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3616"></a>
+7. Logging Security Events</h2>
+<h3><a class="anchor" id="autotoc_md3617"></a>
+Security Event Logger</h3>
+<div class="fragment"><div class="line"><span class="keyword">import</span> logging</div>
+<div class="line"><span class="keyword">import</span> json</div>
+<div class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</div>
+<div class="line"> </div>
+<div class="line">security_logger = logging.getLogger(<span class="stringliteral">&#39;security&#39;</span>)</div>
+<div class="line">security_logger.setLevel(logging.INFO)</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">def </span>log_security_event(event_type: str, user_id: str = <span class="keywordtype">None</span>, **kwargs):</div>
+<div class="line">    <span class="stringliteral">&quot;&quot;&quot;Log security-relevant events.&quot;&quot;&quot;</span></div>
+<div class="line">    event = {</div>
+<div class="line">        <span class="stringliteral">&quot;timestamp&quot;</span>: datetime.utcnow().isoformat(),</div>
+<div class="line">        <span class="stringliteral">&quot;event_type&quot;</span>: event_type,</div>
+<div class="line">        <span class="stringliteral">&quot;user_id&quot;</span>: user_id,</div>
+<div class="line">        **kwargs</div>
+<div class="line">    }</div>
+<div class="line">    security_logger.info(json.dumps(event))</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Usage</span></div>
+<div class="line">log_security_event(<span class="stringliteral">&quot;login_attempt&quot;</span>, user_id=<span class="stringliteral">&quot;user123&quot;</span>, success=<span class="keyword">True</span>)</div>
+<div class="line">log_security_event(<span class="stringliteral">&quot;unauthorized_access&quot;</span>, ip=<span class="stringliteral">&quot;192.168.1.1&quot;</span>, path=<span class="stringliteral">&quot;/admin&quot;</span>)</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3618"></a>
+8. Error Handling</h2>
+<h3><a class="anchor" id="autotoc_md3619"></a>
+Secure Error Messages</h3>
+<div class="fragment"><div class="line"><span class="comment"># BAD - Exposes internal details</span></div>
+<div class="line"><span class="preprocessor">@app.exception_handler(Exception)</span></div>
+<div class="line"><span class="keyword">async def </span>exception_handler(request: Request, exc: Exception):</div>
+<div class="line">    <span class="keywordflow">return</span> JSONResponse(</div>
+<div class="line">        status_code=500,</div>
+<div class="line">        content={<span class="stringliteral">&quot;detail&quot;</span>: str(exc)}  <span class="comment"># Exposes stack trace</span></div>
+<div class="line">    )</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># GOOD - Generic message, log details</span></div>
+<div class="line"><span class="preprocessor">@app.exception_handler(Exception)</span></div>
+<div class="line"><span class="keyword">async def </span>exception_handler(request: Request, exc: Exception):</div>
+<div class="line">    logger.exception(f<span class="stringliteral">&quot;Unhandled exception: {exc}&quot;</span>)</div>
+<div class="line">    <span class="keywordflow">return</span> JSONResponse(</div>
+<div class="line">        status_code=500,</div>
+<div class="line">        content={<span class="stringliteral">&quot;detail&quot;</span>: <span class="stringliteral">&quot;Internal server error&quot;</span>}</div>
+<div class="line">    )</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3620"></a>
+9. Docker Security</h2>
+<h3><a class="anchor" id="autotoc_md3621"></a>
+Security Best Practices</h3>
+<div class="fragment"><div class="line"><span class="preprocessor"># Use specific version, not latest</span></div>
+<div class="line">FROM python:3.11-slim</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor"># Run as non-root</span></div>
+<div class="line">RUN useradd -m -u 1000 appuser</div>
+<div class="line">USER appuser</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor"># Don&#39;t copy unnecessary files</span></div>
+<div class="line">COPY requirements.txt .</div>
+<div class="line">RUN pip install --no-cache-dir -r requirements.txt</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor"># Use health checks</span></div>
+<div class="line">HEALTHCHECK --interval=30s --timeout=10s \</div>
+<div class="line">  CMD python -c <span class="stringliteral">&quot;import requests; requests.get(&#39;http://localhost:7860&#39;)&quot;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor"># Set security options</span></div>
+<div class="line">LABEL security.no-<span class="keyword">new</span>-privileges=<span class="keyword">true</span></div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md3622"></a>
+Docker Compose Security</h3>
+<div class="fragment"><div class="line">services:</div>
+<div class="line">  app:</div>
+<div class="line">    security_opt:</div>
+<div class="line">      - no-new-privileges:true</div>
+<div class="line">    read_only: true</div>
+<div class="line">    tmpfs:</div>
+<div class="line">      - /tmp</div>
+<div class="line">    cap_drop:</div>
+<div class="line">      - ALL</div>
+<div class="line">    cap_add:</div>
+<div class="line">      - NET_BIND_SERVICE</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3623"></a>
+10. Regular Security Audits</h2>
+<h3><a class="anchor" id="autotoc_md3624"></a>
+Automated Scanning</h3>
+<div class="fragment"><div class="line"># Python dependencies</div>
+<div class="line">pip install safety</div>
+<div class="line">safety check</div>
+<div class="line"> </div>
+<div class="line"># Code security</div>
+<div class="line">pip install bandit</div>
+<div class="line">bandit -r src/</div>
+<div class="line"> </div>
+<div class="line"># Docker images</div>
+<div class="line">docker scan financial-asset-db:latest</div>
+<div class="line"> </div>
+<div class="line"># Secrets in code</div>
+<div class="line">pip install detect-secrets</div>
+<div class="line">detect-secrets scan</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md3625"></a>
+Manual Reviews</h3>
+<ul>
+<li>Review access logs regularly</li>
+<li>Check for suspicious patterns</li>
+<li>Update dependencies monthly</li>
+<li>Review and rotate credentials quarterly</li>
+<li>Conduct penetration testing annually</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3626"></a>
+Incident Response Plan</h1>
+<h2><a class="anchor" id="autotoc_md3627"></a>
+If Security Issue Discovered</h2>
+<ol type="1">
+<li><b>Assess Impact</b><ul>
+<li>Identify affected systems</li>
+<li>Determine data exposure</li>
+<li>Evaluate severity</li>
+</ul>
+</li>
+<li><b>Contain</b><ul>
+<li>Isolate affected systems</li>
+<li>Revoke compromised credentials</li>
+<li>Block suspicious IPs</li>
+</ul>
+</li>
+<li><b>Investigate</b><ul>
+<li>Review logs</li>
+<li>Identify root cause</li>
+<li>Document timeline</li>
+</ul>
+</li>
+<li><b>Remediate</b><ul>
+<li>Apply patches</li>
+<li>Update configurations</li>
+<li>Rotate credentials</li>
+</ul>
+</li>
+<li><b>Notify</b><ul>
+<li>Inform affected users</li>
+<li>Report to authorities if required</li>
+<li>Document lessons learned</li>
+</ul>
+</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md3628"></a>
+Security Resources</h1>
+<ul>
+<li><a href="https://owasp.org/www-project-top-ten/">OWASP Top 10</a></li>
+<li><a href="https://cwe.mitre.org/top25/">CWE Top 25</a></li>
+<li><a href="https://python.readthedocs.io/en/stable/library/security_warnings.html">Python Security Best Practices</a></li>
+<li><a href="https://docs.docker.com/engine/security/">Docker Security Best Practices</a></li>
+<li><a href="https://www.nist.gov/cyberframework">NIST Cybersecurity Framework</a></li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3629"></a>
+Contact</h1>
+<p>For security issues, contact: <a href="#" onclick="location.href='mai'+'lto:'+'moh'+'av'+'ro@'+'us'+'ers'+'.n'+'ore'+'pl'+'y.g'+'it'+'hub'+'.c'+'om'; return false;">mohav<span class="obfuscator">.nosp@m.</span>ro@u<span class="obfuscator">.nosp@m.</span>sers.<span class="obfuscator">.nosp@m.</span>nore<span class="obfuscator">.nosp@m.</span>ply.g<span class="obfuscator">.nosp@m.</span>ithu<span class="obfuscator">.nosp@m.</span>b.com</a></p>
+<p><b>Never</b> publish security vulnerabilities in public issues. Use responsible disclosure.</p>
+<hr  />
+<p><b>Last Updated:</b> October 30, 2025 <b>Version:</b> 1.0 <b>Author:</b> GitHub Copilot Code Agent </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
+</div><!-- doc-content -->
+<!-- HTML footer for doxygen 1.10.0-->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://penify.dev/"><img class="footer" src="https://www.penify.dev/penify-logo.svg" width="104" height="31" alt="doxygen"/></a> </li>
+  </ul>
+</div>
+</body>
+</html>

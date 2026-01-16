@@ -1,0 +1,444 @@
+\chapter{UI Comparison\+: Gradio vs Next.\+js}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON}\index{UI Comparison: Gradio vs Next.js@{UI Comparison: Gradio vs Next.js}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5576}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5576}%
+
+
+This document compares the two available user interfaces for the Financial Asset Relationship Database.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5577}{}\doxysection{\texorpdfstring{Overview}{Overview}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5577}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{3}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Feature   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Gradio UI   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Next.\+js UI    }\\\cline{1-3}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Feature   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Gradio UI   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Next.\+js UI    }\\\cline{1-3}
+\endhead
+{\bfseries{Launch Command}}   &{\ttfamily python \doxylink{app_8py}{app.\+py}}   &{\ttfamily ./run-\/dev.sh}    \\\cline{1-3}
+{\bfseries{Port}}   &7860   &3000    \\\cline{1-3}
+{\bfseries{Technology}}   &Python + Gradio   &Type\+Script + React + Next.\+js    \\\cline{1-3}
+{\bfseries{API}}   &Direct function calls   &REST API (Fast\+API)    \\\cline{1-3}
+{\bfseries{Deployment}}   &Docker, Hugging\+Face Spaces   &Vercel, Netlify, any Node host   \\\cline{1-3}
+\end{longtabu}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5578}{}\doxysection{\texorpdfstring{Detailed Comparison}{Detailed Comparison}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5578}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5579}{}\doxysubsection{\texorpdfstring{1. User Interface}{1. User Interface}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5579}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5580}{}\doxysubsubsection{\texorpdfstring{Gradio UI}{Gradio UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5580}
+
+\begin{DoxyItemize}
+\item {\bfseries{Pros\+:}}
+\begin{DoxyItemize}
+\item Native Python UI framework
+\item Rapid prototyping
+\item Built-\/in input/output handling
+\item Automatic layout management
+\item Easy to modify for Python developers
+\end{DoxyItemize}
+\item {\bfseries{Cons\+:}}
+\begin{DoxyItemize}
+\item Limited customization options
+\item Less modern look and feel
+\item Fewer interactive features
+\item Limited mobile responsiveness
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5581}{}\doxysubsubsection{\texorpdfstring{Next.\+js UI}{Next.\+js UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5581}
+
+\begin{DoxyItemize}
+\item {\bfseries{Pros\+:}}
+\begin{DoxyItemize}
+\item Modern, responsive design
+\item Fully customizable with Tailwind CSS
+\item Rich interactive components
+\item Better mobile experience
+\item Industry-\/standard web framework
+\end{DoxyItemize}
+\item {\bfseries{Cons\+:}}
+\begin{DoxyItemize}
+\item Requires frontend development knowledge
+\item More complex setup
+\item Requires separate backend API
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5582}{}\doxysubsection{\texorpdfstring{2. Features Comparison}{2. Features Comparison}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5582}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{4}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Feature   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Gradio   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Next.\+js   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Notes    }\\\cline{1-4}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Feature   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Gradio   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Next.\+js   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Notes    }\\\cline{1-4}
+\endhead
+{\bfseries{3D Network Visualization}}   &✅   &✅   &Both use Plotly    \\\cline{1-4}
+{\bfseries{Metrics Dashboard}}   &✅   &✅   &Similar functionality    \\\cline{1-4}
+{\bfseries{Asset Explorer}}   &✅   &✅   &Next.\+js has better filters    \\\cline{1-4}
+{\bfseries{Schema Report}}   &✅   &❌   &Gradio-\/only feature    \\\cline{1-4}
+{\bfseries{Documentation Tab}}   &✅   &❌   &Gradio-\/only feature    \\\cline{1-4}
+{\bfseries{2D Visualization}}   &✅   &❌   &Can be added to Next.\+js    \\\cline{1-4}
+{\bfseries{Formulaic Analysis}}   &✅   &❌   &Can be added to Next.\+js    \\\cline{1-4}
+{\bfseries{Real-\/time Updates}}   &✅   &⚠️   &Next.\+js needs Web\+Socket    \\\cline{1-4}
+{\bfseries{Export Features}}   &✅   &⚠️   &Can be added to Next.\+js    \\\cline{1-4}
+{\bfseries{Responsive Mobile}}   &⚠️   &✅   &Next.\+js is mobile-\/first    \\\cline{1-4}
+{\bfseries{Custom Branding}}   &⚠️   &✅   &Next.\+js fully customizable    \\\cline{1-4}
+{\bfseries{API Access}}   &❌   &✅   &Next.\+js exposes REST API   \\\cline{1-4}
+\end{longtabu}
+
+
+Legend\+: ✅ Fully supported \texorpdfstring{$\vert$}{|} ⚠️ Partially supported \texorpdfstring{$\vert$}{|} ❌ Not available\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5583}{}\doxysubsection{\texorpdfstring{3. Development Experience}{3. Development Experience}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5583}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5584}{}\doxysubsubsection{\texorpdfstring{Gradio UI}{Gradio UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5584}
+{\bfseries{Setup Time}}\+: \texorpdfstring{$\sim$}{\string~}5 minutes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ -\/m\ venv\ .venv}
+\DoxyCodeLine{source\ .venv/bin/activate}
+\DoxyCodeLine{pip\ install\ -\/r\ requirements.txt}
+\DoxyCodeLine{python\ app.py}
+
+\end{DoxyCode}
+
+
+{\bfseries{Pros\+:}}
+
+
+\begin{DoxyItemize}
+\item Single-\/language development (Python)
+\item Quick to prototype new features
+\item No build step required
+\item Hot reload built-\/in
+\item Easy to debug
+\end{DoxyItemize}
+
+{\bfseries{Cons\+:}}
+
+
+\begin{DoxyItemize}
+\item Limited to Gradio\textquotesingle{}s component library
+\item Harder to implement custom UI logic
+\item Less control over layout
+\end{DoxyItemize}
+
+{\bfseries{Best For\+:}}
+
+
+\begin{DoxyItemize}
+\item Python developers
+\item Data scientists
+\item Quick demonstrations
+\item Internal tools
+\item Jupyter-\/like environments
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5585}{}\doxysubsubsection{\texorpdfstring{Next.\+js UI}{Next.\+js UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5585}
+{\bfseries{Setup Time}}\+: \texorpdfstring{$\sim$}{\string~}10 minutes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Terminal\ 1:\ Backend}
+\DoxyCodeLine{python\ -\/m\ uvicorn\ api.main:app\ -\/-\/reload}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Terminal\ 2:\ Frontend}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{npm\ install}
+\DoxyCodeLine{npm\ run\ dev}
+
+\end{DoxyCode}
+
+
+{\bfseries{Pros\+:}}
+
+
+\begin{DoxyItemize}
+\item Full control over UI/\+UX
+\item Industry-\/standard tooling
+\item Type\+Script for type safety
+\item Rich ecosystem of React components
+\item Better testing tools
+\end{DoxyItemize}
+
+{\bfseries{Cons\+:}}
+
+
+\begin{DoxyItemize}
+\item Requires Java\+Script/\+Type\+Script knowledge
+\item More complex architecture
+\item Longer build times
+\item Two processes to manage
+\end{DoxyItemize}
+
+{\bfseries{Best For\+:}}
+
+
+\begin{DoxyItemize}
+\item Web developers
+\item Production deployments
+\item Public-\/facing applications
+\item Custom branding requirements
+\item API-\/first architecture
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5586}{}\doxysubsection{\texorpdfstring{4. Performance}{4. Performance}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5586}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{4}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Aspect   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Gradio   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Next.\+js   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Winner    }\\\cline{1-4}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Aspect   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Gradio   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Next.\+js   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Winner    }\\\cline{1-4}
+\endhead
+{\bfseries{Initial Load Time}}   &\texorpdfstring{$\sim$}{\string~}2-\/3s   &\texorpdfstring{$\sim$}{\string~}1-\/2s   &Next.\+js    \\\cline{1-4}
+{\bfseries{Visualization Render}}   &Similar   &Similar   &Tie    \\\cline{1-4}
+{\bfseries{Memory Usage}}   &\texorpdfstring{$\sim$}{\string~}500\+MB   &\texorpdfstring{$\sim$}{\string~}300\+MB   &Next.\+js    \\\cline{1-4}
+{\bfseries{API Response Time}}   &N/A   &\texorpdfstring{$\sim$}{\string~}100-\/500ms   &N/A    \\\cline{1-4}
+{\bfseries{Scalability}}   &Moderate   &High   &Next.\+js    \\\cline{1-4}
+{\bfseries{Cold Start}}   &Fast   &Slow (serverless)   &Gradio   \\\cline{1-4}
+\end{longtabu}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5587}{}\doxysubsection{\texorpdfstring{5. Deployment Options}{5. Deployment Options}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5587}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5588}{}\doxysubsubsection{\texorpdfstring{Gradio UI}{Gradio UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5588}
+{\bfseries{Supported Platforms\+:}}
+
+
+\begin{DoxyItemize}
+\item Docker containers
+\item Hugging Face Spaces
+\item Railway
+\item Render
+\item Any Python hosting
+\end{DoxyItemize}
+
+{\bfseries{Pros\+:}}
+
+
+\begin{DoxyItemize}
+\item Simple deployment
+\item Single container
+\item Works on any Python host
+\item Easy to containerize
+\end{DoxyItemize}
+
+{\bfseries{Cons\+:}}
+
+
+\begin{DoxyItemize}
+\item Limited scalability
+\item Requires Python runtime
+\item Less serverless-\/friendly
+\end{DoxyItemize}
+
+{\bfseries{Example Deployment\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{docker-\/compose\ up\ -\/-\/build}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5589}{}\doxysubsubsection{\texorpdfstring{Next.\+js UI}{Next.\+js UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5589}
+{\bfseries{Supported Platforms\+:}}
+
+
+\begin{DoxyItemize}
+\item Vercel (recommended)
+\item Netlify
+\item AWS Amplify
+\item Azure Static Web Apps
+\item Any Node.\+js hosting
+\end{DoxyItemize}
+
+{\bfseries{Pros\+:}}
+
+
+\begin{DoxyItemize}
+\item Serverless-\/friendly
+\item Auto-\/scaling
+\item Global CDN
+\item Preview deployments
+\item Git\+Hub integration
+\end{DoxyItemize}
+
+{\bfseries{Cons\+:}}
+
+
+\begin{DoxyItemize}
+\item Requires two services (frontend + backend)
+\item More complex configuration
+\item Potential cold starts
+\end{DoxyItemize}
+
+{\bfseries{Example Deployment\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{vercel\ -\/-\/prod}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5590}{}\doxysubsection{\texorpdfstring{6. Use Cases}{6. Use Cases}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5590}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5591}{}\doxysubsubsection{\texorpdfstring{When to Use Gradio UI}{When to Use Gradio UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5591}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Internal Tools}}\+: For team use only
+\item {\bfseries{Prototyping}}\+: Quick demos and experiments
+\item {\bfseries{Data Science}}\+: Familiar environment for Python developers
+\item {\bfseries{Teaching}}\+: Educational demonstrations
+\item {\bfseries{Research}}\+: Academic projects
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5592}{}\doxysubsubsection{\texorpdfstring{When to Use Next.\+js UI}{When to Use Next.\+js UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5592}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Production}}\+: Public-\/facing applications
+\item {\bfseries{Enterprise}}\+: Custom branding and features
+\item {\bfseries{Mobile}}\+: Mobile-\/first requirements
+\item {\bfseries{API Integration}}\+: Need to integrate with other services
+\item {\bfseries{Scalability}}\+: High-\/traffic scenarios
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5593}{}\doxysubsection{\texorpdfstring{7. Maintenance}{7. Maintenance}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5593}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{4}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Task   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Gradio   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Next.\+js   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Notes    }\\\cline{1-4}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Task   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Gradio   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Next.\+js   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Notes    }\\\cline{1-4}
+\endhead
+{\bfseries{Update Dependencies}}   &{\ttfamily pip install -\/U}   &{\ttfamily npm update}   &Similar effort    \\\cline{1-4}
+{\bfseries{Add New Feature}}   &Single file   &Multiple files   &Gradio simpler    \\\cline{1-4}
+{\bfseries{Bug Fixes}}   &Quick   &Moderate   &Gradio advantage    \\\cline{1-4}
+{\bfseries{UI Customization}}   &Limited   &Extensive   &Next.\+js advantage    \\\cline{1-4}
+{\bfseries{Security Updates}}   &Python packages   &npm packages + Python   &Similar   \\\cline{1-4}
+\end{longtabu}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5594}{}\doxysubsection{\texorpdfstring{8. Cost Analysis}{8. Cost Analysis}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5594}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5595}{}\doxysubsubsection{\texorpdfstring{Gradio UI}{Gradio UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5595}
+
+\begin{DoxyItemize}
+\item {\bfseries{Hosting}}\+: \$10-\/30/month (basic VM)
+\item {\bfseries{Scaling}}\+: Manual, requires bigger VM
+\item {\bfseries{Total}}\+: \texorpdfstring{$\sim$}{\string~}\$10-\/50/month
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5596}{}\doxysubsubsection{\texorpdfstring{Next.\+js UI}{Next.\+js UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5596}
+
+\begin{DoxyItemize}
+\item {\bfseries{Hosting}}\+:
+\begin{DoxyItemize}
+\item Vercel\+: Free tier available, \$20+/month for teams
+\item Backend\+: \$0-\/10/month (serverless)
+\end{DoxyItemize}
+\item {\bfseries{Scaling}}\+: Automatic, pay per use
+\item {\bfseries{Total}}\+: \texorpdfstring{$\sim$}{\string~}\$0-\/30/month (starts free)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5597}{}\doxysubsection{\texorpdfstring{9. Learning Curve}{9. Learning Curve}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5597}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Easy\ ───────────────────────────────────────\ Hard}
+\DoxyCodeLine{}
+\DoxyCodeLine{Gradio\ UI\ (Python\ developers)}
+\DoxyCodeLine{├─────────┤}
+\DoxyCodeLine{}
+\DoxyCodeLine{Next.js\ UI\ (Python\ developers)}
+\DoxyCodeLine{├──────────────────────────────┤}
+\DoxyCodeLine{}
+\DoxyCodeLine{Next.js\ UI\ (JavaScript\ developers)}
+\DoxyCodeLine{├────────────┤}
+\DoxyCodeLine{}
+\DoxyCodeLine{Gradio\ UI\ (JavaScript\ developers)}
+\DoxyCodeLine{├──────────────────┤}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5598}{}\doxysubsection{\texorpdfstring{10. Future Roadmap}{10. Future Roadmap}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5598}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5599}{}\doxysubsubsection{\texorpdfstring{Gradio UI}{Gradio UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5599}
+
+\begin{DoxyItemize}
+\item ✅ Stable and feature-\/complete
+\item ✅ Maintained for backward compatibility
+\item ⚠️ Limited new features planned
+\item ✅ Recommended for existing users
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5600}{}\doxysubsubsection{\texorpdfstring{Next.\+js UI}{Next.\+js UI}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5600}
+
+\begin{DoxyItemize}
+\item 🚀 Active development
+\item 🚀 New features being added
+\item 🚀 Modern architecture
+\item 🚀 Recommended for new projects
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5601}{}\doxysection{\texorpdfstring{Migration Path}{Migration Path}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5601}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5602}{}\doxysubsection{\texorpdfstring{From Gradio to Next.\+js}{From Gradio to Next.\+js}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5602}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Phase 1}}\+: Deploy both UIs in parallel
+\item {\bfseries{Phase 2}}\+: Gather user feedback on Next.\+js
+\item {\bfseries{Phase 3}}\+: Migrate users gradually
+\item {\bfseries{Phase 4}}\+: Deprecate Gradio if desired
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5603}{}\doxysubsection{\texorpdfstring{Feature Parity Roadmap}{Feature Parity Roadmap}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5603}
+To achieve feature parity with Gradio\+:
+
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add Schema Report endpoint and UI
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add Documentation tab
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add 2D Visualization support
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add Formulaic Analysis
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add Export features
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Add real-\/time updates
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5604}{}\doxysection{\texorpdfstring{Recommendation}{Recommendation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5604}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5605}{}\doxysubsection{\texorpdfstring{Choose Gradio UI if\+:}{Choose Gradio UI if\+:}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5605}
+
+\begin{DoxyItemize}
+\item ✅ You\textquotesingle{}re primarily a Python developer
+\item ✅ You need quick prototyping
+\item ✅ It\textquotesingle{}s an internal tool
+\item ✅ You want minimal setup
+\item ✅ You prefer single-\/language development
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5606}{}\doxysubsection{\texorpdfstring{Choose Next.\+js UI if\+:}{Choose Next.\+js UI if\+:}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5606}
+
+\begin{DoxyItemize}
+\item ✅ You need a production-\/ready application
+\item ✅ You want modern UI/\+UX
+\item ✅ You need mobile support
+\item ✅ You want API access
+\item ✅ You need custom branding
+\item ✅ You plan to scale
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5607}{}\doxysection{\texorpdfstring{Hybrid Approach (Recommended)}{Hybrid Approach (Recommended)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5607}
+You don\textquotesingle{}t have to choose! Both UIs can coexist\+:
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Development}}\+: Use Gradio for quick experiments
+\item {\bfseries{Production}}\+: Deploy Next.\+js for end users
+\item {\bfseries{API}}\+: Next.\+js backend serves both UIs
+\item {\bfseries{Flexibility}}\+: Switch between UIs as needed
+\end{DoxyEnumerate}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Use\ Gradio\ for\ development}
+\DoxyCodeLine{python\ app.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Use\ Next.js\ for\ production}
+\DoxyCodeLine{./run-\/dev.sh}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5608}{}\doxysection{\texorpdfstring{Conclusion}{Conclusion}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON_autotoc_md5608}
+Both UIs are powerful and serve different purposes\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Gradio}}\+: Perfect for Python-\/centric workflows and rapid development
+\item {\bfseries{Next.\+js}}\+: Ideal for production deployments and modern web applications
+\end{DoxyItemize}
+
+Choose based on your specific needs, or use both!
+
+\DoxyHorRuler{0}
+
+
+For more information\+:
+
+
+\begin{DoxyItemize}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START}{QUICK\+\_\+\+START.md}{0} -\/ Getting started
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT}{DEPLOYMENT.md}{0} -\/ Deployment guide
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE}{ARCHITECTURE.md}{0} -\/ Technical architecture 
+\end{DoxyItemize}

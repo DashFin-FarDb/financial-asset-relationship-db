@@ -1,0 +1,178 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_repository::TestRelationshipOperations</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a91d67e0bd5dcbc0320e741ce4d68f640" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestRelationshipOperations.test_add_new_relationship</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_add_new_relationship</name>
+        <qualifiedname>tests.unit.test_repository.TestRelationshipOperations.test_add_new_relationship</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test adding a new relationship.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="270" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="270" bodyend="304"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a9ed842191da8759ede300214eacd4d40" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestRelationshipOperations.test_update_existing_relationship</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_update_existing_relationship</name>
+        <qualifiedname>tests.unit.test_repository.TestRelationshipOperations.test_update_existing_relationship</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test updating an existing relationship.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="306" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="306" bodyend="344"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a2963ba843d9540d5598ad3df5516b580" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestRelationshipOperations.test_list_all_relationships</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_list_all_relationships</name>
+        <qualifiedname>tests.unit.test_repository.TestRelationshipOperations.test_list_all_relationships</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test listing all relationships.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="346" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="346" bodyend="372"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a48a476305bdd106895e7cf8a8bb944c6" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestRelationshipOperations.test_get_specific_relationship</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_get_specific_relationship</name>
+        <qualifiedname>tests.unit.test_repository.TestRelationshipOperations.test_get_specific_relationship</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test retrieving a specific relationship.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="374" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="374" bodyend="405"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a9da3844a08dfe2456564afa6c86b9f12" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestRelationshipOperations.test_get_nonexistent_relationship</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_get_nonexistent_relationship</name>
+        <qualifiedname>tests.unit.test_repository.TestRelationshipOperations.test_get_nonexistent_relationship</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test getting a relationship that doesn&apos;t exist.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="407" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="407" bodyend="411"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1aebef2b9c3ffee69d58cef63647de3a35" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestRelationshipOperations.test_delete_relationship</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_delete_relationship</name>
+        <qualifiedname>tests.unit.test_repository.TestRelationshipOperations.test_delete_relationship</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test deleting a relationship.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="413" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="413" bodyend="445"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a5799e2902685f3dfd127016cd1a8a5af" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestRelationshipOperations.test_delete_nonexistent_relationship</definition>
+        <argsstring>(repository)</argsstring>
+        <name>test_delete_nonexistent_relationship</name>
+        <qualifiedname>tests.unit.test_repository.TestRelationshipOperations.test_delete_nonexistent_relationship</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__repository_1abc9e801d1854dc2d6c31685b090ec2b8" kindref="member">repository</ref></type>
+          <defname>repository</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test deleting a relationship that doesn&apos;t exist.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="447" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="447" bodyend="452"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a41c44777e691612becc0f5d4281216e8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_repository.TestRelationshipOperations.test_relationship_record_dataclass</definition>
+        <argsstring>()</argsstring>
+        <name>test_relationship_record_dataclass</name>
+        <qualifiedname>tests.unit.test_repository.TestRelationshipOperations.test_relationship_record_dataclass</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test RelationshipRecord dataclass.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="454" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="454" bodyend="470"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for relationship management.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_repository.TestRelationshipOperations</label>
+        <link refid="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" line="266" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_repository.py" bodystart="266" bodyend="470"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a91d67e0bd5dcbc0320e741ce4d68f640" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestRelationshipOperations</scope><name>test_add_new_relationship</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a5799e2902685f3dfd127016cd1a8a5af" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestRelationshipOperations</scope><name>test_delete_nonexistent_relationship</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1aebef2b9c3ffee69d58cef63647de3a35" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestRelationshipOperations</scope><name>test_delete_relationship</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a9da3844a08dfe2456564afa6c86b9f12" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestRelationshipOperations</scope><name>test_get_nonexistent_relationship</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a48a476305bdd106895e7cf8a8bb944c6" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestRelationshipOperations</scope><name>test_get_specific_relationship</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a2963ba843d9540d5598ad3df5516b580" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestRelationshipOperations</scope><name>test_list_all_relationships</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a41c44777e691612becc0f5d4281216e8" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestRelationshipOperations</scope><name>test_relationship_record_dataclass</name></member>
+      <member refid="classtests_1_1unit_1_1test__repository_1_1TestRelationshipOperations_1a9ed842191da8759ede300214eacd4d40" prot="public" virt="non-virtual"><scope>tests::unit::test_repository::TestRelationshipOperations</scope><name>test_update_existing_relationship</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

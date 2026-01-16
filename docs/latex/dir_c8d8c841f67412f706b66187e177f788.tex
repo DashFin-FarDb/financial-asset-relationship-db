@@ -1,0 +1,387 @@
+\doxysection{/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db Directory Reference}
+\hypertarget{dir_c8d8c841f67412f706b66187e177f788}{}\label{dir_c8d8c841f67412f706b66187e177f788}\index{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db Directory Reference@{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db Directory Reference}}
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \mbox{\hyperlink{dir_4715a0783ab760d3bfbd7597a4b6fa81}{api}}
+\item 
+directory \mbox{\hyperlink{dir_2755d1d78cb8b99472200bd126d14563}{branch\+\_\+reviews}}
+\item 
+directory \mbox{\hyperlink{dir_736ea4d0b1077f600fd5a8b9f7a07ddc}{docs}}
+\item 
+directory \mbox{\hyperlink{dir_94dbfdae87642e6722b14a7ba84b9b96}{frontend}}
+\item 
+directory \mbox{\hyperlink{dir_7c34897c8f57ffe14cb4838ff9fc8e78}{src}}
+\item 
+directory \mbox{\hyperlink{dir_c4847b0870ecd40b9cfc6d71d4528995}{tests}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Files}
+\begin{DoxyCompactItemize}
+\item 
+file \mbox{\hyperlink{app_8py}{app.\+py}}
+\item 
+file \mbox{\hyperlink{conftest_8py}{conftest.\+py}}
+\item 
+file \mbox{\hyperlink{main_8py}{main.\+py}}
+\item 
+file \mbox{\hyperlink{mcp__server_8py}{mcp\+\_\+server.\+py}}
+\item 
+file \mbox{\hyperlink{test__api_8py}{test\+\_\+api.\+py}}
+\item 
+file \mbox{\hyperlink{test__db__module_8py}{test\+\_\+db\+\_\+module.\+py}}
+\item 
+file \mbox{\hyperlink{test__postgres_8py}{test\+\_\+postgres.\+py}}
+\item 
+file \mbox{\hyperlink{test__supabase_8py}{test\+\_\+supabase.\+py}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+A comprehensive 3D visualization system for interconnected financial assets across all major classes\+: {\bfseries{Equities, Bonds, Commodities, Currencies, and Regulatory Events}}.\hypertarget{README.md_autotoc_md3540}{}\doxysubsection{\texorpdfstring{🚀 Quick Start}{🚀 Quick Start}}\label{README.md_autotoc_md3540}
+\hypertarget{README.md_autotoc_md3541}{}\doxysubsubsection{\texorpdfstring{Prerequisites}{Prerequisites}}\label{README.md_autotoc_md3541}
+
+\begin{DoxyItemize}
+\item Python 3.\+10+
+\item Node.\+js 18+ (for Next.\+js frontend)
+\item Virtual environment (recommended)
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3542}{}\doxysubsubsection{\texorpdfstring{Option 1\+: Gradio UI (Original)}{Option 1\+: Gradio UI (Original)}}\label{README.md_autotoc_md3542}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Clone the repository}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ clone\ <repository-\/url>}
+\DoxyCodeLine{cd\ financial-\/asset-\/relationship-\/db}
+
+\end{DoxyCode}
+
+\item {\bfseries{Set up Python environment}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ -\/m\ venv\ .venv}
+
+\end{DoxyCode}
+
+\item {\bfseries{Activate virtual environment}}
+\begin{DoxyItemize}
+\item {\bfseries{Windows (Power\+Shell)\+:}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{.\(\backslash\).venv\(\backslash\)Scripts\(\backslash\)Activate.ps1}
+
+\end{DoxyCode}
+
+\item {\bfseries{Windows (Command Prompt)\+:}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{.venv\(\backslash\)Scripts\(\backslash\)activate.bat}
+
+\end{DoxyCode}
+
+\item {\bfseries{mac\+OS/\+Linux\+:}} {\ttfamily bash source .venv/bin/activate }
+\end{DoxyItemize}
+\item {\bfseries{Install dependencies}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pip\ install\ -\/r\ requirements.txt}
+
+\end{DoxyCode}
+
+\item {\bfseries{Run the application}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ app.py}
+
+\end{DoxyCode}
+
+\end{DoxyEnumerate}
+
+The application will launch in your browser automatically at {\ttfamily \href{http://localhost:7860}{\texttt{ http\+://localhost\+:7860}}}.\hypertarget{README.md_autotoc_md3543}{}\doxysubsubsection{\texorpdfstring{Option 2\+: Next.\+js Frontend + Fast\+API Backend (New)}{Option 2\+: Next.\+js Frontend + Fast\+API Backend (New)}}\label{README.md_autotoc_md3543}
+For the modern web frontend with REST API\+:
+
+{\bfseries{Quick Start (Both Servers)\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Linux/Mac}
+\DoxyCodeLine{./run-\/dev.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Windows}
+\DoxyCodeLine{run-\/dev.bat}
+
+\end{DoxyCode}
+
+
+This will start both the Fast\+API backend (port 8000) and Next.\+js frontend (port 3000).
+
+{\bfseries{Manual Setup\+:}}
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Start the Fast\+API backend\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{source\ .venv/bin/activate\ \ \#\ On\ Windows:\ .venv\(\backslash\)Scripts\(\backslash\)activate}
+\DoxyCodeLine{pip\ install\ -\/r\ requirements.txt}
+\DoxyCodeLine{python\ -\/m\ uvicorn\ api.main:app\ -\/-\/reload\ -\/-\/port\ 8000}
+
+\end{DoxyCode}
+
+\item {\bfseries{Start the Next.\+js frontend (in a new terminal)\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{npm\ install}
+\DoxyCodeLine{npm\ run\ dev}
+
+\end{DoxyCode}
+
+\item {\bfseries{Access the application\+:}}
+\begin{DoxyItemize}
+\item Frontend\+: {\ttfamily \href{http://localhost:3000}{\texttt{ http\+://localhost\+:3000}}}
+\item Backend API\+: {\ttfamily \href{http://localhost:8000}{\texttt{ http\+://localhost\+:8000}}}
+\item API Documentation\+: {\ttfamily \href{http://localhost:8000/docs}{\texttt{ http\+://localhost\+:8000/docs}}}
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+See \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT}{DEPLOYMENT.md}{0} for detailed deployment instructions and Vercel integration.\hypertarget{README.md_autotoc_md3544}{}\doxysubsubsection{\texorpdfstring{🐳 Docker Installation (Alternative)}{🐳 Docker Installation (Alternative)}}\label{README.md_autotoc_md3544}
+For containerized deployment\+:
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Using Docker Compose (recommended)}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{docker-\/compose\ up\ -\/-\/build}
+
+\end{DoxyCode}
+
+\item {\bfseries{Using Docker directly}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{docker\ build\ -\/t\ financial-\/asset-\/db\ .}
+\DoxyCodeLine{docker\ run\ -\/p\ 7860:7860\ financial-\/asset-\/db}
+
+\end{DoxyCode}
+
+\item {\bfseries{Using Makefile}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ docker-\/compose-\/up}
+
+\end{DoxyCode}
+
+\end{DoxyEnumerate}
+
+See \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER}{DOCKER.md}{0} for detailed Docker deployment guide.\hypertarget{README.md_autotoc_md3545}{}\doxysubsection{\texorpdfstring{📊 Features}{📊 Features}}\label{README.md_autotoc_md3545}
+\hypertarget{README.md_autotoc_md3546}{}\doxysubsubsection{\texorpdfstring{Core Functionality}{Core Functionality}}\label{README.md_autotoc_md3546}
+
+\begin{DoxyItemize}
+\item {\bfseries{3D Network Visualization}}\+: Interactive 3D graph of asset relationships
+\item {\bfseries{Cross-\/\+Asset Analysis}}\+: Automatic relationship discovery between asset classes
+\item {\bfseries{Regulatory Integration}}\+: Corporate events and SEC filings impact modeling
+\item {\bfseries{Real-\/time Metrics}}\+: Network statistics and relationship strength analysis
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3547}{}\doxysubsubsection{\texorpdfstring{Asset Classes Supported}{Asset Classes Supported}}\label{README.md_autotoc_md3547}
+
+\begin{DoxyItemize}
+\item {\bfseries{Equities}}\+: Stocks with P/E ratios, dividend yields, EPS
+\item {\bfseries{Fixed Income}}\+: Bonds with yield, duration, credit ratings
+\item {\bfseries{Commodities}}\+: Futures and spot prices with contract specifications
+\item {\bfseries{Currencies}}\+: FX pairs with exchange rates and monetary policy links
+\item {\bfseries{Regulatory Events}}\+: Earnings, SEC filings, M\&A activities
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3548}{}\doxysubsubsection{\texorpdfstring{Relationship Types}{Relationship Types}}\label{README.md_autotoc_md3548}
+
+\begin{DoxyItemize}
+\item {\bfseries{Sector Affinity}}\+: Assets in same industry sector
+\item {\bfseries{Corporate Links}}\+: Bonds issued by stock companies
+\item {\bfseries{Commodity Exposure}}\+: Equity companies exposed to commodity prices
+\item {\bfseries{Currency Risk}}\+: FX exposure for non-\/\+USD assets
+\item {\bfseries{Income Comparison}}\+: Dividends vs bond yields
+\item {\bfseries{Event Impact}}\+: Regulatory events affecting multiple assets
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3549}{}\doxysubsection{\texorpdfstring{🏗️ Architecture}{🏗️ Architecture}}\label{README.md_autotoc_md3549}
+\hypertarget{README.md_autotoc_md3550}{}\doxysubsubsection{\texorpdfstring{Key Components}{Key Components}}\label{README.md_autotoc_md3550}
+
+\begin{DoxyItemize}
+\item {\bfseries{{\ttfamily \doxylink{app_8py}{app.\+py}}}}\+: Gradio web interface and event handlers
+\item {\bfseries{{\ttfamily \doxylink{asset__graph_8py}{src/logic/asset\+\_\+graph.\+py}}}}\+: Core graph algorithms and relationship engine
+\item {\bfseries{{\ttfamily \doxylink{financial__models_8py}{src/models/financial\+\_\+models.\+py}}}}\+: Domain model dataclasses and enums
+\item {\bfseries{{\ttfamily \doxylink{sample__data_8py}{src/data/sample\+\_\+data.\+py}}}}\+: Sample dataset creation
+\item {\bfseries{{\ttfamily src/visualizations/}}}\+: Plotly-\/based charts and 3D graphs
+\item {\bfseries{{\ttfamily src/reports/}}}\+: Schema and business rules reporting
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3551}{}\doxysubsubsection{\texorpdfstring{Data Model}{Data Model}}\label{README.md_autotoc_md3551}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Assets\ -\/>\ Relationships\ -\/>\ Regulatory\ Events}
+\DoxyCodeLine{\ \ \ \ ↓\ \ \ \ \ \ \ \ \ \ \ ↓\ \ \ \ \ \ \ \ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{\ \ Attributes\ \ Strength\ \ \ \ Impact\ Score}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Relationship Strength}}\+: Normalized 0.\+0-\/1.\+0 scale
+\item {\bfseries{Regulatory Impact}}\+: -\/1 to +1 scale (negative to positive)
+\item {\bfseries{3D Positions}}\+: Deterministic layout with seed=42 for consistency
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3552}{}\doxysubsection{\texorpdfstring{🧪 Development}{🧪 Development}}\label{README.md_autotoc_md3552}
+\hypertarget{README.md_autotoc_md3553}{}\doxysubsubsection{\texorpdfstring{Project Structure}{Project Structure}}\label{README.md_autotoc_md3553}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{.}
+\DoxyCodeLine{├──\ app.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Main\ application\ entry\ point}
+\DoxyCodeLine{├──\ requirements.txt\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Python\ dependencies}
+\DoxyCodeLine{├──\ .github/copilot-\/instructions.md\ \#\ AI\ agent\ guidance}
+\DoxyCodeLine{├──\ src/}
+\DoxyCodeLine{│\ \ \ ├──\ data/}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ sample\_data.py\ \ \ \ \ \ \ \ \ \#\ Sample\ database\ creation}
+\DoxyCodeLine{│\ \ \ ├──\ logic/}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ asset\_graph.py\ \ \ \ \ \ \ \ \ \#\ Core\ relationship\ engine}
+\DoxyCodeLine{│\ \ \ ├──\ models/}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ financial\_models.py\ \ \ \ \#\ Domain\ model\ classes}
+\DoxyCodeLine{│\ \ \ ├──\ reports/}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ schema\_report.py\ \ \ \ \ \ \ \#\ Schema\ documentation}
+\DoxyCodeLine{│\ \ \ └──\ visualizations/}
+\DoxyCodeLine{│\ \ \ \ \ \ \ ├──\ graph\_visuals.py\ \ \ \ \ \ \ \#\ 3D\ network\ visualization}
+\DoxyCodeLine{│\ \ \ \ \ \ \ └──\ metric\_visuals.py\ \ \ \ \ \ \#\ Analytics\ charts}
+
+\end{DoxyCode}
+\hypertarget{README.md_autotoc_md3554}{}\doxysubsubsection{\texorpdfstring{Key Patterns}{Key Patterns}}\label{README.md_autotoc_md3554}
+
+\begin{DoxyItemize}
+\item {\bfseries{Bidirectional Relationships}}\+: Some relationships are symmetric (e.\+g., {\ttfamily same\+\_\+sector})
+\item {\bfseries{Directional Relationships}}\+: Others flow one way (e.\+g., {\ttfamily corporate\+\_\+bond\+\_\+to\+\_\+equity})
+\item {\bfseries{Deterministic Positions}}\+: 3D layout uses fixed random seed for consistency
+\item {\bfseries{Relationship Discovery}}\+: Automatic relationship detection via {\ttfamily \+\_\+find\+\_\+relationships()}
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3555}{}\doxysubsection{\texorpdfstring{📈 Usage Examples}{📈 Usage Examples}}\label{README.md_autotoc_md3555}
+\hypertarget{README.md_autotoc_md3556}{}\doxysubsubsection{\texorpdfstring{Adding New Asset Types}{Adding New Asset Types}}\label{README.md_autotoc_md3556}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{from}\ src.models.financial\_models\ \textcolor{keyword}{import}\ Asset,\ AssetClass}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Extend\ Asset\ for\ new\ types}}
+\DoxyCodeLine{\textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\textcolor{keyword}{class\ }Derivative(Asset):}
+\DoxyCodeLine{\ \ \ \ underlying\_asset:\ str}
+\DoxyCodeLine{\ \ \ \ expiration\_date:\ str}
+\DoxyCodeLine{\ \ \ \ strike\_price:\ Optional[float]\ =\ \textcolor{keywordtype}{None}}
+
+\end{DoxyCode}
+\hypertarget{README.md_autotoc_md3557}{}\doxysubsubsection{\texorpdfstring{Custom Relationship Rules}{Custom Relationship Rules}}\label{README.md_autotoc_md3557}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{\#\ Add\ to\ \_find\_relationships()\ in\ AssetRelationshipGraph}}
+\DoxyCodeLine{\textcolor{keywordflow}{if}\ isinstance(asset1,\ Derivative)\ \textcolor{keywordflow}{and}\ isinstance(asset2,\ Equity):}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{if}\ asset1.underlying\_asset\ ==\ asset2.symbol:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ relationships.append((\textcolor{stringliteral}{"{}derivative\_underlying"{}},\ 0.95,\ \textcolor{keyword}{False}))}
+
+\end{DoxyCode}
+\hypertarget{README.md_autotoc_md3558}{}\doxysubsection{\texorpdfstring{🛠️ API Reference}{🛠️ API Reference}}\label{README.md_autotoc_md3558}
+\hypertarget{README.md_autotoc_md3559}{}\doxysubsubsection{\texorpdfstring{Core Methods}{Core Methods}}\label{README.md_autotoc_md3559}
+
+\begin{DoxyItemize}
+\item {\ttfamily Asset\+Relationship\+Graph.\+add\+\_\+asset(asset)} -\/ Add asset to graph
+\item {\ttfamily Asset\+Relationship\+Graph.\+add\+\_\+relationship(source, target, type, strength)} -\/ Create relationship
+\item {\ttfamily Asset\+Relationship\+Graph.\+build\+\_\+relationships()} -\/ Auto-\/discover relationships
+\item {\ttfamily Asset\+Relationship\+Graph.\+calculate\+\_\+metrics()} -\/ Generate network statistics
+\item {\ttfamily Asset\+Relationship\+Graph.\+get\+\_\+3d\+\_\+visualization\+\_\+data()} -\/ Export for visualization
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3560}{}\doxysubsection{\texorpdfstring{🧪 Testing}{🧪 Testing}}\label{README.md_autotoc_md3560}
+The project includes comprehensive test coverage\+:\hypertarget{README.md_autotoc_md3561}{}\doxysubsubsection{\texorpdfstring{Backend (Python)}{Backend (Python)}}\label{README.md_autotoc_md3561}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ tests}
+\DoxyCodeLine{pytest}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ with\ coverage}
+\DoxyCodeLine{pytest\ -\/-\/cov=src\ -\/-\/cov-\/report=html}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Or\ use\ Makefile}
+\DoxyCodeLine{make\ test}
+
+\end{DoxyCode}
+\hypertarget{README.md_autotoc_md3562}{}\doxysubsubsection{\texorpdfstring{Frontend (Next.\+js/\+React)}{Frontend (Next.\+js/\+React)}}\label{README.md_autotoc_md3562}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ tests}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{npm\ test}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ tests\ with\ coverage}
+\DoxyCodeLine{npm\ test\ -\/-\/\ -\/-\/coverage}
+
+\end{DoxyCode}
+
+
+{\bfseries{Note\+:}} Coverage reports are generated locally in {\ttfamily frontend/coverage/} and are excluded from version control. These files are auto-\/generated by Jest/\+Istanbul and should not be committed.
+
+See \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING}{CONTRIBUTING.md}{0} for detailed testing guidelines.\hypertarget{README.md_autotoc_md3563}{}\doxysubsection{\texorpdfstring{🔧 Development Tools}{🔧 Development Tools}}\label{README.md_autotoc_md3563}
+
+\begin{DoxyItemize}
+\item {\bfseries{Testing\+:}} pytest with coverage reporting
+\item {\bfseries{Linting\+:}} flake8, pylint
+\item {\bfseries{Formatting\+:}} black, isort
+\item {\bfseries{Type Checking\+:}} mypy
+\item {\bfseries{Pre-\/commit Hooks\+:}} Automatic quality checks
+\end{DoxyItemize}
+
+Install development dependencies\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pip\ install\ -\/r\ requirements-\/dev.txt}
+\DoxyCodeLine{pre-\/commit\ install}
+
+\end{DoxyCode}
+
+
+Or use the Makefile\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{make\ install-\/dev}
+\DoxyCodeLine{make\ pre-\/commit}
+
+\end{DoxyCode}
+\hypertarget{README.md_autotoc_md3564}{}\doxysubsection{\texorpdfstring{📝 License}{📝 License}}\label{README.md_autotoc_md3564}
+MIT License -\/ see LICENSE file for details.\hypertarget{README.md_autotoc_md3565}{}\doxysubsection{\texorpdfstring{🤝 Contributing}{🤝 Contributing}}\label{README.md_autotoc_md3565}
+We welcome contributions! Please see \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING}{CONTRIBUTING.md}{0} for detailed guidelines.
+
+Quick start\+:
+
+
+\begin{DoxyEnumerate}
+\item Fork the repository
+\item Create a feature branch
+\item Make your changes with tests
+\item Run {\ttfamily make check} to verify quality
+\item Submit a pull request
+\end{DoxyEnumerate}
+
+For AI agents\+: see {\ttfamily .github/copilot-\/instructions.\+md} for development guidelines.\hypertarget{README.md_autotoc_md3566}{}\doxysubsection{\texorpdfstring{📚 Additional Documentation}{📚 Additional Documentation}}\label{README.md_autotoc_md3566}
+\hypertarget{README.md_autotoc_md3567}{}\doxysubsubsection{\texorpdfstring{Getting Started (NEW)}{Getting Started (NEW)}}\label{README.md_autotoc_md3567}
+
+\begin{DoxyItemize}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2QUICK__START}{QUICK\+\_\+\+START.md}{0} -\/ {\bfseries{Get started in under 5 minutes}}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2UI__COMPARISON}{UI\+\_\+\+COMPARISON.md}{0} -\/ {\bfseries{Compare Gradio vs Next.\+js interfaces}}
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3568}{}\doxysubsubsection{\texorpdfstring{Deployment \& Integration (NEW)}{Deployment \& Integration (NEW)}}\label{README.md_autotoc_md3568}
+
+\begin{DoxyItemize}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DEPLOYMENT}{DEPLOYMENT.md}{0} -\/ {\bfseries{Vercel Next.\+js deployment guide}}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio4632a75a70130e93860d6ef2bf52c7fd}{VERCEL\+\_\+\+DEPLOYMENT\+\_\+\+CHECKLIST.md}{0} -\/ {\bfseries{Step-\/by-\/step deployment checklist}}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY}{INTEGRATION\+\_\+\+SUMMARY.md}{0} -\/ {\bfseries{Technical integration details}}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2ARCHITECTURE}{ARCHITECTURE.md}{0} -\/ {\bfseries{System architecture diagrams}}
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3569}{}\doxysubsubsection{\texorpdfstring{Original Documentation}{Original Documentation}}\label{README.md_autotoc_md3569}
+
+\begin{DoxyItemize}
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AUDIT__REPORT}{AUDIT\+\_\+\+REPORT.md}{0} -\/ Comprehensive code audit and improvements
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG}{CHANGELOG.md}{0} -\/ Version history and changes
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING}{CONTRIBUTING.md}{0} -\/ Development guidelines
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2AI__RULES}{AI\+\_\+\+RULES.md}{0} -\/ Tech stack and coding conventions
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER}{DOCKER.md}{0} -\/ Docker deployment guide
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2IMPROVEMENTS}{IMPROVEMENTS.md}{0} -\/ Code quality recommendations
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2SECURITY}{SECURITY.md}{0} -\/ Security best practices
+\item \doxysectlink{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63}{BRANCH\+\_\+\+CLEANUP\+\_\+\+ANALYSIS.md}{0} -\/ Branch management and cleanup guide
+\end{DoxyItemize}\hypertarget{README.md_autotoc_md3570}{}\doxysubsection{\texorpdfstring{\href{https://repography.com}{\texttt{ }} / Structure}{\href{https://repography.com}{\texttt{ }} / Structure}}\label{README.md_autotoc_md3570}
+\href{https://github.com/DashFin/financial-asset-relationship-db}{\texttt{ }} 

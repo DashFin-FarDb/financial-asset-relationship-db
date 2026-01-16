@@ -1,0 +1,43 @@
+\doxysection{/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/api/database.py File Reference}
+\hypertarget{api_2database_8py}{}\label{api_2database_8py}\index{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/api/database.py@{/app/doc\_state/github\_reposRepoArchDocGenContext/DashFin-\/FarDb/financial-\/asset-\/relationship-\/db/api/database.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespaceapi}{api}}
+\item 
+namespace \mbox{\hyperlink{namespaceapi_1_1database}{api.\+database}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{namespaceapi_1_1database_adaae779a24d119d106ff0a16ba2fc908}{api.\+database.\+\_\+get\+\_\+database\+\_\+url}} ()
+\item 
+str \mbox{\hyperlink{namespaceapi_1_1database_a67db33fa9ae24bc163341385dbd406ae}{api.\+database.\+\_\+resolve\+\_\+sqlite\+\_\+path}} (str url)
+\item 
+bool \mbox{\hyperlink{namespaceapi_1_1database_a2b55d2e5b55f35ea1fdaefbf1fd87ac3}{api.\+database.\+\_\+is\+\_\+memory\+\_\+db}} (str\texorpdfstring{$\vert$}{|}None path=None)
+\item 
+sqlite3.\+Connection \mbox{\hyperlink{namespaceapi_1_1database_add5bd37c7ccad20f0844cf169de107d2}{api.\+database.\+\_\+connect}} ()
+\item 
+Iterator\mbox{[}sqlite3.\+Connection\mbox{]} \mbox{\hyperlink{namespaceapi_1_1database_a6e6aa213df0f9401217ec521935184c5}{api.\+database.\+get\+\_\+connection}} ()
+\item 
+\mbox{\hyperlink{namespaceapi_1_1database_a19f8482578343a9585b0b18cf5517654}{api.\+database.\+\_\+cleanup\+\_\+memory\+\_\+connection}} ()
+\item 
+None \mbox{\hyperlink{namespaceapi_1_1database_ad11e531eb65a89c7f8f2b4a41dd57b7d}{api.\+database.\+execute}} (str query, tuple\texorpdfstring{$\vert$}{|}list\texorpdfstring{$\vert$}{|}None parameters=None)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1database_a71b75b8190d8ed80254f80faa05a7948}{api.\+database.\+fetch\+\_\+one}} (str query, tuple\texorpdfstring{$\vert$}{|}list\texorpdfstring{$\vert$}{|}None parameters=None)
+\item 
+\mbox{\hyperlink{namespaceapi_1_1database_ac1c087e886aa857ebb7fb847b74b896f}{api.\+database.\+fetch\+\_\+value}} (str query, tuple\texorpdfstring{$\vert$}{|}list\texorpdfstring{$\vert$}{|}None parameters=None)
+\item 
+None \mbox{\hyperlink{namespaceapi_1_1database_a60790c5dbf753da6b2bccf09d471b534}{api.\+database.\+initialize\+\_\+schema}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{namespaceapi_1_1database_a5014ed8f23fc4c5f66b950f75619ad58}{api.\+database.\+DATABASE\+\_\+\+URL}} = \mbox{\hyperlink{namespaceapi_1_1database_adaae779a24d119d106ff0a16ba2fc908}{\+\_\+get\+\_\+database\+\_\+url}}()
+\item 
+str \mbox{\hyperlink{namespaceapi_1_1database_ade7aafc0c3e9df952ce813ab06dd518f}{api.\+database.\+DATABASE\+\_\+\+PATH}} = \mbox{\hyperlink{namespaceapi_1_1database_a67db33fa9ae24bc163341385dbd406ae}{\+\_\+resolve\+\_\+sqlite\+\_\+path}}(\mbox{\hyperlink{namespaceapi_1_1database_a5014ed8f23fc4c5f66b950f75619ad58}{DATABASE\+\_\+\+URL}})
+\item 
+sqlite3 \mbox{\hyperlink{namespaceapi_1_1database_a648f6bb53e1820a79b97c45ee1850419}{api.\+database.\+\_\+\+MEMORY\+\_\+\+CONNECTION}} = None
+\item 
+\mbox{\hyperlink{namespaceapi_1_1database_aabb3043c4751dac46f440c64ebbca1ae}{api.\+database.\+\_\+\+MEMORY\+\_\+\+CONNECTION\+\_\+\+LOCK}} = threading.\+Lock()
+\end{DoxyCompactItemize}

@@ -1,0 +1,125 @@
+\chapter{Changelog}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG}\index{Changelog@{Changelog}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md374}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md374}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md375}{}\doxysection{\texorpdfstring{\href{https://github.com/mohavro/financial-asset-relationship-db/compare/v1.0.0...HEAD}{\texttt{ Unreleased}}}{\href{https://github.com/mohavro/financial-asset-relationship-db/compare/v1.0.0...HEAD}{\texttt{ Unreleased}}}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md375}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md376}{}\doxysubsection{\texorpdfstring{Fixed}{Fixed}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md376}
+
+\begin{DoxyItemize}
+\item Removed inappropriate CI/\+CD workflow files that were causing build failures\+:
+\begin{DoxyItemize}
+\item Deleted {\ttfamily .github/workflows/objective-\/c-\/xcode.\+yml} -\/ Xcode/\+Objective-\/C workflow not applicable to Python/\+Java\+Script project
+\item Deleted {\ttfamily .github/workflows/go.\+yml} -\/ Go workflow not applicable to Python/\+Java\+Script project
+\item Deleted {\ttfamily .github/workflows/dotnet-\/desktop.\+yml} -\/ .NET Desktop workflow not applicable to Python/\+Java\+Script project
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md377}{}\doxysubsection{\texorpdfstring{Improved}{Improved}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md377}
+
+\begin{DoxyItemize}
+\item Cleaned up CI/\+CD configuration to only include relevant workflows for the project\textquotesingle{}s tech stack (Python, Java\+Script/\+Type\+Script, Next.\+js)
+\item Reduced CI/\+CD execution time and resource usage by removing unnecessary workflow runs
+\item Improved maintainability by removing duplicate and conflicting workflow configurations
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md378}{}\doxysection{\texorpdfstring{Changelog}{Changelog}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md378}
+All notable changes to this project will be documented in this file.
+
+The format is based on \href{https://keepachangelog.com/en/1.0.0/}{\texttt{ Keep a Changelog}}, and this project adheres to \href{https://semver.org/spec/v2.0.0.html}{\texttt{ Semantic Versioning}}.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md379}{}\doxysubsection{\texorpdfstring{\href{https://github.com/mohavro/financial-asset-relationship-db/compare/v1.0.0...HEAD}{\texttt{ Unreleased}}}{\href{https://github.com/mohavro/financial-asset-relationship-db/compare/v1.0.0...HEAD}{\texttt{ Unreleased}}}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md379}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md380}{}\doxysubsubsection{\texorpdfstring{Added}{Added}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md380}
+
+\begin{DoxyItemize}
+\item Comprehensive testing infrastructure with pytest
+\item Unit tests for financial models (\doxylink{test__financial__models_8py}{test\+\_\+financial\+\_\+models.\+py})
+\item Unit tests for asset graph logic (\doxylink{test__asset__graph_8py}{test\+\_\+asset\+\_\+graph.\+py})
+\item Test fixtures in conftest.\+py for reusable test data
+\item Development dependencies in requirements-\/dev.\+txt
+\item Linting configuration (.flake8, pyproject.\+toml)
+\item Code formatting tools (black, isort)
+\item Type checking with mypy
+\item Pre-\/commit hooks configuration
+\item Editor\+Config for consistent formatting
+\item Consolidated CI workflow (.github/workflows/ci.\+yml)
+\item Code coverage reporting with pytest-\/cov
+\item Makefile for common development tasks
+\item \doxylink{CONTRIBUTING_8md}{CONTRIBUTING.\+md} guide for developers
+\item \doxylink{AUDIT__REPORT_8md}{AUDIT\+\_\+\+REPORT.\+md} comprehensive code audit
+\item \doxylink{CHANGELOG_8md}{CHANGELOG.\+md} (this file)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md381}{}\doxysubsubsection{\texorpdfstring{Changed}{Changed}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md381}
+
+\begin{DoxyItemize}
+\item Consolidated redundant Python workflows into single ci.\+yml
+\item Updated .gitignore to include test artifacts and cache directories
+\item Improved CI/\+CD pipeline with dependency caching
+\item Enhanced workflow to include linting, type checking, and security scanning
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md382}{}\doxysubsubsection{\texorpdfstring{Removed}{Removed}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md382}
+
+\begin{DoxyItemize}
+\item 23 irrelevant workflow files (docker, .NET, Next.\+js, Node.\+js, etc.)
+\item python-\/app.\+yml (merged into ci.\+yml)
+\item python-\/package.\+yml (merged into ci.\+yml)
+\item pylint.\+yml (merged into ci.\+yml)
+\item super-\/linter.\+yml (replaced with specific linters)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md383}{}\doxysubsection{\texorpdfstring{\href{https://github.com/mohavro/financial-asset-relationship-db/releases/tag/v1.0.0}{\texttt{ 1.\+0.\+0}} -\/ 2024-\/10-\/30}{\href{https://github.com/mohavro/financial-asset-relationship-db/releases/tag/v1.0.0}{\texttt{ 1.\+0.\+0}} -\/ 2024-\/10-\/30}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md383}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md384}{}\doxysubsubsection{\texorpdfstring{Added}{Added}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md384}
+
+\begin{DoxyItemize}
+\item Initial release
+\item Financial Asset Relationship Database with 3D visualization
+\item Support for multiple asset classes (Equity, Bond, Commodity, Currency, Derivative)
+\item Automatic relationship discovery between assets
+\item Regulatory event tracking and impact modeling
+\item Interactive Gradio web interface
+\item 3D network visualization with Plotly
+\item Metrics and analytics dashboard
+\item Schema and business rules reporting
+\item Asset explorer with detailed information
+\item Real-\/time data fetching with yfinance
+\item Sample data generation
+\item Comprehensive documentation (README.\+md, \doxylink{AI__RULES_8md}{AI\+\_\+\+RULES.\+md})
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md385}{}\doxysubsubsection{\texorpdfstring{Asset Classes}{Asset Classes}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md385}
+
+\begin{DoxyItemize}
+\item Equities with P/E ratios, dividend yields, EPS
+\item Fixed Income with yield, duration, credit ratings
+\item Commodities with futures and spot prices
+\item Currencies with exchange rates
+\item Regulatory events with impact scoring
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md386}{}\doxysubsubsection{\texorpdfstring{Relationship Types}{Relationship Types}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md386}
+
+\begin{DoxyItemize}
+\item Sector affinity (same\+\_\+sector)
+\item Corporate links (corporate\+\_\+bond\+\_\+to\+\_\+equity)
+\item Commodity exposure
+\item Currency risk
+\item Income comparison (dividend vs yield)
+\item Event impact
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md387}{}\doxysubsubsection{\texorpdfstring{Visualizations}{Visualizations}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md387}
+
+\begin{DoxyItemize}
+\item 3D network graph with deterministic positioning
+\item Asset class color coding
+\item Relationship strength visualization
+\item Metrics dashboard
+\item Schema documentation
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md389}{}\doxysubsection{\texorpdfstring{Version History}{Version History}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md389}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md390}{}\doxysubsubsection{\texorpdfstring{Version Numbering}{Version Numbering}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md390}
+This project uses \href{https://semver.org/}{\texttt{ Semantic Versioning}}\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries{MAJOR}} version for incompatible API changes
+\item {\bfseries{MINOR}} version for backwards-\/compatible functionality additions
+\item {\bfseries{PATCH}} version for backwards-\/compatible bug fixes
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md391}{}\doxysubsubsection{\texorpdfstring{Unreleased Changes}{Unreleased Changes}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md391}
+Changes in the {\ttfamily \mbox{[}Unreleased\mbox{]}} section are features and fixes that have been committed but not yet released.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md392}{}\doxysubsubsection{\texorpdfstring{Release Process}{Release Process}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CHANGELOG_autotoc_md392}
+
+\begin{DoxyEnumerate}
+\item Update \doxylink{CHANGELOG_8md}{CHANGELOG.\+md}
+\item Update version in pyproject.\+toml
+\item Commit changes
+\item Tag release\+: {\ttfamily git tag -\/a v1.\+0.\+0 -\/m "{}\+Release v1.\+0.\+0"{}}
+\item Push tags\+: {\ttfamily git push -\/-\/tags}
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+ 

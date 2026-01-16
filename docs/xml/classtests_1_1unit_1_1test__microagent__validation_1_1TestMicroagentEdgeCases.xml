@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_microagent_validation::TestMicroagentEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1aa9cff63aa363c2a12e6d91b01be42647" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Path</type>
+        <definition> Path tests.unit.test_microagent_validation.TestMicroagentEdgeCases.repo_engineer_path</definition>
+        <argsstring>()</argsstring>
+        <name>repo_engineer_path</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestMicroagentEdgeCases.repo_engineer_path</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Return the path to repo_engineer_lead.md.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="488" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="488" bodyend="491"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1a17368460f3a895274a567443c16d6fbd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestMicroagentEdgeCases.test_file_size_reasonable</definition>
+        <argsstring>(Path repo_engineer_path)</argsstring>
+        <name>test_file_size_reasonable</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestMicroagentEdgeCases.test_file_size_reasonable</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>repo_engineer_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file size is reasonable.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="493" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="493" bodyend="498"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1aa07ff1dcf0a6c832c32fe07993b8dd87" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestMicroagentEdgeCases.test_no_binary_content</definition>
+        <argsstring>(Path repo_engineer_path)</argsstring>
+        <name>test_no_binary_content</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestMicroagentEdgeCases.test_no_binary_content</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>repo_engineer_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file contains only text (no binary data).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="500" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="500" bodyend="510"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1a2e51fcb9e053c78c3b22c0a46c1b563f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestMicroagentEdgeCases.test_no_control_characters</definition>
+        <argsstring>(Path repo_engineer_path)</argsstring>
+        <name>test_no_control_characters</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestMicroagentEdgeCases.test_no_control_characters</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>repo_engineer_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that file doesn&apos;t contain unexpected control characters.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="512" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="512" bodyend="523"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1ab29457d848b43eedd69ca3906c66ca2c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_microagent_validation.TestMicroagentEdgeCases.test_consistent_newlines</definition>
+        <argsstring>(Path repo_engineer_path)</argsstring>
+        <name>test_consistent_newlines</name>
+        <qualifiedname>tests.unit.test_microagent_validation.TestMicroagentEdgeCases.test_consistent_newlines</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>repo_engineer_path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that newlines are used consistently.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="525" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="525" bodyend="540"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases and error conditions.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_microagent_validation.TestMicroagentEdgeCases</label>
+        <link refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" line="483" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_microagent_validation.py" bodystart="483" bodyend="540"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1aa9cff63aa363c2a12e6d91b01be42647" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestMicroagentEdgeCases</scope><name>repo_engineer_path</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1ab29457d848b43eedd69ca3906c66ca2c" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestMicroagentEdgeCases</scope><name>test_consistent_newlines</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1a17368460f3a895274a567443c16d6fbd" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestMicroagentEdgeCases</scope><name>test_file_size_reasonable</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1aa07ff1dcf0a6c832c32fe07993b8dd87" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestMicroagentEdgeCases</scope><name>test_no_binary_content</name></member>
+      <member refid="classtests_1_1unit_1_1test__microagent__validation_1_1TestMicroagentEdgeCases_1a2e51fcb9e053c78c3b22c0a46c1b563f" prot="public" virt="non-virtual"><scope>tests::unit::test_microagent_validation::TestMicroagentEdgeCases</scope><name>test_no_control_characters</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

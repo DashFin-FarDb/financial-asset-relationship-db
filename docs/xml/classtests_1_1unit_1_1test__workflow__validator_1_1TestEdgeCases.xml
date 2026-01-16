@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_workflow_validator::TestEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases_1acfbd980847f3b25106612574c1d6a423" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestEdgeCases.test_workflow_with_very_long_name</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_very_long_name</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestEdgeCases.test_workflow_with_very_long_name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with extremely long name</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="291" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="291" bodyend="305"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases_1a049a52502f74eb253a62029b5685bc25" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestEdgeCases.test_workflow_with_deeply_nested_structure</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_deeply_nested_structure</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestEdgeCases.test_workflow_with_deeply_nested_structure</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with deeply nested YAML structure</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="307" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="307" bodyend="333"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases_1a43213b633dd8df0080d048f66b299ced" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestEdgeCases.test_workflow_with_many_jobs</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_many_jobs</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestEdgeCases.test_workflow_with_many_jobs</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with many jobs</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="335" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="335" bodyend="354"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases_1adf26309aa5167c3fbc5ca828013d7910" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestEdgeCases.test_workflow_with_yaml_anchors</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_yaml_anchors</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestEdgeCases.test_workflow_with_yaml_anchors</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow using YAML anchors</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="356" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="356" bodyend="378"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases and boundary conditions</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_workflow_validator.TestEdgeCases</label>
+        <link refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="287" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="287" bodyend="378"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases_1a049a52502f74eb253a62029b5685bc25" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestEdgeCases</scope><name>test_workflow_with_deeply_nested_structure</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases_1a43213b633dd8df0080d048f66b299ced" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestEdgeCases</scope><name>test_workflow_with_many_jobs</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases_1acfbd980847f3b25106612574c1d6a423" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestEdgeCases</scope><name>test_workflow_with_very_long_name</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestEdgeCases_1adf26309aa5167c3fbc5ca828013d7910" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestEdgeCases</scope><name>test_workflow_with_yaml_anchors</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

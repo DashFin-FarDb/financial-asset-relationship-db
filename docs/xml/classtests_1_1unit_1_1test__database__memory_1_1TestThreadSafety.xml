@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__database__memory_1_1TestThreadSafety" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_database_memory::TestThreadSafety</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestThreadSafety_1ae327a2bd9a2834adddff77f6288bfc9e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestThreadSafety.test_memory_connection_lock_prevents_race_condition</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_memory_connection_lock_prevents_race_condition</name>
+        <qualifiedname>tests.unit.test_database_memory.TestThreadSafety.test_memory_connection_lock_prevents_race_condition</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the memory connection lock prevents race conditions during initialization.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="385" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="387" bodyend="412"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database__memory_1_1TestThreadSafety_1a0f03af8b7145e59811a810a315d82f5c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database_memory.TestThreadSafety.test_concurrent_operations_on_memory_db</definition>
+        <argsstring>(self, monkeypatch, restore_database_module)</argsstring>
+        <name>test_concurrent_operations_on_memory_db</name>
+        <qualifiedname>tests.unit.test_database_memory.TestThreadSafety.test_concurrent_operations_on_memory_db</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>monkeypatch</type>
+          <defname>monkeypatch</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__database__memory_1a1329394b3da9d667d9772cac20dcbaf7" kindref="member">restore_database_module</ref></type>
+          <defname>restore_database_module</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test concurrent read/write operations on memory database.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="413" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="415" bodyend="454"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for thread safety of memory database connections.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_database_memory.TestThreadSafety</label>
+        <link refid="classtests_1_1unit_1_1test__database__memory_1_1TestThreadSafety"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" line="382" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database_memory.py" bodystart="382" bodyend="454"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestThreadSafety_1a0f03af8b7145e59811a810a315d82f5c" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestThreadSafety</scope><name>test_concurrent_operations_on_memory_db</name></member>
+      <member refid="classtests_1_1unit_1_1test__database__memory_1_1TestThreadSafety_1ae327a2bd9a2834adddff77f6288bfc9e" prot="public" virt="non-virtual"><scope>tests::unit::test_database_memory::TestThreadSafety</scope><name>test_memory_connection_lock_prevents_race_condition</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

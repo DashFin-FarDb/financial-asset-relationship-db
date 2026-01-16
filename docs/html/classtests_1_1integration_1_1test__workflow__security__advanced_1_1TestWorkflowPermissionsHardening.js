@@ -1,0 +1,6 @@
+var classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening =
+[
+    [ "test_default_permissions_are_restrictive", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening.html#a86173cec6e9cb51b46ef505a715e04ed", null ],
+    [ "test_no_workflows_with_write_all_permission", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening.html#a16df9ebd2a8bff4713d316017a9036e4", null ],
+    [ "test_workflows_define_explicit_permissions", "classtests_1_1integration_1_1test__workflow__security__advanced_1_1TestWorkflowPermissionsHardening.html#ad5f885d2436b5d8703f94a9a4cb8fa08", null ]
+];

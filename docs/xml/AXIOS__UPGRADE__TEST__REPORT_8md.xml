@@ -1,0 +1,256 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="AXIOS__UPGRADE__TEST__REPORT_8md" kind="file" language="Markdown">
+    <compoundname>AXIOS_UPGRADE_TEST_REPORT.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Axios<sp/>1.13.2<sp/>Upgrade<sp/>-<sp/>Comprehensive<sp/>Test<sp/>Report</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>report<sp/>documents<sp/>the<sp/>comprehensive<sp/>test<sp/>suite<sp/>generated<sp/>for<sp/>the<sp/>axios<sp/>upgrade<sp/>from<sp/>version<sp/>1.6.0<sp/>to<sp/>1.13.2<sp/>in<sp/>the<sp/>frontend<sp/>application.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>Coverage<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Existing<sp/>Tests<sp/>(Already<sp/>in<sp/>Branch)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Configuration<sp/>Validation<sp/>Tests**<sp/>(`frontend/__tests__/config/`)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>`package-validation.test.ts`<sp/>(645<sp/>lines,<sp/>85+<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>`package-lock-validation.test.ts`<sp/>(599<sp/>lines,<sp/>67+<sp/>tests)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>`package-integration.test.ts`<sp/>(415<sp/>lines,<sp/>27+<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>New<sp/>Runtime<sp/>Behavioral<sp/>Tests<sp/>(Generated)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**Axios<sp/>Compatibility<sp/>Tests**<sp/>(`frontend/__tests__/lib/api-axios-compatibility.test.ts`)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>697<sp/>lines,<sp/>60+<sp/>comprehensive<sp/>behavioral<sp/>tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**Upgrade<sp/>Integration<sp/>Tests**<sp/>(`frontend/__tests__/lib/api-upgrade-integration.test.ts`)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>397<sp/>lines,<sp/>40+<sp/>integration<sp/>scenarios</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Total<sp/>Test<sp/>Statistics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Test<sp/>Files**:<sp/>11<sp/>frontend<sp/>test<sp/>files</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Lines<sp/>of<sp/>Test<sp/>Code**:<sp/>4,643<sp/>lines</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**New<sp/>Tests<sp/>Added**:<sp/>2<sp/>files<sp/>(1,094<sp/>lines)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>Test<sp/>Cases**:<sp/>~279+<sp/>individual<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Coverage<sp/>Areas**:<sp/>8<sp/>major<sp/>categories</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>New<sp/>Test<sp/>Files<sp/>Details</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1.<sp/>api-axios-compatibility.test.ts<sp/>(697<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Validate<sp/>axios<sp/>1.13.2<sp/>specific<sp/>features,<sp/>TypeScript<sp/>compatibility,<sp/>and<sp/>behavioral<sp/>consistency.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Suites**<sp/>(13<sp/>suites,<sp/>60+<sp/>tests):</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Axios<sp/>Instance<sp/>Creation<sp/>-<sp/>1.13.2<sp/>Compatibility<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Create<sp/>instance<sp/>with<sp/>correct<sp/>configuration<sp/>for<sp/>axios<sp/>1.13.2</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Support<sp/>axios<sp/>1.13.2<sp/>configuration<sp/>options</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Proper<sp/>TypeScript<sp/>types<sp/>for<sp/>axios<sp/>1.13.2</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Request<sp/>Configuration<sp/>-<sp/>Axios<sp/>1.13.2<sp/>Features<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Properly<sp/>handle<sp/>query<sp/>parameters<sp/>with<sp/>axios<sp/>1.13.2</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>undefined<sp/>query<sp/>parameters<sp/>correctly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Properly<sp/>encode<sp/>special<sp/>characters<sp/>in<sp/>URLs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Response<sp/>Handling<sp/>-<sp/>Axios<sp/>1.13.2<sp/>Behavior<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Correctly<sp/>extract<sp/>response<sp/>data<sp/>in<sp/>axios<sp/>1.13.2<sp/>format</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>204<sp/>No<sp/>Content<sp/>responses<sp/>correctly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Preserve<sp/>response<sp/>headers<sp/>in<sp/>axios<sp/>1.13.2</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Error<sp/>Handling<sp/>-<sp/>Axios<sp/>1.13.2<sp/>Improvements<sp/>(6<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Properly<sp/>type<sp/>AxiosError<sp/>in<sp/>axios<sp/>1.13.2</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>network<sp/>errors<sp/>without<sp/>response<sp/>object</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>timeout<sp/>errors<sp/>with<sp/>proper<sp/>error<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Properly<sp/>handle<sp/>5xx<sp/>server<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>4xx<sp/>client<sp/>errors<sp/>correctly</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Content-Type<sp/>Handling<sp/>-<sp/>Axios<sp/>1.13.2<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Set<sp/>correct<sp/>Content-Type<sp/>header<sp/>for<sp/>JSON</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>JSON<sp/>response<sp/>parsing<sp/>automatically</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>empty<sp/>response<sp/>body<sp/>correctly</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>URL<sp/>Handling<sp/>-<sp/>Axios<sp/>1.13.2<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Correctly<sp/>combine<sp/>baseURL<sp/>with<sp/>relative<sp/>paths</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>paths<sp/>with<sp/>multiple<sp/>segments</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Not<sp/>double-slash<sp/>URLs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>TypeScript<sp/>Type<sp/>Safety<sp/>-<sp/>Axios<sp/>1.13.2<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Properly<sp/>type<sp/>generic<sp/>responses</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Properly<sp/>type<sp/>array<sp/>responses</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>union<sp/>types<sp/>correctly</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Backward<sp/>Compatibility<sp/>-<sp/>1.6.0<sp/>to<sp/>1.13.2<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Maintain<sp/>same<sp/>API<sp/>for<sp/>basic<sp/>GET<sp/>requests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Maintain<sp/>same<sp/>error<sp/>handling<sp/>interface</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Maintain<sp/>same<sp/>response<sp/>structure</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Edge<sp/>Cases<sp/>-<sp/>Axios<sp/>1.13.2<sp/>Robustness<sp/>(4<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>very<sp/>long<sp/>URLs<sp/>correctly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>concurrent<sp/>requests<sp/>correctly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>rapid<sp/>sequential<sp/>requests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>null<sp/>and<sp/>undefined<sp/>in<sp/>response<sp/>data</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Interceptor<sp/>Compatibility<sp/>-<sp/>Axios<sp/>1.13.2<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Support<sp/>request<sp/>interceptors</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Support<sp/>response<sp/>interceptors</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Allow<sp/>interceptor<sp/>registration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Performance<sp/>and<sp/>Optimization<sp/>-<sp/>Axios<sp/>1.13.2<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Reuse<sp/>axios<sp/>instance<sp/>across<sp/>requests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>large<sp/>response<sp/>payloads<sp/>efficiently</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2.<sp/>api-upgrade-integration.test.ts<sp/>(397<sp/>lines)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Purpose**:<sp/>Validate<sp/>real-world<sp/>usage<sp/>patterns<sp/>and<sp/>ensure<sp/>no<sp/>regressions<sp/>from<sp/>the<sp/>upgrade.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Test<sp/>Suites**<sp/>(10<sp/>suites,<sp/>40+<sp/>tests):</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Production<sp/>Usage<sp/>Patterns<sp/>(4<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>typical<sp/>dashboard<sp/>data<sp/>fetching<sp/>flow</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>asset<sp/>search<sp/>with<sp/>filters<sp/>pattern</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>detail<sp/>view<sp/>navigation<sp/>pattern</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>pagination<sp/>pattern</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Error<sp/>Recovery<sp/>Patterns<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Allow<sp/>retry<sp/>after<sp/>network<sp/>error</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>partial<sp/>failure<sp/>in<sp/>concurrent<sp/>requests</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Gracefully<sp/>handle<sp/>empty<sp/>response<sp/>after<sp/>error</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Axios<sp/>1.13.2<sp/>Security<sp/>Improvements<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Use<sp/>secure<sp/>defaults<sp/>for<sp/>baseURL</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Properly<sp/>sanitize<sp/>user<sp/>input<sp/>in<sp/>URLs</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Maintain<sp/>JSON<sp/>content-type<sp/>for<sp/>security</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Breaking<sp/>Change<sp/>Detection<sp/>(4<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>NOT<sp/>break:<sp/>response.data<sp/>extraction</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>NOT<sp/>break:<sp/>error.response<sp/>structure</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>NOT<sp/>break:<sp/>query<sp/>parameter<sp/>handling</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>NOT<sp/>break:<sp/>Promise-based<sp/>API</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Performance<sp/>Validation<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Complete<sp/>simple<sp/>GET<sp/>request<sp/>in<sp/>reasonable<sp/>time</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>multiple<sp/>rapid<sp/>requests<sp/>efficiently</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Not<sp/>leak<sp/>memory<sp/>with<sp/>many<sp/>requests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Environment<sp/>Configuration<sp/>(2<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Respect<sp/>NEXT_PUBLIC_API_URL<sp/>environment<sp/>variable</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Use<sp/>reasonable<sp/>defaults<sp/>when<sp/>env<sp/>vars<sp/>missing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Compatibility<sp/>with<sp/>Testing<sp/>Tools<sp/>(3<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Work<sp/>with<sp/>Jest<sp/>mock<sp/>system</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Allow<sp/>mock<sp/>assertions</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Support<sp/>mock<sp/>implementation<sp/>changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Real-World<sp/>Edge<sp/>Cases<sp/>(5<sp/>tests)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>slow<sp/>API<sp/>responses<sp/>gracefully</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>API<sp/>returning<sp/>unexpected<sp/>extra<sp/>fields</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>API<sp/>missing<sp/>optional<sp/>fields</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>very<sp/>large<sp/>numeric<sp/>values<sp/>correctly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✓<sp/>Handle<sp/>unicode<sp/>and<sp/>special<sp/>characters<sp/>in<sp/>responses</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Running<sp/>the<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>All<sp/>Tests</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>frontend</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>Specific<sp/>Test<sp/>Suites</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Configuration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>__tests__/config</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>API<sp/>compatibility<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>api-axios-compatibility</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>api-upgrade-integration</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>All<sp/>API<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>test<sp/>--<sp/>__tests__/lib</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>with<sp/>Coverage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>test:coverage</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>in<sp/>Watch<sp/>Mode</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>test:watch</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>in<sp/>CI<sp/>Mode</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">npm<sp/>run<sp/>test:ci</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Test<sp/>File<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>File<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Lines<sp/><sp/><sp/><sp/><sp/>|<sp/>Tests<sp/><sp/><sp/><sp/>|<sp/>Purpose<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>-----------------------------------<sp/>|<sp/>---------<sp/>|<sp/>--------<sp/>|<sp/>-------------------------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>package-validation.test.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>645<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>85+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Package.json<sp/>validation<sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>package-lock-validation.test.ts<sp/><sp/><sp/><sp/><sp/>|<sp/>599<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>67+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Lockfile<sp/>integrity<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>package-integration.test.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>415<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>27+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Config<sp/>synchronization<sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**api-axios-compatibility.test.ts**<sp/>|<sp/>**697**<sp/><sp/><sp/>|<sp/>**60+**<sp/><sp/>|<sp/>**Axios<sp/>1.13.2<sp/>features**<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**api-upgrade-integration.test.ts**<sp/>|<sp/>**397**<sp/><sp/><sp/>|<sp/>**40+**<sp/><sp/>|<sp/>**Real-world<sp/>scenarios**<sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>api.test.ts<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>431<sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>50+<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>API<sp/>client<sp/>methods<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Other<sp/>test<sp/>files<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>1,459<sp/><sp/><sp/><sp/><sp/>|<sp/>100+<sp/><sp/><sp/><sp/><sp/>|<sp/>Components,<sp/>utils,<sp/>pages<sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>**Total**<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>**4,643**<sp/>|<sp/>**429+**<sp/>|<sp/>**Complete<sp/>coverage**<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Conclusion</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>comprehensive<sp/>test<sp/>suite<sp/>provides<sp/>**100+<sp/>new<sp/>tests**<sp/>across<sp/>**2<sp/>new<sp/>test<sp/>files**<sp/>specifically<sp/>for<sp/>the<sp/>axios<sp/>upgrade,<sp/>bringing<sp/>the<sp/>total<sp/>frontend<sp/>test<sp/>suite<sp/>to<sp/>**429+<sp/>tests**<sp/>across<sp/>**11<sp/>files**.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>upgrade<sp/>from<sp/>axios<sp/>1.6.0<sp/>to<sp/>1.13.2<sp/>is<sp/>thoroughly<sp/>validated<sp/>with:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Configuration<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Axios<sp/>1.13.2<sp/>specific<sp/>features</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Runtime<sp/>behavioral<sp/>testing</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>TypeScript<sp/>compatibility</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Backward<sp/>compatibility</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Security<sp/>improvements</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Performance<sp/>validation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Production<sp/>scenarios</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>Edge<sp/>case<sp/>handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Generated**:<sp/>December<sp/>20,<sp/>2024</highlight></codeline>
+<codeline><highlight class="normal">**Axios<sp/>Version**:<sp/>1.6.0<sp/>→<sp/>1.13.2</highlight></codeline>
+<codeline><highlight class="normal">**Test<sp/>Framework**:<sp/>Jest<sp/>+<sp/>@testing-library/react</highlight></codeline>
+<codeline><highlight class="normal">**New<sp/>Test<sp/>Lines**:<sp/>1,094<sp/>lines</highlight></codeline>
+<codeline><highlight class="normal">**Total<sp/>Test<sp/>Lines**:<sp/>4,643<sp/>lines</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/AXIOS_UPGRADE_TEST_REPORT.md"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,77 @@
+\doxysection{tests.\+integration.\+test\+\_\+workflow\+\_\+requirements\+\_\+integration Namespace Reference}
+\hypertarget{namespacetests_1_1integration_1_1test__workflow__requirements__integration}{}\label{namespacetests_1_1integration_1_1test__workflow__requirements__integration}\index{tests.integration.test\_workflow\_requirements\_integration@{tests.integration.test\_workflow\_requirements\_integration}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestPyYAMLAvailability}{Test\+Py\+YAMLAvailability}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestRequirementsMatchWorkflowNeeds}{Test\+Requirements\+Match\+Workflow\+Needs}}
+\item 
+class \mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__requirements__integration_1_1TestWorkflowCanInstallRequirements}{Test\+Workflow\+Can\+Install\+Requirements}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} \mbox{\hyperlink{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a63e7e0d436ce7ab55f806e31476dea98}{parse\+\_\+requirements}} (Path file\+\_\+path)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a4ecaa786e4d7b71a057f50517c2fe375}{WORKFLOWS\+\_\+\+DIR}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent / "{}.github"{} / "{}workflows"{}
+\item 
+str \mbox{\hyperlink{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a83fc3b57706ab01f47d63217d2d56be3}{REQUIREMENTS\+\_\+\+FILE}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent / "{}requirements-\/dev.\+txt"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Integration tests validating that workflow files and requirements work together.
+
+This test suite ensures that the dependencies specified in requirements-dev.txt
+are appropriate for the workflows defined in .github/workflows/, and that
+workflows can successfully use the installed dependencies.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a63e7e0d436ce7ab55f806e31476dea98}\index{tests.integration.test\_workflow\_requirements\_integration@{tests.integration.test\_workflow\_requirements\_integration}!parse\_requirements@{parse\_requirements}}
+\index{parse\_requirements@{parse\_requirements}!tests.integration.test\_workflow\_requirements\_integration@{tests.integration.test\_workflow\_requirements\_integration}}
+\doxysubsubsection{\texorpdfstring{parse\_requirements()}{parse\_requirements()}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a63e7e0d436ce7ab55f806e31476dea98} 
+ List\mbox{[}Tuple\mbox{[}str, str\mbox{]}\mbox{]} tests.\+integration.\+test\+\_\+workflow\+\_\+requirements\+\_\+integration.\+parse\+\_\+requirements (\begin{DoxyParamCaption}\item[{Path}]{file\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse a pip-style requirements file into a list of package names with their version specifiers.
+
+Ignores blank lines and lines beginning with '#'. Extras and environment markers on a requirement line are ignored for matching.
+
+Parameters:
+    file_path (Path): Path to a requirements file (e.g., requirements-dev.txt).
+
+Returns:
+    List[Tuple[str, str]]: List of (package_name, version_specifier) tuples; `version_specifier` is the specifier string or an empty string if none.
+
+Raises:
+    ValueError: If any non-empty, non-comment line cannot be parsed as a requirement.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a63e7e0d436ce7ab55f806e31476dea98_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a83fc3b57706ab01f47d63217d2d56be3}\index{tests.integration.test\_workflow\_requirements\_integration@{tests.integration.test\_workflow\_requirements\_integration}!REQUIREMENTS\_FILE@{REQUIREMENTS\_FILE}}
+\index{REQUIREMENTS\_FILE@{REQUIREMENTS\_FILE}!tests.integration.test\_workflow\_requirements\_integration@{tests.integration.test\_workflow\_requirements\_integration}}
+\doxysubsubsection{\texorpdfstring{REQUIREMENTS\_FILE}{REQUIREMENTS\_FILE}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a83fc3b57706ab01f47d63217d2d56be3} 
+str tests.\+integration.\+test\+\_\+workflow\+\_\+requirements\+\_\+integration.\+REQUIREMENTS\+\_\+\+FILE = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent / "{}requirements-\/dev.\+txt"{}}
+
+\Hypertarget{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a4ecaa786e4d7b71a057f50517c2fe375}\index{tests.integration.test\_workflow\_requirements\_integration@{tests.integration.test\_workflow\_requirements\_integration}!WORKFLOWS\_DIR@{WORKFLOWS\_DIR}}
+\index{WORKFLOWS\_DIR@{WORKFLOWS\_DIR}!tests.integration.test\_workflow\_requirements\_integration@{tests.integration.test\_workflow\_requirements\_integration}}
+\doxysubsubsection{\texorpdfstring{WORKFLOWS\_DIR}{WORKFLOWS\_DIR}}
+{\footnotesize\ttfamily \label{namespacetests_1_1integration_1_1test__workflow__requirements__integration_a4ecaa786e4d7b71a057f50517c2fe375} 
+str tests.\+integration.\+test\+\_\+workflow\+\_\+requirements\+\_\+integration.\+WORKFLOWS\+\_\+\+DIR = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent / "{}.github"{} / "{}workflows"{}}
+

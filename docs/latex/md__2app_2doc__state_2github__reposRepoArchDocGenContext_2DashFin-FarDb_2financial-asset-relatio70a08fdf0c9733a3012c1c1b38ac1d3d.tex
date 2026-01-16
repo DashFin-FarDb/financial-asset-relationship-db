@@ -1,0 +1,123 @@
+\chapter{Quick Test Reference\+: workflow\+\_\+validator.\+py}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d}\index{Quick Test Reference: workflow\_validator.py@{Quick Test Reference: workflow\_validator.py}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3522}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3522}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3523}{}\doxysection{\texorpdfstring{Running the Tests}{Running the Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3523}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3524}{}\doxysubsection{\texorpdfstring{Basic Commands}{Basic Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3524}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ all\ tests\ for\ workflow\_validator}
+\DoxyCodeLine{pytest\ tests/unit/test\_workflow\_validator.py\ -\/v}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ with\ coverage}
+\DoxyCodeLine{pytest\ tests/unit/test\_workflow\_validator.py\ -\/-\/cov=src.workflow\_validator\ -\/-\/cov-\/report=term-\/missing}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ a\ specific\ test\ class}
+\DoxyCodeLine{pytest\ tests/unit/test\_workflow\_validator.py::TestValidateWorkflow\ -\/v}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ a\ single\ test}
+\DoxyCodeLine{pytest\ tests/unit/test\_workflow\_validator.py::TestValidateWorkflow::test\_valid\_minimal\_workflow\_file\ -\/v}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3525}{}\doxysubsection{\texorpdfstring{Quick Test Examples}{Quick Test Examples}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3525}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3526}{}\doxysubsubsection{\texorpdfstring{Test 1\+: Valid Workflow}{Test 1\+: Valid Workflow}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3526}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{def\ }test\_valid\_minimal\_workflow\_file(self):}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Test\ validation\ of\ a\ minimal\ valid\ workflow\ file"{}"{}"{}}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Validates}}\+: Basic workflow structure with jobs\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3527}{}\doxysubsubsection{\texorpdfstring{Test 2\+: Missing Jobs Key}{Test 2\+: Missing Jobs Key}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3527}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{def\ }test\_workflow\_missing\_jobs\_key(self):}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Test\ detection\ of\ missing\ 'jobs'\ key"{}"{}"{}}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Validates}}\+: Error detection for missing required keys\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3528}{}\doxysubsubsection{\texorpdfstring{Test 3\+: Invalid YAML}{Test 3\+: Invalid YAML}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3528}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{def\ }test\_workflow\_invalid\_yaml\_syntax(self):}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Test\ handling\ of\ invalid\ YAML\ syntax"{}"{}"{}}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Validates}}\+: Proper error handling for malformed YAML\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3529}{}\doxysection{\texorpdfstring{Test Organization}{Test Organization}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3529}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3530}{}\doxysubsection{\texorpdfstring{Test Classes}{Test Classes}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3530}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Test\+Validation\+Result}} -\/ Validation\+Result class tests
+\item {\bfseries{Test\+Validate\+Workflow}} -\/ Main validation function tests
+\item {\bfseries{Test\+Edge\+Cases}} -\/ Boundary conditions and edge cases
+\item {\bfseries{Test\+Error\+Handling}} -\/ Exception and error scenarios
+\item {\bfseries{Test\+Integration\+With\+Actual\+Workflows}} -\/ Real project file tests
+\item {\bfseries{Test\+Validation\+Result\+Data\+Structure}} -\/ Data structure integrity
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3531}{}\doxysection{\texorpdfstring{Coverage Report}{Coverage Report}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3531}
+Generate and view coverage\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Generate\ HTML\ coverage\ report}
+\DoxyCodeLine{pytest\ tests/unit/test\_workflow\_validator.py\ -\/-\/cov=src.workflow\_validator\ -\/-\/cov-\/report=html}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Open\ in\ browser}
+\DoxyCodeLine{open\ htmlcov/index.html\ \ \#\ macOS}
+\DoxyCodeLine{xdg-\/open\ htmlcov/index.html\ \ \#\ Linux}
+\DoxyCodeLine{start\ htmlcov/index.html\ \ \#\ Windows}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3532}{}\doxysection{\texorpdfstring{Common Test Patterns}{Common Test Patterns}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3532}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3533}{}\doxysubsection{\texorpdfstring{Creating Test Workflow Files}{Creating Test Workflow Files}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3533}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{with}\ tempfile.NamedTemporaryFile(mode=\textcolor{stringliteral}{'w'},\ suffix=\textcolor{stringliteral}{'.yml'},\ delete=\textcolor{keyword}{False})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\ \ \ \ f.write(workflow\_yaml\_content)}
+\DoxyCodeLine{\ \ \ \ f.flush()}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ result\ =\ validate\_workflow(f.name)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{\#\ assertions\ here}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{finally}:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ Path(f.name).unlink()}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3534}{}\doxysubsection{\texorpdfstring{Assertion Patterns}{Assertion Patterns}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3534}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{\#\ Valid\ workflow}}
+\DoxyCodeLine{\textcolor{keyword}{assert}\ result.is\_valid\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\textcolor{keyword}{assert}\ len(result.errors)\ ==\ 0}
+\DoxyCodeLine{\textcolor{keyword}{assert}\ \textcolor{stringliteral}{'jobs'}\ \textcolor{keywordflow}{in}\ result.workflow\_data}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Invalid\ workflow}}
+\DoxyCodeLine{\textcolor{keyword}{assert}\ result.is\_valid\ \textcolor{keywordflow}{is}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\textcolor{keyword}{assert}\ len(result.errors)\ >=\ 1}
+\DoxyCodeLine{\textcolor{keyword}{assert}\ \textcolor{stringliteral}{"{}expected\ error\ message"{}}\ \textcolor{keywordflow}{in}\ result.errors[0]}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3535}{}\doxysection{\texorpdfstring{Troubleshooting}{Troubleshooting}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3535}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3536}{}\doxysubsection{\texorpdfstring{Import Errors}{Import Errors}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3536}
+If you see import errors\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Ensure\ src\ is\ in\ Python\ path}
+\DoxyCodeLine{export\ PYTHONPATH="{}\$\{PYTHONPATH\}:\$\{PWD\}/src"{}}
+\DoxyCodeLine{pytest\ tests/unit/test\_workflow\_validator.py\ -\/v}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3537}{}\doxysubsection{\texorpdfstring{Test Discovery Issues}{Test Discovery Issues}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3537}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Check\ test\ discovery}
+\DoxyCodeLine{pytest\ tests/unit/test\_workflow\_validator.py\ -\/-\/collect-\/only}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ with\ verbose\ output}
+\DoxyCodeLine{pytest\ tests/unit/test\_workflow\_validator.py\ -\/vv}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3538}{}\doxysection{\texorpdfstring{Expected Test Output}{Expected Test Output}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio70a08fdf0c9733a3012c1c1b38ac1d3d_autotoc_md3538}

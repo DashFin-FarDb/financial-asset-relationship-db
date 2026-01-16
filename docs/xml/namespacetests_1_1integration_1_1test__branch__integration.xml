@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1integration_1_1test__branch__integration" kind="namespace" language="Python">
+    <compoundname>tests::integration::test_branch_integration</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Integration tests validating all branch changes work together cohesively.
+
+Tests cross-cutting concerns:
+1. Workflow changes are consistent across all files
+2. Dependencies are compatible with workflow needs
+3. Removed files don&apos;t break existing functionality
+4. Overall branch maintains system integrity
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_branch_integration.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

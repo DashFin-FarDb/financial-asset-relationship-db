@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__database_1_1TestEdgeCases" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_database::TestEdgeCases</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestEdgeCases_1a0da412aa1a46a6e53ff78551758011d8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestEdgeCases.test_session_scope_with_empty_operations</definition>
+        <argsstring>()</argsstring>
+        <name>test_session_scope_with_empty_operations</name>
+        <qualifiedname>tests.unit.test_database.TestEdgeCases.test_session_scope_with_empty_operations</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test session scope with no operations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="325" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="325" bodyend="333"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestEdgeCases_1a6f3f1fc5395f2d8da66e07ba446007c7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestEdgeCases.test_create_engine_with_empty_string</definition>
+        <argsstring>()</argsstring>
+        <name>test_create_engine_with_empty_string</name>
+        <qualifiedname>tests.unit.test_database.TestEdgeCases.test_create_engine_with_empty_string</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test engine creation with empty string defaults to env/default.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="335" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="335" bodyend="341"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestEdgeCases_1a93e7e2e5e56dcfb607dc1090cd1a612f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestEdgeCases.test_create_engine_with_none</definition>
+        <argsstring>()</argsstring>
+        <name>test_create_engine_with_none</name>
+        <qualifiedname>tests.unit.test_database.TestEdgeCases.test_create_engine_with_none</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test engine creation with None uses default.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="343" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="343" bodyend="347"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestEdgeCases_1a980584029a59e6340fb83258701d5bd6" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestEdgeCases.test_session_scope_with_database_error</definition>
+        <argsstring>()</argsstring>
+        <name>test_session_scope_with_database_error</name>
+        <qualifiedname>tests.unit.test_database.TestEdgeCases.test_session_scope_with_database_error</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test session scope behavior with database-level errors.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="349" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="349" bodyend="371"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases and error conditions.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_database.TestEdgeCases</label>
+        <link refid="classtests_1_1unit_1_1test__database_1_1TestEdgeCases"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="321" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="321" bodyend="371"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestEdgeCases_1a6f3f1fc5395f2d8da66e07ba446007c7" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestEdgeCases</scope><name>test_create_engine_with_empty_string</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestEdgeCases_1a93e7e2e5e56dcfb607dc1090cd1a612f" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestEdgeCases</scope><name>test_create_engine_with_none</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestEdgeCases_1a980584029a59e6340fb83258701d5bd6" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestEdgeCases</scope><name>test_session_scope_with_database_error</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestEdgeCases_1a0da412aa1a46a6e53ff78551758011d8" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestEdgeCases</scope><name>test_session_scope_with_empty_operations</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

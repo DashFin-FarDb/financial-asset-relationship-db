@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2_8coderabbit-config-guide</compoundname>
+    <title>CodeRabbit Configuration Guide</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md0"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md1">
+<title>Overview</title><para>This document explains the <computeroutput>.coderabbit.yaml</computeroutput> configuration file structure for this repository.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md2">
+<title>Configuration Structure</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md3">
+<title>Top-Level Settings</title><para><itemizedlist>
+<listitem><para><computeroutput>language</computeroutput>: Set to <computeroutput>en-GB</computeroutput> for British English</para>
+</listitem><listitem><para><computeroutput>early_access</computeroutput>: Enable early access features</para>
+</listitem><listitem><para><computeroutput>inheritance</computeroutput>: Enable configuration inheritance</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md4">
+<title>Reviews Section</title><para>Controls how CodeRabbit reviews pull requests:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>request_changes_workflow</computeroutput>: Request changes when issues are found</para>
+</listitem><listitem><para><computeroutput>high_level_summary_in_walkthrough</computeroutput>: Include summary in PR walkthrough</para>
+</listitem><listitem><para><computeroutput>auto_apply_labels</computeroutput>: Automatically apply labels based on PR content</para>
+</listitem><listitem><para><computeroutput>auto_assign_reviewers</computeroutput>: Automatically assign reviewers</para>
+</listitem></itemizedlist>
+</para>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md5">
+<title>Labeling Instructions</title><para>Defines rules for applying labels:</para>
+<para><itemizedlist>
+<listitem><para><bold>bug</bold>: Applied to PRs fixing defects, crashes, or incorrect behavior</para>
+</listitem><listitem><para><bold>documentation</bold>: Applied to PRs changing docs without runtime changes</para>
+</listitem><listitem><para><bold>security</bold>: Applied to PRs addressing security issues</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md6">
+<title>Auto Review</title><para><itemizedlist>
+<listitem><para><computeroutput>enabled</computeroutput>: Auto-review is enabled</para>
+</listitem><listitem><para><computeroutput>drafts</computeroutput>: Review draft PRs as well</para>
+</listitem><listitem><para><computeroutput>base_branches</computeroutput>: Regex pattern <computeroutput>.*</computeroutput> matches all branches</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md7">
+<title>Knowledge Base Section</title><para>Configures CodeRabbit&apos;s knowledge resources:</para>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md8">
+<title>MCP (Model Context Protocol)</title><para><itemizedlist>
+<listitem><para><computeroutput>usage</computeroutput>: enabled</para>
+</listitem><listitem><para><computeroutput>documents</computeroutput>: Reference documents for context<itemizedlist>
+<listitem><para><computeroutput>tech_spec.md</computeroutput> - Technical specifications</para>
+</listitem><listitem><para><computeroutput>DashFin-financial-asset-relationship-db-wiki-v2.md</computeroutput> - Wiki documentation</para>
+</listitem><listitem><para><computeroutput><ref refid="ARCHITECTURE_8md" kindref="compound">ARCHITECTURE.md</ref></computeroutput> - System architecture</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md9">
+<title>Code Guidelines</title><para><itemizedlist>
+<listitem><para><computeroutput>enabled</computeroutput>: true</para>
+</listitem><listitem><para><computeroutput>filePatterns</computeroutput>: Files containing coding guidelines<itemizedlist>
+<listitem><para><computeroutput><ref refid="AI__RULES_8md" kindref="compound">AI_RULES.md</ref></computeroutput> - AI coding rules and conventions</para>
+</listitem><listitem><para><computeroutput><ref refid="CONTRIBUTING_8md" kindref="compound">CONTRIBUTING.md</ref></computeroutput> - Contribution guidelines</para>
+</listitem><listitem><para><computeroutput><ref refid="CODE__OF__CONDUCT_8md" kindref="compound">CODE_OF_CONDUCT.md</ref></computeroutput> - Code of conduct</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect3>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md10">
+<title>Issue Enrichment Section</title><para><itemizedlist>
+<listitem><para><computeroutput>auto_enrich.enabled</computeroutput>: Automatically enrich issues</para>
+</listitem><listitem><para><computeroutput>labeling.auto_apply_labels</computeroutput>: Auto-apply labels to issues</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md11">
+<title>Common Issues</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md12">
+<title>Duplicate Sections</title><para><bold>Problem</bold>: Multiple <computeroutput>knowledge_base:</computeroutput>, <computeroutput>reviews:</computeroutput>, or other top-level sections. <bold>Solution</bold>: Consolidate into single sections with all required fields.</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md13">
+<title>Incorrect Nesting</title><para><bold>Problem</bold>: <computeroutput>auto_review</computeroutput> placed under <computeroutput>knowledge_base</computeroutput> instead of <computeroutput>reviews</computeroutput>. <bold>Solution</bold>: Ensure proper hierarchy - <computeroutput>auto_review</computeroutput> belongs under <computeroutput>reviews</computeroutput>.</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md14">
+<title>Invalid YAML Syntax</title><para><bold>Problem</bold>: Incorrect indentation or missing colons. <bold>Solution</bold>: Validate with <lsquo/>python3 -c &quot;import yaml; yaml.safe_load(open(&amp;rsquo;.coderabbit.yaml&apos;))&quot;`</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md15">
+<title>Validation</title><para>To validate the configuration file:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>-c<sp/>&quot;import<sp/>yaml;<sp/>yaml.safe_load(open(&apos;.coderabbit.yaml&apos;))&quot;<sp/>&amp;&amp;<sp/>echo<sp/>&quot;✓<sp/>Valid<sp/>YAML&quot;</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiof18d73dd97c1aab4655e328e44fea5fa_1autotoc_md16">
+<title>Resources</title><para><itemizedlist>
+<listitem><para>Schema: <ulink url="https://docs.coderabbit.ai/schema/schema.v2.json">https://docs.coderabbit.ai/schema/schema.v2.json</ulink></para>
+</listitem><listitem><para>Documentation: <ulink url="https://docs.coderabbit.ai/">https://docs.coderabbit.ai/</ulink> </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/.coderabbit-config-guide.md"/>
+  </compounddef>
+</doxygen>

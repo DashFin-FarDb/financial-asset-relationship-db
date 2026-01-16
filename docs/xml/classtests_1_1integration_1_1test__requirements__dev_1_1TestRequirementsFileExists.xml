@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestRequirementsFileExists</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists_1a454db8ebf97eba6df1d3917548344c45" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequirementsFileExists.test_file_exists</definition>
+        <argsstring>()</argsstring>
+        <name>test_file_exists</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequirementsFileExists.test_file_exists</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that requirements-dev.txt file exists.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="169" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="169" bodyend="172"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists_1aa0e0a6ecbbef05c2d9b0276e95cd2226" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequirementsFileExists.test_file_is_file</definition>
+        <argsstring>()</argsstring>
+        <name>test_file_is_file</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequirementsFileExists.test_file_is_file</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the path is a file, not a directory.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="174" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="174" bodyend="177"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists_1a0296319e71011ffc05ba189a98802808" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequirementsFileExists.test_file_is_readable</definition>
+        <argsstring>()</argsstring>
+        <name>test_file_is_readable</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequirementsFileExists.test_file_is_readable</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the file can be read.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="179" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="179" bodyend="185"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that requirements-dev.txt exists and is readable.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestRequirementsFileExists</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="165" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="165" bodyend="185"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists_1a454db8ebf97eba6df1d3917548344c45" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequirementsFileExists</scope><name>test_file_exists</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists_1aa0e0a6ecbbef05c2d9b0276e95cd2226" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequirementsFileExists</scope><name>test_file_is_file</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequirementsFileExists_1a0296319e71011ffc05ba189a98802808" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequirementsFileExists</scope><name>test_file_is_readable</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

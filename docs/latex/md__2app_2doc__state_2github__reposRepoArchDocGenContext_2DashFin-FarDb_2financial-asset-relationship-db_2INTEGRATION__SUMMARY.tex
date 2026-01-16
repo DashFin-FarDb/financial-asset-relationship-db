@@ -1,0 +1,388 @@
+\chapter{Vercel Next.\+js Integration -\/ Implementation Summary}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY}\index{Vercel Next.js Integration -\/ Implementation Summary@{Vercel Next.js Integration -\/ Implementation Summary}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3142}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3142}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3143}{}\doxysection{\texorpdfstring{Overview}{Overview}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3143}
+This document summarizes the integration of a Next.\+js frontend with Fast\+API backend for deployment on Vercel. The integration provides a modern web interface while maintaining the existing Gradio application.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3144}{}\doxysection{\texorpdfstring{What Was Added}{What Was Added}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3144}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3145}{}\doxysubsection{\texorpdfstring{1. Fast\+API Backend ({\ttfamily /api})}{1. Fast\+API Backend ({\ttfamily /api})}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3145}
+{\bfseries{File\+: {\ttfamily \doxylink{api_2main_8py}{api/main.\+py}}}}
+
+
+\begin{DoxyItemize}
+\item RESTful API that exposes the asset relationship graph functionality
+\item Built with Fast\+API for high performance and automatic API documentation
+\item CORS-\/enabled for Next.\+js frontend communication
+\end{DoxyItemize}
+
+{\bfseries{Key Endpoints\+:}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily GET /api/health} -\/ Health check
+\item {\ttfamily GET /api/assets} -\/ List all assets (with filters)
+\item {\ttfamily GET /api/assets/\{id\}} -\/ Get asset details
+\item {\ttfamily GET /api/assets/\{id\}/relationships} -\/ Get asset relationships
+\item {\ttfamily GET /api/relationships} -\/ Get all relationships
+\item {\ttfamily GET /api/metrics} -\/ Get network metrics
+\item {\ttfamily GET /api/visualization} -\/ Get 3D visualization data
+\item {\ttfamily GET /api/asset-\/classes} -\/ Get available asset classes
+\item {\ttfamily GET /api/sectors} -\/ Get available sectors
+\end{DoxyItemize}
+
+{\bfseries{Features\+:}}
+
+
+\begin{DoxyItemize}
+\item Reuses existing graph logic from {\ttfamily \doxylink{asset__graph_8py}{src/logic/asset\+\_\+graph.\+py}}
+\item Uses real data from {\ttfamily \doxylink{real__data__fetcher_8py}{src/data/real\+\_\+data\+\_\+fetcher.\+py}}
+\item Pydantic models for request/response validation
+\item Comprehensive error handling and logging
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3146}{}\doxysubsection{\texorpdfstring{2. Next.\+js Frontend ({\ttfamily /frontend})}{2. Next.\+js Frontend ({\ttfamily /frontend})}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3146}
+{\bfseries{Application Structure\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{frontend/}
+\DoxyCodeLine{├──\ app/}
+\DoxyCodeLine{│\ \ \ ├──\ components/\ \ \ \ \ \ \ \ \ \ \#\ React\ components}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ AssetList.tsx\ \ \ \ \ \ \ \ \ \ \ \#\ Filterable\ asset\ table}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ MetricsDashboard.tsx\ \ \ \ \#\ Metrics\ display}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ NetworkVisualization.tsx\ \#\ 3D\ graph\ visualization}
+\DoxyCodeLine{│\ \ \ ├──\ lib/}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ api.ts\ \ \ \ \ \ \ \ \ \ \ \ \#\ API\ client\ library}
+\DoxyCodeLine{│\ \ \ ├──\ types/}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ api.ts\ \ \ \ \ \ \ \ \ \ \ \ \#\ TypeScript\ type\ definitions}
+\DoxyCodeLine{│\ \ \ ├──\ globals.css\ \ \ \ \ \ \ \ \ \#\ Global\ styles}
+\DoxyCodeLine{│\ \ \ ├──\ layout.tsx\ \ \ \ \ \ \ \ \ \ \#\ Root\ layout}
+\DoxyCodeLine{│\ \ \ └──\ page.tsx\ \ \ \ \ \ \ \ \ \ \ \ \#\ Main\ page\ with\ tabs}
+\DoxyCodeLine{├──\ package.json\ \ \ \ \ \ \ \ \ \ \ \ \#\ Dependencies}
+\DoxyCodeLine{├──\ tsconfig.json\ \ \ \ \ \ \ \ \ \ \ \#\ TypeScript\ config}
+\DoxyCodeLine{├──\ next.config.js\ \ \ \ \ \ \ \ \ \ \#\ Next.js\ config}
+\DoxyCodeLine{├──\ tailwind.config.js\ \ \ \ \ \ \#\ Tailwind\ CSS\ config}
+\DoxyCodeLine{└──\ postcss.config.js\ \ \ \ \ \ \ \#\ PostCSS\ config}
+
+\end{DoxyCode}
+
+
+{\bfseries{Key Components\+:}}
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Network\+Visualization.\+tsx}}
+\begin{DoxyItemize}
+\item 3D interactive graph using Plotly
+\item Displays nodes (assets) and edges (relationships)
+\item Supports rotation, zoom, and hover interactions
+\end{DoxyItemize}
+\item {\bfseries{Metrics\+Dashboard.\+tsx}}
+\begin{DoxyItemize}
+\item Displays network statistics
+\item Shows asset class distribution
+\item Network density and degree metrics
+\end{DoxyItemize}
+\item {\bfseries{Asset\+List.\+tsx}}
+\begin{DoxyItemize}
+\item Searchable/filterable asset table
+\item Filter by asset class and sector
+\item Displays key asset information
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+{\bfseries{Technologies\+:}}
+
+
+\begin{DoxyItemize}
+\item Next.\+js 14 (App Router)
+\item React 18
+\item Type\+Script
+\item Tailwind CSS for styling
+\item Plotly.\+js for 3D visualization
+\item Axios for API communication
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3147}{}\doxysubsection{\texorpdfstring{3. Deployment Configuration}{3. Deployment Configuration}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3147}
+{\bfseries{File\+: {\ttfamily vercel.\+json}}}
+
+
+\begin{DoxyItemize}
+\item Configures Vercel deployment
+\item Routes API requests to Python backend
+\item Routes frontend requests to Next.\+js
+\end{DoxyItemize}
+
+{\bfseries{File\+: {\ttfamily .env.\+example}}}
+
+
+\begin{DoxyItemize}
+\item Template for environment variables
+\item API URL configuration
+\end{DoxyItemize}
+
+{\bfseries{File\+: {\ttfamily run-\/dev.\+sh} / {\ttfamily run-\/dev.\+bat}}}
+
+
+\begin{DoxyItemize}
+\item Development scripts for both platforms
+\item Starts both backend and frontend together
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3148}{}\doxysubsection{\texorpdfstring{4. Documentation}{4. Documentation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3148}
+{\bfseries{File\+: {\ttfamily \doxylink{DEPLOYMENT_8md}{DEPLOYMENT.\+md}}}}
+
+
+\begin{DoxyItemize}
+\item Comprehensive deployment guide
+\item Local development setup
+\item Vercel deployment instructions
+\item API endpoint documentation
+\item Troubleshooting guide
+\end{DoxyItemize}
+
+{\bfseries{Updated Files\+:}}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily README.\+md} -\/ Added Next.\+js integration section
+\item {\ttfamily requirements.\+txt} -\/ Added Fast\+API, Uvicorn, Pydantic
+\item {\ttfamily .gitignore} -\/ Added Next.\+js and build artifacts
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3149}{}\doxysection{\texorpdfstring{Architecture}{Architecture}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3149}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ User's\ Browser\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────┬───────────────────────────────────┘}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ HTTP/HTTPS}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{┌─────────────────────▼───────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ Next.js\ Frontend\ (Port\ 3000)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────────────────────────────┐\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ React\ Components:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ 3D\ Network\ Visualization\ (Plotly)\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ Metrics\ Dashboard\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ Asset\ Explorer\ Table\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ └──────────────────────────────────────────────────┘\ \ \ │}
+\DoxyCodeLine{└─────────────────────┬───────────────────────────────────┘}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ REST\ API\ Calls}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{┌─────────────────────▼───────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ FastAPI\ Backend\ (Port\ 8000)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────────────────────────────┐\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ API\ Endpoints:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ /api/assets\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ /api/metrics\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ /api/visualization\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ /api/relationships\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ └──────────────────────────────────────────────────┘\ \ \ │}
+\DoxyCodeLine{└─────────────────────┬───────────────────────────────────┘}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ Function\ Calls}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{┌─────────────────────▼───────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ Existing\ Python\ Logic\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌──────────────────────────────────────────────────┐\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ AssetRelationshipGraph\ (asset\_graph.py)\ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ Real\ Data\ Fetcher\ (real\_data\_fetcher.py)\ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ Financial\ Models\ (financial\_models.py)\ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ -\/\ Visualization\ Logic\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ └──────────────────────────────────────────────────┘\ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3150}{}\doxysection{\texorpdfstring{Deployment Options}{Deployment Options}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3150}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3151}{}\doxysubsection{\texorpdfstring{Option 1\+: Original Gradio UI (Preserved)}{Option 1\+: Original Gradio UI (Preserved)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3151}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ app.py}
+\DoxyCodeLine{\#\ Access\ at\ http://localhost:7860}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3152}{}\doxysubsection{\texorpdfstring{Option 2\+: New Next.\+js Frontend + Fast\+API Backend}{Option 2\+: New Next.\+js Frontend + Fast\+API Backend}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3152}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Start\ both\ servers}
+\DoxyCodeLine{./run-\/dev.sh\ \ \#\ Linux/Mac}
+\DoxyCodeLine{run-\/dev.bat\ \ \ \#\ Windows}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Or\ manually:}
+\DoxyCodeLine{\#\ Terminal\ 1:\ python\ -\/m\ uvicorn\ api.main:app\ -\/-\/reload\ -\/-\/port\ 8000}
+\DoxyCodeLine{\#\ Terminal\ 2:\ cd\ frontend\ \&\&\ npm\ run\ dev}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3153}{}\doxysubsection{\texorpdfstring{Option 3\+: Deploy to Vercel}{Option 3\+: Deploy to Vercel}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3153}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Using\ Vercel\ CLI}
+\DoxyCodeLine{vercel}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Or\ connect\ GitHub\ repo\ to\ Vercel\ dashboard}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3154}{}\doxysection{\texorpdfstring{Key Benefits}{Key Benefits}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3154}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Modern Web Interface}}\+: React-\/based UI with better UX
+\item {\bfseries{RESTful API}}\+: Standardized API endpoints for integration
+\item {\bfseries{Scalable}}\+: Serverless deployment on Vercel
+\item {\bfseries{Type\+Script}}\+: Type-\/safe frontend development
+\item {\bfseries{Responsive}}\+: Works on desktop and mobile devices
+\item {\bfseries{API Documentation}}\+: Auto-\/generated with Fast\+API
+\item {\bfseries{Dual Mode}}\+: Both Gradio and Next.\+js UIs available
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3155}{}\doxysection{\texorpdfstring{Development Workflow}{Development Workflow}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3155}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3156}{}\doxysubsection{\texorpdfstring{Adding New Features}{Adding New Features}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3156}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Backend (API endpoint)\+:}}
+\begin{DoxyItemize}
+\item Add endpoint to {\ttfamily \doxylink{api_2main_8py}{api/main.\+py}}
+\item Add Pydantic models if needed
+\item Test with {\ttfamily /docs} endpoint
+\end{DoxyItemize}
+\item {\bfseries{Frontend (React component)\+:}}
+\begin{DoxyItemize}
+\item Add Type\+Script types to {\ttfamily app/types/api.\+ts}
+\item Add API call to {\ttfamily app/lib/api.\+ts}
+\item Create React component in {\ttfamily app/components/}
+\item Integrate into {\ttfamily app/page.\+tsx}
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3157}{}\doxysubsection{\texorpdfstring{Testing}{Testing}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3157}
+{\bfseries{Backend\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ test\ script}
+\DoxyCodeLine{python\ test\_api.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Or\ use\ FastAPI\ test\ client}
+\DoxyCodeLine{\#\ See\ api/main.py\ for\ examples}
+
+\end{DoxyCode}
+
+
+{\bfseries{Frontend\+:}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{npm\ run\ build\ \ \#\ Test\ production\ build}
+\DoxyCodeLine{npm\ run\ lint\ \ \ \#\ Check\ for\ issues}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3158}{}\doxysection{\texorpdfstring{Environment Variables}{Environment Variables}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3158}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3159}{}\doxysubsection{\texorpdfstring{Development}{Development}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3159}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Backend:\ No\ special\ env\ vars\ needed}
+\DoxyCodeLine{\#\ Frontend:\ .env.local}
+\DoxyCodeLine{NEXT\_PUBLIC\_API\_URL=http://localhost:8000}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3160}{}\doxysubsection{\texorpdfstring{Production (Vercel)}{Production (Vercel)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3160}
+Set in Vercel dashboard\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{NEXT\_PUBLIC\_API\_URL=https://your-\/api-\/domain.vercel.app}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3161}{}\doxysection{\texorpdfstring{File Changes Summary}{File Changes Summary}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3161}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3162}{}\doxysubsection{\texorpdfstring{New Files (22 total)}{New Files (22 total)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3162}
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{api_2____init_____8py}{api/\+\_\+\+\_\+init\+\_\+\+\_\+.\+py}}
+\item {\ttfamily \doxylink{api_2main_8py}{api/main.\+py}}
+\item {\ttfamily frontend/app/components/\+Asset\+List.\+tsx}
+\item {\ttfamily frontend/app/components/\+Metrics\+Dashboard.\+tsx}
+\item {\ttfamily frontend/app/components/\+Network\+Visualization.\+tsx}
+\item {\ttfamily frontend/app/globals.\+css}
+\item {\ttfamily frontend/app/layout.\+tsx}
+\item {\ttfamily frontend/app/page.\+tsx}
+\item {\ttfamily frontend/app/types/api.\+ts}
+\item {\ttfamily frontend/app/lib/api.\+ts}
+\item {\ttfamily frontend/app/lib/index.\+ts}
+\item {\ttfamily frontend/next.\+config.\+js}
+\item {\ttfamily frontend/package.\+json}
+\item {\ttfamily frontend/postcss.\+config.\+js}
+\item {\ttfamily frontend/tailwind.\+config.\+js}
+\item {\ttfamily frontend/tsconfig.\+json}
+\item {\ttfamily frontend/.eslintrc.\+json}
+\item {\ttfamily frontend/.gitignore}
+\item {\ttfamily \doxylink{frontend_2README_8md}{frontend/\+README.\+md}}
+\item {\ttfamily vercel.\+json}
+\item {\ttfamily .env.\+example}
+\item {\ttfamily \doxylink{DEPLOYMENT_8md}{DEPLOYMENT.\+md}}
+\item {\ttfamily \doxylink{INTEGRATION__SUMMARY_8md}{INTEGRATION\+\_\+\+SUMMARY.\+md}} (this file)
+\item {\ttfamily run-\/dev.\+sh}
+\item {\ttfamily run-\/dev.\+bat}
+\item {\ttfamily test\+\_\+api.\+py}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3163}{}\doxysubsection{\texorpdfstring{Modified Files (3 total)}{Modified Files (3 total)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3163}
+
+\begin{DoxyItemize}
+\item {\ttfamily README.\+md} -\/ Added Next.\+js integration documentation
+\item {\ttfamily requirements.\+txt} -\/ Added Fast\+API dependencies
+\item {\ttfamily .gitignore} -\/ Added Next.\+js build artifacts
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3164}{}\doxysection{\texorpdfstring{Migration Path}{Migration Path}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3164}
+The integration is designed to work alongside the existing Gradio application\+:
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Phase 1}} (Current)\+: Both UIs available
+\begin{DoxyItemize}
+\item Gradio\+: {\ttfamily python \doxylink{app_8py}{app.\+py}} → Port 7860
+\item Next.\+js\+: {\ttfamily ./run-\/dev.sh} → Port 3000
+\end{DoxyItemize}
+\item {\bfseries{Phase 2}} (Optional)\+: Gradual migration
+\begin{DoxyItemize}
+\item Users can choose which UI to use
+\item Both share the same backend logic
+\end{DoxyItemize}
+\item {\bfseries{Phase 3}} (Future)\+: Full migration
+\begin{DoxyItemize}
+\item Deprecate Gradio UI if desired
+\item Next.\+js becomes primary interface
+\item Remove Gradio dependencies
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3165}{}\doxysection{\texorpdfstring{Maintenance}{Maintenance}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3165}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3166}{}\doxysubsection{\texorpdfstring{Keeping APIs in Sync}{Keeping APIs in Sync}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3166}
+When modifying {\ttfamily \doxylink{asset__graph_8py}{src/logic/asset\+\_\+graph.\+py}}\+:
+
+
+\begin{DoxyEnumerate}
+\item Update {\ttfamily \doxylink{api_2main_8py}{api/main.\+py}} endpoints if needed
+\item Update Type\+Script types in {\ttfamily app/types/api.\+ts}
+\item Update API client in {\ttfamily app/lib/api.\+ts}
+\item Test both backend and frontend
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3167}{}\doxysubsection{\texorpdfstring{Dependencies}{Dependencies}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3167}
+
+\begin{DoxyItemize}
+\item {\bfseries{Backend}}\+: {\ttfamily pip install -\/r requirements.\+txt}
+\item {\bfseries{Frontend}}\+: {\ttfamily cd frontend \&\& npm install}
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3168}{}\doxysubsection{\texorpdfstring{Updating Documentation}{Updating Documentation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3168}
+Keep these files updated\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{DEPLOYMENT_8md}{DEPLOYMENT.\+md}} -\/ Deployment procedures
+\item {\ttfamily README.\+md} -\/ Quick start guide
+\item {\ttfamily \doxylink{frontend_2README_8md}{frontend/\+README.\+md}} -\/ Frontend specifics
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3169}{}\doxysection{\texorpdfstring{Next Steps}{Next Steps}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3169}
+Suggested improvements\+:
+
+
+\begin{DoxyEnumerate}
+\item Add authentication/authorization
+\item Implement caching (Redis)
+\item Add real-\/time updates (Web\+Sockets)
+\item Add more interactive visualizations
+\item Implement data export features
+\item Add unit and integration tests
+\item Set up CI/\+CD pipeline
+\item Add monitoring and analytics
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3170}{}\doxysection{\texorpdfstring{Support}{Support}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3170}
+For issues or questions\+:
+
+
+\begin{DoxyEnumerate}
+\item Check {\ttfamily \doxylink{DEPLOYMENT_8md}{DEPLOYMENT.\+md}} for troubleshooting
+\item Review API docs at {\ttfamily \href{http://localhost:8000/docs}{\texttt{ http\+://localhost\+:8000/docs}}}
+\item Check browser console for frontend errors
+\item Review backend logs for API errors
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3171}{}\doxysection{\texorpdfstring{License}{License}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2INTEGRATION__SUMMARY_autotoc_md3171}
+Same as the main project (MIT License) 

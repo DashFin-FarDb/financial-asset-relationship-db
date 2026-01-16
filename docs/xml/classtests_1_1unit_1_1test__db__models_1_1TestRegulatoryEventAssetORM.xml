@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__db__models_1_1TestRegulatoryEventAssetORM" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_db_models::TestRegulatoryEventAssetORM</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__db__models_1_1TestRegulatoryEventAssetORM_1a6118236bb237b294da9c10f43ec6b83a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_db_models.TestRegulatoryEventAssetORM.test_event_asset_table_name</definition>
+        <argsstring>()</argsstring>
+        <name>test_event_asset_table_name</name>
+        <qualifiedname>tests.unit.test_db_models.TestRegulatoryEventAssetORM.test_event_asset_table_name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that RegulatoryEventAssetORM uses correct table name.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_db_models.py" line="584" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_db_models.py" bodystart="584" bodyend="587"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__db__models_1_1TestRegulatoryEventAssetORM_1aa326e0451566d95e0e51e900462b79f1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_db_models.TestRegulatoryEventAssetORM.test_event_asset_unique_constraint</definition>
+        <argsstring>(db_session)</argsstring>
+        <name>test_event_asset_unique_constraint</name>
+        <qualifiedname>tests.unit.test_db_models.TestRegulatoryEventAssetORM.test_event_asset_unique_constraint</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__db__models_1a0321d29824b5d8bd8e04f164ca25b418" kindref="member">db_session</ref></type>
+          <defname>db_session</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that duplicate event-asset links are prevented.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_db_models.py" line="589" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_db_models.py" bodystart="589" bodyend="638"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__db__models_1_1TestRegulatoryEventAssetORM_1aa4a45c22c123bd5ea19d790c42bc45eb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_db_models.TestRegulatoryEventAssetORM.test_event_asset_cascade_delete_on_event</definition>
+        <argsstring>(self, db_session)</argsstring>
+        <name>test_event_asset_cascade_delete_on_event</name>
+        <qualifiedname>tests.unit.test_db_models.TestRegulatoryEventAssetORM.test_event_asset_cascade_delete_on_event</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__db__models_1a0321d29824b5d8bd8e04f164ca25b418" kindref="member">db_session</ref></type>
+          <defname>db_session</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test cascade delete when event is removed.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_db_models.py" line="639" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_db_models.py" bodystart="639" bodyend="690"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for RegulatoryEventAssetORM join table.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_db_models.TestRegulatoryEventAssetORM</label>
+        <link refid="classtests_1_1unit_1_1test__db__models_1_1TestRegulatoryEventAssetORM"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_db_models.py" line="580" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_db_models.py" bodystart="580" bodyend="690"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__db__models_1_1TestRegulatoryEventAssetORM_1aa4a45c22c123bd5ea19d790c42bc45eb" prot="public" virt="non-virtual"><scope>tests::unit::test_db_models::TestRegulatoryEventAssetORM</scope><name>test_event_asset_cascade_delete_on_event</name></member>
+      <member refid="classtests_1_1unit_1_1test__db__models_1_1TestRegulatoryEventAssetORM_1a6118236bb237b294da9c10f43ec6b83a" prot="public" virt="non-virtual"><scope>tests::unit::test_db_models::TestRegulatoryEventAssetORM</scope><name>test_event_asset_table_name</name></member>
+      <member refid="classtests_1_1unit_1_1test__db__models_1_1TestRegulatoryEventAssetORM_1aa326e0451566d95e0e51e900462b79f1" prot="public" virt="non-virtual"><scope>tests::unit::test_db_models::TestRegulatoryEventAssetORM</scope><name>test_event_asset_unique_constraint</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

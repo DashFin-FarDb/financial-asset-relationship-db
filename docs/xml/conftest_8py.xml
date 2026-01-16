@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="conftest_8py" kind="file" language="Python">
+    <compoundname>conftest.py</compoundname>
+    <innernamespace refid="namespaceconftest">conftest</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespaceconftest" refkind="compound"><highlight class="stringliteral">&quot;&quot;&quot;Pytest<sp/>configuration<sp/>helpers<sp/>for<sp/>the<sp/>repository.</highlight></codeline>
+<codeline lineno="2"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="3"><highlight class="stringliteral">This<sp/>module<sp/>removes<sp/>optional<sp/>coverage-related<sp/>command<sp/>line<sp/>arguments<sp/>when<sp/>the</highlight></codeline>
+<codeline lineno="4"><highlight class="stringliteral">``pytest-cov``<sp/>plugin<sp/>is<sp/>not<sp/>installed.<sp/>Some<sp/>environments<sp/>(for<sp/>example,<sp/>local</highlight></codeline>
+<codeline lineno="5"><highlight class="stringliteral">developer<sp/>shells<sp/>or<sp/>CI<sp/>configurations)<sp/>may<sp/>inject<sp/>coverage<sp/>options<sp/>via</highlight></codeline>
+<codeline lineno="6"><highlight class="stringliteral">``PYTEST_ADDOPTS``.<sp/>Without<sp/>``pytest-cov``<sp/>those<sp/>options<sp/>cause<sp/>pytest<sp/>to<sp/>fail</highlight></codeline>
+<codeline lineno="7"><highlight class="stringliteral">before<sp/>executing<sp/>any<sp/>tests.<sp/>By<sp/>trimming<sp/>the<sp/>coverage<sp/>options<sp/>when<sp/>the<sp/>plugin<sp/>is</highlight></codeline>
+<codeline lineno="8"><highlight class="stringliteral">missing<sp/>we<sp/>allow<sp/>the<sp/>default<sp/>test<sp/>command<sp/>to<sp/>succeed<sp/>while<sp/>still<sp/>preserving</highlight></codeline>
+<codeline lineno="9"><highlight class="stringliteral">coverage<sp/>reporting<sp/>where<sp/>the<sp/>dependency<sp/>is<sp/>available.</highlight></codeline>
+<codeline lineno="10"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>__future__<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>annotations</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>importlib.util</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>typing<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>List</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18" refid="namespaceconftest_1aca802c25f1b7668aaaa054ef460b0112" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceconftest_1aca802c25f1b7668aaaa054ef460b0112" kindref="member">_cov_plugin_available</ref>()<sp/>-&gt;<sp/>bool:</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="20"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Check<sp/>whether<sp/>the<sp/>pytest-cov<sp/>plugin<sp/>is<sp/>importable.</highlight></codeline>
+<codeline lineno="21"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="22"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline lineno="23"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>`True`<sp/>if<sp/>the<sp/>pytest-cov<sp/>plugin<sp/>is<sp/>importable,<sp/>`False`<sp/>otherwise.</highlight></codeline>
+<codeline lineno="24"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>importlib.util.find_spec(</highlight><highlight class="stringliteral">&quot;pytest_cov&quot;</highlight><highlight class="normal">)<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29" refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" kindref="member">pytest_load_initial_conftests</ref>(</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>args:<sp/>List[str],<sp/>early_config,<sp/>parser</highlight></codeline>
+<codeline lineno="31"><highlight class="normal">)<sp/>-&gt;<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">:<sp/><sp/></highlight><highlight class="comment">#<sp/>pragma:<sp/>no<sp/>cover<sp/>-<sp/>exercised<sp/>via<sp/>pytest</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="33"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Remove<sp/>pytest-cov<sp/>related<sp/>command-line<sp/>options<sp/>from<sp/>the<sp/>provided</highlight></codeline>
+<codeline lineno="34"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>argument<sp/>list<sp/>when<sp/>the<sp/>pytest-cov<sp/>plugin<sp/>is<sp/>not<sp/>available.</highlight></codeline>
+<codeline lineno="35"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="36"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>If<sp/>the<sp/>plugin<sp/>is<sp/>present<sp/>the<sp/>argument<sp/>list<sp/>is<sp/>left<sp/>unchanged.</highlight></codeline>
+<codeline lineno="37"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Otherwise,<sp/>remove<sp/>occurrences<sp/>of<sp/>--cov<sp/>and<sp/>--cov-report<sp/>together</highlight></codeline>
+<codeline lineno="38"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>with<sp/>their<sp/>following<sp/>parameters.</highlight></codeline>
+<codeline lineno="39"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Also<sp/>remove<sp/>any<sp/>inline<sp/>forms<sp/>starting<sp/>with<sp/>--cov=<sp/>or<sp/>--cov-report=.</highlight></codeline>
+<codeline lineno="40"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>The<sp/>original<sp/>`args`<sp/>list<sp/>is<sp/>updated<sp/>in-place.</highlight></codeline>
+<codeline lineno="41"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="42"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters:</highlight></codeline>
+<codeline lineno="43"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>args<sp/>(List[str]):<sp/>Mutable<sp/>list<sp/>of<sp/>command-line<sp/>arguments;</highlight></codeline>
+<codeline lineno="44"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>coverage-related<sp/>options<sp/>are<sp/>removed<sp/>from<sp/>this<sp/>list<sp/>in-place.</highlight></codeline>
+<codeline lineno="45"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/><ref refid="namespaceconftest_1aca802c25f1b7668aaaa054ef460b0112" kindref="member">_cov_plugin_available</ref>():</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>filtered_args:<sp/>List[str]<sp/>=<sp/>[]</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>skip_next<sp/>=<sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>arg<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>args:</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>skip_next:</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>skip_next<sp/>=<sp/></highlight><highlight class="keyword">False</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">continue</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>arg<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>{</highlight><highlight class="stringliteral">&quot;--cov&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;--cov-report&quot;</highlight><highlight class="normal">}:</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>skip_next<sp/>=<sp/></highlight><highlight class="keyword">True</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">continue</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>arg.startswith((</highlight><highlight class="stringliteral">&quot;--cov=&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;--cov-report=&quot;</highlight><highlight class="normal">)):</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">continue</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>filtered_args.append(arg)</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>args[:]<sp/>=<sp/>filtered_args</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/conftest.py"/>
+  </compounddef>
+</doxygen>

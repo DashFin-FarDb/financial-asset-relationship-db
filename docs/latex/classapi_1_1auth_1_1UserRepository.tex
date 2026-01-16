@@ -1,0 +1,74 @@
+\doxysection{api.\+auth.\+User\+Repository Class Reference}
+\hypertarget{classapi_1_1auth_1_1UserRepository}{}\label{classapi_1_1auth_1_1UserRepository}\index{api.auth.UserRepository@{api.auth.UserRepository}}
+
+
+Collaboration diagram for api.\+auth.\+User\+Repository\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=220pt]{classapi_1_1auth_1_1UserRepository__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+Optional\mbox{[}User\+In\+DB\mbox{]} \mbox{\hyperlink{classapi_1_1auth_1_1UserRepository_a183e414cf1343a6760d79d9917ed1243}{get\+\_\+user}} (str username)
+\item 
+bool \mbox{\hyperlink{classapi_1_1auth_1_1UserRepository_afbf15bbccdbfd1fe39288481b15e0801}{has\+\_\+users}} ()
+\item 
+None \mbox{\hyperlink{classapi_1_1auth_1_1UserRepository_a56d2d2fac29fd88a48bdb6965d51a365}{create\+\_\+or\+\_\+update\+\_\+user}} (\texorpdfstring{$\ast$}{*}, str username, str hashed\+\_\+password, Optional\mbox{[}str\mbox{]} user\+\_\+email=None, Optional\mbox{[}str\mbox{]} user\+\_\+full\+\_\+name=None, bool is\+\_\+disabled=False)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Repository for accessing user credential records.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classapi_1_1auth_1_1UserRepository_a56d2d2fac29fd88a48bdb6965d51a365}\index{api.auth.UserRepository@{api.auth.UserRepository}!create\_or\_update\_user@{create\_or\_update\_user}}
+\index{create\_or\_update\_user@{create\_or\_update\_user}!api.auth.UserRepository@{api.auth.UserRepository}}
+\doxysubsubsection{\texorpdfstring{create\_or\_update\_user()}{create\_or\_update\_user()}}
+{\footnotesize\ttfamily \label{classapi_1_1auth_1_1UserRepository_a56d2d2fac29fd88a48bdb6965d51a365} 
+ None api.\+auth.\+User\+Repository.\+create\+\_\+or\+\_\+update\+\_\+user (\begin{DoxyParamCaption}\item[{\texorpdfstring{$\ast$}{*}}]{}{, }\item[{str}]{username}{, }\item[{str}]{hashed\+\_\+password}{, }\item[{Optional\mbox{[}str\mbox{]} }]{user\+\_\+email}{ = {\ttfamily None}, }\item[{Optional\mbox{[}str\mbox{]} }]{user\+\_\+full\+\_\+name}{ = {\ttfamily None}, }\item[{bool }]{is\+\_\+disabled}{ = {\ttfamily False}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Create or update a user credential record in the repository.
+
+Performs an upsert into the user_credentials table using the
+provided fields so the record for `username` is inserted or
+updated.
+
+Parameters:
+    username (str): Unique identifier for the user.
+    hashed_password (str): Password hash; must already be hashed.
+    user_email (Optional[str]): User email address, if available.
+    user_full_name (Optional[str]): User's full name, if available.
+    is_disabled (bool): Whether the user account is disabled (inactive).
+\end{DoxyVerb}
+ \Hypertarget{classapi_1_1auth_1_1UserRepository_a183e414cf1343a6760d79d9917ed1243}\index{api.auth.UserRepository@{api.auth.UserRepository}!get\_user@{get\_user}}
+\index{get\_user@{get\_user}!api.auth.UserRepository@{api.auth.UserRepository}}
+\doxysubsubsection{\texorpdfstring{get\_user()}{get\_user()}}
+{\footnotesize\ttfamily \label{classapi_1_1auth_1_1UserRepository_a183e414cf1343a6760d79d9917ed1243} 
+ Optional\mbox{[}User\+In\+DB\mbox{]} api.\+auth.\+User\+Repository.\+get\+\_\+user (\begin{DoxyParamCaption}\item[{str}]{username}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Retrieve a user record by username from the repository.
+
+Returns:
+    `UserInDB` for the matching username, `None` if no such user exists.
+\end{DoxyVerb}
+ \Hypertarget{classapi_1_1auth_1_1UserRepository_afbf15bbccdbfd1fe39288481b15e0801}\index{api.auth.UserRepository@{api.auth.UserRepository}!has\_users@{has\_users}}
+\index{has\_users@{has\_users}!api.auth.UserRepository@{api.auth.UserRepository}}
+\doxysubsubsection{\texorpdfstring{has\_users()}{has\_users()}}
+{\footnotesize\ttfamily \label{classapi_1_1auth_1_1UserRepository_afbf15bbccdbfd1fe39288481b15e0801} 
+ bool api.\+auth.\+User\+Repository.\+has\+\_\+users (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Check whether any user credential records exist.
+
+Returns:
+    `True` if at least one user credential exists, `False` otherwise.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/api/\mbox{\hyperlink{auth_8py}{auth.\+py}}\end{DoxyCompactItemize}

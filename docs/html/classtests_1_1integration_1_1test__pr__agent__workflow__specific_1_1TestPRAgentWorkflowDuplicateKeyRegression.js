@@ -1,0 +1,9 @@
+var classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowDuplicateKeyRegression =
+[
+    [ "test_no_duplicate_step_name_setup_python", "classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowDuplicateKeyRegression.html#a995d442d11081a1e4707627252b9935a", null ],
+    [ "test_no_duplicate_with_blocks_in_setup_python", "classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowDuplicateKeyRegression.html#a4a7543f594e4ed294d7e79677a0c4467", null ],
+    [ "test_setup_python_single_python_version_definition", "classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowDuplicateKeyRegression.html#a8d67e38de6994c35b0233fd2476f2996", null ],
+    [ "workflow_content", "classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowDuplicateKeyRegression.html#a9c7d68ab00ef8a29bdf0665b63b983b7", null ],
+    [ "workflow_file", "classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowDuplicateKeyRegression.html#a5765a72965937b0c7367b62651d119e5", null ],
+    [ "workflow_raw", "classtests_1_1integration_1_1test__pr__agent__workflow__specific_1_1TestPRAgentWorkflowDuplicateKeyRegression.html#a993553c41ea0c571e302b9f949cd8d6e", null ]
+];

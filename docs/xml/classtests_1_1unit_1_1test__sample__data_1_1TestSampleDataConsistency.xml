@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_sample_data::TestSampleDataConsistency</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1a290662059aa445e27b709ceb96f23b9b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDataConsistency.test_all_assets_have_unique_ids</definition>
+        <argsstring>()</argsstring>
+        <name>test_all_assets_have_unique_ids</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDataConsistency.test_all_assets_have_unique_ids</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all assets have unique IDs.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="262" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="262" bodyend="268"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1a84ef22de82e05fb9c033b9455109e76d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDataConsistency.test_all_assets_have_symbols</definition>
+        <argsstring>()</argsstring>
+        <name>test_all_assets_have_symbols</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDataConsistency.test_all_assets_have_symbols</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all assets have symbols.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="270" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="270" bodyend="277"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1a5ca699a826a7bcf5cf4a8b580c40e687" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDataConsistency.test_all_assets_have_names</definition>
+        <argsstring>()</argsstring>
+        <name>test_all_assets_have_names</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDataConsistency.test_all_assets_have_names</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all assets have names.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="279" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="279" bodyend="286"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1ac577b9e7ff6efc57ae9788a07394848a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDataConsistency.test_relationship_targets_exist</definition>
+        <argsstring>()</argsstring>
+        <name>test_relationship_targets_exist</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDataConsistency.test_relationship_targets_exist</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all relationship targets reference existing assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="288" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="288" bodyend="296"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1ac8235048ab6f2ae70f964b258ad1619a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_sample_data.TestSampleDataConsistency.test_bond_issuer_references_valid_asset</definition>
+        <argsstring>()</argsstring>
+        <name>test_bond_issuer_references_valid_asset</name>
+        <qualifiedname>tests.unit.test_sample_data.TestSampleDataConsistency.test_bond_issuer_references_valid_asset</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that bond issuers reference valid assets when specified.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="298" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="298" bodyend="308"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for data consistency in sample database.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_sample_data.TestSampleDataConsistency</label>
+        <link refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" line="258" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_sample_data.py" bodystart="258" bodyend="308"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1a5ca699a826a7bcf5cf4a8b580c40e687" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDataConsistency</scope><name>test_all_assets_have_names</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1a84ef22de82e05fb9c033b9455109e76d" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDataConsistency</scope><name>test_all_assets_have_symbols</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1a290662059aa445e27b709ceb96f23b9b" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDataConsistency</scope><name>test_all_assets_have_unique_ids</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1ac8235048ab6f2ae70f964b258ad1619a" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDataConsistency</scope><name>test_bond_issuer_references_valid_asset</name></member>
+      <member refid="classtests_1_1unit_1_1test__sample__data_1_1TestSampleDataConsistency_1ac577b9e7ff6efc57ae9788a07394848a" prot="public" virt="non-virtual"><scope>tests::unit::test_sample_data::TestSampleDataConsistency</scope><name>test_relationship_targets_exist</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

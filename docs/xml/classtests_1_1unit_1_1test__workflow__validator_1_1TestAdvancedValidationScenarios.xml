@@ -1,0 +1,222 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a312d3484067fab1512dd24285f686502" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_binary_content</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_with_binary_content</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_binary_content</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of binary file mistakenly treated as YAML</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="524" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="524" bodyend="537"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a79ace134a6b42420f0fd4fda19003a4f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_only_whitespace</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_with_only_whitespace</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_only_whitespace</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow file containing only whitespace</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="538" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="538" bodyend="549"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1adaeddec5a254fa93377579697203f031" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_comments_only</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_with_comments_only</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_comments_only</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow file with only YAML comments</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="550" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="550" bodyend="567"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a43c3c3f3cf402cc255cd084bc67c1d24" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_null_jobs_value</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_with_null_jobs_value</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_null_jobs_value</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with null value for jobs key</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="568" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="568" bodyend="586"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a12077ac5fe3c0cce4baddb0dcb722661" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_list_as_jobs</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_with_list_as_jobs</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_list_as_jobs</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow where jobs is a list instead of dict</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="587" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="587" bodyend="607"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a0fa2ea4bd74786d8064a2ac63c2bb647" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_integer_values</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_with_integer_values</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_integer_values</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with integer values in unexpected places</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="608" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="608" bodyend="629"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a919fe0da98613b5749212bb2c452f1cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_path_with_spaces</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_path_with_spaces</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_path_with_spaces</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow file with spaces in path</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="630" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="630" bodyend="656"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1ad812f4941d62807ad899d2b0a2fb0e79" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_extremely_long_line</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_with_extremely_long_line</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_extremely_long_line</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with extremely long single line</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="657" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="657" bodyend="681"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1aaab053ef73b6c64585ca456839cf95b7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_circular_yaml_reference</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_with_circular_yaml_reference</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_circular_yaml_reference</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with YAML anchors that could cause circular references</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="682" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="682" bodyend="711"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a36824142e899a441f88e591ccd2fa24f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_multiline_strings</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_workflow_with_multiline_strings</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios.test_workflow_with_multiline_strings</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with various multiline string formats</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="712" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="712" bodyend="743"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Additional advanced validation scenarios with bias for action</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_workflow_validator.TestAdvancedValidationScenarios</label>
+        <link refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="521" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="521" bodyend="743"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a919fe0da98613b5749212bb2c452f1cf" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_path_with_spaces</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a312d3484067fab1512dd24285f686502" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_with_binary_content</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1aaab053ef73b6c64585ca456839cf95b7" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_with_circular_yaml_reference</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1adaeddec5a254fa93377579697203f031" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_with_comments_only</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1ad812f4941d62807ad899d2b0a2fb0e79" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_with_extremely_long_line</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a0fa2ea4bd74786d8064a2ac63c2bb647" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_with_integer_values</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a12077ac5fe3c0cce4baddb0dcb722661" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_with_list_as_jobs</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a36824142e899a441f88e591ccd2fa24f" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_with_multiline_strings</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a43c3c3f3cf402cc255cd084bc67c1d24" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_with_null_jobs_value</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestAdvancedValidationScenarios_1a79ace134a6b42420f0fd4fda19003a4f" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestAdvancedValidationScenarios</scope><name>test_workflow_with_only_whitespace</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

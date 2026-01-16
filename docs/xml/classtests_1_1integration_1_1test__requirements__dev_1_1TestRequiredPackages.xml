@@ -1,0 +1,209 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestRequiredPackages</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1a6bcdf4f53b90c59aad4c4c43fe49feab" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Tuple[str, str]]</type>
+        <definition> List[Tuple[str, str]] tests.integration.test_requirements_dev.TestRequiredPackages.requirements</definition>
+        <argsstring>(parsed_requirements)</argsstring>
+        <name>requirements</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequiredPackages.requirements</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Parse and return requirements.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="227" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="227" bodyend="230"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1a689effc05e49f880efa47f8110dc2c9e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[str]</type>
+        <definition> List[str] tests.integration.test_requirements_dev.TestRequiredPackages.package_names</definition>
+        <argsstring>(parsed_requirements)</argsstring>
+        <name>package_names</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequiredPackages.package_names</qualifiedname>
+        <param>
+          <type><ref refid="namespacetests_1_1integration_1_1test__requirements__dev_1a0e99790ad4cd3ca0e45a21b27b42e0c1" kindref="member">parsed_requirements</ref></type>
+          <defname>parsed_requirements</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Extract just the package names.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="233" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="233" bodyend="236"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1ac80a1bbe381ce8dbb23ed10422ec84af" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_pytest</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_pytest</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_pytest</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pytest is included.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="238" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="238" bodyend="241"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1acb963365460fece06c356727c47458d2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_pytest_cov</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_pytest_cov</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_pytest_cov</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pytest-cov is included.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="243" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="243" bodyend="246"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1ab2ab99e7679a6a2e10985a27ed6d122d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_pyyaml</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_pyyaml</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_pyyaml</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that PyYAML is included (added in the diff).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="248" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="248" bodyend="251"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1a020815f8a997f28a87fe7bdd7d356f4d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_types_pyyaml</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_types_pyyaml</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_types_pyyaml</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that types-PyYAML is included (added in the diff).</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="253" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="253" bodyend="256"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1a7d447c2e9ee2cc0384318e58a6a123f0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_flake8</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_flake8</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_flake8</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that flake8 is included.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="258" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="258" bodyend="261"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1aa1ade2f0a84cae7c0af7d22491ab8fa7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_black</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_black</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_black</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that black is included.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="263" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="263" bodyend="266"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1afa7c19a77c75f169b620efa8c0b3b581" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_mypy</definition>
+        <argsstring>(List[str] package_names)</argsstring>
+        <name>test_has_mypy</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestRequiredPackages.test_has_mypy</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>package_names</declname>
+          <array>[str]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that mypy is included.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="268" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="268" bodyend="272"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test that required development packages are present.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestRequiredPackages</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="221" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="221" bodyend="272"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1a689effc05e49f880efa47f8110dc2c9e" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequiredPackages</scope><name>package_names</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1a6bcdf4f53b90c59aad4c4c43fe49feab" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequiredPackages</scope><name>requirements</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1aa1ade2f0a84cae7c0af7d22491ab8fa7" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequiredPackages</scope><name>test_has_black</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1a7d447c2e9ee2cc0384318e58a6a123f0" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequiredPackages</scope><name>test_has_flake8</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1afa7c19a77c75f169b620efa8c0b3b581" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequiredPackages</scope><name>test_has_mypy</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1ac80a1bbe381ce8dbb23ed10422ec84af" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequiredPackages</scope><name>test_has_pytest</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1acb963365460fece06c356727c47458d2" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequiredPackages</scope><name>test_has_pytest_cov</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1ab2ab99e7679a6a2e10985a27ed6d122d" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequiredPackages</scope><name>test_has_pyyaml</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestRequiredPackages_1a020815f8a997f28a87fe7bdd7d356f4d" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestRequiredPackages</scope><name>test_has_types_pyyaml</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

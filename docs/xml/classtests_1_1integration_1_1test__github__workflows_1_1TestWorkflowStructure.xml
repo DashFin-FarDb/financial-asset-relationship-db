@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowStructure</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_1aa395e884408659837bd1e80c182e7e27" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowStructure.test_workflow_has_name</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_has_name</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowStructure.test_workflow_has_name</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify the workflow YAML defines a non-empty top-level name.
+
+Asserts that the top-level &quot;name&quot; key is present and its value is a non-empty string; failure messages include the workflow filename for context.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="173" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="173" bodyend="185"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_1a3d668deb5af79fbaf3dfaa9d55e27c6f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowStructure.test_workflow_has_triggers</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_has_triggers</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowStructure.test_workflow_has_triggers</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure the workflow defines at least one trigger via a top-level &quot;on&quot; field.
+
+Asserts that the loaded workflow mapping contains a top-level &quot;on&quot; key.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="187" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="187" bodyend="197"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_1a1da143aabd2f56261a4f3e17e4277331" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowStructure.test_workflow_has_jobs</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_has_jobs</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowStructure.test_workflow_has_jobs</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure the workflow defines at least one job.
+
+Asserts that the top-level &quot;jobs&quot; field is present, is a mapping (dictionary), and contains at least one job entry for the given workflow file.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="199" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="199" bodyend="214"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_1a1f1edda2552099b669d86f8cf1af0248" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowStructure.test_workflow_jobs_have_steps</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_jobs_have_steps</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowStructure.test_workflow_jobs_have_steps</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure each job in the workflow defines either a `steps` sequence or a `uses` reusable workflow, and that any `steps` entry is a non-empty list.
+
+Fails the test if a job:
+- does not contain either `steps` or `uses`;
+- has an empty `steps` value;
+- has a `steps` value that is not a list.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file being validated.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="216" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="216" bodyend="244"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for GitHub Actions workflow structure validation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowStructure</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="169" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="169" bodyend="244"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_1a1da143aabd2f56261a4f3e17e4277331" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowStructure</scope><name>test_workflow_has_jobs</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_1aa395e884408659837bd1e80c182e7e27" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowStructure</scope><name>test_workflow_has_name</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_1a3d668deb5af79fbaf3dfaa9d55e27c6f" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowStructure</scope><name>test_workflow_has_triggers</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowStructure_1a1f1edda2552099b669d86f8cf1af0248" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowStructure</scope><name>test_workflow_jobs_have_steps</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

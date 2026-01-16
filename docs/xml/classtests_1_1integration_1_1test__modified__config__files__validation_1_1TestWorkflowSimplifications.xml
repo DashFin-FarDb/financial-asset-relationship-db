@@ -1,0 +1,145 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_modified_config_files_validation::TestWorkflowSimplifications</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1a0eab25e600ec11120450531aa6f064be" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Path</type>
+        <definition> Path tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.workflows_dir</definition>
+        <argsstring>()</argsstring>
+        <name>workflows_dir</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.workflows_dir</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Get workflows directory.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="134" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="134" bodyend="137"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1a9025b50a1eaf6e3120597c55be67150e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.test_pr_agent_workflow_simplified</definition>
+        <argsstring>(self, Path workflows_dir)</argsstring>
+        <name>test_pr_agent_workflow_simplified</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.test_pr_agent_workflow_simplified</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflows_dir</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate that the PR Agent GitHub Actions workflow has been simplified.
+
+Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python dependency installation that references `requirements.txt`.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="138" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="138" bodyend="160"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1aa272ac679cd01cf33cf4ba097e4122c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.test_apisec_workflow_no_conditional_skip</definition>
+        <argsstring>(self, Path workflows_dir)</argsstring>
+        <name>test_apisec_workflow_no_conditional_skip</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.test_apisec_workflow_no_conditional_skip</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflows_dir</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
+
+Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != &apos;&apos;`).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="161" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="161" bodyend="176"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1a29264f2d45a11747ada8b9d79f1e2b9c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.test_label_workflow_simplified</definition>
+        <argsstring>(self, Path workflows_dir)</argsstring>
+        <name>test_label_workflow_simplified</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.test_label_workflow_simplified</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflows_dir</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate that the label workflow uses a simplified configuration.
+
+Asserts that .github/workflows/label.yml exists and does not contain the substring &apos;check-config&apos; (case-insensitive) nor the exact text &apos;labeler.yml not found&apos;.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="177" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="177" bodyend="192"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1a425fbe47e68fff75b07d6b6b6d447d09" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.test_greetings_workflow_simple_messages</definition>
+        <argsstring>(self, Path workflows_dir)</argsstring>
+        <name>test_greetings_workflow_simple_messages</name>
+        <qualifiedname>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications.test_greetings_workflow_simple_messages</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflows_dir</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Verify greetings workflow has simple placeholder messages.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="193" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="193" bodyend="215"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Validate simplifications made to GitHub workflows.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_modified_config_files_validation.TestWorkflowSimplifications</label>
+        <link refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" line="129" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_modified_config_files_validation.py" bodystart="129" bodyend="215"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1aa272ac679cd01cf33cf4ba097e4122c8" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestWorkflowSimplifications</scope><name>test_apisec_workflow_no_conditional_skip</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1a425fbe47e68fff75b07d6b6b6d447d09" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestWorkflowSimplifications</scope><name>test_greetings_workflow_simple_messages</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1a29264f2d45a11747ada8b9d79f1e2b9c" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestWorkflowSimplifications</scope><name>test_label_workflow_simplified</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1a9025b50a1eaf6e3120597c55be67150e" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestWorkflowSimplifications</scope><name>test_pr_agent_workflow_simplified</name></member>
+      <member refid="classtests_1_1integration_1_1test__modified__config__files__validation_1_1TestWorkflowSimplifications_1a0eab25e600ec11120450531aa6f064be" prot="public" virt="non-virtual"><scope>tests::integration::test_modified_config_files_validation::TestWorkflowSimplifications</scope><name>workflows_dir</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

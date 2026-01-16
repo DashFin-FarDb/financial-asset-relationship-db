@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="PR__ANALYSIS__DETAILED_8md" kind="file" language="Markdown">
+    <compoundname>PR_ANALYSIS_DETAILED.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>PR<sp/>Resolution<sp/>Analysis<sp/>Report<sp/>-<sp/>2025-12-20</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Executive<sp/>Summary</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Successfully<sp/>analyzed<sp/>**27<sp/>PR<sp/>branches**<sp/>from<sp/>codex/copilot<sp/>automated<sp/>systems.<sp/>All<sp/>branches<sp/>have<sp/>unrelated<sp/>Git<sp/>histories<sp/>but<sp/>**17<sp/>contain<sp/>valuable<sp/>changes**<sp/>that<sp/>can<sp/>be<sp/>extracted<sp/>and<sp/>recreated.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Detailed<sp/>Findings</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Mergeability<sp/>Assessment</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>branches<sp/>analyzed**:<sp/>27</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Directly<sp/>mergeable**:<sp/>0<sp/>(0%)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Unrelated<sp/>history**:<sp/>27<sp/>(100%)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Branches<sp/>with<sp/>extractable<sp/>value**:<sp/>17<sp/>(63%)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>High-Value<sp/>Branches<sp/>Identified</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Test<sp/>Improvements<sp/>(Priority<sp/>1)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**origin/codex/fix-codex-review-issues-in-tests**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>30+<sp/>test-related<sp/>files<sp/>and<sp/>documentation</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Contains<sp/>comprehensive<sp/>test<sp/>generation<sp/>workflows</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2.<sp/>**origin/codex/github-mention-fix-pr-agent-workflow-integration-tests**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>`tests/integration/test_github_workflows.py`<sp/>improvements</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>GitHub<sp/>workflow<sp/>integration<sp/>fixes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3.<sp/>**origin/copilot/sub-pr-383**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>`tests/integration/test_pr_agent_config_validation.py`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Code<sp/>Quality<sp/>&amp;<sp/>Validation<sp/>(Priority<sp/>2)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4.<sp/>**origin/copilot/sub-pr-368**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>`src/workflow_validator.py`<sp/>improvements</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Critical<sp/>for<sp/>CI/CD<sp/>validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">5.<sp/>**origin/copilot/sub-pr-332**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>`tests/integration/test_requirements_dev.py`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>`.github/instructions/codacy.instructions.md`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Documentation<sp/>&amp;<sp/>Workflow<sp/>(Priority<sp/>3)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">6.<sp/>**Multiple<sp/>test<sp/>generation<sp/>branches**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Various<sp/>FINAL*TEST_GENERATION*\*.md<sp/>files</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>-<sp/>Comprehensive<sp/>test<sp/>coverage<sp/>documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Resolution<sp/>Strategy</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Immediate<sp/>Actions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**Extract<sp/>Priority<sp/>1<sp/>test<sp/>improvements**</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Apply<sp/>workflow<sp/>validator<sp/>fixes**</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Create<sp/>clean<sp/>branches**<sp/>for<sp/>each<sp/>valuable<sp/>change<sp/>set</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Document<sp/>source<sp/>attribution**<sp/>for<sp/>all<sp/>extracted<sp/>changes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Success<sp/>Metrics</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>SQLAlchemy<sp/>dependency<sp/>extracted<sp/>(already<sp/>completed)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>🔄<sp/>Test<sp/>improvements<sp/>extraction<sp/>(in<sp/>progress)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>⏳<sp/>Workflow<sp/>validator<sp/>fixes<sp/>(planned)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>⏳<sp/>Documentation<sp/>improvements<sp/>(planned)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Next<sp/>Steps</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>Extract<sp/>test_github_workflows.py<sp/>improvements</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Apply<sp/>workflow_validator.py<sp/>fixes</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Create<sp/>test<sp/>validation<sp/>improvements</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>Generate<sp/>final<sp/>resolution<sp/>report<sp/>with<sp/>clean<sp/>PRs</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/PR_ANALYSIS_DETAILED.md"/>
+  </compounddef>
+</doxygen>

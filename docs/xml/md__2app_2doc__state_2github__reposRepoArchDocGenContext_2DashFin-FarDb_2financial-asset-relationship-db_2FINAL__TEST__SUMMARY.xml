@@ -1,0 +1,249 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY</compoundname>
+    <title>Comprehensive Test Generation Summary</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3073"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3074">
+<title>Overview</title><para>This document summarizes the comprehensive unit tests generated for the files changed in the current branch compared to <computeroutput>main</computeroutput>.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3075">
+<title>Files Changed in Branch</title><para>Based on <computeroutput>git diff main..HEAD</computeroutput>:</para>
+<para><orderedlist>
+<listitem><para><bold>.elastic-copilot/memory/dependencyMatrix.md</bold> (30 lines changed)<itemizedlist>
+<listitem><para>Tracks project dependencies by file type</para>
+</listitem><listitem><para>Contains summary statistics and dependency listings</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>.elastic-copilot/memory/systemManifest.md</bold> (686 lines changed)<itemizedlist>
+<listitem><para>Comprehensive project structure documentation</para>
+</listitem><listitem><para>Contains detailed dependency mappings and directory structure</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3076">
+<title>Test Suite Created</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3077">
+<title>File: <computeroutput>tests/unit/test_documentation_validation.py</computeroutput></title><para><bold>Statistics:</bold></para>
+<para><itemizedlist>
+<listitem><para><bold>541 lines</bold> of test code</para>
+</listitem><listitem><para><bold>41 test functions</bold> across <bold>4 test classes</bold></para>
+</listitem><listitem><para><bold>100% passing</bold> (0.11s execution time)</para>
+</listitem><listitem><para><bold>Zero dependencies</bold> added (uses only Python standard library + pytest)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3078">
+<title>Test Classes</title><sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3079">
+<title>1. TestDependencyMatrix (14 tests)</title><para>Validates <computeroutput>dependencyMatrix.md</computeroutput> structure and content:</para>
+<para><table rows="15" cols="2"><row>
+<entry thead="yes"><para>Test   </para>
+</entry><entry thead="yes"><para>Purpose    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_exists</computeroutput>   </para>
+</entry><entry thead="no"><para>Verifies file exists    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_not_empty</computeroutput>   </para>
+</entry><entry thead="no"><para>Ensures content is present    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_has_title</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates markdown title    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_has_generated_timestamp</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks ISO 8601 timestamp format    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_has_summary_section</computeroutput>   </para>
+</entry><entry thead="no"><para>Verifies Summary section exists    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_has_file_count</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates file count is present and positive    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_has_file_types</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks file type listing    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_has_file_type_distribution</computeroutput>   </para>
+</entry><entry thead="no"><para>Verifies distribution section    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_file_counts_match</computeroutput>   </para>
+</entry><entry thead="no"><para>Ensures total = sum of types    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_has_key_dependencies_section</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates dependencies section    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_language_sections_exist</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks language-specific sections    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_dependency_format</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates bullet point formatting    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_no_empty_dependency_sections</computeroutput>   </para>
+</entry><entry thead="no"><para>Prevents malformed sections    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_dependency_matrix_markdown_formatting</computeroutput>   </para>
+</entry><entry thead="no"><para>Enforces markdown best practices   </para>
+</entry></row>
+</table>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3080">
+<title>2. TestSystemManifest (20 tests)</title><para>Validates <computeroutput>systemManifest.md</computeroutput> structure and metadata:</para>
+<para><table rows="21" cols="2"><row>
+<entry thead="yes"><para>Test   </para>
+</entry><entry thead="yes"><para>Purpose    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_exists</computeroutput>   </para>
+</entry><entry thead="no"><para>Verifies file exists    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_not_empty</computeroutput>   </para>
+</entry><entry thead="no"><para>Ensures content is present    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_title</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates markdown title    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_project_overview</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks Project Overview section    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_project_name</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates project name is present    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_project_description</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks description exists    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_created_timestamp</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates creation timestamp    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_current_status</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks status section    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_current_phase</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates phase information    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_last_updated</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks last updated timestamp    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_project_structure</computeroutput>   </para>
+</entry><entry thead="no"><para>Verifies structure section    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_file_counts</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates file type counts    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_dependencies_section</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks dependencies section    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_directory_structure</computeroutput>   </para>
+</entry><entry thead="no"><para>Verifies directory tree    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_directory_structure_format</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates emoji formatting (📂/📄)    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_has_language_dependency_sections</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks language sections    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_file_dependency_format</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates file path formatting    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_dependency_entries_have_content</computeroutput>   </para>
+</entry><entry thead="no"><para>Ensures entries have data    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_no_duplicate_sections</computeroutput>   </para>
+</entry><entry thead="no"><para>Prevents excessive duplication    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_system_manifest_markdown_formatting</computeroutput>   </para>
+</entry><entry thead="no"><para>Enforces markdown standards   </para>
+</entry></row>
+</table>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3081">
+<title>3. TestDocumentationConsistency (4 tests)</title><para>Cross-validates both documentation files:</para>
+<para><table rows="5" cols="2"><row>
+<entry thead="yes"><para>Test   </para>
+</entry><entry thead="yes"><para>Purpose    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_file_counts_match_between_documents</computeroutput>   </para>
+</entry><entry thead="no"><para>Ensures consistency across docs    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_file_types_match_between_documents</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates type consistency    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_timestamps_are_recent</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks timestamps within 1 year    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_common_dependencies_consistency</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates dependency consistency   </para>
+</entry></row>
+</table>
+</para>
+</sect3>
+<sect3 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3082">
+<title>4. TestDocumentationRealisticContent (3 tests)</title><para>Validates content against actual codebase:</para>
+<para><table rows="4" cols="2"><row>
+<entry thead="yes"><para>Test   </para>
+</entry><entry thead="yes"><para>Purpose    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_documented_files_exist</computeroutput>   </para>
+</entry><entry thead="no"><para>Verifies mentioned files exist    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_documented_file_counts_reasonable</computeroutput>   </para>
+</entry><entry thead="no"><para>Checks counts are realistic (10-10,000)    </para>
+</entry></row>
+<row>
+<entry thead="no"><para><computeroutput>test_documented_dependencies_are_real_packages</computeroutput>   </para>
+</entry><entry thead="no"><para>Validates package name formats   </para>
+</entry></row>
+</table>
+</para>
+</sect3>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2FINAL__TEST__SUMMARY_1autotoc_md3083">
+<title>Test Execution Results</title><para>All tests passed successfully. </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/FINAL_TEST_SUMMARY.md"/>
+  </compounddef>
+</doxygen>

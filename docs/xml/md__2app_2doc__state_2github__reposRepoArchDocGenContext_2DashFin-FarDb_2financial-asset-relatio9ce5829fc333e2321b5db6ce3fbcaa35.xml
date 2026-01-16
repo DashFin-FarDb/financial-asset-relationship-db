@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2MERGE__CONFLICT__ANALYSIS</compoundname>
+    <title>Merge Conflict Analysis for PR #6</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3172"/></para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3173">
+<title>Summary</title><para>PR #6 (<computeroutput>coderabbitai/utg/e47c649</computeroutput> → <computeroutput>main</computeroutput>) cannot be merged due to conflicts in 5 test-related files. These are &quot;add/add&quot; conflicts where both branches independently created the same files with different implementations.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3174">
+<title>Conflicted Files</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3175">
+<title>1. <computeroutput>tests/unit/test_api_main.py</computeroutput></title><para><itemizedlist>
+<listitem><para><bold>HEAD version (PR #6)</bold>: 693 lines - Well-organized test classes by endpoint type</para>
+</listitem><listitem><para><bold>main version</bold>: 608 lines - Organized by function and integration scenarios</para>
+</listitem><listitem><para><bold>Recommendation</bold>: Use <bold>main version</bold> - Already validated and integrated</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3176">
+<title>2. <computeroutput>frontend/app/lib/__tests__/api.test.ts</computeroutput></title><para><itemizedlist>
+<listitem><para><bold>HEAD version (PR #6)</bold>: 551 lines - Comprehensive with extensive edge cases</para>
+</listitem><listitem><para><bold>main version</bold>: 257 lines - Basic coverage of all endpoints</para>
+</listitem><listitem><para><bold>Recommendation</bold>: Use <bold>HEAD version</bold> - More thorough test coverage</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3177">
+<title>3. <computeroutput>frontend/jest.config.js</computeroutput></title><para><itemizedlist>
+<listitem><para><bold>Conflicts</bold>: Module name mapper patterns and coverage settings</para>
+</listitem><listitem><para><bold>Resolution</bold>: Merge both - Keep specific patterns from HEAD + generic pattern from main, merge exclusions, keep coverage thresholds from HEAD</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3178">
+<title>4. <computeroutput>frontend/jest.setup.js</computeroutput></title><para><itemizedlist>
+<listitem><para><bold>Conflicts</bold>: HEAD has more mocks (react-plotly.js, env vars, console suppression)</para>
+</listitem><listitem><para><bold>Resolution</bold>: Keep all from HEAD - More comprehensive test environment setup</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3179">
+<title>5. <computeroutput>frontend/package.json</computeroutput></title><para><itemizedlist>
+<listitem><para><bold>Conflicts</bold>: Minor version differences in testing libraries</para>
+</listitem><listitem><para><bold>Resolution</bold>: Use newer versions from main + keep @types/jest from HEAD</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3180">
+<title>Resolution Strategy</title><para>Since PR #35 is a sub-PR that depends on PR #6, the conflicts in PR #6 must be resolved first. Here&apos;s the recommended approach:</para>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3181">
+<title>Option 1: Merge main into PR #6&apos;s branch (Recommended)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>checkout<sp/>coderabbitai/utg/e47c649</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>merge<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Resolve<sp/>each<sp/>file<sp/>as<sp/>documented<sp/>above</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>add<sp/>&lt;resolved-files&gt;</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>commit<sp/>-m<sp/>&quot;Merge<sp/>main<sp/>and<sp/>resolve<sp/>test<sp/>file<sp/>conflicts&quot;</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>coderabbitai/utg/e47c649</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3182">
+<title>Option 2: Rebase PR #6 onto main</title><para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>checkout<sp/>coderabbitai/utg/e47c649</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>rebase<sp/>main</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Resolve<sp/>conflicts<sp/>during<sp/>rebase</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>push<sp/>--force-with-lease<sp/>origin<sp/>coderabbitai/utg/e47c649</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3183">
+<title>Detailed Conflict Resolutions</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3184">
+<title>jest.config.js</title><para><programlisting filename=".js"><codeline><highlight class="normal">moduleNameMapper:<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>//<sp/>Handle<sp/>module<sp/>aliases<sp/>-<sp/>specific<sp/>patterns<sp/>first<sp/>(from<sp/>HEAD)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/components/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/app/components/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/lib/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/app/lib/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/types/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/app/types/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/app/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/app/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>//<sp/>Generic<sp/>pattern<sp/>last<sp/>(from<sp/>main)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;^@/(.*)$&apos;:<sp/>&apos;&lt;rootDir&gt;/$1&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>collectCoverageFrom:<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;app/**/*.{js,jsx,ts,tsx}&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!app/**/*.d.ts&apos;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!app/**/*.stories.{js,jsx,ts,tsx}&apos;,<sp/><sp/>//<sp/>from<sp/>HEAD</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!app/**/index.{js,jsx,ts,tsx}&apos;,<sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>from<sp/>HEAD</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!app/**/_*.{js,jsx,ts,tsx}&apos;,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>from<sp/>main</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;!**/node_modules/**&apos;,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>from<sp/>main</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>coverageThreshold:<sp/>{<sp/><sp/>//<sp/>from<sp/>HEAD</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>global:<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>branches:<sp/>70,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>functions:<sp/>70,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>lines:<sp/>70,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>statements:<sp/>70,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>},</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3185">
+<title>jest.setup.js</title><para>Keep entire HEAD version including:</para>
+<para><itemizedlist>
+<listitem><para>React and plotly mocks</para>
+</listitem><listitem><para>Environment variable setup</para>
+</listitem><listitem><para>Console error suppression</para>
+</listitem><listitem><para>All window/IntersectionObserver mocks</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3186">
+<title>package.json</title><para><programlisting filename=".json"><codeline><highlight class="normal">&quot;devDependencies&quot;:<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;@testing-library/react&quot;:<sp/>&quot;^14.1.2&quot;,<sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>main<sp/>(newer)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;@testing-library/jest-dom&quot;:<sp/>&quot;^6.1.5&quot;,<sp/><sp/><sp/><sp/>//<sp/>main<sp/>(newer)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;@testing-library/user-event&quot;:<sp/>&quot;^14.5.1&quot;,<sp/>//<sp/>main<sp/>(newer)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;jest&quot;:<sp/>&quot;^29.7.0&quot;,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>both</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;jest-environment-jsdom&quot;:<sp/>&quot;^29.7.0&quot;,<sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>both</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;@types/jest&quot;:<sp/>&quot;^29.5.0&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>HEAD<sp/>(needed<sp/>for<sp/>TS)</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3187">
+<title>Additional Recommendations</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3188">
+<title>Coverage Files</title><para>The main branch includes coverage report files (<computeroutput>frontend/coverage/**</computeroutput>) which should not be committed. Add to <computeroutput>.gitignore</computeroutput>:</para>
+<para><programlisting filename=".gitignore"><codeline><highlight class="normal">#<sp/>Test<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">coverage/</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3189">
+<title>After Resolution</title><para><orderedlist>
+<listitem><para>Run tests to ensure both test suites work: <computeroutput>npm test</computeroutput> (frontend) and <computeroutput>pytest</computeroutput> (backend)</para>
+</listitem><listitem><para>Verify no regressions were introduced</para>
+</listitem><listitem><para>Update PR #35 if needed once PR #6 is mergeable</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatio9ce5829fc333e2321b5db6ce3fbcaa35_1autotoc_md3190">
+<title>Impact on PR #35</title><para>PR #35 will automatically become mergeable once PR #6&apos;s conflicts with main are resolved, as it only adds one commit on top of PR #6. </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/MERGE_CONFLICT_ANALYSIS.md"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_requirements_dev::TestEdgeCasesAndErrorHandling</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a95e2a52ce9b5e0126aa730ad841a28d5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_parse_packages_with_extras</definition>
+        <argsstring>()</argsstring>
+        <name>test_parse_packages_with_extras</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_parse_packages_with_extras</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that packages with extras are parsed correctly.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="427" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="427" bodyend="434"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" compoundref="test__requirements__dev_8py" startline="100" endline="164">tests.integration.test_requirements_dev.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a62b385c8293edfdaa30eec96447df73d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_parse_packages_with_environment_markers</definition>
+        <argsstring>()</argsstring>
+        <name>test_parse_packages_with_environment_markers</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_parse_packages_with_environment_markers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that environment markers are handled correctly.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="436" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="436" bodyend="443"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" compoundref="test__requirements__dev_8py" startline="100" endline="164">tests.integration.test_requirements_dev.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a81a4d2a964f7f13e8d3afc97a6da1199" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_parse_inline_comments</definition>
+        <argsstring>()</argsstring>
+        <name>test_parse_inline_comments</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_parse_inline_comments</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that inline comments don&apos;t leak into parsed data.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="445" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="445" bodyend="451"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" compoundref="test__requirements__dev_8py" startline="100" endline="164">tests.integration.test_requirements_dev.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1aa7656b4e42a96c6607ff33a0dd11b136" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_whitespace_handling</definition>
+        <argsstring>()</argsstring>
+        <name>test_whitespace_handling</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_whitespace_handling</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that whitespace is properly handled in parsing.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="453" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="453" bodyend="460"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" compoundref="test__requirements__dev_8py" startline="100" endline="164">tests.integration.test_requirements_dev.parse_requirements</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a0cab9e45e199b6c4c14a769dbd6ad548" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_empty_lines_and_comments_ignored</definition>
+        <argsstring>()</argsstring>
+        <name>test_empty_lines_and_comments_ignored</name>
+        <qualifiedname>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling.test_empty_lines_and_comments_ignored</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that empty lines and comment-only lines are properly ignored.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="462" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="462" bodyend="479"/>
+        <references refid="namespacetests_1_1integration_1_1test__requirements__dev_1a28656bbba69e63a658555ed6989a9a1b" compoundref="test__requirements__dev_8py" startline="100" endline="164">tests.integration.test_requirements_dev.parse_requirements</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test edge cases and error handling in requirements parsing and validation.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_requirements_dev.TestEdgeCasesAndErrorHandling</label>
+        <link refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" line="422" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_requirements_dev.py" bodystart="422" bodyend="479"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a0cab9e45e199b6c4c14a769dbd6ad548" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestEdgeCasesAndErrorHandling</scope><name>test_empty_lines_and_comments_ignored</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a81a4d2a964f7f13e8d3afc97a6da1199" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestEdgeCasesAndErrorHandling</scope><name>test_parse_inline_comments</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a62b385c8293edfdaa30eec96447df73d" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestEdgeCasesAndErrorHandling</scope><name>test_parse_packages_with_environment_markers</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1a95e2a52ce9b5e0126aa730ad841a28d5" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestEdgeCasesAndErrorHandling</scope><name>test_parse_packages_with_extras</name></member>
+      <member refid="classtests_1_1integration_1_1test__requirements__dev_1_1TestEdgeCasesAndErrorHandling_1aa7656b4e42a96c6607ff33a0dd11b136" prot="public" virt="non-virtual"><scope>tests::integration::test_requirements_dev::TestEdgeCasesAndErrorHandling</scope><name>test_whitespace_handling</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

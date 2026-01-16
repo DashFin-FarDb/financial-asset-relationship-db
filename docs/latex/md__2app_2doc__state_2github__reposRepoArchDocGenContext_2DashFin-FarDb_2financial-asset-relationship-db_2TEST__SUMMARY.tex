@@ -1,0 +1,157 @@
+\chapter{Unit Test Generation Summary}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY}\index{Unit Test Generation Summary@{Unit Test Generation Summary}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5448}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5448}%
+
+
+This document summarizes the comprehensive unit tests generated for the Financial Asset Relationship Database Next.\+js integration.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5449}{}\doxysection{\texorpdfstring{Overview}{Overview}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5449}
+Generated comprehensive test coverage for the new Fast\+API backend ({\ttfamily \doxylink{api_2main_8py}{api/main.\+py}}) and frontend Type\+Script code added in this branch.\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5450}{}\doxysection{\texorpdfstring{Files Generated}{Files Generated}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5450}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5451}{}\doxysubsection{\texorpdfstring{Python Backend Tests}{Python Backend Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5451}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5452}{}\doxysubsubsection{\texorpdfstring{{\ttfamily tests/unit/test\+\_\+api\+\_\+main.\+py} (609 lines, 22KB)}{{\ttfamily tests/unit/test\+\_\+api\+\_\+main.\+py} (609 lines, 22KB)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5452}
+
+\begin{DoxyItemize}
+\item {\bfseries{9 Test Classes}}
+\item {\bfseries{43 Test Methods}}
+\item {\bfseries{Coverage Areas\+:}}
+\end{DoxyItemize}
+\begin{DoxyEnumerate}
+\item {\bfseries{Test\+Validate\+Origin}} (8 tests)
+\begin{DoxyItemize}
+\item HTTP localhost validation in development/production
+\item HTTPS localhost validation
+\item Vercel deployment URL validation
+\item Valid/invalid HTTPS domain patterns
+\item Invalid URL schemes
+\item Malformed URLs
+\end{DoxyItemize}
+\item {\bfseries{Test\+Get\+Graph}} (3 tests)
+\begin{DoxyItemize}
+\item Graph initialization on first call
+\item Singleton pattern verification
+\item Thread-\/safe double-\/check locking
+\end{DoxyItemize}
+\item {\bfseries{Test\+Pydantic\+Models}} (5 tests)
+\begin{DoxyItemize}
+\item Asset\+Response model validation
+\item Optional fields handling
+\item Relationship\+Response model
+\item Metrics\+Response model
+\item Visualization\+Data\+Response model
+\end{DoxyItemize}
+\item {\bfseries{Test\+APIEndpoints}} (15 tests)
+\begin{DoxyItemize}
+\item Root endpoint
+\item Health check endpoint
+\item Get all assets (with/without filters)
+\item Filter by asset class
+\item Filter by sector
+\item Combined filters
+\item Asset detail retrieval
+\item Asset relationships
+\item All relationships
+\item Network metrics
+\item 3D visualization data
+\item Asset classes metadata
+\item Sectors metadata
+\end{DoxyItemize}
+\item {\bfseries{Test\+Error\+Handling}} (5 tests)
+\begin{DoxyItemize}
+\item Server error handling
+\item Metrics calculation errors
+\item Invalid HTTP methods (405)
+\item 404 responses
+\end{DoxyItemize}
+\item {\bfseries{Test\+CORSConfiguration}} (2 tests)
+\begin{DoxyItemize}
+\item CORS headers present
+\item Development origins allowed
+\end{DoxyItemize}
+\item {\bfseries{Test\+Additional\+Fields}} (2 tests)
+\begin{DoxyItemize}
+\item Equity-\/specific fields
+\item Bond-\/specific fields
+\end{DoxyItemize}
+\item {\bfseries{Test\+Visualization\+Data\+Processing}} (3 tests)
+\begin{DoxyItemize}
+\item Coordinate type validation
+\item Node default values
+\item Edge default values
+\end{DoxyItemize}
+\item {\bfseries{Test\+Integration\+Scenarios}} (3 tests)
+\begin{DoxyItemize}
+\item Full asset exploration workflow
+\item Visualization and metrics workflow
+\item Progressive filter refinement
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5453}{}\doxysubsection{\texorpdfstring{Frontend Type\+Script Tests}{Frontend Type\+Script Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5453}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5454}{}\doxysubsubsection{\texorpdfstring{{\ttfamily frontend/app/lib/\+\_\+\+\_\+tests\+\_\+\+\_\+/api.\+test.\+ts} (8KB)}{{\ttfamily frontend/app/lib/\+\_\+\+\_\+tests\+\_\+\+\_\+/api.\+test.\+ts} (8KB)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5454}
+
+\begin{DoxyItemize}
+\item {\bfseries{12 Test Suites}}
+\item {\bfseries{18 Test Cases}}
+\item {\bfseries{Coverage Areas\+:}}
+\end{DoxyItemize}
+\begin{DoxyEnumerate}
+\item {\bfseries{API Configuration}}
+\begin{DoxyItemize}
+\item Axios instance creation
+\item \doxylink{classBase}{Base} URL configuration
+\item Environment variable usage
+\end{DoxyItemize}
+\item {\bfseries{Health Check}}
+\begin{DoxyItemize}
+\item Successful health check
+\item Error handling
+\end{DoxyItemize}
+\item {\bfseries{Asset Retrieval}}
+\begin{DoxyItemize}
+\item Fetch all assets
+\item Filter by asset class
+\item Filter by sector
+\item Multiple filters
+\item Asset detail by ID
+\item 404 handling
+\end{DoxyItemize}
+\item {\bfseries{Relationships}}
+\begin{DoxyItemize}
+\item Asset relationships
+\item All relationships
+\end{DoxyItemize}
+\item {\bfseries{Metrics \& Visualization}}
+\begin{DoxyItemize}
+\item Network metrics
+\item Visualization data
+\end{DoxyItemize}
+\item {\bfseries{Metadata}}
+\begin{DoxyItemize}
+\item Asset classes
+\item Sectors
+\end{DoxyItemize}
+\item {\bfseries{Error Handling}}
+\begin{DoxyItemize}
+\item Network errors
+\item HTTP errors
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5455}{}\doxysubsection{\texorpdfstring{Test Infrastructure}{Test Infrastructure}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5455}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5456}{}\doxysubsubsection{\texorpdfstring{{\ttfamily frontend/jest.\+config.\+js} (826 bytes)}{{\ttfamily frontend/jest.\+config.\+js} (826 bytes)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5456}
+
+\begin{DoxyItemize}
+\item Next.\+js-\/aware Jest configuration
+\item jsdom test environment
+\item Module name mapping
+\item Coverage collection settings
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5457}{}\doxysubsubsection{\texorpdfstring{{\ttfamily frontend/jest.\+setup.\+js} (657 bytes)}{{\ttfamily frontend/jest.\+setup.\+js} (657 bytes)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5457}
+
+\begin{DoxyItemize}
+\item Testing Library jest-\/dom setup
+\item window.\+match\+Media mock
+\item Intersection\+Observer mock
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5458}{}\doxysubsubsection{\texorpdfstring{{\ttfamily TESTING.\+md} (1.\+3\+KB)}{{\ttfamily TESTING.\+md} (1.\+3\+KB)}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5458}
+
+\begin{DoxyItemize}
+\item Quick start guide
+\item Test execution commands
+\item Coverage areas summary
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5459}{}\doxysection{\texorpdfstring{Updated Configuration}{Updated Configuration}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5459}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5460}{}\doxysubsection{\texorpdfstring{{\ttfamily requirements.\+txt}}{{\ttfamily requirements.\+txt}}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2TEST__SUMMARY_autotoc_md5460}
+Added testing dependencies\+: 

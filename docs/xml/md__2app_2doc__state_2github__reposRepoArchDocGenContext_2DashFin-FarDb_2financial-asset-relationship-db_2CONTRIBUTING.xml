@@ -1,0 +1,418 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING</compoundname>
+    <title>Contributing to Financial Asset Relationship Database</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md652"/></para>
+<para>Thank you for your interest in contributing! This document provides guidelines and instructions for contributing to this project.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md653">
+<title>📋 Table of Contents</title><para><itemizedlist>
+<listitem><para>Code of Conduct</para>
+</listitem><listitem><para>Getting Started</para>
+</listitem><listitem><para>Development Setup</para>
+</listitem><listitem><para>Development Workflow</para>
+</listitem><listitem><para>Coding Standards</para>
+</listitem><listitem><para>Testing Guidelines</para>
+</listitem><listitem><para>Submitting Changes</para>
+</listitem><listitem><para>Project Structure</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md654">
+<title>Code of Conduct</title><para>This project adheres to a code of conduct that fosters an open and welcoming environment. Please be respectful and professional in all interactions.</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md655">
+<title>Getting Started</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md656">
+<title>Prerequisites</title><para><itemizedlist>
+<listitem><para>Python 3.8 or higher</para>
+</listitem><listitem><para>Git</para>
+</listitem><listitem><para>Virtual environment tool (venv, virtualenv, or conda)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md657">
+<title>Installation</title><para><orderedlist>
+<listitem><para>Fork the repository on GitHub</para>
+</listitem><listitem><para>Clone your fork locally:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>clone<sp/>https://github.com/YOUR_USERNAME/financial-asset-relationship-db.git</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>financial-asset-relationship-db</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para>Add the upstream repository: <programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>remote<sp/>add<sp/>upstream<sp/>https://github.com/mohavro/financial-asset-relationship-db.git</highlight></codeline>
+</programlisting></para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md658">
+<title>Development Setup</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md659">
+<title>1. Create a Virtual Environment</title><para><programlisting filename=".bash"><codeline><highlight class="normal">python<sp/>-m<sp/>venv<sp/>.venv</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md660">
+<title>2. Activate the Virtual Environment</title><para><bold>Windows (PowerShell):</bold></para>
+<para><programlisting filename=".powershell"><codeline><highlight class="normal">.\.venv\Scripts\Activate.ps1</highlight></codeline>
+</programlisting></para>
+<para><bold>Windows (Command Prompt):</bold></para>
+<para><programlisting filename=".cmd"><codeline><highlight class="normal">.venv\Scripts\activate.bat</highlight></codeline>
+</programlisting></para>
+<para><bold>macOS/Linux:</bold></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">source<sp/>.venv/bin/activate</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md661">
+<title>3. Install Dependencies</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Install<sp/>production<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Install<sp/>development<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">pip<sp/>install<sp/>-r<sp/>requirements-dev.txt</highlight></codeline>
+</programlisting></para>
+<para>Or use the Makefile:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">make<sp/>install-dev</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md662">
+<title>4. Install Pre-commit Hooks</title><para><programlisting filename=".bash"><codeline><highlight class="normal">pre-commit<sp/>install</highlight></codeline>
+</programlisting></para>
+<para>Or use the Makefile:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">make<sp/>pre-commit</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md663">
+<title>Development Workflow</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md664">
+<title>1. Create a Branch</title><para>Always create a new branch for your work:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>checkout<sp/>-b<sp/>feature/your-feature-name</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>or</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>checkout<sp/>-b<sp/>bugfix/issue-number</highlight></codeline>
+</programlisting></para>
+<para>Branch naming conventions:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>feature/description</computeroutput> - New features</para>
+</listitem><listitem><para><computeroutput>bugfix/description</computeroutput> - Bug fixes</para>
+</listitem><listitem><para><computeroutput>docs/description</computeroutput> - Documentation updates</para>
+</listitem><listitem><para><computeroutput>refactor/description</computeroutput> - Code refactoring</para>
+</listitem><listitem><para><computeroutput>test/description</computeroutput> - Test additions/improvements</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md665">
+<title>2. Make Your Changes</title><para><itemizedlist>
+<listitem><para>Follow the coding standards (see below)</para>
+</listitem><listitem><para>Write or update tests for your changes</para>
+</listitem><listitem><para>Update documentation as needed</para>
+</listitem><listitem><para>Keep commits small and focused</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md666">
+<title>3. Run Checks Locally</title><para>Before committing, run all checks:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Format<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>format</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>linters</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>lint</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>type<sp/>checker</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>type-check</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Or<sp/>run<sp/>all<sp/>checks<sp/>at<sp/>once</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>check</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md667">
+<title>4. Commit Your Changes</title><para>Write clear, descriptive commit messages:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>add<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>commit<sp/>-m<sp/>&quot;Add<sp/>feature:<sp/>brief<sp/>description</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">More<sp/>detailed<sp/>explanation<sp/>of<sp/>what<sp/>changed<sp/>and<sp/>why.</highlight></codeline>
+<codeline><highlight class="normal">Reference<sp/>any<sp/>related<sp/>issues:<sp/>#123&quot;</highlight></codeline>
+</programlisting></para>
+<para>Commit message guidelines:</para>
+<para><itemizedlist>
+<listitem><para>Use present tense (&quot;Add feature&quot; not &quot;Added feature&quot;)</para>
+</listitem><listitem><para>First line should be concise (50 chars or less)</para>
+</listitem><listitem><para>Separate subject from body with blank line</para>
+</listitem><listitem><para>Body should explain what and why, not how</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md668">
+<title>5. Push and Create Pull Request</title><para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>push<sp/>origin<sp/>your-branch-name</highlight></codeline>
+</programlisting></para>
+<para>Then create a pull request on GitHub with:</para>
+<para><itemizedlist>
+<listitem><para>Clear description of changes</para>
+</listitem><listitem><para>Reference to related issues</para>
+</listitem><listitem><para>Screenshots (if UI changes)</para>
+</listitem><listitem><para>Test results</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md669">
+<title>Coding Standards</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md670">
+<title>Python Style</title><para>We follow PEP 8 with some modifications:</para>
+<para><itemizedlist>
+<listitem><para><bold>Line length:</bold> 120 characters (not 79)</para>
+</listitem><listitem><para><bold>Formatting:</bold> Use Black for automatic formatting</para>
+</listitem><listitem><para><bold>Import sorting:</bold> Use isort</para>
+</listitem><listitem><para><bold>Type hints:</bold> Add type hints to all functions</para>
+</listitem><listitem><para><bold>Docstrings:</bold> Use Google or NumPy style</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md671">
+<title>Code Organization</title><para><programlisting filename=".py"><codeline><highlight class="comment">#<sp/>Standard<sp/>library<sp/>imports</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>os</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>typing<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Dict,<sp/>List</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Third-party<sp/>imports</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>numpy<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>np</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>plotly.graph_objects<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>go</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="comment">#<sp/>Local<sp/>imports</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>src.models.financial_models<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Asset</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>src.logic.asset_graph<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>AssetRelationshipGraph</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md672">
+<title>Naming Conventions</title><para><itemizedlist>
+<listitem><para><bold>Variables/Functions:</bold> <computeroutput>snake_case</computeroutput></para>
+</listitem><listitem><para><bold>Classes:</bold> <computeroutput>PascalCase</computeroutput></para>
+</listitem><listitem><para><bold>Constants:</bold> <computeroutput>UPPER_CASE</computeroutput></para>
+</listitem><listitem><para><bold>Private methods:</bold> <computeroutput>_leading_underscore</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md673">
+<title>Documentation</title><para>Every public class and function should have a docstring:</para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">def<sp/></highlight><highlight class="normal">calculate_metrics(self)<sp/>-&gt;<sp/>Dict[str,<sp/>Any]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Calculate<sp/>relationship<sp/>strength<sp/>metrics.</highlight></codeline>
+<codeline><highlight class="stringliteral"></highlight></codeline>
+<codeline><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns:</highlight></codeline>
+<codeline><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Dict<sp/>containing<sp/>metrics<sp/>including<sp/>total_assets,<sp/>total_relationships,</highlight></codeline>
+<codeline><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>average_relationship_strength,<sp/>and<sp/>more.</highlight></codeline>
+<codeline><highlight class="stringliteral"></highlight></codeline>
+<codeline><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Raises:</highlight></codeline>
+<codeline><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ValueError:<sp/>If<sp/>graph<sp/>is<sp/>empty<sp/>or<sp/>invalid.</highlight></codeline>
+<codeline><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md674">
+<title>Testing Guidelines</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md675">
+<title>Test Structure</title><para><programlisting><codeline><highlight class="normal">tests/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>conftest.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Shared<sp/>fixtures</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>unit/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Unit<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>test_models.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>test_graph.py</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>integration/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>└──<sp/>test_workflows.py</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md676">
+<title>Writing Tests</title><para><orderedlist>
+<listitem><para><bold>Use descriptive test names:</bold></para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_asset_creation_with_valid_data():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;Test<sp/>that<sp/>a<sp/>valid<sp/>asset<sp/>can<sp/>be<sp/>created.&quot;&quot;&quot;</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Use fixtures from conftest.py:</bold></para>
+<para><programlisting filename=".py"><codeline><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_add_asset(empty_graph,<sp/>sample_equity):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>empty_graph.add_asset(sample_equity)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>len(empty_graph.assets)<sp/>==<sp/>1</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para><bold>Test edge cases:</bold><itemizedlist>
+<listitem><para>Empty inputs</para>
+</listitem><listitem><para>Null/None values</para>
+</listitem><listitem><para>Boundary conditions</para>
+</listitem><listitem><para>Invalid data</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Use pytest markers:</bold></para>
+<para><programlisting filename=".py"><codeline><highlight class="preprocessor">@pytest.mark.unit</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_something():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">@pytest.mark.slow</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal">test_something_slow():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">pass</highlight></codeline>
+</programlisting></para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md677">
+<title>Running Tests</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>all<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>specific<sp/>test<sp/>file</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>tests/unit/test_models.py</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>--cov=src</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>only<sp/>unit<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-m<sp/>unit</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">pytest<sp/>-v</highlight></codeline>
+</programlisting></para>
+<para>Or use the Makefile:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">make<sp/>test<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>With<sp/>coverage</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>test-fast<sp/><sp/><sp/>#<sp/>Without<sp/>coverage</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md678">
+<title>Test Coverage Goals</title><para><itemizedlist>
+<listitem><para><bold>Target:</bold> 80% or higher</para>
+</listitem><listitem><para><bold>New features:</bold> Must have tests</para>
+</listitem><listitem><para><bold>Bug fixes:</bold> Add test that would have caught the bug</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md679">
+<title>Submitting Changes</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md680">
+<title>Pull Request Process</title><para><orderedlist>
+<listitem><para><bold>Update documentation:</bold><itemizedlist>
+<listitem><para>Update README.md if needed</para>
+</listitem><listitem><para>Update docstrings</para>
+</listitem><listitem><para>Add comments for complex logic</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Ensure all checks pass:</bold><itemizedlist>
+<listitem><para>All tests pass</para>
+</listitem><listitem><para>Linters show no errors</para>
+</listitem><listitem><para>Type checking passes</para>
+</listitem><listitem><para>Code is formatted</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Update <ref refid="CHANGELOG_8md" kindref="compound">CHANGELOG.md</ref></bold> (if exists) with:<itemizedlist>
+<listitem><para>Type of change (Added, Changed, Fixed, etc.)</para>
+</listitem><listitem><para>Brief description</para>
+</listitem><listitem><para>Issue reference if applicable</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Create Pull Request:</bold><itemizedlist>
+<listitem><para>Use descriptive title</para>
+</listitem><listitem><para>Fill out PR template</para>
+</listitem><listitem><para>Request review from maintainers</para>
+</listitem><listitem><para>Link related issues</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md681">
+<title>PR Review Process</title><para><itemizedlist>
+<listitem><para>Maintainers will review your PR</para>
+</listitem><listitem><para>Address any feedback or requested changes</para>
+</listitem><listitem><para>Keep discussion focused and professional</para>
+</listitem><listitem><para>Be patient - reviews take time</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md682">
+<title>After PR is Merged</title><para><itemizedlist>
+<listitem><para>Delete your feature branch (both locally and on GitHub)</para>
+</listitem><listitem><para>Pull the latest changes from upstream: <programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>checkout<sp/>main</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>pull<sp/>upstream<sp/>main</highlight></codeline>
+</programlisting></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md683">
+<title>Branch Cleanup Best Practices</title><para>To keep the repository clean and organized:</para>
+<para><orderedlist>
+<listitem><para><bold>Delete merged branches:</bold><itemizedlist>
+<listitem><para>GitHub can automatically delete branches after PR merge</para>
+</listitem><listitem><para>Manually delete local branches: <computeroutput>git branch -d branch-name</computeroutput></para>
+</listitem><listitem><para>Delete remote branches: <computeroutput>git push origin --delete branch-name</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Avoid long-lived feature branches:</bold><itemizedlist>
+<listitem><para>Keep branches short-lived (ideally &lt; 2 weeks)</para>
+</listitem><listitem><para>Break large features into smaller PRs</para>
+</listitem><listitem><para>Regularly sync with main to avoid conflicts</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Stale branch policy:</bold><itemizedlist>
+<listitem><para>Branches inactive for 90+ days may be automatically deleted</para>
+</listitem><listitem><para>You&apos;ll receive a warning before deletion</para>
+</listitem><listitem><para>Important branches should be documented in issues</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Branch naming:</bold><itemizedlist>
+<listitem><para>Use descriptive names that indicate purpose</para>
+</listitem><listitem><para>Follow the naming conventions listed above</para>
+</listitem><listitem><para>Avoid generic names like &quot;test&quot; or &quot;temp&quot;</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+<para>See <ref refid="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiodf9438523683b8142877224e02abcb63" kindref="compound">BRANCH_CLEANUP_ANALYSIS.md</ref> for detailed branch management guidelines.</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md684">
+<title>Project Structure</title><para><programlisting><codeline><highlight class="normal">financial-asset-relationship-db/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>.github/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>workflows/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>CI/CD<sp/>workflows</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>copilot-instructions.md</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>src/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>analysis/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Analysis<sp/>algorithms</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>data/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Data<sp/>management</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>logic/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Core<sp/>business<sp/>logic</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>models/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Data<sp/>models</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>reports/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Report<sp/>generation</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>visualizations/<sp/><sp/><sp/><sp/><sp/>#<sp/>Visualization<sp/>code</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tests/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>unit/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Unit<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>integration/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Integration<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>app.py<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Main<sp/>application</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements.txt<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Production<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>requirements-dev.txt<sp/><sp/><sp/><sp/>#<sp/>Development<sp/>dependencies</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>pyproject.toml<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Project<sp/>configuration</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>Makefile<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Development<sp/>commands</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>README.md<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Project<sp/>documentation</highlight></codeline>
+</programlisting></para>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md685">
+<title>Key Files</title><para><itemizedlist>
+<listitem><para><bold><ref refid="app_8py" kindref="compound">app.py</ref>:</bold> Main Gradio application entry point</para>
+</listitem><listitem><para><bold><ref refid="asset__graph_8py" kindref="compound">src/logic/asset_graph.py</ref>:</bold> Core graph algorithms</para>
+</listitem><listitem><para><bold><ref refid="financial__models_8py" kindref="compound">src/models/financial_models.py</ref>:</bold> Domain models</para>
+</listitem><listitem><para><bold><ref refid="sample__data_8py" kindref="compound">src/data/sample_data.py</ref>:</bold> Sample data generation</para>
+</listitem><listitem><para><bold>pyproject.toml:</bold> Tool configurations</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md686">
+<title>Need Help?</title><para><itemizedlist>
+<listitem><para>Check existing issues and pull requests</para>
+</listitem><listitem><para>Read the documentation in README.md</para>
+</listitem><listitem><para>Review <ref refid="AI__RULES_8md" kindref="compound">AI_RULES.md</ref> for tech stack guidelines</para>
+</listitem><listitem><para>Ask questions in issue comments</para>
+</listitem><listitem><para>Contact maintainers</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2CONTRIBUTING_1autotoc_md687">
+<title>Recognition</title><para>Contributors will be recognized in:</para>
+<para><itemizedlist>
+<listitem><para>GitHub contributors list</para>
+</listitem><listitem><para>Release notes</para>
+</listitem><listitem><para>Project documentation (if significant contribution)</para>
+</listitem></itemizedlist>
+</para>
+<para>Thank you for contributing! 🎉 </para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/CONTRIBUTING.md"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_workflow_yaml_validation::TestWorkflowYAMLValidation</compoundname>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1ac83d0ebfeef1f5c4832f20e07c258f0e" prot="public" static="yes" mutable="no">
+        <type>str</type>
+        <definition>str tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation::WORKFLOW_DIR</definition>
+        <argsstring></argsstring>
+        <name>WORKFLOW_DIR</name>
+        <qualifiedname>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.WORKFLOW_DIR</qualifiedname>
+        <initializer>=  Path(__file__).parent.parent.parent / &quot;.github&quot; / &quot;workflows&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" line="15" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" bodystart="15" bodyend="-1"/>
+        <referencedby refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a78432a738bf16e8824cff20bcfd4e6b0" compoundref="test__workflow__yaml__validation_8py" startline="70" endline="95">tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.test_pr_agent_workflow_simplified_correctly</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a08ab64031d8554893639fc8b11b80a22" compoundref="test__workflow__yaml__validation_8py" startline="27" endline="44">tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.test_workflows_are_valid_yaml</referencedby>
+        <referencedby refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a546a5f001b84b763b39c29b6aa0f0160" compoundref="test__workflow__yaml__validation_8py" startline="45" endline="69">tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.test_workflows_have_required_top_level_keys</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a5b33a2071216f2af3bad79afe1d1c4e0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.modified_workflows</definition>
+        <argsstring>(self)</argsstring>
+        <name>modified_workflows</name>
+        <qualifiedname>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.modified_workflows</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Names of workflow files that were modified in this branch.
+
+Returns:
+    workflows (list[str]): Filenames of the modified GitHub Actions workflow YAML files.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" bodystart="18" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a08ab64031d8554893639fc8b11b80a22" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.test_workflows_are_valid_yaml</definition>
+        <argsstring>(self, modified_workflows)</argsstring>
+        <name>test_workflows_are_valid_yaml</name>
+        <qualifiedname>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.test_workflows_are_valid_yaml</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a5b33a2071216f2af3bad79afe1d1c4e0" kindref="member">modified_workflows</ref></type>
+          <defname>modified_workflows</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate that each filename in `modified_workflows` exists under `WORKFLOW_DIR` and contains non-empty, valid YAML.
+
+Parameters:
+    modified_workflows (Iterable[str]): Filenames of workflow files to validate.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" line="27" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" bodystart="27" bodyend="44"/>
+        <references refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1ac83d0ebfeef1f5c4832f20e07c258f0e" compoundref="test__workflow__yaml__validation_8py" startline="15">tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.WORKFLOW_DIR</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a546a5f001b84b763b39c29b6aa0f0160" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.test_workflows_have_required_top_level_keys</definition>
+        <argsstring>(self, modified_workflows)</argsstring>
+        <name>test_workflows_have_required_top_level_keys</name>
+        <qualifiedname>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.test_workflows_have_required_top_level_keys</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a5b33a2071216f2af3bad79afe1d1c4e0" kindref="member">modified_workflows</ref></type>
+          <defname>modified_workflows</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate that each modified GitHub Actions workflow contains the top-level keys `name`, `on`, and `jobs`.
+
+For each filename in `modified_workflows` this test loads the workflow YAML and fails with a clear message when a required top-level key is missing, when the YAML is invalid, or when the file is not found.
+
+Parameters:
+    modified_workflows (list[str]): Filenames of workflow files that were modified in the branch.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" line="45" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" bodystart="45" bodyend="69"/>
+        <references refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1ac83d0ebfeef1f5c4832f20e07c258f0e" compoundref="test__workflow__yaml__validation_8py" startline="15">tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.WORKFLOW_DIR</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a78432a738bf16e8824cff20bcfd4e6b0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.test_pr_agent_workflow_simplified_correctly</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_pr_agent_workflow_simplified_correctly</name>
+        <qualifiedname>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.test_pr_agent_workflow_simplified_correctly</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Ensure the pr-agent GitHub Actions workflow no longer references chunking and still contains parsing and Python setup.
+
+Checks:
+- No case-insensitive references to &quot;context_chunker&quot; or &quot;chunking&quot;.
+- Contains &quot;parse-comments&quot; (case-insensitive) or &quot;parse&quot;.
+- Contains &quot;python&quot; (case-insensitive) indicating Python setup.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" line="70" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" bodystart="70" bodyend="95"/>
+        <references refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1ac83d0ebfeef1f5c4832f20e07c258f0e" compoundref="test__workflow__yaml__validation_8py" startline="15">tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation.WORKFLOW_DIR</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Validate YAML structure of modified workflow files.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>str</label>
+      </node>
+      <node id="1">
+        <label>tests.integration.test_workflow_yaml_validation.TestWorkflowYAMLValidation</label>
+        <link refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>+WORKFLOW_DIR</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" line="12" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_workflow_yaml_validation.py" bodystart="12" bodyend="95"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a5b33a2071216f2af3bad79afe1d1c4e0" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_yaml_validation::TestWorkflowYAMLValidation</scope><name>modified_workflows</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a78432a738bf16e8824cff20bcfd4e6b0" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_yaml_validation::TestWorkflowYAMLValidation</scope><name>test_pr_agent_workflow_simplified_correctly</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a08ab64031d8554893639fc8b11b80a22" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_yaml_validation::TestWorkflowYAMLValidation</scope><name>test_workflows_are_valid_yaml</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1a546a5f001b84b763b39c29b6aa0f0160" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_yaml_validation::TestWorkflowYAMLValidation</scope><name>test_workflows_have_required_top_level_keys</name></member>
+      <member refid="classtests_1_1integration_1_1test__workflow__yaml__validation_1_1TestWorkflowYAMLValidation_1ac83d0ebfeef1f5c4832f20e07c258f0e" prot="public" virt="non-virtual"><scope>tests::integration::test_workflow_yaml_validation::TestWorkflowYAMLValidation</scope><name>WORKFLOW_DIR</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

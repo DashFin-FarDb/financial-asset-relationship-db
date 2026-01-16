@@ -1,0 +1,170 @@
+\chapter{Axios 1.13.2 Tests -\/ Quick Reference}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3}{}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3}\index{Axios 1.13.2 Tests -\/ Quick Reference@{Axios 1.13.2 Tests -\/ Quick Reference}}
+\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md185}%
+\Hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md185}%
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md186}{}\doxysection{\texorpdfstring{🚀 Quick Start}{🚀 Quick Start}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md186}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend}
+\DoxyCodeLine{npm\ test\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Run\ all\ tests}
+\DoxyCodeLine{npm\ test\ -\/-\/\ api-\/axios\ \ \ \ \ \ \#\ Run\ new\ compatibility\ tests}
+\DoxyCodeLine{npm\ test\ -\/-\/\ api-\/upgrade\ \ \ \ \#\ Run\ new\ integration\ tests}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md187}{}\doxysection{\texorpdfstring{📁 New Test Files}{📁 New Test Files}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md187}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{{\ttfamily frontend/\+\_\+\+\_\+tests\+\_\+\+\_\+/lib/api-\/axios-\/compatibility.\+test.\+ts}}} (697 lines)
+\begin{DoxyItemize}
+\item Axios 1.\+13.\+2 specific features
+\item Type\+Script compatibility
+\item Error handling improvements
+\item 60+ behavioral tests
+\end{DoxyItemize}
+\item {\bfseries{{\ttfamily frontend/\+\_\+\+\_\+tests\+\_\+\+\_\+/lib/api-\/upgrade-\/integration.\+test.\+ts}}} (397 lines)
+\begin{DoxyItemize}
+\item Real-\/world usage patterns
+\item Production scenarios
+\item Security validations
+\item 40+ integration tests
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md188}{}\doxysection{\texorpdfstring{✅ What\textquotesingle{}s Tested}{✅ What\textquotesingle{}s Tested}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md188}
+
+\begin{DoxyItemize}
+\item ✓ Axios 1.\+13.\+2 configuration
+\item ✓ Request/response handling
+\item ✓ Error handling (new error codes)
+\item ✓ Type\+Script type safety
+\item ✓ Backward compatibility
+\item ✓ Security improvements
+\item ✓ Performance benchmarks
+\item ✓ Production scenarios
+\item ✓ Edge cases
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md189}{}\doxysection{\texorpdfstring{🎯 Key Test Suites}{🎯 Key Test Suites}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md189}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md190}{}\doxysubsection{\texorpdfstring{Compatibility Tests}{Compatibility Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md190}
+
+\begin{DoxyItemize}
+\item Instance creation \& configuration
+\item Request handling \& URL encoding
+\item Response processing \& headers
+\item Error typing \& handling
+\item Type\+Script type safety
+\item Interceptor support
+\item Performance optimization
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md191}{}\doxysubsection{\texorpdfstring{Integration Tests}{Integration Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md191}
+
+\begin{DoxyItemize}
+\item Dashboard loading patterns
+\item Search \& filtering
+\item Pagination workflows
+\item Error recovery
+\item Security validation
+\item Breaking change detection
+\item Real-\/world edge cases
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md192}{}\doxysection{\texorpdfstring{📊 Test Statistics}{📊 Test Statistics}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md192}
+
+\begin{DoxyItemize}
+\item {\bfseries{New Tests}}\+: 100+ tests
+\item {\bfseries{New Code}}\+: 1,094 lines
+\item {\bfseries{Test Suites}}\+: 23 suites
+\item {\bfseries{Total Frontend Tests}}\+: 429+ tests
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md193}{}\doxysection{\texorpdfstring{🔍 Running Specific Tests}{🔍 Running Specific Tests}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md193}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Axios\ configuration\ tests}
+\DoxyCodeLine{npm\ test\ -\/-\/\ "{}Axios\ Instance\ Creation"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Error\ handling\ tests}
+\DoxyCodeLine{npm\ test\ -\/-\/\ "{}Error\ Handling"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Production\ patterns}
+\DoxyCodeLine{npm\ test\ -\/-\/\ "{}Production\ Usage"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Security\ tests}
+\DoxyCodeLine{npm\ test\ -\/-\/\ "{}Security\ Improvements"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Performance\ tests}
+\DoxyCodeLine{npm\ test\ -\/-\/\ "{}Performance"{}}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md194}{}\doxysection{\texorpdfstring{📈 Coverage}{📈 Coverage}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md194}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ run\ test:coverage}
+
+\end{DoxyCode}
+
+
+Coverage includes\+:
+
+
+\begin{DoxyItemize}
+\item All axios 1.\+13.\+2 features
+\item Backward compatibility with 1.\+6.\+0
+\item Security enhancements
+\item Performance characteristics
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md195}{}\doxysection{\texorpdfstring{🛠️ CI/\+CD}{🛠️ CI/\+CD}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md195}
+Tests run automatically in\+:
+
+
+\begin{DoxyItemize}
+\item Circle\+CI ({\ttfamily npm run test\+:ci})
+\item Git\+Hub Actions (coverage reporting)
+\item Pre-\/commit hooks (validation)
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md196}{}\doxysection{\texorpdfstring{📝 Documentation}{📝 Documentation}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md196}
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{AXIOS__UPGRADE__TEST__REPORT_8md}{AXIOS\+\_\+\+UPGRADE\+\_\+\+TEST\+\_\+\+REPORT.\+md}} -\/ Detailed test documentation
+\item {\ttfamily \doxylink{TEST__GENERATION__SUMMARY__FINAL_8md}{TEST\+\_\+\+GENERATION\+\_\+\+SUMMARY\+\_\+\+FINAL.\+md}} -\/ Complete generation summary
+\item Test file comments -\/ Inline documentation
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md197}{}\doxysection{\texorpdfstring{⚡ Quick Commands}{⚡ Quick Commands}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md197}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ all\ tests}
+\DoxyCodeLine{npm\ test}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ with\ coverage}
+\DoxyCodeLine{npm\ run\ test:coverage}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ in\ watch\ mode}
+\DoxyCodeLine{npm\ run\ test:watch}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ in\ CI\ mode}
+\DoxyCodeLine{npm\ run\ test:ci}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ new\ tests\ only}
+\DoxyCodeLine{npm\ test\ -\/-\/\ \_\_tests\_\_/lib/api-\/axios}
+\DoxyCodeLine{npm\ test\ -\/-\/\ \_\_tests\_\_/lib/api-\/upgrade}
+
+\end{DoxyCode}
+\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md198}{}\doxysection{\texorpdfstring{🎓 Test Patterns Used}{🎓 Test Patterns Used}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md198}
+
+\begin{DoxyItemize}
+\item Jest mocking with axios
+\item @testing-\/library best practices
+\item Comprehensive setup/teardown
+\item Type-\/safe test utilities
+\item Integration test patterns
+\item Production scenario testing
+\end{DoxyItemize}\hypertarget{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md199}{}\doxysection{\texorpdfstring{✨ Highlights}{✨ Highlights}}\label{md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relatiod4b0876e2279030ae5e62da0b9bf44d3_autotoc_md199}
+
+\begin{DoxyItemize}
+\item {\bfseries{100+ new tests}} for axios upgrade
+\item {\bfseries{Zero breaking changes}} detected
+\item {\bfseries{Complete Type\+Script}} type coverage
+\item {\bfseries{Production-\/ready}} validation
+\item {\bfseries{Security}} improvements verified
+\item {\bfseries{Performance}} benchmarks passed
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Quick Links}}\+:
+
+
+\begin{DoxyItemize}
+\item New Test 1\+: {\ttfamily frontend/\+\_\+\+\_\+tests\+\_\+\+\_\+/lib/api-\/axios-\/compatibility.\+test.\+ts}
+\item New Test 2\+: {\ttfamily frontend/\+\_\+\+\_\+tests\+\_\+\+\_\+/lib/api-\/upgrade-\/integration.\+test.\+ts}
+\item Full Report\+: {\ttfamily \doxylink{AXIOS__UPGRADE__TEST__REPORT_8md}{AXIOS\+\_\+\+UPGRADE\+\_\+\+TEST\+\_\+\+REPORT.\+md}} 
+\end{DoxyItemize}

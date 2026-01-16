@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowOutputsAndArtifacts</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_1ad2b3b5e30e6778a65225da247fdf6298" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifacts.test_workflow_artifacts_have_retention</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_artifacts_have_retention</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifacts.test_workflow_artifacts_have_retention</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Report when artifact upload steps do not specify a `retention-days` value.
+
+Scans the workflow&apos;s jobs and for any step that uses `actions/upload-artifact` prints an informational message if the step&apos;s `with` mapping does not include `retention-days`.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file to inspect.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2281" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2281" bodyend="2305"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_1a941e5e855eb901b51a134b82e6be0e19" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifacts.test_workflow_outputs_referenced_correctly</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_workflow_outputs_referenced_correctly</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifacts.test_workflow_outputs_referenced_correctly</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that job outputs are defined when referenced by other jobs.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2307" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2307" bodyend="2333"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for workflow outputs and artifact handling.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowOutputsAndArtifacts</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2277" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2277" bodyend="2333"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_1ad2b3b5e30e6778a65225da247fdf6298" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowOutputsAndArtifacts</scope><name>test_workflow_artifacts_have_retention</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowOutputsAndArtifacts_1a941e5e855eb901b51a134b82e6be0e19" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowOutputsAndArtifacts</scope><name>test_workflow_outputs_referenced_correctly</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,133 @@
+\doxysection{db\+\_\+models.\+Regulatory\+Event\+ORM Class Reference}
+\hypertarget{classdb__models_1_1RegulatoryEventORM}{}\label{classdb__models_1_1RegulatoryEventORM}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+
+
+Inheritance diagram for db\+\_\+models.\+Regulatory\+Event\+ORM\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=251pt]{classdb__models_1_1RegulatoryEventORM__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for db\+\_\+models.\+Regulatory\+Event\+ORM\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classdb__models_1_1RegulatoryEventORM__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1RegulatoryEventORM_ae63222de69d03f6e79edbaaff2e58c20}{id}} = mapped\+\_\+column(String, primary\+\_\+key=True)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1RegulatoryEventORM_a3bd9a3c254080c578e3b875c102bd1f7}{asset\+\_\+id}}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1RegulatoryEventORM_a1247c1080716f99aae96d4d2f913df1f}{event\+\_\+type}} = mapped\+\_\+column(String, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1RegulatoryEventORM_aac7d9b8ef5c6fbf59b0a1c7bc6516f3b}{date}} = mapped\+\_\+column(String, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1RegulatoryEventORM_a1a9a3232334de323d309e37a636f941d}{description}} = mapped\+\_\+column(String, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1RegulatoryEventORM_a839cae393f06004d8cfb8e50e157fea3}{impact\+\_\+score}} = mapped\+\_\+column(Float, nullable=False)
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1RegulatoryEventORM_a12dcafd0ff0c8c0a79c2a74c743d5ed2}{asset}}
+\item 
+Mapped \mbox{\hyperlink{classdb__models_1_1RegulatoryEventORM_a158f42945e1854443b5ab4ed4ddb2488}{related\+\_\+assets}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+str \mbox{\hyperlink{classdb__models_1_1RegulatoryEventORM_a72d65276f3888033389074ec95529754}{\+\_\+\+\_\+tablename\+\_\+\+\_\+}} = "{}regulatory\+\_\+events"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Persistent regulatory event.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classdb__models_1_1RegulatoryEventORM_a72d65276f3888033389074ec95529754}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}!\_\_tablename\_\_@{\_\_tablename\_\_}}
+\index{\_\_tablename\_\_@{\_\_tablename\_\_}!db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+\doxysubsubsection{\texorpdfstring{\_\_tablename\_\_}{\_\_tablename\_\_}}
+{\footnotesize\ttfamily \label{classdb__models_1_1RegulatoryEventORM_a72d65276f3888033389074ec95529754} 
+str db\+\_\+models.\+Regulatory\+Event\+ORM.\+\_\+\+\_\+tablename\+\_\+\+\_\+ = "{}regulatory\+\_\+events"{}\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{classdb__models_1_1RegulatoryEventORM_a12dcafd0ff0c8c0a79c2a74c743d5ed2}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}!asset@{asset}}
+\index{asset@{asset}!db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+\doxysubsubsection{\texorpdfstring{asset}{asset}}
+{\footnotesize\ttfamily \label{classdb__models_1_1RegulatoryEventORM_a12dcafd0ff0c8c0a79c2a74c743d5ed2} 
+Mapped db\+\_\+models.\+Regulatory\+Event\+ORM.\+asset\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ relationship(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}AssetORM"{}},\ back\_populates=\textcolor{stringliteral}{"{}regulatory\_events"{}}}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classdb__models_1_1RegulatoryEventORM_a3bd9a3c254080c578e3b875c102bd1f7}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}!asset\_id@{asset\_id}}
+\index{asset\_id@{asset\_id}!db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+\doxysubsubsection{\texorpdfstring{asset\_id}{asset\_id}}
+{\footnotesize\ttfamily \label{classdb__models_1_1RegulatoryEventORM_a3bd9a3c254080c578e3b875c102bd1f7} 
+Mapped db\+\_\+models.\+Regulatory\+Event\+ORM.\+asset\+\_\+id\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ mapped\_column(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ForeignKey(\textcolor{stringliteral}{"{}assets.id"{}},\ ondelete=\textcolor{stringliteral}{"{}CASCADE"{}}),\ nullable=\textcolor{keyword}{False}}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classdb__models_1_1RegulatoryEventORM_aac7d9b8ef5c6fbf59b0a1c7bc6516f3b}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}!date@{date}}
+\index{date@{date}!db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+\doxysubsubsection{\texorpdfstring{date}{date}}
+{\footnotesize\ttfamily \label{classdb__models_1_1RegulatoryEventORM_aac7d9b8ef5c6fbf59b0a1c7bc6516f3b} 
+Mapped db\+\_\+models.\+Regulatory\+Event\+ORM.\+date = mapped\+\_\+column(String, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1RegulatoryEventORM_a1a9a3232334de323d309e37a636f941d}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}!description@{description}}
+\index{description@{description}!db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+\doxysubsubsection{\texorpdfstring{description}{description}}
+{\footnotesize\ttfamily \label{classdb__models_1_1RegulatoryEventORM_a1a9a3232334de323d309e37a636f941d} 
+Mapped db\+\_\+models.\+Regulatory\+Event\+ORM.\+description = mapped\+\_\+column(String, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1RegulatoryEventORM_a1247c1080716f99aae96d4d2f913df1f}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}!event\_type@{event\_type}}
+\index{event\_type@{event\_type}!db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+\doxysubsubsection{\texorpdfstring{event\_type}{event\_type}}
+{\footnotesize\ttfamily \label{classdb__models_1_1RegulatoryEventORM_a1247c1080716f99aae96d4d2f913df1f} 
+Mapped db\+\_\+models.\+Regulatory\+Event\+ORM.\+event\+\_\+type = mapped\+\_\+column(String, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1RegulatoryEventORM_ae63222de69d03f6e79edbaaff2e58c20}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}!id@{id}}
+\index{id@{id}!db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+\doxysubsubsection{\texorpdfstring{id}{id}}
+{\footnotesize\ttfamily \label{classdb__models_1_1RegulatoryEventORM_ae63222de69d03f6e79edbaaff2e58c20} 
+Mapped db\+\_\+models.\+Regulatory\+Event\+ORM.\+id = mapped\+\_\+column(String, primary\+\_\+key=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1RegulatoryEventORM_a839cae393f06004d8cfb8e50e157fea3}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}!impact\_score@{impact\_score}}
+\index{impact\_score@{impact\_score}!db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+\doxysubsubsection{\texorpdfstring{impact\_score}{impact\_score}}
+{\footnotesize\ttfamily \label{classdb__models_1_1RegulatoryEventORM_a839cae393f06004d8cfb8e50e157fea3} 
+Mapped db\+\_\+models.\+Regulatory\+Event\+ORM.\+impact\+\_\+score = mapped\+\_\+column(Float, nullable=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classdb__models_1_1RegulatoryEventORM_a158f42945e1854443b5ab4ed4ddb2488}\index{db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}!related\_assets@{related\_assets}}
+\index{related\_assets@{related\_assets}!db\_models.RegulatoryEventORM@{db\_models.RegulatoryEventORM}}
+\doxysubsubsection{\texorpdfstring{related\_assets}{related\_assets}}
+{\footnotesize\ttfamily \label{classdb__models_1_1RegulatoryEventORM_a158f42945e1854443b5ab4ed4ddb2488} 
+Mapped db\+\_\+models.\+Regulatory\+Event\+ORM.\+related\+\_\+assets\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ relationship(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}RegulatoryEventAssetORM"{}},\ back\_populates=\textcolor{stringliteral}{"{}event"{}},\ cascade=\textcolor{stringliteral}{"{}all,\ delete-\/orphan"{}}}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/src/data/\mbox{\hyperlink{db__models_8py}{db\+\_\+models.\+py}}\end{DoxyCompactItemize}

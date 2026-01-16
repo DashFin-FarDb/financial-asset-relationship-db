@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespaceconftest" kind="namespace" language="Python">
+    <compoundname>conftest</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceconftest_1aca802c25f1b7668aaaa054ef460b0112" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition> bool conftest._cov_plugin_available</definition>
+        <argsstring>()</argsstring>
+        <name>_cov_plugin_available</name>
+        <qualifiedname>conftest._cov_plugin_available</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Check whether the pytest-cov plugin is importable.
+
+Returns:
+    `True` if the pytest-cov plugin is importable, `False` otherwise.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/conftest.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/conftest.py" bodystart="18" bodyend="28"/>
+        <referencedby refid="namespaceconftest_1adb13904a10de918e798d257ae36583d7" compoundref="conftest_8py" startline="31" endline="68">pytest_load_initial_conftests</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCovPluginAvailable_1a1a61a6287f3099da36b090e7df9a9370" compoundref="test__root__conftest_8py" startline="40" endline="53">tests.unit.test_root_conftest.TestCovPluginAvailable.test_cov_plugin_available_uses_importlib</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCovPluginAvailable_1ac31f1bd683ef8ee43e1dd863f279d50a" compoundref="test__root__conftest_8py" startline="15" endline="26">tests.unit.test_root_conftest.TestCovPluginAvailable.test_cov_plugin_available_when_installed</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCovPluginAvailable_1a5713fa68dc0b99f7c991c75feff3d80f" compoundref="test__root__conftest_8py" startline="28" endline="38">tests.unit.test_root_conftest.TestCovPluginAvailable.test_cov_plugin_not_available_when_not_installed</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceconftest_1adb13904a10de918e798d257ae36583d7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None conftest.pytest_load_initial_conftests</definition>
+        <argsstring>(List[str] args, early_config, parser)</argsstring>
+        <name>pytest_load_initial_conftests</name>
+        <qualifiedname>conftest.pytest_load_initial_conftests</qualifiedname>
+        <param>
+          <type>List</type>
+          <declname>args</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>early_config</type>
+          <defname>early_config</defname>
+        </param>
+        <param>
+          <type>parser</type>
+          <defname>parser</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Remove pytest-cov related command-line options from the provided
+argument list when the pytest-cov plugin is not available.
+
+If the plugin is present the argument list is left unchanged.
+Otherwise, remove occurrences of --cov and --cov-report together
+with their following parameters.
+Also remove any inline forms starting with --cov= or --cov-report=.
+The original `args` list is updated in-place.
+
+Parameters:
+    args (List[str]): Mutable list of command-line arguments;
+        coverage-related options are removed from this list in-place.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/conftest.py" line="29" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/conftest.py" bodystart="31" bodyend="68"/>
+        <references refid="namespaceconftest_1aca802c25f1b7668aaaa054ef460b0112" compoundref="conftest_8py" startline="18" endline="28">_cov_plugin_available</references>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a48d64ac903f416416d01393be6b8a03f" compoundref="test__root__conftest_8py" startline="58" endline="70">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_does_nothing_when_cov_plugin_available</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a0c145922f69b91a3fb6f17d933728880" compoundref="test__root__conftest_8py" startline="170" endline="180">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_handles_args_with_only_coverage_flags</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1aab14eb5cb2f1b34b39b2336c87ac4a8c" compoundref="test__root__conftest_8py" startline="227" endline="237">tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_consecutive_coverage_flags</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a4a8a6645cf3262819eaddedf4a5692af" compoundref="test__root__conftest_8py" startline="201" endline="212">tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_flag_at_end_with_no_value</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a54e76345fbf87ec28d17d14bd4ce53c7" compoundref="test__root__conftest_8py" startline="292" endline="306">tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_flags_with_complex_values</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a5b96abd9e3e492ad0a50480b9fd5ff22" compoundref="test__root__conftest_8py" startline="258" endline="270">tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_in_test_path</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a1aefac2e1996b70a5138c7a99ada09bf" compoundref="test__root__conftest_8py" startline="214" endline="225">tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_cov_report_at_end_with_no_value</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a8f111009e8b2e0fe37b5f45ae5bb403a" compoundref="test__root__conftest_8py" startline="158" endline="168">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_handles_empty_args_list</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a57b56cd4326d60bd67a029f9115e2142" compoundref="test__root__conftest_8py" startline="272" endline="290">tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_handles_mixed_equals_and_space_syntax</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestRealWorldScenarios_1aefa613792dabfb4d4022cc2912c22611" compoundref="test__root__conftest_8py" startline="416" endline="428">tests.unit.test_root_conftest.TestRealWorldScenarios.test_local_development_without_cov</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestRealWorldScenarios_1a979c17298769fc22ce2a3501892e79d6" compoundref="test__root__conftest_8py" startline="442" endline="460">tests.unit.test_root_conftest.TestRealWorldScenarios.test_mixed_short_and_long_flags</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a99cf3217e502f06af8f96ed9ca3fe128" compoundref="test__root__conftest_8py" startline="182" endline="196">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_modifies_args_in_place</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestRealWorldScenarios_1a223071515e0ea371fa9ab6eccc74a415" compoundref="test__root__conftest_8py" startline="430" endline="440">tests.unit.test_root_conftest.TestRealWorldScenarios.test_multiple_coverage_sources</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1ad74bcea2c2ad70645a6ebf0f2c318d7d" compoundref="test__root__conftest_8py" startline="144" endline="156">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_preserves_other_flags</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a154fdde32fd4cda2d02ad88e1fb680a4" compoundref="test__root__conftest_8py" startline="239" endline="256">tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_preserves_similar_but_different_flags</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a2ebe1f60aa7c2202c6318400c2d98538" compoundref="test__root__conftest_8py" startline="98" endline="108">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_flag_with_equals_syntax</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a3362897d8d01b7dde74eb739339d36d4" compoundref="test__root__conftest_8py" startline="72" endline="83">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_flag_with_value</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a71de15d3113281e24c0cb3c013270bd3" compoundref="test__root__conftest_8py" startline="110" endline="120">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_report_flag_with_equals_syntax</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a6c38ba0736c1591881c980aa9c1662ea" compoundref="test__root__conftest_8py" startline="85" endline="96">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_cov_report_flag_with_value</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestPytestLoadInitialConftests_1a3b81785cc186963377ae286b8281e7e1" compoundref="test__root__conftest_8py" startline="122" endline="142">tests.unit.test_root_conftest.TestPytestLoadInitialConftests.test_removes_multiple_coverage_flags</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestCoverageFilteringEdgeCases_1a03d050747ba55dc24aefb067b3b773b3" compoundref="test__root__conftest_8py" startline="308" endline="320">tests.unit.test_root_conftest.TestCoverageFilteringEdgeCases.test_skip_next_flag_resets_correctly</referencedby>
+        <referencedby refid="classtests_1_1unit_1_1test__root__conftest_1_1TestRealWorldScenarios_1a95a8aabbc98e6aea19d6cd613dc4511e" compoundref="test__root__conftest_8py" startline="394" endline="414">tests.unit.test_root_conftest.TestRealWorldScenarios.test_typical_ci_environment_args</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Pytest configuration helpers for the repository.
+
+This module removes optional coverage-related command line arguments when the
+``pytest-cov`` plugin is not installed. Some environments (for example, local
+developer shells or CI configurations) may inject coverage options via
+``PYTEST_ADDOPTS``. Without ``pytest-cov`` those options cause pytest to fail
+before executing any tests. By trimming the coverage options when the plugin is
+missing we allow the default test command to succeed while still preserving
+coverage reporting where the dependency is available.
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/conftest.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

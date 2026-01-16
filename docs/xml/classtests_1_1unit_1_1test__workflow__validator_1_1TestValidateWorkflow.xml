@@ -1,0 +1,198 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_workflow_validator::TestValidateWorkflow</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a096fe9beed241c4018628e3776c18ad2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_valid_minimal_workflow_file</definition>
+        <argsstring>()</argsstring>
+        <name>test_valid_minimal_workflow_file</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_valid_minimal_workflow_file</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test validation of a minimal valid workflow file</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="55" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="55" bodyend="78"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a5148fe8112516ef5736bb48a85c769e9" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_valid_complex_workflow_file</definition>
+        <argsstring>()</argsstring>
+        <name>test_valid_complex_workflow_file</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_valid_complex_workflow_file</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test validation of a complex valid workflow</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="80" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="80" bodyend="114"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1aa8a1ff6043701b07cacaf51bf4459ff1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_missing_jobs_key</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_missing_jobs_key</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_missing_jobs_key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test detection of missing &apos;jobs&apos; key</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="116" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="116" bodyend="135"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a3d91886b3c409e90a24b7f15978f2e5a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_not_a_dict</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_not_a_dict</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_not_a_dict</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test detection when YAML content is not a dictionary</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="137" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="137" bodyend="157"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a0758ba2dbb98b5b495f11f3564c5c8d1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_invalid_yaml_syntax</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_invalid_yaml_syntax</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_invalid_yaml_syntax</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of invalid YAML syntax</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="159" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="159" bodyend="181"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1acb0937ad572c8897a9f97d9a122422ab" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_file_not_found</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_file_not_found</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_file_not_found</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of non-existent file</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="183" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="183" bodyend="189"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1ae1e6c133dbad29df5a083d25e4c09c09" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_empty_file</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_empty_file</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_empty_file</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test handling of empty workflow file</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="191" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="191" bodyend="202"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1ae25026f24f9906f4300568ed35305c13" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_with_null_value</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_null_value</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_with_null_value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow file that parses to None</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="204" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="204" bodyend="218"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a326d254abe0f9283abccf2ec9a3294c2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_with_empty_jobs_dict</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_empty_jobs_dict</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_with_empty_jobs_dict</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with empty jobs dictionary</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="220" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="220" bodyend="237"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1adf42329313b787c0194333fda7fbede5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_with_special_characters</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_special_characters</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_with_special_characters</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with special characters in values</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="239" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="239" bodyend="260"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1aa58b03b2180c81cc50b36d064d0cbf4f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_with_unicode</definition>
+        <argsstring>()</argsstring>
+        <name>test_workflow_with_unicode</name>
+        <qualifiedname>tests.unit.test_workflow_validator.TestValidateWorkflow.test_workflow_with_unicode</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test workflow with Unicode characters</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="262" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="262" bodyend="286"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test suite for validate_workflow function</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_workflow_validator.TestValidateWorkflow</label>
+        <link refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" line="51" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_workflow_validator.py" bodystart="51" bodyend="286"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a5148fe8112516ef5736bb48a85c769e9" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_valid_complex_workflow_file</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a096fe9beed241c4018628e3776c18ad2" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_valid_minimal_workflow_file</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1ae1e6c133dbad29df5a083d25e4c09c09" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_workflow_empty_file</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1acb0937ad572c8897a9f97d9a122422ab" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_workflow_file_not_found</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a0758ba2dbb98b5b495f11f3564c5c8d1" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_workflow_invalid_yaml_syntax</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1aa8a1ff6043701b07cacaf51bf4459ff1" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_workflow_missing_jobs_key</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a3d91886b3c409e90a24b7f15978f2e5a" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_workflow_not_a_dict</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1a326d254abe0f9283abccf2ec9a3294c2" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_workflow_with_empty_jobs_dict</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1ae25026f24f9906f4300568ed35305c13" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_workflow_with_null_value</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1adf42329313b787c0194333fda7fbede5" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_workflow_with_special_characters</name></member>
+      <member refid="classtests_1_1unit_1_1test__workflow__validator_1_1TestValidateWorkflow_1aa58b03b2180c81cc50b36d064d0cbf4f" prot="public" virt="non-virtual"><scope>tests::unit::test_workflow_validator::TestValidateWorkflow</scope><name>test_workflow_with_unicode</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

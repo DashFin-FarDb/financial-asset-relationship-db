@@ -1,0 +1,210 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_api::TestAssetsEndpoint</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1ab45d83380e4b323ad4a0026d5d43e2da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestAssetsEndpoint.test_get_all_assets</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_get_all_assets</name>
+        <qualifiedname>tests.unit.test_api.TestAssetsEndpoint.test_get_all_assets</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test retrieving all assets without filters.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="185" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="185" bodyend="207"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1a02114b9bdd5158eeb26681fcf771f5f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestAssetsEndpoint.test_filter_by_asset_class</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_filter_by_asset_class</name>
+        <qualifiedname>tests.unit.test_api.TestAssetsEndpoint.test_filter_by_asset_class</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test filtering assets by asset class.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="209" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="209" bodyend="223"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1af38601877f5116864fb08cc44ac426e4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestAssetsEndpoint.test_filter_by_sector</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_filter_by_sector</name>
+        <qualifiedname>tests.unit.test_api.TestAssetsEndpoint.test_filter_by_sector</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test filtering assets by sector.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="225" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="225" bodyend="238"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1a5fd0ee1d2aad4b840d18af98f1fe903b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestAssetsEndpoint.test_filter_combined</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_filter_combined</name>
+        <qualifiedname>tests.unit.test_api.TestAssetsEndpoint.test_filter_combined</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test filtering with multiple parameters.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="240" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="240" bodyend="254"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1a12894e6503dc26df2fb2138976989d7b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestAssetsEndpoint.test_assets_additional_fields</definition>
+        <argsstring>(self, mock_graph_instance, client, mock_graph)</argsstring>
+        <name>test_assets_additional_fields</name>
+        <qualifiedname>tests.unit.test_api.TestAssetsEndpoint.test_assets_additional_fields</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a0e0a4c92b3931a8921fa3a2bc5ef46ab" kindref="member">mock_graph</ref></type>
+          <defname>mock_graph</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that additional fields are included for assets.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="256" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="256" bodyend="272"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1a37152f81eae8ccd50657d740979cee26" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_api.TestAssetsEndpoint.test_assets_error_handling</definition>
+        <argsstring>(self, mock_graph_instance, client)</argsstring>
+        <name>test_assets_error_handling</name>
+        <qualifiedname>tests.unit.test_api.TestAssetsEndpoint.test_assets_error_handling</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>mock_graph_instance</type>
+          <defname>mock_graph_instance</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacetests_1_1unit_1_1test__api_1a653b61e8075f28f406c154829f43b909" kindref="member">client</ref></type>
+          <defname>client</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test error handling in assets endpoint.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="274" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="274" bodyend="283"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test assets listing endpoint.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_api.TestAssetsEndpoint</label>
+        <link refid="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" line="181" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_api.py" bodystart="181" bodyend="283"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1a12894e6503dc26df2fb2138976989d7b" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestAssetsEndpoint</scope><name>test_assets_additional_fields</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1a37152f81eae8ccd50657d740979cee26" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestAssetsEndpoint</scope><name>test_assets_error_handling</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1a02114b9bdd5158eeb26681fcf771f5f0" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestAssetsEndpoint</scope><name>test_filter_by_asset_class</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1af38601877f5116864fb08cc44ac426e4" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestAssetsEndpoint</scope><name>test_filter_by_sector</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1a5fd0ee1d2aad4b840d18af98f1fe903b" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestAssetsEndpoint</scope><name>test_filter_combined</name></member>
+      <member refid="classtests_1_1unit_1_1test__api_1_1TestAssetsEndpoint_1ab45d83380e4b323ad4a0026d5d43e2da" prot="public" virt="non-virtual"><scope>tests::unit::test_api::TestAssetsEndpoint</scope><name>test_get_all_assets</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

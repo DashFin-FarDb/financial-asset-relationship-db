@@ -1,0 +1,7 @@
+var classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity =
+[
+    [ "pr_agent_config_content", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity.html#a4339d81d4967942b3f9b6977eb29357a", null ],
+    [ "test_no_llm_model_references", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity.html#a0af7b6e99212de06acbc6fc9e8e4f46b", null ],
+    [ "test_no_summarization_settings", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity.html#afe36a5dac846af2f2417e344229e8d5c", null ],
+    [ "test_no_token_management", "classtests_1_1integration_1_1test__pr__agent__config__validation_1_1TestPRAgentConfigRemovedComplexity.html#ad27256c3e985e8c2e264dd1a2b7350dd", null ]
+];

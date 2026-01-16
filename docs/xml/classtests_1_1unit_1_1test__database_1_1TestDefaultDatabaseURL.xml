@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__database_1_1TestDefaultDatabaseURL" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_database::TestDefaultDatabaseURL</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestDefaultDatabaseURL_1a631150def0d9ae51ae90fde868d089b3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestDefaultDatabaseURL.test_default_database_url_is_sqlite</definition>
+        <argsstring>()</argsstring>
+        <name>test_default_database_url_is_sqlite</name>
+        <qualifiedname>tests.unit.test_database.TestDefaultDatabaseURL.test_default_database_url_is_sqlite</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that default database URL uses SQLite.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="301" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="301" bodyend="304"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestDefaultDatabaseURL_1af36b26c698b7929721fc1fe9f508d600" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestDefaultDatabaseURL.test_default_database_url_file_path</definition>
+        <argsstring>()</argsstring>
+        <name>test_default_database_url_file_path</name>
+        <qualifiedname>tests.unit.test_database.TestDefaultDatabaseURL.test_default_database_url_file_path</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that default database URL points to a file.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="306" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="306" bodyend="309"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestDefaultDatabaseURL_1ac07ef72dc25c20895b681ad6c263904f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestDefaultDatabaseURL.test_env_override_of_default_url</definition>
+        <argsstring>()</argsstring>
+        <name>test_env_override_of_default_url</name>
+        <qualifiedname>tests.unit.test_database.TestDefaultDatabaseURL.test_env_override_of_default_url</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that environment variable can override default URL.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="311" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="311" bodyend="320"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for default database URL configuration.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_database.TestDefaultDatabaseURL</label>
+        <link refid="classtests_1_1unit_1_1test__database_1_1TestDefaultDatabaseURL"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="297" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="297" bodyend="320"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestDefaultDatabaseURL_1af36b26c698b7929721fc1fe9f508d600" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestDefaultDatabaseURL</scope><name>test_default_database_url_file_path</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestDefaultDatabaseURL_1a631150def0d9ae51ae90fde868d089b3" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestDefaultDatabaseURL</scope><name>test_default_database_url_is_sqlite</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestDefaultDatabaseURL_1ac07ef72dc25c20895b681ad6c263904f" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestDefaultDatabaseURL</scope><name>test_env_override_of_default_url</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

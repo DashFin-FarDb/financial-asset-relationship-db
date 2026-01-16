@@ -1,0 +1,102 @@
+\doxysection{tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Edge\+Cases Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases}{}\label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases}\index{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Edge\+Cases\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_a02cc2ea6d38f421a8c72ec90b64c0ff7}{test\+\_\+workflow\+\_\+no\+\_\+tabs}} (self, Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_ac35835f8c00a916ee81f3f0bafc03767}{test\+\_\+workflow\+\_\+consistent\+\_\+indentation}} (self, Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_ab187900cabd62ef1fb64ff69d21dd109}{test\+\_\+workflow\+\_\+directory\+\_\+exists}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_aeffab4253aba3a0f5b161f2cf0b03d99}{test\+\_\+at\+\_\+least\+\_\+one\+\_\+workflow\+\_\+exists}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_ae91b3905c5a272679a75f07dfcd47490}{test\+\_\+workflow\+\_\+file\+\_\+extension}} (Path workflow\+\_\+file)
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_a3c8a521c3f62fea100681c6a45826be0}{test\+\_\+workflow\+\_\+encoding}} (Path workflow\+\_\+file)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test suite for edge cases and error conditions.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_aeffab4253aba3a0f5b161f2cf0b03d99}\index{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}!test\_at\_least\_one\_workflow\_exists@{test\_at\_least\_one\_workflow\_exists}}
+\index{test\_at\_least\_one\_workflow\_exists@{test\_at\_least\_one\_workflow\_exists}!tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}}
+\doxysubsubsection{\texorpdfstring{test\_at\_least\_one\_workflow\_exists()}{test\_at\_least\_one\_workflow\_exists()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_aeffab4253aba3a0f5b161f2cf0b03d99} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Edge\+Cases.\+test\+\_\+at\+\_\+least\+\_\+one\+\_\+workflow\+\_\+exists (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that at least one workflow file exists.\end{DoxyVerb}
+ Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_aeffab4253aba3a0f5b161f2cf0b03d99_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_ac35835f8c00a916ee81f3f0bafc03767}\index{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}!test\_workflow\_consistent\_indentation@{test\_workflow\_consistent\_indentation}}
+\index{test\_workflow\_consistent\_indentation@{test\_workflow\_consistent\_indentation}!tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_consistent\_indentation()}{test\_workflow\_consistent\_indentation()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_ac35835f8c00a916ee81f3f0bafc03767} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Edge\+Cases.\+test\+\_\+workflow\+\_\+consistent\+\_\+indentation (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure all non-empty, non-comment lines in the workflow file use indentation in multiples of two spaces.
+
+This test checks the leading-space count of significant lines and fails if any line's indentation is not a multiple of 2.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_ab187900cabd62ef1fb64ff69d21dd109}\index{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}!test\_workflow\_directory\_exists@{test\_workflow\_directory\_exists}}
+\index{test\_workflow\_directory\_exists@{test\_workflow\_directory\_exists}!tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_directory\_exists()}{test\_workflow\_directory\_exists()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_ab187900cabd62ef1fb64ff69d21dd109} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Edge\+Cases.\+test\+\_\+workflow\+\_\+directory\+\_\+exists (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that .github/workflows directory exists.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_a3c8a521c3f62fea100681c6a45826be0}\index{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}!test\_workflow\_encoding@{test\_workflow\_encoding}}
+\index{test\_workflow\_encoding@{test\_workflow\_encoding}!tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_encoding()}{test\_workflow\_encoding()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_a3c8a521c3f62fea100681c6a45826be0} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Edge\+Cases.\+test\+\_\+workflow\+\_\+encoding (\begin{DoxyParamCaption}\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Test that workflow files use UTF-8 encoding.\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_ae91b3905c5a272679a75f07dfcd47490}\index{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}!test\_workflow\_file\_extension@{test\_workflow\_file\_extension}}
+\index{test\_workflow\_file\_extension@{test\_workflow\_file\_extension}!tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_file\_extension()}{test\_workflow\_file\_extension()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_ae91b3905c5a272679a75f07dfcd47490} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Edge\+Cases.\+test\+\_\+workflow\+\_\+file\+\_\+extension (\begin{DoxyParamCaption}\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Verify that a workflow file uses the .yml or .yaml extension.
+
+Parameters:
+    workflow_file (Path): Path to the workflow file being tested.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_a02cc2ea6d38f421a8c72ec90b64c0ff7}\index{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}!test\_workflow\_no\_tabs@{test\_workflow\_no\_tabs}}
+\index{test\_workflow\_no\_tabs@{test\_workflow\_no\_tabs}!tests.integration.test\_github\_workflows.TestWorkflowEdgeCases@{tests.integration.test\_github\_workflows.TestWorkflowEdgeCases}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_no\_tabs()}{test\_workflow\_no\_tabs()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowEdgeCases_a02cc2ea6d38f421a8c72ec90b64c0ff7} 
+tests.\+integration.\+test\+\_\+github\+\_\+workflows.\+Test\+Workflow\+Edge\+Cases.\+test\+\_\+workflow\+\_\+no\+\_\+tabs (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{workflow\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ensure the workflow YAML file contains no tab characters.
+
+Fails the test if any tab character is present, because YAML indentation must use spaces rather than tabs.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__github__workflows_8py}{test\+\_\+github\+\_\+workflows.\+py}}\end{DoxyCompactItemize}

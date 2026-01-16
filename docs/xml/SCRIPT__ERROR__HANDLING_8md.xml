@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="SCRIPT__ERROR__HANDLING_8md" kind="file" language="Markdown">
+    <compoundname>SCRIPT_ERROR_HANDLING.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Script<sp/>Error<sp/>Handling<sp/>Documentation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Both<sp/>PR<sp/>cleanup<sp/>scripts<sp/>now<sp/>include<sp/>comprehensive<sp/>error<sp/>handling<sp/>to<sp/>address<sp/>code<sp/>review<sp/>feedback.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Error<sp/>Checks<sp/>Implemented</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>close_unmergeable_prs.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Prerequisites<sp/>Validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**GitHub<sp/>CLI<sp/>(`gh`)<sp/>installation<sp/>check**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Verifies<sp/>`gh`<sp/>command<sp/>is<sp/>available</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Exits<sp/>with<sp/>clear<sp/>error<sp/>message<sp/>if<sp/>missing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**GitHub<sp/>authentication<sp/>check**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Validates<sp/>user<sp/>is<sp/>logged<sp/>in<sp/>via<sp/>`gh<sp/>auth<sp/>status`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Prevents<sp/>API<sp/>call<sp/>failures</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**jq<sp/>installation<sp/>check**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Ensures<sp/>JSON<sp/>parsing<sp/>tool<sp/>is<sp/>available</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Required<sp/>for<sp/>processing<sp/>PR<sp/>data</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Operation<sp/>Error<sp/>Handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**API<sp/>call<sp/>failures**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Catches<sp/>errors<sp/>from<sp/>`gh<sp/>pr<sp/>list`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Handles<sp/>JSON<sp/>parsing<sp/>errors<sp/>from<sp/>`jq`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Exits<sp/>with<sp/>descriptive<sp/>error<sp/>messages</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**Empty<sp/>results<sp/>handling**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Checks<sp/>if<sp/>conflicting_prs.txt<sp/>is<sp/>empty<sp/>or<sp/>missing</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Provides<sp/>clear<sp/>&quot;No<sp/>conflicting<sp/>PRs<sp/>found&quot;<sp/>message</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Prevents<sp/>confusion<sp/>from<sp/>silent<sp/>failures</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**Per-PR<sp/>error<sp/>handling**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Individual<sp/>PR<sp/>view<sp/>failures<sp/>don&apos;t<sp/>stop<sp/>the<sp/>script</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Errors<sp/>logged<sp/>to<sp/>stderr<sp/>for<sp/>problematic<sp/>PRs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Script<sp/>continues<sp/>processing<sp/>remaining<sp/>PRs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**Cleanup**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Removes<sp/>temporary<sp/>file<sp/>`/tmp/conflicting_prs.txt`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Prevents<sp/>stale<sp/>data<sp/>from<sp/>affecting<sp/>subsequent<sp/>runs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>close_unmergeable_prs_script.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Prerequisites<sp/>Validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**GitHub<sp/>CLI<sp/>(`gh`)<sp/>installation<sp/>check**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**GitHub<sp/>authentication<sp/>check**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Input<sp/>Validation</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**Missing<sp/>PR<sp/>number<sp/>check**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Validates<sp/>PR<sp/>argument<sp/>is<sp/>provided</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Shows<sp/>usage<sp/>message<sp/>if<sp/>missing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**PR<sp/>number<sp/>format<sp/>validation**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Ensures<sp/>PR<sp/>number<sp/>is<sp/>numeric<sp/>(positive<sp/>integer)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Prevents<sp/>invalid<sp/>API<sp/>calls</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">####<sp/>Operation<sp/>Error<sp/>Handling</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**PR<sp/>close<sp/>operation<sp/>failure**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Catches<sp/>`gh<sp/>pr<sp/>close`<sp/>command<sp/>failures</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Handles<sp/>invalid<sp/>PR<sp/>numbers</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Handles<sp/>permission<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Provides<sp/>clear<sp/>error<sp/>messages</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>✅<sp/>**Success<sp/>confirmation**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Displays<sp/>&quot;Successfully<sp/>closed<sp/>PR<sp/>#XXX&quot;<sp/>on<sp/>success</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Clear<sp/>feedback<sp/>for<sp/>successful<sp/>operations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Error<sp/>Message<sp/>Standards</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>stderr<sp/>Usage</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">All<sp/>error<sp/>messages<sp/>are<sp/>directed<sp/>to<sp/>stderr<sp/>(`&gt;&amp;2`)<sp/>following<sp/>best<sp/>practices:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;Error:<sp/>message&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Exit<sp/>Codes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`0`<sp/>-<sp/>Success<sp/>or<sp/>no<sp/>PRs<sp/>found</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`1`<sp/>-<sp/>Error<sp/>(missing<sp/>tool,<sp/>auth<sp/>failure,<sp/>operation<sp/>failure)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Error<sp/>Message<sp/>Format</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">Error:<sp/>[Clear<sp/>description<sp/>of<sp/>what<sp/>went<sp/>wrong]</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Testing</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Run<sp/>the<sp/>included<sp/>test<sp/>script<sp/>to<sp/>verify<sp/>error<sp/>handling:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">bash<sp/>test_scripts.sh</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Expected<sp/>output:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>gh<sp/>CLI<sp/>detected<sp/>successfully</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>Correctly<sp/>requires<sp/>PR<sp/>number</highlight></codeline>
+<codeline><highlight class="normal">✅<sp/>Correctly<sp/>validates<sp/>numeric<sp/>PR<sp/>number</highlight></codeline>
+<codeline><highlight class="normal">All<sp/>error<sp/>handling<sp/>tests<sp/>passed!<sp/>✅</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Usage<sp/>Examples</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Safe<sp/>execution<sp/>of<sp/>close_unmergeable_prs.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Script<sp/>will:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>1.<sp/>Check<sp/>for<sp/>gh<sp/>CLI<sp/>and<sp/>jq</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>2.<sp/>Verify<sp/>authentication</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>3.<sp/>Safely<sp/>handle<sp/>empty<sp/>results</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>4.<sp/>Continue<sp/>on<sp/>individual<sp/>PR<sp/>errors</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>5.<sp/>Clean<sp/>up<sp/>temporary<sp/>files</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">bash<sp/>close_unmergeable_prs.sh</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Safe<sp/>execution<sp/>of<sp/>close_unmergeable_prs_script.sh</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Valid<sp/>usage</highlight></codeline>
+<codeline><highlight class="normal">bash<sp/>close_unmergeable_prs_script.sh<sp/>123</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Invalid<sp/>usage<sp/>(caught<sp/>by<sp/>validation)</highlight></codeline>
+<codeline><highlight class="normal">bash<sp/>close_unmergeable_prs_script.sh<sp/>abc<sp/><sp/>#<sp/>Error:<sp/>must<sp/>be<sp/>numeric</highlight></codeline>
+<codeline><highlight class="normal">bash<sp/>close_unmergeable_prs_script.sh<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Error:<sp/>missing<sp/>PR<sp/>number</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Code<sp/>Review<sp/>Feedback<sp/>Addressed</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">|<sp/>Review<sp/>Comment<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Implementation<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Status<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>----------------------------<sp/>|<sp/>-----------------------------------<sp/>|<sp/>------<sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Check<sp/>gh<sp/>pr<sp/>list<sp/>errors<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Added<sp/>error<sp/>check<sp/>+<sp/>exit<sp/>on<sp/>failure<sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Check<sp/>jq<sp/>command<sp/>errors<sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Added<sp/>error<sp/>check<sp/>+<sp/>exit<sp/>on<sp/>failure<sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Verify<sp/>file<sp/>exists/non-empty<sp/>|<sp/>Added<sp/>check<sp/>before<sp/>loop<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Check<sp/>gh<sp/>CLI<sp/>installation<sp/><sp/><sp/><sp/>|<sp/>Added<sp/>at<sp/>script<sp/>start<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Verify<sp/>gh<sp/>authentication<sp/><sp/><sp/><sp/><sp/>|<sp/>Added<sp/>at<sp/>script<sp/>start<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Handle<sp/>gh<sp/>pr<sp/>close<sp/>errors<sp/><sp/><sp/><sp/>|<sp/>Added<sp/>error<sp/>check<sp/>+<sp/>feedback<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline><highlight class="normal">|<sp/>Validate<sp/>PR<sp/>number<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>Added<sp/>numeric<sp/>validation<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>✅<sp/><sp/><sp/><sp/><sp/>|</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Benefits</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1.<sp/>**No<sp/>silent<sp/>failures**<sp/>-<sp/>All<sp/>errors<sp/>reported<sp/>clearly</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>**Early<sp/>detection**<sp/>-<sp/>Prerequisites<sp/>checked<sp/>before<sp/>operations</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>**Clear<sp/>feedback**<sp/>-<sp/>Users<sp/>know<sp/>exactly<sp/>what<sp/>went<sp/>wrong</highlight></codeline>
+<codeline><highlight class="normal">4.<sp/>**Graceful<sp/>degradation**<sp/>-<sp/>Per-PR<sp/>errors<sp/>don&apos;t<sp/>stop<sp/>batch<sp/>processing</highlight></codeline>
+<codeline><highlight class="normal">5.<sp/>**Clean<sp/>execution**<sp/>-<sp/>Temporary<sp/>files<sp/>cleaned<sp/>up<sp/>automatically</highlight></codeline>
+<codeline><highlight class="normal">6.<sp/>**Better<sp/>UX**<sp/>-<sp/>Success/failure<sp/>clearly<sp/>communicated</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Generated<sp/>with<sp/>[Continue](https://continue.dev)</highlight></codeline>
+<codeline><highlight class="normal">Co-authored<sp/>by:<sp/>mohavro<sp/>&amp;<sp/>Continue</highlight></codeline>
+    </programlisting>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/SCRIPT_ERROR_HANDLING.md"/>
+  </compounddef>
+</doxygen>

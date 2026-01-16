@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestVersionConsistency" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_debricked_workflow::TestVersionConsistency</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestVersionConsistency_1abe91379c5c9039010345a22c4f0f8154" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestVersionConsistency.test_actions_use_consistent_versioning</definition>
+        <argsstring>(List[Dict[str, Any]] job_steps)</argsstring>
+        <name>test_actions_use_consistent_versioning</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestVersionConsistency.test_actions_use_consistent_versioning</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>job_steps</declname>
+          <array>[Dict[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that all actions use consistent versioning approach.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="342" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="342" bodyend="363"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__debricked__workflow_1_1TestVersionConsistency_1a9d5bb41031bc5fdedcf8c23992a8cd72" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_debricked_workflow.TestVersionConsistency.test_no_mutable_tags</definition>
+        <argsstring>(List[Dict[str, Any]] job_steps)</argsstring>
+        <name>test_no_mutable_tags</name>
+        <qualifiedname>tests.integration.test_debricked_workflow.TestVersionConsistency.test_no_mutable_tags</qualifiedname>
+        <param>
+          <type>List]</type>
+          <declname>job_steps</declname>
+          <array>[Dict[str, Any]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that actions don&apos;t use mutable tags like &apos;latest&apos;, &apos;main&apos;, &apos;master&apos;.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="365" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="365" bodyend="378"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test version consistency and supply-chain security.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_debricked_workflow.TestVersionConsistency</label>
+        <link refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestVersionConsistency"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" line="338" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_debricked_workflow.py" bodystart="338" bodyend="378"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestVersionConsistency_1abe91379c5c9039010345a22c4f0f8154" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestVersionConsistency</scope><name>test_actions_use_consistent_versioning</name></member>
+      <member refid="classtests_1_1integration_1_1test__debricked__workflow_1_1TestVersionConsistency_1a9d5bb41031bc5fdedcf8c23992a8cd72" prot="public" virt="non-virtual"><scope>tests::integration::test_debricked_workflow::TestVersionConsistency</scope><name>test_no_mutable_tags</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

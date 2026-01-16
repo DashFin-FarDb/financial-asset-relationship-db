@@ -1,0 +1,840 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_dev_scripts::TestShellScripts</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a55f01b7233fed677187abd9bbaa57bed" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_script_exists</definition>
+        <argsstring>()</argsstring>
+        <name>test_cleanup_branches_script_exists</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_script_exists</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh exists and is executable.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="134" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="134" bodyend="142"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1ac56d6588543f3f495121583d599328ae" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_bash_scripts_no_syntax_errors</definition>
+        <argsstring>(script_file)</argsstring>
+        <name>test_bash_scripts_no_syntax_errors</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_bash_scripts_no_syntax_errors</qualifiedname>
+        <param>
+          <type>script_file</type>
+          <defname>script_file</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that bash scripts have no obvious syntax errors.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="371" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="371" bodyend="388"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1ae36e4a66c5bc70eb4e8efcbd0951b2c6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_script_has_shebang</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_script_has_shebang</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_script_has_shebang</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh has proper shebang.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="143" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="143" bodyend="148"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a2ce3e782200a2e35acb90920590db2d2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_script_has_set_e</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_script_has_set_e</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_script_has_set_e</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh uses set -e for error handling.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="149" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="149" bodyend="154"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a1ce6c6af130a85654e9f3c389119d9f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_script_structure</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_script_structure</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_script_structure</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test cleanup-branches.sh has expected sections.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="155" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="155" bodyend="166"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a2aaf94f7e43e445815f8620b58fe361b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_has_safety_checks</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_has_safety_checks</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_has_safety_checks</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh has safety checks.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="167" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="167" bodyend="177"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a71943c4e280a2c5c46be300e9c2cda7a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_git_commands</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_git_commands</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_git_commands</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh uses appropriate git commands.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="178" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="178" bodyend="187"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1abe7be41b767fa66f247692be62e07e09" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_color_codes</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_color_codes</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_color_codes</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh defines color codes for output.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="188" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="188" bodyend="196"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a294457dd1730b130cad2598382f9b0e7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_prune_option</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_prune_option</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_prune_option</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh uses --prune to clean up references.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="197" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="197" bodyend="203"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1adf185d95de8568afbe35d9e976c2c8fa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_handles_no_merged_branches</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_handles_no_merged_branches</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_handles_no_merged_branches</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh handles case when no branches are merged.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="204" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="204" bodyend="211"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1af1fc4279caefd783afb5cecfbf12ee7b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_documentation</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_documentation</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_documentation</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh has proper documentation.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="212" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="212" bodyend="220"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1aaa5a12f5d7a3b00fd27b7996642c60e7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_exists</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_exists</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_exists</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh exists and is executable.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="221" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="221" bodyend="228"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a0f8478011459ba2954c25cf256c8be5d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_has_shebang</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_has_shebang</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_has_shebang</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh has proper shebang.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="229" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="229" bodyend="234"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a2d37f884c45523ca640669536739c4b5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_error_handling</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_error_handling</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_error_handling</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh has error handling.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="235" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="235" bodyend="240"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a8cb47346a2109f8ae8c80bfd5637871b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_virtual_environment_check</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_virtual_environment_check</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_virtual_environment_check</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh checks for virtual environment.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="241" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="241" bodyend="248"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a8674b43568f1bd93911b6ec01ec30963" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_starts_backend</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_starts_backend</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_starts_backend</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh starts the backend server.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="249" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="249" bodyend="257"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a7433b29bce567340756a70ad01504212" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_starts_frontend</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_starts_frontend</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_starts_frontend</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh starts the frontend server.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="258" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="258" bodyend="265"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a9c702d6680e59bf78333bdef327fb34a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_port_configuration</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_port_configuration</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_port_configuration</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh uses correct ports.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="266" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="266" bodyend="274"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a410952f1fcb2af37e2d26133aaee9d13" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_has_signal_handling</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_has_signal_handling</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_has_signal_handling</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh handles interrupt signals.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="275" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="275" bodyend="283"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a3bac51ede21aaded3dd980062e81eab2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_installs_dependencies</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_installs_dependencies</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_installs_dependencies</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh installs Python dependencies.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="284" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="284" bodyend="291"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1af1f552ec29855e0abc5f420ffb5b97c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_frontend_dependencies</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_frontend_dependencies</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_frontend_dependencies</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh checks and installs frontend dependencies.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="292" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="292" bodyend="299"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a6229f2e743c0bda91546f1ba3d752227" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_informative_output</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_informative_output</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_informative_output</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh provides informative output.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="300" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="300" bodyend="308"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a3a65da12faa44f4d384b9e88cc6d2264" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_exists</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_bat_exists</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_exists</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.bat exists for Windows users.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="309" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="309" bodyend="312"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1aa08e56b2a781867d60ead3641abd0cd4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_structure</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_bat_structure</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_structure</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.bat has proper Windows batch structure.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="313" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="313" bodyend="318"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a03fd5aace6c04ad5aae1e1f115065df9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_virtual_environment</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_bat_virtual_environment</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_virtual_environment</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.bat handles virtual environment on Windows.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="319" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="319" bodyend="326"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a28091d3e15f67a9030acfa91decd2cc1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_starts_backend</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_bat_starts_backend</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_starts_backend</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.bat starts the backend server.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="327" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="327" bodyend="334"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a0f4f715f8590bba4e7e66a59b38eabdc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_starts_frontend</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_bat_starts_frontend</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_starts_frontend</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.bat starts the frontend server.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="335" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="335" bodyend="341"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a24b87da1c36c4a0455df338a1a8a2bf3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_port_configuration</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_bat_port_configuration</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_port_configuration</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.bat uses correct ports.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="342" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="342" bodyend="349"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1aec7273435d62a9d7002e52d0c0e1dcce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_windows_conventions</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_bat_windows_conventions</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_windows_conventions</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.bat follows Windows batch conventions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="350" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="350" bodyend="358"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1ac27a40995ccba4da520c9f73d816acb2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_pause_at_end</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_bat_pause_at_end</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_bat_pause_at_end</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.bat pauses at the end.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="359" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="359" bodyend="365"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1aab35a0c282c0ea0ce690544410f7e465" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_references_documentation</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_references_documentation</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_references_documentation</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh references relevant documentation.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="389" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="389" bodyend="396"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a75a5a5eedfce92d885d32a5f5417e37c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_shell_scripts_consistent_style</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_shell_scripts_consistent_style</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_shell_scripts_consistent_style</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that shell scripts use consistent coding style.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="397" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="397" bodyend="406"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a3bf42319d925e20328fce2640ddd9822" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_safe_defaults</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_safe_defaults</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_safe_defaults</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh uses safe defaults.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="407" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="407" bodyend="415"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1adf431231d9f072bd78c33b0070aa5a9e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_process_cleanup</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_process_cleanup</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_process_cleanup</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh cleans up processes on exit.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="416" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="416" bodyend="425"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a9c00ff6a78b92704afab0d689ad99cf2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_shell_scripts_have_comments</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_shell_scripts_have_comments</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_shell_scripts_have_comments</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that shell scripts have helpful comments.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="426" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="426" bodyend="436"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a66aafb594e5d6ab11ca8749a406757bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_scripts_activate_venv</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_scripts_activate_venv</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_scripts_activate_venv</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev scripts activate virtual environment.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="437" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="437" bodyend="447"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a167a81f4788d8f0b4395af2b8c9677b3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_waits_for_backend</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_waits_for_backend</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_waits_for_backend</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh waits for backend to start before starting frontend.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="448" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="448" bodyend="455"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a7f0f5f6f16c83ded9d114d5defc08f2b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_date_handling</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_date_handling</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_date_handling</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh handles dates for stale branch detection.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="456" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="456" bodyend="465"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1ad6d23fbed804dde8a001dd0804a754fc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_shell_scripts_error_messages</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_shell_scripts_error_messages</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_shell_scripts_error_messages</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that shell scripts provide helpful error messages.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="466" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="466" bodyend="475"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a1ea39f753ad17ee261f60fe414a5090d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_background_processes</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_run_dev_sh_background_processes</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_run_dev_sh_background_processes</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that run-dev.sh runs processes in background appropriately.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="476" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="476" bodyend="485"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a1d9a6827f1bd0f8ad1c05b88e5708dfb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_git_safety</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_cleanup_branches_git_safety</name>
+        <qualifiedname>tests.unit.test_dev_scripts.TestShellScripts.test_cleanup_branches_git_safety</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that cleanup-branches.sh uses safe git operations.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="486" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="486" bodyend="499"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test shell scripts for syntax, structure, and functionality.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_dev_scripts.TestShellScripts</label>
+        <link refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="130" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" bodystart="130" bodyend="499"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1ac56d6588543f3f495121583d599328ae" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_bash_scripts_no_syntax_errors</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1abe7be41b767fa66f247692be62e07e09" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_color_codes</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a7f0f5f6f16c83ded9d114d5defc08f2b" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_date_handling</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1af1fc4279caefd783afb5cecfbf12ee7b" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_documentation</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a71943c4e280a2c5c46be300e9c2cda7a" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_git_commands</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a1d9a6827f1bd0f8ad1c05b88e5708dfb" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_git_safety</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1adf185d95de8568afbe35d9e976c2c8fa" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_handles_no_merged_branches</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a2aaf94f7e43e445815f8620b58fe361b" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_has_safety_checks</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a294457dd1730b130cad2598382f9b0e7" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_prune_option</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1aab35a0c282c0ea0ce690544410f7e465" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_references_documentation</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a3bf42319d925e20328fce2640ddd9822" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_safe_defaults</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a55f01b7233fed677187abd9bbaa57bed" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_script_exists</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a2ce3e782200a2e35acb90920590db2d2" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_script_has_set_e</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1ae36e4a66c5bc70eb4e8efcbd0951b2c6" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_script_has_shebang</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a1ce6c6af130a85654e9f3c389119d9f0" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_cleanup_branches_script_structure</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a3a65da12faa44f4d384b9e88cc6d2264" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_bat_exists</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1ac27a40995ccba4da520c9f73d816acb2" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_bat_pause_at_end</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a24b87da1c36c4a0455df338a1a8a2bf3" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_bat_port_configuration</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a28091d3e15f67a9030acfa91decd2cc1" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_bat_starts_backend</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a0f4f715f8590bba4e7e66a59b38eabdc" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_bat_starts_frontend</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1aa08e56b2a781867d60ead3641abd0cd4" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_bat_structure</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a03fd5aace6c04ad5aae1e1f115065df9" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_bat_virtual_environment</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1aec7273435d62a9d7002e52d0c0e1dcce" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_bat_windows_conventions</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a66aafb594e5d6ab11ca8749a406757bf" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_scripts_activate_venv</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a1ea39f753ad17ee261f60fe414a5090d" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_background_processes</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a2d37f884c45523ca640669536739c4b5" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_error_handling</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1aaa5a12f5d7a3b00fd27b7996642c60e7" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_exists</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1af1f552ec29855e0abc5f420ffb5b97c8" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_frontend_dependencies</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a0f8478011459ba2954c25cf256c8be5d" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_has_shebang</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a410952f1fcb2af37e2d26133aaee9d13" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_has_signal_handling</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a6229f2e743c0bda91546f1ba3d752227" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_informative_output</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a3bac51ede21aaded3dd980062e81eab2" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_installs_dependencies</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a9c702d6680e59bf78333bdef327fb34a" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_port_configuration</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1adf431231d9f072bd78c33b0070aa5a9e" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_process_cleanup</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a8674b43568f1bd93911b6ec01ec30963" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_starts_backend</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a7433b29bce567340756a70ad01504212" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_starts_frontend</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a8cb47346a2109f8ae8c80bfd5637871b" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_virtual_environment_check</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a167a81f4788d8f0b4395af2b8c9677b3" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_run_dev_sh_waits_for_backend</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a75a5a5eedfce92d885d32a5f5417e37c" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_shell_scripts_consistent_style</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1ad6d23fbed804dde8a001dd0804a754fc" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_shell_scripts_error_messages</name></member>
+      <member refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts_1a9c00ff6a78b92704afab0d689ad99cf2" prot="public" virt="non-virtual"><scope>tests::unit::test_dev_scripts::TestShellScripts</scope><name>test_shell_scripts_have_comments</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowTriggers" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowTriggers</compoundname>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowTriggers_1ab938f34930392e2053ed6b822079c6c1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowTriggers.test_workflow_triggers_are_valid_types</definition>
+        <argsstring>(Path workflow_file)</argsstring>
+        <name>test_workflow_triggers_are_valid_types</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowTriggers.test_workflow_triggers_are_valid_types</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Validate that the workflow&apos;s triggers are recognised GitHub event types.
+
+Accepts workflows where `on` is expressed as a string, a list, or a mapping and fails the test if any trigger event is not in the known set of GitHub event names.
+
+Parameters:
+    workflow_file (Path): Path to the workflow YAML file under test.
+
+Raises:
+    AssertionError: If an unrecognised event type is found in the workflow&apos;s `on` configuration.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1911" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1911" bodyend="1969"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowTriggers_1ac35e107b96bdcff0c1913fedd3e95693" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowTriggers.test_workflow_pr_triggers_specify_types</definition>
+        <argsstring>(Path workflow_file)</argsstring>
+        <name>test_workflow_pr_triggers_specify_types</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowTriggers.test_workflow_pr_triggers_specify_types</qualifiedname>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that pull_request triggers specify activity types.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1972" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1972" bodyend="1987"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowTriggers_1a0f678937965c711ba63fef670db78407" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowTriggers.test_final_report_exists</definition>
+        <argsstring>()</argsstring>
+        <name>test_final_report_exists</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowTriggers.test_final_report_exists</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that the final test generation report exists.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1989" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1989" bodyend="1997"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Comprehensive tests for workflow trigger configurations.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowTriggers</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowTriggers"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="1906" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="1906" bodyend="1997"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowTriggers_1a0f678937965c711ba63fef670db78407" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowTriggers</scope><name>test_final_report_exists</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowTriggers_1ac35e107b96bdcff0c1913fedd3e95693" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowTriggers</scope><name>test_workflow_pr_triggers_specify_types</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowTriggers_1ab938f34930392e2053ed6b822079c6c1" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowTriggers</scope><name>test_workflow_triggers_are_valid_types</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

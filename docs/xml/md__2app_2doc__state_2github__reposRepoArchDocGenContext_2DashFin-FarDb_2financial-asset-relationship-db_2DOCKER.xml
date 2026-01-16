@@ -1,0 +1,265 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER" kind="page">
+    <compoundname>md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER</compoundname>
+    <title>Docker Deployment Guide</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1258"/></para>
+<para>This guide explains how to run the Financial Asset Relationship Database using Docker and Docker Compose.</para>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1259">
+<title>Quick Start</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1260">
+<title>Using Docker Compose (Recommended)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Build<sp/>and<sp/>start<sp/>the<sp/>application</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>--build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Access<sp/>the<sp/>application<sp/>at<sp/>http://localhost:7860</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1261">
+<title>Using Docker Directly</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Build<sp/>the<sp/>image</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>build<sp/>-t<sp/>financial-asset-db<sp/>.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>container</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>run<sp/>-p<sp/>7860:7860<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Access<sp/>the<sp/>application<sp/>at<sp/>http://localhost:7860</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1262">
+<title>Docker Compose Options</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1263">
+<title>Development Mode</title><para>Mount your source code for live development:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>The<sp/>docker-compose.yml<sp/>already<sp/>includes<sp/>volume<sp/>mounts</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up</highlight></codeline>
+</programlisting></para>
+<para>Changes to <computeroutput>src/</computeroutput> will be reflected immediately (may require app restart).</para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1264">
+<title>Production Mode</title><para>Build and run in detached mode:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Build<sp/>and<sp/>start<sp/>in<sp/>background</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>-d<sp/>--build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>logs<sp/>-f</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Stop<sp/>the<sp/>application</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>down</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1265">
+<title>With Database (PostgreSQL)</title><para>Uncomment the <computeroutput>postgres</computeroutput> service in <computeroutput>docker-compose.yml</computeroutput>:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Start<sp/>with<sp/>database</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>-d</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>The<sp/>database<sp/>will<sp/>be<sp/>available<sp/>at:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Host:<sp/>localhost</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Port:<sp/>5432</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Database:<sp/>financial_assets</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>User:<sp/>finuser</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Password:<sp/>changeme</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1266">
+<title>Environment Variables</title><para>Configure the application using environment variables in <computeroutput>docker-compose.yml</computeroutput>:</para>
+<para><programlisting filename=".yaml"><codeline><highlight class="normal">environment:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>GRADIO_SERVER_NAME=0.0.0.0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>GRADIO_SERVER_PORT=7860</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>DATABASE_URL=postgresql://finuser:changeme@postgres:5432/financial_assets</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1267">
+<title>Docker Commands</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1268">
+<title>Build</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Build<sp/>the<sp/>Docker<sp/>image</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>build<sp/>-t<sp/>financial-asset-db<sp/>.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>with<sp/>no<sp/>cache</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>build<sp/>--no-cache<sp/>-t<sp/>financial-asset-db<sp/>.</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1269">
+<title>Run</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Run<sp/>container</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>run<sp/>-p<sp/>7860:7860<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>in<sp/>background</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>run<sp/>-d<sp/>-p<sp/>7860:7860<sp/>--name<sp/>financial-asset-db<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>with<sp/>environment<sp/>variables</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>run<sp/>-p<sp/>7860:7860<sp/>-e<sp/>GRADIO_SERVER_NAME=0.0.0.0<sp/>financial-asset-db</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1270">
+<title>Manage</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>List<sp/>running<sp/>containers</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>ps</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>logs<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Follow<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>logs<sp/>-f<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Stop<sp/>container</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>stop<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Remove<sp/>container</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>rm<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Remove<sp/>image</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>rmi<sp/>financial-asset-db</highlight></codeline>
+</programlisting></para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1271">
+<title>Docker Compose Commands</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Start<sp/>services</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Start<sp/>in<sp/>background</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>-d</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Stop<sp/>services</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>down</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Stop<sp/>and<sp/>remove<sp/>volumes</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>down<sp/>-v</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>logs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Follow<sp/>logs<sp/>for<sp/>specific<sp/>service</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>logs<sp/>-f<sp/>app</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Rebuild<sp/>images</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Rebuild<sp/>and<sp/>start</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>--build</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Scale<sp/>services<sp/>(if<sp/>needed)</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>up<sp/>--scale<sp/>app=3</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1272">
+<title>Health Checks</title><para>The application includes health checks:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Check<sp/>container<sp/>health</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>inspect<sp/>--format=&apos;{{.State.Health.Status}}&apos;<sp/>financial-asset-db</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>View<sp/>health<sp/>check<sp/>logs</highlight></codeline>
+<codeline><highlight class="normal">docker<sp/>inspect<sp/>--format=&apos;{{range<sp/>.State.Health.Log}}{{.Output}}{{end}}&apos;<sp/>financial-asset-db</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1273">
+<title>Troubleshooting</title><sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1274">
+<title>Container Won&apos;t Start</title><para>Check logs:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">docker-compose<sp/>logs<sp/>app</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1275">
+<title>Port Already in Use</title><para>Change the port mapping in <computeroutput>docker-compose.yml</computeroutput>:</para>
+<para><programlisting filename=".yaml"><codeline><highlight class="normal">ports:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>&quot;8080:7860&quot;<sp/>#<sp/>Use<sp/>port<sp/>8080<sp/>instead</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1276">
+<title>Permission Issues</title><para>Ensure the non-root user has permissions:</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Rebuild<sp/>with<sp/>proper<sp/>permissions</highlight></codeline>
+<codeline><highlight class="normal">docker-compose<sp/>build<sp/>--no-cache</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1277">
+<title>Database Connection Issues</title><para>If using PostgreSQL:</para>
+<para><orderedlist>
+<listitem><para>Ensure the database service is running: <computeroutput>docker-compose ps</computeroutput></para>
+</listitem><listitem><para>Check database logs: <computeroutput>docker-compose logs postgres</computeroutput></para>
+</listitem><listitem><para>Verify connection string in environment variables</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1278">
+<title>Best Practices</title><para><orderedlist>
+<listitem><para><bold>Security</bold><itemizedlist>
+<listitem><para>The Dockerfile uses a non-root user (appuser)</para>
+</listitem><listitem><para>Change default database passwords in production</para>
+</listitem><listitem><para>Use secrets management for sensitive data</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Performance</bold><itemizedlist>
+<listitem><para>Use <computeroutput>.dockerignore</computeroutput> to exclude unnecessary files</para>
+</listitem><listitem><para>Leverage Docker layer caching</para>
+</listitem><listitem><para>Use multi-stage builds for smaller images (optional)</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Development</bold><itemizedlist>
+<listitem><para>Mount source code volumes for live development</para>
+</listitem><listitem><para>Use <computeroutput>docker-compose</computeroutput> for easier management</para>
+</listitem><listitem><para>Keep development and production configs separate</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Production</bold><itemizedlist>
+<listitem><para>Use specific image tags (not <computeroutput>latest</computeroutput>)</para>
+</listitem><listitem><para>Set resource limits (CPU, memory)</para>
+</listitem><listitem><para>Configure proper logging and monitoring</para>
+</listitem><listitem><para>Use health checks for auto-recovery</para>
+</listitem></itemizedlist>
+</para>
+</listitem></orderedlist>
+</para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1279">
+<title>Multi-Stage Build (Advanced)</title><para>For smaller production images, create a multi-stage Dockerfile:</para>
+<para><programlisting filename=".dockerfile"><codeline><highlight class="preprocessor">#<sp/>Build<sp/>stage</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">FROM<sp/>python:3.11-slim<sp/>as<sp/>builder</highlight></codeline>
+<codeline><highlight class="normal">WORKDIR<sp/>/<ref refid="namespaceapp" kindref="compound">app</ref></highlight></codeline>
+<codeline><highlight class="normal">COPY<sp/>requirements.txt<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">RUN<sp/>pip<sp/>install<sp/>--user<sp/>--no-cache-dir<sp/>-r<sp/>requirements.txt</highlight></codeline>
+<codeline><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>Runtime<sp/>stage</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">FROM<sp/>python:3.11-slim</highlight></codeline>
+<codeline><highlight class="normal">WORKDIR<sp/>/<ref refid="namespaceapp" kindref="compound">app</ref></highlight></codeline>
+<codeline><highlight class="normal">COPY<sp/>--from=builder<sp/>/<ref refid="namespaceapi_1_1main_1a0310b837dae9253adee650f5978e92ea" kindref="member">root</ref>/.local<sp/>/<ref refid="namespaceapi_1_1main_1a0310b837dae9253adee650f5978e92ea" kindref="member">root</ref>/.local</highlight></codeline>
+<codeline><highlight class="normal">COPY<sp/>.<sp/>.</highlight></codeline>
+<codeline><highlight class="normal">ENV<sp/>PATH=/<ref refid="namespaceapi_1_1main_1a0310b837dae9253adee650f5978e92ea" kindref="member">root</ref>/.local/bin:$PATH</highlight></codeline>
+<codeline><highlight class="normal">CMD<sp/>[</highlight><highlight class="stringliteral">&quot;python&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;app.py&quot;</highlight><highlight class="normal">]</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1280">
+<title>Kubernetes Deployment (Optional)</title><para>For Kubernetes deployment, create manifests:</para>
+<para><programlisting filename=".yaml"><codeline><highlight class="normal">#<sp/>deployment.yaml</highlight></codeline>
+<codeline><highlight class="normal">apiVersion:<sp/>apps/v1</highlight></codeline>
+<codeline><highlight class="normal">kind:<sp/>Deployment</highlight></codeline>
+<codeline><highlight class="normal">metadata:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>name:<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal">spec:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>replicas:<sp/>3</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>selector:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>matchLabels:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>app:<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>template:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>metadata:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>labels:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>app:<sp/>financial-asset-db</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>spec:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>containers:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>app</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>image:<sp/>financial-asset-db:latest</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ports:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>containerPort:<sp/>7860</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>env:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>name:<sp/>GRADIO_SERVER_NAME</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>value:<sp/>&quot;0.0.0.0&quot;</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__2app_2doc__state_2github__reposRepoArchDocGenContext_2DashFin-FarDb_2financial-asset-relationship-db_2DOCKER_1autotoc_md1281">
+<title>Resources</title><para><itemizedlist>
+<listitem><para><ulink url="https://docs.docker.com/">Docker Documentation</ulink></para>
+</listitem><listitem><para><ulink url="https://docs.docker.com/compose/">Docker Compose Documentation</ulink></para>
+</listitem><listitem><para><ulink url="https://docs.docker.com/develop/dev-best-practices/">Best Practices</ulink></para>
+</listitem><listitem><para><ulink url="https://gradio.app/docs/">Gradio Docker Guide</ulink> </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/DOCKER.md"/>
+  </compounddef>
+</doxygen>

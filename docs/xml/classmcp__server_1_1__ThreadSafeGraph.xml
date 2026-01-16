@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classmcp__server_1_1__ThreadSafeGraph" kind="class" language="Python" prot="protected">
+    <compoundname>mcp_server::_ThreadSafeGraph</compoundname>
+    <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classmcp__server_1_1__ThreadSafeGraph_1a3cc621a189d30cca4bd25825ebfb3fd3" prot="protected" static="no" mutable="no">
+        <type></type>
+        <definition>mcp_server._ThreadSafeGraph::_graph</definition>
+        <argsstring></argsstring>
+        <name>_graph</name>
+        <qualifiedname>mcp_server._ThreadSafeGraph._graph</qualifiedname>
+        <initializer>=  graph_obj</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" line="17" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" bodystart="17" bodyend="-1"/>
+        <referencedby refid="classmcp__server_1_1__ThreadSafeGraph_1a1d3e9d8180ebe2babe95ffa87d73d908" compoundref="mcp__server_8py" startline="20" endline="39">mcp_server._ThreadSafeGraph.__getattr__</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="classmcp__server_1_1__ThreadSafeGraph_1a8b0e53bc3aa0a2527903de08fe165193" prot="protected" static="no" mutable="no">
+        <type></type>
+        <definition>mcp_server._ThreadSafeGraph::_lock</definition>
+        <argsstring></argsstring>
+        <name>_lock</name>
+        <qualifiedname>mcp_server._ThreadSafeGraph._lock</qualifiedname>
+        <initializer>=  lock</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" line="18" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" bodystart="18" bodyend="-1"/>
+        <referencedby refid="classmcp__server_1_1__ThreadSafeGraph_1a1d3e9d8180ebe2babe95ffa87d73d908" compoundref="mcp__server_8py" startline="20" endline="39">mcp_server._ThreadSafeGraph.__getattr__</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classmcp__server_1_1__ThreadSafeGraph_1af558862fe19c2f97bf1c061c5c14120d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>mcp_server._ThreadSafeGraph.__init__</definition>
+        <argsstring>(self, AssetRelationshipGraph graph_obj, threading.Lock lock)</argsstring>
+        <name>__init__</name>
+        <qualifiedname>mcp_server._ThreadSafeGraph.__init__</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type><ref refid="classAssetRelationshipGraph" kindref="compound">AssetRelationshipGraph</ref></type>
+          <declname>graph_obj</declname>
+        </param>
+        <param>
+          <type>threading.Lock</type>
+          <declname>lock</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" line="16" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" bodystart="16" bodyend="19"/>
+      </memberdef>
+      <memberdef kind="function" id="classmcp__server_1_1__ThreadSafeGraph_1a1d3e9d8180ebe2babe95ffa87d73d908" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>mcp_server._ThreadSafeGraph.__getattr__</definition>
+        <argsstring>(self, str name)</argsstring>
+        <name>__getattr__</name>
+        <qualifiedname>mcp_server._ThreadSafeGraph.__getattr__</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" line="20" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" bodystart="20" bodyend="39"/>
+        <references refid="classmcp__server_1_1__ThreadSafeGraph_1a3cc621a189d30cca4bd25825ebfb3fd3" compoundref="mcp__server_8py" startline="17">mcp_server._ThreadSafeGraph._graph</references>
+        <references refid="classmcp__server_1_1__ThreadSafeGraph_1a8b0e53bc3aa0a2527903de08fe165193" compoundref="mcp__server_8py" startline="18">mcp_server._ThreadSafeGraph._lock</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Proxy that serializes all access to the underlying graph via a lock.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>mcp_server._ThreadSafeGraph</label>
+        <link refid="classmcp__server_1_1__ThreadSafeGraph"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" line="13" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/mcp_server.py" bodystart="13" bodyend="39"/>
+    <listofallmembers>
+      <member refid="classmcp__server_1_1__ThreadSafeGraph_1a1d3e9d8180ebe2babe95ffa87d73d908" prot="public" virt="non-virtual"><scope>mcp_server::_ThreadSafeGraph</scope><name>__getattr__</name></member>
+      <member refid="classmcp__server_1_1__ThreadSafeGraph_1af558862fe19c2f97bf1c061c5c14120d" prot="public" virt="non-virtual"><scope>mcp_server::_ThreadSafeGraph</scope><name>__init__</name></member>
+      <member refid="classmcp__server_1_1__ThreadSafeGraph_1a3cc621a189d30cca4bd25825ebfb3fd3" prot="protected" virt="non-virtual"><scope>mcp_server::_ThreadSafeGraph</scope><name>_graph</name></member>
+      <member refid="classmcp__server_1_1__ThreadSafeGraph_1a8b0e53bc3aa0a2527903de08fe165193" prot="protected" virt="non-virtual"><scope>mcp_server::_ThreadSafeGraph</scope><name>_lock</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

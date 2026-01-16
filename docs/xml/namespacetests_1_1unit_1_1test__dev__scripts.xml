@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetests_1_1unit_1_1test__dev__scripts" kind="namespace" language="Python">
+    <compoundname>tests::unit::test_dev_scripts</compoundname>
+    <innerclass refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestDocumentationFiles" prot="public">tests::unit::test_dev_scripts::TestDocumentationFiles</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestEnvironmentConfiguration" prot="public">tests::unit::test_dev_scripts::TestEnvironmentConfiguration</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestGitIgnore" prot="public">tests::unit::test_dev_scripts::TestGitIgnore</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestShellScripts" prot="public">tests::unit::test_dev_scripts::TestShellScripts</innerclass>
+    <innerclass refid="classtests_1_1unit_1_1test__dev__scripts_1_1TestVercelConfiguration" prot="public">tests::unit::test_dev_scripts::TestVercelConfiguration</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for development scripts and configuration files.
+
+This module validates:
+- Shell script syntax and structure
+- Environment configuration
+- Vercel deployment configuration
+</verbatim> </para>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_dev_scripts.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

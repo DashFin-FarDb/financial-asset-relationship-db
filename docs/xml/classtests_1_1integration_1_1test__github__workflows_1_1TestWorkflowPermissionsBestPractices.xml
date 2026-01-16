@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPermissionsBestPractices" kind="class" language="Python" prot="public">
+    <compoundname>tests::integration::test_github_workflows::TestWorkflowPermissionsBestPractices</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPermissionsBestPractices_1af8706218b28023b67be6b4faf351412f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowPermissionsBestPractices.test_permissions_follow_least_privilege</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_permissions_follow_least_privilege</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowPermissionsBestPractices.test_permissions_follow_least_privilege</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that workflows request minimal permissions.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2617" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2617" bodyend="2632"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPermissionsBestPractices_1a7f3bedce94f9c2c334216f0da9e37bd9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.integration.test_github_workflows.TestWorkflowPermissionsBestPractices.test_write_permissions_have_justification</definition>
+        <argsstring>(self, Path workflow_file)</argsstring>
+        <name>test_write_permissions_have_justification</name>
+        <qualifiedname>tests.integration.test_github_workflows.TestWorkflowPermissionsBestPractices.test_write_permissions_have_justification</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>workflow_file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that write permissions are used appropriately.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2634" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2634" bodyend="2656"/>
+        <references refid="namespacetests_1_1integration_1_1test__github__workflows_1a9eaeaa779a8f9eb94fbf9a17f24735df" compoundref="test__github__workflows_8py" startline="65" endline="81">tests.integration.test_github_workflows.load_yaml_safe</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Tests for proper permissions configuration.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.integration.test_github_workflows.TestWorkflowPermissionsBestPractices</label>
+        <link refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPermissionsBestPractices"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" line="2613" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/integration/test_github_workflows.py" bodystart="2613" bodyend="2656"/>
+    <listofallmembers>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPermissionsBestPractices_1af8706218b28023b67be6b4faf351412f" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowPermissionsBestPractices</scope><name>test_permissions_follow_least_privilege</name></member>
+      <member refid="classtests_1_1integration_1_1test__github__workflows_1_1TestWorkflowPermissionsBestPractices_1a7f3bedce94f9c2c334216f0da9e37bd9" prot="public" virt="non-virtual"><scope>tests::integration::test_github_workflows::TestWorkflowPermissionsBestPractices</scope><name>test_write_permissions_have_justification</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

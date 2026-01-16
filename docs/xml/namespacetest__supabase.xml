@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespacetest__supabase" kind="namespace" language="Python">
+    <compoundname>test_supabase</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetest__supabase_1aac3977cfec7eccb30a557281a3de99d0" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_supabase.level</definition>
+        <argsstring></argsstring>
+        <name>level</name>
+        <qualifiedname>test_supabase.level</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" line="9" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetest__supabase_1a17d1873bc8175abba6074cd4c7161e9b" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_supabase.INFO</definition>
+        <argsstring></argsstring>
+        <name>INFO</name>
+        <qualifiedname>test_supabase.INFO</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" line="9" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetest__supabase_1a085a1ae39c6288e913911f0dce140ac3" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_supabase.format</definition>
+        <argsstring></argsstring>
+        <name>format</name>
+        <qualifiedname>test_supabase.format</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" line="9" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetest__supabase_1a27db893b93d98a7858f3798668f5614b" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_supabase.logger</definition>
+        <argsstring></argsstring>
+        <name>logger</name>
+        <qualifiedname>test_supabase.logger</qualifiedname>
+        <initializer>=  logging.getLogger(__name__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" line="11" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" bodystart="11" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetest__supabase_1a8b8d5084e3a05acf060096286d921ae4" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>test_supabase.success</definition>
+        <argsstring></argsstring>
+        <name>success</name>
+        <qualifiedname>test_supabase.success</qualifiedname>
+        <initializer>=  <ref refid="namespacetest__supabase_1aaed34e0eae31c75d980aceb09c91faae" kindref="member">test_supabase_connection</ref>()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" line="54" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" bodystart="54" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetest__supabase_1aaed34e0eae31c75d980aceb09c91faae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>test_supabase.test_supabase_connection</definition>
+        <argsstring>()</argsstring>
+        <name>test_supabase_connection</name>
+        <qualifiedname>test_supabase.test_supabase_connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test connection to Supabase database</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" line="14" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" bodystart="14" bodyend="51"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/test_supabase.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

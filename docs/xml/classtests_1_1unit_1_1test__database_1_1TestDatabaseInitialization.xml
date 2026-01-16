@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="classtests_1_1unit_1_1test__database_1_1TestDatabaseInitialization" kind="class" language="Python" prot="public">
+    <compoundname>tests::unit::test_database::TestDatabaseInitialization</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestDatabaseInitialization_1a08f5ddaabb28320f6c6ec5a03d5191bc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestDatabaseInitialization.test_init_db_creates_tables</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_init_db_creates_tables</name>
+        <qualifiedname>tests.unit.test_database.TestDatabaseInitialization.test_init_db_creates_tables</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that init_db creates all tables.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="122" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="122" bodyend="136"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestDatabaseInitialization_1a60d11be2122eb9a08f9b44f6565b3201" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestDatabaseInitialization.test_init_db_is_idempotent</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_init_db_is_idempotent</name>
+        <qualifiedname>tests.unit.test_database.TestDatabaseInitialization.test_init_db_is_idempotent</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that init_db can be called multiple times safely.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="137" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="137" bodyend="151"/>
+      </memberdef>
+      <memberdef kind="function" id="classtests_1_1unit_1_1test__database_1_1TestDatabaseInitialization_1ad960ce6fa100e1b47836d06e8736ab90" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tests.unit.test_database.TestDatabaseInitialization.test_init_db_with_existing_data</definition>
+        <argsstring>(self)</argsstring>
+        <name>test_init_db_with_existing_data</name>
+        <qualifiedname>tests.unit.test_database.TestDatabaseInitialization.test_init_db_with_existing_data</qualifiedname>
+        <param>
+          <type>self</type>
+          <defname>self</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Test that init_db preserves existing data.</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="152" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="152" bodyend="178"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Test cases for database initialization.</verbatim> </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>tests.unit.test_database.TestDatabaseInitialization</label>
+        <link refid="classtests_1_1unit_1_1test__database_1_1TestDatabaseInitialization"/>
+      </node>
+    </collaborationgraph>
+    <location file="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" line="119" column="1" bodyfile="/app/doc_state/github_reposRepoArchDocGenContext/DashFin-FarDb/financial-asset-relationship-db/tests/unit/test_database.py" bodystart="119" bodyend="178"/>
+    <listofallmembers>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestDatabaseInitialization_1a08f5ddaabb28320f6c6ec5a03d5191bc" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestDatabaseInitialization</scope><name>test_init_db_creates_tables</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestDatabaseInitialization_1a60d11be2122eb9a08f9b44f6565b3201" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestDatabaseInitialization</scope><name>test_init_db_is_idempotent</name></member>
+      <member refid="classtests_1_1unit_1_1test__database_1_1TestDatabaseInitialization_1ad960ce6fa100e1b47836d06e8736ab90" prot="public" virt="non-virtual"><scope>tests::unit::test_database::TestDatabaseInitialization</scope><name>test_init_db_with_existing_data</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

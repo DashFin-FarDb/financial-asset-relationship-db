@@ -1,0 +1,63 @@
+\doxysection{tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+YAMLValidity Class Reference}
+\hypertarget{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity}{}\label{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity}\index{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity}}
+
+
+Collaboration diagram for tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+YAMLValidity\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=243pt]{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_a1747d47317bb89fd9febd538657882b2}{test\+\_\+all\+\_\+workflows\+\_\+valid\+\_\+yaml}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_a44fd30c22f0a9a85a43b4759ddf3eb37}{test\+\_\+workflows\+\_\+have\+\_\+required\+\_\+fields}} ()
+\item 
+\mbox{\hyperlink{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_a54cae38d0c7d8185ffa12668f458da99}{test\+\_\+workflow\+\_\+jobs\+\_\+have\+\_\+runs\+\_\+on}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test YAML validity and formatting of workflows.\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_a1747d47317bb89fd9febd538657882b2}\index{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity}!test\_all\_workflows\_valid\_yaml@{test\_all\_workflows\_valid\_yaml}}
+\index{test\_all\_workflows\_valid\_yaml@{test\_all\_workflows\_valid\_yaml}!tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity}}
+\doxysubsubsection{\texorpdfstring{test\_all\_workflows\_valid\_yaml()}{test\_all\_workflows\_valid\_yaml()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_a1747d47317bb89fd9febd538657882b2} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+YAMLValidity.\+test\+\_\+all\+\_\+workflows\+\_\+valid\+\_\+yaml (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Check each YAML workflow in .github/workflows for valid syntax.
+
+Fails the test if any file under .github/workflows with a .yml extension contains invalid YAML.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_a54cae38d0c7d8185ffa12668f458da99}\index{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity}!test\_workflow\_jobs\_have\_runs\_on@{test\_workflow\_jobs\_have\_runs\_on}}
+\index{test\_workflow\_jobs\_have\_runs\_on@{test\_workflow\_jobs\_have\_runs\_on}!tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity}}
+\doxysubsubsection{\texorpdfstring{test\_workflow\_jobs\_have\_runs\_on()}{test\_workflow\_jobs\_have\_runs\_on()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_a54cae38d0c7d8185ffa12668f458da99} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+YAMLValidity.\+test\+\_\+workflow\+\_\+jobs\+\_\+have\+\_\+runs\+\_\+on (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Ensure every job in every GitHub Actions workflow specifies its runner with the 'runs-on' key.
+
+If a job is missing 'runs-on', the test fails with an assertion identifying the job name and workflow filename.
+\end{DoxyVerb}
+ \Hypertarget{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_a44fd30c22f0a9a85a43b4759ddf3eb37}\index{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity}!test\_workflows\_have\_required\_fields@{test\_workflows\_have\_required\_fields}}
+\index{test\_workflows\_have\_required\_fields@{test\_workflows\_have\_required\_fields}!tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity@{tests.integration.test\_workflow\_changes\_validation.TestWorkflowYAMLValidity}}
+\doxysubsubsection{\texorpdfstring{test\_workflows\_have\_required\_fields()}{test\_workflows\_have\_required\_fields()}}
+{\footnotesize\ttfamily \label{classtests_1_1integration_1_1test__workflow__changes__validation_1_1TestWorkflowYAMLValidity_a44fd30c22f0a9a85a43b4759ddf3eb37} 
+tests.\+integration.\+test\+\_\+workflow\+\_\+changes\+\_\+validation.\+Test\+Workflow\+YAMLValidity.\+test\+\_\+workflows\+\_\+have\+\_\+required\+\_\+fields (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\begin{DoxyVerb}Ensure every workflow in .github/workflows defines top-level 'name', 'on', and 'jobs' keys.
+
+Asserts that each .yml file contains 'name', 'on', and 'jobs'; a failing assertion includes the workflow filename and the missing key.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/app/doc\+\_\+state/github\+\_\+repos\+Repo\+Arch\+Doc\+Gen\+Context/\+Dash\+Fin-\/\+Far\+Db/financial-\/asset-\/relationship-\/db/tests/integration/\mbox{\hyperlink{test__workflow__changes__validation_8py}{test\+\_\+workflow\+\_\+changes\+\_\+validation.\+py}}\end{DoxyCompactItemize}
