@@ -439,7 +439,21 @@ class FormulaicdAnalyzer:
                 ),
             ],
         }
+                    """Calculate empirical relationships from the asset graph."""
+                    asset_data = self._extract_asset_data(graph)
+                    correlation_matrix = self._calculate_correlation_matrix(asset_data)
+                    strongest_correlations = self._find_strongest_correlations(
+                        correlation_matrix, asset_data
+                    )
+                    sector_stats = self._calculate_sector_relationships(graph)
+                    class_stats = self._calculate_asset_class_relationships(graph)
 
+                    return {
+                        "correlation_matrix": correlation_matrix,
+                        "strongest_correlations": strongest_correlations,
+                        "sector_relationships": sector_stats,
+                        "asset_class_relationships": class_stats,
+                    }
     @staticmethod
     def _calculate_avg_correlation_strength_from_empirical(
         empirical_relationships: Dict,
