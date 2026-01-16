@@ -48,8 +48,8 @@ class AssetGraphRepository:
     # Asset helpers
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
-        """Create or update an asset record."""
 
+        """Create or update an asset record."""
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)
@@ -65,14 +65,14 @@ class AssetGraphRepository:
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
-        """Return mapping of asset id to asset dataclass."""
 
+        """Return a mapping of asset id to asset dataclass."""
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
     def delete_asset(self, asset_id: str) -> None:
-        """Delete an asset and cascading relationships/events."""
 
+        """Delete an asset and its cascading relationships."""
         asset = self.session.get(AssetORM, asset_id)
         if asset is not None:
             self.session.delete(asset)
@@ -89,8 +89,8 @@ class AssetGraphRepository:
         *,
         bidirectional: bool,
     ) -> None:
-        """Insert or update a relationship between two assets."""
 
+        """Insert or update a relationship between two assets."""
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -111,8 +111,8 @@ class AssetGraphRepository:
         self.session.add(existing)
 
     def list_relationships(self) -> List[RelationshipRecord]:
-        """Return all relationships from the database."""
 
+        """Return all relationships from the database."""
         result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
             RelationshipRecord(
@@ -128,8 +128,8 @@ class AssetGraphRepository:
     def get_relationship(
         self, source_id: str, target_id: str, rel_type: str
     ) -> Optional[RelationshipRecord]:
-        """Fetch a single relationship if it exists."""
 
+        """Fetch a single relationship based on source, target, and type."""
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -149,8 +149,8 @@ class AssetGraphRepository:
     def delete_relationship(
         self, source_id: str, target_id: str, rel_type: str
     ) -> None:
-        """Remove a relationship."""
 
+        """Remove a relationship between two assets."""
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -164,8 +164,8 @@ class AssetGraphRepository:
     # Regulatory events
     # ------------------------------------------------------------------
     def upsert_regulatory_event(self, event: RegulatoryEvent) -> None:
-        """Create or update a regulatory event record."""
 
+        """Create or update a regulatory event record."""
         existing = self.session.get(RegulatoryEventORM, event.id)
         if existing is None:
             existing = RegulatoryEventORM(id=event.id)
@@ -182,14 +182,14 @@ class AssetGraphRepository:
         self.session.add(existing)
 
     def list_regulatory_events(self) -> List[RegulatoryEvent]:
-        """Return all regulatory events."""
 
+        """Return all regulatory events."""
         result = self.session.execute(select(RegulatoryEventORM)).scalars().all()
         return [self._to_regulatory_event_model(record) for record in result]
 
     def delete_regulatory_event(self, event_id: str) -> None:
-        """Delete a regulatory event."""
 
+        """Delete a regulatory event by its ID."""
         record = self.session.get(RegulatoryEventORM, event_id)
         if record is not None:
             self.session.delete(record)
@@ -199,6 +199,7 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     @staticmethod
     def _update_asset_orm(orm: AssetORM, asset: Asset) -> None:
+        """Updates the AssetORM instance with values from the Asset instance."""
         orm.symbol = asset.symbol
         orm.name = asset.name
         orm.asset_class = asset.asset_class.value
@@ -231,6 +232,14 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_asset_model(orm: AssetORM) -> Asset:
+        """Converts an AssetORM instance to an Asset model.
+        
+        This static method takes an AssetORM object and constructs an Asset  model
+        based on the asset class. It initializes common attributes  from the ORM and
+        conditionally adds specific attributes for  different asset types such as
+        Equity, Bond, Commodity, and Currency.  If the asset class does not match any
+        predefined types, a generic  Asset is returned.
+        """
         asset_class = AssetClass(orm.asset_class)
         base_kwargs = {
             "id": orm.id,
@@ -278,6 +287,7 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
+        """Converts a RegulatoryEventORM instance to a RegulatoryEvent model."""
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(
             id=orm.id,
