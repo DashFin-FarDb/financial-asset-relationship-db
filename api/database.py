@@ -114,6 +114,8 @@ def _is_memory_db(path: str | None = None) -> bool:
         parsed.path == ":memory:" or ":memory:" in parsed.query
     ):
         return True
+
+
 if parsed.scheme == "file" and (":memory:" in parsed.path or ":memory:" in parsed.query):
 
 
