@@ -30,6 +30,8 @@ jobs:
       pull-requests: write # for checkmarx-ts/checkmarx-cxflow-github-action to write feedback to PR
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    # Only run this job for push/schedule events or PRs from the same repository (not from forks)
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
 
     # Steps require - checkout code, run CxFlow Action, Upload SARIF report (optional)
