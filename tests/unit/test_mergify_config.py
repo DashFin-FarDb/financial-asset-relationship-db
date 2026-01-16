@@ -90,6 +90,11 @@ class TestMergifyConfiguration:
         for rule in tshirt_rules:
             actions = rule.get("actions", {})
             label_action = actions["label"]
+            label_action = actions.get("label")
+            assert isinstance(label_action, dict), (
+                f"Missing/invalid label action in rule {rule.get('name')}"
+            )
+
             assert any(k in label_action for k in ("toggle", "add", "remove")), (
                 f"Missing label operation in rule {rule.get('name')}"
             )
