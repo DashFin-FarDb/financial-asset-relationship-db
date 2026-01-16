@@ -164,7 +164,6 @@ class TestAddEquityNodeTool:
         assert "Success" in result or "validate" in result.lower()
 
     @patch("mcp_server.FastMCP")
-    @patch("mcp.server.fastmcp.FastMCP")
     def test_add_equity_node_invalid_price(self, mock_fastmcp):
         mock_mcp = Mock()
         tool_func = None
