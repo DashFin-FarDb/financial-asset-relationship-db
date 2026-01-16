@@ -85,6 +85,7 @@ class TestMergifyConfiguration:
 
         rules = config["pull_request_rules"]
         tshirt_rules = [r for r in rules if "t-shirt" in r.get("name", "").lower()]
+        assert tshirt_rules, "T-shirt size rules not found"
 
         for rule in tshirt_rules:
             actions = rule.get("actions", {})
