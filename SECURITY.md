@@ -464,7 +464,7 @@ This repository includes multiple automated security scanning workflows. Each wo
 7. Value: Paste your Bearer API key
 8. Click "Add secret"
 
-**Documentation:** [Bearer.com Documentation](https://docs.bearer.com/guides/bearer-cloud/)
+**Documentation:** [Bearer GitHub Actions Setup](https://docs.bearer.com/reference/ci-integrations/#github-actions)
 
 #### Snyk Security Scanning
 
@@ -532,8 +532,6 @@ This repository includes multiple automated security scanning workflows. Each wo
 4. Copy your project token
 5. Add to GitHub repository secrets as `CODACY_PROJECT_TOKEN`
 
-**Note:** This token is optional; tools with default configurations will run without it.
-
 **Documentation:** [Codacy Analysis CLI](https://github.com/codacy/codacy-analysis-cli#project-token)
 
 #### Veracode Security Scanning
@@ -572,7 +570,7 @@ This repository includes multiple automated security scanning workflows. Each wo
 
 #### Workflow Skips or Doesn't Run
 
-- Check workflow file syntax with `yamllint`
+- Validate workflow syntax using GitHub CLI: `gh workflow view <workflow-name>`
 - Verify branch and path filters match your changes
 - Review GitHub Actions logs for error messages
 
