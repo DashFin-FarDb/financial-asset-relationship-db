@@ -119,7 +119,8 @@ class TestMCPAppBuilding:
         assert mock_mcp.tool.called
 
     @patch("mcp.server.fastmcp.FastMCP")
-    """Test that resources are registered."""
+    def test_build_mcp_app_registers_resources(self, mock_fastmcp):
+        """Test that resources are registered."""
     mock_mcp = Mock()
     mock_fastmcp.return_value = mock_mcp
 
