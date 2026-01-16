@@ -2,7 +2,20 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
-    """Generate schema and rules report"""
+    """def generate_schema_report(graph: AssetRelationshipGraph) -> str:
+    
+    Generate a comprehensive report of the asset relationship schema and rules.
+    This function calculates various metrics from the provided
+    AssetRelationshipGraph  and generates a structured report detailing the schema
+    overview, calculated metrics,  top relationships, and business rules. It
+    includes sections for entity types,  relationship types, and optimization
+    metrics, providing insights into the  asset relationship dynamics and
+    recommendations for improvement based on the  calculated relationship density
+    and quality score.
+    
+    Args:
+        graph (AssetRelationshipGraph): The graph object containing asset relationships
+    """
     metrics = graph.calculate_metrics()
 
     report = """# Financial Asset Relationship Database Schema & Rules

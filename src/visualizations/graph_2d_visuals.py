@@ -32,13 +32,13 @@ REL_TYPE_COLORS = {
 
 
 def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
-    """Create circular layout for 2D visualization.
-
+    """Create a circular layout for asset positioning.
+    
     Args:
-        asset_ids: List of asset IDs to position
-
+        asset_ids: List of asset IDs to position.
+    
     Returns:
-        Dictionary mapping asset IDs to (x, y) positions on a unit circle
+        Dictionary mapping asset IDs to (x, y) positions on a unit circle.
     """
     if not asset_ids:
         return {}
@@ -56,13 +56,13 @@ def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, floa
 
 
 def _create_grid_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
-    """Create grid layout for 2D visualization.
-
+    """Create a grid layout for positioning asset IDs.
+    
     Args:
-        asset_ids: List of asset IDs to position
-
+        asset_ids: List of asset IDs to position.
+    
     Returns:
-        Dictionary mapping asset IDs to (x, y) positions in a grid
+        Dictionary mapping asset IDs to (x, y) positions in a grid.
     """
     if not asset_ids:
         return {}
@@ -234,22 +234,32 @@ def visualize_2d_graph(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> go.Figure:
-    """Create 2D visualization of asset relationship graph.
-
+    """Create a 2D visualization of an asset relationship graph.
+    
+    This function generates a Plotly figure representing the relationships between
+    assets based on various parameters. It first validates the input graph and
+    retrieves asset data. Depending on the specified layout type, it computes the
+    positions of the assets and creates traces for the relationships. The function
+    also customizes node colors and sizes based on asset classes and connections,
+    respectively, before returning the final visualization.
+    
     Args:
-        graph: Asset relationship graph to visualize
-        layout_type: Layout algorithm to use ('spring', 'circular', 'grid')
-        show_same_sector: Show same sector relationships
-        show_market_cap: Show market cap relationships
-        show_correlation: Show correlation relationships
-        show_corporate_bond: Show corporate bond relationships
-        show_commodity_currency: Show commodity currency relationships
-        show_income_comparison: Show income comparison relationships
-        show_regulatory: Show regulatory relationships
-        show_all_relationships: Master toggle to show all relationships
-
+        graph (AssetRelationshipGraph): Asset relationship graph to visualize.
+        layout_type (str): Layout algorithm to use ('spring', 'circular', 'grid').
+        show_same_sector (bool): Show same sector relationships.
+        show_market_cap (bool): Show market cap relationships.
+        show_correlation (bool): Show correlation relationships.
+        show_corporate_bond (bool): Show corporate bond relationships.
+        show_commodity_currency (bool): Show commodity currency relationships.
+        show_income_comparison (bool): Show income comparison relationships.
+        show_regulatory (bool): Show regulatory relationships.
+        show_all_relationships (bool): Master toggle to show all relationships.
+    
     Returns:
-        Plotly Figure object with 2D visualization
+        go.Figure: Plotly Figure object with 2D visualization.
+    
+    Raises:
+        ValueError: If the provided graph data is invalid.
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("Invalid graph data provided")

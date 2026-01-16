@@ -9,7 +9,14 @@ from src.logic.asset_graph import AssetRelationshipGraph
 def visualize_metrics(
     graph: AssetRelationshipGraph,
 ) -> Tuple[go.Figure, go.Figure, go.Figure]:
-    """Create visualizations of graph metrics"""
+    """Create visualizations of graph metrics.
+    
+    This function generates three visualizations based on the metrics calculated
+    from the provided AssetRelationshipGraph. It creates a bar chart for the asset
+    class distribution, another for the relationship types distribution, and a
+    timeline for regulatory events sorted by date. Each visualization is customized
+    with appropriate titles and color schemes to enhance clarity and understanding.
+    """
     metrics = graph.calculate_metrics()
 
     # Asset class distribution
