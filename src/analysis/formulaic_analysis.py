@@ -28,7 +28,7 @@ class FormulaicdAnalyzer:
         self.formulas: List[Formula] = []
 
     def analyze_graph(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
-        """Perform comprehensive formulaic analysis of the asset graph"""
+        """Perform a formulaic analysis of the asset relationships."""
         logger.info("Starting formulaic analysis of asset relationships")
 
         # Extract fundamental financial formulas
@@ -74,7 +74,16 @@ class FormulaicdAnalyzer:
     def _extract_fundamental_formulas(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
-        """Extract fundamental financial formulas based on asset types"""
+        """Extract fundamental financial formulas based on asset types.
+        
+        This function evaluates the asset types present in the provided
+        AssetRelationshipGraph and extracts relevant financial formulas.  It checks for
+        equities, dividend stocks, and bonds to create  formulas such as Price-to-
+        Earnings Ratio, Dividend Yield,  Bond Yield-to-Maturity Approximation, and
+        Market Capitalization.  Each formula includes its mathematical representation,
+        description,  and associated variables, which are then compiled into a list
+        and returned.
+        """
         formulas = []
 
         # Price-to-Earnings Ratio
@@ -162,7 +171,7 @@ class FormulaicdAnalyzer:
     def _analyze_correlation_patterns(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
-        """Analyze and formulate correlation patterns between assets"""
+        """Analyze correlation patterns between assets."""
         formulas = []
 
         # Beta relationship (systematic risk)
@@ -254,7 +263,7 @@ class FormulaicdAnalyzer:
     def _analyze_risk_return_relationships(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
-        """Analyze risk-return mathematical relationships"""
+        """Analyze risk-return mathematical relationships."""
         formulas = []
 
         # Sharpe Ratio
@@ -298,7 +307,7 @@ class FormulaicdAnalyzer:
     def _extract_portfolio_theory_formulas(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
-        """Extract Modern Portfolio Theory formulas"""
+        """Extracts Modern Portfolio Theory formulas."""
         formulas = []
 
         # Portfolio Expected Return
@@ -345,7 +354,7 @@ class FormulaicdAnalyzer:
     def _analyze_cross_asset_relationships(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
-        """Analyze relationships between different asset classes"""
+        """Analyze relationships between different asset classes."""
         formulas = []
 
         # Currency exchange relationships
@@ -394,18 +403,19 @@ class FormulaicdAnalyzer:
     def _calculate_empirical_relationships(
         self, graph: AssetRelationshipGraph
     ) -> Dict[str, Any]:
+        """Calculates empirical relationships from the given graph."""
         pass
 
     @staticmethod
     def _calculate_avg_correlation_strength(graph: AssetRelationshipGraph) -> float:
-        """Calculate average correlation strength in the graph"""
+        """Calculate the average correlation strength in the graph."""
         total_relationships = sum(len(rels) for rels in graph.relationships.values())
         if total_relationships > 0:
             return min(0.75, total_relationships / len(graph.assets) * 0.1)
         return 0.5
 
     def _categorize_formulas(self, formulas: List[Formula]) -> Dict[str, int]:
-        """Categorize formulas by type"""
+        """Categorize formulas by type."""
         categories = {}
         for formula in formulas:
             category = formula.category
@@ -415,7 +425,7 @@ class FormulaicdAnalyzer:
     def _generate_formula_summary(
         self, formulas: List[Formula], empirical_relationships: Dict
     ) -> Dict[str, Any]:
-        """Generate a comprehensive summary of formulaic analysis"""
+        """Generate a summary of formulaic analysis results."""
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
             empirical_relationships
         )
@@ -444,7 +454,17 @@ class FormulaicdAnalyzer:
     def _calculate_avg_correlation_strength_from_empirical(
         empirical_relationships: Dict,
     ) -> float:
-        """Calculate average correlation from empirical data"""
+        """Calculate the average correlation strength from empirical data.
+        
+        This method computes the average of valid correlation values from the  provided
+        empirical_relationships. It retrieves the correlation matrix  and filters out
+        any correlations that are equal to or greater than 1.0.  If valid correlations
+        exist, it calculates their average; otherwise,  it returns a default value of
+        0.5.
+        
+        Args:
+            empirical_relationships (Dict): A dictionary containing the
+        """
         correlations = empirical_relationships.get("correlation_matrix", {})
         if correlations:
             valid_correlations = [v for v in correlations.values() if v < 1.0]
