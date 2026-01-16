@@ -124,6 +124,15 @@ let dynsection = {
   },
 };
 
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 let codefold = {
   opened : true,
 
@@ -172,6 +181,8 @@ let codefold = {
       // extract start and end foldable fragment attributes
       const start = $(this).attr('data-start');
       const end   = $(this).attr('data-end');
+      const safeStart = start ? escapeHtml(start) : '';
+      const safeEnd   = end   ? escapeHtml(end)   : '';
       // replace normal fold span with controls for the first line of a foldable fragment
       $(this).find('span[class=fold]:first').replaceWith('<span class="fold" '+
                    'onclick="javascript:codefold.toggle(\''+id+'\');" '+
@@ -189,7 +200,7 @@ let codefold = {
       // replace minus with plus symbol
       $(line).find('span[class=fold]').css('background-image',codefold.plusImg[relPath]);
       // append ellipsis
-      $(line).append(' '+start+'<a href="javascript:codefold.toggle(\''+id+'\')">&#8230;</a>'+end);
+      $(line).append(' '+safeStart+'<a href="javascript:codefold.toggle(\''+id+'\')">&#8230;</a>'+safeEnd);
       // insert constructed line into closed div
       $('#foldclosed'+id).html(line);
     });
