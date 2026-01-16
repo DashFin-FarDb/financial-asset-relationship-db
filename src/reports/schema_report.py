@@ -3,7 +3,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """def generate_schema_report(graph: AssetRelationshipGraph) -> str:
-    
+
     Generate a comprehensive report of the asset relationship schema and rules.
     This function calculates various metrics from the provided
     AssetRelationshipGraph  and generates a structured report detailing the schema
@@ -12,7 +12,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     metrics, providing insights into the  asset relationship dynamics and
     recommendations for improvement based on the  calculated relationship density
     and quality score.
-    
+
     Args:
         graph (AssetRelationshipGraph): The graph object containing asset relationships
     """
@@ -32,7 +32,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ### Relationship Types
 """
 
-    for rel_type, count in sorted(metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True):
+    for rel_type, count in sorted(
+        metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True
+    ):
         report += f"- **{rel_type}**: {count} instances\n"
 
     report += f"""
@@ -57,7 +59,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ## Top Relationships
 """
 
-    for idx, (source, target, rel_type, strength) in enumerate(metrics["top_relationships"], 1):
+    for idx, (source, target, rel_type, strength) in enumerate(
+        metrics["top_relationships"], 1
+    ):
         report += f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}\n"
 
     report += """
@@ -109,7 +113,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 
     quality_score = min(
         1.0,
-        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+        metrics["average_relationship_strength"]
+        + (metrics["regulatory_event_count"] / 10),
     )
     report += f"{quality_score:.1%}\n"
 

@@ -10,7 +10,7 @@ def visualize_metrics(
     graph: AssetRelationshipGraph,
 ) -> Tuple[go.Figure, go.Figure, go.Figure]:
     """Create visualizations of graph metrics.
-    
+
     This function generates three visualizations based on the metrics calculated
     from the provided AssetRelationshipGraph. It creates a bar chart for the asset
     class distribution, another for the relationship types distribution, and a
@@ -27,7 +27,9 @@ def visualize_metrics(
     base_colors = ["blue", "green", "orange", "red", "purple"]
     bar_colors = [base_colors[i % len(base_colors)] for i in range(len(classes))]
     fig1.add_trace(go.Bar(x=classes, y=counts, marker_color=bar_colors))
-    fig1.update_layout(title="Asset Class Distribution", xaxis_title="Asset Class", yaxis_title="Count")
+    fig1.update_layout(
+        title="Asset Class Distribution", xaxis_title="Asset Class", yaxis_title="Count"
+    )
 
     # Relationship types distribution
     fig2 = go.Figure()
@@ -43,7 +45,9 @@ def visualize_metrics(
 
     # Regulatory events timeline (sorted by date and using datetime)
     fig3 = go.Figure()
-    events = sorted(graph.regulatory_events, key=lambda e: datetime.fromisoformat(e.date))
+    events = sorted(
+        graph.regulatory_events, key=lambda e: datetime.fromisoformat(e.date)
+    )
     event_dates = [datetime.fromisoformat(e.date) for e in events]
     event_names = [f"{e.asset_id}: {e.event_type.value}" for e in events]
     event_impacts = [e.impact_score for e in events]
