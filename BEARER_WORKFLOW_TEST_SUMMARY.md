@@ -138,7 +138,6 @@ Generated comprehensive unit tests for the Bearer security scanning GitHub Actio
 ## Usage
 
 ## Test Design Principles
-
 1. **Isolation**: Each test is independent and can run in any order
 2. **Clarity**: Test names clearly describe what is being validated
 3. **Maintainability**: Tests are organized by concern for easy updates
