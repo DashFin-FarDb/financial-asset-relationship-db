@@ -57,7 +57,12 @@ class FormulaicVisualizer:
                     labels=list(categories.keys()),
                     values=list(categories.values()),
                     hole=0.4,
-                    marker=dict(colors=[self.color_scheme.get(cat, "#CCCCCC") for cat in categories.keys()]),
+                    marker=dict(
+                        colors=[
+                            self.color_scheme.get(cat, "#CCCCCC")
+                            for cat in categories.keys()
+                        ]
+                    ),
                     textinfo="label+percent",
                     textposition="auto",
                 ),
@@ -67,7 +72,9 @@ class FormulaicVisualizer:
 
         # 2. Formula Reliability Bar Chart
         if formulas:
-            formula_names = [f.name[:20] + "..." if len(f.name) > 20 else f.name for f in formulas]
+            formula_names = [
+                f.name[:20] + "..." if len(f.name) > 20 else f.name for f in formulas
+            ]
             r_squared_values = [f.r_squared for f in formulas]
             colors = [self.color_scheme.get(f.category, "#CCCCCC") for f in formulas]
 
@@ -109,7 +116,9 @@ class FormulaicVisualizer:
                     else:
                         key1 = f"{asset1}-{asset2}"
                         key2 = f"{asset2}-{asset1}"
-                        corr = correlation_matrix.get(key1, correlation_matrix.get(key2, 0.5))
+                        corr = correlation_matrix.get(
+                            key1, correlation_matrix.get(key2, 0.5)
+                        )
                     row.append(corr)
                 z_matrix.append(row)
 
@@ -243,8 +252,13 @@ class FormulaicVisualizer:
                 f"<b>Reliability (R²):</b> "
                 f"{formula.r_squared:.3f}<br><br>"
                 + "<b>Variables:</b><br>"
-                + "<br>".join([f"• {var}: {desc}" for var, desc in formula.variables.items()])
-                + (f"<br><br><b>Example Calculation:</b><br>" f"{formula.example_calculation}")
+                + "<br>".join(
+                    [f"• {var}: {desc}" for var, desc in formula.variables.items()]
+                )
+                + (
+                    f"<br><br><b>Example Calculation:</b><br>"
+                    f"{formula.example_calculation}"
+                )
             ),
             xref="paper",
             yref="paper",
@@ -275,7 +289,9 @@ class FormulaicVisualizer:
         empirical_relationships: Dict[str, Any],
     ) -> go.Figure:
         """Create a network graph showing asset correlations"""
-        strongest_correlations = empirical_relationships.get("strongest_correlations", [])
+        strongest_correlations = empirical_relationships.get(
+            "strongest_correlations", []
+        )
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
@@ -341,20 +357,23 @@ class FormulaicVisualizer:
             fig.update_layout(title="Asset Correlation Network")
             return fig
         angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
-            fig = go.Figure()
-            fig.add_annotation(
-                text="No correlation data available",
-                xref="paper",
-                yref="paper",
-                x=0.5,
-                y=0.5,
-                showarrow=False,
-                font=dict(size=16),
-            )
-            fig.update_layout(title="Asset Correlation Network")
-            return fig
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No correlation data available",
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            font=dict(size=16),
+        )
+        fig.update_layout(title="Asset Correlation Network")
+        return fig
         angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
-        positions = {asset: (math.cos(angle), math.sin(angle)) for asset, angle in zip(assets, angles)}
+        positions = {
+            asset: (math.cos(angle), math.sin(angle))
+            for asset, angle in zip(assets, angles)
+        }
 
         # Create edge traces
         edge_traces = []
@@ -444,8 +463,16 @@ class FormulaicVisualizer:
 
         categories = {}
         for f in formulas:
-            category = getattr(f, "category", None) if not isinstance(f, dict) else f.get("category")
-            r2 = getattr(f, "r_squared", None) if not isinstance(f, dict) else f.get("r_squared")
+            category = (
+                getattr(f, "category", None)
+                if not isinstance(f, dict)
+                else f.get("category")
+            )
+            r2 = (
+                getattr(f, "r_squared", None)
+                if not isinstance(f, dict)
+                else f.get("r_squared")
+            )
             if category is None or r2 is None:
                 continue
             categories.setdefault(category, []).append(r2)
