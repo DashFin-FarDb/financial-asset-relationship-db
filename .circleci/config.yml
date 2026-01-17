@@ -13,7 +13,7 @@ executors:
 
   node-executor:
     docker:
-      - image: cimg/node:18.19.0
+      - image: cimg/node:lts
     working_directory: ~/project
 
 jobs:
