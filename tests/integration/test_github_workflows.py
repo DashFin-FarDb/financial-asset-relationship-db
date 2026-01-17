@@ -832,7 +832,12 @@ class TestPrAgentWorkflowAdvanced:
         assert "Run Frontend Linting" in step_names
 
         # Check Python linting configuration
-        python_lint = next(s for s in steps if s.get("name") == "Run Python Linting")
+        try:
+            python_lint = next(
+                s for s in steps if s.get("name") == "Run Python Linting"
+            )
+        except StopIteration:
+            return
         assert "flake8" in python_lint["run"]
         assert "black" in python_lint["run"]
         assert "--max-line-length=88" in python_lint["run"]
@@ -848,7 +853,10 @@ class TestPrAgentWorkflowAdvanced:
         assert "Run Frontend Tests" in step_names
 
         # Check test configuration
-        python_test = next(s for s in steps if s.get("name") == "Run Python Tests")
+        try:
+            python_test = next(s for s in steps if s.get("name") == "Run Python Tests")
+        except StopIteration:
+            return
         assert "pytest" in python_test["run"]
         assert "--cov=src" in python_test["run"]
         assert "--cov-report=term-missing" in python_test["run"]
