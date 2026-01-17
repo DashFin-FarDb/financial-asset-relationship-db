@@ -167,7 +167,9 @@ class TestStepsConfiguration:
                 ), f"Checkout version should be valid SHA: {version}"
             else:
                 # Tag format - should be v4 or later
-                assert "v4" in version or "v5" in version, f"Checkout tag must be v4 or later (found {version})"
+                m = re.match(r"^v(\d+)(\..*)?$", version)
+                assert m, f"Checkout tag must be a version tag like v4 or later (found {version})"
+                assert int(m.group(1)) >= 4, f"Checkout tag must be v4 or later (found {version})"
 
     @staticmethod
     def test_debricked_action_exists(job_steps: List[Dict[str, Any]]):
