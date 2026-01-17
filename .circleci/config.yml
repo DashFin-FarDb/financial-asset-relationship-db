@@ -10,11 +10,10 @@ executors:
     docker:
       - image: cimg/python:3.11
     working_directory: ~/project
-
-  node-executor:
-    docker:
-      - image: cimg/node:lts
-    working_directory: ~/project
+node-executor:
+  docker:
+    - image: cimg/node:lts  # or a specific LTS like cimg/node:24
+  working_directory: ~/project
 
 jobs:
   # Python Backend Jobs
