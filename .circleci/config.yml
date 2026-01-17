@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  orb-tools: circleci/orb-tools@12.3
   node: circleci/node@5.1.0
   python: circleci/python@2.1.1
   codecov: codecov/codecov@4.0.1
@@ -10,10 +11,10 @@ executors:
     docker:
       - image: cimg/python:3.11
     working_directory: ~/project
-
+  
   node-executor:
     docker:
-      - image: cimg/node:25.2.1
+      - image: cimg/node:18.19
     working_directory: ~/project
 
 jobs:
@@ -185,13 +186,13 @@ workflows:
       - python-security:
           requires:
             - python-test
-
+      
       # Frontend workflow
       - frontend-lint
       - frontend-build:
           requires:
             - frontend-lint
-
+      
       # Docker build (only on main branch)
       - docker-build:
           requires:
