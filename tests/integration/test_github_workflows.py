@@ -833,9 +833,7 @@ class TestPrAgentWorkflowAdvanced:
 
         # Check Python linting configuration
         try:
-            python_lint = next(
-                s for s in steps if s.get("name") == "Run Python Linting"
-            )
+            python_lint = next(s for s in steps if s.get("name") == "Run Python Linting")
         except StopIteration:
             return
         assert "flake8" in python_lint["run"]

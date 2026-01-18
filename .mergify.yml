@@ -1,0 +1,82 @@
+pull_request_rules:
+  - name: Assign XS t-shirt size to PR
+    description: Assign a t-shirt size label to a pull request based on the number
+      of lines changed.
+    conditions:
+      - "#modified-lines < 10"
+    actions:
+      label:
+        add:
+          - size/XS
+        remove:
+          - size/S
+          - size/M
+          - size/L
+          - size/XL
+          - size/XXL
+
+  - name: Assign S t-shirt size to PR
+    description: Assign a t-shirt size label to a pull request based on the number
+      of lines changed.
+    conditions:
+      - "#modified-lines >= 10"
+      - "#modified-lines < 30"
+    actions:
+      label:
+        add:
+          - size/S
+        remove:
+          - size/XS
+          - size/M
+          - size/L
+          - size/XL
+          - size/XXL
+        remove:
+          - size/XS
+          - size/M
+          - size/L
+          - size/XL
+          - size/XXL
+
+  - name: Assign M t-shirt size to PR
+    description: Assign a t-shirt size label to a pull request based on the number
+      of lines changed.
+    conditions:
+      - "#modified-lines >= 30"
+      - "#modified-lines < 100"
+    actions:
+      label:
+        toggle:
+          - size/M
+
+  - name: Assign L t-shirt size to PR
+    description: Assign a t-shirt size label to a pull request based on the number
+      of lines changed.
+    conditions:
+      - "#modified-lines >= 100"
+      - "#modified-lines < 500"
+    actions:
+      label:
+        toggle:
+          - size/L
+
+  - name: Assign XL t-shirt size to PR
+    description: Assign a t-shirt size label to a pull request based on the number
+      of lines changed.
+    conditions:
+      - "#modified-lines >= 500"
+      - "#modified-lines < 1000"
+    actions:
+      label:
+        toggle:
+          - size/XL
+
+  - name: Assign XXL t-shirt size to PR
+    description: Assign a t-shirt size label to a pull request based on the number
+      of lines changed.
+    conditions:
+      - "#modified-lines >= 1000"
+    actions:
+      label:
+        toggle:
+          - size/XXL

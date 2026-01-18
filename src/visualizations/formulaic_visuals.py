@@ -344,13 +344,37 @@ class FormulaicVisualizer:
             assets = list(G.nodes())
         n_assets = len(assets)
         if n_assets == 0:
-            positions = {}
-        else:
-            angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
-            positions = {
-                asset: (math.cos(angle), math.sin(angle))
-                for asset, angle in zip(assets, angles)
-            }
+            fig = go.Figure()
+            fig.add_annotation(
+                text="No correlation data available",
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=0.5,
+                showarrow=False,
+                font=dict(size=16),
+            )
+            fig.update_layout(title="Asset Correlation Network")
+            return fig
+        angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No correlation data available",
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            font=dict(size=16),
+        )
+        fig.update_layout(title="Asset Correlation Network")
+        return fig
+        angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
+        positions = {
+            asset: (math.cos(angle), math.sin(angle))
+            for asset, angle in zip(assets, angles)
+        }
+
         # Create edge traces
         edge_traces = []
         for corr in strongest_correlations[:10]:  # Limit to top 10 correlations
@@ -439,9 +463,19 @@ class FormulaicVisualizer:
 
         categories = {}
         for f in formulas:
-            if f.category not in categories:
-                categories[f.category] = []
-            categories[f.category].append(f.r_squared)
+            category = (
+                getattr(f, "category", None)
+                if not isinstance(f, dict)
+                else f.get("category")
+            )
+            r2 = (
+                getattr(f, "r_squared", None)
+                if not isinstance(f, dict)
+                else f.get("r_squared")
+            )
+            if category is None or r2 is None:
+                continue
+            categories.setdefault(category, []).append(r2)
 
         fig = go.Figure()
 
@@ -452,9 +486,7 @@ class FormulaicVisualizer:
 
         for category in category_names:
             category_formulas = categories[category]
-            avg_r_squared = sum(f.r_squared for f in category_formulas) / len(
-                category_formulas
-            )
+            avg_r_squared = sum(category_formulas) / len(category_formulas)
             r_squared_by_category.append(avg_r_squared)
             formula_counts.append(len(category_formulas))
 
