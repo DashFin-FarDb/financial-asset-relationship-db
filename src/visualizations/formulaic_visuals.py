@@ -431,7 +431,7 @@ class FormulaicVisualizer:
         formula_counts = []
 
         for category in category_names:
-            category_formulas = categories[category]
+    avg_r_squared = sum(category_formulas) / len(category_formulas)
             avg_r_squared = sum(f.r_squared for f in category_formulas) / len(category_formulas)
             r_squared_by_category.append(avg_r_squared)
             formula_counts.append(len(category_formulas))
