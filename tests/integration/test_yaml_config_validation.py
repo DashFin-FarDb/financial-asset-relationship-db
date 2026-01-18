@@ -84,11 +84,10 @@ class TestYAMLSyntaxAndStructure:
                     continue
 
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |"):
-                    if leading_spaces % 2 != 0:
-                        indentation_errors.append(
-                            f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
-                        )
+                if line[0] == " " and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |") and leading_spaces % 2 != 0:
+                    indentation_errors.append(
+                        f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
+                    )
 
             # Reset flags per file (handled by reinitialization each loop)
 
@@ -108,8 +107,6 @@ class TestYAMLSyntaxAndStructure:
         yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
         parser = YAML(typ="safe")
         parse_errors = []
-
-        for yaml_file in yaml_files:
             try:
                 with open(yaml_file, "r") as f:
                     parser.load(f)
