@@ -30,23 +30,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Check if frontend directory exists
+        id: check_frontend
+        run: |
+          if [ -d "frontend" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Install ESLint
+        if: steps.check_frontend.outputs.exists == 'true'
+        working-directory: frontend
         run: |
           npm install eslint@8.10.0
           npm install @microsoft/eslint-formatter-sarif@3.1.0
 
       - name: Run ESLint
+        if: steps.check_frontend.outputs.exists == 'true'
+        working-directory: frontend
         env:
           SARIF_ESLINT_IGNORE_SUPPRESSED: "true"
-        run: npx eslint .
-          --config .eslintrc.js
-          --ext .js,.jsx,.ts,.tsx
-          --format @microsoft/eslint-formatter-sarif
-          --output-file eslint-results.sarif
+        run: |
+          npx eslint . --config .eslintrc.json --ext .js,.jsx,.ts,.tsx --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif || true
         continue-on-error: true
 
       - name: Upload analysis results to GitHub
-        uses: github/codeql-action/upload-sarif@v3
+        if: steps.check_frontend.outputs.exists == 'true' && hashFiles('frontend/eslint-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: eslint-results.sarif
+          sarif_file: frontend/eslint-results.sarif
           wait-for-processing: true

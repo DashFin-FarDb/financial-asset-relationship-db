@@ -142,12 +142,17 @@ def format_checklist(status: PRStatus) -> str:
     # Conflicts
     clean_merge = status.mergeable is True
     dirty_merge = status.mergeable_state == "dirty"
+    unknown_merge = status.mergeable is None or status.mergeable_state == "unknown"
 
     if dirty_merge:
         tasks.append("- [ ] Resolve merge conflicts")
     elif clean_merge:
         tasks.append("- [x] No merge conflicts")
+    elif unknown_merge:
+        tasks.append("- [ ] Check for merge conflicts")
+
     else:
+        # mergeable=False but state is unclear - should check
         tasks.append("- [ ] Check for merge conflicts")
 
     # Change Requests

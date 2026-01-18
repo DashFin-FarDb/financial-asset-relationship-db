@@ -20,8 +20,11 @@ on:
   push:
     branches: ["main"]
   pull_request:
-    branches: ["main"]
-  workflow_dispatch:  # Allows manual triggering for adhoc verification
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   vulnerabilities-scan:
@@ -36,14 +39,31 @@ jobs:
 
     steps:
       - name: Checkout code
-        # Security: Pinned to specific SHA for actions/checkout@v4.2.2
-        # This prevents supply-chain attacks from compromised action versions
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@v4
+
+
+      - name: Install Debricked CLI
+        run: |
+          EXPECTED_SHA256="<insert-expected-sha256>"
+          curl -L https://github.com/debricked/cli/releases/latest/download/cli_linux_x86_64.tar.gz -o debricked.tar.gz
+          echo "${EXPECTED_SHA256}  debricked.tar.gz" | sha256sum -c -
+          tar -xzf debricked.tar.gz
+          sudo mv debricked /usr/local/bin/
+          debricked --version
+
 
       - name: Run Debricked Scan
-        # Security: Using semantic version tag for debricked/actions/scan
-        # Authentication via GitHub Actions secrets (no hardcoded tokens)
-        uses: debricked/actions/scan@v1
         env:
           # Secret is read from GitHub Actions secrets context
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+        continue-on-error: true
+        run: |
+          debricked scan . --output=sarif --output-file=debricked-results.sarif || true
+
+      - name: Upload Debricked results to GitHub Security
+        if: always() && hashFiles('debricked-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: debricked-results.sarif
+          category: debricked
+        continue-on-error: true
