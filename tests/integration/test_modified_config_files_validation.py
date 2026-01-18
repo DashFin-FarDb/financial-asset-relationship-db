@@ -62,9 +62,9 @@ class TestPRAgentConfigChanges:
             pytest.skip(
                 "Context chunking config is only validated for agent version 1.0.0"
             )
-            assert "context" not in config_data["agent"], (
-                "Context chunking config should be removed in v1.0.0"
-            )
+        assert "context" not in config_data["agent"], (
+            "Context chunking config should be removed in v1.0.0"
+        )
 
     def test_no_fallback_strategies(self, config_data: Dict[str, Any]):
         """
