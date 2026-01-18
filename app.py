@@ -324,9 +324,7 @@ class FinancialAssetApp:
 
             # Validate results structure early for clearer errors
             if not analysis_results or not isinstance(analysis_results, dict):
-                raise ValueError(
-                    "Formulaic analysis failed: No results returned."
-                )
+                raise ValueError("Formulaic analysis failed: No results returned.")
 
             required_keys = ("formulas", "summary", "empirical_relationships")
             missing_keys = [k for k in required_keys if k not in analysis_results]
@@ -353,16 +351,12 @@ class FinancialAssetApp:
 
             # Generate summary
             summary = analysis_results.get("summary", {}) or {}
-            summary_text = self._format_formula_summary(
-                summary, analysis_results
-            )
+            summary_text = self._format_formula_summary(summary, analysis_results)
             formula_choices = [f.name for f in formulas]
 
             # Generate summary
             summary = analysis_results.get("summary", {})
-            summary_text = self._format_formula_summary(
-                summary, analysis_results
-            )
+            summary_text = self._format_formula_summary(summary, analysis_results)
 
             logger.info("Generated formulaic analysis with %d formulas", len(formulas))
             return (
