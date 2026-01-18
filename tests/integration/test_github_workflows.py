@@ -274,8 +274,7 @@ class TestWorkflowActions:
                 has_uses = "uses" in step
                 has_run = "run" in step
                 assert has_name or has_uses or has_run, (
-                    f"Step {idx} in job '{job_name}' of {workflow_file.name} "
-                    "must have at least a 'name', 'uses', or 'run' field"
+                    f"Step {idx} in job '{job_name}' of {workflow_file.name} must have at least a 'name', 'uses', or 'run' field"
 
 class TestPrAgentWorkflow:
     """Specific tests for the pr - agent.yml workflow."""
