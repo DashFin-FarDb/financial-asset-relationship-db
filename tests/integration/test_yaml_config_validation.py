@@ -107,7 +107,7 @@ class TestYAMLSyntaxAndStructure:
         yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
         parser = YAML(typ="safe")
         parse_errors = []
-            try:
+           try:
                 with open(yaml_file, "r") as f:
                     parser.load(f)
             except Exception as e:

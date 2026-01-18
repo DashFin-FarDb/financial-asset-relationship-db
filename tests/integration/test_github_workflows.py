@@ -2811,7 +2811,12 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
         for _, job in jobs.items():
             steps = job.get("steps", [])
             for step in steps:
-                if "uses" in step and "actions/upload-artifact" in step["uses"] and "with" in step and "retention-days" in step["with"]:
+                if (
+                    "uses" in step
+                    and "actions/upload-artifact" in step["uses"]
+                    and "with" in step
+                    and "retention-days" in step["with"]
+                ):
                     retention = step["with"]["retention-days"]
                     assert 1 <= retention <= 90, (
                         f"Artifact retention should be 1-90 days in {workflow_file.name}"
