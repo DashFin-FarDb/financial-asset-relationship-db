@@ -172,9 +172,7 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, (
-                        f"Line {i} has inconsistent indentation: {indent} spaces"
-                    )
+                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
 
 
 class TestPRAgentConfigSecurity:
@@ -254,9 +252,7 @@ class TestPRAgentConfigSecurity:
 
         if suspected:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
         import math
 
         # Heuristic to detect inline creds in URLs (user:pass@)
@@ -272,9 +268,7 @@ class TestPRAgentConfigSecurity:
         import math
 
         # Heuristic to detect inline creds in URLs (user:pass@)
-        inline_creds_re = re.compile(
-            r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
-        )
+        inline_creds_re = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
 
         # Common secret-like prefixes or markers
         secret_markers = (
@@ -365,9 +359,7 @@ class TestPRAgentConfigSecurity:
                     key_l = str(k).lower()
                     new_path = f"{path}.{k}"
                     if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
                     check_sensitive_keys(v, new_path)
             elif isinstance(node, list):
                 for idx, item in enumerate(node):
@@ -381,9 +373,9 @@ class TestPRAgentConfigSecurity:
         for pat in sensitive_patterns:
             # If marker appears in the string, ensure we also see an allowed placeholder somewhere
             if pat in config_str:
-                assert (" null" in config_str) or ("webhook" in config_str), (
-                    f"Potential hardcoded credential found around pattern: {pat}"
-                )
+                assert (" null" in config_str) or (
+                    "webhook" in config_str
+                ), f"Potential hardcoded credential found around pattern: {pat}"
 
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
@@ -420,9 +412,7 @@ class TestPRAgentConfigSecurity:
                     scan_for_secrets(item, f"{path}[{idx}]")
             elif isinstance(node, str):
                 # Fail if a string value looks like it may contain a secret
-                assert not value_contains_secret(node), (
-                    f"Potential hardcoded credential value at {path}"
-                )
+                assert not value_contains_secret(node), f"Potential hardcoded credential value at {path}"
             # Non-string scalars (int, float, bool, None) are safe to ignore
 
         scan_for_secrets(pr_agent_config)
@@ -435,9 +425,7 @@ class TestPRAgentConfigSecurity:
                     key_l = str(k).lower()
                     new_path = f"{path}.{k}" if path else str(k)
                     if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
                     check_node(v, new_path)
             elif isinstance(node, list):
                 for idx, item in enumerate(node):
