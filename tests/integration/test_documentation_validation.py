@@ -220,11 +220,10 @@ class TestDocumentMaintainability:
         )
 
     @staticmethod
-    def test_has_clear_structure(summary_content: str):
+    def test_heading_hierarchy(summary_content: str):
         """Test that document has clear hierarchical structure."""
-        h1_count = summary_content.count("\n# ")
-        h2_count = summary_content.count("\n## ")
-
+        h1_count = len(re.findall(r"^#\s", summary_content, re.MULTILINE))
+        h2_count = len(re.findall(r"^##\s", summary_content, re.MULTILINE))
         assert h1_count >= 1, "Should have at least one H1 heading"
         assert h2_count >= 3, "Should have at least 3 H2 headings for organization"
 
