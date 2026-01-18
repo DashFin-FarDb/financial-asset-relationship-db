@@ -462,6 +462,7 @@ class TestPrAgentWorkflow:
                     "fetch-depth should be an integer"
                 )
 
+
 class TestWorkflowSecurity:
     """Test suite for workflow security best practices."""
 
@@ -693,6 +694,8 @@ class TestWorkflowPerformance:
 
         # This is informational, not a hard requirement
         if not has_cache:
+
+
 class TestWorkflowTriggers:
     """Comprehensive tests for workflow trigger configurations."""
 
@@ -788,17 +791,17 @@ class TestWorkflowTriggers:
 
 
 class TestWorkflowJobConfiguration:
-    """Tests for job-level configuration in workflows."""
+    """Tests for job - level configuration in workflows."""
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_jobs_specify_runner(self, workflow_file: Path):
         """
         Ensure each job in the workflow file specifies a runner.
 
-        Checks every job in the parsed workflow YAML and asserts that non-reusable jobs declare a `runs-on` runner. Jobs that invoke reusable workflows via a `uses` key are exempt.
+        Checks every job in the parsed workflow YAML and asserts that non - reusable jobs declare a `runs - on` runner. Jobs that invoke reusable workflows via a `uses` key are exempt.
 
         Parameters:
-            workflow_file (Path): Path to the workflow YAML file being tested.
+            workflow_file(Path): Path to the workflow YAML file being tested.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -814,9 +817,9 @@ class TestWorkflowJobConfiguration:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_jobs_use_standard_runners(self, workflow_file: Path):
         """
-        Ensure jobs that declare `runs-on` use recognised GitHub-hosted runners.
+        Ensure jobs that declare `runs - on` use recognised GitHub - hosted runners.
 
-        Skips jobs that use expressions, matrix variables or self-hosted runners; fails if a job specifies a runner not in the accepted set.
+        Skips jobs that use expressions, matrix variables or self - hosted runners; fails if a job specifies a runner not in the accepted set.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -856,9 +859,9 @@ class TestWorkflowStepConfiguration:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_steps_with_working_directory(self, workflow_file: Path):
         """
-        Ensure steps that define `working-directory` use relative paths.
+        Ensure steps that define `working - directory` use relative paths.
 
-        Asserts that any step containing a `working-directory` key does not use an absolute path (i.e. the value does not start with `/`); the test fails with a descriptive message if an absolute path is found.
+        Asserts that any step containing a `working - directory` key does not use an absolute path(i.e. the value does not start with `/`); the test fails with a descriptive message if an absolute path is found.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -892,7 +895,7 @@ class TestWorkflowStepConfiguration:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_steps_continue_on_error_usage(self, workflow_file: Path):
-        """Test that continue-on-error is used sparingly and intentionally."""
+        """Test that continue -on - error is used sparingly and intentionally."""
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
 
@@ -916,19 +919,19 @@ class TestWorkflowEnvAndSecrets:
         """
         Ensure environment variable names in a workflow file are uppercase and contain only letters, digits or underscores.
 
-        Checks environment variables at both the top-level workflow `env` and each job's `env`, and fails the test if any variable names do not match the required naming convention.
+        Checks environment variables at both the top - level workflow `env` and each job's `env`, and fails the test if any variable names do not match the required naming convention.
         """
         config = load_yaml_safe(workflow_file)
 
         def check_env_vars(env_dict):
             """
-            Identify environment variable names that do not follow the convention of using only upper-case letters, digits and underscores.
+            Identify environment variable names that do not follow the convention of using only upper - case letters, digits and underscores.
 
             Parameters:
-                env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided it is treated as absent and no invalid names are returned.
+                env_dict(dict): Mapping of environment variable names to their values. If a non - dict is provided it is treated as absent and no invalid names are returned.
 
             Returns:
-                invalid_keys (List[str]): List of keys from `env_dict` that are not composed solely of upper-case letters, digits and underscores.
+                invalid_keys(List[str]): List of keys from `env_dict` that are not composed solely of upper - case letters, digits and underscores.
             """
             if not isinstance(env_dict, dict):
                 return []
@@ -996,7 +999,7 @@ class TestWorkflowComplexity:
         Prints a warning if the workflow defines more than 10 jobs and causes the test to fail if it defines more than 20 jobs.
 
         Parameters:
-            workflow_file (Path): Path to the workflow YAML file being validated.
+            workflow_file(Path): Path to the workflow YAML file being validated.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -1041,12 +1044,12 @@ class TestWorkflowComplexity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_deep_nesting_in_conditionals(self, workflow_file: Path):
         """
-        Warns when a job-level `if` conditional shows high logical complexity.
+        Warns when a job - level `if ` conditional shows high logical complexity.
 
-        Counts occurrences of the logical operators `&&` and `||` in each job's `if` conditional and prints a warning if their total exceeds 5, indicating a potentially over-complex conditional.
+        Counts occurrences of the logical operators `& &` and `| |` in each job's `if ` conditional and prints a warning if their total exceeds 5, indicating a potentially over - complex conditional.
 
         Parameters:
-            workflow_file (Path): Path to the workflow YAML file to inspect.
+            workflow_file(Path): Path to the workflow YAML file to inspect.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -1072,12 +1075,12 @@ class TestWorkflowOutputsAndArtifacts:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_artifacts_have_retention(self, workflow_file: Path):
         """
-        Report when artifact upload steps do not specify a `retention-days` value.
+        Report when artifact upload steps do not specify a `retention - days` value.
 
-        Scans the workflow's jobs and for any step that uses `actions/upload-artifact` prints an informational message if the step's `with` mapping does not include `retention-days`.
+        Scans the workflow's jobs and for any step that uses `actions/upload-artifact` prints an informational message if the step's `with ` mapping does not include `retention - days`.
 
         Parameters:
-            workflow_file (Path): Path to the workflow YAML file to inspect.
+            workflow_file(Path): Path to the workflow YAML file to inspect.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -1147,9 +1150,9 @@ class TestWorkflowBestPractices:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_timeout_specified(self, workflow_file: Path):
         """
-        Check that each job in the workflow specifies timeout-minutes.
+        Check that each job in the workflow specifies timeout - minutes.
 
-        For any job missing `timeout-minutes` this test prints a recommendation identifying the job and the workflow file.
+        For any job missing `timeout - minutes` this test prints a recommendation identifying the job and the workflow file.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -1164,12 +1167,12 @@ class TestWorkflowBestPractices:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_shell_explicitly_set(self, workflow_file: Path):
         """
-        Check workflow steps that use multi-line `run` commands and recommend setting `shell` if missing.
+        Check workflow steps that use multi - line `run` commands and recommend setting `shell` if missing.
 
-        For each job in the workflow file, any step whose `run` value is a string containing a newline is considered a multi-line command; if such a step does not specify a `shell` key, a recommendation message is printed identifying the workflow file, job name and step index.
+        For each job in the workflow file, any step whose `run` value is a string containing a newline is considered a multi - line command; if such a step does not specify a `shell` key, a recommendation message is printed identifying the workflow file, job name and step index.
 
         Parameters:
-            workflow_file (Path): Path to the workflow YAML file to inspect.
+            workflow_file(Path): Path to the workflow YAML file to inspect.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -1413,6 +1416,7 @@ class TestWorkflowCachingStrategies:
 
 """Integration tests for GitHub workflows permissions and best practices.
 
+
 This module contains tests to verify correct permissions configurations and complex scenarios for GitHub workflows.
 """
 
@@ -1488,7 +1492,7 @@ class TestWorkflowComplexScenarios:
     def test_matrix_strategy_has_include_or_exclude_properly_formatted(
         self, workflow_file: Path
     ):
-        """Test matrix include/exclude are properly structured."""
+        """Test matrix include / exclude are properly structured."""
         data = load_yaml_safe(workflow_file)
         jobs = data.get("jobs", {})
 
@@ -1598,7 +1602,7 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
                             )
 """Integration tests for GitHub workflow files.
 This module verifies that each workflow file has reasonable artifact retention settings
-and consistent, non-duplicated environment variable usage."""
+and consistent, non - duplicated environment variable usage."""
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_artifacts_have_reasonable_retention(self, workflow_file: Path):
@@ -1728,7 +1732,7 @@ class TestWorkflowScheduledExecutionBestPractices:
 
 # Additional test to verify all new test classes are properly structured
 class TestTestSuiteCompleteness:
-    """Meta-test to ensure test suite is comprehensive."""
+    """Meta - test to ensure test suite is comprehensive."""
 
     @staticmethod
     def test_all_workflow_files_tested():
