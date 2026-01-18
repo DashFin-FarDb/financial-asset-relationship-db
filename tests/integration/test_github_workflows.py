@@ -709,8 +709,6 @@ class TestWorkflowTriggers:
 
         Parameters:
             workflow_file (Path): Path to the workflow YAML file under test.
-        """
-        # test implementation goes here
 
         Raises:
             AssertionError: If an unrecognised event type is found in the workflow's `on` configuration.
