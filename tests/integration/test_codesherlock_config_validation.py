@@ -113,7 +113,7 @@ class TestCodeSherlockConfigContent:
             assert isinstance(characteristic, str), (
                 f"Characteristic '{characteristic}' should be a string"
             )
-            assert len(characteristic) > 0, f"Characteristic name should not be empty"
+            assert len(characteristic) > 0, "Characteristic name should not be empty"
 
     def test_preferred_characteristics_no_duplicates(
         self, codesherlock_config: Dict[str, Any]
