@@ -98,7 +98,7 @@ class TestFinancialAssetAppInitialization:
         """Test that initialization raises exception if graph creation fails."""
         mock_create_db.side_effect = Exception("Database connection failed")
 
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(DatabaseConnectionError):
             FinancialAssetApp()
 
         assert "Database connection failed" in str(exc_info.value)
