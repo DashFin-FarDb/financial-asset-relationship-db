@@ -26,29 +26,28 @@ class TestGitignoreFileStructure:
     
     @pytest.fixture
     def gitignore_content(self, gitignore_path: Path) -> str:
-        """
-        Read and return the contents of the .gitignore file at the given path.
-        
-        Parameters:
-            gitignore_path (Path): Path to the .gitignore file to read.
-        
-        Returns:
-            gitignore_content (str): The full contents of the file as a string.
-        """
+import pytest
+from pathlib import Path
+from typing import List, Set  # or: from __future__ import annotations and use list[str], set[str]
+
+
+class TestGitignoreFileStructure:
+    """Tests for .gitignore file structure and syntax."""
+    
+    @pytest.fixture
+    def gitignore_path(self) -> Path:
+        """Return path to .gitignore file."""
+        return Path(__file__).parent.parent.parent / ".gitignore"
+    
+    @pytest.fixture
+    def gitignore_content(self, gitignore_path: Path) -> str:
+        """Load .gitignore file content."""
         with open(gitignore_path, 'r', encoding='utf-8') as f:
             return f.read()
     
     @pytest.fixture
     def gitignore_lines(self, gitignore_content: str) -> List[str]:
-        """
-        Extracts non-empty, non-comment lines from a .gitignore file content.
-        
-        Parameters:
-            gitignore_content (str): The entire .gitignore file content.
-        
-        Returns:
-            List[str]: Stripped lines that are neither empty nor start with '#' (comments).
-        """
+        """Get non-empty, non-comment lines from .gitignore."""
         return [
             line.strip()
             for line in gitignore_content.split('\n')
