@@ -6,7 +6,7 @@ This document summarizes the repository's architecture, conventions, and recurri
 
 - **Financial Asset Relationship Database** provides interactive 3D views and analytics over interconnected assets spanning equities, fixed income, commodities, currencies, and regulatory events. The same core logic powers two UIs: the legacy **Gradio** app (`app.py`) and the **Next.js + FastAPI** stack (`frontend` + `api`).
 - Quick development startup: run the backend and frontend explicitly (examples below). The Gradio legacy UI can be launched directly with `python app.py`.
-  - FastAPI (backend): `uvicorn api.main:app --reload --port 8000`
+  - FastAPI (backend): `python -m uvicorn api.main:app --reload --port 8000`
   - Next.js (frontend): `npm run dev` (from the `frontend/` directory)
   - Legacy Gradio UI: `python app.py` (defaults to port 7860)
 
