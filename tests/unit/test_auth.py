@@ -19,7 +19,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
-from jwt import ExpiredSignatureError, InvalidTokenError
+from jwt import InvalidTokenError
 
 import api.auth as auth_module
 
