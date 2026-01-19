@@ -20,7 +20,7 @@ import pytest
 
 from app import AppConstants, FinancialAssetApp
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import AssetClass, Bond, Equity
+from src.models.financial_models import Bond, Equity
 
 
 class TestAppConstants:
