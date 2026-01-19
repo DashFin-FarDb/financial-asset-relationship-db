@@ -1614,7 +1614,7 @@ and consistent, non - duplicated environment variable usage."""
 
 
 @pytest.mark.parametrize("workflow_file", get_workflow_files())
-def test_artifacts_have_reasonable_retention(self, workflow_file: Path):
+def test_artifacts_have_reasonable_retention(workflow_file: Path):
     """Test that artifact retention is reasonable."""
     data = load_yaml_safe(workflow_file)
     jobs = data.get("jobs", {})
