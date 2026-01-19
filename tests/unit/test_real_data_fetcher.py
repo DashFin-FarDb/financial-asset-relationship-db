@@ -462,7 +462,7 @@ class TestRealDatabaseCreation:
                 mock_equities.return_value = []
                 mock_bonds.return_value = []
                 mock_commodities.return_value = []
-                mock_currencies.return_value = []
+                fetcher.create_real_database()
                 mock_events.return_value = []
 
                 fetcher = RealDataFetcher(cache_path=cache_path)
