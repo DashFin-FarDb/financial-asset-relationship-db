@@ -32,15 +32,15 @@ class MockIntersectionObserver {
     this.options = options
   }
 
-  static observe (_target) {
+  observe (_target) {
     // no-op
   }
 
-  static unobserve (_target) {
+  unobserve (_target) {
     // no-op
   }
 
-  static disconnect () {
+  disconnect () {
     // no-op
   }
 
