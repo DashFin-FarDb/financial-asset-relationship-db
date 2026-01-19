@@ -314,7 +314,12 @@ class TestAssetRelationshipORM:
             db_session.commit()
 
     def test_relationship_cascade_delete(self, db_session):
-        """Test that relationships are deleted when assets are deleted."""
+        """
+        Verify that deleting an AssetORM removes related AssetRelationshipORM entries via cascade.
+        
+        Creates two assets and a relationship from the first to the second, deletes the source asset,
+        and asserts that the relationship referencing the deleted asset no longer exists.
+        """
         asset1 = AssetORM(
             id="CASCADE1",
             symbol="C1",
@@ -354,7 +359,11 @@ class TestAssetRelationshipORM:
         assert remaining is None
 
     def test_bidirectional_flag(self, db_session):
-        """Test bidirectional flag on relationships."""
+        """
+        Verify that a bidirectional relationship flag is persisted on AssetRelationshipORM.
+        
+        Creates two assets, adds an AssetRelationshipORM with `bidirectional=True`, commits, and asserts the persisted relationship's `bidirectional` attribute is `True`.
+        """
         asset1 = AssetORM(
             id="BIDIR1",
             symbol="B1",

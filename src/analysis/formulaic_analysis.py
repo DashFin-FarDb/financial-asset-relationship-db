@@ -28,7 +28,20 @@ class FormulaicdAnalyzer:
         self.formulas: List[Formula] = []
 
     def analyze_graph(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
-        """Perform comprehensive formulaic analysis of the asset graph"""
+        """
+        Orchestrates extraction and analysis of formulaic relationships from an asset relationship graph.
+        
+        Parameters:
+            graph (AssetRelationshipGraph): The asset relationship graph to analyze for mathematical and empirical relationships.
+        
+        Returns:
+            Dict[str, Any]: A dictionary containing:
+                - "formulas": List[Formula] — extracted Formula objects covering fundamental, correlation, valuation, risk-return, portfolio, and cross-asset relationships.
+                - "empirical_relationships": dict — empirical data derived from the graph (e.g., correlation matrices or observed relationship metrics).
+                - "formula_count": int — total number of extracted formulas.
+                - "categories": dict — mapping of formula category names to their counts.
+                - "summary": dict — summary metrics and insights about the extracted formulas and empirical findings.
+        """
         logger.info("Starting formulaic analysis of asset relationships")
 
         # Extract fundamental financial formulas
@@ -70,7 +83,14 @@ class FormulaicdAnalyzer:
         }
 
     def _extract_fundamental_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Extract fundamental financial formulas based on asset types"""
+        """
+        Assembles fundamental financial formulas applicable to the provided asset relationship graph.
+        
+        Checks the graph for relevant asset types and returns Formula objects for common fundamentals such as price-to-earnings, dividend yield, bond yield-to-maturity (approximation), and market capitalization when applicable.
+        
+        Returns:
+            List[Formula]: A list of Formula instances representing fundamental valuation and income formulas relevant to the graph.
+        """
         formulas = []
 
         # Price-to-Earnings Ratio
@@ -150,7 +170,15 @@ class FormulaicdAnalyzer:
         return formulas
 
     def _analyze_correlation_patterns(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Analyze and formulate correlation patterns between assets"""
+        """
+        Create Formula objects that describe correlation-related relationships between assets.
+        
+        Parameters:
+            graph (AssetRelationshipGraph): Graph of assets and relationships used to derive example calculations and empirical metrics.
+        
+        Returns:
+            List[Formula]: A list of Formula instances representing correlation patterns (for example, Beta and the correlation coefficient).
+        """
         formulas = []
 
         # Beta relationship (systematic risk)
@@ -193,7 +221,12 @@ class FormulaicdAnalyzer:
         return formulas
 
     def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Extract valuation model relationships"""
+        """
+        Extracts valuation-related financial formulas applicable to the given asset graph.
+        
+        Returns:
+            List[Formula]: A list of valuation Formula objects (for example, Price-to-Book Ratio and Enterprise Value) populated with metadata, LaTeX, variables, example calculations, category, and r_squared estimates.
+        """
         formulas = []
 
         # Price-to-Book Ratio
@@ -235,7 +268,14 @@ class FormulaicdAnalyzer:
         return formulas
 
     def _analyze_risk_return_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Analyze risk-return mathematical relationships"""
+        """
+        Create Formula objects describing common risk–return metrics.
+        
+        Produces Formula entries for risk-return analysis (for example, Sharpe Ratio and volatility/standard deviation) populated with names, formula expressions, LaTeX, variable descriptions, example calculations, category, and explanatory text.
+        
+        Returns:
+            List[Formula]: A list of Formula instances representing risk-management metrics (e.g., Sharpe Ratio, Volatility).
+        """
         formulas = []
 
         # Sharpe Ratio
@@ -277,7 +317,17 @@ class FormulaicdAnalyzer:
         return formulas
 
     def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Extract Modern Portfolio Theory formulas"""
+        """
+        Extract Modern Portfolio Theory formulas applicable to the provided asset graph.
+        
+        Generates formulas describing portfolio expected return and portfolio variance (2-asset case), with variables, LaTeX, example calculations derived from the graph, category, and an associated r_squared estimate.
+        
+        Parameters:
+            graph (AssetRelationshipGraph): Graph of assets and relationships used to produce example calculations and to determine which portfolio formulas are relevant.
+        
+        Returns:
+            List[Formula]: A list of Formula instances representing MPT relationships (e.g., portfolio expected return and 2-asset portfolio variance).
+        """
         formulas = []
 
         # Portfolio Expected Return
@@ -319,7 +369,12 @@ class FormulaicdAnalyzer:
         return formulas
 
     def _analyze_cross_asset_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Analyze relationships between different asset classes"""
+        """
+        Identify cross-asset mathematical relationships present in the graph.
+        
+        Returns:
+            List[Formula]: A list of Formula objects representing detected cross-asset relationships (e.g., triangular currency exchange relationships and commodity–currency inverse relationships) when the corresponding asset types are present in the graph.
+        """
         formulas = []
 
         # Currency exchange relationships
@@ -360,6 +415,20 @@ class FormulaicdAnalyzer:
         return formulas
 
     def _calculate_empirical_relationships(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
+        """
+        Compute empirical relationship metrics derived from the provided AssetRelationshipGraph.
+        
+        Produces a dictionary of empirical measurements used elsewhere in analysis, most importantly a correlation matrix of asset pair relationships, an average correlation strength computed excluding perfect self-correlations, and a count of correlation entries considered.
+        
+        Parameters:
+            graph (AssetRelationshipGraph): Graph containing asset nodes and observed relationships used to derive empirical metrics.
+        
+        Returns:
+            Dict[str, Any]: A dictionary with at least the following keys:
+                - "correlation_matrix" (Dict[Tuple[str, str], float]): Pairwise correlation values between assets.
+                - "avg_correlation_strength" (float): Average of correlation values excluding perfect correlations (e.g., 1.0).
+                - "correlation_entries" (int): Number of correlation pairs included in the calculations.
+        """
         pass
 
     @staticmethod
@@ -371,7 +440,15 @@ class FormulaicdAnalyzer:
         return 0.5
 
     def _categorize_formulas(self, formulas: List[Formula]) -> Dict[str, int]:
-        """Categorize formulas by type"""
+        """
+        Group formulas by category and count how many formulas belong to each category.
+        
+        Parameters:
+            formulas (List[Formula]): List of Formula instances to categorize.
+        
+        Returns:
+            Dict[str, int]: Mapping from category name to the number of formulas in that category.
+        """
         categories = {}
         for formula in formulas:
             category = formula.category
@@ -379,7 +456,21 @@ class FormulaicdAnalyzer:
         return categories
 
     def _generate_formula_summary(self, formulas: List[Formula], empirical_relationships: Dict) -> Dict[str, Any]:
-        """Generate a comprehensive summary of formulaic analysis"""
+        """
+        Produce a summary of the formula analysis and related empirical results.
+        
+        Parameters:
+            formulas (List[Formula]): List of Formula objects produced by the analysis.
+            empirical_relationships (Dict): Empirical data dictionary; expected to include a "correlation_matrix" mapping used to compute correlation statistics.
+        
+        Returns:
+            Dict[str, Any]: A summary dictionary containing:
+                - total_formulas (int): Number of formulas in `formulas`.
+                - avg_r_squared (float): Average of `Formula.r_squared` across `formulas`, or 0 if `formulas` is empty.
+                - formula_categories (Dict[str, int]): Counts of formulas grouped by category.
+                - empirical_data_points (int): Number of entries in `empirical_relationships["correlation_matrix"]` (0 if missing).
+                - key_insights (List[str]): Short human-readable insight strings derived from the analysis and empirical statistics.
+        """
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(empirical_relationships)
         return {
             "total_formulas": len(formulas),
@@ -399,7 +490,15 @@ class FormulaicdAnalyzer:
     def _calculate_avg_correlation_strength_from_empirical(
         empirical_relationships: Dict,
     ) -> float:
-        """Calculate average correlation from empirical data"""
+        """
+        Compute the average correlation strength from empirical relationship data.
+        
+        Parameters:
+            empirical_relationships (Dict): Mapping expected to contain a "correlation_matrix" key whose value is a dict of identifier -> correlation value.
+        
+        Returns:
+            float: The average of correlation values strictly less than 1.0; returns 0.5 if no valid correlations are present.
+        """
         correlations = empirical_relationships.get("correlation_matrix", {})
         if correlations:
             valid_correlations = [v for v in correlations.values() if v < 1.0]

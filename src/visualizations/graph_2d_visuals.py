@@ -118,23 +118,16 @@ def _create_2d_relationship_traces(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> List[go.Scatter]:
-    """Create 2D relationship traces with filtering.
-
-    Args:
-        graph: Asset relationship graph
-        positions: Dictionary mapping asset IDs to (x, y) positions
-        asset_ids: List of asset IDs
-        show_same_sector: Show same sector relationships
-        show_market_cap: Show market cap relationships
-        show_correlation: Show correlation relationships
-        show_corporate_bond: Show corporate bond relationships
-        show_commodity_currency: Show commodity currency relationships
-        show_income_comparison: Show income comparison relationships
-        show_regulatory: Show regulatory relationships
-        show_all_relationships: Master toggle to show all relationships
-
+    """
+    Create Plotly line traces representing asset relationships, filtered by relationship type.
+    
+    Each returned trace groups relationships of a single type and contains line segments connecting source and target asset positions. Hover text for each segment shows "source → target", the relationship type, and the relationship strength formatted to two decimal places. Only relationships whose source and target both appear in `positions` and `asset_ids` are included.
+    
+    Parameters:
+        show_all_relationships (bool): If True, ignore individual relationship-type toggles and include all relationships.
+    
     Returns:
-        List of Plotly Scatter traces for relationships
+        List[go.Scatter]: A list of Plotly Scatter traces, one per relationship type present after filtering.
     """
     if not asset_ids or not positions:
         return []
@@ -228,22 +221,18 @@ def visualize_2d_graph(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> go.Figure:
-    """Create 2D visualization of asset relationship graph.
-
-    Args:
-        graph: Asset relationship graph to visualize
-        layout_type: Layout algorithm to use ('spring', 'circular', 'grid')
-        show_same_sector: Show same sector relationships
-        show_market_cap: Show market cap relationships
-        show_correlation: Show correlation relationships
-        show_corporate_bond: Show corporate bond relationships
-        show_commodity_currency: Show commodity currency relationships
-        show_income_comparison: Show income comparison relationships
-        show_regulatory: Show regulatory relationships
-        show_all_relationships: Master toggle to show all relationships
-
+    """
+    Render a 2D Plotly figure of an AssetRelationshipGraph using a chosen layout and optional relationship-type filters.
+    
+    Parameters:
+        layout_type (str): Layout to arrange nodes; supported values are "spring", "circular", and "grid".
+        show_all_relationships (bool): If true, ignore individual relationship-type filters and display all relationships.
+    
+    Raises:
+        ValueError: If `graph` is not an AssetRelationshipGraph.
+    
     Returns:
-        Plotly Figure object with 2D visualization
+        go.Figure: Plotly figure containing node markers and relationship traces representing the asset network.
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("Invalid graph data provided")

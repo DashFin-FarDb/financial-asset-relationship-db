@@ -63,7 +63,14 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
             ), f"Job '{job_name}' has {setup_python_count} 'Setup Python' steps, expected at most 1"
 
     def test_no_duplicate_with_blocks_in_setup_python(self, workflow_raw: str):
-        """Test that Setup Python step doesn't have duplicate 'with:' blocks."""
+        """
+        Ensure each 'Setup Python' step in the raw workflow text contains at most one 'with:' block.
+        
+        Scans the provided raw YAML text for occurrences of "name: Setup Python" and asserts that, within the subsequent lines up to the next step (or a short lookahead), there is no more than one indented "with:" block.
+        
+        Parameters:
+            workflow_raw (str): Raw text content of the workflow file to inspect.
+        """
         # Split into lines and check for pattern of duplicate 'with:' after Setup Python
         lines = workflow_raw.split("\n")
 
@@ -177,10 +184,10 @@ class TestPRAgentWorkflowSetupSteps:
 
     def test_checkout_step_exists(self, pr_agent_job: Dict[str, Any]):
         """
-        Assert the job contains at least one checkout step that uses actions/checkout.
-
+        Verify the job contains at least one step that uses the actions/checkout action.
+        
         Parameters:
-            pr_agent_job (Dict[str, Any]): Parsed job dictionary from the workflow YAML; inspected for a `steps` list.
+            pr_agent_job (Dict[str, Any]): Job dictionary parsed from the workflow YAML; expected to include a `steps` list that will be inspected.
         """
         steps = pr_agent_job.get("steps", [])
         checkout_steps = [step for step in steps if step.get("uses", "").startswith("actions/checkout")]
@@ -204,7 +211,9 @@ class TestPRAgentWorkflowSetupSteps:
         assert len(node_steps) >= 1, "Job should have Setup Node.js step"
 
     def test_python_version_is_311(self, pr_agent_job: Dict[str, Any]):
-        """Test that Python 3.11 is specified."""
+        """
+        Asserts the "Setup Python" step in the pr-agent-trigger job specifies python-version "3.11".
+        """
         steps = pr_agent_job.get("steps", [])
         for step in steps:
             if step.get("name") == "Setup Python":
@@ -221,10 +230,10 @@ class TestPRAgentWorkflowSetupSteps:
 
     def test_setup_order_correct(self, pr_agent_job: Dict[str, Any]):
         """
-        Ensure the pr-agent-trigger job's setup steps are ordered: checkout, Setup Python, then Setup Node.js.
-
+        Verify the setup steps in the pr-agent-trigger job appear in order: checkout, Setup Python, then Setup Node.js.
+        
         Parameters:
-            pr_agent_job (Dict[str, Any]): Parsed job dictionary for the pr-agent-trigger job from the workflow YAML.
+            pr_agent_job (Dict[str, Any]): Parsed job dictionary for the `pr-agent-trigger` job from the workflow YAML.
         """
         steps = pr_agent_job.get("steps", [])
 

@@ -127,7 +127,9 @@ class TestIsMemoryDb:
         assert database._is_memory_db("file:///path/:memory:") is True
 
     def test_is_memory_db_with_regular_file_path(self, monkeypatch, restore_database_module):
-        """Test that _is_memory_db returns False for regular file paths."""
+        """
+        Checks that regular filesystem SQLite paths are identified as file-based databases rather than in-memory.
+        """
         # Regular file paths should return False
         assert database._is_memory_db("/path/to/database.db") is False
         assert database._is_memory_db("database.db") is False
@@ -379,7 +381,11 @@ class TestThreadSafety:
         assert all(conn is connections[0] for conn in connections)
 
     def test_concurrent_operations_on_memory_db(self, monkeypatch, restore_database_module):
-        """Test concurrent read/write operations on memory database."""
+        """
+        Verifies concurrent insert operations on an in-memory SQLite database succeed without errors.
+        
+        Sets DATABASE_URL to an in-memory database, initializes the schema, spawns multiple threads that each insert a user row using get_connection, and asserts that no exceptions occurred and that five rows were inserted.
+        """
         import threading
 
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")

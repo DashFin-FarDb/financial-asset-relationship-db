@@ -62,7 +62,16 @@ def job_steps(scan_job: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def get_steps_by_action(steps: List[Dict[str, Any]], action_substring: str) -> List[Dict[str, Any]]:
-    """Filter steps by action name (case-insensitive)."""
+    """
+    Selects workflow steps whose `uses` field contains the given action substring (case-insensitive).
+    
+    Parameters:
+        steps (List[Dict[str, Any]]): List of GitHub Actions step dictionaries to search. Each step may include a `uses` key.
+        action_substring (str): Substring to match against the `uses` value of each step, matched case-insensitively.
+    
+    Returns:
+        List[Dict[str, Any]]: Steps from `steps` whose `uses` value contains `action_substring`.
+    """
     return [s for s in steps if "uses" in s and action_substring.lower() in s["uses"].lower()]
 
 
@@ -85,7 +94,11 @@ class TestWorkflowStructure:
     """Test the structure and required fields."""
 
     def test_has_valid_name(self, workflow_config: Dict[str, Any]):
-        """Test workflow name presence and description."""
+        """
+        Verify the workflow defines a non-empty string name that includes "debricked".
+        
+        Asserts the workflow name is a non-empty string and contains "debricked" (case-insensitive).
+        """
         name = workflow_config.get("name", "")
         assert isinstance(name, str) and name, "Workflow must have a non-empty string name"
         assert "debricked" in name.lower(), "Workflow name should mention 'Debricked'"
@@ -135,7 +148,12 @@ class TestWorkflowStructure:
         assert permissions.get("security-events") == "write", "Job requires 'security-events: write'"
 
     def test_runs_on_ubuntu(self, scan_job: Dict[str, Any]):
-        """Test that job runs on a supported Ubuntu runner."""
+        """
+        Ensure the job is configured to run on an Ubuntu runner.
+        
+        Parameters:
+            scan_job (Dict[str, Any]): Parsed job dictionary from the workflow YAML; expected to contain a "runs-on" field.
+        """
         runs_on = scan_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), "Job should run on Ubuntu runner"
 
@@ -151,7 +169,12 @@ class TestStepsConfiguration:
 
     @staticmethod
     def test_checkout_step_version_pinned(job_steps: List[Dict[str, Any]]):
-        """Test that checkout action uses pinned version (SHA or tag)."""
+        """
+        Ensure the actions/checkout step specifies a pinned version: either a 40-character hexadecimal SHA or a tag v4 or later.
+        
+        Parameters:
+            job_steps (List[Dict[str, Any]]): List of steps from the scan job in the workflow.
+        """
         checkout_steps = get_steps_by_action(job_steps, "actions/checkout")
         assert checkout_steps, "Job must include actions/checkout step"
 
@@ -177,7 +200,11 @@ class TestStepsConfiguration:
 
     @staticmethod
     def test_debricked_action_version_pinned(job_steps: List[Dict[str, Any]]):
-        """Test that Debricked action uses pinned version (SHA or tag)."""
+        """
+        Ensure each Debricked action step specifies a pinned version.
+        
+        Acceptable formats are a 40-character hexadecimal commit SHA or a semantic tag that starts with "v" and includes a numeric component (for example, "v4" or "v4.1"). The test fails if no Debricked step is present, if the step omits an "@version" suffix, if a SHA is not valid hexadecimal, or if a tag does not follow the required "v"-prefixed semantic form.
+        """
         debricked_steps = get_steps_by_action(job_steps, "debricked")
         assert debricked_steps, "Job must include Debricked action"
 
@@ -220,7 +247,14 @@ class TestSecretHandling:
 
     @staticmethod
     def test_no_hardcoded_secrets(workflow_content: str):
-        """Test for potential hardcoded secrets in the file content."""
+        """
+        Checks workflow content for hardcoded secret token patterns.
+        
+        Scans non-comment lines for common secret prefixes (e.g., GitHub tokens, Debricked tokens) and fails the test if any are found.
+        
+        Parameters:
+            workflow_content (str): Raw text content of the workflow file to scan for hardcoded secrets.
+        """
         suspicious_patterns = [
             "ghp_",  # GitHub personal access token
             "gho_",  # GitHub OAuth token
@@ -247,7 +281,14 @@ class TestSecurityPatterns:
 
     @staticmethod
     def test_no_script_injection(workflow_content: str):
-        """Check for unsafe interpolation in run scripts."""
+        """
+        Detects unsafe interpolation of issue or pull_request event contexts inside run script steps.
+        
+        Fails the test if any run step in the provided workflow content interpolates GitHub event contexts for issue or pull request title/body (e.g., github.event.issue.title), which can enable script injection vulnerabilities.
+        
+        Parameters:
+            workflow_content (str): Raw text content of the workflow YAML file to inspect.
+        """
         unsafe_contexts = [
             r"github\\.event\\.issue\\.title",
             r"github\\.event\\.issue\\.body",
@@ -261,7 +302,12 @@ class TestSecurityPatterns:
 
     @staticmethod
     def test_no_secret_logging(workflow_content: str):
-        """Test that secrets are not echoed or printed to logs."""
+        """
+        Detects occurrences of logging statements that would expose GitHub secrets in the workflow content.
+        
+        Parameters:
+            workflow_content (str): Raw text content of the workflow file to scan for secret-logging patterns.
+        """
         secret_logging_patterns = [
             r"echo.*\$\{\{.*secrets\\.",
             r"print.*\$\{\{.*secrets\\.",
@@ -333,7 +379,9 @@ class TestComplianceWithIssue492:
 
     @staticmethod
     def test_workflow_location():
-        """Test that workflow is at the correct location."""
+        """
+        Ensure the repository contains the debricked.yml workflow at .github/workflows/debricked.yml.
+        """
         expected_path = REPO_ROOT / ".github" / "workflows" / "debricked.yml"
         assert expected_path.exists(), "Workflow must be at .github/workflows/debricked.yml"
 
@@ -356,7 +404,14 @@ class TestComplianceWithIssue492:
 
     @staticmethod
     def test_uses_github_secrets(job_steps: List[Dict[str, Any]]):
-        """Test that workflow uses GitHub Actions secrets for authentication."""
+        """
+        Ensure Debricked step sources DEBRICKED_TOKEN from GitHub Secrets.
+        
+        Checks each step that uses a Debricked action and asserts that, if the step defines DEBRICKED_TOKEN in its environment, the value references `secrets.DEBRICKED_TOKEN`.
+        
+        Parameters:
+            job_steps (List[Dict[str, Any]]): List of step dictionaries from the workflow job to inspect.
+        """
         debricked_steps = get_steps_by_action(job_steps, "debricked")
 
         for step in debricked_steps:

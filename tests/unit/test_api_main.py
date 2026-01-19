@@ -654,7 +654,13 @@ class TestAdditionalFields:
 
     @staticmethod
     def test_bond_additional_fields(client):
-        """Test that bond-specific fields are included."""
+        """
+        Verify that returned bond assets include bond-specific additional fields when present.
+        
+        Sends a GET request to "/api/assets?asset_class=BOND" and, if any assets are returned,
+        asserts that the first asset's `additional_fields` either contains at least one of:
+        `yield_to_maturity`, `coupon_rate`, `maturity_date`, or `credit_rating`, or is empty.
+        """
         response = client.get("/api/assets?asset_class=BOND")
         assets = response.json()
 

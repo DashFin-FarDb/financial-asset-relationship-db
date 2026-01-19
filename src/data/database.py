@@ -18,7 +18,17 @@ DEFAULT_DATABASE_URL = os.getenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///./asset_
 
 
 def create_engine_from_url(url: Optional[str] = None) -> Engine:
-    """Create a SQLAlchemy engine for the configured database URL."""
+    """
+    Create a SQLAlchemy Engine for the given database URL or the module default.
+    
+    If the resolved URL is an in-memory SQLite database (scheme starts with "sqlite" and contains ":memory:"), the engine is created with connect_args {"check_same_thread": False} and a StaticPool to allow cross-thread reuse. For any other URL, a standard engine is created with future=True.
+    
+    Parameters:
+        url (Optional[str]): Database URL to use. If omitted, DEFAULT_DATABASE_URL is used.
+    
+    Returns:
+        Engine: A configured SQLAlchemy Engine for the resolved URL.
+    """
     resolved_url = url or DEFAULT_DATABASE_URL
 
     #

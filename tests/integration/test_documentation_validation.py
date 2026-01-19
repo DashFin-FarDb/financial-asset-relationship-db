@@ -60,17 +60,29 @@ class TestDocumentStructure:
 
     @staticmethod
     def test_has_generated_files_section(summary_content: str):
-        """Test that document describes generated files."""
+        """
+        Verify the document includes a "## Generated Files" section.
+        
+        Parameters:
+            summary_content (str): The full Markdown content of the summary file to inspect.
+        """
         assert "## Generated Files" in summary_content, "Document should list generated files"
 
     @staticmethod
     def test_has_test_suite_structure_section(summary_content: str):
-        """Test that document describes test suite structure."""
+        """
+        Verify the document contains a 'Test Suite Structure' section.
+        
+        Parameters:
+            summary_content (str): The full Markdown document content as a single string.
+        """
         assert "## Test Suite Structure" in summary_content, "Document should describe test structure"
 
     @staticmethod
     def test_has_running_tests_section(summary_content: str):
-        """Test that document includes running instructions."""
+        """
+        Verify the document includes a "## Running the Tests" section.
+        """
         assert "## Running the Tests" in summary_content, "Document should have running instructions"
 
     @staticmethod
@@ -86,7 +98,12 @@ class TestMarkdownFormatting:
 
     @staticmethod
     def test_headings_properly_formatted(summary_lines: List[str]):
-        """Test that headings follow proper markdown format."""
+        """
+        Verify Markdown heading lines use a space after the leading 1–6 hash characters.
+        
+        Parameters:
+            summary_lines (List[str]): Lines of the Markdown document to validate.
+        """
         heading_lines = [line for line in summary_lines if line.startswith("#")]
         for line in heading_lines:
             # Heading should have space after hash marks
@@ -94,7 +111,12 @@ class TestMarkdownFormatting:
 
     @staticmethod
     def test_no_trailing_whitespace(summary_lines: List[str]):
-        """Test that lines don't have trailing whitespace."""
+        """
+        Ensure no non-empty lines end with trailing whitespace.
+        
+        Parameters:
+            summary_lines (List[str]): Lines of the summary file to inspect; completely empty lines are ignored.
+        """
         lines_with_trailing = [
             (i + 1, line) for i, line in enumerate(summary_lines) if line.rstrip() != line and line.strip() != ""
         ]
@@ -102,7 +124,15 @@ class TestMarkdownFormatting:
 
     @staticmethod
     def test_code_blocks_properly_closed(summary_content: str):
-        """Test that code blocks are properly opened and closed."""
+        """
+        Verify that all Markdown code fences are opened and closed with matching triple backticks.
+        
+        Parameters:
+            summary_content (str): The Markdown document content to check.
+        
+        Raises:
+            AssertionError: If the total number of triple backtick markers is odd, indicating an unclosed code block.
+        """
         # Count triple backticks
         backtick_count = summary_content.count("```")
         assert (
@@ -111,7 +141,12 @@ class TestMarkdownFormatting:
 
     @staticmethod
     def test_lists_properly_formatted(summary_lines: List[str]):
-        """Test that bullet lists use consistent markers."""
+        """
+        Assert that all Markdown bullet list items are indented by an even number of spaces, enforcing consistent two-space nesting.
+        
+        Parameters:
+            summary_lines (List[str]): Lines of the Markdown document to validate.
+        """
         list_lines = [line for line in summary_lines if re.match(r"^\s*[-*+] ", line)]
         if list_lines:
             # Check that indentation is consistent
@@ -152,7 +187,14 @@ class TestContentAccuracy:
 
     @staticmethod
     def test_mentions_test_classes(summary_content: str):
-        """Test that document describes test classes."""
+        """
+        Asserts the document mentions at least one of the expected test class names.
+        
+        Checks for any of: TestWorkflowSyntax, TestWorkflowStructure, TestPrAgentWorkflow.
+        
+        Parameters:
+            summary_content (str): Full text of the summary file to scan for class names.
+        """
         test_class_keywords = [
             "TestWorkflowSyntax",
             "TestWorkflowStructure",
@@ -170,7 +212,11 @@ class TestContentAccuracy:
 
     @staticmethod
     def test_mentions_requirements(summary_content: str):
-        """Test that document mentions requirements or dependencies."""
+        """
+        Asserts the document mentions project dependencies.
+        
+        Checks that the summary content (case-insensitive) contains either the word "requirements" or "pyyaml".
+        """
         assert (
             "requirements" in summary_content.lower() or "pyyaml" in summary_content.lower()
         ), "Document should mention dependencies"
@@ -181,7 +227,11 @@ class TestDocumentMaintainability:
 
     @staticmethod
     def test_line_length_reasonable(summary_lines: List[str]):
-        """Test that lines aren't excessively long."""
+        """
+        Assert that the document contains few excessively long lines.
+        
+        Lines longer than 120 characters are considered excessive (except lines that start with "http"). The test allows up to 10% of all lines to exceed this length and will fail with an assertion message if the proportion is higher.
+        """
         long_lines = [
             (i + 1, line)
             for i, line in enumerate(summary_lines)
@@ -203,7 +253,14 @@ class TestDocumentMaintainability:
 
     @staticmethod
     def test_sections_have_content(summary_content: str):
-        """Test that major sections have substantial content."""
+        """
+        Verify each H2 section in the summary contains at least one non-empty content line.
+        
+        Splits the document on "## " headings and asserts that every section after the first (the preface) has at least one non-blank line of content.
+        
+        Parameters:
+        	summary_content (str): Full markdown text of the summary file to validate.
+        """
         sections = re.split(r"\n## ", summary_content)
         # Skip first section (before first H2)
         for section in sections[1:]:
@@ -218,7 +275,14 @@ class TestLinkValidation:
 
     @staticmethod
     def test_no_broken_internal_links(summary_content: str):
-        """Test that internal markdown links reference valid headers."""
+        """
+        Verify internal markdown links reference existing headers in the document.
+        
+        This test extracts internal links of the form [text](#anchor) from summary_content and asserts each anchor matches a header-derived anchor. Header anchors are generated by lowercasing the header text, removing characters other than word characters, spaces, or hyphens, and replacing runs of whitespace with a single hyphen (GitHub-style normalization).
+        
+        Parameters:
+            summary_content (str): Full markdown document content to validate.
+        """
         # Find markdown links [text](#anchor)
         internal_links = re.findall(r"\[([^\]]+)\]\(#([^\)]+)\)", summary_content)
 
@@ -255,7 +319,14 @@ class TestSecurityAndBestPractices:
 
     @staticmethod
     def test_uses_secure_examples(summary_content: str):
-        """Test that examples follow security best practices."""
+        """
+        Ensure documents that mention tokens reference a secrets context.
+        
+        Parameters:
+            summary_content (str): The Markdown file content to inspect; if it mentions "token"
+                the function asserts the content also references a secrets context (for example
+                the word "secrets" or the GitHub Actions expression "${{").
+        """
         # If the document mentions tokens, it should mention secrets context
         if "token" in summary_content.lower():
             assert (
@@ -291,7 +362,12 @@ class TestEdgeCases:
 
     @staticmethod
     def test_handles_special_characters(summary_content: str):
-        """Test that document handles special characters properly."""
+        """
+        Checks that the document does not contain Unicode replacement characters indicating encoding issues.
+        
+        Parameters:
+            summary_content (str): The markdown file content to validate.
+        """
         # Check for common encoding issues
         assert "�" not in summary_content, "Document should not contain replacement characters (encoding issues)"
 

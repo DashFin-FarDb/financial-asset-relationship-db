@@ -26,7 +26,11 @@ import api.auth as auth_module
 
 @pytest.fixture
 def clean_auth_env(monkeypatch):
-    """Clean authentication environment for testing."""
+    """
+    Prepare a clean authentication environment for tests.
+    
+    Sets a deterministic SECRET_KEY, removes any ADMIN_* environment variables (USERNAME, PASSWORD, EMAIL, FULL_NAME, DISABLED), reloads the authentication module to apply these changes, yields control to the test, and reloads the authentication module again after the test completes.
+    """
     # Set required SECRET_KEY
     monkeypatch.setenv("SECRET_KEY", "test-secret-key-min-32-chars-long-for-security")
     # Clear any admin credentials
@@ -99,7 +103,9 @@ class TestIsTruthyHelper:
 
     @staticmethod
     def test_is_truthy_with_random_string():
-        """Test that unrecognized strings return False."""
+        """
+        Verify that _is_truthy treats unrecognized string values as falsy.
+        """
         assert auth_module._is_truthy("random") is False
         assert auth_module._is_truthy("maybe") is False
 

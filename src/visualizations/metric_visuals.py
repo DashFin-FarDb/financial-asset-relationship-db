@@ -9,7 +9,20 @@ from src.logic.asset_graph import AssetRelationshipGraph
 def visualize_metrics(
     graph: AssetRelationshipGraph,
 ) -> Tuple[go.Figure, go.Figure, go.Figure]:
-    """Create visualizations of graph metrics"""
+    """
+    Generate three Plotly figures summarizing metrics from the provided asset relationship graph.
+    
+    Creates: (1) a bar chart of asset class counts, (2) a bar chart of relationship type counts, and (3) a timeline bar chart of regulatory events with impact scores and event labels positioned outside the bars.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Graph instance whose calculated metrics and regulatory events are visualized.
+    
+    Returns:
+        tuple: A three-item tuple (fig1, fig2, fig3) where
+            - fig1 is the asset class distribution bar chart,
+            - fig2 is the relationship types distribution bar chart,
+            - fig3 is the regulatory events timeline bar chart mapping event dates to impact scores.
+    """
     metrics = graph.calculate_metrics()
 
     # Asset class distribution
