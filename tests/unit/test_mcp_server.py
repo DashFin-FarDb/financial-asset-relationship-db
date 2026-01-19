@@ -125,10 +125,11 @@ class TestBuildMCPApp:
         def track_tool():
             """
             Create a decorator that records decorated function names into the `tool_calls` list.
-            
+
             Returns:
                 decorator (callable): A decorator that, when applied to a function, appends the function's `__name__` to the global `tool_calls` list and returns the original function.
             """
+
             def decorator(func):
                 tool_calls.append(func.__name__)
                 return func
@@ -178,7 +179,7 @@ class TestAddEquityNodeTool:
             def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
                 """
                 Create and validate a new Equity and add it to the global graph when supported.
-                
+
                 Creates an Equity instance from the provided fields, attempts to call the global graph's
                 add_asset method if available, and returns a human-readable status message.
                 Parameters:
@@ -187,7 +188,7 @@ class TestAddEquityNodeTool:
                     name (str): Human-readable name.
                     sector (str): Sector classification.
                     price (float): Current price.
-                
+
                 Returns:
                     str: Success message indicating the equity was added or validated, or an error message
                     starting with "Validation Error:" if creation/validation failed.
@@ -223,14 +224,14 @@ class TestAddEquityNodeTool:
         def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
             """
             Validate and construct an Equity from provided fields and return a human-readable result.
-            
+
             Parameters:
                 asset_id (str): Unique identifier for the asset.
                 symbol (str): Trading symbol of the equity.
                 name (str): Full name of the equity.
                 sector (str): Sector or industry classification.
                 price (float): Current price of the equity.
-            
+
             Returns:
                 str: "Successfully validated: <name>" on successful validation, or "Validation Error: <message>" if construction fails.
             """
@@ -258,7 +259,7 @@ class TestAddEquityNodeTool:
         def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
             """
             Validate the provided equity fields by attempting to construct an Equity and report the outcome.
-            
+
             Returns:
                 str: "Successfully validated: <name>" if construction succeeds, otherwise "Validation Error: <message>" describing the failure.
             """
@@ -302,11 +303,11 @@ class TestGet3DLayoutResource:
         def get_3d_layout() -> str:
             """
             Produce a JSON string containing 3D layout data for assets.
-            
+
             Serializes positions, asset IDs, colors, and hover metadata obtained from the graph's
             enhanced 3D visualization into a JSON object with keys "asset_ids", "positions",
             "colors", and "hover".
-            
+
             Returns:
                 json_str (str): JSON string with keys "asset_ids", "positions", "colors", and "hover".
             """
@@ -345,11 +346,11 @@ class TestGet3DLayoutResource:
         def get_3d_layout() -> str:
             """
             Produce a JSON string containing 3D layout data for assets.
-            
+
             Serializes positions, asset IDs, colors, and hover metadata obtained from the graph's
             enhanced 3D visualization into a JSON object with keys "asset_ids", "positions",
             "colors", and "hover".
-            
+
             Returns:
                 json_str (str): JSON string with keys "asset_ids", "positions", "colors", and "hover".
             """
@@ -435,9 +436,9 @@ class TestConcurrency:
         def add_assets(start_id: int):
             """
             Add five test Equity assets to the shared wrapped graph and record completion.
-            
+
             Creates and adds five Equity instances with sequential IDs and symbols starting at the given start_id (IDs like "TEST{n}", symbols like "T{n}"), each with a unique name, sector "Tech", asset_class AssetClass.EQUITY, and prices 100.0 through 104.0. After adding the assets, appends True to the outer-scope `results` list to signal completion.
-            
+
             Parameters:
                 start_id (int): Starting integer used to generate sequential asset IDs and symbols.
             """
@@ -474,14 +475,14 @@ class TestErrorHandling:
         def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
             """
             Validate and construct an Equity from provided fields and return a human-readable result.
-            
+
             Parameters:
                 asset_id (str): Unique identifier for the asset.
                 symbol (str): Trading symbol of the equity.
                 name (str): Full name of the equity.
                 sector (str): Sector or industry classification.
                 price (float): Current price of the equity.
-            
+
             Returns:
                 str: "Successfully validated: <name>" on successful validation, or "Validation Error: <message>" if construction fails.
             """
@@ -509,14 +510,14 @@ class TestErrorHandling:
         def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
             """
             Validate and construct an Equity from provided fields and return a human-readable result.
-            
+
             Parameters:
                 asset_id (str): Unique identifier for the asset.
                 symbol (str): Trading symbol of the equity.
                 name (str): Full name of the equity.
                 sector (str): Sector or industry classification.
                 price (float): Current price of the equity.
-            
+
             Returns:
                 str: "Successfully validated: <name>" on successful validation, or "Validation Error: <message>" if construction fails.
             """

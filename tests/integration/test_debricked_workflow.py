@@ -64,11 +64,11 @@ def job_steps(scan_job: Dict[str, Any]) -> List[Dict[str, Any]]:
 def get_steps_by_action(steps: List[Dict[str, Any]], action_substring: str) -> List[Dict[str, Any]]:
     """
     Filter steps whose "uses" field contains the given action substring (case-insensitive).
-    
+
     Parameters:
         steps (List[Dict[str, Any]]): List of workflow step objects.
         action_substring (str): Substring to match against each step's "uses" value.
-    
+
     Returns:
         List[Dict[str, Any]]: Steps where the "uses" field contains `action_substring` (case-insensitive).
     """
@@ -96,9 +96,9 @@ class TestWorkflowStructure:
     def test_has_valid_name(self, workflow_config: Dict[str, Any]):
         """
         Verify the workflow has a non-empty name that includes 'Debricked'.
-        
+
         Asserts that the top-level "name" field is a non-empty string and contains the substring "debricked" (case-insensitive).
-        
+
         Parameters:
             workflow_config (dict): Parsed workflow YAML mapping.
         """
@@ -109,10 +109,10 @@ class TestWorkflowStructure:
     def test_triggers_events(self, workflow_config: Dict[str, Any]):
         """
         Verify the workflow defines triggers for pull_request, push, and workflow_dispatch.
-        
+
         Asserts that the workflow's "on" field is present and contains the required trigger keys.
         Accepts the "on" value as either a mapping (dict) or a list and fails for other types.
-        
+
         Parameters:
             workflow_config (dict): Parsed GitHub Actions workflow configuration as returned by yaml.safe_load.
         """
@@ -229,9 +229,9 @@ class TestSecretHandling:
     def test_debricked_token_configuration(job_steps: List[Dict[str, Any]]):
         """
         Validate that Debricked workflow steps receive the DEBRICKED_TOKEN from GitHub Secrets.
-        
+
         Ensures at least one step uses the Debricked action and that each such step defines an env variable named `DEBRICKED_TOKEN` whose value exactly matches the GitHub secrets reference `${{ secrets.DEBRICKED_TOKEN }}` (allowing optional surrounding whitespace inside the interpolation).
-        
+
         Parameters:
             job_steps (List[Dict[str, Any]]): List of job step dictionaries from the workflow to inspect.
         """
@@ -253,9 +253,9 @@ class TestSecretHandling:
     def test_no_hardcoded_secrets(workflow_content: str):
         """
         Scan a workflow's text for known hardcoded secret prefixes and fail the test if any are found.
-        
+
         Checks each non-comment line of the provided workflow content for suspicious token prefixes such as GitHub and Debricked tokens; on detection, the test fails with a message indicating the matching pattern and line number.
-        
+
         Parameters:
             workflow_content (str): Raw text content of the workflow file to scan.
         """
@@ -287,7 +287,7 @@ class TestSecurityPatterns:
     def test_no_script_injection(workflow_content: str):
         """
         Asserts that the workflow content does not include run steps that interpolate GitHub event title/body fields, which could enable script injection.
-        
+
         Parameters:
             workflow_content (str): Raw YAML/text content of the GitHub Actions workflow to scan for unsafe interpolations.
         """
@@ -306,9 +306,9 @@ class TestSecurityPatterns:
     def test_no_secret_logging(workflow_content: str):
         """
         Ensure the workflow does not contain commands that log GitHub secrets.
-        
+
         Scans the provided workflow content for run-step patterns that would echo, print, or console.log values from the `secrets` context and fails the test if any such patterns are found.
-        
+
         Parameters:
             workflow_content (str): Raw text content of the workflow file to scan for secret-logging patterns.
         """
@@ -408,7 +408,7 @@ class TestComplianceWithIssue492:
     def test_uses_github_secrets(job_steps: List[Dict[str, Any]]):
         """
         Verify Debricked action steps reference the GitHub Actions secret DEBRICKED_TOKEN.
-        
+
         Checks each step that uses the Debricked action and has an `env` entry for `DEBRICKED_TOKEN`; asserts the value contains "secrets.DEBRICKED_TOKEN".
         """
         debricked_steps = get_steps_by_action(job_steps, "debricked")

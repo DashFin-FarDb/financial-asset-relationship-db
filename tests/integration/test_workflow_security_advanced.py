@@ -77,7 +77,7 @@ class TestWorkflowSecretHandling:
     def test_secrets_not_echoed_in_logs(all_workflows):
         """
         Scan each workflow's raw YAML for secret references and assert they are not printed to logs.
-        
+
         Searches for occurrences of secrets.<name> in each workflow's raw content and for each matching line asserts it is not used with echo, print, or printf (case-insensitive). The `all_workflows` parameter is an iterable of mappings with at least the keys `"raw"` (the workflow YAML as a string) and `"path"` (the workflow file path). Assertion failures include the workflow path and the offending line number.
         """
         for workflow in all_workflows:
@@ -120,12 +120,12 @@ class TestWorkflowPermissionsHardening:
     def test_workflows_define_explicit_permissions(all_workflows):
         """
         Ensure each workflow explicitly defines a top-level `permissions` field.
-        
+
         Checks each item in `all_workflows` (expected to be a sequence of mapping objects containing at least the keys `"path"` and `"content"`) and asserts that `"permissions"` exists in the workflow's `content`. Raises an AssertionError identifying the workflow path when a workflow is missing the field.
-        
+
         Parameters:
             all_workflows (Iterable[Mapping]): Iterable of workflow records; each record must include `"path"` (str) and `"content"` (mapping of the workflow YAML).
-        
+
         Raises:
             AssertionError: If any workflow's `content` does not contain a `"permissions"` key, with a message containing the workflow path.
         """
@@ -136,11 +136,11 @@ class TestWorkflowPermissionsHardening:
     def test_default_permissions_are_restrictive(all_workflows):
         """
         Ensure each workflow's default permissions adhere to least privilege.
-        
+
         If the workflow's `permissions` is a string, it must be either "read-all" or "none".
         If `permissions` is a mapping, any entries with value "write" must be limited to
         the allowed set {"contents", "pull-requests", "issues", "checks"}.
-        
+
         Raises:
             AssertionError: If a workflow has an overly permissive string value or if any
             unexpected write permissions are present; the assertion message includes the
@@ -166,12 +166,12 @@ class TestWorkflowPermissionsHardening:
     def test_no_workflows_with_write_all_permission(all_workflows):
         """
         Ensure no workflow declares permissions as the string "write-all".
-        
+
         Parameters:
             all_workflows (Iterable[dict]): An iterable of workflow records where each record is a dict
                 containing at least "path" (str) and "content" (dict). The function asserts that for any
                 workflow whose `content.permissions` is a string, it is not equal to "write-all".
-        
+
         Raises:
             AssertionError: If any workflow has `content.permissions` set to "write-all". The assertion
             message includes the offending workflow's path.

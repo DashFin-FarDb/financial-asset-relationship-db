@@ -15,7 +15,7 @@ import api.database as database
 def restore_database_module(monkeypatch) -> Iterator[None]:
     """
     Preserves api.database state and the DATABASE_URL environment variable for the duration of a test.
-    
+
     Yields to the test; after the test completes, closes and clears api.database._MEMORY_CONNECTION if present, restores DATABASE_URL to its original value (or removes it if it was unset), and reloads the api.database module to reset its state.
     """
 
@@ -424,7 +424,7 @@ class TestEdgeCasesAndErrorHandling:
     def test_resolve_sqlite_path_with_memory(self, monkeypatch, restore_database_module):
         """
         Verify that _resolve_sqlite_path maps SQLite memory URLs to ':memory:'.
-        
+
         Asserts that both "sqlite:///:memory:" and "sqlite://:memory:" resolve to ":memory:".
         """
         from api.database import _resolve_sqlite_path

@@ -15,10 +15,10 @@ from urllib.parse import unquote, urlparse
 def _get_database_url() -> str:
     """
     Retrieve the DATABASE_URL environment variable.
-    
+
     Returns:
         database_url (str): The value of the DATABASE_URL environment variable.
-    
+
     Raises:
         ValueError: If the DATABASE_URL environment variable is not set.
     """
@@ -93,10 +93,10 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 def _is_memory_db(path: str | None = None) -> bool:
     """
     Check whether the configured or provided SQLite path denotes an in-memory database.
-    
+
     Parameters:
         path (str | None): Optional database path or URI to evaluate. If omitted, the configured DATABASE_PATH is used.
-    
+
     Returns:
         `true` if the path denotes an in-memory SQLite database (for example, `:memory:` or a URI like `file::memory:?cache=shared`), `false` otherwise.
     """

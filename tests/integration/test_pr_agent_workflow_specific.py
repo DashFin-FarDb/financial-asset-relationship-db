@@ -83,9 +83,9 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
     def test_setup_python_single_python_version_definition(self, workflow_raw: str):
         """
         Verify each "Setup Python" step contains exactly one `python-version` definition.
-        
+
         Scans the raw workflow YAML text for occurrences of `name: Setup Python` and asserts that, for each found step, exactly one `python-version` key appears before the next step declaration.
-        
+
         Parameters:
             workflow_raw (str): Raw contents of the workflow YAML file.
         """
@@ -159,7 +159,7 @@ class TestPRAgentWorkflowStructureValidation:
     def test_trigger_on_issue_comment(self, workflow_content: Dict[str, Any]):
         """
         Verify the workflow defines an `issue_comment` trigger for @copilot mentions.
-        
+
         Parameters:
             workflow_content (Dict[str, Any]): Parsed workflow YAML as a dictionary.
         """
@@ -196,7 +196,7 @@ class TestPRAgentWorkflowSetupSteps:
     def test_setup_python_exists(self, pr_agent_job: Dict[str, Any]):
         """
         Verify the job defines exactly one step with the name "Setup Python".
-        
+
         Parameters:
             pr_agent_job (Dict[str, Any]): Job dictionary from the workflow YAML; expected to contain a list under the "steps" key.
         """

@@ -59,7 +59,7 @@ class AssetGraphRepository:
     def list_assets(self) -> List[Asset]:
         """
         List all assets ordered by id.
-        
+
         Returns:
             List[Asset]: Asset dataclass instances for every record in the database ordered by their `id`.
         """
@@ -70,7 +70,7 @@ class AssetGraphRepository:
     def get_assets_map(self) -> Dict[str, Asset]:
         """
         Map asset IDs to their corresponding Asset dataclass instances.
-        
+
         Returns:
             mapping (Dict[str, Asset]): Dictionary keyed by asset id with corresponding Asset objects.
         """
@@ -121,7 +121,7 @@ class AssetGraphRepository:
     def list_relationships(self) -> List[RelationshipRecord]:
         """
         Retrieve all asset relationships.
-        
+
         Returns:
             list[RelationshipRecord]: A list of RelationshipRecord instances, each containing
             source_id, target_id, relationship_type, strength, and bidirectional.
@@ -142,7 +142,7 @@ class AssetGraphRepository:
     def get_relationship(self, source_id: str, target_id: str, rel_type: str) -> Optional[RelationshipRecord]:
         """
         Retrieve the relationship between two assets with the specified relationship type.
-        
+
         Returns:
             RelationshipRecord: The matching relationship record, or `None` if no match is found.
         """
@@ -166,7 +166,7 @@ class AssetGraphRepository:
     def delete_relationship(self, source_id: str, target_id: str, rel_type: str) -> None:
         """
         Delete the relationship of the given type between two assets identified by their IDs.
-        
+
         Parameters:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
@@ -223,9 +223,9 @@ class AssetGraphRepository:
     def _update_asset_orm(orm: AssetORM, asset: Asset) -> None:
         """
         Synchronizes an AssetORM instance with values from an Asset model.
-        
+
         Updates core fields (symbol, name, asset_class, sector, price, market_cap, currency), converts numeric fields as needed, and resets all optional/asset-class-specific ORM attributes to reflect the current Asset's attributes to avoid stale values.
-        
+
         Parameters:
             orm (AssetORM): The ORM instance to update in-place.
             asset (Asset): The source Asset model whose values are copied into the ORM.

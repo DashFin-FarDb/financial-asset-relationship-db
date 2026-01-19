@@ -120,7 +120,7 @@ def _create_2d_relationship_traces(
 ) -> List[go.Scatter]:
     """
     Build 2D Plotly line traces representing asset-to-asset relationships, applying the provided relationship-type filters.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing assets and their outgoing relationships.
         positions (Dict[str, Tuple[float, float]]): Mapping of asset IDs to 2D coordinates.
@@ -133,7 +133,7 @@ def _create_2d_relationship_traces(
         show_income_comparison (bool): Include "income_comparison" relationships when True.
         show_regulatory (bool): Include "regulatory_impact" relationships when True.
         show_all_relationships (bool): When True, ignore individual filters and include all relationships.
-    
+
     Returns:
         List[go.Scatter]: A list of Plotly Scatter traces (one per relationship type) with line segments and hover text; returns an empty list if no traces are produced.
     """
@@ -231,7 +231,7 @@ def visualize_2d_graph(
 ) -> go.Figure:
     """
     Render a 2D Plotly figure visualizing an AssetRelationshipGraph with a selectable layout and relationship-type filters.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Asset relationship graph to visualize.
         layout_type (str): Layout algorithm to use: 'spring', 'circular', or 'grid'.
@@ -243,7 +243,7 @@ def visualize_2d_graph(
         show_income_comparison (bool): Include "income comparison" relationships.
         show_regulatory (bool): Include "regulatory" relationships.
         show_all_relationships (bool): If true, ignore individual show_* flags and include all relationship types.
-    
+
     Returns:
         go.Figure: Plotly Figure containing node markers (colored and sized by asset class and connectivity) and relationship line traces filtered per the provided flags.
     """

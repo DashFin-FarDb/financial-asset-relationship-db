@@ -46,10 +46,10 @@ class TestFormulaicVisualizer:
     def sample_analysis_results(self, sample_formula):
         """
         Builds a representative analysis_results dictionary used by tests.
-        
+
         Parameters:
             sample_formula (Formula): A Formula instance to include as the first entry in the returned `formulas` list.
-        
+
         Returns:
             dict: A sample analysis results mapping with keys:
                 - `formulas`: list of formula entries (includes `sample_formula` and a second sample formula dict).

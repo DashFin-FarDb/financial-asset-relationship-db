@@ -64,7 +64,7 @@ class TestPRAgentConfigChanges:
     def test_no_fallback_strategies(self, config_data: Dict[str, Any]):
         """
         Assert that the top-level 'limits' mapping in the PR Agent config does not include a 'fallback' key.
-        
+
         Parameters:
             config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`. If a top-level `limits` mapping exists, the test fails when that mapping contains the `fallback` key.
         """
@@ -87,9 +87,9 @@ class TestPRAgentConfigChanges:
     def test_no_complex_token_management(self, config_data: Dict[str, Any]):
         """
         Ensure the PR Agent configuration does not include chunking or explicit token-limit settings.
-        
+
         This test fails if the configuration text contains the substring "chunk_size", or if it contains "max_tokens" while the top-level `limits.max_execution_time` key is absent.
-        
+
         Parameters:
             config_data (Dict[str, Any]): Parsed PR Agent configuration mapping.
         """
@@ -104,10 +104,10 @@ class TestPRAgentConfigChanges:
     def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
         """
         Ensure the PR agent configuration preserves required quality settings for supported languages.
-        
+
         Parameters:
             config_data: Parsed YAML configuration for the PR agent.
-        
+
         Details:
             Asserts that the top-level `quality` section contains `python` and `typescript`, and that the Python quality configuration includes a `linter` and a `test_runner` equal to `pytest`.
         """
@@ -186,10 +186,10 @@ class TestWorkflowSimplifications:
     def test_greetings_workflow_simple_messages(self, workflows_dir: Path):
         """
         Validate that the greetings workflow uses short placeholder messages for first interaction.
-        
+
         Asserts the .github/workflows/greetings.yml file exists, locates the first-interaction step under jobs.greeting.steps,
         and verifies that the `issue-message` and `pr-message` values are each shorter than 200 characters.
-        
+
         Parameters:
             workflows_dir (Path): Path to the .github/workflows directory used to locate greetings.yml.
         """
@@ -255,7 +255,7 @@ class TestDeletedFilesImpact:
     def test_no_references_to_deleted_files(self, repo_root: Path):
         """
         Ensure every workflow YAML in .github/workflows does not contain references to deleted repository files.
-        
+
         Checks for occurrences of "context_chunker.py", "labeler.yml", and ".github/scripts/README.md" and fails the test if any workflow file contains one of these strings.
         """
         workflows_dir = repo_root / ".github" / "workflows"
@@ -334,7 +334,7 @@ class TestGitignoreChanges:
     def test_codacy_instructions_ignored(gitignore_path: Path):
         """
         Verify that the repository .gitignore contains the filename 'codacy.instructions.md'.
-        
+
         Fails the test if 'codacy.instructions.md' is not present in the .gitignore content.
         """
         with open(gitignore_path, "r") as f:
@@ -346,7 +346,7 @@ class TestGitignoreChanges:
     def test_test_artifacts_not_ignored(gitignore_path: Path):
         """
         Verify that the repository .gitignore does not contain the test database ignore pattern 'test_*.db'.
-        
+
         Parameters:
             gitignore_path (Path): Path to the repository .gitignore file.
         """
@@ -382,7 +382,7 @@ class TestCodacyInstructionsChanges:
     def codacy_instructions_path() -> Path:
         """
         Compute the path to the repository's Codacy instructions Markdown file.
-        
+
         Returns:
             Path: Path to .github/instructions/codacy.instructions.md inside the repository.
         """
@@ -413,9 +413,9 @@ class TestCodacyInstructionsChanges:
     def test_codacy_critical_rules_present(codacy_instructions_path: Path):
         """
         Validate that the Codacy instructions include required critical rules.
-        
+
         If the file does not exist, the test is skipped. Asserts that the file content contains 'codacy_cli_analyze' and 'CRITICAL'.
-        
+
         Parameters:
             codacy_instructions_path (Path): Path to the Codacy instructions file (e.g., .github/instructions/codacy.instructions.md).
         """

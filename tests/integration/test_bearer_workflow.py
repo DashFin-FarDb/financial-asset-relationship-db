@@ -57,7 +57,7 @@ class TestBearerWorkflowStructure:
     def test_workflow_has_name(bearer_workflow_content):
         """
         Assert the workflow defines the name "Bearer".
-        
+
         The test fails if the 'name' key is missing or its value is not "Bearer".
         """
         assert "name" in bearer_workflow_content, "Workflow should have a name"
@@ -147,7 +147,7 @@ class TestBearerJobConfiguration:
     def test_job_has_permissions(bearer_workflow_content):
         """
         Assert that the workflow's "bearer" job defines a permissions mapping.
-        
+
         Checks that the "bearer" job includes a "permissions" key and that its value is a dictionary.
         """
         bearer_job = bearer_workflow_content["jobs"]["bearer"]
@@ -298,7 +298,7 @@ class TestBearerActionConfiguration:
     def test_bearer_exit_code_configured(bearer_workflow_content):
         """
         Ensure the Bearer action's `exit-code` is set to 0 to prevent the workflow from failing on findings.
-        
+
         Checks that the Bearer workflow step includes an `exit-code` configuration and that its value equals 0.
         """
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
@@ -382,7 +382,7 @@ class TestBearerWorkflowSecurity:
     def test_actions_pinned_to_versions(bearer_workflow_content):
         """
         Ensure every GitHub Action used in the 'bearer' job is pinned to a specific immutable version.
-        
+
         Checks each step with a `uses` key contains a version separator `@` and that the referenced version is not the branch names "main" or "master".
         """
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
@@ -565,7 +565,7 @@ class TestBearerWorkflowParameterized:
     def test_required_permissions(self, bearer_workflow_content, permission, value):
         """
         Asserts that a specific permission for the 'bearer' job in the workflow matches the expected value.
-        
+
         Parameters:
             bearer_workflow_content (dict): Parsed YAML content of the workflow.
             permission (str): Permission key to check (e.g., "contents", "security-events").

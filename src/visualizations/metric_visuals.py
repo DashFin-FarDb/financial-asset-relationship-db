@@ -11,15 +11,15 @@ def visualize_metrics(
 ) -> Tuple[go.Figure, go.Figure, go.Figure]:
     """
     Create three Plotly figures that visualize key metrics from an asset relationship graph.
-    
+
     The returned figures, in order, are:
     - Asset class distribution: bar chart of counts per asset class.
     - Relationship types distribution: bar chart of counts per relationship type.
     - Regulatory events timeline: timeline of regulatory events with impact scores plotted against event dates.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph providing calculated metrics and a list of regulatory events.
-    
+
     Returns:
         tuple[go.Figure, go.Figure, go.Figure]: A 3-tuple (fig1, fig2, fig3) corresponding to the Asset Class Distribution, Relationship Types Distribution, and Regulatory Events Timeline figures respectively.
     """

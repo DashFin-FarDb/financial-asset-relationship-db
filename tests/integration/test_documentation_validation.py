@@ -62,7 +62,7 @@ class TestDocumentStructure:
     def test_has_generated_files_section(summary_content: str):
         """
         Assert the summary contains a "Generated Files" level-2 section.
-        
+
         Parameters:
             summary_content (str): Full markdown content of the summary file to check.
         """
@@ -79,7 +79,7 @@ class TestDocumentStructure:
     def test_has_running_tests_section(summary_content: str):
         """
         Verify the summary contains a "## Running the Tests" section.
-        
+
         Parameters:
             summary_content (str): Full text of the summary file to inspect.
         """
@@ -89,10 +89,10 @@ class TestDocumentStructure:
     def test_has_benefits_section(summary_content: str):
         """
         Assert that the Markdown content includes a "## Benefits" or "## Key Features" level-2 heading.
-        
+
         Parameters:
             summary_content (str): Full text of the summary Markdown file to inspect.
-        
+
         Raises:
             AssertionError: If neither "## Benefits" nor "## Key Features" is present.
         """
@@ -116,7 +116,7 @@ class TestMarkdownFormatting:
     def test_no_trailing_whitespace(summary_lines: List[str]):
         """
         Ensure no non-empty line ends with trailing whitespace.
-        
+
         Fails the test if any non-empty line contains trailing spaces or tabs.
         """
         lines_with_trailing = [
@@ -137,9 +137,9 @@ class TestMarkdownFormatting:
     def test_lists_properly_formatted(summary_lines: List[str]):
         """
         Verify that bullet list items use indentation that is a multiple of two spaces.
-        
+
         Scans the provided lines for markdown list items starting with -, *, or + and asserts each item's leading indentation is divisible by 2. Raises an AssertionError identifying the offending line when an item has odd indentation.
-        
+
         Parameters:
             summary_lines (List[str]): Lines of the summary file to inspect for list items.
         """
@@ -165,7 +165,7 @@ class TestContentAccuracy:
     def test_mentions_duplicate_keys_issue(summary_content: str):
         """
         Check the summary content mentions the duplicate-keys issue.
-        
+
         Parameters:
             summary_content (str): Full text of the summary document to search.
         """
@@ -180,7 +180,7 @@ class TestContentAccuracy:
     def test_has_code_examples(summary_content: str):
         """
         Assert the summary contains at least one fenced code block marker.
-        
+
         Parameters:
             summary_content (str): Full text of the summary file to inspect for code example markers.
         """
@@ -206,7 +206,7 @@ class TestContentAccuracy:
     def test_includes_file_paths(summary_content: str):
         """
         Verify the summary mentions at least one expected repository file path.
-        
+
         Specifically checks for the presence of "tests/integration" or "test_github_workflows" in the provided content.
         """
         assert (
@@ -217,12 +217,12 @@ class TestContentAccuracy:
     def test_mentions_requirements(summary_content: str):
         """
         Assert the summary document references project dependencies.
-        
+
         Parameters:
-        	summary_content (str): Full text of the summary document to inspect.
-        
+                summary_content (str): Full text of the summary document to inspect.
+
         Detailed description:
-        	Checks that the content includes either the word "requirements" or "pyyaml", case-insensitively.
+                Checks that the content includes either the word "requirements" or "pyyaml", case-insensitively.
         """
         assert (
             "requirements" in summary_content.lower() or "pyyaml" in summary_content.lower()
@@ -249,7 +249,7 @@ class TestDocumentMaintainability:
     def test_has_clear_structure(summary_content: str):
         """
         Verify the document contains at least one level-1 heading and at least three level-2 headings.
-        
+
         Parameters:
             summary_content (str): Full text of the summary file to inspect.
         """
@@ -263,10 +263,10 @@ class TestDocumentMaintainability:
     def test_sections_have_content(summary_content: str):
         """
         Verify that every H2 (level-2) section contains at least one non-empty content line.
-        
+
         Parameters:
             summary_content (str): The full Markdown text of the summary file to inspect.
-        
+
         Raises:
             AssertionError: If any H2 section has no non-empty lines of content.
         """
@@ -286,9 +286,9 @@ class TestLinkValidation:
     def test_no_broken_internal_links(summary_content: str):
         """
         Verify that internal Markdown links reference existing headers in the document.
-        
+
         Searches for links of the form `[text](#anchor)` and asserts each anchor corresponds to a header when headers are normalized by lowercasing, removing non-word characters, trimming, and replacing spaces with hyphens.
-        
+
         Parameters:
             summary_content (str): Full Markdown document text to validate.
         """
@@ -317,9 +317,9 @@ class TestSecurityAndBestPractices:
     def test_no_hardcoded_secrets(summary_content: str):
         """
         Ensure the summary content contains no hardcoded GitHub token patterns.
-        
+
         Scans the provided text for common GitHub secret token formats (personal access tokens, OAuth tokens, and fine-grained PATs) and fails the test if any matches are found.
-        
+
         Parameters:
             summary_content (str): The full text of the summary document to scan for secrets.
         """
@@ -337,7 +337,7 @@ class TestSecurityAndBestPractices:
     def test_uses_secure_examples(summary_content: str):
         """
         Ensure that if the document mentions "token" it also references GitHub secrets context or a secrets placeholder.
-        
+
         Parameters:
             summary_content (str): The markdown content to inspect.
         """
@@ -364,9 +364,9 @@ class TestReferenceAccuracy:
     def test_file_references_are_consistent(summary_content: str):
         """
         Verify that mentions of "test_github_workflows.py" use a consistent filename casing.
-        
+
         When the filename appears in the provided content, this test asserts that the set of distinct case variants is small (no more than two unique variants), indicating consistent references.
-        
+
         Parameters:
             summary_content (str): Full text of the summary file to scan for filename mentions.
         """
@@ -385,7 +385,7 @@ class TestEdgeCases:
     def test_handles_special_characters(summary_content: str):
         """
         Check that the summary content contains no Unicode replacement character U+FFFD.
-        
+
         Parameters:
             summary_content (str): Full text of the summary file to inspect.
         """

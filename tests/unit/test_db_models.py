@@ -504,7 +504,7 @@ class TestRegulatoryEventORM:
     def test_regulatory_event_with_related_assets(self, db_session):
         """
         Verify that a regulatory event can be associated with multiple related assets.
-        
+
         Creates a main asset and two related assets, creates a regulatory event for the main asset, links the two related assets to that event via the join table, and asserts the event exposes both related assets.
         """
         # Create main asset and related assets

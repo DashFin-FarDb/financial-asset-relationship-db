@@ -403,7 +403,7 @@ class TestShellScripts:
     def test_shell_scripts_consistent_style(self):
         """
         Verify shell scripts use a consistent variable-naming style for global variables.
-        
+
         Checks that cleanup-branches.sh and run-dev.sh use uppercase names for global variables (for example, BACKEND_PID and FRONTEND_PID) and that any defined PID variables are actually referenced in the script.
         """
         for script in ["cleanup-branches.sh", "run-dev.sh"]:

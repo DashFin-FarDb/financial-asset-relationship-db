@@ -22,9 +22,9 @@ class DummyGraph(AssetRelationshipGraph):
         # Return positions (n,3), asset_ids, colors, hover_texts
         """
         Return visualization data for 3D plotting of assets.
-        
+
         Positions are an (n, 3) NumPy array of float coordinates for each asset, arranged row-major with values 0 through n*3 - 1. Asset IDs are a sorted list of unique asset identifiers present as sources or targets in the graph. Colors is a list of hex color strings, one per asset (defaulting to "#000000"). Hover_texts is the list of labels for each asset (identical to `asset_ids`), in the same order as the rows of `positions`.
-        
+
         Returns:
             tuple: A 4-tuple (positions, asset_ids, colors, hover_texts) where
                 positions (numpy.ndarray): Array of shape (n, 3) of floats.

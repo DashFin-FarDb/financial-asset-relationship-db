@@ -100,12 +100,12 @@ def _parse_single_requirement(line: str) -> tuple[str, str] | None:
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """
     Parse a requirements file into a list of (package, version_spec) tuples.
-    
+
     The returned package names preserve the original casing as written in the file and exclude extras and environment markers. Version specifiers are normalized by removing spaces around commas. Blank lines and comment lines are ignored. Lines that fail to parse are skipped (a message is printed); parsing errors are not raised.
-    
+
     Returns:
         List[Tuple[str, str]]: A list of tuples where the first element is the package token as written in the file and the second element is the normalized version specifier (empty string if none).
-    
+
     Raises:
         OSError: If the requirements file could not be opened or read.
     """
@@ -495,7 +495,7 @@ class TestVersionConstraintValidation:
     def test_minimum_version_numbers_reasonable(requirements: List[Tuple[str, str]]):
         """
         Validate that packages with '>=...' version constraints have a major version number greater than or equal to 0; skips packages whose names start with "types-".
-        
+
         Parameters:
             requirements (List[Tuple[str, str]]): List of (package_name, version_spec) tuples as returned by parse_requirements; version_spec is expected to be a string like ">=1.2.3" or similar.
         """
@@ -514,7 +514,7 @@ class TestVersionConstraintValidation:
     def test_no_conflicting_version_specs(self, requirements: List[Tuple[str, str]]):
         """
         Validate that two-part version specifiers are not trivially conflicting.
-        
+
         For compound specs containing a comma and exactly two parts (e.g., ">=X,<Y"),
         asserts that the minimum and maximum versions are not identical unless the
         upper bound uses "<=" which would allow equality.
@@ -696,9 +696,9 @@ class TestTypeStubConsistency:
     def test_type_stub_versions_reasonable(self, requirements: List[Tuple[str, str]]):
         """
         Validate that type stub packages use reasonable version constraints.
-        
+
         For each requirement whose package name starts with "types-", if a version specifier is present it must include one of the operators: ">=", "==", or "~=".
-        
+
         Parameters:
             requirements (List[Tuple[str, str]]): List of (package, version_spec) tuples as returned by the parser.
         """
@@ -719,7 +719,7 @@ class TestFileStructureAndOrganization:
     def test_comments_have_proper_format():
         """
         Ensure comment lines begin with '#' followed by either a space or a second '#' to indicate headings.
-        
+
         Asserts for each line that starts with '#' that the character immediately after the first '#' is a space or another '#', and reports the offending line number and content on failure.
         """
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
@@ -776,13 +776,13 @@ class TestSecurityBestPractices:
     def test_no_very_old_package_versions(requirements: List[Tuple[str, str]]):
         """
         Ensure packages do not specify a very old major version.
-        
+
         Parameters:
             requirements (List[Tuple[str, str]]): Sequence of (package, version_spec) pairs as parsed from the requirements file. Each version_spec is expected to be a specifier string (e.g., ">=1.2.3").
-        
+
         Behavior:
             For entries whose version specifier starts with ">=", verifies the major version number is at least 1 for most packages. Exemptions: packages named "types-PyYAML" and any package starting with "types-" are not checked.
-        
+
         Notes:
             Fails via assertion if an applicable package has a major version less than 1.
         """
@@ -801,10 +801,10 @@ class TestSecurityBestPractices:
     def test_critical_packages_pinned(requirements: List[Tuple[str, str]]):
         """
         Ensure critical security-related development packages have version constraints.
-        
+
         Checks that each of the critical packages ("pytest", "pytest-cov") present in the provided
         requirements list has a non-empty version specifier.
-        
+
         Parameters:
             requirements (List[Tuple[str, str]]): List of (package, version_spec) tuples as produced
                 by parse_requirements; package names may preserve original casing.
@@ -837,9 +837,9 @@ class TestPyYAMLIntegration:
     def test_pyyaml_version_compatible_with_types(requirements: List[Tuple[str, str]]):
         """
         Ensure PyYAML is present and constrained to at least version 6.0.
-        
+
         Asserts that the parsed requirements contain a version specifier for PyYAML and that the first specifier begins with ">=6.0".
-        
+
         Parameters:
             requirements (List[Tuple[str, str]]): List of (package, version_spec) tuples parsed from the requirements file.
         """

@@ -27,7 +27,7 @@ import api.auth as auth_module
 def clean_auth_env(monkeypatch):
     """
     Prepare a clean authentication environment for tests by setting a test SECRET_KEY and clearing admin-related environment variables.
-    
+
     Reloads the authentication module to apply the environment changes before yielding control to the test and reloads it again after the test completes.
     """
     # Set required SECRET_KEY
@@ -99,7 +99,7 @@ class TestIsTruthyHelper:
     def test_is_truthy_with_empty_string():
         """
         Check _is_truthy behavior for an empty string input.
-        
+
         Asserts that the helper returns False when given an empty string.
         """
         assert auth_module._is_truthy("") is False

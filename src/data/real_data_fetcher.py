@@ -58,9 +58,9 @@ class RealDataFetcher:
     def create_real_database(self) -> AssetRelationshipGraph:
         """
         Create an AssetRelationshipGraph populated with market data, preferring a cached copy and falling back to sample or provided data when network fetch is unavailable or fails.
-        
+
         Loads and returns a cached graph if a valid cache exists; otherwise, when network access is enabled, fetches equities, bonds, commodities, and currencies, adds regulatory events and relationships, and persists the resulting graph to cache if configured. If network access is disabled or any fetch/persistence step fails, obtains a fallback graph from the provided factory or the built-in sample dataset.
-        
+
         Returns:
             AssetRelationshipGraph: The constructed graph containing assets, regulatory events, and relationships.
         """
@@ -199,9 +199,9 @@ class RealDataFetcher:
     def _fetch_bond_data() -> List[Bond]:
         """
         Construct Bond instances from a predefined set of Treasury and corporate bond ETF proxies.
-        
+
         The function attempts to fetch current price and available metadata for each proxy; proxies with no recent price data are skipped. When specific fields are missing, sensible defaults and approximate values are used (e.g., default yield, approximate coupon_rate and maturity).
-        
+
         Returns:
             List[Bond]: A list of Bond objects built from the ETF proxies; entries with missing price data are not included.
         """
@@ -261,9 +261,9 @@ class RealDataFetcher:
     def _fetch_commodity_data() -> List[Commodity]:
         """
         Retrieve current market data for a fixed set of commodity futures.
-        
+
         For each configured futures symbol this function attempts to read recent market prices and constructs a Commodity instance containing id, symbol, name, asset_class, sector, price, contract_size, delivery_date, and a simple volatility estimate. If no price data exists for a symbol or an error occurs while fetching it, that symbol is skipped. Volatility is estimated from 5-day close return standard deviation with a fallback value of 0.20 when insufficient history is available.
-        
+
         Returns:
             List[Commodity]: A list of populated Commodity objects for successfully fetched symbols.
         """
@@ -456,13 +456,13 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
     Convert an AssetRelationshipGraph into a JSON-serializable dictionary.
-    
+
     The resulting dictionary contains serialized assets, serialized regulatory events,
     outgoing relationships keyed by source id, and incoming relationships keyed by target id.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): The graph to serialize.
-    
+
     Returns:
         Dict[str, Any]: Dictionary with keys:
             - "assets": list of serialized asset objects

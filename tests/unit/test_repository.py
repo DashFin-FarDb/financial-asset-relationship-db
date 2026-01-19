@@ -531,7 +531,7 @@ class TestRegulatoryEventOperations:
     def test_upsert_event_with_related_assets(repository):
         """
         Verify that a regulatory event upsert persists links to related assets.
-        
+
         Creates a main asset and two related assets, upserts them and a RegulatoryEvent that references the related asset IDs, commits, and asserts the persisted ORM event has two linked related_assets.
         """
         # Create assets
