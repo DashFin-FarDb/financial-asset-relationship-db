@@ -83,7 +83,9 @@ class TestIsTruthyHelper:
         assert _is_truthy("   ") is False
 
     def test_is_truthy_with_true_values(self):
-        """Should return True for recognized truthy values."""
+        """
+        Verify that _is_truthy recognizes common string representations of truth.
+        """
         assert _is_truthy("true") is True
         assert _is_truthy("TRUE") is True
         assert _is_truthy("True") is True
@@ -94,7 +96,9 @@ class TestIsTruthyHelper:
         assert _is_truthy("ON") is True
 
     def test_is_truthy_with_false_values(self):
-        """Should return False for non-truthy values."""
+        """
+        Verifies _is_truthy identifies common false-like string inputs.
+        """
         assert _is_truthy("false") is False
         assert _is_truthy("0") is False
         assert _is_truthy("no") is False
@@ -113,13 +117,28 @@ class TestUserRepositoryInstanceMethods:
 
     @pytest.fixture
     def repository(self):
-        """Create a fresh repository instance for each test."""
+        """
+        Provide a fresh UserRepository with an initialized database schema for a test.
+        
+        Returns:
+            UserRepository: A new repository instance after the database schema has been initialized.
+        """
         initialize_schema()
         return UserRepository()
 
     @pytest.fixture
     def sample_user_data(self):
-        """Provide sample user data for tests."""
+        """
+        Return a sample user payload used by tests.
+        
+        Returns:
+            dict: A user dictionary with the following keys:
+                - username (str): "testuser"
+                - hashed_password (str): hashed form of "password123"
+                - email (str): "test@example.com"
+                - full_name (str): "Test User"
+                - disabled (bool): False
+        """
         return {
             "username": "testuser",
             "hashed_password": get_password_hash("password123"),
@@ -164,6 +183,11 @@ class TestUserRepositoryInstanceMethods:
         errors = []
         
         def create_user(username):
+            """
+            Create or update a user in the repository using the shared sample_user_data with the provided username.
+            
+            This function copies the module-level `sample_user_data`, replaces its "username" with the given value, and calls `repository.create_or_update_user` to persist the user. If an exception occurs, it is appended to the module-level `errors` list.
+            """
             try:
                 data = sample_user_data.copy()
                 data["username"] = username
@@ -186,7 +210,12 @@ class TestCreateOrUpdateUserParameterNames:
 
     @pytest.fixture
     def repository(self):
-        """Create a fresh repository instance."""
+        """
+        Provide a fresh UserRepository with an initialized database schema for tests.
+        
+        Returns:
+            UserRepository: A new repository instance backed by a freshly initialized schema.
+        """
         initialize_schema()
         return UserRepository()
 
@@ -241,7 +270,12 @@ class TestSeedCredentialsFromEnv:
 
     @pytest.fixture
     def repository(self):
-        """Create a fresh repository instance."""
+        """
+        Provide a fresh UserRepository with an initialized database schema for tests.
+        
+        Returns:
+            UserRepository: A new repository instance backed by a freshly initialized schema.
+        """
         initialize_schema()
         return UserRepository()
 
@@ -364,7 +398,12 @@ class TestAuthenticateUserFunction:
 
     @pytest.fixture
     def repository(self):
-        """Create repository with test user."""
+        """
+        Create a UserRepository instance initialized with a single test user.
+        
+        Returns:
+            UserRepository: repository containing a pre-created user with username "testuser", email "test@example.com", and a hashed password.
+        """
         initialize_schema()
         repo = UserRepository()
         repo.create_or_update_user(
@@ -416,7 +455,12 @@ class TestGetUserFunction:
 
     @pytest.fixture
     def repository(self):
-        """Create repository with test user."""
+        """
+        Create a UserRepository instance pre-populated with a test user.
+        
+        Returns:
+            UserRepository: Repository containing a user with username "testuser", hashed_password "hash123", and email "test@example.com".
+        """
         initialize_schema()
         repo = UserRepository()
         repo.create_or_update_user(
@@ -450,7 +494,12 @@ class TestEdgeCasesAndBoundaryConditions:
 
     @pytest.fixture
     def repository(self):
-        """Create fresh repository."""
+        """
+        Initialize the database schema and return a new UserRepository instance.
+        
+        Returns:
+            UserRepository: A new repository backed by a freshly initialized schema.
+        """
         initialize_schema()
         return UserRepository()
 
@@ -465,7 +514,9 @@ class TestEdgeCasesAndBoundaryConditions:
         assert user.username == username
 
     def test_very_long_username(self, repository):
-        """Should handle very long usernames."""
+        """
+        Verifies the repository accepts and correctly retrieves a username of 1000 characters.
+        """
         username = "a" * 1000
         repository.create_or_update_user(
             username=username,
@@ -512,6 +563,11 @@ class TestEdgeCasesAndBoundaryConditions:
     def test_concurrent_user_creation(self, repository):
         """Should handle concurrent user creation safely."""
         def create_users():
+            """
+            Create ten users in the module-level repository.
+            
+            Each created user has username "user0" through "user9" and a hashed_password value of "hash".
+            """
             for i in range(10):
                 repository.create_or_update_user(
                     username=f"user{i}",
@@ -544,7 +600,11 @@ class TestSecurityConfiguration:
         assert ALGORITHM == "HS256"
 
     def test_access_token_expire_minutes(self):
-        """ACCESS_TOKEN_EXPIRE_MINUTES should be configured."""
+        """
+        Verify that the access token expiry is configured to a positive value.
+        
+        Asserts that ACCESS_TOKEN_EXPIRE_MINUTES is an integer greater than zero.
+        """
         from api.auth import ACCESS_TOKEN_EXPIRE_MINUTES
         assert isinstance(ACCESS_TOKEN_EXPIRE_MINUTES, int)
         assert ACCESS_TOKEN_EXPIRE_MINUTES > 0

@@ -368,7 +368,9 @@ class TestGet3DVisualizationDataEnhancedComprehensive:
         assert np.allclose(xy_distances, 1.0, atol=1e-10)
 
     def test_positions_shape_matches_counts(self):
-        """Test that positions array shape matches the number of assets."""
+        """
+        Verify that the number of position rows equals the number of assets and that each position has three coordinates; also ensure colors and hover_texts lengths match the asset count.
+        """
         graph = AssetRelationshipGraph()
         graph.relationships = {
             'A': [('B', 'r1', 0.5)],

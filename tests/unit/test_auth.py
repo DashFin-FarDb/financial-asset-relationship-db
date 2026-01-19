@@ -94,7 +94,11 @@ class TestIsTruthy:
         assert _is_truthy('off') is False
 
     def test_is_truthy_empty_string(self):
-        """Test empty string returns False."""
+        """
+        Verify _is_truthy rejects empty-string inputs.
+        
+        Asserts that calling _is_truthy('') returns False.
+        """
         assert _is_truthy('') is False
 
     def test_is_truthy_none(self):
@@ -106,7 +110,9 @@ class TestIsTruthy:
         assert _is_truthy('random') is False
 
     def test_is_truthy_whitespace(self):
-        """Test whitespace string returns False."""
+        """
+        Verify that a string containing only whitespace is considered falsy by _is_truthy.
+        """
         assert _is_truthy('   ') is False
 
 
@@ -120,7 +126,7 @@ class TestPasswordHashingAndVerification:
         assert len(hashed) > 0
 
     def test_get_password_hash_different_for_same_password(self):
-        """Test that hashing the same password twice produces different hashes (due to salt)."""
+        """Verifies that hashing the same password twice yields different hash strings."""
         hash1 = get_password_hash("testpassword")
         hash2 = get_password_hash("testpassword")
         assert hash1 != hash2  # Different salts
@@ -212,30 +218,45 @@ class TestUserRepository:
 
     @pytest.fixture
     def mock_fetch_one(self):
-        """Mock fetch_one for database queries."""
+        """
+        Provide a patched mock for api.auth.fetch_one.
+        
+        Returns:
+            mock (unittest.mock.Mock): The mock object that replaces api.auth.fetch_one for the duration of the fixture.
+        """
         with patch('api.auth.fetch_one') as mock:
             yield mock
 
     @pytest.fixture
     def mock_fetch_value(self):
-        """Mock fetch_value for database queries."""
+        """
+        Provide a patched `api.auth.fetch_value` mock for tests.
+        
+        Yields:
+            mock: The patched `fetch_value` mock object created by `unittest.mock.patch`.
+        """
         with patch('api.auth.fetch_value') as mock:
             yield mock
 
     @pytest.fixture
     def mock_execute(self):
         """
-        Provide a patched 'api.auth.execute' during the test and yield the mock.
+        Provide a pytest fixture that yields a mock patch for the `api.auth.execute` function.
         
-        Yields:
-            unittest.mock.MagicMock: Mock object that replaces api.auth.execute.
+        Returns:
+            mock: The patched mock object for `api.auth.execute`.
         """
         with patch('api.auth.execute') as mock:
             yield mock
 
     @pytest.fixture
     def repository(self):
-        """Create a UserRepository instance."""
+        """
+        Instantiate a new UserRepository.
+        
+        Returns:
+            repository (UserRepository): A new UserRepository instance.
+        """
         return UserRepository()
 
     def test_get_user_existing_user(self, repository, mock_fetch_one):
@@ -343,10 +364,10 @@ class TestGetUser:
     @pytest.fixture
     def mock_repository(self):
         """
-        Create a Mock configured to match the UserRepository interface.
+        Create a Mock object configured with the UserRepository spec for use in tests.
         
         Returns:
-            Mock: A mock object with its spec set to UserRepository.
+            Mock: A Mock instance with its spec set to UserRepository.
         """
         return Mock(spec=UserRepository)
 
@@ -382,10 +403,10 @@ class TestAuthenticateUser:
     @pytest.fixture
     def mock_repository(self):
         """
-        Create a mock UserRepository.
+        Create a Mock configured to match the UserRepository interface for use in tests.
         
         Returns:
-            Mock: A unittest.mock.Mock configured with UserRepository as its spec.
+            repo (Mock): A Mock instance with UserRepository as its spec.
         """
         repo = Mock(spec=UserRepository)
         return repo
@@ -510,10 +531,10 @@ class TestGetCurrentUser:
     @pytest.fixture
     def mock_get_user_func(self):
         """
-        Provide a pytest fixture that patches api.auth.get_user.
+        Provide a fixture that patches api.auth.get_user and yields the mock.
         
-        Yields:
-            The mocked `get_user` object.
+        Returns:
+            mock (unittest.mock.Mock): The patched `get_user` mock.
         """
         with patch('api.auth.get_user') as mock:
             yield mock
@@ -643,10 +664,10 @@ class TestSeedCredentialsFromEnv:
     @pytest.fixture
     def mock_repository(self):
         """
-        Create a Mock configured to match the UserRepository interface.
+        Create a Mock object configured with the UserRepository spec for use in tests.
         
         Returns:
-            Mock: A mock object with its spec set to UserRepository.
+            Mock: A Mock instance with its spec set to UserRepository.
         """
         return Mock(spec=UserRepository)
 

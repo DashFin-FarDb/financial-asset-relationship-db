@@ -186,6 +186,12 @@ class TestConnect:
         errors = []
         
         def get_connection():
+            """
+            Attempts to obtain a database connection and record the outcome.
+            
+            If a connection is obtained, appends it to the module-level `connections` list.
+            If an error occurs while obtaining a connection, appends the exception to the module-level `errors` list.
+            """
             try:
                 conn = _connect()
                 connections.append(conn)
@@ -323,7 +329,11 @@ class TestFetchFunctions:
 
     @pytest.fixture
     def setup_test_data(self, monkeypatch):
-        """Set up test database with sample data."""
+        """
+        Create an in-memory test database, initialize its schema, and insert three sample user credential rows.
+        
+        The function sets the environment's DATABASE_URL to an in-memory SQLite, configures the module to use the in-memory path, runs schema initialization, and inserts users: "user1", "user2", and "user3".
+        """
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         from api import database
         database.DATABASE_PATH = ":memory:"
@@ -439,6 +449,11 @@ class TestThreadSafety:
         errors = []
         
         def read_user():
+            """
+            Attempt to fetch the user with username "user1" from the user_credentials table and record the outcome.
+            
+            On success, appends the row returned by `fetch_one` (which may be `None` if no match) to the module-scope list `results`. If an exception occurs, appends the exception instance to the module-scope list `errors`.
+            """
             try:
                 result = fetch_one("SELECT username FROM user_credentials WHERE username=?", ("user1",))
                 results.append(result)
@@ -465,6 +480,15 @@ class TestThreadSafety:
         errors = []
         
         def write_user(username):
+            """
+            Insert a user into the `user_credentials` table with a generated hashed password.
+            
+            Parameters:
+                username (str): The username to insert. The function generates a hashed password using the username (e.g., "hash_<username>") and stores it in the `hashed_password` column.
+            
+            Notes:
+                On error, the raised exception is appended to the module-level `errors` list; the function does not re-raise the exception.
+            """
             try:
                 execute(
                     "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
