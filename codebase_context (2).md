@@ -1,4 +1,10 @@
 # Codebase Overview & Contributor Reference
+## Table of Contents
+ - [System Purpose & Entry Points](#system-purpose--entry-points)
+ - [High-Level Architecture](#high-level-architecture)
+ - [Repository Layout](#repository-layout)
+...
+ 
 
 This document summarizes the repository's architecture, conventions, and recurring patterns so new contributors and agents can navigate the project quickly. It consolidates guidance from existing documentation (README, AI rules, testing and deployment guides) and the current codebase.
 
