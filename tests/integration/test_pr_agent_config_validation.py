@@ -409,6 +409,7 @@ class TestPRAgentConfigSecurity:
 
         def check_sensitive_keys(node, path="root"):
             if isinstance(node, dict):
+
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """
