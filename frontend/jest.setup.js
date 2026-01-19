@@ -21,9 +21,11 @@ global.IntersectionObserver = class IntersectionObserver {
   disconnect () {
     // Placeholder for cleanup; intentionally left empty
   }
+
   observe () {
     // No-op mock for ResizeObserver.observe()
   }
+
   takeRecords () {
     return []
   }
