@@ -111,19 +111,21 @@ class TestGitignoreEssentialPatterns:
         with open(GITIGNORE_FILE, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
+        from collections import Counter
+
+        patterns = []
+
+        with open(GITIGNORE_FILE, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
                 if line and not line.startswith('#'):
-                    is_negated = line.startswith('!')
-                    core = line[1:] if is_negated else line
-                    # Normalize directory patterns by removing trailing slashes
-                    normalized_core = core.rstrip('/') if core.endswith('/') else core
-                    normalized = f'!{normalized_core}' if is_negated else normalized_core
-                    patterns.append(normalized)
+                    patterns.append(line)
 
-        duplicates = [p for p in patterns if patterns.count(p) > 1]
-        unique_duplicates = list(set(duplicates))
+        pattern_counts = Counter(patterns)
+        duplicates = [p for p, count in pattern_counts.items() if count > 1]
 
-        assert len(unique_duplicates) == 0, \
-            f"Found duplicate patterns: {unique_duplicates}"
+        assert len(duplicates) == 0, \
+            f"Found duplicate patterns: {duplicates}"
                     is_negated = line.startswith('!')
                     core = line[1:] if is_negated else line
                     # Normalize directory patterns by removing trailing slashes
