@@ -37,15 +37,10 @@ global.IntersectionObserver = class IntersectionObserver {
    * Placeholder method for observing a target; no operation in this mock.
    * @returns {void}
    */
-  observe () {
+  observe (target) {
     // Intentionally left empty; placeholder method required by interface
   }
-
-  /**
-   * Placeholder method for unobserving a target; no operation in this mock.
-   * @returns {void}
-   */
-  unobserve () {
+  unobserve (target) {
     // Intentionally left empty; placeholder method required by interface
   }
 
