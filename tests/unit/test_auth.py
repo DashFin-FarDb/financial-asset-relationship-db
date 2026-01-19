@@ -25,7 +25,11 @@ import api.auth as auth_module
 
 @pytest.fixture
 def clean_auth_env(monkeypatch):
-    """Clean authentication environment for testing."""
+    """
+    Prepare a clean authentication environment for tests.
+
+    Sets a deterministic SECRET_KEY, removes any ADMIN_* environment variables (USERNAME, PASSWORD, EMAIL, FULL_NAME, DISABLED), reloads the authentication module to apply these changes, yields control to the test, and reloads the authentication module again after the test completes.
+    """
     # Set required SECRET_KEY
     monkeypatch.setenv("SECRET_KEY", "test-secret-key-min-32-chars-long-for-security")
     # Clear any admin credentials
@@ -98,7 +102,9 @@ class TestIsTruthyHelper:
 
     @staticmethod
     def test_is_truthy_with_random_string():
-        """Test that unrecognized strings return False."""
+        """
+        Verify that _is_truthy treats unrecognized string values as falsy.
+        """
         assert auth_module._is_truthy("random") is False
         assert auth_module._is_truthy("maybe") is False
 
@@ -250,7 +256,9 @@ class TestSeedCredentialsFromEnv:
     @patch("api.auth.UserRepository.create_or_update_user")
     def test_seed_with_username_and_password(mock_create):
         """Test seeding creates user when credentials are provided."""
-        with patch.dict(os.environ, {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": "admin123"}):
+        with patch.dict(
+            os.environ, {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": "admin123"}
+        ):
             repo = MagicMock()
             auth_module._seed_credentials_from_env(repo)
             repo.create_or_update_user.assert_called_once()
@@ -304,7 +312,9 @@ class TestAuthenticateUser:
     @patch("api.auth.verify_password")
     def test_authenticate_valid_credentials(mock_verify, mock_get_user):
         """Test authentication with valid credentials."""
-        mock_user = auth_module.UserInDB(username="testuser", hashed_password="hashed", disabled=False)
+        mock_user = auth_module.UserInDB(
+            username="testuser", hashed_password="hashed", disabled=False
+        )
         mock_get_user.return_value = mock_user
         mock_verify.return_value = True
 
@@ -325,7 +335,9 @@ class TestAuthenticateUser:
     @patch("api.auth.verify_password")
     def test_authenticate_wrong_password(mock_verify, mock_get_user):
         """Test authentication with wrong password."""
-        mock_user = auth_module.UserInDB(username="testuser", hashed_password="hashed", disabled=False)
+        mock_user = auth_module.UserInDB(
+            username="testuser", hashed_password="hashed", disabled=False
+        )
         mock_get_user.return_value = mock_user
         mock_verify.return_value = False
 
@@ -364,7 +376,9 @@ class TestJWTTokens:
         data = {"sub": "testuser", "role": "admin"}
         token = auth_module.create_access_token(data)
 
-        decoded = jwt.decode(token, auth_module.SECRET_KEY, algorithms=[auth_module.ALGORITHM])
+        decoded = jwt.decode(
+            token, auth_module.SECRET_KEY, algorithms=[auth_module.ALGORITHM]
+        )
         assert decoded["sub"] == "testuser"
         assert decoded["role"] == "admin"
         assert "exp" in decoded
@@ -381,7 +395,9 @@ class TestGetCurrentUser:
         token = auth_module.create_access_token(data)
 
         with patch("api.auth.get_user") as mock_get_user:
-            mock_user = auth_module.UserInDB(username="testuser", hashed_password="hashed", disabled=False)
+            mock_user = auth_module.UserInDB(
+                username="testuser", hashed_password="hashed", disabled=False
+            )
             mock_get_user.return_value = mock_user
 
             user = await auth_module.get_current_user(token)
@@ -448,7 +464,9 @@ class TestGetCurrentActiveUser:
     @pytest.mark.asyncio
     async def test_get_active_user_when_enabled():
         """Test getting active user when account is enabled."""
-        mock_user = auth_module.User(username="testuser", hashed_password="hashed", disabled=False)
+        mock_user = auth_module.User(
+            username="testuser", hashed_password="hashed", disabled=False
+        )
 
         result = await auth_module.get_current_active_user(mock_user)
         assert result == mock_user
@@ -457,7 +475,9 @@ class TestGetCurrentActiveUser:
     @pytest.mark.asyncio
     async def test_get_active_user_when_disabled():
         """Test error when user account is disabled."""
-        mock_user = auth_module.User(username="disabled_user", hashed_password="hashed", disabled=True)
+        mock_user = auth_module.User(
+            username="disabled_user", hashed_password="hashed", disabled=True
+        )
 
         with pytest.raises(HTTPException) as exc_info:
             await auth_module.get_current_active_user(mock_user)

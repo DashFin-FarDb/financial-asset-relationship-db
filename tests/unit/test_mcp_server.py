@@ -121,6 +121,15 @@ class TestBuildMCPApp:
         tool_calls = []
 
         def track_tool():
+            """
+            Create a decorator that records the name of each decorated function in the module-level `tool_calls` list.
+
+            The produced decorator, when applied to a function, appends that function's `__name__` to `tool_calls` and returns the original function unchanged.
+
+            Returns:
+                decorator: A decorator that logs the decorated function's name to `tool_calls` and returns the function.
+            """
+
             def decorator(func):
                 tool_calls.append(func.__name__)
                 return func
@@ -167,7 +176,17 @@ class TestAddEquityNodeTool:
             from mcp_server import _build_mcp_app
 
             # Create tool function manually for testing
-            def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+            def add_equity_node(
+                asset_id: str, symbol: str, name: str, sector: str, price: float
+            ) -> str:
+                """
+                Create an Equity asset from the provided fields and attempt to add it to the global graph, returning a human-readable outcome.
+
+                If the global graph exposes a callable add_asset, the new Equity is added and a success message with the asset's name and symbol is returned; if the graph does not support mutation, a validation-only success message is returned. If construction or validation fails, returns a message starting with "Validation Error: " followed by the error text.
+
+                Returns:
+                    str: A message indicating successful addition, successful validation without mutation, or a validation error prefixed with "Validation Error: ".
+                """
                 try:
                     new_equity = Equity(
                         id=asset_id,
@@ -196,7 +215,15 @@ class TestAddEquityNodeTool:
     def test_add_equity_node_invalid_price():
         """Test that invalid price causes validation error."""
 
-        def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+        def add_equity_node(
+            asset_id: str, symbol: str, name: str, sector: str, price: float
+        ) -> str:
+            """
+            Validate the provided equity fields by constructing an Equity instance and return a human-readable status message.
+
+            Returns:
+                str: "Successfully validated: <name>" if the Equity was created successfully, or "Validation Error: <message>" when validation fails.
+            """
             try:
                 new_equity = Equity(
                     id=asset_id,
@@ -218,7 +245,22 @@ class TestAddEquityNodeTool:
     def test_add_equity_node_missing_required_field():
         """Test that missing required fields cause validation error."""
 
-        def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+        def add_equity_node(
+            asset_id: str, symbol: str, name: str, sector: str, price: float
+        ) -> str:
+            """
+            Validate provided equity fields by attempting to construct an Equity and return a human-readable result.
+
+            Parameters:
+                asset_id (str): External asset identifier (not used when constructing the test Equity).
+                symbol (str): Equity trading symbol.
+                name (str): Full name of the equity.
+                sector (str): Sector or industry classification.
+                price (float): Equity price; expected to be a numeric value.
+
+            Returns:
+                str: "Successfully validated: <name>" if construction succeeds, or "Validation Error: <message>" if a ValueError or TypeError occurs during validation.
+            """
             try:
                 # Try to create equity with invalid data
                 new_equity = Equity(
@@ -257,7 +299,21 @@ class TestGet3DLayoutResource:
 
         # Create the resource function manually
         def get_3d_layout() -> str:
-            positions, asset_ids, colors, hover = mock_graph.get_3d_visualization_data_enhanced()
+            """
+            Return a JSON string containing 3D visualization data for assets.
+
+            The JSON object includes keys:
+            - `asset_ids`: list of asset identifiers.
+            - `positions`: list representation of position coordinates (converted from array).
+            - `colors`: list of color values for each asset.
+            - `hover`: hover/tooltip information for each asset.
+
+            Returns:
+                json_str (str): JSON-encoded object with `asset_ids`, `positions`, `colors`, and `hover`.
+            """
+            positions, asset_ids, colors, hover = (
+                mock_graph.get_3d_visualization_data_enhanced()
+            )
             return json.dumps(
                 {
                     "asset_ids": asset_ids,
@@ -290,7 +346,21 @@ class TestGet3DLayoutResource:
         )
 
         def get_3d_layout() -> str:
-            positions, asset_ids, colors, hover = mock_graph.get_3d_visualization_data_enhanced()
+            """
+            Return a JSON string containing 3D visualization data for assets.
+
+            The JSON object includes keys:
+            - `asset_ids`: list of asset identifiers.
+            - `positions`: list representation of position coordinates (converted from array).
+            - `colors`: list of color values for each asset.
+            - `hover`: hover/tooltip information for each asset.
+
+            Returns:
+                json_str (str): JSON-encoded object with `asset_ids`, `positions`, `colors`, and `hover`.
+            """
+            positions, asset_ids, colors, hover = (
+                mock_graph.get_3d_visualization_data_enhanced()
+            )
             return json.dumps(
                 {
                     "asset_ids": asset_ids,
@@ -341,7 +411,12 @@ class TestMainFunction:
 
     @staticmethod
     def test_main_default_args():
-        """Test main with no arguments."""
+        """
+        Verify that invoking main with None uses default arguments and returns a successful exit code.
+
+        Returns:
+            0: Exit code indicating success for the default invocation.
+        """
         with patch("mcp_server._build_mcp_app") as mock_build:
             mock_app = MagicMock()
             mock_build.return_value = mock_app
@@ -370,6 +445,14 @@ class TestConcurrency:
         results = []
 
         def add_assets(start_id: int):
+            """
+            Create and add five test Equity assets to the shared graph and record completion.
+
+            Each created Equity has an id "TEST{start_id + i}", symbol "T{start_id + i}", name "Test {start_id + i}", sector "Tech", and a price starting at 100.0 and increasing by 1.0 for each subsequent asset. The function adds each Equity to the global `wrapped` graph and appends `True` to the external `results` list to indicate completion.
+
+            Parameters:
+                start_id (int): Base integer used to derive each asset's id, symbol, and name.
+            """
             for i in range(5):
                 equity = Equity(
                     id=f"TEST{start_id + i}",
@@ -382,7 +465,9 @@ class TestConcurrency:
                 wrapped.add_asset(equity)
             results.append(True)
 
-        threads = [threading.Thread(target=add_assets, args=(i * 10,)) for i in range(3)]
+        threads = [
+            threading.Thread(target=add_assets, args=(i * 10,)) for i in range(3)
+        ]
 
         for t in threads:
             t.start()
@@ -400,7 +485,15 @@ class TestErrorHandling:
     def test_add_equity_with_special_characters():
         """Test adding equity with special characters in name."""
 
-        def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+        def add_equity_node(
+            asset_id: str, symbol: str, name: str, sector: str, price: float
+        ) -> str:
+            """
+            Validate the provided equity fields by constructing an Equity instance and return a human-readable status message.
+
+            Returns:
+                str: "Successfully validated: <name>" if the Equity was created successfully, or "Validation Error: <message>" when validation fails.
+            """
             try:
                 new_equity = Equity(
                     id=asset_id,
@@ -422,7 +515,15 @@ class TestErrorHandling:
     def test_add_equity_with_extreme_price():
         """Test adding equity with extremely large price."""
 
-        def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+        def add_equity_node(
+            asset_id: str, symbol: str, name: str, sector: str, price: float
+        ) -> str:
+            """
+            Validate the provided equity fields by constructing an Equity instance and return a human-readable status message.
+
+            Returns:
+                str: "Successfully validated: <name>" if the Equity was created successfully, or "Validation Error: <message>" when validation fails.
+            """
             try:
                 new_equity = Equity(
                     id=asset_id,

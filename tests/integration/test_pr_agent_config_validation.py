@@ -172,7 +172,9 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
+                    assert indent % 2 == 0, (
+                        f"Line {i} has inconsistent indentation: {indent} spaces"
+                    )
 
 
 class TestPRAgentConfigSecurity:
@@ -202,13 +204,15 @@ class TestPRAgentConfigSecurity:
     @staticmethod
     def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
         """
-        Recursively scan configuration values for suspected secrets.
+        Scan the provided PR agent configuration for values that resemble hardcoded credentials and fail the test if any are found.
 
-        This inspects values (not just serialized text) and traverses nested dicts/lists.
-        The heuristic flags:
-          - Long high-entropy strings (e.g., tokens)
-          - Obvious secret prefixes/suffixes
-          - Inline credentials in URLs (e.g., scheme://user:pass@host)
+        Inspects all string values nested within dicts and lists and flags values that match common secret heuristics: strings of length 40 or greater, strings starting with common secret prefixes (e.g., "sk-", "AKIA", "SECRET_", "TOKEN_"), or strings containing inline credentials in URLs (user:pass@). If any suspected items are detected, the test fails and reports each finding.
+
+        Parameters:
+            pr_agent_config (dict): Parsed PR agent YAML as a mapping to inspect.
+
+        Raises:
+            pytest.fail: If any values that look like hardcoded credentials are found; failure message lists the detections.
         """
 
         def _iter_string_values(obj):
@@ -252,7 +256,9 @@ class TestPRAgentConfigSecurity:
 
         if suspected:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
         import math
 
         # Heuristic to detect inline creds in URLs (user:pass@)
@@ -261,14 +267,20 @@ class TestPRAgentConfigSecurity:
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """
-        Recursively scan configuration values and keys for suspected secrets.
-        - Flags high - entropy or secret - like string values.
-        - Ensures sensitive keys only use safe placeholders.
+        Validate that the PR agent configuration contains no hardcoded credentials or secret-like values.
+
+        Recursively scans configuration keys and values and fails the test if:
+        - any value appears to be a secret (for example: inline credentials in URLs, long/high-entropy identifiers, or other secret-like strings), or
+        - any sensitive key (e.g., contains "password", "secret", "token", "api_key", "access_key", "private_key") holds a value other than an allowed placeholder.
+
+        Allowed placeholders for sensitive entries are None, "null", and "webhook".
         """
         import math
 
         # Heuristic to detect inline creds in URLs (user:pass@)
-        inline_creds_re = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
+        inline_creds_re = re.compile(
+            r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
+        )
 
         # Common secret-like prefixes or markers
         secret_markers = (
@@ -354,12 +366,26 @@ class TestPRAgentConfigSecurity:
         safe_placeholders = {None, "null", "webhook"}
 
         def check_sensitive_keys(node, path="root"):
+            """
+            Recursively validate that values for sensitive configuration keys are safe placeholders.
+
+            Traverse a nested mapping/list structure and for any key whose lowercase form matches one of the sensitive_patterns, assert that its value is one of the allowed safe_placeholders. The traversal records location via the `path` string so assertion failures indicate the offending key path.
+
+            Parameters:
+                node (any): The configuration node to inspect (dict, list, or primitive).
+                path (str): Dot/bracket-delimited path prefix used to report the current location (default: "root").
+
+            Raises:
+                AssertionError: If a sensitive key is found whose value is not in `safe_placeholders`.
+            """
             if isinstance(node, dict):
                 for k, v in node.items():
                     key_l = str(k).lower()
                     new_path = f"{path}.{k}"
                     if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
+                        assert v in safe_placeholders, (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
                     check_sensitive_keys(v, new_path)
             elif isinstance(node, list):
                 for idx, item in enumerate(node):
@@ -373,16 +399,19 @@ class TestPRAgentConfigSecurity:
         for pat in sensitive_patterns:
             # If marker appears in the string, ensure we also see an allowed placeholder somewhere
             if pat in config_str:
-                assert (" null" in config_str) or (
-                    "webhook" in config_str
-                ), f"Potential hardcoded credential found around pattern: {pat}"
+                assert (" null" in config_str) or ("webhook" in config_str), (
+                    f"Potential hardcoded credential found around pattern: {pat}"
+                )
 
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """
-        Traverse the parsed YAML and ensure that any key or value containing sensitive
-        indicators has a safe placeholder value (None, 'null', 'none', 'placeholder',
-        or a templated variable like '${VAR}').
+        Ensure that values and keys that suggest credentials are replaced with safe placeholders.
+
+        Scans the parsed PR agent configuration and fails the test if any string value appears to contain secret-like content (e.g., contains substrings like "password", "secret", "token", "api_key", "access_key", "private_key") unless the value is an accepted placeholder or a templated variable, and fails if any key that indicates sensitive data does not hold an allowed placeholder (None, "null", "webhook", or "placeholder").
+
+        Parameters:
+            pr_agent_config (dict): Parsed YAML configuration for the PR agent.
         """
         sensitive_patterns = [
             "password",
@@ -404,6 +433,18 @@ class TestPRAgentConfigSecurity:
             return any(pat in low for pat in sensitive_patterns)
 
         def scan_for_secrets(node, path="root"):
+            """
+            Recursively scan a nested structure and assert if any string value appears to contain a secret.
+
+            Traverses dictionaries and lists, inspecting string values with a heuristic (value_contains_secret). If a secret-like string is found, the function raises an AssertionError indicating the dot/bracket path to the offending value.
+
+            Parameters:
+                node: The value to scan; may be a dict, list, string, or scalar.
+                path (str): Human-readable path for error messages (default "root").
+
+            Raises:
+                AssertionError: If a string value appears to contain a secret; message includes the path to the value.
+            """
             if isinstance(node, dict):
                 for k, v in node.items():
                     scan_for_secrets(v, f"{path}.{k}")
@@ -412,7 +453,9 @@ class TestPRAgentConfigSecurity:
                     scan_for_secrets(item, f"{path}[{idx}]")
             elif isinstance(node, str):
                 # Fail if a string value looks like it may contain a secret
-                assert not value_contains_secret(node), f"Potential hardcoded credential value at {path}"
+                assert not value_contains_secret(node), (
+                    f"Potential hardcoded credential value at {path}"
+                )
             # Non-string scalars (int, float, bool, None) are safe to ignore
 
         scan_for_secrets(pr_agent_config)
@@ -420,12 +463,24 @@ class TestPRAgentConfigSecurity:
         safe_placeholders = {None, "null", "webhook"}
 
         def check_node(node, path=""):
+            """
+            Recursively scan a nested configuration structure and enforce that values for keys matching sensitive name patterns are one of the allowed safe placeholders.
+
+            Parameters:
+                node (Any): The configuration node to inspect; may be a dict, list, or primitive.
+                path (str): Dot/bracket-separated path to the current node used in assertion messages.
+
+            Raises:
+                AssertionError: If a value for a key whose lowercased name matches any sensitive pattern is not in the set of safe placeholders.
+            """
             if isinstance(node, dict):
                 for k, v in node.items():
                     key_l = str(k).lower()
                     new_path = f"{path}.{k}" if path else str(k)
                     if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
+                        assert v in safe_placeholders, (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
                     check_node(v, new_path)
             elif isinstance(node, list):
                 for idx, item in enumerate(node):

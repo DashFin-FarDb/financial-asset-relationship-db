@@ -2,7 +2,17 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
-    """Generate schema and rules report"""
+    """
+    Generate a Markdown report describing the asset relationship graph schema, metrics, rules, and implementation notes.
+
+    The report contains a schema overview, relationship and asset class distributions, network statistics, top relationships, business/regulatory/valuation rules, a data quality score with recommendations, and implementation notes.
+
+    Parameters:
+        graph (AssetRelationshipGraph): Graph to analyze for report generation; expected to provide metrics used to populate the report.
+
+    Returns:
+        report (str): Markdown-formatted report string summarizing the schema, calculated metrics, rules, and implementation notes.
+    """
     metrics = graph.calculate_metrics()
 
     report = """# Financial Asset Relationship Database Schema & Rules
@@ -19,7 +29,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ### Relationship Types
 """
 
-    for rel_type, count in sorted(metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True):
+    for rel_type, count in sorted(
+        metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True
+    ):
         report += f"- **{rel_type}**: {count} instances\n"
 
     report += f"""
@@ -44,7 +56,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ## Top Relationships
 """
 
-    for idx, (source, target, rel_type, strength) in enumerate(metrics["top_relationships"], 1):
+    for idx, (source, target, rel_type, strength) in enumerate(
+        metrics["top_relationships"], 1
+    ):
         report += f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}\n"
 
     report += """
@@ -96,7 +110,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 
     quality_score = min(
         1.0,
-        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+        metrics["average_relationship_strength"]
+        + (metrics["regulatory_event_count"] / 10),
     )
     report += f"{quality_score:.1%}\n"
 

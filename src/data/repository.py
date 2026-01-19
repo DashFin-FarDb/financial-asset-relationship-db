@@ -59,11 +59,18 @@ class AssetGraphRepository:
     def list_assets(self) -> List[Asset]:
         """Return all assets as dataclass instances ordered by id."""
 
-        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        result = (
+            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        )
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
-        """Return mapping of asset id to asset dataclass."""
+        """
+        Map asset IDs to their corresponding Asset dataclass instances.
+
+        Returns:
+            Dict[str, Asset]: Mapping from asset id to the corresponding Asset instance.
+        """
 
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
@@ -109,7 +116,12 @@ class AssetGraphRepository:
         self.session.add(existing)
 
     def list_relationships(self) -> List[RelationshipRecord]:
-        """Return all relationships from the database."""
+        """
+        List all asset relationships stored in the repository.
+
+        Returns:
+            List[RelationshipRecord]: A list of RelationshipRecord objects, each containing `source_id`, `target_id`, `relationship_type`, `strength`, and `bidirectional`.
+        """
 
         result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
@@ -123,8 +135,15 @@ class AssetGraphRepository:
             for rel in result
         ]
 
-    def get_relationship(self, source_id: str, target_id: str, rel_type: str) -> Optional[RelationshipRecord]:
-        """Fetch a single relationship if it exists."""
+    def get_relationship(
+        self, source_id: str, target_id: str, rel_type: str
+    ) -> Optional[RelationshipRecord]:
+        """
+        Retrieve a relationship between two assets by relationship type.
+
+        Returns:
+            RelationshipRecord: The matching relationship record, or `None` if no relationship is found.
+        """
 
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
@@ -142,8 +161,14 @@ class AssetGraphRepository:
             bidirectional=relationship.bidirectional,
         )
 
-    def delete_relationship(self, source_id: str, target_id: str, rel_type: str) -> None:
-        """Remove a relationship."""
+    def delete_relationship(
+        self, source_id: str, target_id: str, rel_type: str
+    ) -> None:
+        """
+        Delete the asset relationship that matches the given source, target, and relationship type.
+
+        If a matching relationship exists, it is removed from the session so it will be deleted on commit.
+        """
 
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
@@ -193,12 +218,23 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     @staticmethod
     def _update_asset_orm(orm: AssetORM, asset: Asset) -> None:
+        """
+        Populate an AssetORM instance with values from an Asset model.
+
+        Copies core asset attributes (symbol, name, asset_class, sector, price, market_cap, currency) and maps subclass-specific fields (equity, fixed income, commodity, currency) into the ORM. Optional subclass attributes are reset to None when not present on the source Asset to avoid leaving stale values.
+
+        Parameters:
+            orm (AssetORM): The SQLAlchemy ORM object to update.
+            asset (Asset): The domain asset model to copy values from.
+        """
         orm.symbol = asset.symbol
         orm.name = asset.name
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap) if asset.market_cap is not None else None
+        )
         orm.currency = asset.currency
 
         # Reset all optional fields to avoid stale values

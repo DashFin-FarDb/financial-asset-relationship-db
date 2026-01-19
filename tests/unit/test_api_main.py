@@ -562,7 +562,9 @@ class TestErrorHandling:
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
         mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = mock_graph.get_3d_visualization_data
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
 
         response = client.get("/api/metrics")
         assert response.status_code == 500
@@ -650,11 +652,19 @@ class TestAdditionalFields:
                 "book_value",
             ]
             has_equity_field = any(field in additional for field in possible_fields)
-            assert has_equity_field or len(additional) == 0  # Either has fields or empty
+            assert (
+                has_equity_field or len(additional) == 0
+            )  # Either has fields or empty
 
     @staticmethod
     def test_bond_additional_fields(client):
-        """Test that bond-specific fields are included."""
+        """
+        Verify that returned bond assets include bond-specific additional fields when present.
+
+        Sends a GET request to "/api/assets?asset_class=BOND" and, if any assets are returned,
+        asserts that the first asset's `additional_fields` either contains at least one of:
+        `yield_to_maturity`, `coupon_rate`, `maturity_date`, or `credit_rating`, or is empty.
+        """
         response = client.get("/api/assets?asset_class=BOND")
         assets = response.json()
 
