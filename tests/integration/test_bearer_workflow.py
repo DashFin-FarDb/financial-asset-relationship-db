@@ -402,7 +402,7 @@ class TestBearerWorkflowComments:
         for url in urls:
             parsed = urlparse(url)
             host = (parsed.hostname or "").lower()
-            if host.endswith("bearer.com") or host.startswith("docs.bearer."):
+            if host == "bearer.com" or host.endswith(".bearer.com"):
                 has_bearer_link = True
                 break
 
