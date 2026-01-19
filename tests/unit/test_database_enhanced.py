@@ -41,9 +41,7 @@ class TestDatabaseURLParsing:
         """Test that missing DATABASE_URL raises ValueError."""
         monkeypatch.delenv("DATABASE_URL", raising=False)
 
-        with pytest.raises(
-            ValueError, match="DATABASE_URL environment variable must be set"
-        ):
+        with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
             importlib.reload(database)
 
     @staticmethod
@@ -290,9 +288,7 @@ class TestSchemaInitialization:
         database.initialize_schema()
 
         with database.get_connection() as conn:
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='user_credentials'"
-            )
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='user_credentials'")
             assert cursor.fetchone() is not None
 
     @staticmethod
