@@ -25,5 +25,5 @@ global.IntersectionObserver = class IntersectionObserver {
     return []
   }
 
-  static unobserve() {}
+  static unobserve () {}
 }
