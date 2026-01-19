@@ -21,9 +21,7 @@ def test_postgres_connection():
 
     # Check if [YOUR-PASSWORD] placeholder is still in the connection string
     if "[YOUR-PASSWORD]" in database_url:
-        logger.error(
-            "Please replace [YOUR-PASSWORD] with your actual database password in .env file"
-        )
+        logger.error("Please replace [YOUR-PASSWORD] with your actual database password in .env file")
         return False
 
     try:
