@@ -17,13 +17,38 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 // Mock IntersectionObserver
+/**
+ * Mock IntersectionObserver class for testing environment.
+ */
 global.IntersectionObserver = class IntersectionObserver {
-  constructor () {}
-  disconnect () {}
-  observe () {}
-  takeRecords () {
-    return []
+  /**
+   * Constructs the mock IntersectionObserver.
+   */
+  /**
+   * Disconnects the observer instance (no-op placeholder for teardown if needed).
+   * @returns {void}
+   */
+  static disconnect () {
+    // no-op placeholder for teardown if needed
   }
 
-  unobserve () {}
+  /**
+   * Placeholder method for observing a target; no operation in this mock.
+   * @returns {void}
+   */
+  static observe (_target) {
+    // Intentionally left empty; placeholder method required by interface
+  }
+
+  static unobserve (_target) {
+    // Intentionally left empty; placeholder method required by interface
+  }
+
+  /**
+   * Returns any queued IntersectionObserverEntry records.
+   * @returns {Array} Always returns an empty array in this mock.
+   */
+  static takeRecords () {
+    return []
+  }
 }
