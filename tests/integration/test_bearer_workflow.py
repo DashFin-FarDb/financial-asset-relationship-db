@@ -16,6 +16,8 @@ from pathlib import Path
 
 import pytest
 import yaml
+import re
+from urllib.parse import urlparse
 
 
 @pytest.fixture
@@ -324,9 +326,19 @@ class TestBearerWorkflowComments:
     @staticmethod
     def test_has_bearer_documentation_link(bearer_workflow_raw):
         """Verify the workflow references Bearer documentation."""
-        assert (
-            "bearer.com" in bearer_workflow_raw.lower() or "docs.bearer" in bearer_workflow_raw.lower()
-        ), "Workflow should reference Bearer documentation"
+        # Extract URLs from the workflow content and ensure at least one points to Bearer documentation.
+        url_pattern = re.compile(r"https?://[^\s)\"'>]+", re.IGNORECASE)
+        urls = url_pattern.findall(bearer_workflow_raw)
+
+        has_bearer_link = False
+        for url in urls:
+            parsed = urlparse(url)
+            host = (parsed.hostname or "").lower()
+            if host.endswith("bearer.com") or host.startswith("docs.bearer."):
+                has_bearer_link = True
+                break
+
+        assert has_bearer_link, "Workflow should reference Bearer documentation via a Bearer-hosted URL"
 
     @staticmethod
     def test_has_inline_comments(bearer_workflow_raw):
