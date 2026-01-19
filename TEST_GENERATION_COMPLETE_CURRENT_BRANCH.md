@@ -26,7 +26,7 @@ Comprehensive unit and integration tests have been successfully generated for th
 
 ## New Tests Generated
 
-### 1. tests/integration/test_pr_agent_config.py (NEW - 487 lines)
+### 1. tests/integration/test_pr_agent_config.py (NEW - 546 lines)
 
 **Purpose**: Comprehensive validation of PR Agent configuration after context chunking removal.
 
