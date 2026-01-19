@@ -105,7 +105,7 @@ class TestMarkdownFormatting:
         open_block = False
         for i, line in enumerate(summary_lines, start=1):
             stripped = line.strip()
-            if re.match(r'^```', stripped):
+            if stripped.startswith('```'):
                 # Toggle open/close state on a fence line
                 open_block = not open_block
         assert open_block is False, "Code blocks not properly closed or mismatched triple backticks detected"
