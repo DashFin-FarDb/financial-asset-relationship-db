@@ -1,5 +1,5 @@
 // Learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom'
+// Removed @testing-library/jest-dom import as package was removed
 
 // Provide default environment values used throughout the app
 process.env.NEXT_PUBLIC_API_BASE_URL =
