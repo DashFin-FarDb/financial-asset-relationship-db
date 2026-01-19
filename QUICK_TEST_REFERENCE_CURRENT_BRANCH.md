@@ -59,3 +59,11 @@ pytest tests/integration/test_pr_agent_config.py \
 Tests automatically run in existing GitHub Actions - no changes needed!
 
 ## 📁 Files Location
+
+- Integration tests:
+  - `tests/integration/test_pr_agent_config.py`
+  - `tests/integration/test_workflow_simplifications.py`
+- PR Agent configuration:
+  - `.github/pr-agent-config.yml`
+- GitHub Actions workflows:
+  - `.github/workflows/*.yml`
