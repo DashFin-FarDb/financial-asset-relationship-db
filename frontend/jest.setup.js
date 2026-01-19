@@ -40,7 +40,7 @@ global.IntersectionObserver = class IntersectionObserver {
     // Intentionally left empty; placeholder method required by interface
   }
 
-  static unobserve(_target) {
+  static unobserve (_target) {
     // Intentionally left empty; placeholder method required by interface
   }
 
