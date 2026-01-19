@@ -340,7 +340,16 @@ class ContextChunker:
             if files_text:
                 priority = self.priority_mapping.map_dict.get("changed_files", 2)
                 sections.append((priority, "files", files_text))
-        
+
+        ci_logs = pr_data.get("ci_logs", "")
+        if ci_logs:
+            priority = self.priority_mapping.map_dict.get("ci_logs", 3)
+            sections.append((priority, "ci_logs", ci_logs))
+
+        full_diff = pr_data.get("full_diff", "")
+        if full_diff:
+            priority = self.priority_mapping.map_dict.get("full_diff", 4)
+            sections.append((priority, "full_diff", full_diff))
         # Sort by priority (lower index = higher priority)
         sections.sort(key=lambda x: x[0])
         
