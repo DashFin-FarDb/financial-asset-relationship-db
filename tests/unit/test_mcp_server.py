@@ -167,7 +167,9 @@ class TestAddEquityNodeTool:
             from mcp_server import _build_mcp_app
 
             # Create tool function manually for testing
-            def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+            def add_equity_node(
+                asset_id: str, symbol: str, name: str, sector: str, price: float
+            ) -> str:
                 try:
                     new_equity = Equity(
                         id=asset_id,
@@ -196,7 +198,9 @@ class TestAddEquityNodeTool:
     def test_add_equity_node_invalid_price():
         """Test that invalid price causes validation error."""
 
-        def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+        def add_equity_node(
+            asset_id: str, symbol: str, name: str, sector: str, price: float
+        ) -> str:
             try:
                 new_equity = Equity(
                     id=asset_id,
@@ -218,7 +222,9 @@ class TestAddEquityNodeTool:
     def test_add_equity_node_missing_required_field():
         """Test that missing required fields cause validation error."""
 
-        def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+        def add_equity_node(
+            asset_id: str, symbol: str, name: str, sector: str, price: float
+        ) -> str:
             try:
                 # Try to create equity with invalid data
                 new_equity = Equity(
@@ -257,7 +263,9 @@ class TestGet3DLayoutResource:
 
         # Create the resource function manually
         def get_3d_layout() -> str:
-            positions, asset_ids, colors, hover = mock_graph.get_3d_visualization_data_enhanced()
+            positions, asset_ids, colors, hover = (
+                mock_graph.get_3d_visualization_data_enhanced()
+            )
             return json.dumps(
                 {
                     "asset_ids": asset_ids,
@@ -290,7 +298,9 @@ class TestGet3DLayoutResource:
         )
 
         def get_3d_layout() -> str:
-            positions, asset_ids, colors, hover = mock_graph.get_3d_visualization_data_enhanced()
+            positions, asset_ids, colors, hover = (
+                mock_graph.get_3d_visualization_data_enhanced()
+            )
             return json.dumps(
                 {
                     "asset_ids": asset_ids,
@@ -382,7 +392,9 @@ class TestConcurrency:
                 wrapped.add_asset(equity)
             results.append(True)
 
-        threads = [threading.Thread(target=add_assets, args=(i * 10,)) for i in range(3)]
+        threads = [
+            threading.Thread(target=add_assets, args=(i * 10,)) for i in range(3)
+        ]
 
         for t in threads:
             t.start()
@@ -400,7 +412,9 @@ class TestErrorHandling:
     def test_add_equity_with_special_characters():
         """Test adding equity with special characters in name."""
 
-        def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+        def add_equity_node(
+            asset_id: str, symbol: str, name: str, sector: str, price: float
+        ) -> str:
             try:
                 new_equity = Equity(
                     id=asset_id,
@@ -422,7 +436,9 @@ class TestErrorHandling:
     def test_add_equity_with_extreme_price():
         """Test adding equity with extremely large price."""
 
-        def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+        def add_equity_node(
+            asset_id: str, symbol: str, name: str, sector: str, price: float
+        ) -> str:
             try:
                 new_equity = Equity(
                     id=asset_id,
