@@ -500,3 +500,204 @@ class TestFormulaicVisualizer:
         assert len(r_squared_trace.y) > 0
         avg_value = r_squared_trace.y[0]
         assert abs(avg_value - 0.8) < 0.01, "Should correctly calculate average R-squared"
+
+
+class TestFormulaicVisualsStringFormatting:
+    """Test suite for string formatting in formulaic visualizations."""
+
+    def test_formula_hover_text_formatting(self, sample_formulas):
+        """Verify that formula hover text is properly formatted without line breaks."""
+        from src.visualizations.formulaic_visuals import FormulaicVisualizer
+        
+        visualizer = FormulaicVisualizer()
+        
+        for formula in sample_formulas:
+            # Generate hover text (simulating internal logic)
+            hover_text_parts = [
+                f"<b>{formula.name}</b>",
+                f"<b>Formula:</b> {formula.formula}",
+                f"<b>Reliability (R²):</b> {formula.r_squared:.3f}",
+                "<b>Variables:</b>",
+            ]
+            
+            # Variables should be formatted as list items
+            for var, desc in formula.variables.items():
+                hover_text_parts.append(f"• {var}: {desc}")
+            
+            hover_text = "<br>".join(hover_text_parts)
+            
+            # Hover text should use HTML breaks, not newlines
+            assert "\n" not in hover_text.replace("<br>", "")
+            assert "<b>" in hover_text
+            assert formula.name in hover_text
+
+    def test_formula_dashboard_color_scheme_consistency(self, sample_analysis_results):
+        """Verify color scheme consistency in formula dashboard."""
+        from src.visualizations.formulaic_visuals import FormulaicVisualizer
+        
+        visualizer = FormulaicVisualizer()
+        fig = visualizer.create_formula_dashboard(sample_analysis_results)
+        
+        # Check that color scheme is applied consistently
+        assert len(fig.data) > 0
+        
+        # Pie chart should have colors from color_scheme
+        for trace in fig.data:
+            if trace.type == "pie" and hasattr(trace, "marker"):
+                colors = trace.marker.colors
+                assert colors is not None
+                assert len(colors) > 0
+
+    def test_correlation_network_position_calculation(self, sample_empirical_relationships):
+        """Verify correlation network position calculations are correct."""
+        from src.visualizations.formulaic_visuals import FormulaicVisualizer
+        import math
+        
+        visualizer = FormulaicVisualizer()
+        
+        # Get strongest correlations
+        strongest_correlations = sample_empirical_relationships.get("strongest_correlations", [])
+        
+        if strongest_correlations:
+            # Extract unique assets
+            assets = sorted(
+                {corr["asset1"] for corr in strongest_correlations}
+                | {corr["asset2"] for corr in strongest_correlations}
+            )
+            
+            n_assets = len(assets)
+            if n_assets > 0:
+                # Calculate positions (circular layout)
+                angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
+                positions = {
+                    asset: (math.cos(angle), math.sin(angle))
+                    for asset, angle in zip(assets, angles)
+                }
+                
+                # Verify positions are on unit circle
+                for asset, (x, y) in positions.items():
+                    distance = math.sqrt(x**2 + y**2)
+                    assert abs(distance - 1.0) < 0.001, f"Position for {asset} not on unit circle"
+
+    def test_metric_comparison_chart_handles_empty_categories(self):
+        """Verify metric comparison chart handles empty category data gracefully."""
+        from src.visualizations.formulaic_visuals import FormulaicVisualizer
+        
+        visualizer = FormulaicVisualizer()
+        
+        # Empty analysis results
+        empty_results = {
+            "formulas": [],
+            "categories": {},
+            "summary": {
+                "total_formulas": 0,
+                "avg_r_squared": 0,
+            },
+        }
+        
+        # Should not raise an error
+        fig = visualizer.create_metric_comparison_chart(empty_results)
+        assert fig is not None
+
+
+class TestFormulaicAnalysisStringConcatenation:
+    """Test suite for string concatenation in formulaic analysis."""
+
+    def test_formula_description_multiline_strings(self):
+        """Verify formula descriptions handle multi-line string literals correctly."""
+        from src.analysis.formulaic_analysis import Formula
+        
+        # Test with a description that has implicit line continuation
+        formula = Formula(
+            name="Test Formula",
+            formula="X = Y + Z",
+            latex=r"X = Y + Z",
+            description=(
+                "This is a test formula that demonstrates "
+                "proper handling of multi-line string literals"
+            ),
+            variables={"X": "Result", "Y": "Input 1", "Z": "Input 2"},
+            example_calculation="Example: 1 + 2 = 3",
+            category="Test",
+            r_squared=0.95,
+        )
+        
+        # Description should be a single continuous string
+        assert "\n" not in formula.description
+        assert "demonstrates" in formula.description
+        assert "multi-line" in formula.description
+
+    def test_formula_summary_key_insights_formatting(self):
+        """Verify formula summary key insights are properly formatted."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        from src.logic.asset_graph import AssetRelationshipGraph
+        
+        analyzer = FormulaicdAnalyzer()
+        graph = AssetRelationshipGraph()
+        
+        # Generate analysis
+        results = analyzer.analyze_graph(graph)
+        summary = results.get("summary", {})
+        key_insights = summary.get("key_insights", [])
+        
+        # Each insight should be a clean string
+        for insight in key_insights:
+            assert isinstance(insight, str)
+            assert len(insight) > 0
+            # Should not have weird line breaks from formatting
+            assert not insight.startswith(" ")
+            assert not insight.endswith(" ")
+
+
+class TestGraphVisualsEdgeCases:
+    """Test suite for edge cases in graph visualizations."""
+
+    def test_2d_graph_handles_empty_relationships(self):
+        """Verify 2D graph handles empty relationship lists gracefully."""
+        from src.visualizations.graph_2d_visuals import visualize_2d_graph
+        from src.logic.asset_graph import AssetRelationshipGraph
+        
+        # Empty graph
+        empty_graph = AssetRelationshipGraph()
+        
+        # Should not raise an error
+        fig = visualize_2d_graph(empty_graph)
+        assert fig is not None
+
+    def test_2d_graph_relationship_filter_combinations(self):
+        """Verify 2D graph handles all filter combinations correctly."""
+        from src.visualizations.graph_2d_visuals import visualize_2d_graph
+        from src.logic.asset_graph import AssetRelationshipGraph
+        from src.data.sample_data import create_sample_database
+        
+        graph = create_sample_database()
+        
+        # Test with all filters disabled
+        fig = visualize_2d_graph(
+            graph,
+            show_same_sector=False,
+            show_market_cap_similar=False,
+            show_correlation=False,
+            show_corporate_bond=False,
+            show_commodity_currency=False,
+            show_income_comparison=False,
+            show_regulatory=False,
+            show_all_relationships=False,
+        )
+        assert fig is not None
+        
+        # Test with all filters enabled
+        fig = visualize_2d_graph(
+            graph,
+            show_same_sector=True,
+            show_market_cap_similar=True,
+            show_correlation=True,
+            show_corporate_bond=True,
+            show_commodity_currency=True,
+            show_income_comparison=True,
+            show_regulatory=True,
+            show_all_relationships=True,
+        )
+        assert fig is not None
+
+

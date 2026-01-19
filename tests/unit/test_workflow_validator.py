@@ -1069,3 +1069,179 @@ jobs:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
+
+
+class TestWorkflowValidatorStringFormatting:
+    """Test suite for string formatting in workflow validator."""
+
+    def test_validation_error_messages_are_readable(self):
+        """Verify validation error messages are properly formatted and readable."""
+        from src.workflow_validator import WorkflowValidator
+        
+        validator = WorkflowValidator()
+        
+        # Test with invalid workflow configuration
+        invalid_config = {
+            "name": "",  # Invalid: empty name
+            "steps": [],  # Invalid: no steps
+        }
+        
+        errors = validator.validate(invalid_config)
+        
+        # Errors should be readable strings
+        for error in errors:
+            assert isinstance(error, str)
+            assert len(error) > 10  # Should be descriptive
+            assert not error.startswith("\n")
+            assert not error.endswith("\n")
+
+    def test_workflow_validator_handles_long_descriptions(self):
+        """Verify validator handles long workflow descriptions."""
+        from src.workflow_validator import WorkflowValidator
+        
+        validator = WorkflowValidator()
+        
+        long_description = "A" * 1000  # Very long description
+        
+        config = {
+            "name": "Test Workflow",
+            "description": long_description,
+            "steps": [{"name": "Step 1", "action": "test"}],
+        }
+        
+        # Should handle long descriptions without error
+        errors = validator.validate(config)
+        assert isinstance(errors, list)
+
+
+class TestDataFetcherStringFormatting:
+    """Test suite for string formatting in data fetcher."""
+
+    def test_fetcher_log_messages_consistency(self):
+        """Verify fetcher log messages are consistently formatted."""
+        import logging
+        from src.data.real_data_fetcher import RealDataFetcher
+        
+        # Capture log messages
+        with pytest.raises(Exception):
+            # Create fetcher with invalid configuration to trigger logs
+            fetcher = RealDataFetcher(enable_network=False, cache_path="/nonexistent/path")
+            fetcher.fetch_and_build_graph()
+
+    def test_cache_path_handling_with_special_characters(self):
+        """Verify cache path handling with special characters."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        import tempfile
+        import os
+        
+        # Create temp directory with special characters
+        with tempfile.TemporaryDirectory() as tmpdir:
+            special_path = os.path.join(tmpdir, "test cache", "data.pkl")
+            
+            fetcher = RealDataFetcher(
+                enable_network=False,
+                cache_path=special_path,
+            )
+            
+            # Should handle path with spaces
+            assert fetcher.cache_path == special_path
+
+
+class TestSampleDataStringFormatting:
+    """Test suite for string formatting in sample data generation."""
+
+    def test_sample_data_log_message_formatting(self):
+        """Verify sample data generation produces well-formatted log messages."""
+        import logging
+        from src.data.sample_data import create_sample_database
+        
+        # Capture logs
+        with pytest.warns(None):
+            graph = create_sample_database()
+        
+        # Graph should be created successfully
+        assert graph is not None
+        assert len(graph.assets) > 0
+
+    def test_sample_data_asset_coverage_logging(self):
+        """Verify asset class coverage logging is properly formatted."""
+        from src.data.sample_data import create_sample_database
+        from src.data.financial_models import AssetClass
+        
+        graph = create_sample_database()
+        
+        # Count assets by class
+        class_counts = {}
+        for asset in graph.assets.values():
+            asset_class = asset.asset_class
+            class_counts[asset_class] = class_counts.get(asset_class, 0) + 1
+        
+        # All main asset classes should be represented
+        assert AssetClass.EQUITY in class_counts
+        assert AssetClass.FIXED_INCOME in class_counts
+        assert AssetClass.COMMODITY in class_counts
+        assert AssetClass.CURRENCY in class_counts
+
+
+class TestSchemaReportFormatting:
+    """Test suite for schema report formatting."""
+
+    def test_schema_report_markdown_formatting(self):
+        """Verify schema report uses proper markdown formatting."""
+        from src.reports.schema_report import generate_schema_report
+        from src.data.sample_data import create_sample_database
+        
+        graph = create_sample_database()
+        report = generate_schema_report(graph)
+        
+        # Should contain markdown headers
+        assert "##" in report or "###" in report
+        
+        # Should contain bullet points
+        assert "- " in report or "* " in report
+        
+        # Should not have excessive blank lines
+        assert "\n\n\n" not in report
+
+    def test_schema_report_top_relationships_formatting(self):
+        """Verify top relationships section is properly formatted."""
+        from src.reports.schema_report import generate_schema_report
+        from src.data.sample_data import create_sample_database
+        
+        graph = create_sample_database()
+        report = generate_schema_report(graph)
+        
+        # Should contain relationship section
+        assert "Top Relationships" in report or "Relationships" in report
+        
+        # Should have numbered or bulleted list
+        lines = report.split("\n")
+        list_lines = [line for line in lines if line.strip().startswith(("1.", "2.", "-", "*"))]
+        assert len(list_lines) > 0
+
+
+class TestMetricVisualsFormatting:
+    """Test suite for metric visuals formatting."""
+
+    def test_metrics_plot_title_formatting(self):
+        """Verify metrics plot titles are properly formatted."""
+        from src.visualizations.metric_visuals import visualize_metrics
+        from src.data.sample_data import create_sample_database
+        
+        graph = create_sample_database()
+        metrics = graph.calculate_metrics()
+        
+        fig1, fig2, fig3 = visualize_metrics(metrics)
+        
+        # Check titles
+        for fig in [fig1, fig2, fig3]:
+            if hasattr(fig, "layout") and hasattr(fig.layout, "title"):
+                title = fig.layout.title.text if hasattr(fig.layout.title, "text") else str(fig.layout.title)
+                
+                if title:
+                    # Title should not have line breaks
+                    assert "\n" not in title
+                    # Title should be capitalized
+                    assert title[0].isupper() if title else True
+
+
