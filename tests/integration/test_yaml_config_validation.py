@@ -192,7 +192,7 @@ class TestConfigurationEdgeCases:
         if 'check_interval' in monitoring:
             interval = monitoring['check_interval']
             assert isinstance(interval, int), "check_interval should be integer"
-            assert 60 <= interval <= 3600, "check_interval should be 1-60 minutes"
+            assert 60 <= interval <= 3600, "check_interval should be 60-3600 seconds"
 
         # Check rate limits
         limits = config.get('limits', {})
