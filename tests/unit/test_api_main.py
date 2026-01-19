@@ -232,7 +232,6 @@ class TestAPIEndpoints:
 
     def test_root_endpoint(self, client):
         """Test the root endpoint returns API information."""
-
         response = client.get("/")
         assert response.status_code == 200
         data = response.json()
@@ -243,7 +242,6 @@ class TestAPIEndpoints:
 
     def test_health_check_endpoint(self, client):
         """Test the health check endpoint."""
-
         response = client.get("/api/health")
         assert response.status_code == 200
         data = response.json()
@@ -251,7 +249,6 @@ class TestAPIEndpoints:
 
     def test_get_assets_all(self, client):
         """Test getting all assets without filters."""
-
         response = client.get("/api/assets")
         assert response.status_code == 200
         assets = response.json()
@@ -269,7 +266,6 @@ class TestAPIEndpoints:
 
     def test_get_assets_filter_by_class(self, client):
         """Test filtering assets by asset class."""
-
         response = client.get("/api/assets?asset_class=EQUITY")
         assert response.status_code == 200
         assets = response.json()
@@ -562,9 +558,7 @@ class TestErrorHandling:
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
         mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        mock_graph_instance.get_3d_visualization_data = mock_graph.get_3d_visualization_data
 
         response = client.get("/api/metrics")
         assert response.status_code == 500
@@ -652,9 +646,7 @@ class TestAdditionalFields:
                 "book_value",
             ]
             has_equity_field = any(field in additional for field in possible_fields)
-            assert (
-                has_equity_field or len(additional) == 0
-            )  # Either has fields or empty
+            assert has_equity_field or len(additional) == 0  # Either has fields or empty
 
     @staticmethod
     def test_bond_additional_fields(client):

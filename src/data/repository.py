@@ -49,7 +49,6 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
         """Create or update an asset record."""
-
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)
@@ -58,21 +57,16 @@ class AssetGraphRepository:
 
     def list_assets(self) -> List[Asset]:
         """Return all assets as dataclass instances ordered by id."""
-
-        result = (
-            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
-        )
+        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
         """Return mapping of asset id to asset dataclass."""
-
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
     def delete_asset(self, asset_id: str) -> None:
         """Delete an asset and cascading relationships/events."""
-
         asset = self.session.get(AssetORM, asset_id)
         if asset is not None:
             self.session.delete(asset)
@@ -90,7 +84,6 @@ class AssetGraphRepository:
         bidirectional: bool,
     ) -> None:
         """Insert or update a relationship between two assets."""
-
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -112,7 +105,6 @@ class AssetGraphRepository:
 
     def list_relationships(self) -> List[RelationshipRecord]:
         """Return all relationships from the database."""
-
         result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
             RelationshipRecord(
@@ -125,11 +117,8 @@ class AssetGraphRepository:
             for rel in result
         ]
 
-    def get_relationship(
-        self, source_id: str, target_id: str, rel_type: str
-    ) -> Optional[RelationshipRecord]:
+    def get_relationship(self, source_id: str, target_id: str, rel_type: str) -> Optional[RelationshipRecord]:
         """Fetch a single relationship if it exists."""
-
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -146,11 +135,8 @@ class AssetGraphRepository:
             bidirectional=relationship.bidirectional,
         )
 
-    def delete_relationship(
-        self, source_id: str, target_id: str, rel_type: str
-    ) -> None:
+    def delete_relationship(self, source_id: str, target_id: str, rel_type: str) -> None:
         """Remove a relationship."""
-
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -165,7 +151,6 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def upsert_regulatory_event(self, event: RegulatoryEvent) -> None:
         """Create or update a regulatory event record."""
-
         existing = self.session.get(RegulatoryEventORM, event.id)
         if existing is None:
             existing = RegulatoryEventORM(id=event.id)
@@ -183,13 +168,11 @@ class AssetGraphRepository:
 
     def list_regulatory_events(self) -> List[RegulatoryEvent]:
         """Return all regulatory events."""
-
         result = self.session.execute(select(RegulatoryEventORM)).scalars().all()
         return [self._to_regulatory_event_model(record) for record in result]
 
     def delete_regulatory_event(self, event_id: str) -> None:
         """Delete a regulatory event."""
-
         record = self.session.get(RegulatoryEventORM, event_id)
         if record is not None:
             self.session.delete(record)
@@ -204,9 +187,7 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = (
-            float(asset.market_cap) if asset.market_cap is not None else None
-        )
+        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
         orm.currency = asset.currency
 
         # Reset all optional fields to avoid stale values
