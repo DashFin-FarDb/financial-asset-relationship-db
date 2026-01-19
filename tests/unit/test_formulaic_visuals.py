@@ -711,7 +711,7 @@ class TestGraphVisualsEdgeCases:
         fig = visualize_2d_graph(
             graph,
             show_same_sector=False,
-            show_market_cap_similar=False,
+            show_market_cap_similarity=False,
             show_correlation=False,
             show_corporate_bond=False,
             show_commodity_currency=False,
@@ -725,7 +725,7 @@ class TestGraphVisualsEdgeCases:
         fig = visualize_2d_graph(
             graph,
             show_same_sector=True,
-            show_market_cap_similar=True,
+            show_market_cap_similarity=True,
             show_correlation=True,
             show_corporate_bond=True,
             show_commodity_currency=True,
