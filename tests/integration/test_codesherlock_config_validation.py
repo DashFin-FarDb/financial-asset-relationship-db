@@ -4,6 +4,7 @@ Integration tests for codesherlock.yaml configuration validation.
 This module validates the codesherlock configuration file structure,
 content, and adherence to expected patterns.
 """
+
 import os
 from pathlib import Path
 from typing import Any, Dict
@@ -51,9 +52,7 @@ class TestCodeSherlockConfigStructure:
 
     def test_target_branches_is_list(self, codesherlock_config: Dict[str, Any]):
         """Verify that target_branches is a list."""
-        assert isinstance(
-            codesherlock_config["target_branches"], list
-        ), "target_branches should be a list"
+        assert isinstance(codesherlock_config["target_branches"], list), "target_branches should be a list"
 
     def test_target_branches_not_empty(self, codesherlock_config: Dict[str, Any]):
         """Verify that target_branches list is not empty."""
@@ -99,7 +98,9 @@ class TestCodeSherlockConfigContent:
     def test_preferred_characteristics_no_duplicates(self, codesherlock_config: Dict[str, Any]):
         """Verify that preferred_characteristics contains no duplicates."""
         characteristics = codesherlock_config["preferred_characteristics"]
-        assert len(characteristics) == len(set(characteristics)), "preferred_characteristics should not contain duplicates"
+        assert len(characteristics) == len(
+            set(characteristics)
+        ), "preferred_characteristics should not contain duplicates"
 
     def test_preferred_characteristics_valid_values(self, codesherlock_config: Dict[str, Any]):
         """Verify that preferred characteristics contain valid values."""
@@ -112,7 +113,7 @@ class TestCodeSherlockConfigContent:
             "Code Injection",
             "Input Validation",
         }
-        
+
         for characteristic in codesherlock_config["preferred_characteristics"]:
             assert characteristic in valid_characteristics, (
                 f"Characteristic '{characteristic}' is not a recognized value. "
@@ -135,48 +136,48 @@ class TestCodeSherlockConfigBestPractices:
         """Verify that security-related characteristics are included."""
         security_characteristics = {"Input Validation", "Code Injection", "Exception Handling"}
         configured_characteristics = set(codesherlock_config["preferred_characteristics"])
-        
+
         for security_char in security_characteristics:
-            assert security_char in configured_characteristics, (
-                f"Security characteristic '{security_char}' should be included"
-            )
+            assert (
+                security_char in configured_characteristics
+            ), f"Security characteristic '{security_char}' should be included"
 
     def test_covers_code_quality_characteristics(self, codesherlock_config: Dict[str, Any]):
         """Verify that code quality characteristics are included."""
         quality_characteristics = {"Modularity", "Dependency Injection"}
         configured_characteristics = set(codesherlock_config["preferred_characteristics"])
-        
+
         for quality_char in quality_characteristics:
-            assert quality_char in configured_characteristics, (
-                f"Code quality characteristic '{quality_char}' should be included"
-            )
+            assert (
+                quality_char in configured_characteristics
+            ), f"Code quality characteristic '{quality_char}' should be included"
 
     def test_covers_operational_characteristics(self, codesherlock_config: Dict[str, Any]):
         """Verify that operational characteristics are included."""
         operational_characteristics = {"Monitoring and Logging", "Resource Utilization"}
         configured_characteristics = set(codesherlock_config["preferred_characteristics"])
-        
+
         for operational_char in operational_characteristics:
-            assert operational_char in configured_characteristics, (
-                f"Operational characteristic '{operational_char}' should be included"
-            )
+            assert (
+                operational_char in configured_characteristics
+            ), f"Operational characteristic '{operational_char}' should be included"
 
     def test_reasonable_number_of_characteristics(self, codesherlock_config: Dict[str, Any]):
         """Verify that the number of characteristics is reasonable (not too few or too many)."""
         num_characteristics = len(codesherlock_config["preferred_characteristics"])
-        assert 3 <= num_characteristics <= 10, (
-            f"Number of characteristics ({num_characteristics}) should be between 3 and 10 for focused reviews"
-        )
+        assert (
+            3 <= num_characteristics <= 10
+        ), f"Number of characteristics ({num_characteristics}) should be between 3 and 10 for focused reviews"
 
     def test_includes_common_development_branches(self, codesherlock_config: Dict[str, Any]):
         """Verify that common development branches are considered."""
         branches = set(codesherlock_config["target_branches"])
-        
+
         # At least one of the common branch names should be present
         common_branches = {"main", "master", "develop", "development"}
-        assert any(branch in branches for branch in common_branches), (
-            "At least one common development branch (main, master, develop) should be included"
-        )
+        assert any(
+            branch in branches for branch in common_branches
+        ), "At least one common development branch (main, master, develop) should be included"
 
 
 class TestCodeSherlockConfigEdgeCases:
@@ -186,12 +187,12 @@ class TestCodeSherlockConfigEdgeCases:
         """Verify that configuration values handle whitespace appropriately."""
         for branch in codesherlock_config["target_branches"]:
             assert branch == branch.strip(), f"Branch '{branch}' should not have leading/trailing whitespace"
-        
+
         for characteristic in codesherlock_config["preferred_characteristics"]:
             # Characteristics may contain internal spaces (e.g., "Input Validation")
-            assert characteristic == characteristic.strip(), (
-                f"Characteristic '{characteristic}' should not have leading/trailing whitespace"
-            )
+            assert (
+                characteristic == characteristic.strip()
+            ), f"Characteristic '{characteristic}' should not have leading/trailing whitespace"
 
     def test_config_handles_special_characters_in_branch_names(self, codesherlock_config: Dict[str, Any]):
         """Verify that branch names with special characters are handled correctly."""
@@ -210,7 +211,7 @@ class TestCodeSherlockConfigEdgeCases:
         """Verify that the YAML file follows consistent formatting."""
         with open(codesherlock_config_path, "r") as f:
             content = f.read()
-        
+
         # Check for consistent indentation (2 spaces)
         lines = content.split("\n")
         for i, line in enumerate(lines, 1):
@@ -226,7 +227,7 @@ class TestCodeSherlockConfigIntegration:
     def test_config_aligns_with_project_branches(self, codesherlock_config: Dict[str, Any]):
         """Verify that configured branches exist or are standard."""
         branches = codesherlock_config["target_branches"]
-        
+
         # These are either standard branches or should exist in the project
         for branch in branches:
             # We can't easily check remote branches in tests, but we can verify format
@@ -236,14 +237,14 @@ class TestCodeSherlockConfigIntegration:
     def test_config_characteristics_match_project_needs(self, codesherlock_config: Dict[str, Any]):
         """Verify that configured characteristics match project requirements."""
         characteristics = set(codesherlock_config["preferred_characteristics"])
-        
+
         # For a financial application, certain characteristics are critical
         financial_critical_characteristics = {"Input Validation", "Exception Handling", "Monitoring and Logging"}
-        
+
         missing_critical = financial_critical_characteristics - characteristics
-        assert not missing_critical, (
-            f"Critical characteristics for financial applications are missing: {missing_critical}"
-        )
+        assert (
+            not missing_critical
+        ), f"Critical characteristics for financial applications are missing: {missing_critical}"
 
 
 class TestCodeSherlockConfigDocumentation:
@@ -253,7 +254,7 @@ class TestCodeSherlockConfigDocumentation:
         """Verify that the configuration file includes helpful comments."""
         with open(codesherlock_config_path, "r") as f:
             content = f.read()
-        
+
         # Should have at least some comment lines
         comment_lines = [line for line in content.split("\n") if line.strip().startswith("#")]
         assert len(comment_lines) >= 3, "Config file should include explanatory comments"
@@ -262,7 +263,7 @@ class TestCodeSherlockConfigDocumentation:
         """Verify that target_branches section is documented."""
         with open(codesherlock_config_path, "r") as f:
             content = f.read()
-        
+
         # Should have comments explaining target_branches before the field
         lines = content.split("\n")
         target_branches_line_idx = None
@@ -270,11 +271,11 @@ class TestCodeSherlockConfigDocumentation:
             if "target_branches:" in line:
                 target_branches_line_idx = i
                 break
-        
+
         assert target_branches_line_idx is not None, "target_branches field should be present"
-        
+
         # Check for comments in the lines before target_branches
-        preceding_lines = lines[max(0, target_branches_line_idx - 5):target_branches_line_idx]
+        preceding_lines = lines[max(0, target_branches_line_idx - 5) : target_branches_line_idx]
         has_comment = any(line.strip().startswith("#") for line in preceding_lines)
         assert has_comment, "target_branches section should have explanatory comments"
 
@@ -282,17 +283,17 @@ class TestCodeSherlockConfigDocumentation:
         """Verify that preferred_characteristics section is documented."""
         with open(codesherlock_config_path, "r") as f:
             content = f.read()
-        
+
         lines = content.split("\n")
         preferred_char_line_idx = None
         for i, line in enumerate(lines):
             if "preferred_characteristics:" in line:
                 preferred_char_line_idx = i
                 break
-        
+
         assert preferred_char_line_idx is not None, "preferred_characteristics field should be present"
-        
+
         # Check for comments in the lines before preferred_characteristics
-        preceding_lines = lines[max(0, preferred_char_line_idx - 5):preferred_char_line_idx]
+        preceding_lines = lines[max(0, preferred_char_line_idx - 5) : preferred_char_line_idx]
         has_comment = any(line.strip().startswith("#") for line in preceding_lines)
         assert has_comment, "preferred_characteristics section should have explanatory comments"

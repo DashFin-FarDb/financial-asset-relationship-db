@@ -562,9 +562,7 @@ class TestErrorHandling:
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
         mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        mock_graph_instance.get_3d_visualization_data = mock_graph.get_3d_visualization_data
 
         response = client.get("/api/metrics")
         assert response.status_code == 500
@@ -652,9 +650,7 @@ class TestAdditionalFields:
                 "book_value",
             ]
             has_equity_field = any(field in additional for field in possible_fields)
-            assert (
-                has_equity_field or len(additional) == 0
-            )  # Either has fields or empty
+            assert has_equity_field or len(additional) == 0  # Either has fields or empty
 
     @staticmethod
     def test_bond_additional_fields(client):
@@ -801,19 +797,21 @@ class TestAuthErrorMessages:
     def test_secret_key_error_message_format(self):
         """Verify that SECRET_KEY error message is properly formatted."""
         import os
-        
+
         # Temporarily remove SECRET_KEY if it exists
         original_key = os.environ.get("SECRET_KEY")
         if "SECRET_KEY" in os.environ:
             del os.environ["SECRET_KEY"]
-        
+
         try:
             with pytest.raises(ValueError) as exc_info:
                 # Force re-import to trigger the validation
                 import importlib
+
                 import api.auth
+
                 importlib.reload(api.auth)
-            
+
             error_message = str(exc_info.value)
             assert "SECRET_KEY" in error_message
             assert "environment variable" in error_message
@@ -827,14 +825,14 @@ class TestAuthErrorMessages:
         """Verify that no credentials error message is properly formatted."""
         # This test validates the multi-line string formatting
         from api.auth import user_repository
-        
+
         # Mock empty repository
         mock_user_repository.has_users.return_value = False
-        
+
         with pytest.raises(ValueError) as exc_info:
             # Trigger validation
             pass  # In actual code, this would be triggered by import
-        
+
         error_message = str(exc_info.value)
         expected_fragments = ["No user credentials", "ADMIN_USERNAME", "ADMIN_PASSWORD"]
         for fragment in expected_fragments:
@@ -847,22 +845,23 @@ class TestDatabaseURLFormatting:
     def test_database_url_error_message_single_line(self):
         """Verify that DATABASE_URL error message is a single, readable line."""
         import os
-        
+
         original_url = os.environ.get("DATABASE_URL")
         if "DATABASE_URL" in os.environ:
             del os.environ["DATABASE_URL"]
-        
+
         try:
             with pytest.raises(ValueError) as exc_info:
                 from api.database import _get_database_url
+
                 _get_database_url()
-            
+
             error_message = str(exc_info.value)
             # Error message should be readable and not have weird line breaks
             assert "DATABASE_URL" in error_message
             assert "environment variable" in error_message
             assert "must be set" in error_message
-            
+
             # Should not have internal newlines from formatting
             assert "\n" not in error_message.strip()
         finally:
@@ -872,7 +871,7 @@ class TestDatabaseURLFormatting:
     def test_memory_db_url_parsing_with_query_params(self):
         """Test parsing of memory database URLs with query parameters."""
         from api.database import _is_memory_db
-        
+
         # Test various formats
         assert _is_memory_db("sqlite:///:memory:") is True
         assert _is_memory_db("file::memory:?cache=shared") is True
@@ -882,7 +881,7 @@ class TestDatabaseURLFormatting:
     def test_memory_db_url_parsing_edge_cases(self):
         """Test edge cases in memory database URL parsing."""
         from api.database import _is_memory_db
-        
+
         # Edge cases
         assert _is_memory_db("") is False
         assert _is_memory_db("memory") is False
@@ -896,20 +895,20 @@ class TestLoggingConfiguration:
     def test_logging_config_format_consistency(self):
         """Verify that logging configuration is properly formatted."""
         import logging
-        
+
         # Check that the root logger has expected configuration
         root_logger = logging.getLogger()
-        
+
         # Should have handlers configured
         assert len(root_logger.handlers) >= 0  # May be 0 in test environment
-        
+
         # Verify format string is single-line and readable
         for handler in root_logger.handlers:
-            if hasattr(handler, 'formatter') and handler.formatter:
+            if hasattr(handler, "formatter") and handler.formatter:
                 format_str = handler.formatter._fmt
                 if format_str:
                     # Format string should not have excessive line breaks
-                    assert format_str.count('\n') <= 1
+                    assert format_str.count("\n") <= 1
 
 
 class TestStringConcatenationEdgeCases:
@@ -919,10 +918,9 @@ class TestStringConcatenationEdgeCases:
         """Verify that multi-line string literals are properly formatted."""
         # Test a representative multi-line string from the codebase
         test_string = (
-            "No user credentials available. Provide ADMIN_USERNAME "
-            "and ADMIN_PASSWORD or pre-populate the database."
+            "No user credentials available. Provide ADMIN_USERNAME " "and ADMIN_PASSWORD or pre-populate the database."
         )
-        
+
         # Should be continuous text without embedded newlines
         assert "\n" not in test_string
         assert len(test_string) > 50  # Reasonable length
@@ -937,15 +935,15 @@ class TestStringConcatenationEdgeCases:
             "DATABASE_URL environment variable must be set before using the database",
             "No user credentials available. Provide ADMIN_USERNAME and ADMIN_PASSWORD or pre-populate the database.",
         ]
-        
+
         for msg in error_messages:
             # Messages should be single-line
             assert msg.count("\n") == 0, f"Error message should be single-line: {msg}"
-            
+
             # Messages should be reasonably sized
             assert len(msg) > 20, f"Error message too short: {msg}"
             assert len(msg) < 500, f"Error message too long: {msg}"
-            
+
             # Messages should not have excessive whitespace
             assert "  " not in msg, f"Error message has excessive whitespace: {msg}"
 
@@ -956,17 +954,15 @@ class TestJSONFormattingConsistency:
     def test_json_dumps_indent_consistency(self):
         """Verify that JSON.dumps uses consistent indentation."""
         import json
-        
+
         test_data = {"key1": "value1", "key2": {"nested": "value"}}
-        
+
         # Standard indent should be 2 spaces
         formatted = json.dumps(test_data, indent=2)
         lines = formatted.split("\n")
-        
+
         # Check indentation consistency
         for line in lines[1:-1]:  # Skip first and last lines
             if line.strip():
                 leading_spaces = len(line) - len(line.lstrip())
                 assert leading_spaces % 2 == 0, "Indentation should be multiples of 2"
-
-

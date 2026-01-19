@@ -291,9 +291,7 @@ class TestRelationshipOperations:
         repository.session.commit()
 
         # Add relationship
-        repository.add_or_update_relationship(
-            "ASSET1", "ASSET2", "same_sector", 0.7, bidirectional=True
-        )
+        repository.add_or_update_relationship("ASSET1", "ASSET2", "same_sector", 0.7, bidirectional=True)
         repository.session.commit()
 
         relationships = repository.list_relationships()
@@ -326,15 +324,11 @@ class TestRelationshipOperations:
         repository.session.commit()
 
         # Add relationship
-        repository.add_or_update_relationship(
-            "UPDATE1", "UPDATE2", "test_rel", 0.5, bidirectional=False
-        )
+        repository.add_or_update_relationship("UPDATE1", "UPDATE2", "test_rel", 0.5, bidirectional=False)
         repository.session.commit()
 
         # Update relationship
-        repository.add_or_update_relationship(
-            "UPDATE1", "UPDATE2", "test_rel", 0.9, bidirectional=True
-        )
+        repository.add_or_update_relationship("UPDATE1", "UPDATE2", "test_rel", 0.9, bidirectional=True)
         repository.session.commit()
 
         relationships = repository.list_relationships()
@@ -359,12 +353,8 @@ class TestRelationshipOperations:
         repository.session.commit()
 
         # Add relationships
-        repository.add_or_update_relationship(
-            "ASSET0", "ASSET1", "rel1", 0.5, bidirectional=False
-        )
-        repository.add_or_update_relationship(
-            "ASSET1", "ASSET2", "rel2", 0.6, bidirectional=False
-        )
+        repository.add_or_update_relationship("ASSET0", "ASSET1", "rel1", 0.5, bidirectional=False)
+        repository.add_or_update_relationship("ASSET1", "ASSET2", "rel2", 0.6, bidirectional=False)
         repository.session.commit()
 
         relationships = repository.list_relationships()
@@ -393,9 +383,7 @@ class TestRelationshipOperations:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "GET1", "GET2", "specific_rel", 0.8, bidirectional=True
-        )
+        repository.add_or_update_relationship("GET1", "GET2", "specific_rel", 0.8, bidirectional=True)
         repository.session.commit()
 
         rel = repository.get_relationship("GET1", "GET2", "specific_rel")
@@ -432,9 +420,7 @@ class TestRelationshipOperations:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "DEL1", "DEL2", "to_delete", 0.5, bidirectional=False
-        )
+        repository.add_or_update_relationship("DEL1", "DEL2", "to_delete", 0.5, bidirectional=False)
         repository.session.commit()
 
         repository.delete_relationship("DEL1", "DEL2", "to_delete")
@@ -536,9 +522,7 @@ class TestRegulatoryEventOperations:
         repository.upsert_regulatory_event(event)
         repository.session.commit()
 
-        events = (
-            repository.session.query(RegulatoryEventORM).filter_by(id="EVENT002").all()
-        )
+        events = repository.session.query(RegulatoryEventORM).filter_by(id="EVENT002").all()
         assert len(events) == 1
         assert events[0].impact_score == 0.9
         assert events[0].description == "Updated filing"
@@ -591,11 +575,7 @@ class TestRegulatoryEventOperations:
         repository.session.commit()
 
         # Verify related assets were linked
-        event_orm = (
-            repository.session.query(RegulatoryEventORM)
-            .filter_by(id="EVENT003")
-            .first()
-        )
+        event_orm = repository.session.query(RegulatoryEventORM).filter_by(id="EVENT003").first()
         assert len(event_orm.related_assets) == 2
 
 
@@ -758,9 +738,7 @@ class TestEdgeCases:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "ZERO1", "ZERO2", "zero_strength", 0.0, bidirectional=False
-        )
+        repository.add_or_update_relationship("ZERO1", "ZERO2", "zero_strength", 0.0, bidirectional=False)
         repository.session.commit()
 
         rel = repository.get_relationship("ZERO1", "ZERO2", "zero_strength")
@@ -790,9 +768,7 @@ class TestEdgeCases:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "MAX1", "MAX2", "max_strength", 1.0, bidirectional=False
-        )
+        repository.add_or_update_relationship("MAX1", "MAX2", "max_strength", 1.0, bidirectional=False)
         repository.session.commit()
 
         rel = repository.get_relationship("MAX1", "MAX2", "max_strength")
@@ -805,8 +781,8 @@ class TestRepositoryStringFormatting:
 
     def test_repository_handles_long_asset_ids(self, memory_repository):
         """Verify repository handles long asset IDs correctly."""
-        from src.data.financial_models import Equity, AssetClass
-        
+        from src.data.financial_models import AssetClass, Equity
+
         long_id = "A" * 200  # Very long ID
         asset = Equity(
             id=long_id,
@@ -818,18 +794,18 @@ class TestRepositoryStringFormatting:
             market_cap=1000000.0,
             outstanding_shares=10000.0,
         )
-        
+
         memory_repository.add_or_update_asset(asset)
         retrieved = memory_repository.get_asset(long_id)
-        
+
         assert retrieved is not None
         assert retrieved.id == long_id
 
     def test_repository_handles_special_characters_in_strings(self, memory_repository):
         """Verify repository handles special characters in string fields."""
-        from src.data.financial_models import Equity, AssetClass
-        
-        special_chars_name = "Test & Company's \"Quote\" Stock"
+        from src.data.financial_models import AssetClass, Equity
+
+        special_chars_name = 'Test & Company\'s "Quote" Stock'
         asset = Equity(
             id="SPECIAL_1",
             name=special_chars_name,
@@ -840,17 +816,17 @@ class TestRepositoryStringFormatting:
             market_cap=1000000.0,
             outstanding_shares=10000.0,
         )
-        
+
         memory_repository.add_or_update_asset(asset)
         retrieved = memory_repository.get_asset("SPECIAL_1")
-        
+
         assert retrieved is not None
         assert retrieved.name == special_chars_name
 
     def test_repository_query_ordering_consistency(self, memory_repository):
         """Verify that list_assets maintains consistent ordering."""
-        from src.data.financial_models import Equity, AssetClass
-        
+        from src.data.financial_models import AssetClass, Equity
+
         # Add multiple assets
         for i in range(10):
             asset = Equity(
@@ -864,18 +840,18 @@ class TestRepositoryStringFormatting:
                 outstanding_shares=10000.0,
             )
             memory_repository.add_or_update_asset(asset)
-        
+
         # Retrieve multiple times
         results1 = [a.id for a in memory_repository.list_assets()]
         results2 = [a.id for a in memory_repository.list_assets()]
-        
+
         # Order should be consistent
         assert results1 == results2
 
     def test_repository_handles_none_market_cap(self, memory_repository):
         """Verify repository handles None market_cap correctly."""
-        from src.data.financial_models import Equity, AssetClass
-        
+        from src.data.financial_models import AssetClass, Equity
+
         asset = Equity(
             id="NO_MCAP",
             name="No Market Cap Asset",
@@ -886,10 +862,10 @@ class TestRepositoryStringFormatting:
             market_cap=None,  # Explicitly None
             outstanding_shares=10000.0,
         )
-        
+
         memory_repository.add_or_update_asset(asset)
         retrieved = memory_repository.get_asset("NO_MCAP")
-        
+
         assert retrieved is not None
         assert retrieved.market_cap is None
 
@@ -899,8 +875,8 @@ class TestRelationshipQueryFormatting:
 
     def test_relationship_query_with_complex_conditions(self, memory_repository):
         """Verify relationship queries handle complex multi-condition lookups."""
-        from src.data.financial_models import Equity, AssetClass
-        
+        from src.data.financial_models import AssetClass, Equity
+
         # Add assets
         asset1 = Equity(
             id="REL_SRC",
@@ -922,10 +898,10 @@ class TestRelationshipQueryFormatting:
             market_cap=1000000.0,
             outstanding_shares=10000.0,
         )
-        
+
         memory_repository.add_or_update_asset(asset1)
         memory_repository.add_or_update_asset(asset2)
-        
+
         # Add relationship
         memory_repository.add_or_update_relationship(
             source_id="REL_SRC",
@@ -934,7 +910,7 @@ class TestRelationshipQueryFormatting:
             strength=0.8,
             bidirectional=True,
         )
-        
+
         # Query should work correctly
         relationship = memory_repository.get_relationship("REL_SRC", "REL_TGT", "correlation")
         assert relationship is not None
@@ -947,31 +923,29 @@ class TestDatabaseModelFieldFormatting:
     def test_foreign_key_constraint_formatting(self, memory_repository):
         """Verify foreign key constraints are properly defined."""
         from src.data.db_models import AssetRelationshipORM
-        
+
         # Check that foreign key columns are properly defined
         assert hasattr(AssetRelationshipORM, "source_asset_id")
         assert hasattr(AssetRelationshipORM, "target_asset_id")
-        
+
         # Both should be non-nullable
         source_column = AssetRelationshipORM.__table__.columns["source_asset_id"]
         target_column = AssetRelationshipORM.__table__.columns["target_asset_id"]
-        
+
         assert not source_column.nullable
         assert not target_column.nullable
 
     def test_cascade_delete_configuration(self, memory_repository):
         """Verify cascade delete is properly configured on relationships."""
         from src.data.db_models import AssetRelationshipORM
-        
+
         # Check foreign key configuration
         source_fk = None
         for fk in AssetRelationshipORM.__table__.foreign_keys:
             if "source_asset_id" in str(fk.parent):
                 source_fk = fk
                 break
-        
+
         assert source_fk is not None
         # CASCADE should be configured
         assert "CASCADE" in str(source_fk.ondelete) or source_fk.ondelete == "CASCADE"
-
-
