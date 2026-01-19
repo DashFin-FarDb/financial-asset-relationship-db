@@ -29,15 +29,16 @@ global.IntersectionObserver = class IntersectionObserver {
    * Disconnects the observer instance (no-op placeholder for teardown if needed).
    * @returns {void}
    */
-  static disconnect () {
+  disconnect () {
     // no-op placeholder for teardown if needed
   }
 
   /**
    * Placeholder method for observing a target; no operation in this mock.
+   * @param {Element} target - The target element to observe
    * @returns {void}
    */
-  static observe () {
+  observe (target) {
     // Intentionally left empty; placeholder method required by interface
   }
 
@@ -45,7 +46,16 @@ global.IntersectionObserver = class IntersectionObserver {
    * Returns any queued IntersectionObserverEntry records.
    * @returns {Array} Always returns an empty array in this mock.
    */
-  static takeRecords () {
+  takeRecords () {
     return []
+  }
+
+  /**
+   * Stops observing a target element (no-op placeholder).
+   * @param {Element} target - The target element to stop observing
+   * @returns {void}
+   */
+  unobserve (target) {
+    // no-op placeholder for unobserving targets
   }
 }
