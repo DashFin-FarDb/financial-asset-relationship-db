@@ -10,11 +10,11 @@ This Technical Specification document provides a comprehensive reference for the
 
 The Financial Asset Relationship Database is a sophisticated 3D visualization and analytics platform that enables users to explore interconnected financial assets spanning Equities, Fixed Income (Bonds), Commodities, Currencies, and Regulatory Events. The system features a dual-UI architecture that accommodates diverse user preferences and deployment scenarios:
 
-| UI Component | Technology | Port | Target Users |
-|--------------|------------|------|--------------|
-| Legacy Interface | Gradio (Python) | 7860 | Python developers, rapid prototyping |
-| Modern Interface | Next.js + React | 3000 | Web developers, production deployments |
-| REST API | FastAPI | 8000 | System integrations, external applications |
+| UI Component     | Technology      | Port | Target Users                               |
+| ---------------- | --------------- | ---- | ------------------------------------------ |
+| Legacy Interface | Gradio (Python) | 7860 | Python developers, rapid prototyping       |
+| Modern Interface | Next.js + React | 3000 | Web developers, production deployments     |
+| REST API         | FastAPI         | 8000 | System integrations, external applications |
 
 The platform delivers interactive network visualizations powered by Plotly, enabling intuitive exploration of asset relationships through rotation, zoom, and hover interactions. Both frontend experiences share a common backend logic layer (`src/logic/asset_graph.py`) ensuring consistent analytical capabilities regardless of the chosen interface.
 
@@ -22,12 +22,12 @@ The platform delivers interactive network visualizations powered by Plotly, enab
 
 Financial markets present significant challenges in understanding the complex web of relationships between different asset types. The Financial Asset Relationship Database addresses several critical pain points:
 
-| Challenge | Solution Provided |
-|-----------|-------------------|
-| Cross-Asset Complexity | Automatic discovery of relationships across asset classes including sector affinity, corporate bond-to-equity links, commodity exposure, and currency risk |
-| Regulatory Impact Analysis | Integration of regulatory events with scored impact modeling (-1 to +1 scale) affecting multiple assets |
-| Relationship Visualization | Interactive 3D network graphs with deterministic layouts (seed=42) for reproducible analysis |
-| Portfolio Risk Assessment | Network metrics calculation including relationship density, average degree, and asset class distributions |
+| Challenge                  | Solution Provided                                                                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cross-Asset Complexity     | Automatic discovery of relationships across asset classes including sector affinity, corporate bond-to-equity links, commodity exposure, and currency risk |
+| Regulatory Impact Analysis | Integration of regulatory events with scored impact modeling (-1 to +1 scale) affecting multiple assets                                                    |
+| Relationship Visualization | Interactive 3D network graphs with deterministic layouts (seed=42) for reproducible analysis                                                               |
+| Portfolio Risk Assessment  | Network metrics calculation including relationship density, average degree, and asset class distributions                                                  |
 
 The system transforms raw financial data into actionable intelligence by surfacing hidden connections that traditional asset-by-asset analysis would miss.
 
@@ -35,31 +35,34 @@ The system transforms raw financial data into actionable intelligence by surfaci
 
 The platform serves multiple user constituencies with varying technical backgrounds and analytical needs:
 
-| Stakeholder Group | Primary Use Cases | Preferred Interface |
-|-------------------|-------------------|---------------------|
-| Financial Analysts | Cross-asset relationship insights, sector analysis | Next.js UI, Gradio UI |
-| Portfolio Managers | Diversification analysis, risk exposure visualization | Next.js UI |
-| Data Scientists | Network structure exploration, custom analytics | REST API, Gradio UI |
-| Integration Developers | Programmatic data access, workflow automation | REST API |
-| Compliance Officers | Regulatory event impact assessment | Next.js UI |
+| Stakeholder Group      | Primary Use Cases                                     | Preferred Interface   |
+| ---------------------- | ----------------------------------------------------- | --------------------- |
+| Financial Analysts     | Cross-asset relationship insights, sector analysis    | Next.js UI, Gradio UI |
+| Portfolio Managers     | Diversification analysis, risk exposure visualization | Next.js UI            |
+| Data Scientists        | Network structure exploration, custom analytics       | REST API, Gradio UI   |
+| Integration Developers | Programmatic data access, workflow automation         | REST API              |
+| Compliance Officers    | Regulatory event impact assessment                    | Next.js UI            |
 
 ### 1.1.4 Value Proposition and Business Impact
 
 The Financial Asset Relationship Database delivers measurable business value through:
 
 **Analytical Capabilities:**
+
 - Cross-asset analysis with automatic relationship discovery via `_find_relationships()` and `build_relationships()` methods
 - Real-time network statistics with relationship strength normalization (0.0-1.0 scale)
 - Deterministic 3D layouts ensuring reproducible visualizations across sessions
 - Comprehensive schema and business rules documentation generation
 
 **Technical Advantages:**
+
 - Modern REST API architecture enabling integration with external systems
 - Dual-UI strategy supporting both rapid prototyping (Gradio) and production deployments (Next.js)
 - Thread-safe graph initialization with double-checked locking for concurrent access
 - JWT-based authentication with configurable token expiration (30-minute default)
 
 **Operational Benefits:**
+
 - Multiple deployment options: local development, Docker containerization, and Vercel serverless
 - Real market data integration via Yahoo Finance API (yfinance)
 - Offline exploration capability using comprehensive sample dataset
@@ -73,6 +76,7 @@ The Financial Asset Relationship Database delivers measurable business value thr
 The Financial Asset Relationship Database positions itself as a specialized analytical tool for financial professionals who require visibility into cross-asset relationships. Unlike traditional portfolio management systems that treat assets in isolation, this platform emphasizes the interconnected nature of financial markets.
 
 The system operates within the broader financial technology landscape, providing:
+
 - Network-based analysis complementing traditional fundamental and technical analysis
 - Regulatory event integration bridging compliance and investment functions
 - API-first architecture enabling ecosystem integration
@@ -116,26 +120,26 @@ flowchart TB
 
 The system is designed for integration flexibility:
 
-| Integration Point | Mechanism | Configuration |
-|-------------------|-----------|---------------|
-| External Data Sources | Yahoo Finance via yfinance library | `USE_REAL_DATA_FETCHER` environment variable |
-| Authentication Systems | JWT token-based auth | Environment variables for secret key and algorithm |
-| Frontend Applications | RESTful JSON API | CORS allowlist per environment |
-| Container Orchestration | Docker Compose | `docker-compose.yml` configuration |
-| Serverless Platforms | Vercel deployment | `vercel.json` configuration |
+| Integration Point       | Mechanism                          | Configuration                                      |
+| ----------------------- | ---------------------------------- | -------------------------------------------------- |
+| External Data Sources   | Yahoo Finance via yfinance library | `USE_REAL_DATA_FETCHER` environment variable       |
+| Authentication Systems  | JWT token-based auth               | Environment variables for secret key and algorithm |
+| Frontend Applications   | RESTful JSON API                   | CORS allowlist per environment                     |
+| Container Orchestration | Docker Compose                     | `docker-compose.yml` configuration                 |
+| Serverless Platforms    | Vercel deployment                  | `vercel.json` configuration                        |
 
 ### 1.2.2 High-Level Description
 
 #### Primary System Capabilities
 
-| Capability | Description | Implementation |
-|------------|-------------|----------------|
-| 3D Network Visualization | Interactive Plotly-based graph rendering with rotation, zoom, and hover | `src/visualizations/` |
-| Cross-Asset Analysis | Automatic relationship discovery between different asset classes | `src/logic/asset_graph.py` |
-| Regulatory Integration | Corporate events and SEC filings with scored impact modeling | `src/models/financial_models.py` |
-| Real-time Metrics | Network statistics, relationship density, distribution analysis | API `/api/metrics` endpoint |
-| Asset Explorer | Filterable table with asset class and sector filters | Gradio and Next.js UIs |
-| Schema Reporting | Auto-generated documentation of data models and business rules | `src/reports/schema_report.py` |
+| Capability               | Description                                                             | Implementation                   |
+| ------------------------ | ----------------------------------------------------------------------- | -------------------------------- |
+| 3D Network Visualization | Interactive Plotly-based graph rendering with rotation, zoom, and hover | `src/visualizations/`            |
+| Cross-Asset Analysis     | Automatic relationship discovery between different asset classes        | `src/logic/asset_graph.py`       |
+| Regulatory Integration   | Corporate events and SEC filings with scored impact modeling            | `src/models/financial_models.py` |
+| Real-time Metrics        | Network statistics, relationship density, distribution analysis         | API `/api/metrics` endpoint      |
+| Asset Explorer           | Filterable table with asset class and sector filters                    | Gradio and Next.js UIs           |
+| Schema Reporting         | Auto-generated documentation of data models and business rules          | `src/reports/schema_report.py`   |
 
 #### Major System Components
 
@@ -177,90 +181,90 @@ end
 
 The component architecture follows these responsibilities:
 
-| Component | Location | Responsibility |
-|-----------|----------|----------------|
-| Gradio UI | `app.py` | Legacy Python UI with tabbed interface for visualization, metrics, schema, and asset exploration |
-| FastAPI Backend | `api/main.py` | REST API with JWT authentication, CORS configuration, and rate limiting |
-| Next.js Frontend | `frontend/app/` | Modern React-based UI with TypeScript and Tailwind CSS |
-| Core Logic | `src/logic/asset_graph.py` | Graph algorithms, relationship discovery, visualization data interface |
-| Domain Models | `src/models/financial_models.py` | Asset dataclasses, enums, validation rules |
-| Data Layer | `src/data/` | Sample data (19 assets, 4 regulatory events) and real Yahoo Finance fetcher |
-| Visualization Layer | `src/visualizations/` | Plotly-based chart generation for 3D graphs, metrics, and 2D views |
-| Reports | `src/reports/schema_report.py` | Schema documentation generator |
+| Component           | Location                         | Responsibility                                                                                   |
+| ------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Gradio UI           | `app.py`                         | Legacy Python UI with tabbed interface for visualization, metrics, schema, and asset exploration |
+| FastAPI Backend     | `api/main.py`                    | REST API with JWT authentication, CORS configuration, and rate limiting                          |
+| Next.js Frontend    | `frontend/app/`                  | Modern React-based UI with TypeScript and Tailwind CSS                                           |
+| Core Logic          | `src/logic/asset_graph.py`       | Graph algorithms, relationship discovery, visualization data interface                           |
+| Domain Models       | `src/models/financial_models.py` | Asset dataclasses, enums, validation rules                                                       |
+| Data Layer          | `src/data/`                      | Sample data (19 assets, 4 regulatory events) and real Yahoo Finance fetcher                      |
+| Visualization Layer | `src/visualizations/`            | Plotly-based chart generation for 3D graphs, metrics, and 2D views                               |
+| Reports             | `src/reports/schema_report.py`   | Schema documentation generator                                                                   |
 
 #### Asset Classes and Domain Model
 
 The system supports five primary asset classes defined in the `AssetClass` enum:
 
-| Asset Class | Key Attributes | Example Use |
-|-------------|----------------|-------------|
-| Equity | P/E ratio, dividend yield, EPS, book value | Stock analysis |
-| Fixed Income | Yield to maturity, coupon rate, maturity date, credit rating, issuer_id | Bond analysis |
-| Commodity | Contract size, delivery date, volatility | Commodity tracking |
-| Currency | Exchange rate, country, central bank rate | FX exposure |
-| Derivative | Extensible attributes | Future expansion |
+| Asset Class  | Key Attributes                                                          | Example Use        |
+| ------------ | ----------------------------------------------------------------------- | ------------------ |
+| Equity       | P/E ratio, dividend yield, EPS, book value                              | Stock analysis     |
+| Fixed Income | Yield to maturity, coupon rate, maturity date, credit rating, issuer_id | Bond analysis      |
+| Commodity    | Contract size, delivery date, volatility                                | Commodity tracking |
+| Currency     | Exchange rate, country, central bank rate                               | FX exposure        |
+| Derivative   | Extensible attributes                                                   | Future expansion   |
 
 #### Relationship Types
 
 The relationship engine discovers and manages six primary relationship types:
 
-| Relationship Type | Directionality | Description |
-|-------------------|----------------|-------------|
-| `same_sector` | Bidirectional | Assets operating in the same industry sector |
-| `corporate_bond_to_equity` | Directional | Bonds issued by companies with traded stock |
-| `commodity_exposure` | Directional | Equity companies exposed to commodity price movements |
-| `currency_risk` | Directional | FX exposure for non-USD denominated assets |
-| `income_comparison` | Bidirectional | Dividend yields compared to bond yields |
-| `regulatory_impact` | Directional | Regulatory events affecting multiple assets |
+| Relationship Type          | Directionality | Description                                           |
+| -------------------------- | -------------- | ----------------------------------------------------- |
+| `same_sector`              | Bidirectional  | Assets operating in the same industry sector          |
+| `corporate_bond_to_equity` | Directional    | Bonds issued by companies with traded stock           |
+| `commodity_exposure`       | Directional    | Equity companies exposed to commodity price movements |
+| `currency_risk`            | Directional    | FX exposure for non-USD denominated assets            |
+| `income_comparison`        | Bidirectional  | Dividend yields compared to bond yields               |
+| `regulatory_impact`        | Directional    | Regulatory events affecting multiple assets           |
 
 ### 1.2.3 Technology Stack
 
 #### Backend Technologies
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Python | 3.10+ | Runtime environment |
-| FastAPI | 0.127.0 | REST API framework |
-| Uvicorn | ≥0.24.0 | ASGI server |
-| Pydantic | 2.12.5 | Data validation and serialization |
-| NumPy | 2.2.6 | Numerical computing |
-| Pandas | ≥1.5.0 | Data analysis and manipulation |
-| yfinance | ≥0.2.51 | Yahoo Finance data acquisition |
-| Plotly | ≥6.0.0 | Visualization generation |
-| SQLAlchemy | ≥2.0.0 | Database ORM |
-| Gradio | ≥4.0.0 | Legacy UI framework |
+| Technology | Version | Purpose                           |
+| ---------- | ------- | --------------------------------- |
+| Python     | 3.10+   | Runtime environment               |
+| FastAPI    | 0.127.0 | REST API framework                |
+| Uvicorn    | ≥0.24.0 | ASGI server                       |
+| Pydantic   | 2.12.5  | Data validation and serialization |
+| NumPy      | 2.2.6   | Numerical computing               |
+| Pandas     | ≥1.5.0  | Data analysis and manipulation    |
+| yfinance   | ≥0.2.51 | Yahoo Finance data acquisition    |
+| Plotly     | ≥6.0.0  | Visualization generation          |
+| SQLAlchemy | ≥2.0.0  | Database ORM                      |
+| Gradio     | ≥4.0.0  | Legacy UI framework               |
 
 #### Frontend Technologies
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| React | 18.2.0 | UI component framework |
-| Next.js | 14.2.x | React framework with App Router |
-| TypeScript | Latest | Type safety |
-| Tailwind CSS | Latest | Utility-first CSS framework |
-| Plotly.js | Latest | Client-side 3D visualization |
-| Axios | Latest | HTTP client for API communication |
+| Technology   | Version | Purpose                           |
+| ------------ | ------- | --------------------------------- |
+| React        | 18.2.0  | UI component framework            |
+| Next.js      | 14.2.x  | React framework with App Router   |
+| TypeScript   | Latest  | Type safety                       |
+| Tailwind CSS | Latest  | Utility-first CSS framework       |
+| Plotly.js    | Latest  | Client-side 3D visualization      |
+| Axios        | Latest  | HTTP client for API communication |
 
 #### Infrastructure Technologies
 
-| Technology | Purpose | Configuration File |
-|------------|---------|-------------------|
-| Docker | Containerization | `Dockerfile` |
-| Docker Compose | Multi-container orchestration | `docker-compose.yml` |
-| Vercel | Serverless deployment | `vercel.json` |
-| Jest | Frontend testing | `frontend/jest.config.js` |
-| Pytest | Backend testing | `tests/` directory |
+| Technology     | Purpose                       | Configuration File        |
+| -------------- | ----------------------------- | ------------------------- |
+| Docker         | Containerization              | `Dockerfile`              |
+| Docker Compose | Multi-container orchestration | `docker-compose.yml`      |
+| Vercel         | Serverless deployment         | `vercel.json`             |
+| Jest           | Frontend testing              | `frontend/jest.config.js` |
+| Pytest         | Backend testing               | `tests/` directory        |
 
 ### 1.2.4 Success Criteria
 
 #### Measurable Objectives
 
-| Objective | Metric | Target |
-|-----------|--------|--------|
-| API Response Time | 95th percentile latency | < 500ms for standard queries |
-| Visualization Rendering | Time to interactive | < 2 seconds for 3D graph |
-| Relationship Discovery | Coverage | 100% of defined relationship types |
-| Data Accuracy | Validation pass rate | 100% for all asset records |
+| Objective               | Metric                  | Target                             |
+| ----------------------- | ----------------------- | ---------------------------------- |
+| API Response Time       | 95th percentile latency | < 500ms for standard queries       |
+| Visualization Rendering | Time to interactive     | < 2 seconds for 3D graph           |
+| Relationship Discovery  | Coverage                | 100% of defined relationship types |
+| Data Accuracy           | Validation pass rate    | 100% for all asset records         |
 
 #### Critical Success Factors
 
@@ -274,13 +278,13 @@ The relationship engine discovers and manages six primary relationship types:
 
 #### Key Performance Indicators
 
-| KPI | Description | Measurement Source |
-|-----|-------------|-------------------|
-| Network Density | Ratio of actual to possible relationships | `/api/metrics` endpoint |
-| Average Degree | Mean number of connections per asset | `/api/metrics` endpoint |
-| Max Degree | Highest connected asset | `/api/metrics` endpoint |
-| Asset Class Distribution | Balance of asset types in network | `/api/metrics` endpoint |
-| Relationship Strength Distribution | Distribution of normalized weights | Visualization layer |
+| KPI                                | Description                               | Measurement Source      |
+| ---------------------------------- | ----------------------------------------- | ----------------------- |
+| Network Density                    | Ratio of actual to possible relationships | `/api/metrics` endpoint |
+| Average Degree                     | Mean number of connections per asset      | `/api/metrics` endpoint |
+| Max Degree                         | Highest connected asset                   | `/api/metrics` endpoint |
+| Asset Class Distribution           | Balance of asset types in network         | `/api/metrics` endpoint |
+| Relationship Strength Distribution | Distribution of normalized weights        | Visualization layer     |
 
 ## 1.3 Scope
 
@@ -290,16 +294,16 @@ The relationship engine discovers and manages six primary relationship types:
 
 **Must-Have Capabilities:**
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| 3D Network Visualization | Interactive Plotly-based graph with rotation, zoom, hover | Implemented |
-| 2D Visualization | Alternative flat network view | Implemented |
-| Multi-Asset Class Support | Equity, Fixed Income, Commodity, Currency, Derivative | Implemented |
-| Automatic Relationship Discovery | Rule-based detection via `_find_relationships()` | Implemented |
-| Network Metrics | Density, average/max degree, distributions | Implemented |
-| Regulatory Event Modeling | Impact scores (-1 to +1 scale) | Implemented |
-| Relationship Strength Normalization | Weights on 0.0-1.0 scale | Implemented |
-| Schema Documentation | Auto-generated business rules reference | Implemented |
+| Feature                             | Description                                               | Status      |
+| ----------------------------------- | --------------------------------------------------------- | ----------- |
+| 3D Network Visualization            | Interactive Plotly-based graph with rotation, zoom, hover | Implemented |
+| 2D Visualization                    | Alternative flat network view                             | Implemented |
+| Multi-Asset Class Support           | Equity, Fixed Income, Commodity, Currency, Derivative     | Implemented |
+| Automatic Relationship Discovery    | Rule-based detection via `_find_relationships()`          | Implemented |
+| Network Metrics                     | Density, average/max degree, distributions                | Implemented |
+| Regulatory Event Modeling           | Impact scores (-1 to +1 scale)                            | Implemented |
+| Relationship Strength Normalization | Weights on 0.0-1.0 scale                                  | Implemented |
+| Schema Documentation                | Auto-generated business rules reference                   | Implemented |
 
 **Primary User Workflows:**
 
@@ -331,58 +335,59 @@ end
 
 **Essential Integrations:**
 
-| Integration | Technology | Purpose |
-|-------------|------------|---------|
-| Market Data | Yahoo Finance (yfinance) | Real-time and historical asset data |
-| Visualization | Plotly | Chart and graph rendering |
-| Authentication | JWT | API security |
-| Database | SQLite/PostgreSQL | Optional persistence |
+| Integration    | Technology               | Purpose                             |
+| -------------- | ------------------------ | ----------------------------------- |
+| Market Data    | Yahoo Finance (yfinance) | Real-time and historical asset data |
+| Visualization  | Plotly                   | Chart and graph rendering           |
+| Authentication | JWT                      | API security                        |
+| Database       | SQLite/PostgreSQL        | Optional persistence                |
 
 **REST API Endpoints:**
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/health` | GET | System health check |
-| `/api/assets` | GET | List assets with optional filters |
-| `/api/assets/{id}` | GET | Retrieve single asset details |
-| `/api/assets/{id}/relationships` | GET | Get relationships for specific asset |
-| `/api/relationships` | GET | List all relationships |
-| `/api/metrics` | GET | Network metrics and statistics |
-| `/api/visualization` | GET | 3D visualization data payload |
-| `/api/asset-classes` | GET | Enumerate available asset classes |
-| `/api/sectors` | GET | List industry sectors |
-| `/token` | POST | JWT authentication |
+| Endpoint                         | Method | Description                          |
+| -------------------------------- | ------ | ------------------------------------ |
+| `/api/health`                    | GET    | System health check                  |
+| `/api/assets`                    | GET    | List assets with optional filters    |
+| `/api/assets/{id}`               | GET    | Retrieve single asset details        |
+| `/api/assets/{id}/relationships` | GET    | Get relationships for specific asset |
+| `/api/relationships`             | GET    | List all relationships               |
+| `/api/metrics`                   | GET    | Network metrics and statistics       |
+| `/api/visualization`             | GET    | 3D visualization data payload        |
+| `/api/asset-classes`             | GET    | Enumerate available asset classes    |
+| `/api/sectors`                   | GET    | List industry sectors                |
+| `/token`                         | POST   | JWT authentication                   |
 
 #### Implementation Boundaries
 
 **System Boundaries:**
 
-| Boundary | Scope |
-|----------|-------|
+| Boundary         | Scope                                                      |
+| ---------------- | ---------------------------------------------------------- |
 | Deployment Model | Standalone application with optional external data sources |
-| Data Persistence | In-memory graph with optional database backing |
-| Authentication | Single-user JWT; multi-user requires extension |
-| Network Protocol | HTTPS (production), HTTP (development) |
+| Data Persistence | In-memory graph with optional database backing             |
+| Authentication   | Single-user JWT; multi-user requires extension             |
+| Network Protocol | HTTPS (production), HTTP (development)                     |
 
 **User Groups Covered:**
 
-| User Group | Access Level | Interface |
-|------------|--------------|-----------|
-| Analysts | Full read access | All UIs |
-| Developers | API access with authentication | REST API |
-| Administrators | Configuration management | Environment variables |
+| User Group     | Access Level                   | Interface             |
+| -------------- | ------------------------------ | --------------------- |
+| Analysts       | Full read access               | All UIs               |
+| Developers     | API access with authentication | REST API              |
+| Administrators | Configuration management       | Environment variables |
 
 **Data Domains Included:**
 
-| Domain | Coverage |
-|--------|----------|
-| Equities | US market securities |
-| Fixed Income | Corporate and government bonds |
-| Commodities | Major commodity contracts |
-| Currencies | Major currency pairs |
+| Domain            | Coverage                          |
+| ----------------- | --------------------------------- |
+| Equities          | US market securities              |
+| Fixed Income      | Corporate and government bonds    |
+| Commodities       | Major commodity contracts         |
+| Currencies        | Major currency pairs              |
 | Regulatory Events | SEC filings and corporate actions |
 
 **Sample Dataset:**
+
 - 19 assets across 4 asset classes
 - 4 regulatory events with impact scores
 - Comprehensive relationship coverage for all defined types
@@ -391,14 +396,14 @@ end
 
 #### Explicitly Excluded Features
 
-| Feature | Exclusion Reason | Future Consideration |
-|---------|------------------|----------------------|
-| Real-time Streaming Data | Architectural complexity | Phase 2 |
-| WebSocket Live Updates | Infrastructure requirements | Phase 2 |
-| Advanced Portfolio Optimization | Beyond core visualization scope | Not planned |
-| Historical Backtesting | Requires time-series infrastructure | Not planned |
-| Multi-User Role-Based Access | Basic JWT auth only | Phase 2 |
-| Mobile Native Applications | Web-responsive only | Not planned |
+| Feature                         | Exclusion Reason                    | Future Consideration |
+| ------------------------------- | ----------------------------------- | -------------------- |
+| Real-time Streaming Data        | Architectural complexity            | Phase 2              |
+| WebSocket Live Updates          | Infrastructure requirements         | Phase 2              |
+| Advanced Portfolio Optimization | Beyond core visualization scope     | Not planned          |
+| Historical Backtesting          | Requires time-series infrastructure | Not planned          |
+| Multi-User Role-Based Access    | Basic JWT auth only                 | Phase 2              |
+| Mobile Native Applications      | Web-responsive only                 | Not planned          |
 
 #### Future Phase Considerations
 
@@ -406,94 +411,94 @@ The following enhancements are identified for future development phases:
 
 **Phase 2 Enhancements (from INTEGRATION_SUMMARY.md):**
 
-| Enhancement | Description |
-|-------------|-------------|
-| Enhanced Authentication | Role-based access control |
-| Caching Layer | Redis integration for performance |
-| Real-time Updates | WebSocket-based live data |
-| Additional Visualizations | Extended chart types |
-| Data Export | CSV, JSON, PDF export capabilities |
-| CI/CD Pipeline | Automated testing and deployment |
-| Monitoring & Analytics | Application performance monitoring |
+| Enhancement               | Description                        |
+| ------------------------- | ---------------------------------- |
+| Enhanced Authentication   | Role-based access control          |
+| Caching Layer             | Redis integration for performance  |
+| Real-time Updates         | WebSocket-based live data          |
+| Additional Visualizations | Extended chart types               |
+| Data Export               | CSV, JSON, PDF export capabilities |
+| CI/CD Pipeline            | Automated testing and deployment   |
+| Monitoring & Analytics    | Application performance monitoring |
 
 **Feature Parity Roadmap (Next.js catching up to Gradio):**
 
-| Feature | Gradio Status | Next.js Status |
-|---------|---------------|----------------|
-| Schema Report | ✓ Implemented | Pending |
-| Documentation Tab | ✓ Implemented | Pending |
-| 2D Visualization | ✓ Implemented | Pending |
-| Formulaic Analysis | ✓ Implemented | Pending |
-| Export Features | ✓ Implemented | Pending |
+| Feature            | Gradio Status | Next.js Status |
+| ------------------ | ------------- | -------------- |
+| Schema Report      | ✓ Implemented | Pending        |
+| Documentation Tab  | ✓ Implemented | Pending        |
+| 2D Visualization   | ✓ Implemented | Pending        |
+| Formulaic Analysis | ✓ Implemented | Pending        |
+| Export Features    | ✓ Implemented | Pending        |
 
 #### Integration Points Not Covered
 
-| Integration | Status | Notes |
-|-------------|--------|-------|
-| Bloomberg Terminal | Out of scope | Proprietary API |
-| Reuters Eikon | Out of scope | Licensing requirements |
-| Alternative data providers | Out of scope | yfinance standardized |
-| Third-party authentication (OAuth) | Out of scope | JWT only |
+| Integration                        | Status       | Notes                  |
+| ---------------------------------- | ------------ | ---------------------- |
+| Bloomberg Terminal                 | Out of scope | Proprietary API        |
+| Reuters Eikon                      | Out of scope | Licensing requirements |
+| Alternative data providers         | Out of scope | yfinance standardized  |
+| Third-party authentication (OAuth) | Out of scope | JWT only               |
 
 #### Unsupported Use Cases
 
-| Use Case | Reason |
-|----------|--------|
-| High-Frequency Trading | Latency requirements exceed design parameters |
-| Multi-Tenant SaaS | Single-user architecture |
-| Offline Mobile | Web-only responsive design |
-| Non-Financial Assets | Domain model specific to financial instruments |
-| Real-time Market Making | No order execution capability |
+| Use Case                | Reason                                         |
+| ----------------------- | ---------------------------------------------- |
+| High-Frequency Trading  | Latency requirements exceed design parameters  |
+| Multi-Tenant SaaS       | Single-user architecture                       |
+| Offline Mobile          | Web-only responsive design                     |
+| Non-Financial Assets    | Domain model specific to financial instruments |
+| Real-time Market Making | No order execution capability                  |
 
 ## 1.4 References
 
 ### 1.4.1 Documentation Files
 
-| File | Relevance |
-|------|-----------|
-| `README.md` | Project overview, features, quick start guide, architecture summary |
-| `ARCHITECTURE.md` | Detailed system architecture, component diagrams, data flow |
-| `QUICK_START.md` | User onboarding, development setup, usage examples |
-| `INTEGRATION_SUMMARY.md` | Vercel integration, Next.js + FastAPI architecture, future roadmap |
-| `DEPLOYMENT.md` | Deployment procedures, API endpoints, environment configuration |
-| `UI_COMPARISON.md` | Gradio vs Next.js feature comparison |
-| `SECURITY.md` | Security best practices, authentication patterns |
+| File                     | Relevance                                                           |
+| ------------------------ | ------------------------------------------------------------------- |
+| `README.md`              | Project overview, features, quick start guide, architecture summary |
+| `ARCHITECTURE.md`        | Detailed system architecture, component diagrams, data flow         |
+| `QUICK_START.md`         | User onboarding, development setup, usage examples                  |
+| `INTEGRATION_SUMMARY.md` | Vercel integration, Next.js + FastAPI architecture, future roadmap  |
+| `DEPLOYMENT.md`          | Deployment procedures, API endpoints, environment configuration     |
+| `UI_COMPARISON.md`       | Gradio vs Next.js feature comparison                                |
+| `SECURITY.md`            | Security best practices, authentication patterns                    |
 
 ### 1.4.2 Source Code Files
 
-| File | Relevance |
-|------|-----------|
-| `app.py` | Gradio UI implementation, tabs, visualization handlers |
-| `api/main.py` | FastAPI implementation, all endpoints, CORS, rate limiting, JWT auth |
-| `src/models/financial_models.py` | Domain models, asset classes, validation rules, enums |
-| `src/logic/asset_graph.py` | Core graph logic, relationship discovery, visualization data interface |
-| `src/data/sample_data.py` | Sample asset data with 19 assets, 4 regulatory events |
-| `src/reports/schema_report.py` | Schema documentation generator |
-| `requirements.txt` | Python dependencies and versions |
+| File                             | Relevance                                                              |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| `app.py`                         | Gradio UI implementation, tabs, visualization handlers                 |
+| `api/main.py`                    | FastAPI implementation, all endpoints, CORS, rate limiting, JWT auth   |
+| `src/models/financial_models.py` | Domain models, asset classes, validation rules, enums                  |
+| `src/logic/asset_graph.py`       | Core graph logic, relationship discovery, visualization data interface |
+| `src/data/sample_data.py`        | Sample asset data with 19 assets, 4 regulatory events                  |
+| `src/reports/schema_report.py`   | Schema documentation generator                                         |
+| `requirements.txt`               | Python dependencies and versions                                       |
 
 ### 1.4.3 Configuration Files
 
-| File | Relevance |
-|------|-----------|
-| `Dockerfile` | Container configuration |
-| `docker-compose.yml` | Container orchestration |
-| `vercel.json` | Serverless deployment configuration |
-| `frontend/package.json` | Frontend dependencies |
-| `frontend/jest.config.js` | Frontend test configuration |
+| File                      | Relevance                           |
+| ------------------------- | ----------------------------------- |
+| `Dockerfile`              | Container configuration             |
+| `docker-compose.yml`      | Container orchestration             |
+| `vercel.json`             | Serverless deployment configuration |
+| `frontend/package.json`   | Frontend dependencies               |
+| `frontend/jest.config.js` | Frontend test configuration         |
 
 ### 1.4.4 Source Directories
 
-| Directory | Relevance |
-|-----------|-----------|
-| `src/` | Core Python library packages |
-| `src/models/` | Domain model definitions |
-| `src/logic/` | Graph algorithm implementation |
-| `src/data/` | Data sources and persistence |
-| `src/visualizations/` | Plotly visualization helpers |
-| `api/` | FastAPI backend package |
-| `frontend/` | Next.js application |
-| `frontend/app/` | React components, API client, types |
-| `tests/` | Test harness structure |
+| Directory             | Relevance                           |
+| --------------------- | ----------------------------------- |
+| `src/`                | Core Python library packages        |
+| `src/models/`         | Domain model definitions            |
+| `src/logic/`          | Graph algorithm implementation      |
+| `src/data/`           | Data sources and persistence        |
+| `src/visualizations/` | Plotly visualization helpers        |
+| `api/`                | FastAPI backend package             |
+| `frontend/`           | Next.js application                 |
+| `frontend/app/`       | React components, API client, types |
+| `tests/`              | Test harness structure              |
 
 # 2. Product Requirements
 
@@ -507,13 +512,13 @@ The feature catalog documents all discrete, testable features implemented in the
 
 The system encompasses 17 primary features organized across five functional domains:
 
-| Domain | Feature Count | Description |
-|--------|---------------|-------------|
-| Data Model | 2 | Asset types and regulatory events |
-| Core Engine | 1 | Graph relationship processing |
-| API Layer | 4 | REST endpoints, auth, security |
-| Visualization | 3 | 3D/2D graphs, metrics display |
-| User Interface | 4 | Gradio and Next.js frontends |
+| Domain         | Feature Count | Description                       |
+| -------------- | ------------- | --------------------------------- |
+| Data Model     | 2             | Asset types and regulatory events |
+| Core Engine    | 1             | Graph relationship processing     |
+| API Layer      | 4             | REST endpoints, auth, security    |
+| Visualization  | 3             | 3D/2D graphs, metrics display     |
+| User Interface | 4             | Gradio and Next.js frontends      |
 
 ```mermaid
 flowchart TD
@@ -562,13 +567,13 @@ flowchart TD
 
 #### F-001: Multi-Asset Class Data Model
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-001 |
+| Attribute    | Value                        |
+| ------------ | ---------------------------- |
+| Feature ID   | F-001                        |
 | Feature Name | Multi-Asset Class Data Model |
-| Category | Data Model |
-| Priority | Critical |
-| Status | Completed |
+| Category     | Data Model                   |
+| Priority     | Critical                     |
+| Status       | Completed                    |
 
 **Description:**
 
@@ -590,24 +595,24 @@ The domain model is implemented in `src/models/financial_models.py` using Python
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | None |
-| System Dependencies | Python 3.10+, dataclasses |
-| External Dependencies | None |
+| Dependency Type          | Dependency                             |
+| ------------------------ | -------------------------------------- |
+| Prerequisite Features    | None                                   |
+| System Dependencies      | Python 3.10+, dataclasses              |
+| External Dependencies    | None                                   |
 | Integration Requirements | Compatible with SQLAlchemy ORM mapping |
 
 ---
 
 #### F-002: Regulatory Event Integration
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-002 |
+| Attribute    | Value                        |
+| ------------ | ---------------------------- |
+| Feature ID   | F-002                        |
 | Feature Name | Regulatory Event Integration |
-| Category | Data Model |
-| Priority | High |
-| Status | Completed |
+| Category     | Data Model                   |
+| Priority     | High                         |
+| Status       | Completed                    |
 
 **Description:**
 
@@ -629,11 +634,11 @@ Implemented via the `RegulatoryEvent` dataclass and `RegulatoryActivity` enum in
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-001 (Multi-Asset Data Model) |
-| System Dependencies | Python 3.10+, dataclasses |
-| External Dependencies | None |
+| Dependency Type          | Dependency                         |
+| ------------------------ | ---------------------------------- |
+| Prerequisite Features    | F-001 (Multi-Asset Data Model)     |
+| System Dependencies      | Python 3.10+, dataclasses          |
+| External Dependencies    | None                               |
 | Integration Requirements | Requires valid asset_id references |
 
 ---
@@ -642,13 +647,13 @@ Implemented via the `RegulatoryEvent` dataclass and `RegulatoryActivity` enum in
 
 #### F-003: Asset Relationship Graph Engine
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-003 |
+| Attribute    | Value                           |
+| ------------ | ------------------------------- |
+| Feature ID   | F-003                           |
 | Feature Name | Asset Relationship Graph Engine |
-| Category | Core Logic |
-| Priority | Critical |
-| Status | Completed |
+| Category     | Core Logic                      |
+| Priority     | Critical                        |
+| Status       | Completed                       |
 
 **Description:**
 
@@ -670,24 +675,24 @@ Implemented in `src/logic/asset_graph.py`, the engine maintains a graph structur
 
 **Supported Relationship Types:**
 
-| Relationship Type | Directionality | Detection Rule |
-|-------------------|----------------|----------------|
-| same_sector | Bidirectional | Assets in identical sector |
-| corporate_bond_to_equity | Directional | Bond issuer_id matches equity |
-| commodity_exposure | Directional | Equity exposed to commodity |
-| currency_risk | Directional | Non-USD currency exposure |
-| income_comparison | Bidirectional | Dividend vs bond yield |
-| regulatory_impact | Directional | Shared regulatory events |
-| market_cap_similar | Bidirectional | Similar market capitalization |
-| correlation | Bidirectional | Price correlation threshold |
+| Relationship Type        | Directionality | Detection Rule                |
+| ------------------------ | -------------- | ----------------------------- |
+| same_sector              | Bidirectional  | Assets in identical sector    |
+| corporate_bond_to_equity | Directional    | Bond issuer_id matches equity |
+| commodity_exposure       | Directional    | Equity exposed to commodity   |
+| currency_risk            | Directional    | Non-USD currency exposure     |
+| income_comparison        | Bidirectional  | Dividend vs bond yield        |
+| regulatory_impact        | Directional    | Shared regulatory events      |
+| market_cap_similar       | Bidirectional  | Similar market capitalization |
+| correlation              | Bidirectional  | Price correlation threshold   |
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-001, F-002 |
-| System Dependencies | NumPy 2.2.6, Pandas ≥1.5.0 |
-| External Dependencies | None |
+| Dependency Type          | Dependency                 |
+| ------------------------ | -------------------------- |
+| Prerequisite Features    | F-001, F-002               |
+| System Dependencies      | NumPy 2.2.6, Pandas ≥1.5.0 |
+| External Dependencies    | None                       |
 | Integration Requirements | Thread-safe initialization |
 
 ---
@@ -696,13 +701,13 @@ Implemented in `src/logic/asset_graph.py`, the engine maintains a graph structur
 
 #### F-004: REST API Endpoints
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-004 |
+| Attribute    | Value              |
+| ------------ | ------------------ |
+| Feature ID   | F-004              |
 | Feature Name | REST API Endpoints |
-| Category | API Layer |
-| Priority | Critical |
-| Status | Completed |
+| Category     | API Layer          |
+| Priority     | Critical           |
+| Status       | Completed          |
 
 **Description:**
 
@@ -724,41 +729,41 @@ Implemented in `api/main.py` using FastAPI 0.127.0. The API exposes 12 primary e
 
 **API Endpoints:**
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | API metadata and endpoint listing |
-| `/api/health` | GET | System health check |
-| `/token` | POST | JWT authentication |
-| `/api/users/me` | GET | Current authenticated user |
-| `/api/assets` | GET | List assets with filters |
-| `/api/assets/{id}` | GET | Single asset details |
-| `/api/assets/{id}/relationships` | GET | Asset-specific relationships |
-| `/api/relationships` | GET | All relationships |
-| `/api/metrics` | GET | Network metrics |
-| `/api/visualization` | GET | 3D visualization payload |
-| `/api/asset-classes` | GET | Available asset classes |
-| `/api/sectors` | GET | Available sectors |
+| Endpoint                         | Method | Description                       |
+| -------------------------------- | ------ | --------------------------------- |
+| `/`                              | GET    | API metadata and endpoint listing |
+| `/api/health`                    | GET    | System health check               |
+| `/token`                         | POST   | JWT authentication                |
+| `/api/users/me`                  | GET    | Current authenticated user        |
+| `/api/assets`                    | GET    | List assets with filters          |
+| `/api/assets/{id}`               | GET    | Single asset details              |
+| `/api/assets/{id}/relationships` | GET    | Asset-specific relationships      |
+| `/api/relationships`             | GET    | All relationships                 |
+| `/api/metrics`                   | GET    | Network metrics                   |
+| `/api/visualization`             | GET    | 3D visualization payload          |
+| `/api/asset-classes`             | GET    | Available asset classes           |
+| `/api/sectors`                   | GET    | Available sectors                 |
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-001, F-002, F-003 |
-| System Dependencies | FastAPI 0.127.0, Pydantic 2.12.5 |
-| External Dependencies | Uvicorn ≥0.24.0 |
+| Dependency Type          | Dependency                           |
+| ------------------------ | ------------------------------------ |
+| Prerequisite Features    | F-001, F-002, F-003                  |
+| System Dependencies      | FastAPI 0.127.0, Pydantic 2.12.5     |
+| External Dependencies    | Uvicorn ≥0.24.0                      |
 | Integration Requirements | F-005 (Authentication), F-006 (CORS) |
 
 ---
 
 #### F-005: JWT Authentication System
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-005 |
+| Attribute    | Value                     |
+| ------------ | ------------------------- |
+| Feature ID   | F-005                     |
 | Feature Name | JWT Authentication System |
-| Category | API Layer |
-| Priority | Critical |
-| Status | Completed |
+| Category     | API Layer                 |
+| Priority     | Critical                  |
+| Status       | Completed                 |
 
 **Description:**
 
@@ -780,24 +785,24 @@ Implemented in `api/auth.py` using PyJWT ≥2.8.0 and passlib for password hashi
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | None |
-| System Dependencies | PyJWT ≥2.8.0, passlib[bcrypt] ≥1.7.4 |
-| External Dependencies | Environment variable configuration |
-| Integration Requirements | F-004 (REST API) |
+| Dependency Type          | Dependency                           |
+| ------------------------ | ------------------------------------ |
+| Prerequisite Features    | None                                 |
+| System Dependencies      | PyJWT ≥2.8.0, passlib[bcrypt] ≥1.7.4 |
+| External Dependencies    | Environment variable configuration   |
+| Integration Requirements | F-004 (REST API)                     |
 
 ---
 
 #### F-006: CORS Configuration
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-006 |
+| Attribute    | Value              |
+| ------------ | ------------------ |
+| Feature ID   | F-006              |
 | Feature Name | CORS Configuration |
-| Category | API Layer |
-| Priority | High |
-| Status | Completed |
+| Category     | API Layer          |
+| Priority     | High               |
+| Status       | Completed          |
 
 **Description:**
 
@@ -819,24 +824,24 @@ Implemented in `api/main.py` with environment-aware configuration. Development m
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | None |
-| System Dependencies | FastAPI CORSMiddleware |
-| External Dependencies | Environment configuration |
-| Integration Requirements | F-004 (REST API) |
+| Dependency Type          | Dependency                |
+| ------------------------ | ------------------------- |
+| Prerequisite Features    | None                      |
+| System Dependencies      | FastAPI CORSMiddleware    |
+| External Dependencies    | Environment configuration |
+| Integration Requirements | F-004 (REST API)          |
 
 ---
 
 #### F-007: Rate Limiting
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-007 |
+| Attribute    | Value         |
+| ------------ | ------------- |
+| Feature ID   | F-007         |
 | Feature Name | Rate Limiting |
-| Category | API Layer |
-| Priority | Medium |
-| Status | Completed |
+| Category     | API Layer     |
+| Priority     | Medium        |
+| Status       | Completed     |
 
 **Description:**
 
@@ -858,11 +863,11 @@ Implemented using slowapi ≥0.1.4 with `get_remote_address` as the key function
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | None |
-| System Dependencies | slowapi ≥0.1.4 |
-| External Dependencies | None |
+| Dependency Type          | Dependency       |
+| ------------------------ | ---------------- |
+| Prerequisite Features    | None             |
+| System Dependencies      | slowapi ≥0.1.4   |
+| External Dependencies    | None             |
 | Integration Requirements | F-004 (REST API) |
 
 ---
@@ -871,13 +876,13 @@ Implemented using slowapi ≥0.1.4 with `get_remote_address` as the key function
 
 #### F-008: 3D Network Visualization
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-008 |
+| Attribute    | Value                    |
+| ------------ | ------------------------ |
+| Feature ID   | F-008                    |
 | Feature Name | 3D Network Visualization |
-| Category | Visualization |
-| Priority | Critical |
-| Status | Completed |
+| Category     | Visualization            |
+| Priority     | Critical                 |
+| Status       | Completed                |
 
 **Description:**
 
@@ -899,24 +904,24 @@ Implemented in `src/visualizations/graph_visuals.py` with Plotly ≥6.0.0 (backe
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-003 (Graph Engine) |
-| System Dependencies | Plotly ≥6.0.0 |
-| External Dependencies | None |
+| Dependency Type          | Dependency                    |
+| ------------------------ | ----------------------------- |
+| Prerequisite Features    | F-003 (Graph Engine)          |
+| System Dependencies      | Plotly ≥6.0.0                 |
+| External Dependencies    | None                          |
 | Integration Requirements | Visualization data from F-003 |
 
 ---
 
 #### F-009: 2D Network Visualization
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-009 |
+| Attribute    | Value                    |
+| ------------ | ------------------------ |
+| Feature ID   | F-009                    |
 | Feature Name | 2D Network Visualization |
-| Category | Visualization |
-| Priority | High |
-| Status | Completed |
+| Category     | Visualization            |
+| Priority     | High                     |
+| Status       | Completed                |
 
 **Description:**
 
@@ -938,24 +943,24 @@ Implemented in `src/visualizations/graph_2d_visuals.py`. Supports the same filte
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-003 (Graph Engine) |
-| System Dependencies | Plotly ≥6.0.0 |
-| External Dependencies | None |
+| Dependency Type          | Dependency                                  |
+| ------------------------ | ------------------------------------------- |
+| Prerequisite Features    | F-003 (Graph Engine)                        |
+| System Dependencies      | Plotly ≥6.0.0                               |
+| External Dependencies    | None                                        |
 | Integration Requirements | F-008 (shares visualization infrastructure) |
 
 ---
 
 #### F-010: Metrics Dashboard
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-010 |
+| Attribute    | Value             |
+| ------------ | ----------------- |
+| Feature ID   | F-010             |
 | Feature Name | Metrics Dashboard |
-| Category | Visualization |
-| Priority | High |
-| Status | Completed |
+| Category     | Visualization     |
+| Priority     | High              |
+| Status       | Completed         |
 
 **Description:**
 
@@ -977,12 +982,12 @@ Backend metrics calculation in F-003 exposes data via `/api/metrics` endpoint. T
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-003 (Graph Engine) |
-| System Dependencies | Plotly ≥6.0.0 |
-| External Dependencies | None |
-| Integration Requirements | F-004 (REST API) |
+| Dependency Type          | Dependency           |
+| ------------------------ | -------------------- |
+| Prerequisite Features    | F-003 (Graph Engine) |
+| System Dependencies      | Plotly ≥6.0.0        |
+| External Dependencies    | None                 |
+| Integration Requirements | F-004 (REST API)     |
 
 ---
 
@@ -990,13 +995,13 @@ Backend metrics calculation in F-003 exposes data via `/api/metrics` endpoint. T
 
 #### F-011: Asset Explorer
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-011 |
+| Attribute    | Value          |
+| ------------ | -------------- |
+| Feature ID   | F-011          |
 | Feature Name | Asset Explorer |
-| Category | User Interface |
-| Priority | High |
-| Status | Completed |
+| Category     | User Interface |
+| Priority     | High           |
+| Status       | Completed      |
 
 **Description:**
 
@@ -1018,24 +1023,24 @@ Implemented in both Gradio (`app.py`) and Next.js (`frontend/app/components/Asse
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-003 (Graph Engine) |
-| System Dependencies | None |
-| External Dependencies | None |
+| Dependency Type          | Dependency                   |
+| ------------------------ | ---------------------------- |
+| Prerequisite Features    | F-003 (Graph Engine)         |
+| System Dependencies      | None                         |
+| External Dependencies    | None                         |
 | Integration Requirements | F-004 (REST API) for Next.js |
 
 ---
 
 #### F-012: Schema & Rules Report
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-012 |
+| Attribute    | Value                 |
+| ------------ | --------------------- |
+| Feature ID   | F-012                 |
 | Feature Name | Schema & Rules Report |
-| Category | User Interface |
-| Priority | Medium |
-| Status | Completed |
+| Category     | User Interface        |
+| Priority     | Medium                |
+| Status       | Completed             |
 
 **Description:**
 
@@ -1057,24 +1062,24 @@ Implemented in `src/reports/schema_report.py`. Output includes entity type descr
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-003 (Graph Engine) |
-| System Dependencies | None |
-| External Dependencies | None |
-| Integration Requirements | Gradio UI (F-016) |
+| Dependency Type          | Dependency           |
+| ------------------------ | -------------------- |
+| Prerequisite Features    | F-003 (Graph Engine) |
+| System Dependencies      | None                 |
+| External Dependencies    | None                 |
+| Integration Requirements | Gradio UI (F-016)    |
 
 ---
 
 #### F-013: Formulaic Analysis
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-013 |
+| Attribute    | Value              |
+| ------------ | ------------------ |
+| Feature ID   | F-013              |
 | Feature Name | Formulaic Analysis |
-| Category | Analytics |
-| Priority | Medium |
-| Status | Completed |
+| Category     | Analytics          |
+| Priority     | Medium             |
+| Status       | Completed          |
 
 **Description:**
 
@@ -1096,24 +1101,24 @@ Implemented in `src/analysis/formulaic_analysis.py`. The Formula dataclass inclu
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-001, F-003 |
-| System Dependencies | None |
-| External Dependencies | None |
+| Dependency Type          | Dependency        |
+| ------------------------ | ----------------- |
+| Prerequisite Features    | F-001, F-003      |
+| System Dependencies      | None              |
+| External Dependencies    | None              |
 | Integration Requirements | Gradio UI (F-016) |
 
 ---
 
 #### F-014: Real Data Fetching
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-014 |
+| Attribute    | Value              |
+| ------------ | ------------------ |
+| Feature ID   | F-014              |
 | Feature Name | Real Data Fetching |
-| Category | Data Layer |
-| Priority | Medium |
-| Status | Completed |
+| Category     | Data Layer         |
+| Priority     | Medium             |
+| Status       | Completed          |
 
 **Description:**
 
@@ -1135,24 +1140,24 @@ Implemented in `src/data/real_data_fetcher.py` using yfinance ≥0.2.51. Support
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-001 |
-| System Dependencies | yfinance ≥0.2.51 |
-| External Dependencies | Yahoo Finance API |
+| Dependency Type          | Dependency           |
+| ------------------------ | -------------------- |
+| Prerequisite Features    | F-001                |
+| System Dependencies      | yfinance ≥0.2.51     |
+| External Dependencies    | Yahoo Finance API    |
 | Integration Requirements | Network connectivity |
 
 ---
 
 #### F-015: Database Persistence
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-015 |
+| Attribute    | Value                |
+| ------------ | -------------------- |
+| Feature ID   | F-015                |
 | Feature Name | Database Persistence |
-| Category | Data Layer |
-| Priority | Low |
-| Status | Completed |
+| Category     | Data Layer           |
+| Priority     | Low                  |
+| Status       | Completed            |
 
 **Description:**
 
@@ -1174,24 +1179,24 @@ Implemented across `src/data/database.py`, `src/data/db_models.py`, and `src/dat
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-001, F-002 |
-| System Dependencies | SQLAlchemy ≥2.0.0 |
-| External Dependencies | SQLite or PostgreSQL |
+| Dependency Type          | Dependency                 |
+| ------------------------ | -------------------------- |
+| Prerequisite Features    | F-001, F-002               |
+| System Dependencies      | SQLAlchemy ≥2.0.0          |
+| External Dependencies    | SQLite or PostgreSQL       |
 | Integration Requirements | DATABASE_URL configuration |
 
 ---
 
 #### F-016: Gradio UI (Legacy Interface)
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-016 |
+| Attribute    | Value                        |
+| ------------ | ---------------------------- |
+| Feature ID   | F-016                        |
 | Feature Name | Gradio UI (Legacy Interface) |
-| Category | User Interface |
-| Priority | High |
-| Status | Completed |
+| Category     | User Interface               |
+| Priority     | High                         |
+| Status       | Completed                    |
 
 **Description:**
 
@@ -1213,24 +1218,24 @@ Implemented in `app.py` using Gradio ≥4.0.0,<6.0.0. Exposes six tabs with inte
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-003, F-008, F-009, F-010, F-011, F-012, F-013 |
-| System Dependencies | Gradio ≥4.0.0 |
-| External Dependencies | None |
-| Integration Requirements | Direct core library access |
+| Dependency Type          | Dependency                                      |
+| ------------------------ | ----------------------------------------------- |
+| Prerequisite Features    | F-003, F-008, F-009, F-010, F-011, F-012, F-013 |
+| System Dependencies      | Gradio ≥4.0.0                                   |
+| External Dependencies    | None                                            |
+| Integration Requirements | Direct core library access                      |
 
 ---
 
 #### F-017: Next.js Frontend (Modern Interface)
 
-| Attribute | Value |
-|-----------|-------|
-| Feature ID | F-017 |
+| Attribute    | Value                               |
+| ------------ | ----------------------------------- |
+| Feature ID   | F-017                               |
 | Feature Name | Next.js Frontend (Modern Interface) |
-| Category | User Interface |
-| Priority | High |
-| Status | In Development |
+| Category     | User Interface                      |
+| Priority     | High                                |
+| Status       | In Development                      |
 
 **Description:**
 
@@ -1252,12 +1257,12 @@ Implemented in `frontend/` using Next.js 14.2.x, React 18.2.0, TypeScript, and T
 
 **Dependencies:**
 
-| Dependency Type | Dependency |
-|-----------------|------------|
-| Prerequisite Features | F-004 (REST API) |
-| System Dependencies | Node.js ≥18.0.0, Next.js 14.2.x |
-| External Dependencies | None |
-| Integration Requirements | F-004, F-006 (CORS) |
+| Dependency Type          | Dependency                      |
+| ------------------------ | ------------------------------- |
+| Prerequisite Features    | F-004 (REST API)                |
+| System Dependencies      | Node.js ≥18.0.0, Next.js 14.2.x |
+| External Dependencies    | None                            |
+| Integration Requirements | F-004, F-006 (CORS)             |
 
 ---
 
@@ -1269,129 +1274,129 @@ This section provides detailed requirements for each feature with acceptance cri
 
 #### F-001 Requirements: Multi-Asset Class Data Model
 
-| Requirement ID | Description | Priority |
-|----------------|-------------|----------|
-| F-001-RQ-001 | Support five asset classes via AssetClass enum | Must-Have |
-| F-001-RQ-002 | Validate required fields (id, symbol, name) as non-empty | Must-Have |
-| F-001-RQ-003 | Enforce non-negative price values | Must-Have |
-| F-001-RQ-004 | Validate currency against ISO 4217 format | Must-Have |
-| F-001-RQ-005 | Support optional market_cap with non-negative validation | Should-Have |
+| Requirement ID | Description                                              | Priority    |
+| -------------- | -------------------------------------------------------- | ----------- |
+| F-001-RQ-001   | Support five asset classes via AssetClass enum           | Must-Have   |
+| F-001-RQ-002   | Validate required fields (id, symbol, name) as non-empty | Must-Have   |
+| F-001-RQ-003   | Enforce non-negative price values                        | Must-Have   |
+| F-001-RQ-004   | Validate currency against ISO 4217 format                | Must-Have   |
+| F-001-RQ-005   | Support optional market_cap with non-negative validation | Should-Have |
 
 **F-001-RQ-001: Asset Class Enumeration**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-001-RQ-001 |
-| Description | System shall support five asset classes: EQUITY, FIXED_INCOME, COMMODITY, CURRENCY, DERIVATIVE |
-| Acceptance Criteria | AssetClass enum contains all five values; assets can be created with each type |
-| Complexity | Low |
+| Attribute           | Specification                                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------------- |
+| Requirement ID      | F-001-RQ-001                                                                                   |
+| Description         | System shall support five asset classes: EQUITY, FIXED_INCOME, COMMODITY, CURRENCY, DERIVATIVE |
+| Acceptance Criteria | AssetClass enum contains all five values; assets can be created with each type                 |
+| Complexity          | Low                                                                                            |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | asset_class: AssetClass enum value |
-| Output/Response | Asset instance with valid asset_class |
-| Performance Criteria | Instantiation < 1ms |
-| Data Requirements | Valid enum member selection |
+| Technical Specification | Value                                 |
+| ----------------------- | ------------------------------------- |
+| Input Parameters        | asset_class: AssetClass enum value    |
+| Output/Response         | Asset instance with valid asset_class |
+| Performance Criteria    | Instantiation < 1ms                   |
+| Data Requirements       | Valid enum member selection           |
 
-| Validation Rules | Specification |
-|------------------|---------------|
-| Business Rules | Only defined enum values accepted |
-| Data Validation | Enum membership check |
-| Security Requirements | None |
-| Compliance Requirements | None |
+| Validation Rules        | Specification                     |
+| ----------------------- | --------------------------------- |
+| Business Rules          | Only defined enum values accepted |
+| Data Validation         | Enum membership check             |
+| Security Requirements   | None                              |
+| Compliance Requirements | None                              |
 
 **F-001-RQ-002: Required Field Validation**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-001-RQ-002 |
-| Description | System shall validate id, symbol, and name fields as non-empty strings |
+| Attribute           | Specification                                                                  |
+| ------------------- | ------------------------------------------------------------------------------ |
+| Requirement ID      | F-001-RQ-002                                                                   |
+| Description         | System shall validate id, symbol, and name fields as non-empty strings         |
 | Acceptance Criteria | Empty strings rejected with validation error; whitespace-only strings rejected |
-| Complexity | Low |
+| Complexity          | Low                                                                            |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | id: str, symbol: str, name: str |
-| Output/Response | ValidationError on empty values |
-| Performance Criteria | Validation < 1ms |
-| Data Requirements | Non-empty string requirement |
+| Technical Specification | Value                           |
+| ----------------------- | ------------------------------- |
+| Input Parameters        | id: str, symbol: str, name: str |
+| Output/Response         | ValidationError on empty values |
+| Performance Criteria    | Validation < 1ms                |
+| Data Requirements       | Non-empty string requirement    |
 
 **F-001-RQ-003: Price Validation**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-001-RQ-003 |
-| Description | System shall enforce price values ≥ 0 |
+| Attribute           | Specification                                               |
+| ------------------- | ----------------------------------------------------------- |
+| Requirement ID      | F-001-RQ-003                                                |
+| Description         | System shall enforce price values ≥ 0                       |
 | Acceptance Criteria | Negative prices rejected; zero and positive values accepted |
-| Complexity | Low |
+| Complexity          | Low                                                         |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | price: float |
-| Output/Response | ValidationError if price < 0 |
-| Performance Criteria | Validation < 1ms |
-| Data Requirements | Numeric type required |
+| Technical Specification | Value                        |
+| ----------------------- | ---------------------------- |
+| Input Parameters        | price: float                 |
+| Output/Response         | ValidationError if price < 0 |
+| Performance Criteria    | Validation < 1ms             |
+| Data Requirements       | Numeric type required        |
 
 **F-001-RQ-004: Currency Code Validation**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-001-RQ-004 |
-| Description | System shall validate currency codes match pattern ^[A-Z]{3}$ |
-| Acceptance Criteria | Three uppercase letters accepted; other formats rejected |
-| Complexity | Low |
+| Attribute           | Specification                                                 |
+| ------------------- | ------------------------------------------------------------- |
+| Requirement ID      | F-001-RQ-004                                                  |
+| Description         | System shall validate currency codes match pattern ^[A-Z]{3}$ |
+| Acceptance Criteria | Three uppercase letters accepted; other formats rejected      |
+| Complexity          | Low                                                           |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | currency: str (default "USD") |
-| Output/Response | ValidationError on pattern mismatch |
-| Performance Criteria | Regex validation < 1ms |
-| Data Requirements | ISO 4217 format |
+| Technical Specification | Value                               |
+| ----------------------- | ----------------------------------- |
+| Input Parameters        | currency: str (default "USD")       |
+| Output/Response         | ValidationError on pattern mismatch |
+| Performance Criteria    | Regex validation < 1ms              |
+| Data Requirements       | ISO 4217 format                     |
 
 ---
 
 #### F-002 Requirements: Regulatory Event Integration
 
-| Requirement ID | Description | Priority |
-|----------------|-------------|----------|
-| F-002-RQ-001 | Support six regulatory activity types | Must-Have |
-| F-002-RQ-002 | Validate impact_score in range [-1, 1] | Must-Have |
-| F-002-RQ-003 | Validate date format as ISO 8601 | Must-Have |
-| F-002-RQ-004 | Support multi-asset event relationships | Should-Have |
+| Requirement ID | Description                             | Priority    |
+| -------------- | --------------------------------------- | ----------- |
+| F-002-RQ-001   | Support six regulatory activity types   | Must-Have   |
+| F-002-RQ-002   | Validate impact_score in range [-1, 1]  | Must-Have   |
+| F-002-RQ-003   | Validate date format as ISO 8601        | Must-Have   |
+| F-002-RQ-004   | Support multi-asset event relationships | Should-Have |
 
 **F-002-RQ-001: Regulatory Activity Types**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-002-RQ-001 |
-| Description | System shall support: EARNINGS_REPORT, SEC_FILING, DIVIDEND_ANNOUNCEMENT, BOND_ISSUANCE, ACQUISITION, BANKRUPTCY |
-| Acceptance Criteria | RegulatoryActivity enum contains all six values |
-| Complexity | Low |
+| Attribute           | Specification                                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Requirement ID      | F-002-RQ-001                                                                                                     |
+| Description         | System shall support: EARNINGS_REPORT, SEC_FILING, DIVIDEND_ANNOUNCEMENT, BOND_ISSUANCE, ACQUISITION, BANKRUPTCY |
+| Acceptance Criteria | RegulatoryActivity enum contains all six values                                                                  |
+| Complexity          | Low                                                                                                              |
 
 **F-002-RQ-002: Impact Score Validation**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-002-RQ-002 |
-| Description | System shall validate impact_score as float in range [-1.0, 1.0] |
-| Acceptance Criteria | Values outside range rejected; boundary values accepted |
-| Complexity | Low |
+| Attribute           | Specification                                                    |
+| ------------------- | ---------------------------------------------------------------- |
+| Requirement ID      | F-002-RQ-002                                                     |
+| Description         | System shall validate impact_score as float in range [-1.0, 1.0] |
+| Acceptance Criteria | Values outside range rejected; boundary values accepted          |
+| Complexity          | Low                                                              |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | impact_score: float |
-| Output/Response | ValidationError if outside [-1, 1] |
-| Performance Criteria | Validation < 1ms |
-| Data Requirements | Normalized impact scale |
+| Technical Specification | Value                              |
+| ----------------------- | ---------------------------------- |
+| Input Parameters        | impact_score: float                |
+| Output/Response         | ValidationError if outside [-1, 1] |
+| Performance Criteria    | Validation < 1ms                   |
+| Data Requirements       | Normalized impact scale            |
 
 **F-002-RQ-003: Date Format Validation**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-002-RQ-003 |
-| Description | System shall validate dates match pattern ^\d{4}-\d{2}-\d{2} (YYYY-MM-DD) |
-| Acceptance Criteria | ISO 8601 dates accepted; other formats rejected |
-| Complexity | Low |
+| Attribute           | Specification                                                             |
+| ------------------- | ------------------------------------------------------------------------- |
+| Requirement ID      | F-002-RQ-003                                                              |
+| Description         | System shall validate dates match pattern ^\d{4}-\d{2}-\d{2} (YYYY-MM-DD) |
+| Acceptance Criteria | ISO 8601 dates accepted; other formats rejected                           |
+| Complexity          | Low                                                                       |
 
 ---
 
@@ -1399,63 +1404,63 @@ This section provides detailed requirements for each feature with acceptance cri
 
 #### F-003 Requirements: Asset Relationship Graph Engine
 
-| Requirement ID | Description | Priority |
-|----------------|-------------|----------|
-| F-003-RQ-001 | Discover relationships across 8 defined types | Must-Have |
-| F-003-RQ-002 | Generate deterministic 3D layouts with seed=42 | Must-Have |
-| F-003-RQ-003 | Provide thread-safe initialization | Must-Have |
-| F-003-RQ-004 | Calculate network metrics accurately | Must-Have |
-| F-003-RQ-005 | Normalize relationship strength to [0, 1] | Should-Have |
+| Requirement ID | Description                                    | Priority    |
+| -------------- | ---------------------------------------------- | ----------- |
+| F-003-RQ-001   | Discover relationships across 8 defined types  | Must-Have   |
+| F-003-RQ-002   | Generate deterministic 3D layouts with seed=42 | Must-Have   |
+| F-003-RQ-003   | Provide thread-safe initialization             | Must-Have   |
+| F-003-RQ-004   | Calculate network metrics accurately           | Must-Have   |
+| F-003-RQ-005   | Normalize relationship strength to [0, 1]      | Should-Have |
 
 **F-003-RQ-001: Relationship Discovery**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-003-RQ-001 |
-| Description | System shall discover relationships: same_sector, corporate_bond_to_equity, commodity_exposure, currency_risk, income_comparison, regulatory_impact, market_cap_similar, correlation |
-| Acceptance Criteria | All relationship types detected per business rules |
-| Complexity | High |
+| Attribute           | Specification                                                                                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Requirement ID      | F-003-RQ-001                                                                                                                                                                         |
+| Description         | System shall discover relationships: same_sector, corporate_bond_to_equity, commodity_exposure, currency_risk, income_comparison, regulatory_impact, market_cap_similar, correlation |
+| Acceptance Criteria | All relationship types detected per business rules                                                                                                                                   |
+| Complexity          | High                                                                                                                                                                                 |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | Asset collection, RegulatoryEvent collection |
-| Output/Response | Graph structure with typed edges |
-| Performance Criteria | < 500ms for 100 assets |
-| Data Requirements | Valid asset instances |
+| Technical Specification | Value                                        |
+| ----------------------- | -------------------------------------------- |
+| Input Parameters        | Asset collection, RegulatoryEvent collection |
+| Output/Response         | Graph structure with typed edges             |
+| Performance Criteria    | < 500ms for 100 assets                       |
+| Data Requirements       | Valid asset instances                        |
 
-| Validation Rules | Specification |
-|------------------|---------------|
-| Business Rules | Bidirectional: same_sector, income_comparison, market_cap_similar, correlation; Directional: corporate_bond_to_equity, commodity_exposure, currency_risk, regulatory_impact |
-| Data Validation | Valid asset and event IDs |
-| Security Requirements | None |
-| Compliance Requirements | None |
+| Validation Rules        | Specification                                                                                                                                                               |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Business Rules          | Bidirectional: same_sector, income_comparison, market_cap_similar, correlation; Directional: corporate_bond_to_equity, commodity_exposure, currency_risk, regulatory_impact |
+| Data Validation         | Valid asset and event IDs                                                                                                                                                   |
+| Security Requirements   | None                                                                                                                                                                        |
+| Compliance Requirements | None                                                                                                                                                                        |
 
 **F-003-RQ-002: Deterministic Layout**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-003-RQ-002 |
-| Description | System shall generate identical 3D coordinates for same input data using seed=42 |
-| Acceptance Criteria | Repeated calls produce identical node positions |
-| Complexity | Medium |
+| Attribute           | Specification                                                                    |
+| ------------------- | -------------------------------------------------------------------------------- |
+| Requirement ID      | F-003-RQ-002                                                                     |
+| Description         | System shall generate identical 3D coordinates for same input data using seed=42 |
+| Acceptance Criteria | Repeated calls produce identical node positions                                  |
+| Complexity          | Medium                                                                           |
 
 **F-003-RQ-003: Thread-Safe Initialization**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-003-RQ-003 |
-| Description | System shall use double-checked locking for graph singleton |
+| Attribute           | Specification                                                 |
+| ------------------- | ------------------------------------------------------------- |
+| Requirement ID      | F-003-RQ-003                                                  |
+| Description         | System shall use double-checked locking for graph singleton   |
 | Acceptance Criteria | Concurrent requests receive same instance; no race conditions |
-| Complexity | Medium |
+| Complexity          | Medium                                                        |
 
 **F-003-RQ-004: Network Metrics Calculation**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-003-RQ-004 |
-| Description | System shall calculate: total_assets, total_relationships, asset_classes distribution, avg_degree, max_degree, network_density, relationship_density |
-| Acceptance Criteria | All metrics returned with correct values |
-| Complexity | Medium |
+| Attribute           | Specification                                                                                                                                        |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Requirement ID      | F-003-RQ-004                                                                                                                                         |
+| Description         | System shall calculate: total_assets, total_relationships, asset_classes distribution, avg_degree, max_degree, network_density, relationship_density |
+| Acceptance Criteria | All metrics returned with correct values                                                                                                             |
+| Complexity          | Medium                                                                                                                                               |
 
 ---
 
@@ -1463,116 +1468,116 @@ This section provides detailed requirements for each feature with acceptance cri
 
 #### F-004 Requirements: REST API Endpoints
 
-| Requirement ID | Description | Priority |
-|----------------|-------------|----------|
-| F-004-RQ-001 | Expose 12 primary endpoints | Must-Have |
-| F-004-RQ-002 | Return valid JSON responses | Must-Have |
-| F-004-RQ-003 | Support filtering on /api/assets | Must-Have |
-| F-004-RQ-004 | Provide OpenAPI documentation | Should-Have |
+| Requirement ID | Description                      | Priority    |
+| -------------- | -------------------------------- | ----------- |
+| F-004-RQ-001   | Expose 12 primary endpoints      | Must-Have   |
+| F-004-RQ-002   | Return valid JSON responses      | Must-Have   |
+| F-004-RQ-003   | Support filtering on /api/assets | Must-Have   |
+| F-004-RQ-004   | Provide OpenAPI documentation    | Should-Have |
 
 **F-004-RQ-001: Endpoint Coverage**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-004-RQ-001 |
-| Description | System shall expose all 12 documented endpoints with correct HTTP methods |
-| Acceptance Criteria | Each endpoint responds with appropriate status codes |
-| Complexity | Medium |
+| Attribute           | Specification                                                             |
+| ------------------- | ------------------------------------------------------------------------- |
+| Requirement ID      | F-004-RQ-001                                                              |
+| Description         | System shall expose all 12 documented endpoints with correct HTTP methods |
+| Acceptance Criteria | Each endpoint responds with appropriate status codes                      |
+| Complexity          | Medium                                                                    |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | Per-endpoint query/path parameters |
-| Output/Response | JSON with Pydantic model serialization |
-| Performance Criteria | 95th percentile < 500ms |
-| Data Requirements | Valid request parameters |
+| Technical Specification | Value                                  |
+| ----------------------- | -------------------------------------- |
+| Input Parameters        | Per-endpoint query/path parameters     |
+| Output/Response         | JSON with Pydantic model serialization |
+| Performance Criteria    | 95th percentile < 500ms                |
+| Data Requirements       | Valid request parameters               |
 
 **F-004-RQ-003: Asset Filtering**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-004-RQ-003 |
-| Description | /api/assets shall support asset_class and sector query parameters |
-| Acceptance Criteria | Filtered results match criteria; empty filters return all |
-| Complexity | Low |
+| Attribute           | Specification                                                     |
+| ------------------- | ----------------------------------------------------------------- |
+| Requirement ID      | F-004-RQ-003                                                      |
+| Description         | /api/assets shall support asset_class and sector query parameters |
+| Acceptance Criteria | Filtered results match criteria; empty filters return all         |
+| Complexity          | Low                                                               |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | asset_class: str (optional), sector: str (optional), page: int, per_page: int |
-| Output/Response | Paginated asset list |
-| Performance Criteria | < 100ms for typical queries |
-| Data Requirements | Valid enum values for asset_class |
+| Technical Specification | Value                                                                         |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| Input Parameters        | asset_class: str (optional), sector: str (optional), page: int, per_page: int |
+| Output/Response         | Paginated asset list                                                          |
+| Performance Criteria    | < 100ms for typical queries                                                   |
+| Data Requirements       | Valid enum values for asset_class                                             |
 
 ---
 
 #### F-005 Requirements: JWT Authentication System
 
-| Requirement ID | Description | Priority |
-|----------------|-------------|----------|
-| F-005-RQ-001 | Issue JWT tokens via /token endpoint | Must-Have |
-| F-005-RQ-002 | Enforce 30-minute token expiration | Must-Have |
-| F-005-RQ-003 | Use HS256 signing algorithm | Must-Have |
-| F-005-RQ-004 | Return 401 with WWW-Authenticate on failure | Must-Have |
+| Requirement ID | Description                                 | Priority  |
+| -------------- | ------------------------------------------- | --------- |
+| F-005-RQ-001   | Issue JWT tokens via /token endpoint        | Must-Have |
+| F-005-RQ-002   | Enforce 30-minute token expiration          | Must-Have |
+| F-005-RQ-003   | Use HS256 signing algorithm                 | Must-Have |
+| F-005-RQ-004   | Return 401 with WWW-Authenticate on failure | Must-Have |
 
 **F-005-RQ-001: Token Issuance**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-005-RQ-001 |
-| Description | System shall issue JWT tokens upon valid username/password authentication |
-| Acceptance Criteria | Valid credentials return access_token; invalid credentials return 401 |
-| Complexity | Medium |
+| Attribute           | Specification                                                             |
+| ------------------- | ------------------------------------------------------------------------- |
+| Requirement ID      | F-005-RQ-001                                                              |
+| Description         | System shall issue JWT tokens upon valid username/password authentication |
+| Acceptance Criteria | Valid credentials return access_token; invalid credentials return 401     |
+| Complexity          | Medium                                                                    |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | username: str, password: str (form data) |
-| Output/Response | {"access_token": "...", "token_type": "bearer"} |
-| Performance Criteria | < 200ms including password hash verification |
-| Data Requirements | Matching credentials in user store |
+| Technical Specification | Value                                           |
+| ----------------------- | ----------------------------------------------- |
+| Input Parameters        | username: str, password: str (form data)        |
+| Output/Response         | {"access_token": "...", "token_type": "bearer"} |
+| Performance Criteria    | < 200ms including password hash verification    |
+| Data Requirements       | Matching credentials in user store              |
 
-| Validation Rules | Specification |
-|------------------|---------------|
-| Business Rules | Passwords verified via pbkdf2_sha256 |
-| Data Validation | Non-empty username and password |
-| Security Requirements | Constant-time password comparison |
-| Compliance Requirements | Token-based stateless auth |
+| Validation Rules        | Specification                        |
+| ----------------------- | ------------------------------------ |
+| Business Rules          | Passwords verified via pbkdf2_sha256 |
+| Data Validation         | Non-empty username and password      |
+| Security Requirements   | Constant-time password comparison    |
+| Compliance Requirements | Token-based stateless auth           |
 
 ---
 
 #### F-006 Requirements: CORS Configuration
 
-| Requirement ID | Description | Priority |
-|----------------|-------------|----------|
-| F-006-RQ-001 | Allow localhost:3000 and localhost:7860 in development | Must-Have |
-| F-006-RQ-002 | Restrict to HTTPS origins in production | Must-Have |
-| F-006-RQ-003 | Support Vercel preview domain pattern | Should-Have |
+| Requirement ID | Description                                            | Priority    |
+| -------------- | ------------------------------------------------------ | ----------- |
+| F-006-RQ-001   | Allow localhost:3000 and localhost:7860 in development | Must-Have   |
+| F-006-RQ-002   | Restrict to HTTPS origins in production                | Must-Have   |
+| F-006-RQ-003   | Support Vercel preview domain pattern                  | Should-Have |
 
 **F-006-RQ-001: Development Origins**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-006-RQ-001 |
-| Description | Development mode shall allow HTTP origins: localhost:3000, localhost:7860 |
-| Acceptance Criteria | Cross-origin requests from allowed origins succeed |
-| Complexity | Low |
+| Attribute           | Specification                                                             |
+| ------------------- | ------------------------------------------------------------------------- |
+| Requirement ID      | F-006-RQ-001                                                              |
+| Description         | Development mode shall allow HTTP origins: localhost:3000, localhost:7860 |
+| Acceptance Criteria | Cross-origin requests from allowed origins succeed                        |
+| Complexity          | Low                                                                       |
 
 ---
 
 #### F-007 Requirements: Rate Limiting
 
-| Requirement ID | Description | Priority |
-|----------------|-------------|----------|
-| F-007-RQ-001 | Limit /token to 5 requests per minute | Must-Have |
-| F-007-RQ-002 | Limit /api/users/me to 10 requests per minute | Must-Have |
-| F-007-RQ-003 | Return 429 when limit exceeded | Must-Have |
+| Requirement ID | Description                                   | Priority  |
+| -------------- | --------------------------------------------- | --------- |
+| F-007-RQ-001   | Limit /token to 5 requests per minute         | Must-Have |
+| F-007-RQ-002   | Limit /api/users/me to 10 requests per minute | Must-Have |
+| F-007-RQ-003   | Return 429 when limit exceeded                | Must-Have |
 
 **F-007-RQ-001: Token Endpoint Rate Limit**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-007-RQ-001 |
-| Description | /token endpoint shall reject requests exceeding 5 per minute per IP |
-| Acceptance Criteria | 6th request within minute returns 429 |
-| Complexity | Low |
+| Attribute           | Specification                                                       |
+| ------------------- | ------------------------------------------------------------------- |
+| Requirement ID      | F-007-RQ-001                                                        |
+| Description         | /token endpoint shall reject requests exceeding 5 per minute per IP |
+| Acceptance Criteria | 6th request within minute returns 429                               |
+| Complexity          | Low                                                                 |
 
 ---
 
@@ -1580,37 +1585,37 @@ This section provides detailed requirements for each feature with acceptance cri
 
 #### F-008 Requirements: 3D Network Visualization
 
-| Requirement ID | Description | Priority |
-|----------------|-------------|----------|
-| F-008-RQ-001 | Render interactive 3D graph with Plotly | Must-Have |
-| F-008-RQ-002 | Color-code nodes by asset class | Must-Have |
-| F-008-RQ-003 | Support rotation, zoom, and hover | Must-Have |
-| F-008-RQ-004 | Limit rendering to MAX_NODES/MAX_EDGES | Should-Have |
+| Requirement ID | Description                             | Priority    |
+| -------------- | --------------------------------------- | ----------- |
+| F-008-RQ-001   | Render interactive 3D graph with Plotly | Must-Have   |
+| F-008-RQ-002   | Color-code nodes by asset class         | Must-Have   |
+| F-008-RQ-003   | Support rotation, zoom, and hover       | Must-Have   |
+| F-008-RQ-004   | Limit rendering to MAX_NODES/MAX_EDGES  | Should-Have |
 
 **F-008-RQ-001: 3D Graph Rendering**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-008-RQ-001 |
-| Description | System shall render asset network as 3D scatter plot with edges |
-| Acceptance Criteria | Graph displays with nodes positioned in 3D space |
-| Complexity | High |
+| Attribute           | Specification                                                   |
+| ------------------- | --------------------------------------------------------------- |
+| Requirement ID      | F-008-RQ-001                                                    |
+| Description         | System shall render asset network as 3D scatter plot with edges |
+| Acceptance Criteria | Graph displays with nodes positioned in 3D space                |
+| Complexity          | High                                                            |
 
-| Technical Specification | Value |
-|-------------------------|-------|
-| Input Parameters | Visualization data from graph engine |
-| Output/Response | Plotly Figure object / JSON payload |
-| Performance Criteria | Time to interactive < 2 seconds |
-| Data Requirements | Valid node/edge data |
+| Technical Specification | Value                                |
+| ----------------------- | ------------------------------------ |
+| Input Parameters        | Visualization data from graph engine |
+| Output/Response         | Plotly Figure object / JSON payload  |
+| Performance Criteria    | Time to interactive < 2 seconds      |
+| Data Requirements       | Valid node/edge data                 |
 
 **F-008-RQ-002: Asset Class Color Coding**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-008-RQ-002 |
-| Description | Nodes colored: Equity (Blue), Fixed Income (Green), Commodity (Orange), Currency (Red), Derivative (Purple) |
-| Acceptance Criteria | Visual inspection confirms color mapping |
-| Complexity | Low |
+| Attribute           | Specification                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Requirement ID      | F-008-RQ-002                                                                                                |
+| Description         | Nodes colored: Equity (Blue), Fixed Income (Green), Commodity (Orange), Currency (Red), Derivative (Purple) |
+| Acceptance Criteria | Visual inspection confirms color mapping                                                                    |
+| Complexity          | Low                                                                                                         |
 
 ---
 
@@ -1618,20 +1623,20 @@ This section provides detailed requirements for each feature with acceptance cri
 
 #### F-011 Requirements: Asset Explorer
 
-| Requirement ID | Description | Priority |
-|----------------|-------------|----------|
-| F-011-RQ-001 | Display asset table with key attributes | Must-Have |
-| F-011-RQ-002 | Support filtering by asset_class and sector | Must-Have |
-| F-011-RQ-003 | Implement pagination | Should-Have |
+| Requirement ID | Description                                 | Priority    |
+| -------------- | ------------------------------------------- | ----------- |
+| F-011-RQ-001   | Display asset table with key attributes     | Must-Have   |
+| F-011-RQ-002   | Support filtering by asset_class and sector | Must-Have   |
+| F-011-RQ-003   | Implement pagination                        | Should-Have |
 
 **F-011-RQ-001: Asset Table Display**
 
-| Attribute | Specification |
-|-----------|---------------|
-| Requirement ID | F-011-RQ-001 |
-| Description | Display columns: symbol, name, asset_class, sector, price, market_cap |
-| Acceptance Criteria | All columns render with correct data |
-| Complexity | Low |
+| Attribute           | Specification                                                         |
+| ------------------- | --------------------------------------------------------------------- |
+| Requirement ID      | F-011-RQ-001                                                          |
+| Description         | Display columns: symbol, name, asset_class, sector, price, market_cap |
+| Acceptance Criteria | All columns render with correct data                                  |
+| Complexity          | Low                                                                   |
 
 ---
 
@@ -1713,56 +1718,56 @@ flowchart TD
 
 ### 2.3.2 Dependency Matrix
 
-| Feature | Depends On | Required By |
-|---------|------------|-------------|
-| F-001 | None | F-002, F-003, F-013, F-014, F-015 |
-| F-002 | F-001 | F-003, F-015 |
-| F-003 | F-001, F-002 | F-004, F-008, F-009, F-010, F-011, F-012, F-013 |
-| F-004 | F-001, F-002, F-003, F-005, F-006, F-007 | F-017 |
-| F-005 | None | F-004 |
-| F-006 | None | F-004 |
-| F-007 | None | F-004 |
-| F-008 | F-003 | F-016 |
-| F-009 | F-003 | F-016 |
-| F-010 | F-003 | F-016, F-017 |
-| F-011 | F-003 | F-016, F-017 |
-| F-012 | F-003 | F-016 |
-| F-013 | F-001, F-003 | F-016 |
-| F-014 | F-001 | None |
-| F-015 | F-001, F-002 | None |
-| F-016 | F-008, F-009, F-010, F-011, F-012, F-013 | None |
-| F-017 | F-004 | None |
+| Feature | Depends On                               | Required By                                     |
+| ------- | ---------------------------------------- | ----------------------------------------------- |
+| F-001   | None                                     | F-002, F-003, F-013, F-014, F-015               |
+| F-002   | F-001                                    | F-003, F-015                                    |
+| F-003   | F-001, F-002                             | F-004, F-008, F-009, F-010, F-011, F-012, F-013 |
+| F-004   | F-001, F-002, F-003, F-005, F-006, F-007 | F-017                                           |
+| F-005   | None                                     | F-004                                           |
+| F-006   | None                                     | F-004                                           |
+| F-007   | None                                     | F-004                                           |
+| F-008   | F-003                                    | F-016                                           |
+| F-009   | F-003                                    | F-016                                           |
+| F-010   | F-003                                    | F-016, F-017                                    |
+| F-011   | F-003                                    | F-016, F-017                                    |
+| F-012   | F-003                                    | F-016                                           |
+| F-013   | F-001, F-003                             | F-016                                           |
+| F-014   | F-001                                    | None                                            |
+| F-015   | F-001, F-002                             | None                                            |
+| F-016   | F-008, F-009, F-010, F-011, F-012, F-013 | None                                            |
+| F-017   | F-004                                    | None                                            |
 
 ### 2.3.3 Integration Points
 
-| Integration Point | Features Involved | Mechanism |
-|-------------------|-------------------|-----------|
-| Graph Data Access | F-003 ↔ F-004 | Python method calls |
-| Visualization Data | F-003 → F-008, F-009 | get_3d_visualization_data() |
-| API Communication | F-004 ↔ F-017 | HTTP/JSON via Axios |
-| Authentication Flow | F-005 → F-004 → F-017 | JWT Bearer token |
-| Metrics Calculation | F-003 → F-010 | calculate_metrics() |
-| Data Ingestion | F-014 → F-001 → F-003 | Asset instantiation |
+| Integration Point   | Features Involved     | Mechanism                   |
+| ------------------- | --------------------- | --------------------------- |
+| Graph Data Access   | F-003 ↔ F-004         | Python method calls         |
+| Visualization Data  | F-003 → F-008, F-009  | get_3d_visualization_data() |
+| API Communication   | F-004 ↔ F-017         | HTTP/JSON via Axios         |
+| Authentication Flow | F-005 → F-004 → F-017 | JWT Bearer token            |
+| Metrics Calculation | F-003 → F-010         | calculate_metrics()         |
+| Data Ingestion      | F-014 → F-001 → F-003 | Asset instantiation         |
 
 ### 2.3.4 Shared Components
 
-| Component | Used By Features | Location |
-|-----------|------------------|----------|
-| AssetClass enum | F-001, F-003, F-004, F-008, F-011 | `src/models/financial_models.py` |
-| Asset dataclasses | F-001, F-003, F-014, F-015 | `src/models/financial_models.py` |
-| Plotly rendering | F-008, F-009, F-010 | `src/visualizations/` |
-| Pydantic models | F-004, F-017 | `api/main.py`, `frontend/app/types/` |
-| Graph singleton | F-003, F-004, F-016 | `api/main.py` initialization |
+| Component         | Used By Features                  | Location                             |
+| ----------------- | --------------------------------- | ------------------------------------ |
+| AssetClass enum   | F-001, F-003, F-004, F-008, F-011 | `src/models/financial_models.py`     |
+| Asset dataclasses | F-001, F-003, F-014, F-015        | `src/models/financial_models.py`     |
+| Plotly rendering  | F-008, F-009, F-010               | `src/visualizations/`                |
+| Pydantic models   | F-004, F-017                      | `api/main.py`, `frontend/app/types/` |
+| Graph singleton   | F-003, F-004, F-016               | `api/main.py` initialization         |
 
 ### 2.3.5 Common Services
 
-| Service | Description | Consumer Features |
-|---------|-------------|-------------------|
-| Graph Initialization | Thread-safe singleton creation | F-003, F-004 |
-| Relationship Discovery | Rule-based edge detection | F-003, F-008, F-009 |
-| Validation | Data constraint enforcement | F-001, F-002 |
-| JSON Serialization | Pydantic model conversion | F-004, F-017 |
-| Password Hashing | pbkdf2_sha256 via passlib | F-005 |
+| Service                | Description                    | Consumer Features   |
+| ---------------------- | ------------------------------ | ------------------- |
+| Graph Initialization   | Thread-safe singleton creation | F-003, F-004        |
+| Relationship Discovery | Rule-based edge detection      | F-003, F-008, F-009 |
+| Validation             | Data constraint enforcement    | F-001, F-002        |
+| JSON Serialization     | Pydantic model conversion      | F-004, F-017        |
+| Password Hashing       | pbkdf2_sha256 via passlib      | F-005               |
 
 ---
 
@@ -1774,61 +1779,61 @@ This section documents technical constraints, performance requirements, and oper
 
 **F-001, F-002: Domain Model Considerations**
 
-| Consideration | Specification |
-|---------------|---------------|
-| Technical Constraints | Python 3.10+ required for dataclass features |
-| Performance Requirements | Instantiation < 1ms; validation < 1ms |
-| Scalability Considerations | Dataclass memory footprint scales linearly |
-| Security Implications | Input validation prevents injection |
-| Maintenance Requirements | Schema changes require migration |
+| Consideration              | Specification                                |
+| -------------------------- | -------------------------------------------- |
+| Technical Constraints      | Python 3.10+ required for dataclass features |
+| Performance Requirements   | Instantiation < 1ms; validation < 1ms        |
+| Scalability Considerations | Dataclass memory footprint scales linearly   |
+| Security Implications      | Input validation prevents injection          |
+| Maintenance Requirements   | Schema changes require migration             |
 
 ### 2.4.2 Core Engine Implementation
 
 **F-003: Graph Engine Considerations**
 
-| Consideration | Specification |
-|---------------|---------------|
-| Technical Constraints | In-memory graph limits dataset size |
-| Performance Requirements | Relationship discovery < 500ms for 100 assets |
+| Consideration              | Specification                                     |
+| -------------------------- | ------------------------------------------------- |
+| Technical Constraints      | In-memory graph limits dataset size               |
+| Performance Requirements   | Relationship discovery < 500ms for 100 assets     |
 | Scalability Considerations | O(n²) relationship detection; partition for scale |
-| Security Implications | No sensitive data in graph structure |
-| Maintenance Requirements | New relationship types require rule additions |
+| Security Implications      | No sensitive data in graph structure              |
+| Maintenance Requirements   | New relationship types require rule additions     |
 
 ### 2.4.3 API Layer Implementation
 
 **F-004, F-005, F-006, F-007: API Considerations**
 
-| Consideration | Specification |
-|---------------|---------------|
-| Technical Constraints | Single-threaded graph access |
-| Performance Requirements | 95th percentile response < 500ms |
+| Consideration              | Specification                            |
+| -------------------------- | ---------------------------------------- |
+| Technical Constraints      | Single-threaded graph access             |
+| Performance Requirements   | 95th percentile response < 500ms         |
 | Scalability Considerations | Horizontal scaling requires shared state |
-| Security Implications | JWT expiration enforced; CORS restricted |
-| Maintenance Requirements | OpenAPI docs auto-generated |
+| Security Implications      | JWT expiration enforced; CORS restricted |
+| Maintenance Requirements   | OpenAPI docs auto-generated              |
 
 ### 2.4.4 Visualization Implementation
 
 **F-008, F-009, F-010: Visualization Considerations**
 
-| Consideration | Specification |
-|---------------|---------------|
-| Technical Constraints | Browser memory limits visualization size |
-| Performance Requirements | Time to interactive < 2 seconds |
-| Scalability Considerations | MAX_NODES=500, MAX_EDGES=2000 defaults |
-| Security Implications | Client-side rendering; no server load |
-| Maintenance Requirements | Plotly version compatibility |
+| Consideration              | Specification                            |
+| -------------------------- | ---------------------------------------- |
+| Technical Constraints      | Browser memory limits visualization size |
+| Performance Requirements   | Time to interactive < 2 seconds          |
+| Scalability Considerations | MAX_NODES=500, MAX_EDGES=2000 defaults   |
+| Security Implications      | Client-side rendering; no server load    |
+| Maintenance Requirements   | Plotly version compatibility             |
 
 ### 2.4.5 User Interface Implementation
 
 **F-016, F-017: UI Considerations**
 
-| Consideration | Specification |
-|---------------|---------------|
-| Technical Constraints | Gradio: Python only; Next.js: Node.js required |
-| Performance Requirements | Initial load < 3 seconds |
-| Scalability Considerations | Static assets cacheable; API stateless |
-| Security Implications | CORS enforcement; XSS prevention |
-| Maintenance Requirements | Dependency updates; feature parity |
+| Consideration              | Specification                                  |
+| -------------------------- | ---------------------------------------------- |
+| Technical Constraints      | Gradio: Python only; Next.js: Node.js required |
+| Performance Requirements   | Initial load < 3 seconds                       |
+| Scalability Considerations | Static assets cacheable; API stateless         |
+| Security Implications      | CORS enforcement; XSS prevention               |
+| Maintenance Requirements   | Dependency updates; feature parity             |
 
 ---
 
@@ -1838,35 +1843,35 @@ This matrix links features to their implementing source files and test coverage.
 
 ### 2.5.1 Feature-to-Source Traceability
 
-| Feature ID | Primary Source Files | Test Files |
-|------------|---------------------|------------|
-| F-001 | `src/models/financial_models.py` | `tests/unit/test_models.py` |
-| F-002 | `src/models/financial_models.py` | `tests/unit/test_models.py` |
-| F-003 | `src/logic/asset_graph.py` | `tests/unit/test_graph.py` |
-| F-004 | `api/main.py` | `tests/unit/test_api.py` |
-| F-005 | `api/auth.py` | `tests/unit/test_auth.py` |
-| F-006 | `api/main.py` | `tests/unit/test_cors.py` |
-| F-007 | `api/main.py` | `tests/unit/test_api.py` |
-| F-008 | `src/visualizations/graph_visuals.py` | `tests/unit/test_visualizations.py` |
-| F-009 | `src/visualizations/graph_2d_visuals.py` | `tests/unit/test_visualizations.py` |
-| F-010 | `frontend/app/components/MetricsDashboard.tsx` | `frontend/__tests__/` |
-| F-011 | `frontend/app/components/AssetList.tsx` | `frontend/__tests__/` |
-| F-012 | `src/reports/schema_report.py` | `tests/unit/test_reports.py` |
-| F-013 | `src/analysis/formulaic_analysis.py` | `tests/unit/test_analysis.py` |
-| F-014 | `src/data/real_data_fetcher.py` | `tests/unit/test_data.py` |
-| F-015 | `src/data/database.py`, `src/data/repository.py` | `tests/unit/test_database.py` |
-| F-016 | `app.py` | Manual testing |
-| F-017 | `frontend/app/page.tsx`, `frontend/app/components/` | `frontend/__tests__/` |
+| Feature ID | Primary Source Files                                | Test Files                          |
+| ---------- | --------------------------------------------------- | ----------------------------------- |
+| F-001      | `src/models/financial_models.py`                    | `tests/unit/test_models.py`         |
+| F-002      | `src/models/financial_models.py`                    | `tests/unit/test_models.py`         |
+| F-003      | `src/logic/asset_graph.py`                          | `tests/unit/test_graph.py`          |
+| F-004      | `api/main.py`                                       | `tests/unit/test_api.py`            |
+| F-005      | `api/auth.py`                                       | `tests/unit/test_auth.py`           |
+| F-006      | `api/main.py`                                       | `tests/unit/test_cors.py`           |
+| F-007      | `api/main.py`                                       | `tests/unit/test_api.py`            |
+| F-008      | `src/visualizations/graph_visuals.py`               | `tests/unit/test_visualizations.py` |
+| F-009      | `src/visualizations/graph_2d_visuals.py`            | `tests/unit/test_visualizations.py` |
+| F-010      | `frontend/app/components/MetricsDashboard.tsx`      | `frontend/__tests__/`               |
+| F-011      | `frontend/app/components/AssetList.tsx`             | `frontend/__tests__/`               |
+| F-012      | `src/reports/schema_report.py`                      | `tests/unit/test_reports.py`        |
+| F-013      | `src/analysis/formulaic_analysis.py`                | `tests/unit/test_analysis.py`       |
+| F-014      | `src/data/real_data_fetcher.py`                     | `tests/unit/test_data.py`           |
+| F-015      | `src/data/database.py`, `src/data/repository.py`    | `tests/unit/test_database.py`       |
+| F-016      | `app.py`                                            | Manual testing                      |
+| F-017      | `frontend/app/page.tsx`, `frontend/app/components/` | `frontend/__tests__/`               |
 
 ### 2.5.2 Requirement-to-Feature Traceability
 
-| Requirement Category | Feature IDs | Count |
-|---------------------|-------------|-------|
-| Data Validation | F-001, F-002 | 9 |
-| Graph Processing | F-003 | 5 |
-| API Functionality | F-004, F-005, F-006, F-007 | 12 |
-| Visualization | F-008, F-009, F-010 | 7 |
-| User Interface | F-011, F-012, F-013, F-016, F-017 | 8 |
+| Requirement Category | Feature IDs                       | Count |
+| -------------------- | --------------------------------- | ----- |
+| Data Validation      | F-001, F-002                      | 9     |
+| Graph Processing     | F-003                             | 5     |
+| API Functionality    | F-004, F-005, F-006, F-007        | 12    |
+| Visualization        | F-008, F-009, F-010               | 7     |
+| User Interface       | F-011, F-012, F-013, F-016, F-017 | 8     |
 
 ---
 
@@ -1874,21 +1879,21 @@ This matrix links features to their implementing source files and test coverage.
 
 ### 2.6.1 Assumptions
 
-| ID | Assumption | Impact |
-|----|------------|--------|
+| ID    | Assumption                                                | Impact                                                 |
+| ----- | --------------------------------------------------------- | ------------------------------------------------------ |
 | A-001 | Users have modern browser (Chrome, Firefox, Safari, Edge) | Visualization features may not work on legacy browsers |
-| A-002 | Network connectivity available for real data fetching | System falls back to sample data when offline |
-| A-003 | Single concurrent admin user sufficient | Multi-user requires authentication extension |
-| A-004 | Dataset size < 500 nodes for optimal visualization | Larger datasets require pagination or filtering |
+| A-002 | Network connectivity available for real data fetching     | System falls back to sample data when offline          |
+| A-003 | Single concurrent admin user sufficient                   | Multi-user requires authentication extension           |
+| A-004 | Dataset size < 500 nodes for optimal visualization        | Larger datasets require pagination or filtering        |
 
 ### 2.6.2 Constraints
 
-| ID | Constraint | Mitigation |
-|----|------------|------------|
-| C-001 | In-memory graph limits scalability | Database persistence option (F-015) |
-| C-002 | Single-user JWT authentication | Role-based access planned for Phase 2 |
-| C-003 | Yahoo Finance API rate limits | Caching with atomic file writes |
-| C-004 | Browser memory limits visualization | MAX_NODES/MAX_EDGES guardrails |
+| ID    | Constraint                          | Mitigation                            |
+| ----- | ----------------------------------- | ------------------------------------- |
+| C-001 | In-memory graph limits scalability  | Database persistence option (F-015)   |
+| C-002 | Single-user JWT authentication      | Role-based access planned for Phase 2 |
+| C-003 | Yahoo Finance API rate limits       | Caching with atomic file writes       |
+| C-004 | Browser memory limits visualization | MAX_NODES/MAX_EDGES guardrails        |
 
 ---
 
@@ -1896,55 +1901,55 @@ This matrix links features to their implementing source files and test coverage.
 
 ### 2.7.1 Source Files Examined
 
-| File Path | Relevance |
-|-----------|-----------|
-| `src/models/financial_models.py` | Domain model definitions, validation rules, enums |
-| `src/logic/asset_graph.py` | Core graph container, relationship discovery |
-| `api/main.py` | FastAPI implementation, all REST endpoints |
-| `api/auth.py` | JWT authentication, password hashing |
-| `app.py` | Gradio UI implementation, tabbed interface |
-| `src/data/sample_data.py` | Sample database with 19 assets, 4 events |
-| `src/data/real_data_fetcher.py` | Yahoo Finance integration |
-| `src/data/database.py` | SQLAlchemy database configuration |
-| `src/data/repository.py` | Data access layer |
-| `src/visualizations/graph_visuals.py` | 3D Plotly visualization |
-| `src/visualizations/graph_2d_visuals.py` | 2D Plotly visualization |
-| `src/reports/schema_report.py` | Schema documentation generator |
-| `src/analysis/formulaic_analysis.py` | Financial formula library |
-| `frontend/app/types/api.ts` | TypeScript API contracts |
-| `frontend/app/components/NetworkVisualization.tsx` | 3D graph React component |
-| `frontend/app/components/MetricsDashboard.tsx` | Metrics display component |
-| `frontend/app/components/AssetList.tsx` | Asset table component |
-| `requirements.txt` | Python dependencies |
-| `frontend/package.json` | Node.js dependencies |
-| `migrations/001_initial.sql` | Database schema |
+| File Path                                          | Relevance                                         |
+| -------------------------------------------------- | ------------------------------------------------- |
+| `src/models/financial_models.py`                   | Domain model definitions, validation rules, enums |
+| `src/logic/asset_graph.py`                         | Core graph container, relationship discovery      |
+| `api/main.py`                                      | FastAPI implementation, all REST endpoints        |
+| `api/auth.py`                                      | JWT authentication, password hashing              |
+| `app.py`                                           | Gradio UI implementation, tabbed interface        |
+| `src/data/sample_data.py`                          | Sample database with 19 assets, 4 events          |
+| `src/data/real_data_fetcher.py`                    | Yahoo Finance integration                         |
+| `src/data/database.py`                             | SQLAlchemy database configuration                 |
+| `src/data/repository.py`                           | Data access layer                                 |
+| `src/visualizations/graph_visuals.py`              | 3D Plotly visualization                           |
+| `src/visualizations/graph_2d_visuals.py`           | 2D Plotly visualization                           |
+| `src/reports/schema_report.py`                     | Schema documentation generator                    |
+| `src/analysis/formulaic_analysis.py`               | Financial formula library                         |
+| `frontend/app/types/api.ts`                        | TypeScript API contracts                          |
+| `frontend/app/components/NetworkVisualization.tsx` | 3D graph React component                          |
+| `frontend/app/components/MetricsDashboard.tsx`     | Metrics display component                         |
+| `frontend/app/components/AssetList.tsx`            | Asset table component                             |
+| `requirements.txt`                                 | Python dependencies                               |
+| `frontend/package.json`                            | Node.js dependencies                              |
+| `migrations/001_initial.sql`                       | Database schema                                   |
 
 ### 2.7.2 Source Directories Examined
 
-| Directory Path | Contents |
-|----------------|----------|
-| `src/` | Core Python library packages |
-| `src/models/` | Domain model layer |
-| `src/logic/` | Graph algorithm implementation |
-| `src/data/` | Data persistence and ingestion |
-| `src/visualizations/` | Plotly visualization layer |
-| `src/analysis/` | Formulaic financial analysis |
-| `src/reports/` | Schema documentation generation |
-| `api/` | FastAPI backend package |
-| `frontend/` | Next.js application root |
-| `frontend/app/` | App Router source |
-| `frontend/app/components/` | React UI components |
-| `frontend/app/types/` | TypeScript API contracts |
-| `tests/` | Test harness structure |
+| Directory Path             | Contents                        |
+| -------------------------- | ------------------------------- |
+| `src/`                     | Core Python library packages    |
+| `src/models/`              | Domain model layer              |
+| `src/logic/`               | Graph algorithm implementation  |
+| `src/data/`                | Data persistence and ingestion  |
+| `src/visualizations/`      | Plotly visualization layer      |
+| `src/analysis/`            | Formulaic financial analysis    |
+| `src/reports/`             | Schema documentation generation |
+| `api/`                     | FastAPI backend package         |
+| `frontend/`                | Next.js application root        |
+| `frontend/app/`            | App Router source               |
+| `frontend/app/components/` | React UI components             |
+| `frontend/app/types/`      | TypeScript API contracts        |
+| `tests/`                   | Test harness structure          |
 
 ### 2.7.3 Technical Specification Cross-References
 
-| Section | Relevance |
-|---------|-----------|
+| Section               | Relevance                                         |
+| --------------------- | ------------------------------------------------- |
 | 1.1 Executive Summary | Business context, stakeholders, value proposition |
-| 1.2 System Overview | Architecture, technology stack, success criteria |
-| 1.3 Scope | In-scope/out-of-scope features, boundaries |
-| 1.4 References | Documentation and source file inventory |
+| 1.2 System Overview   | Architecture, technology stack, success criteria  |
+| 1.3 Scope             | In-scope/out-of-scope features, boundaries        |
+| 1.4 References        | Documentation and source file inventory           |
 
 # 3. Technology Stack
 
@@ -1996,27 +2001,27 @@ flowchart TB
 
 ### 3.1.2 Technology Selection Criteria
 
-| Criterion | Priority | Rationale |
-|-----------|----------|-----------|
-| **Type Safety** | Critical | Financial data requires strict validation to prevent calculation errors |
-| **Performance** | High | Sub-500ms API response times for interactive visualizations |
-| **Developer Productivity** | High | Rapid prototyping with Gradio; production-ready with Next.js |
-| **Ecosystem Maturity** | High | Well-maintained libraries with active security patching |
-| **Deployment Flexibility** | Medium | Support for containerized, serverless, and local development |
-| **Integration Capability** | Medium | REST API and MCP protocol support for ecosystem integration |
+| Criterion                  | Priority | Rationale                                                               |
+| -------------------------- | -------- | ----------------------------------------------------------------------- |
+| **Type Safety**            | Critical | Financial data requires strict validation to prevent calculation errors |
+| **Performance**            | High     | Sub-500ms API response times for interactive visualizations             |
+| **Developer Productivity** | High     | Rapid prototyping with Gradio; production-ready with Next.js            |
+| **Ecosystem Maturity**     | High     | Well-maintained libraries with active security patching                 |
+| **Deployment Flexibility** | Medium   | Support for containerized, serverless, and local development            |
+| **Integration Capability** | Medium   | REST API and MCP protocol support for ecosystem integration             |
 
 ### 3.1.3 Stack Deviations from Default Template
 
 The following default template technologies are **not used** in this project:
 
-| Default Technology | Actual Implementation | Rationale |
-|--------------------|----------------------|-----------|
-| Flask | FastAPI 0.127.0 | FastAPI provides automatic OpenAPI docs, native async support, and Pydantic integration |
-| Auth0 | Custom JWT (PyJWT) | Simpler single-user authentication without external service dependency |
-| MongoDB | SQLite/PostgreSQL (SQLAlchemy) | Relational model better suited for asset relationships and regulatory event linkages |
-| LangChain | Not applicable | System is not an AI/LLM application |
-| React-Native | Web-responsive only | Mobile native applications explicitly out of scope |
-| Terraform | Docker Compose + Vercel | Simplified infrastructure for single-application deployment |
+| Default Technology | Actual Implementation          | Rationale                                                                               |
+| ------------------ | ------------------------------ | --------------------------------------------------------------------------------------- |
+| Flask              | FastAPI 0.127.0                | FastAPI provides automatic OpenAPI docs, native async support, and Pydantic integration |
+| Auth0              | Custom JWT (PyJWT)             | Simpler single-user authentication without external service dependency                  |
+| MongoDB            | SQLite/PostgreSQL (SQLAlchemy) | Relational model better suited for asset relationships and regulatory event linkages    |
+| LangChain          | Not applicable                 | System is not an AI/LLM application                                                     |
+| React-Native       | Web-responsive only            | Mobile native applications explicitly out of scope                                      |
+| Terraform          | Docker Compose + Vercel        | Simplified infrastructure for single-application deployment                             |
 
 ---
 
@@ -2024,12 +2029,12 @@ The following default template technologies are **not used** in this project:
 
 ### 3.2.1 Python (Backend & Core Logic)
 
-| Attribute | Specification | Evidence |
-|-----------|---------------|----------|
-| **Minimum Version** | Python 3.10+ | `pyproject.toml`: `requires-python = ">=3.10"` |
-| **Supported Versions** | 3.10, 3.11, 3.12 | `ci.yml` matrix configuration |
-| **Production Version** | Python 3.11-slim | `Dockerfile` base image |
-| **Package Manager** | pip with requirements files | `requirements.txt`, `requirements-dev.txt` |
+| Attribute              | Specification               | Evidence                                       |
+| ---------------------- | --------------------------- | ---------------------------------------------- |
+| **Minimum Version**    | Python 3.10+                | `pyproject.toml`: `requires-python = ">=3.10"` |
+| **Supported Versions** | 3.10, 3.11, 3.12            | `ci.yml` matrix configuration                  |
+| **Production Version** | Python 3.11-slim            | `Dockerfile` base image                        |
+| **Package Manager**    | pip with requirements files | `requirements.txt`, `requirements-dev.txt`     |
 
 #### Selection Justification
 
@@ -2045,24 +2050,24 @@ Python 3.10+ is required for the following technical reasons:
 
 #### Primary Use Cases
 
-| Component | Location | Python Usage |
-|-----------|----------|--------------|
-| REST API Server | `api/main.py` | FastAPI application with async handlers |
-| Core Graph Engine | `src/logic/asset_graph.py` | Relationship discovery and metrics calculation |
-| Domain Models | `src/models/financial_models.py` | Dataclass definitions with validation |
-| Visualization Generation | `src/visualizations/` | Plotly figure construction |
-| Legacy UI | `app.py` | Gradio interface |
-| Data Fetching | `src/data/real_data_fetcher.py` | Yahoo Finance integration |
+| Component                | Location                         | Python Usage                                   |
+| ------------------------ | -------------------------------- | ---------------------------------------------- |
+| REST API Server          | `api/main.py`                    | FastAPI application with async handlers        |
+| Core Graph Engine        | `src/logic/asset_graph.py`       | Relationship discovery and metrics calculation |
+| Domain Models            | `src/models/financial_models.py` | Dataclass definitions with validation          |
+| Visualization Generation | `src/visualizations/`            | Plotly figure construction                     |
+| Legacy UI                | `app.py`                         | Gradio interface                               |
+| Data Fetching            | `src/data/real_data_fetcher.py`  | Yahoo Finance integration                      |
 
 ### 3.2.2 TypeScript/JavaScript (Frontend)
 
-| Attribute | Specification | Evidence |
-|-----------|---------------|----------|
-| **TypeScript Version** | ^5.3.0 | `frontend/package.json` |
-| **Node.js Version** | >=18.0.0 | `frontend/package.json` engines |
-| **npm Version** | >=8.0.0 | `frontend/package.json` engines |
-| **Module System** | ES Modules | Next.js App Router conventions |
-| **Strict Mode** | Enabled | `frontend/tsconfig.json`: `strict: true` |
+| Attribute              | Specification | Evidence                                 |
+| ---------------------- | ------------- | ---------------------------------------- |
+| **TypeScript Version** | ^5.3.0        | `frontend/package.json`                  |
+| **Node.js Version**    | >=18.0.0      | `frontend/package.json` engines          |
+| **npm Version**        | >=8.0.0       | `frontend/package.json` engines          |
+| **Module System**      | ES Modules    | Next.js App Router conventions           |
+| **Strict Mode**        | Enabled       | `frontend/tsconfig.json`: `strict: true` |
 
 #### Selection Justification
 
@@ -2093,25 +2098,26 @@ Node.js 18.0.0+ is required for:
 
 #### FastAPI (REST API Framework)
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Version** | 0.127.0 (pinned) |
-| **Source** | `requirements.txt` |
+| Attribute   | Specification                                                  |
+| ----------- | -------------------------------------------------------------- |
+| **Version** | 0.127.0 (pinned)                                               |
+| **Source**  | `requirements.txt`                                             |
 | **Purpose** | REST API framework with automatic validation and documentation |
 
 **Key Features Utilized:**
 
-| Feature | Implementation | Location |
-|---------|----------------|----------|
-| Lifespan Context Manager | Thread-safe graph initialization at startup | `api/main.py` lines 159-165 |
-| Dependency Injection | Authentication via `get_current_user` | `api/auth.py` |
-| OAuth2PasswordBearer | JWT token extraction from Authorization header | `api/auth.py` |
-| OpenAPI Generation | Auto-generated Swagger UI at `/docs` | FastAPI default |
-| Pydantic Integration | Request/response validation | All API endpoints |
+| Feature                  | Implementation                                 | Location                    |
+| ------------------------ | ---------------------------------------------- | --------------------------- |
+| Lifespan Context Manager | Thread-safe graph initialization at startup    | `api/main.py` lines 159-165 |
+| Dependency Injection     | Authentication via `get_current_user`          | `api/auth.py`               |
+| OAuth2PasswordBearer     | JWT token extraction from Authorization header | `api/auth.py`               |
+| OpenAPI Generation       | Auto-generated Swagger UI at `/docs`           | FastAPI default             |
+| Pydantic Integration     | Request/response validation                    | All API endpoints           |
 
 **Version Pinning Rationale:**
 
 FastAPI 0.127.0 is explicitly pinned to ensure:
+
 - Compatibility with Pydantic 2.12.5
 - Stable behavior for lifespan event handling
 - Consistent OpenAPI schema generation
@@ -2143,26 +2149,27 @@ flowchart LR
 
 #### Pydantic (Data Validation)
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Version** | 2.12.5 (pinned) |
-| **Source** | `requirements.txt` |
+| Attribute   | Specification                                     |
+| ----------- | ------------------------------------------------- |
+| **Version** | 2.12.5 (pinned)                                   |
+| **Source**  | `requirements.txt`                                |
 | **Purpose** | API request/response validation and serialization |
 
 **Version Pinning Rationale:**
 
 Pydantic 2.12.5 is pinned for:
+
 - FastAPI 0.127.0 compatibility
 - Consistent JSON schema generation for OpenAPI
 - Stable validation behavior across deployments
 
 #### Uvicorn (ASGI Server)
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Version** | >=0.24.0 |
-| **Package** | `uvicorn[standard]` (includes full async support) |
-| **Default Port** | 8000 |
+| Attribute        | Specification                                     |
+| ---------------- | ------------------------------------------------- |
+| **Version**      | >=0.24.0                                          |
+| **Package**      | `uvicorn[standard]` (includes full async support) |
+| **Default Port** | 8000                                              |
 
 **Configuration:**
 
@@ -2171,16 +2178,17 @@ Pydantic 2.12.5 is pinned for:
 
 #### Gradio (Legacy UI Framework)
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Version** | >=4.0.0,<6.0.0 |
-| **Source** | `requirements.txt` |
-| **Default Port** | 7860 |
-| **Purpose** | Python-native web interface for rapid prototyping |
+| Attribute        | Specification                                     |
+| ---------------- | ------------------------------------------------- |
+| **Version**      | >=4.0.0,<6.0.0                                    |
+| **Source**       | `requirements.txt`                                |
+| **Default Port** | 7860                                              |
+| **Purpose**      | Python-native web interface for rapid prototyping |
 
 **Selection Justification:**
 
 Gradio provides immediate visual access to system capabilities without frontend development overhead. It serves as:
+
 - A rapid prototyping environment for Python developers
 - A reference implementation demonstrating all core features
 - A standalone UI option for Python-centric workflows
@@ -2189,12 +2197,12 @@ Gradio provides immediate visual access to system capabilities without frontend 
 
 ## Next.js (React Meta-Framework)
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Version** | 14.2.35 |
-| **Source** | `frontend/package.json` |
-| **Architecture** | App Router (app/ directory) |
-| **Configuration** | `reactStrictMode: true` |
+| Attribute         | Specification               |
+| ----------------- | --------------------------- |
+| **Version**       | 14.2.35                     |
+| **Source**        | `frontend/package.json`     |
+| **Architecture**  | App Router (app/ directory) |
+| **Configuration** | `reactStrictMode: true`     |
 
 **Selection Justification:**
 
@@ -2207,32 +2215,33 @@ Next.js 14.x is selected over Create React App for:
 
 **Key Configuration:**
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| `reactStrictMode` | `true` | Enables additional development checks |
-| `NEXT_PUBLIC_API_URL` | Environment variable | Backend API endpoint configuration |
-| `NEXT_PUBLIC_MAX_NODES` | 500 | Visualization guardrail |
-| `NEXT_PUBLIC_MAX_EDGES` | 2000 | Visualization guardrail |
+| Setting                 | Value                | Purpose                               |
+| ----------------------- | -------------------- | ------------------------------------- |
+| `reactStrictMode`       | `true`               | Enables additional development checks |
+| `NEXT_PUBLIC_API_URL`   | Environment variable | Backend API endpoint configuration    |
+| `NEXT_PUBLIC_MAX_NODES` | 500                  | Visualization guardrail               |
+| `NEXT_PUBLIC_MAX_EDGES` | 2000                 | Visualization guardrail               |
 
 #### React
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Version** | ^18.2.0 |
-| **Source** | `frontend/package.json` |
-| **Mode** | Client Components with `'use client'` directive |
+| Attribute   | Specification                                   |
+| ----------- | ----------------------------------------------- |
+| **Version** | ^18.2.0                                         |
+| **Source**  | `frontend/package.json`                         |
+| **Mode**    | Client Components with `'use client'` directive |
 
 #### Tailwind CSS
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Version** | ^3.3.0 |
-| **Source** | `frontend/package.json` devDependencies |
-| **Purpose** | Utility-first CSS framework |
+| Attribute   | Specification                           |
+| ----------- | --------------------------------------- |
+| **Version** | ^3.3.0                                  |
+| **Source**  | `frontend/package.json` devDependencies |
+| **Purpose** | Utility-first CSS framework             |
 
 **Selection Justification:**
 
 Tailwind CSS provides:
+
 - Consistent design system without custom CSS maintenance
 - Responsive design utilities for visualization containers
 - Integration with Next.js JIT compiler for optimal bundle size
@@ -2241,11 +2250,11 @@ Tailwind CSS provides:
 
 #### Plotly (Exclusive Visualization Library)
 
-| Context | Package | Version |
-|---------|---------|---------|
-| **Backend (Python)** | plotly | >=6.0.0 |
-| **Frontend (React)** | react-plotly.js | ^2.6.0 |
-| **Frontend (Core)** | plotly.js | ^2.27.0 |
+| Context              | Package         | Version |
+| -------------------- | --------------- | ------- |
+| **Backend (Python)** | plotly          | >=6.0.0 |
+| **Frontend (React)** | react-plotly.js | ^2.6.0  |
+| **Frontend (Core)**  | plotly.js       | ^2.27.0 |
 
 **Library Constraint:**
 
@@ -2253,12 +2262,12 @@ Per project coding standards, Plotly is the **only approved charting and visuali
 
 **Visualization Capabilities:**
 
-| Visualization Type | Implementation |
-|--------------------|----------------|
-| 3D Network Graph | `src/visualizations/graph_visuals.py` |
-| 2D Network Graph | `src/visualizations/graph_2d_visuals.py` |
-| Metrics Dashboard | `src/visualizations/metrics_visuals.py` |
-| Formulaic Visuals | `src/visualizations/formulaic_visuals.py` |
+| Visualization Type | Implementation                            |
+| ------------------ | ----------------------------------------- |
+| 3D Network Graph   | `src/visualizations/graph_visuals.py`     |
+| 2D Network Graph   | `src/visualizations/graph_2d_visuals.py`  |
+| Metrics Dashboard  | `src/visualizations/metrics_visuals.py`   |
+| Formulaic Visuals  | `src/visualizations/formulaic_visuals.py` |
 
 **Deterministic Layout:**
 
@@ -2274,28 +2283,28 @@ All visualizations use `seed=42` for reproducible 3D node positioning, ensuring 
 
 #### Core Application Dependencies
 
-| Package | Version Constraint | Purpose |
-|---------|-------------------|---------|
-| **fastapi** | 0.127.0 (pinned) | REST API framework |
-| **uvicorn[standard]** | >=0.24.0 | ASGI server with async support |
-| **pydantic** | 2.12.5 (pinned) | Data validation and serialization |
-| **gradio** | >=4.0.0,<6.0.0 | Legacy UI framework |
+| Package               | Version Constraint | Purpose                           |
+| --------------------- | ------------------ | --------------------------------- |
+| **fastapi**           | 0.127.0 (pinned)   | REST API framework                |
+| **uvicorn[standard]** | >=0.24.0           | ASGI server with async support    |
+| **pydantic**          | 2.12.5 (pinned)    | Data validation and serialization |
+| **gradio**            | >=4.0.0,<6.0.0     | Legacy UI framework               |
 
 #### Data Processing Dependencies
 
-| Package | Version Constraint | Purpose |
-|---------|-------------------|---------|
-| **numpy** | 2.2.6 (pinned) | Numerical computing for graph coordinates |
-| **pandas** | >=1.5.0 | Tabular data manipulation |
-| **plotly** | >=6.0.0 | Visualization generation |
-| **dataclasses-json** | >=0.5.7 | JSON serialization for domain models |
+| Package              | Version Constraint | Purpose                                   |
+| -------------------- | ------------------ | ----------------------------------------- |
+| **numpy**            | 2.2.6 (pinned)     | Numerical computing for graph coordinates |
+| **pandas**           | >=1.5.0            | Tabular data manipulation                 |
+| **plotly**           | >=6.0.0            | Visualization generation                  |
+| **dataclasses-json** | >=0.5.7            | JSON serialization for domain models      |
 
 #### External Data Dependencies
 
-| Package | Version Constraint | Purpose |
-|---------|-------------------|---------|
-| **yfinance** | >=0.2.51 | Yahoo Finance API integration |
-| **requests** | >=2.32.2 | HTTP client for external requests |
+| Package      | Version Constraint | Purpose                           |
+| ------------ | ------------------ | --------------------------------- |
+| **yfinance** | >=0.2.51           | Yahoo Finance API integration     |
+| **requests** | >=2.32.2           | HTTP client for external requests |
 
 **Library Constraint:**
 
@@ -2303,91 +2312,91 @@ Per project coding standards, yfinance is the **only approved finance data API**
 
 #### Security Dependencies
 
-| Package | Version Constraint | Purpose |
-|---------|-------------------|---------|
-| **PyJWT** | >=2.8.0 | JWT token signing and verification |
-| **passlib[bcrypt]** | >=1.7.4 | Password hashing (pbkdf2_sha256) |
-| **slowapi** | >=0.1.4 | Rate limiting middleware |
+| Package             | Version Constraint | Purpose                            |
+| ------------------- | ------------------ | ---------------------------------- |
+| **PyJWT**           | >=2.8.0            | JWT token signing and verification |
+| **passlib[bcrypt]** | >=1.7.4            | Password hashing (pbkdf2_sha256)   |
+| **slowapi**         | >=0.1.4            | Rate limiting middleware           |
 
 #### Database Dependencies
 
-| Package | Version Constraint | Purpose |
-|---------|-------------------|---------|
-| **sqlalchemy** | >=2.0.0 | ORM with 2.x Mapped/mapped_column syntax |
-| **psycopg2-binary** | >=2.9.9 | PostgreSQL adapter for production |
+| Package             | Version Constraint | Purpose                                  |
+| ------------------- | ------------------ | ---------------------------------------- |
+| **sqlalchemy**      | >=2.0.0            | ORM with 2.x Mapped/mapped_column syntax |
+| **psycopg2-binary** | >=2.9.9            | PostgreSQL adapter for production        |
 
 #### Serverless/Protocol Dependencies
 
-| Package | Version Constraint | Purpose |
-|---------|-------------------|---------|
-| **mangum** | >=0.17.0 | AWS Lambda ASGI adapter |
-| **mcp** | >=1.0.0 | Model Context Protocol |
-| **fastmcp** | >=0.1.0 | FastMCP server implementation |
+| Package     | Version Constraint | Purpose                       |
+| ----------- | ------------------ | ----------------------------- |
+| **mangum**  | >=0.17.0           | AWS Lambda ASGI adapter       |
+| **mcp**     | >=1.0.0            | Model Context Protocol        |
+| **fastmcp** | >=0.1.0            | FastMCP server implementation |
 
 #### Compatibility Pins
 
-| Package | Version Constraint | Reason |
-|---------|-------------------|--------|
-| **h11** | 0.16.0 (pinned) | HTTP/1.1 protocol compatibility with uvicorn/httpx |
-| **httpx** | 0.28.1 (pinned) | Test HTTP client compatibility |
-| **anyio** | 4.12.0 (pinned) | Async I/O compatibility with httpx |
+| Package   | Version Constraint | Reason                                             |
+| --------- | ------------------ | -------------------------------------------------- |
+| **h11**   | 0.16.0 (pinned)    | HTTP/1.1 protocol compatibility with uvicorn/httpx |
+| **httpx** | 0.28.1 (pinned)    | Test HTTP client compatibility                     |
+| **anyio** | 4.12.0 (pinned)    | Async I/O compatibility with httpx                 |
 
 #### Security-Mandated Pins (Snyk)
 
-| Package | Version Constraint | Vulnerability Mitigation |
-|---------|-------------------|-------------------------|
-| **urllib3** | >=2.6.0 | Known vulnerability patch |
-| **zipp** | >=3.19.1 | Known vulnerability patch |
+| Package     | Version Constraint | Vulnerability Mitigation  |
+| ----------- | ------------------ | ------------------------- |
+| **urllib3** | >=2.6.0            | Known vulnerability patch |
+| **zipp**    | >=3.19.1           | Known vulnerability patch |
 
 ### 3.4.2 Python Development Dependencies
 
 **Source:** `requirements-dev.txt`
 
-| Category | Package | Version | Purpose |
-|----------|---------|---------|---------|
-| **Testing** | pytest | >=7.0.0 | Test framework |
-| **Testing** | pytest-cov | >=4.0.0 | Coverage reporting |
-| **Testing** | pytest-asyncio | >=0.21.0 | Async test support |
-| **Linting** | flake8 | >=6.0.0 | Style linting |
-| **Linting** | pylint | >=2.17.0 | Static analysis |
-| **Type Checking** | mypy | >=1.0.0 | Type checking |
-| **Formatting** | black | >=23.0.0 | Code formatting |
-| **Formatting** | isort | >=5.12.0 | Import sorting |
-| **Git Hooks** | pre-commit | >=3.0.0 | Pre-commit hook management |
-| **Configuration** | PyYAML | >=6.0 | YAML parsing |
-| **Type Stubs** | types-PyYAML | - | Type annotations for PyYAML |
+| Category          | Package        | Version  | Purpose                     |
+| ----------------- | -------------- | -------- | --------------------------- |
+| **Testing**       | pytest         | >=7.0.0  | Test framework              |
+| **Testing**       | pytest-cov     | >=4.0.0  | Coverage reporting          |
+| **Testing**       | pytest-asyncio | >=0.21.0 | Async test support          |
+| **Linting**       | flake8         | >=6.0.0  | Style linting               |
+| **Linting**       | pylint         | >=2.17.0 | Static analysis             |
+| **Type Checking** | mypy           | >=1.0.0  | Type checking               |
+| **Formatting**    | black          | >=23.0.0 | Code formatting             |
+| **Formatting**    | isort          | >=5.12.0 | Import sorting              |
+| **Git Hooks**     | pre-commit     | >=3.0.0  | Pre-commit hook management  |
+| **Configuration** | PyYAML         | >=6.0    | YAML parsing                |
+| **Type Stubs**    | types-PyYAML   | -        | Type annotations for PyYAML |
 
 ### 3.4.3 Frontend Runtime Dependencies
 
 **Source:** `frontend/package.json`
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **next** | 14.2.35 | React framework with App Router |
-| **react** | ^18.2.0 | UI component library |
-| **react-dom** | ^18.2.0 | React DOM renderer |
-| **axios** | ^1.13.2 | HTTP client for API communication |
-| **plotly.js** | ^2.27.0 | 3D visualization engine |
-| **react-plotly.js** | ^2.6.0 | React Plotly wrapper component |
-| **recharts** | ^2.10.0 | Additional charting (secondary) |
+| Package             | Version | Purpose                           |
+| ------------------- | ------- | --------------------------------- |
+| **next**            | 14.2.35 | React framework with App Router   |
+| **react**           | ^18.2.0 | UI component library              |
+| **react-dom**       | ^18.2.0 | React DOM renderer                |
+| **axios**           | ^1.13.2 | HTTP client for API communication |
+| **plotly.js**       | ^2.27.0 | 3D visualization engine           |
+| **react-plotly.js** | ^2.6.0  | React Plotly wrapper component    |
+| **recharts**        | ^2.10.0 | Additional charting (secondary)   |
 
 ### 3.4.4 Frontend Development Dependencies
 
 **Source:** `frontend/package.json`
 
-| Category | Package | Version | Purpose |
-|----------|---------|---------|---------|
-| **TypeScript** | typescript | ^5.3.0 | Type safety |
-| **Styling** | tailwindcss | ^3.3.0 | CSS framework |
-| **Styling** | postcss | ^8.4.31 | CSS processing |
-| **Styling** | autoprefixer | ^10.4.16 | Vendor prefixing |
-| **Testing** | jest | ^29.7.0 | Test framework |
-| **Testing** | jest-environment-jsdom | ^29.7.0 | DOM testing environment |
-| **Testing** | @testing-library/react | ^14.1.2 | React component testing |
-| **Testing** | @testing-library/jest-dom | ^6.1.5 | DOM assertion matchers |
-| **Testing** | @testing-library/user-event | ^14.5.1 | User interaction simulation |
-| **Linting** | eslint | ^8.55.0 | Code linting |
-| **Linting** | eslint-config-next | ^14.0.0 | Next.js ESLint rules |
+| Category       | Package                     | Version  | Purpose                     |
+| -------------- | --------------------------- | -------- | --------------------------- |
+| **TypeScript** | typescript                  | ^5.3.0   | Type safety                 |
+| **Styling**    | tailwindcss                 | ^3.3.0   | CSS framework               |
+| **Styling**    | postcss                     | ^8.4.31  | CSS processing              |
+| **Styling**    | autoprefixer                | ^10.4.16 | Vendor prefixing            |
+| **Testing**    | jest                        | ^29.7.0  | Test framework              |
+| **Testing**    | jest-environment-jsdom      | ^29.7.0  | DOM testing environment     |
+| **Testing**    | @testing-library/react      | ^14.1.2  | React component testing     |
+| **Testing**    | @testing-library/jest-dom   | ^6.1.5   | DOM assertion matchers      |
+| **Testing**    | @testing-library/user-event | ^14.5.1  | User interaction simulation |
+| **Linting**    | eslint                      | ^8.55.0  | Code linting                |
+| **Linting**    | eslint-config-next          | ^14.0.0  | Next.js ESLint rules        |
 
 ### 3.4.5 Dependency Version Strategy
 
@@ -2430,39 +2439,39 @@ flowchart TD
 
 #### Yahoo Finance (via yfinance)
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Library** | yfinance >=0.2.51 |
-| **Enable Flag** | `USE_REAL_DATA_FETCHER` environment variable |
-| **Implementation** | `src/data/real_data_fetcher.py` |
+| Attribute          | Specification                                |
+| ------------------ | -------------------------------------------- |
+| **Library**        | yfinance >=0.2.51                            |
+| **Enable Flag**    | `USE_REAL_DATA_FETCHER` environment variable |
+| **Implementation** | `src/data/real_data_fetcher.py`              |
 
 **Supported Symbols:**
 
-| Category | Symbols |
-|----------|---------|
-| **Equities** | AAPL, MSFT, XOM, JPM |
-| **Bond ETFs** | TLT, LQD, HYG |
+| Category        | Symbols                                      |
+| --------------- | -------------------------------------------- |
+| **Equities**    | AAPL, MSFT, XOM, JPM                         |
+| **Bond ETFs**   | TLT, LQD, HYG                                |
 | **Commodities** | GC=F (Gold), CL=F (Crude Oil), SI=F (Silver) |
-| **Currencies** | EURUSD=X, GBPUSD=X, JPYUSD=X |
+| **Currencies**  | EURUSD=X, GBPUSD=X, JPYUSD=X                 |
 
 **Rate Limit Mitigation:**
 
-| Strategy | Implementation |
-|----------|----------------|
+| Strategy         | Implementation                                                        |
+| ---------------- | --------------------------------------------------------------------- |
 | **File Caching** | JSON cache with atomic writes via `NamedTemporaryFile` + `os.replace` |
-| **Cache Path** | Configurable via `REAL_DATA_CACHE_PATH` environment variable |
-| **Fallback** | Sample data when network disabled or unavailable |
+| **Cache Path**   | Configurable via `REAL_DATA_CACHE_PATH` environment variable          |
+| **Fallback**     | Sample data when network disabled or unavailable                      |
 
 ### 3.5.2 Authentication Services
 
 The system implements **custom JWT authentication** rather than external identity providers:
 
-| Component | Technology | Configuration |
-|-----------|------------|---------------|
-| **Token Signing** | PyJWT >=2.8.0 | HS256 algorithm |
-| **Token Expiration** | 30 minutes | `ACCESS_TOKEN_EXPIRE_MINUTES` |
-| **Password Hashing** | passlib (pbkdf2_sha256) | `CryptContext` with pbkdf2_sha256 scheme |
-| **Secret Management** | Environment variables | `SECRET_KEY` (required) |
+| Component             | Technology              | Configuration                            |
+| --------------------- | ----------------------- | ---------------------------------------- |
+| **Token Signing**     | PyJWT >=2.8.0           | HS256 algorithm                          |
+| **Token Expiration**  | 30 minutes              | `ACCESS_TOKEN_EXPIRE_MINUTES`            |
+| **Password Hashing**  | passlib (pbkdf2_sha256) | `CryptContext` with pbkdf2_sha256 scheme |
+| **Secret Management** | Environment variables   | `SECRET_KEY` (required)                  |
 
 **Authentication Flow:**
 
@@ -2491,22 +2500,22 @@ sequenceDiagram
 
 ### 3.5.3 CI/CD & Code Quality Services
 
-| Service | Purpose | Integration |
-|---------|---------|-------------|
-| **GitHub Actions** | Primary CI pipeline | `.github/workflows/ci.yml` |
-| **CircleCI** | Secondary CI pipeline | `.circleci/config.yml` |
-| **Codecov** | Coverage reporting | Uploads `coverage.xml` |
-| **GitHub Advanced Security** | Security analysis | SARIF uploads |
-| **Codacy** | Code quality analysis | Automated reviews |
-| **Snyk** | Dependency vulnerability scanning | Version pins |
-| **Bandit** | Python security analysis | CI security job |
-| **Safety** | Dependency security checks | CI security job |
+| Service                      | Purpose                           | Integration                |
+| ---------------------------- | --------------------------------- | -------------------------- |
+| **GitHub Actions**           | Primary CI pipeline               | `.github/workflows/ci.yml` |
+| **CircleCI**                 | Secondary CI pipeline             | `.circleci/config.yml`     |
+| **Codecov**                  | Coverage reporting                | Uploads `coverage.xml`     |
+| **GitHub Advanced Security** | Security analysis                 | SARIF uploads              |
+| **Codacy**                   | Code quality analysis             | Automated reviews          |
+| **Snyk**                     | Dependency vulnerability scanning | Version pins               |
+| **Bandit**                   | Python security analysis          | CI security job            |
+| **Safety**                   | Dependency security checks        | CI security job            |
 
 ### 3.5.4 Deployment Platforms
 
-| Platform | Purpose | Configuration |
-|----------|---------|---------------|
-| **Vercel** | Production hosting | `vercel.json` |
+| Platform       | Purpose            | Configuration                      |
+| -------------- | ------------------ | ---------------------------------- |
+| **Vercel**     | Production hosting | `vercel.json`                      |
 | **Docker Hub** | Container registry | `Dockerfile`, `docker-compose.yml` |
 
 ---
@@ -2515,16 +2524,17 @@ sequenceDiagram
 
 ### 3.6.1 Primary Storage: In-Memory Graph
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Data Structure** | `Dict[source_id, List[Tuple[target_id, rel_type, strength]]]` |
-| **Implementation** | `src/logic/asset_graph.py` |
-| **Thread Safety** | Double-checked locking singleton pattern |
-| **Size Constraint** | Optimal performance for < 500 nodes |
+| Attribute           | Specification                                                 |
+| ------------------- | ------------------------------------------------------------- |
+| **Data Structure**  | `Dict[source_id, List[Tuple[target_id, rel_type, strength]]]` |
+| **Implementation**  | `src/logic/asset_graph.py`                                    |
+| **Thread Safety**   | Double-checked locking singleton pattern                      |
+| **Size Constraint** | Optimal performance for < 500 nodes                           |
 
 **Justification:**
 
 In-memory storage is selected for the primary graph due to:
+
 - Sub-millisecond relationship traversal for visualization
 - No external database dependency for deployment simplicity
 - Sufficient capacity for the 19-asset sample dataset and moderate production workloads
@@ -2559,12 +2569,12 @@ flowchart TD
 
 ### 3.6.2 SQLite (API Authentication)
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Purpose** | User credentials storage |
-| **Implementation** | `api/database.py` |
-| **Environment Variable** | `DATABASE_URL` (required for auth) |
-| **Features** | Connection pooling, row factory, in-memory support |
+| Attribute                | Specification                                      |
+| ------------------------ | -------------------------------------------------- |
+| **Purpose**              | User credentials storage                           |
+| **Implementation**       | `api/database.py`                                  |
+| **Environment Variable** | `DATABASE_URL` (required for auth)                 |
+| **Features**             | Connection pooling, row factory, in-memory support |
 
 **Schema:**
 
@@ -2580,36 +2590,36 @@ TABLE user_credentials (
 
 ### 3.6.3 SQLAlchemy ORM (Optional Persistence)
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Version** | SQLAlchemy >=2.0.0 |
-| **Syntax** | 2.x with `Mapped`/`mapped_column` |
-| **Implementation** | `src/data/database.py`, `src/data/db_models.py` |
-| **Environment Variable** | `ASSET_GRAPH_DATABASE_URL` |
+| Attribute                | Specification                                   |
+| ------------------------ | ----------------------------------------------- |
+| **Version**              | SQLAlchemy >=2.0.0                              |
+| **Syntax**               | 2.x with `Mapped`/`mapped_column`               |
+| **Implementation**       | `src/data/database.py`, `src/data/db_models.py` |
+| **Environment Variable** | `ASSET_GRAPH_DATABASE_URL`                      |
 
 **Supported Database Backends:**
 
-| Backend | Use Case | Connection String |
-|---------|----------|-------------------|
-| **SQLite** | Development | `sqlite:///path/to/db.sqlite` |
-| **SQLite In-Memory** | Testing | `sqlite:///:memory:` with `StaticPool` |
-| **PostgreSQL** | Production | `postgresql://user:pass@host/db` |
+| Backend              | Use Case    | Connection String                      |
+| -------------------- | ----------- | -------------------------------------- |
+| **SQLite**           | Development | `sqlite:///path/to/db.sqlite`          |
+| **SQLite In-Memory** | Testing     | `sqlite:///:memory:` with `StaticPool` |
+| **PostgreSQL**       | Production  | `postgresql://user:pass@host/db`       |
 
 **Database Schema (migrations/001_initial.sql):**
 
-| Table | Purpose |
-|-------|---------|
-| **assets** | Primary entity table for financial instruments |
-| **asset_relationships** | Directed edge table with unique constraint |
-| **regulatory_events** | Event records with impact scoring |
-| **regulatory_event_assets** | Many-to-many junction table |
+| Table                       | Purpose                                        |
+| --------------------------- | ---------------------------------------------- |
+| **assets**                  | Primary entity table for financial instruments |
+| **asset_relationships**     | Directed edge table with unique constraint     |
+| **regulatory_events**       | Event records with impact scoring              |
+| **regulatory_event_assets** | Many-to-many junction table                    |
 
 ### 3.6.4 Caching Strategy
 
-| Cache Type | Implementation | Configuration |
-|------------|----------------|---------------|
+| Cache Type          | Implementation               | Configuration          |
+| ------------------- | ---------------------------- | ---------------------- |
 | **Real Data Cache** | JSON file with atomic writes | `REAL_DATA_CACHE_PATH` |
-| **Graph Cache** | Optional JSON serialization | `GRAPH_CACHE_PATH` |
+| **Graph Cache**     | Optional JSON serialization  | `GRAPH_CACHE_PATH`     |
 
 **Atomic Write Pattern:**
 
@@ -2630,36 +2640,36 @@ TABLE user_credentials (
 
 **Source:** `Makefile`
 
-| Command | Purpose |
-|---------|---------|
-| `make install` | Install production dependencies |
-| `make install-dev` | Install development dependencies |
-| `make test` | Run pytest with coverage |
-| `make lint` | Run flake8 + pylint |
-| `make format` | Format with black + isort |
-| `make type-check` | Run mypy type checking |
-| `make check` | Full quality check pipeline |
-| `make docker-compose-up` | Build and start containers |
+| Command                  | Purpose                          |
+| ------------------------ | -------------------------------- |
+| `make install`           | Install production dependencies  |
+| `make install-dev`       | Install development dependencies |
+| `make test`              | Run pytest with coverage         |
+| `make lint`              | Run flake8 + pylint              |
+| `make format`            | Format with black + isort        |
+| `make type-check`        | Run mypy type checking           |
+| `make check`             | Full quality check pipeline      |
+| `make docker-compose-up` | Build and start containers       |
 
 #### Pre-commit Hooks
 
 **Source:** `.pre-commit-config.yaml`
 
-| Hook | Tool | Configuration |
-|------|------|---------------|
-| **Formatting** | black | `line-length: 120` |
-| **Import Sorting** | isort | `profile: black` |
-| **Linting** | flake8 | `.flake8` config file |
+| Hook               | Tool   | Configuration         |
+| ------------------ | ------ | --------------------- |
+| **Formatting**     | black  | `line-length: 120`    |
+| **Import Sorting** | isort  | `profile: black`      |
+| **Linting**        | flake8 | `.flake8` config file |
 
 #### Code Quality Tools Configuration
 
-| Tool | Config Source | Key Settings |
-|------|---------------|--------------|
-| **black** | `pyproject.toml` | `line-length = 120` |
-| **isort** | `pyproject.toml` | `profile = "black"` |
-| **mypy** | `pyproject.toml` | Strict type checking |
-| **flake8** | `.flake8` | E501 max-line-length |
-| **pylint** | `.pylintrc` | Customized rules |
+| Tool       | Config Source    | Key Settings         |
+| ---------- | ---------------- | -------------------- |
+| **black**  | `pyproject.toml` | `line-length = 120`  |
+| **isort**  | `pyproject.toml` | `profile = "black"`  |
+| **mypy**   | `pyproject.toml` | Strict type checking |
+| **flake8** | `.flake8`        | E501 max-line-length |
+| **pylint** | `.pylintrc`      | Customized rules     |
 
 ### 3.7.2 Build System
 
@@ -2677,14 +2687,14 @@ build-backend = "setuptools.build_meta"
 
 **Source:** `frontend/package.json`
 
-| Script | Command | Purpose |
-|--------|---------|---------|
-| `npm run dev` | `next dev` | Development server with hot reload |
-| `npm run build` | `next build` | Production build |
-| `npm run start` | `next start` | Production server |
-| `npm run lint` | `next lint` | ESLint analysis |
-| `npm test` | `jest --silent` | Run test suite |
-| `npm test -- --coverage` | `jest --coverage` | Coverage report |
+| Script                   | Command           | Purpose                            |
+| ------------------------ | ----------------- | ---------------------------------- |
+| `npm run dev`            | `next dev`        | Development server with hot reload |
+| `npm run build`          | `next build`      | Production build                   |
+| `npm run start`          | `next start`      | Production server                  |
+| `npm run lint`           | `next lint`       | ESLint analysis                    |
+| `npm test`               | `jest --silent`   | Run test suite                     |
+| `npm test -- --coverage` | `jest --coverage` | Coverage report                    |
 
 ### 3.7.3 Containerization
 
@@ -2692,28 +2702,28 @@ build-backend = "setuptools.build_meta"
 
 **Source:** `Dockerfile`
 
-| Attribute | Specification |
-|-----------|---------------|
-| **Base Image** | `python:3.11-slim` |
-| **Working Directory** | `/app` |
-| **User** | Non-root `appuser` (UID 1000) |
-| **Exposed Port** | 7860 (Gradio) |
-| **Health Check** | HTTP probe every 30s |
+| Attribute             | Specification                 |
+| --------------------- | ----------------------------- |
+| **Base Image**        | `python:3.11-slim`            |
+| **Working Directory** | `/app`                        |
+| **User**              | Non-root `appuser` (UID 1000) |
+| **Exposed Port**      | 7860 (Gradio)                 |
+| **Health Check**      | HTTP probe every 30s          |
 
 **Security Considerations:**
 
-| Practice | Implementation |
-|----------|----------------|
-| **Non-root User** | `useradd -m -u 1000 appuser` |
-| **Minimal Base Image** | `python:3.11-slim` (no dev tools) |
-| **Health Monitoring** | `HEALTHCHECK` instruction with curl |
+| Practice               | Implementation                      |
+| ---------------------- | ----------------------------------- |
+| **Non-root User**      | `useradd -m -u 1000 appuser`        |
+| **Minimal Base Image** | `python:3.11-slim` (no dev tools)   |
+| **Health Monitoring**  | `HEALTHCHECK` instruction with curl |
 
 #### Docker Compose Configuration
 
 **Source:** `docker-compose.yml`
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   app:
     build: .
@@ -2761,56 +2771,56 @@ flowchart LR
 
 **Job Configuration:**
 
-| Job | Actions |
-|-----|---------|
-| **test** | Matrix Python 3.10/3.11/3.12, linting, pytest with coverage |
-| **security** | safety check, bandit scan |
-| **coverage** | Upload to Codecov (Python 3.11 only) |
+| Job          | Actions                                                     |
+| ------------ | ----------------------------------------------------------- |
+| **test**     | Matrix Python 3.10/3.11/3.12, linting, pytest with coverage |
+| **security** | safety check, bandit scan                                   |
+| **coverage** | Upload to Codecov (Python 3.11 only)                        |
 
 #### CircleCI (Secondary)
 
 **Source:** `.circleci/config.yml`
 
-| Job | Actions |
-|-----|---------|
-| **python-lint** | flake8 with `.flake8` config |
-| **python-test** | pytest with parallelism=4, JUnit XML output |
-| **python-security** | safety + bandit |
-| **frontend-lint** | npm run lint |
-| **frontend-build** | npm run build |
-| **docker-build** | Build container + smoke test |
+| Job                 | Actions                                     |
+| ------------------- | ------------------------------------------- |
+| **python-lint**     | flake8 with `.flake8` config                |
+| **python-test**     | pytest with parallelism=4, JUnit XML output |
+| **python-security** | safety + bandit                             |
+| **frontend-lint**   | npm run lint                                |
+| **frontend-build**  | npm run build                               |
+| **docker-build**    | Build container + smoke test                |
 
 #### Scheduled Security Scans
 
-| Schedule | Workflow | Target |
-|----------|----------|--------|
+| Schedule            | Workflow          | Target      |
+| ------------------- | ----------------- | ----------- |
 | Nightly (02:00 UTC) | Security workflow | main branch |
 
 ### 3.7.5 Deployment Options
 
 #### Local Development
 
-| Component | Command | Port |
-|-----------|---------|------|
-| **FastAPI Backend** | `uvicorn api.main:app --reload --port 8000` | 8000 |
-| **Next.js Frontend** | `cd frontend && npm run dev` | 3000 |
-| **Gradio Legacy UI** | `python app.py` | 7860 |
+| Component            | Command                                     | Port |
+| -------------------- | ------------------------------------------- | ---- |
+| **FastAPI Backend**  | `uvicorn api.main:app --reload --port 8000` | 8000 |
+| **Next.js Frontend** | `cd frontend && npm run dev`                | 3000 |
+| **Gradio Legacy UI** | `python app.py`                             | 7860 |
 
 #### Vercel Serverless
 
 **Source:** `vercel.json`
 
-| Build | Configuration |
-|-------|---------------|
-| **Backend** | `@vercel/python`, maxLambdaSize: 50mb |
-| **Frontend** | `@vercel/next` |
+| Build        | Configuration                         |
+| ------------ | ------------------------------------- |
+| **Backend**  | `@vercel/python`, maxLambdaSize: 50mb |
+| **Frontend** | `@vercel/next`                        |
 
 **Routes:**
 
-| Pattern | Destination |
-|---------|-------------|
+| Pattern     | Destination   |
+| ----------- | ------------- |
 | `/api/(.*)` | `api/main.py` |
-| `/(.*)` | `frontend/$1` |
+| `/(.*)`     | `frontend/$1` |
 
 #### Docker Production
 
@@ -2826,37 +2836,37 @@ make docker-compose-up
 
 ### 3.8.1 Authentication Security
 
-| Aspect | Implementation |
-|--------|----------------|
-| **Algorithm** | HS256 (HMAC-SHA256) |
-| **Secret Key** | Environment variable (`SECRET_KEY`) |
-| **Token Expiration** | 30 minutes default |
-| **Password Hashing** | pbkdf2_sha256 via passlib |
+| Aspect               | Implementation                      |
+| -------------------- | ----------------------------------- |
+| **Algorithm**        | HS256 (HMAC-SHA256)                 |
+| **Secret Key**       | Environment variable (`SECRET_KEY`) |
+| **Token Expiration** | 30 minutes default                  |
+| **Password Hashing** | pbkdf2_sha256 via passlib           |
 
 ### 3.8.2 API Security
 
-| Protection | Implementation |
-|------------|----------------|
-| **Rate Limiting** | slowapi: 5 req/min on `/token`, 10 req/min on `/api/users/me` |
-| **CORS** | Environment-specific allowlists; no wildcard `*` origins |
-| **Input Validation** | Pydantic models with strict type enforcement |
+| Protection           | Implementation                                                |
+| -------------------- | ------------------------------------------------------------- |
+| **Rate Limiting**    | slowapi: 5 req/min on `/token`, 10 req/min on `/api/users/me` |
+| **CORS**             | Environment-specific allowlists; no wildcard `*` origins      |
+| **Input Validation** | Pydantic models with strict type enforcement                  |
 
 ### 3.8.3 Deployment Security
 
-| Practice | Implementation |
-|----------|----------------|
-| **Container User** | Non-root `appuser` (UID 1000) |
-| **Secrets Management** | Environment variables only; never committed |
-| **Dependency Scanning** | Snyk, Safety, Bandit in CI pipeline |
-| **HTTPS** | Required in production; Vercel provides TLS termination |
+| Practice                | Implementation                                          |
+| ----------------------- | ------------------------------------------------------- |
+| **Container User**      | Non-root `appuser` (UID 1000)                           |
+| **Secrets Management**  | Environment variables only; never committed             |
+| **Dependency Scanning** | Snyk, Safety, Bandit in CI pipeline                     |
+| **HTTPS**               | Required in production; Vercel provides TLS termination |
 
 ### 3.8.4 CORS Configuration
 
-| Environment | Allowed Origins |
-|-------------|-----------------|
-| **Development** | `http://localhost:3000`, `http://localhost:7860` |
-| **Production** | HTTPS origins only; Vercel preview domains via regex validation |
-| **Custom** | `ALLOWED_ORIGINS` environment variable (comma-separated) |
+| Environment     | Allowed Origins                                                 |
+| --------------- | --------------------------------------------------------------- |
+| **Development** | `http://localhost:3000`, `http://localhost:7860`                |
+| **Production**  | HTTPS origins only; Vercel preview domains via regex validation |
+| **Custom**      | `ALLOWED_ORIGINS` environment variable (comma-separated)        |
 
 ---
 
@@ -2864,37 +2874,37 @@ make docker-compose-up
 
 ### 3.9.1 Frontend-Backend Communication
 
-| Aspect | Specification |
-|--------|---------------|
-| **Protocol** | REST over HTTPS (production) / HTTP (development) |
-| **Data Format** | JSON |
-| **Authentication** | Bearer token in `Authorization` header |
-| **API Base URL** | `NEXT_PUBLIC_API_URL` environment variable |
+| Aspect             | Specification                                     |
+| ------------------ | ------------------------------------------------- |
+| **Protocol**       | REST over HTTPS (production) / HTTP (development) |
+| **Data Format**    | JSON                                              |
+| **Authentication** | Bearer token in `Authorization` header            |
+| **API Base URL**   | `NEXT_PUBLIC_API_URL` environment variable        |
 
 ### 3.9.2 Database Connectivity
 
-| Backend | Connection Handling |
-|---------|---------------------|
-| **SQLite** | Single connection for in-memory; file-based for persistence |
-| **PostgreSQL** | psycopg2-binary with connection pooling |
-| **In-Memory Testing** | SQLAlchemy `StaticPool` for connection reuse |
+| Backend               | Connection Handling                                         |
+| --------------------- | ----------------------------------------------------------- |
+| **SQLite**            | Single connection for in-memory; file-based for persistence |
+| **PostgreSQL**        | psycopg2-binary with connection pooling                     |
+| **In-Memory Testing** | SQLAlchemy `StaticPool` for connection reuse                |
 
 ### 3.9.3 External Data Source Integration
 
-| Source | Integration Pattern |
-|--------|---------------------|
-| **Yahoo Finance** | Rate-limited with JSON file caching |
-| **Fallback** | Sample data generator when network unavailable |
-| **Enable Flag** | `USE_REAL_DATA_FETCHER` environment variable |
+| Source            | Integration Pattern                            |
+| ----------------- | ---------------------------------------------- |
+| **Yahoo Finance** | Rate-limited with JSON file caching            |
+| **Fallback**      | Sample data generator when network unavailable |
+| **Enable Flag**   | `USE_REAL_DATA_FETCHER` environment variable   |
 
 ### 3.9.4 Component Version Compatibility Matrix
 
-| Component A | Component B | Constraint |
-|-------------|-------------|------------|
-| FastAPI 0.127.0 | Pydantic 2.12.5 | Pinned together |
-| NumPy 2.2.6 | Pandas >=1.5.0 | NumPy 2.x compatibility |
-| Next.js 14.2.x | React 18.2.0 | React 18 required |
-| Uvicorn >=0.24.0 | h11 0.16.0 | HTTP protocol compatibility |
+| Component A      | Component B     | Constraint                  |
+| ---------------- | --------------- | --------------------------- |
+| FastAPI 0.127.0  | Pydantic 2.12.5 | Pinned together             |
+| NumPy 2.2.6      | Pandas >=1.5.0  | NumPy 2.x compatibility     |
+| Next.js 14.2.x   | React 18.2.0    | React 18 required           |
+| Uvicorn >=0.24.0 | h11 0.16.0      | HTTP protocol compatibility |
 
 ---
 
@@ -2902,59 +2912,59 @@ make docker-compose-up
 
 ### 3.10.1 Configuration Files Examined
 
-| File | Purpose |
-|------|---------|
-| `requirements.txt` | Python runtime dependencies with pinned versions |
-| `requirements-dev.txt` | Python development/testing dependencies |
-| `pyproject.toml` | Python packaging, build config, tool configurations |
-| `frontend/package.json` | Node.js/Next.js dependencies |
-| `frontend/tsconfig.json` | TypeScript configuration |
-| `Dockerfile` | Container configuration |
-| `docker-compose.yml` | Multi-container orchestration |
-| `vercel.json` | Serverless deployment configuration |
-| `.github/workflows/ci.yml` | GitHub Actions CI pipeline |
-| `.circleci/config.yml` | CircleCI CI pipeline |
-| `Makefile` | Build automation commands |
-| `.env.example` | Environment variable templates |
-| `.pre-commit-config.yaml` | Pre-commit hook configuration |
+| File                       | Purpose                                             |
+| -------------------------- | --------------------------------------------------- |
+| `requirements.txt`         | Python runtime dependencies with pinned versions    |
+| `requirements-dev.txt`     | Python development/testing dependencies             |
+| `pyproject.toml`           | Python packaging, build config, tool configurations |
+| `frontend/package.json`    | Node.js/Next.js dependencies                        |
+| `frontend/tsconfig.json`   | TypeScript configuration                            |
+| `Dockerfile`               | Container configuration                             |
+| `docker-compose.yml`       | Multi-container orchestration                       |
+| `vercel.json`              | Serverless deployment configuration                 |
+| `.github/workflows/ci.yml` | GitHub Actions CI pipeline                          |
+| `.circleci/config.yml`     | CircleCI CI pipeline                                |
+| `Makefile`                 | Build automation commands                           |
+| `.env.example`             | Environment variable templates                      |
+| `.pre-commit-config.yaml`  | Pre-commit hook configuration                       |
 
 ### 3.10.2 Source Files Examined
 
-| File | Purpose |
-|------|---------|
-| `api/main.py` | FastAPI application with CORS, auth, rate limiting |
-| `api/auth.py` | JWT authentication implementation |
-| `api/database.py` | SQLite database module for API auth |
-| `src/data/database.py` | SQLAlchemy ORM configuration |
-| `src/data/real_data_fetcher.py` | Yahoo Finance integration |
-| `src/logic/asset_graph.py` | Core graph engine |
-| `src/models/financial_models.py` | Domain model dataclasses |
-| `app.py` | Gradio UI entry point |
-| `mcp_server.py` | FastMCP server for Model Context Protocol |
+| File                             | Purpose                                            |
+| -------------------------------- | -------------------------------------------------- |
+| `api/main.py`                    | FastAPI application with CORS, auth, rate limiting |
+| `api/auth.py`                    | JWT authentication implementation                  |
+| `api/database.py`                | SQLite database module for API auth                |
+| `src/data/database.py`           | SQLAlchemy ORM configuration                       |
+| `src/data/real_data_fetcher.py`  | Yahoo Finance integration                          |
+| `src/logic/asset_graph.py`       | Core graph engine                                  |
+| `src/models/financial_models.py` | Domain model dataclasses                           |
+| `app.py`                         | Gradio UI entry point                              |
+| `mcp_server.py`                  | FastMCP server for Model Context Protocol          |
 
 ### 3.10.3 Folders Explored
 
-| Folder | Purpose |
-|--------|---------|
-| `api/` | FastAPI backend application |
-| `src/` | Core Python packages |
-| `src/data/` | Data layer and database |
+| Folder                | Purpose                         |
+| --------------------- | ------------------------------- |
+| `api/`                | FastAPI backend application     |
+| `src/`                | Core Python packages            |
+| `src/data/`           | Data layer and database         |
 | `src/visualizations/` | Plotly visualization generators |
-| `frontend/` | Next.js application |
-| `frontend/app/` | App Router pages and components |
-| `.github/workflows/` | GitHub Actions configurations |
-| `.circleci/` | CircleCI configurations |
-| `migrations/` | Database migration scripts |
+| `frontend/`           | Next.js application             |
+| `frontend/app/`       | App Router pages and components |
+| `.github/workflows/`  | GitHub Actions configurations   |
+| `.circleci/`          | CircleCI configurations         |
+| `migrations/`         | Database migration scripts      |
 
 ### 3.10.4 Technical Specification Cross-References
 
-| Section | Reference Purpose |
-|---------|-------------------|
-| 1.2 System Overview | Architecture context and technology summary |
-| 2.1 Feature Catalog | Feature technology dependencies |
-| 2.4 Implementation Considerations | Technical constraints and requirements |
-| 2.6 Assumptions and Constraints | Scalability and operational constraints |
-| 1.3 Scope | System boundaries and excluded technologies |
+| Section                           | Reference Purpose                           |
+| --------------------------------- | ------------------------------------------- |
+| 1.2 System Overview               | Architecture context and technology summary |
+| 2.1 Feature Catalog               | Feature technology dependencies             |
+| 2.4 Implementation Considerations | Technical constraints and requirements      |
+| 2.6 Assumptions and Constraints   | Scalability and operational constraints     |
+| 1.3 Scope                         | System boundaries and excluded technologies |
 
 # 4. Process Flowchart
 
@@ -3199,16 +3209,16 @@ flowchart TB
 
 #### Relationship Detection Rules
 
-| Relationship Type | Detection Rule | Directionality | Strength Calculation |
-|-------------------|----------------|----------------|----------------------|
-| `same_sector` | Assets share identical sector value | Bidirectional | Fixed: 0.8 |
-| `corporate_bond_to_equity` | Bond.issuer_id matches Equity.id | Directional | Based on credit rating |
-| `commodity_exposure` | Equity sector linked to commodity type | Directional | Sector correlation coefficient |
-| `currency_risk` | Asset currency ≠ USD | Directional | Exchange rate volatility |
-| `income_comparison` | Dividend yield vs bond yield comparison | Bidirectional | Yield differential |
-| `regulatory_impact` | Shared regulatory event with impact_score | Directional | Event impact_score |
-| `market_cap_similar` | Market cap within 50% range | Bidirectional | Similarity ratio |
-| `correlation` | Price correlation > threshold | Bidirectional | Correlation coefficient |
+| Relationship Type          | Detection Rule                            | Directionality | Strength Calculation           |
+| -------------------------- | ----------------------------------------- | -------------- | ------------------------------ |
+| `same_sector`              | Assets share identical sector value       | Bidirectional  | Fixed: 0.8                     |
+| `corporate_bond_to_equity` | Bond.issuer_id matches Equity.id          | Directional    | Based on credit rating         |
+| `commodity_exposure`       | Equity sector linked to commodity type    | Directional    | Sector correlation coefficient |
+| `currency_risk`            | Asset currency ≠ USD                      | Directional    | Exchange rate volatility       |
+| `income_comparison`        | Dividend yield vs bond yield comparison   | Bidirectional  | Yield differential             |
+| `regulatory_impact`        | Shared regulatory event with impact_score | Directional    | Event impact_score             |
+| `market_cap_similar`       | Market cap within 50% range               | Bidirectional  | Similarity ratio               |
+| `correlation`              | Price correlation > threshold             | Bidirectional  | Correlation coefficient        |
 
 ## 4.3 API Request Workflows
 
@@ -3263,13 +3273,13 @@ flowchart TB
 
 #### Color Mapping for Asset Classes
 
-| Asset Class | Color Code | Visual |
-|-------------|------------|--------|
-| Equity | Blue (#1f77b4) | Standard equities |
-| Fixed Income | Green (#2ca02c) | Bonds and bond ETFs |
-| Commodity | Orange (#ff7f0e) | Commodity futures |
-| Currency | Red (#d62728) | Currency pairs |
-| Derivative | Purple (#9467bd) | Derivatives |
+| Asset Class  | Color Code       | Visual              |
+| ------------ | ---------------- | ------------------- |
+| Equity       | Blue (#1f77b4)   | Standard equities   |
+| Fixed Income | Green (#2ca02c)  | Bonds and bond ETFs |
+| Commodity    | Orange (#ff7f0e) | Commodity futures   |
+| Currency     | Red (#d62728)    | Currency pairs      |
+| Derivative   | Purple (#9467bd) | Derivatives         |
 
 ### 4.3.3 Metrics Calculation Flow
 
@@ -3292,13 +3302,13 @@ flowchart TB
 
 #### Metrics Calculation Formulas
 
-| Metric | Formula | Description |
-|--------|---------|-------------|
-| Total Assets | `len(graph.assets)` | Count of all asset nodes |
-| Total Relationships | `sum(len(edges) for edges in graph.relationships.values())` | Count of all edges |
-| Average Degree | `(2 × total_relationships) / total_assets` | Mean connections per node |
-| Max Degree | `max(len(edges) for edges in graph.relationships.values())` | Highest connected node |
-| Network Density | `total_relationships / (total_assets × (total_assets - 1) / 2)` | Ratio of actual to possible edges |
+| Metric              | Formula                                                         | Description                       |
+| ------------------- | --------------------------------------------------------------- | --------------------------------- |
+| Total Assets        | `len(graph.assets)`                                             | Count of all asset nodes          |
+| Total Relationships | `sum(len(edges) for edges in graph.relationships.values())`     | Count of all edges                |
+| Average Degree      | `(2 × total_relationships) / total_assets`                      | Mean connections per node         |
+| Max Degree          | `max(len(edges) for edges in graph.relationships.values())`     | Highest connected node            |
+| Network Density     | `total_relationships / (total_assets × (total_assets - 1) / 2)` | Ratio of actual to possible edges |
 
 ## 4.4 Frontend Workflows
 
@@ -3745,16 +3755,16 @@ stateDiagram-v2
 
 ### 4.8.1 Performance Targets by Operation
 
-| Operation | Target SLA | Measurement Point |
-|-----------|-----------|-------------------|
-| API Response (95th percentile) | < 500ms | Request to response |
-| Visualization Rendering | < 2 seconds | Data load to interactive |
-| Relationship Discovery | < 500ms | For 100 assets |
-| Token Generation | < 100ms | Credential submission to token |
-| Graph Initialization | < 3 seconds | Application startup |
-| Dataclass Instantiation | < 1ms | Per object |
-| Validation | < 1ms | Per object |
-| Initial Page Load | < 3 seconds | Navigation to interactive |
+| Operation                      | Target SLA  | Measurement Point              |
+| ------------------------------ | ----------- | ------------------------------ |
+| API Response (95th percentile) | < 500ms     | Request to response            |
+| Visualization Rendering        | < 2 seconds | Data load to interactive       |
+| Relationship Discovery         | < 500ms     | For 100 assets                 |
+| Token Generation               | < 100ms     | Credential submission to token |
+| Graph Initialization           | < 3 seconds | Application startup            |
+| Dataclass Instantiation        | < 1ms       | Per object                     |
+| Validation                     | < 1ms       | Per object                     |
+| Initial Page Load              | < 3 seconds | Navigation to interactive      |
 
 ### 4.8.2 Timeout Configuration
 
@@ -3770,11 +3780,11 @@ flowchart LR
 
 ### 4.8.3 Rate Limiting Constraints
 
-| Endpoint | Limit | Window | Key Function |
-|----------|-------|--------|--------------|
-| `POST /token` | 5 requests | 1 minute | Client IP |
-| `GET /api/users/me` | 10 requests | 1 minute | Client IP |
-| Other endpoints | Unlimited | N/A | N/A |
+| Endpoint            | Limit       | Window   | Key Function |
+| ------------------- | ----------- | -------- | ------------ |
+| `POST /token`       | 5 requests  | 1 minute | Client IP    |
+| `GET /api/users/me` | 10 requests | 1 minute | Client IP    |
+| Other endpoints     | Unlimited   | N/A      | N/A          |
 
 ## 4.9 Validation Rules and Checkpoints
 
@@ -3805,15 +3815,15 @@ flowchart TB
 
 ### 4.9.2 API Input Validation Checkpoints
 
-| Checkpoint | Validation | Response on Failure |
-|------------|------------|---------------------|
-| Request Body | Pydantic model parsing | 422 Validation Error |
-| Query Parameters | Type coercion and constraints | 422 Validation Error |
-| Path Parameters | Type validation | 422 Validation Error |
-| Authentication | Token format and signature | 401 Unauthorized |
-| Authorization | User active status | 400 Inactive User |
-| CORS Origin | Allowlist and pattern matching | 403 Forbidden |
-| Rate Limit | Request count per window | 429 Too Many Requests |
+| Checkpoint       | Validation                     | Response on Failure   |
+| ---------------- | ------------------------------ | --------------------- |
+| Request Body     | Pydantic model parsing         | 422 Validation Error  |
+| Query Parameters | Type coercion and constraints  | 422 Validation Error  |
+| Path Parameters  | Type validation                | 422 Validation Error  |
+| Authentication   | Token format and signature     | 401 Unauthorized      |
+| Authorization    | User active status             | 400 Inactive User     |
+| CORS Origin      | Allowlist and pattern matching | 403 Forbidden         |
+| Rate Limit       | Request count per window       | 429 Too Many Requests |
 
 ### 4.9.3 Data Quality Validation
 
@@ -3832,13 +3842,13 @@ flowchart TB
 
 ### 4.10.1 Data Persistence Points
 
-| Component | Persistence Method | Durability |
-|-----------|-------------------|------------|
-| Graph State | In-memory singleton | Process lifetime |
-| User Credentials | SQLite database | Persistent |
-| Cache Files | JSON file system | Persistent |
-| JWT Tokens | Stateless (client-held) | Token lifetime |
-| Session State | React/Gradio state | Tab lifetime |
+| Component        | Persistence Method      | Durability       |
+| ---------------- | ----------------------- | ---------------- |
+| Graph State      | In-memory singleton     | Process lifetime |
+| User Credentials | SQLite database         | Persistent       |
+| Cache Files      | JSON file system        | Persistent       |
+| JWT Tokens       | Stateless (client-held) | Token lifetime   |
+| Session State    | React/Gradio state      | Tab lifetime     |
 
 ### 4.10.2 Transaction Flow for Cache Updates
 
@@ -3876,6 +3886,7 @@ flowchart TB
 ## 4.11 References
 
 #### Files Examined
+
 - `api/main.py` - FastAPI backend with graph lifecycle, authentication flow, CORS, rate limiting, all REST endpoints, and error handling patterns
 - `api/auth.py` - JWT authentication flow, password hashing, token creation/validation, and user repository
 - `api/database.py` - SQLite database helpers and memory connection management
@@ -3888,6 +3899,7 @@ flowchart TB
 - `frontend/app/lib/api.ts` - Frontend API client with all endpoint calls
 
 #### Technical Specification Sections Referenced
+
 - 1.2 System Overview - System architecture and component interactions
 - 2.1 Feature Catalog - Feature definitions and dependencies
 - 2.4 Implementation Considerations - Performance requirements and constraints
@@ -3906,12 +3918,12 @@ This section provides a comprehensive technical reference for the Financial Asse
 
 The Financial Asset Relationship Database implements a **layered architecture** with clear separation of concerns, optimizing for deployment flexibility, maintainability, and appropriate scalability for financial analysis workloads. The system follows an **API-first design** philosophy, enabling multiple presentation layers to consume the same business logic through standardized interfaces.
 
-| Architectural Characteristic | Design Decision | Rationale |
-|------------------------------|-----------------|-----------|
-| Layer Separation | Four distinct layers (Presentation, API, Business Logic, Data) | Enables independent evolution and testing of each concern |
-| Monolithic Core | Single deployable Python process with modular packages | Simplifies deployment for current scale (<500 assets) while maintaining clear module boundaries |
-| API-First Design | REST/JSON endpoints via FastAPI with automatic OpenAPI documentation | Universal client compatibility and self-documenting interfaces |
-| Dual UI Strategy | Legacy Gradio + Modern Next.js frontends | Supports rapid prototyping and production-ready experiences |
+| Architectural Characteristic | Design Decision                                                      | Rationale                                                                                       |
+| ---------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Layer Separation             | Four distinct layers (Presentation, API, Business Logic, Data)       | Enables independent evolution and testing of each concern                                       |
+| Monolithic Core              | Single deployable Python process with modular packages               | Simplifies deployment for current scale (<500 assets) while maintaining clear module boundaries |
+| API-First Design             | REST/JSON endpoints via FastAPI with automatic OpenAPI documentation | Universal client compatibility and self-documenting interfaces                                  |
+| Dual UI Strategy             | Legacy Gradio + Modern Next.js frontends                             | Supports rapid prototyping and production-ready experiences                                     |
 
 #### Key Architectural Principles
 
@@ -3985,16 +3997,16 @@ flowchart TB
 
 The system comprises eight major components, each with distinct responsibilities and well-defined integration boundaries.
 
-| Component | Primary Responsibility | Key Dependencies | Integration Points |
-|-----------|----------------------|------------------|-------------------|
-| FastAPI Backend | REST API server, request routing, middleware orchestration | FastAPI 0.127.0, Uvicorn, slowapi, PyJWT | Frontend via HTTP/JSON, Graph via Python calls |
-| Next.js Frontend | Modern React-based UI with TypeScript | Next.js 14.2.35, React 18.2.0, Axios, Plotly.js | FastAPI via REST, Users via browser |
-| Gradio UI | Legacy Python-native dashboard | Gradio ≥4.0.0, Plotly ≥6.0.0 | Graph Engine via direct Python calls |
-| Graph Engine | In-memory relationship storage, 3D layout calculation | NumPy 2.2.6 | All layers via singleton accessor |
-| Domain Models | Asset/Event dataclasses, validation rules | Python standard library | All components via imports |
-| Real Data Fetcher | Yahoo Finance integration, caching | yfinance ≥0.2.51 | Graph initialization pipeline |
-| Visualization Module | Plotly chart generation, color mapping | Plotly ≥6.0.0 | API endpoints, Gradio UI |
-| Auth Module | JWT token management, user authentication | PyJWT ≥2.8.0, passlib | FastAPI protected endpoints |
+| Component            | Primary Responsibility                                     | Key Dependencies                                | Integration Points                             |
+| -------------------- | ---------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------- |
+| FastAPI Backend      | REST API server, request routing, middleware orchestration | FastAPI 0.127.0, Uvicorn, slowapi, PyJWT        | Frontend via HTTP/JSON, Graph via Python calls |
+| Next.js Frontend     | Modern React-based UI with TypeScript                      | Next.js 14.2.35, React 18.2.0, Axios, Plotly.js | FastAPI via REST, Users via browser            |
+| Gradio UI            | Legacy Python-native dashboard                             | Gradio ≥4.0.0, Plotly ≥6.0.0                    | Graph Engine via direct Python calls           |
+| Graph Engine         | In-memory relationship storage, 3D layout calculation      | NumPy 2.2.6                                     | All layers via singleton accessor              |
+| Domain Models        | Asset/Event dataclasses, validation rules                  | Python standard library                         | All components via imports                     |
+| Real Data Fetcher    | Yahoo Finance integration, caching                         | yfinance ≥0.2.51                                | Graph initialization pipeline                  |
+| Visualization Module | Plotly chart generation, color mapping                     | Plotly ≥6.0.0                                   | API endpoints, Gradio UI                       |
+| Auth Module          | JWT token management, user authentication                  | PyJWT ≥2.8.0, passlib                           | FastAPI protected endpoints                    |
 
 ### 5.1.3 Data Flow Description
 
@@ -4026,27 +4038,27 @@ The data ingestion flow populates the graph from external or internal sources:
 
 The relationship discovery engine processes assets through rule-based algorithms:
 
-| Relationship Type | Detection Rule | Directionality | Data Source |
-|-------------------|----------------|----------------|-------------|
-| `same_sector` | Assets share identical sector | Bidirectional | Asset.sector field |
-| `corporate_bond_to_equity` | Bond.issuer_id matches Equity.id | Directional | Cross-asset linkage |
-| `commodity_exposure` | Equity sector linked to commodity | Directional | Sector-commodity mapping |
-| `currency_risk` | Asset currency ≠ USD | Directional | Asset.currency field |
-| `income_comparison` | Dividend yield vs bond yield | Bidirectional | Yield calculations |
-| `regulatory_impact` | Shared regulatory event | Directional | Event.impact_score |
-| `market_cap_similar` | Market cap within 50% range | Bidirectional | Asset.market_cap |
-| `correlation` | Price correlation > threshold | Bidirectional | Historical prices |
+| Relationship Type          | Detection Rule                    | Directionality | Data Source              |
+| -------------------------- | --------------------------------- | -------------- | ------------------------ |
+| `same_sector`              | Assets share identical sector     | Bidirectional  | Asset.sector field       |
+| `corporate_bond_to_equity` | Bond.issuer_id matches Equity.id  | Directional    | Cross-asset linkage      |
+| `commodity_exposure`       | Equity sector linked to commodity | Directional    | Sector-commodity mapping |
+| `currency_risk`            | Asset currency ≠ USD              | Directional    | Asset.currency field     |
+| `income_comparison`        | Dividend yield vs bond yield      | Bidirectional  | Yield calculations       |
+| `regulatory_impact`        | Shared regulatory event           | Directional    | Event.impact_score       |
+| `market_cap_similar`       | Market cap within 50% range       | Bidirectional  | Asset.market_cap         |
+| `correlation`              | Price correlation > threshold     | Bidirectional  | Historical prices        |
 
 ### 5.1.4 External Integration Points
 
 The system integrates with external services through well-defined interfaces:
 
-| System Name | Integration Type | Data Exchange Pattern | Protocol/Format |
-|-------------|-----------------|----------------------|-----------------|
-| Yahoo Finance | External data source | HTTP pull with JSON caching | yfinance Python library |
-| SQLite | Local authentication store | File-based SQL persistence | sqlite3 driver |
-| PostgreSQL | Optional production persistence | Connection-pooled SQL | SQLAlchemy ORM |
-| Vercel | Serverless hosting platform | HTTPS deployment | Vercel CLI/JSON config |
+| System Name   | Integration Type                | Data Exchange Pattern       | Protocol/Format         |
+| ------------- | ------------------------------- | --------------------------- | ----------------------- |
+| Yahoo Finance | External data source            | HTTP pull with JSON caching | yfinance Python library |
+| SQLite        | Local authentication store      | File-based SQL persistence  | sqlite3 driver          |
+| PostgreSQL    | Optional production persistence | Connection-pooled SQL       | SQLAlchemy ORM          |
+| Vercel        | Serverless hosting platform     | HTTPS deployment            | Vercel CLI/JSON config  |
 
 ---
 
@@ -4060,41 +4072,41 @@ The FastAPI backend serves as the primary API gateway, exposing graph data throu
 
 **Location**: `api/main.py`
 
-| Responsibility | Implementation |
-|---------------|----------------|
-| REST API Routing | FastAPI router with typed endpoint definitions |
-| Authentication | JWT token issuance and validation via `api/auth.py` |
-| Rate Limiting | slowapi integration with per-endpoint limits |
-| CORS Management | Environment-specific origin allowlists |
-| Request Validation | Pydantic models for automatic validation |
-| Graph Lifecycle | Thread-safe singleton management |
+| Responsibility     | Implementation                                      |
+| ------------------ | --------------------------------------------------- |
+| REST API Routing   | FastAPI router with typed endpoint definitions      |
+| Authentication     | JWT token issuance and validation via `api/auth.py` |
+| Rate Limiting      | slowapi integration with per-endpoint limits        |
+| CORS Management    | Environment-specific origin allowlists              |
+| Request Validation | Pydantic models for automatic validation            |
+| Graph Lifecycle    | Thread-safe singleton management                    |
 
 #### Technologies and Frameworks
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| FastAPI | 0.127.0 | REST framework with automatic OpenAPI |
-| Uvicorn | ≥0.24.0 | ASGI server with async support |
-| Pydantic | 2.12.5 | Request/response validation |
-| slowapi | Latest | Rate limiting middleware |
-| PyJWT | ≥2.8.0 | JWT token encoding/decoding |
-| passlib | Latest | Password hashing (pbkdf2_sha256) |
+| Technology | Version | Purpose                               |
+| ---------- | ------- | ------------------------------------- |
+| FastAPI    | 0.127.0 | REST framework with automatic OpenAPI |
+| Uvicorn    | ≥0.24.0 | ASGI server with async support        |
+| Pydantic   | 2.12.5  | Request/response validation           |
+| slowapi    | Latest  | Rate limiting middleware              |
+| PyJWT      | ≥2.8.0  | JWT token encoding/decoding           |
+| passlib    | Latest  | Password hashing (pbkdf2_sha256)      |
 
 #### Key Interfaces and APIs
 
-| Endpoint | Method | Purpose | Auth Required |
-|----------|--------|---------|---------------|
-| `/token` | POST | JWT token issuance | No (rate limited: 5/min) |
-| `/api/assets` | GET | List assets with optional filters | No |
-| `/api/assets/{id}` | GET | Single asset details | No |
-| `/api/assets/{id}/relationships` | GET | Asset relationships | No |
-| `/api/relationships` | GET | All relationships | No |
-| `/api/metrics` | GET | Network statistics | No |
-| `/api/visualization` | GET | 3D visualization data | No |
-| `/api/asset-classes` | GET | Available asset class enum | No |
-| `/api/sectors` | GET | Available sectors | No |
-| `/api/users/me` | GET | Current user info | Yes (rate limited: 10/min) |
-| `/api/health` | GET | Health check | No |
+| Endpoint                         | Method | Purpose                           | Auth Required              |
+| -------------------------------- | ------ | --------------------------------- | -------------------------- |
+| `/token`                         | POST   | JWT token issuance                | No (rate limited: 5/min)   |
+| `/api/assets`                    | GET    | List assets with optional filters | No                         |
+| `/api/assets/{id}`               | GET    | Single asset details              | No                         |
+| `/api/assets/{id}/relationships` | GET    | Asset relationships               | No                         |
+| `/api/relationships`             | GET    | All relationships                 | No                         |
+| `/api/metrics`                   | GET    | Network statistics                | No                         |
+| `/api/visualization`             | GET    | 3D visualization data             | No                         |
+| `/api/asset-classes`             | GET    | Available asset class enum        | No                         |
+| `/api/sectors`                   | GET    | Available sectors                 | No                         |
+| `/api/users/me`                  | GET    | Current user info                 | Yes (rate limited: 10/min) |
+| `/api/health`                    | GET    | Health check                      | No                         |
 
 #### Thread-Safe Graph Access Pattern
 
@@ -4129,32 +4141,32 @@ The Next.js frontend provides a modern, responsive user interface for exploring 
 
 **Location**: `frontend/`
 
-| Responsibility | Implementation |
-|---------------|----------------|
-| 3D Visualization | Plotly.js integration with SSR safety |
+| Responsibility    | Implementation                          |
+| ----------------- | --------------------------------------- |
+| 3D Visualization  | Plotly.js integration with SSR safety   |
 | Asset Exploration | Filterable tables with URL-synced state |
-| Metrics Dashboard | Grid-based metrics display |
-| API Communication | Axios HTTP client with error handling |
-| Responsive Design | Tailwind CSS utility classes |
+| Metrics Dashboard | Grid-based metrics display              |
+| API Communication | Axios HTTP client with error handling   |
+| Responsive Design | Tailwind CSS utility classes            |
 
 #### Technologies and Frameworks
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Next.js | 14.2.35 | React meta-framework with App Router |
-| React | 18.2.0 | UI component library |
-| TypeScript | ^5.3.0 | Type safety |
-| Tailwind CSS | Latest | Utility-first styling |
-| Plotly.js | ^2.27.0 | Client-side 3D rendering |
-| Axios | Latest | HTTP client |
+| Technology   | Version | Purpose                              |
+| ------------ | ------- | ------------------------------------ |
+| Next.js      | 14.2.35 | React meta-framework with App Router |
+| React        | 18.2.0  | UI component library                 |
+| TypeScript   | ^5.3.0  | Type safety                          |
+| Tailwind CSS | Latest  | Utility-first styling                |
+| Plotly.js    | ^2.27.0 | Client-side 3D rendering             |
+| Axios        | Latest  | HTTP client                          |
 
 #### Key Components
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
+| Component              | Location                                           | Purpose                                     |
+| ---------------------- | -------------------------------------------------- | ------------------------------------------- |
 | `NetworkVisualization` | `frontend/app/components/NetworkVisualization.tsx` | 3D Plotly graph with dynamic import for SSR |
-| `MetricsDashboard` | `frontend/app/components/MetricsDashboard.tsx` | Metrics display grid |
-| `AssetList` | `frontend/app/components/AssetList.tsx` | Filterable asset table with pagination |
+| `MetricsDashboard`     | `frontend/app/components/MetricsDashboard.tsx`     | Metrics display grid                        |
+| `AssetList`            | `frontend/app/components/AssetList.tsx`            | Filterable asset table with pagination      |
 
 #### Frontend Data Flow
 
@@ -4193,30 +4205,30 @@ The Gradio UI provides a legacy Python-native dashboard for rapid exploration an
 
 **Location**: `app.py`
 
-| Responsibility | Implementation |
-|---------------|----------------|
-| Tabbed Interface | Gradio Blocks with six tabs |
-| Real-time Updates | Event handlers for refresh actions |
+| Responsibility       | Implementation                        |
+| -------------------- | ------------------------------------- |
+| Tabbed Interface     | Gradio Blocks with six tabs           |
+| Real-time Updates    | Event handlers for refresh actions    |
 | Direct Python Access | No API intermediary for visualization |
-| Development Tool | Rapid prototyping environment |
+| Development Tool     | Rapid prototyping environment         |
 
 #### Technologies and Frameworks
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Gradio | ≥4.0.0 | Python UI framework |
-| Plotly | ≥6.0.0 | Server-side visualization |
+| Technology | Version | Purpose                   |
+| ---------- | ------- | ------------------------- |
+| Gradio     | ≥4.0.0  | Python UI framework       |
+| Plotly     | ≥6.0.0  | Server-side visualization |
 
 #### Interface Structure
 
-| Tab | Content | Data Source |
-|-----|---------|-------------|
-| 3D Visualization | Interactive network graph | `src/visualizations/graph_visuals.py` |
-| Metrics | Network statistics | `src/visualizations/metric_visuals.py` |
-| Schema & Rules | Data model documentation | `src/reports/schema_report.py` |
-| Asset Explorer | Filterable asset table | Graph engine assets |
-| Documentation | System documentation | Static content |
-| Formulaic Analysis | Analysis dashboard | `src/visualizations/formulaic_visuals.py` |
+| Tab                | Content                   | Data Source                               |
+| ------------------ | ------------------------- | ----------------------------------------- |
+| 3D Visualization   | Interactive network graph | `src/visualizations/graph_visuals.py`     |
+| Metrics            | Network statistics        | `src/visualizations/metric_visuals.py`    |
+| Schema & Rules     | Data model documentation  | `src/reports/schema_report.py`            |
+| Asset Explorer     | Filterable asset table    | Graph engine assets                       |
+| Documentation      | System documentation      | Static content                            |
+| Formulaic Analysis | Analysis dashboard        | `src/visualizations/formulaic_visuals.py` |
 
 ### 5.2.4 Graph Engine
 
@@ -4226,32 +4238,32 @@ The Graph Engine serves as the central data structure, managing asset storage, r
 
 **Location**: `src/logic/asset_graph.py`
 
-| Responsibility | Implementation |
-|---------------|----------------|
-| Asset Storage | Dictionary-based in-memory storage |
-| Relationship Management | Adjacency list with typed edges |
-| 3D Layout Calculation | NumPy-based coordinate generation |
-| Metrics Computation | Network statistics calculation |
-| Singleton Access | Thread-safe global instance |
+| Responsibility          | Implementation                     |
+| ----------------------- | ---------------------------------- |
+| Asset Storage           | Dictionary-based in-memory storage |
+| Relationship Management | Adjacency list with typed edges    |
+| 3D Layout Calculation   | NumPy-based coordinate generation  |
+| Metrics Computation     | Network statistics calculation     |
+| Singleton Access        | Thread-safe global instance        |
 
 #### Data Structures
 
-| Structure | Type | Purpose |
-|-----------|------|---------|
-| `assets` | `Dict[str, Asset]` | Asset ID to object mapping |
-| `relationships` | `Dict[str, List[Tuple[str, str, float]]]` | Source ID to (target, type, strength) edges |
-| `regulatory_events` | `Dict[str, RegulatoryEvent]` | Event ID to object mapping |
+| Structure           | Type                                      | Purpose                                     |
+| ------------------- | ----------------------------------------- | ------------------------------------------- |
+| `assets`            | `Dict[str, Asset]`                        | Asset ID to object mapping                  |
+| `relationships`     | `Dict[str, List[Tuple[str, str, float]]]` | Source ID to (target, type, strength) edges |
+| `regulatory_events` | `Dict[str, RegulatoryEvent]`              | Event ID to object mapping                  |
 
 #### Key Methods
 
-| Method | Parameters | Returns | Purpose |
-|--------|------------|---------|---------|
-| `add_asset()` | `Asset` | `None` | Register asset in graph |
-| `add_regulatory_event()` | `RegulatoryEvent` | `None` | Register event |
-| `build_relationships()` | `None` | `None` | Discover all relationship types |
-| `get_relationships()` | `asset_id` | `List[Tuple]` | Get edges for asset |
-| `calculate_metrics()` | `None` | `Dict` | Compute network statistics |
-| `get_3d_visualization_data_enhanced()` | `filters` | `Tuple` | Generate visualization data |
+| Method                                 | Parameters        | Returns       | Purpose                         |
+| -------------------------------------- | ----------------- | ------------- | ------------------------------- |
+| `add_asset()`                          | `Asset`           | `None`        | Register asset in graph         |
+| `add_regulatory_event()`               | `RegulatoryEvent` | `None`        | Register event                  |
+| `build_relationships()`                | `None`            | `None`        | Discover all relationship types |
+| `get_relationships()`                  | `asset_id`        | `List[Tuple]` | Get edges for asset             |
+| `calculate_metrics()`                  | `None`            | `Dict`        | Compute network statistics      |
+| `get_3d_visualization_data_enhanced()` | `filters`         | `Tuple`       | Generate visualization data     |
 
 ### 5.2.5 Domain Models
 
@@ -4263,13 +4275,13 @@ Domain models define the type-safe data structures and validation rules that gov
 
 #### Asset Class Enumeration
 
-| Value | Display Name | Description |
-|-------|--------------|-------------|
-| `EQUITY` | Equity | Stocks and equity instruments |
-| `FIXED_INCOME` | Fixed Income | Bonds and debt instruments |
-| `COMMODITY` | Commodity | Physical commodity futures |
-| `CURRENCY` | Currency | Foreign exchange pairs |
-| `DERIVATIVE` | Derivative | Derivative instruments |
+| Value          | Display Name | Description                   |
+| -------------- | ------------ | ----------------------------- |
+| `EQUITY`       | Equity       | Stocks and equity instruments |
+| `FIXED_INCOME` | Fixed Income | Bonds and debt instruments    |
+| `COMMODITY`    | Commodity    | Physical commodity futures    |
+| `CURRENCY`     | Currency     | Foreign exchange pairs        |
+| `DERIVATIVE`   | Derivative   | Derivative instruments        |
 
 #### Asset Type Hierarchy
 
@@ -4322,13 +4334,13 @@ classDiagram
 
 #### Validation Rules
 
-| Field | Rule | Error Handling |
-|-------|------|----------------|
-| `id`, `symbol`, `name` | Non-empty string | `ValueError` on empty |
-| `price`, `market_cap` | Non-negative float | `ValueError` on negative |
-| `currency` | 3-character ISO code | `ValueError` on invalid |
-| `impact_score` (events) | Range [-1, 1] | `ValueError` on out of bounds |
-| `date` (events) | ISO 8601 format | `ValueError` on invalid format |
+| Field                   | Rule                 | Error Handling                 |
+| ----------------------- | -------------------- | ------------------------------ |
+| `id`, `symbol`, `name`  | Non-empty string     | `ValueError` on empty          |
+| `price`, `market_cap`   | Non-negative float   | `ValueError` on negative       |
+| `currency`              | 3-character ISO code | `ValueError` on invalid        |
+| `impact_score` (events) | Range [-1, 1]        | `ValueError` on out of bounds  |
+| `date` (events)         | ISO 8601 format      | `ValueError` on invalid format |
 
 ### 5.2.6 Visualization Layer
 
@@ -4338,22 +4350,22 @@ The Visualization Layer generates Plotly-compatible chart specifications for bot
 
 **Location**: `src/visualizations/`
 
-| Module | Purpose |
-|--------|---------|
-| `graph_visuals.py` | 3D network visualization with filtering |
-| `graph_2d_visuals.py` | 2D network layouts |
-| `metric_visuals.py` | Metrics bar charts and dashboards |
-| `formulaic_visuals.py` | Formulaic analysis dashboard |
+| Module                 | Purpose                                 |
+| ---------------------- | --------------------------------------- |
+| `graph_visuals.py`     | 3D network visualization with filtering |
+| `graph_2d_visuals.py`  | 2D network layouts                      |
+| `metric_visuals.py`    | Metrics bar charts and dashboards       |
+| `formulaic_visuals.py` | Formulaic analysis dashboard            |
 
 #### Color Scheme Mapping
 
-| Asset Class | Node Color | Relationship Type | Edge Color |
-|-------------|------------|-------------------|------------|
-| Equity | Blue (#1f77b4) | same_sector | Orange |
-| Fixed Income | Green (#2ca02c) | corporate_bond_to_equity | Blue |
-| Commodity | Orange (#ff7f0e) | commodity_exposure | Green |
-| Currency | Red (#d62728) | regulatory_impact | Red |
-| Derivative | Purple (#9467bd) | market_cap_similar | Gray |
+| Asset Class  | Node Color       | Relationship Type        | Edge Color |
+| ------------ | ---------------- | ------------------------ | ---------- |
+| Equity       | Blue (#1f77b4)   | same_sector              | Orange     |
+| Fixed Income | Green (#2ca02c)  | corporate_bond_to_equity | Blue       |
+| Commodity    | Orange (#ff7f0e) | commodity_exposure       | Green      |
+| Currency     | Red (#d62728)    | regulatory_impact        | Red        |
+| Derivative   | Purple (#9467bd) | market_cap_similar       | Gray       |
 
 ### 5.2.7 Component Interaction Diagram
 
@@ -4404,11 +4416,11 @@ flowchart LR
 
 #### Decision: Monolithic with API-First Design
 
-| Aspect | Choice | Alternatives Considered |
-|--------|--------|------------------------|
-| Deployment Model | Monolithic | Microservices, Serverless-only |
-| API Design | REST/JSON | GraphQL, gRPC |
-| Data Storage | In-memory with optional persistence | Database-first, Event-sourced |
+| Aspect           | Choice                              | Alternatives Considered        |
+| ---------------- | ----------------------------------- | ------------------------------ |
+| Deployment Model | Monolithic                          | Microservices, Serverless-only |
+| API Design       | REST/JSON                           | GraphQL, gRPC                  |
+| Data Storage     | In-memory with optional persistence | Database-first, Event-sourced  |
 
 **Rationale**:
 
@@ -4419,22 +4431,22 @@ flowchart LR
 
 **Tradeoffs**:
 
-| Benefit | Cost |
-|---------|------|
+| Benefit            | Cost                                |
+| ------------------ | ----------------------------------- |
 | Simpler operations | Limited horizontal scaling of graph |
-| Faster development | All components share runtime |
-| Lower latency | Memory-bound capacity |
+| Faster development | All components share runtime        |
+| Lower latency      | Memory-bound capacity               |
 
 ### 5.3.2 Communication Pattern Decisions
 
 #### Decision: REST/JSON over HTTP
 
-| Criterion | REST/JSON | GraphQL | gRPC |
-|-----------|-----------|---------|------|
-| Client Compatibility | Universal | Requires client | Limited browser support |
-| Documentation | Auto-generated OpenAPI | Schema introspection | Protobuf definitions |
-| Caching | HTTP caching natural | Complex caching | Not applicable |
-| Complexity | Low | Medium | High |
+| Criterion            | REST/JSON              | GraphQL              | gRPC                    |
+| -------------------- | ---------------------- | -------------------- | ----------------------- |
+| Client Compatibility | Universal              | Requires client      | Limited browser support |
+| Documentation        | Auto-generated OpenAPI | Schema introspection | Protobuf definitions    |
+| Caching              | HTTP caching natural   | Complex caching      | Not applicable          |
+| Complexity           | Low                    | Medium               | High                    |
 
 **Rationale**:
 
@@ -4463,12 +4475,12 @@ flowchart TB
 
 **Rationale**:
 
-| Storage Option | Use Case | Trade-off |
-|---------------|----------|-----------|
-| In-Memory | Development, Small Datasets | Fast access, no persistence |
-| JSON Cache | Startup optimization | Atomic writes, file I/O |
-| SQLite | Authentication, Testing | Simple setup, single-writer |
-| PostgreSQL | Production persistence | Scalable, connection pooling |
+| Storage Option | Use Case                    | Trade-off                    |
+| -------------- | --------------------------- | ---------------------------- |
+| In-Memory      | Development, Small Datasets | Fast access, no persistence  |
+| JSON Cache     | Startup optimization        | Atomic writes, file I/O      |
+| SQLite         | Authentication, Testing     | Simple setup, single-writer  |
+| PostgreSQL     | Production persistence      | Scalable, connection pooling |
 
 ### 5.3.4 Caching Strategy Decisions
 
@@ -4476,38 +4488,38 @@ flowchart TB
 
 The caching strategy uses atomic write operations to prevent data corruption:
 
-| Phase | Operation | Purpose |
-|-------|-----------|---------|
-| 1 | Write to `NamedTemporaryFile` | Isolate incomplete writes |
-| 2 | Flush and sync to disk | Ensure durability |
-| 3 | `os.replace()` atomic rename | Single atomic operation |
-| 4 | Delete temp on failure | Clean up partial state |
+| Phase | Operation                     | Purpose                   |
+| ----- | ----------------------------- | ------------------------- |
+| 1     | Write to `NamedTemporaryFile` | Isolate incomplete writes |
+| 2     | Flush and sync to disk        | Ensure durability         |
+| 3     | `os.replace()` atomic rename  | Single atomic operation   |
+| 4     | Delete temp on failure        | Clean up partial state    |
 
 **Configuration Variables**:
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
+| Variable               | Purpose                  | Default         |
+| ---------------------- | ------------------------ | --------------- |
 | `REAL_DATA_CACHE_PATH` | Yahoo Finance data cache | None (disabled) |
-| `GRAPH_CACHE_PATH` | Serialized graph cache | None (disabled) |
+| `GRAPH_CACHE_PATH`     | Serialized graph cache   | None (disabled) |
 
 ### 5.3.5 Security Mechanism Decisions
 
 #### Decision: JWT with HS256 and pbkdf2_sha256
 
-| Security Layer | Implementation | Rationale |
-|---------------|----------------|-----------|
-| Token Algorithm | HS256 (HMAC-SHA256) | Symmetric, fast, adequate for single-issuer |
-| Password Hashing | pbkdf2_sha256 | OWASP recommended, passlib integration |
-| Token Expiration | 30 minutes | Balance security and usability |
-| Rate Limiting | slowapi per-endpoint | Prevent brute force attacks |
+| Security Layer   | Implementation       | Rationale                                   |
+| ---------------- | -------------------- | ------------------------------------------- |
+| Token Algorithm  | HS256 (HMAC-SHA256)  | Symmetric, fast, adequate for single-issuer |
+| Password Hashing | pbkdf2_sha256        | OWASP recommended, passlib integration      |
+| Token Expiration | 30 minutes           | Balance security and usability              |
+| Rate Limiting    | slowapi per-endpoint | Prevent brute force attacks                 |
 
 **Security Configuration**:
 
-| Setting | Source | Default |
-|---------|--------|---------|
-| `SECRET_KEY` | Environment variable | Required |
-| `ALGORITHM` | Environment variable | HS256 |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Code constant | 30 |
+| Setting                       | Source               | Default  |
+| ----------------------------- | -------------------- | -------- |
+| `SECRET_KEY`                  | Environment variable | Required |
+| `ALGORITHM`                   | Environment variable | HS256    |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Code constant        | 30       |
 
 ---
 
@@ -4519,45 +4531,45 @@ The caching strategy uses atomic write operations to prevent data corruption:
 
 **Implementation**: Python standard logging with INFO level default
 
-| Log Point | Level | Content |
-|-----------|-------|---------|
-| Graph initialization | INFO | Success/failure status |
-| Application startup | INFO | Server binding, port |
-| Cache operations | INFO | Load/save success |
-| Request errors | ERROR | Exception details |
-| Authentication failures | WARNING | Failed login attempts |
+| Log Point               | Level   | Content                |
+| ----------------------- | ------- | ---------------------- |
+| Graph initialization    | INFO    | Success/failure status |
+| Application startup     | INFO    | Server binding, port   |
+| Cache operations        | INFO    | Load/save success      |
+| Request errors          | ERROR   | Exception details      |
+| Authentication failures | WARNING | Failed login attempts  |
 
 #### Metrics Endpoints
 
 The system exposes operational metrics through the `/api/metrics` endpoint:
 
-| Metric | Description | Source |
-|--------|-------------|--------|
-| `total_assets` | Count of nodes in graph | `len(graph.assets)` |
-| `total_relationships` | Count of edges | Sum of adjacency lists |
-| `average_degree` | Mean connections per node | Calculated statistic |
-| `max_degree` | Highest connected node | Maximum adjacency count |
-| `network_density` | Edge ratio | Actual/possible edges |
+| Metric                | Description               | Source                  |
+| --------------------- | ------------------------- | ----------------------- |
+| `total_assets`        | Count of nodes in graph   | `len(graph.assets)`     |
+| `total_relationships` | Count of edges            | Sum of adjacency lists  |
+| `average_degree`      | Mean connections per node | Calculated statistic    |
+| `max_degree`          | Highest connected node    | Maximum adjacency count |
+| `network_density`     | Edge ratio                | Actual/possible edges   |
 
 #### Health Check
 
-| Endpoint | Response | Purpose |
-|----------|----------|---------|
-| `/api/health` | `{"status": "healthy"}` | Load balancer probe |
-| Docker HEALTHCHECK | HTTP probe every 30s | Container orchestration |
+| Endpoint           | Response                | Purpose                 |
+| ------------------ | ----------------------- | ----------------------- |
+| `/api/health`      | `{"status": "healthy"}` | Load balancer probe     |
+| Docker HEALTHCHECK | HTTP probe every 30s    | Container orchestration |
 
 ### 5.4.2 Error Handling Patterns
 
 #### API Error Categories
 
-| Status Code | Scenario | Response Detail |
-|-------------|----------|-----------------|
-| 400 | Bad Request | Inactive user, invalid input |
-| 401 | Unauthorized | Invalid/expired token, missing credentials |
-| 404 | Not Found | Asset/resource not found |
-| 422 | Validation Error | Pydantic validation failure |
-| 429 | Too Many Requests | Rate limit exceeded |
-| 500 | Internal Error | Unexpected exception |
+| Status Code | Scenario          | Response Detail                            |
+| ----------- | ----------------- | ------------------------------------------ |
+| 400         | Bad Request       | Inactive user, invalid input               |
+| 401         | Unauthorized      | Invalid/expired token, missing credentials |
+| 404         | Not Found         | Asset/resource not found                   |
+| 422         | Validation Error  | Pydantic validation failure                |
+| 429         | Too Many Requests | Rate limit exceeded                        |
+| 500         | Internal Error    | Unexpected exception                       |
 
 #### Error Handling Flow
 
@@ -4588,20 +4600,20 @@ flowchart TB
 
 #### Graph Initialization Error Handling
 
-| Error Source | Recovery Action | Fallback |
-|--------------|-----------------|----------|
-| Cache load failed | Proceed to fresh fetch | Standard initialization |
-| Network disabled | Use sample data | Offline mode |
-| Yahoo Finance error | Check partial data | Sample data fallback |
-| Critical failure | Abort startup | Application exit |
+| Error Source        | Recovery Action        | Fallback                |
+| ------------------- | ---------------------- | ----------------------- |
+| Cache load failed   | Proceed to fresh fetch | Standard initialization |
+| Network disabled    | Use sample data        | Offline mode            |
+| Yahoo Finance error | Check partial data     | Sample data fallback    |
+| Critical failure    | Abort startup          | Application exit        |
 
 #### Frontend Error Recovery
 
-| Error Category | User Feedback | Recovery Option |
-|---------------|---------------|-----------------|
-| Network Error | "Unable to connect" | Retry button |
-| API Error | Error message display | Retry button |
-| Render Error | Display error state | Refresh page |
+| Error Category | User Feedback         | Recovery Option |
+| -------------- | --------------------- | --------------- |
+| Network Error  | "Unable to connect"   | Retry button    |
+| API Error      | Error message display | Retry button    |
+| Render Error   | Display error state   | Refresh page    |
 
 ### 5.4.3 Authentication and Authorization Framework
 
@@ -4644,53 +4656,54 @@ sequenceDiagram
 
 #### Protected Endpoint Validation
 
-| Step | Action | Failure Response |
-|------|--------|------------------|
-| 1 | Extract Bearer token from header | 401 Not authenticated |
-| 2 | Decode JWT with SECRET_KEY | 401 Could not validate |
-| 3 | Check token expiration | 401 Token expired |
-| 4 | Lookup user in repository | 401 Invalid credentials |
-| 5 | Verify user is active | 400 Inactive user |
+| Step | Action                           | Failure Response        |
+| ---- | -------------------------------- | ----------------------- |
+| 1    | Extract Bearer token from header | 401 Not authenticated   |
+| 2    | Decode JWT with SECRET_KEY       | 401 Could not validate  |
+| 3    | Check token expiration           | 401 Token expired       |
+| 4    | Lookup user in repository        | 401 Invalid credentials |
+| 5    | Verify user is active            | 400 Inactive user       |
 
 ### 5.4.4 Performance Requirements and SLAs
 
 #### Performance Targets
 
-| Operation | Target SLA | Measurement |
-|-----------|-----------|-------------|
-| API Response (p95) | < 500ms | Request to response |
-| Visualization Rendering | < 2 seconds | Data load to interactive |
-| Token Generation | < 100ms | Credential to token |
-| Graph Initialization | < 3 seconds | Application startup |
-| Relationship Discovery | < 500ms | For 100 assets |
-| Initial Page Load | < 3 seconds | Navigation to interactive |
+| Operation               | Target SLA  | Measurement               |
+| ----------------------- | ----------- | ------------------------- |
+| API Response (p95)      | < 500ms     | Request to response       |
+| Visualization Rendering | < 2 seconds | Data load to interactive  |
+| Token Generation        | < 100ms     | Credential to token       |
+| Graph Initialization    | < 3 seconds | Application startup       |
+| Relationship Discovery  | < 500ms     | For 100 assets            |
+| Initial Page Load       | < 3 seconds | Navigation to interactive |
 
 #### Rate Limiting Configuration
 
-| Endpoint | Limit | Window | Key Function |
-|----------|-------|--------|--------------|
-| `POST /token` | 5 requests | 1 minute | Client IP |
-| `GET /api/users/me` | 10 requests | 1 minute | Client IP |
-| Other endpoints | Unlimited | N/A | N/A |
+| Endpoint            | Limit       | Window   | Key Function |
+| ------------------- | ----------- | -------- | ------------ |
+| `POST /token`       | 5 requests  | 1 minute | Client IP    |
+| `GET /api/users/me` | 10 requests | 1 minute | Client IP    |
+| Other endpoints     | Unlimited   | N/A      | N/A          |
 
 #### Timeout Configuration
 
-| Component | Timeout | Purpose |
-|-----------|---------|---------|
-| JWT Token | 30 minutes | Session expiration |
-| Rate Limit Window | 1 minute | Request counting period |
-| HTTP Client | 30 seconds | API request timeout |
-| Health Check | 30 seconds | Container probe interval |
+| Component         | Timeout    | Purpose                  |
+| ----------------- | ---------- | ------------------------ |
+| JWT Token         | 30 minutes | Session expiration       |
+| Rate Limit Window | 1 minute   | Request counting period  |
+| HTTP Client       | 30 seconds | API request timeout      |
+| Health Check      | 30 seconds | Container probe interval |
 
 ### 5.4.5 CORS Configuration
 
-| Environment | Allowed Origins | Configuration |
-|-------------|-----------------|---------------|
-| Development | `http://localhost:3000`, `http://localhost:7860` | Hardcoded |
-| Production | HTTPS origins only | Environment variable |
-| Custom | Comma-separated list | `ALLOWED_ORIGINS` |
+| Environment | Allowed Origins                                  | Configuration        |
+| ----------- | ------------------------------------------------ | -------------------- |
+| Development | `http://localhost:3000`, `http://localhost:7860` | Hardcoded            |
+| Production  | HTTPS origins only                               | Environment variable |
+| Custom      | Comma-separated list                             | `ALLOWED_ORIGINS`    |
 
 **Security Notes**:
+
 - Wildcard (`*`) origins are prohibited when authentication headers are used
 - Vercel preview domains validated via regex pattern matching
 - CORS configuration should be reviewed when promoting to production
@@ -4699,21 +4712,21 @@ sequenceDiagram
 
 #### Recovery Scenarios
 
-| Scenario | Detection | Recovery Action |
-|----------|-----------|-----------------|
-| Graph corruption | Validation failure | Clear cache, reinitialize |
-| Cache file corruption | JSON parse error | Delete cache, fresh fetch |
-| Database unavailable | Connection timeout | Retry with exponential backoff |
-| Yahoo Finance outage | Request timeout | Fall back to sample data |
-| Authentication failure | JWT decode error | Re-authenticate user |
+| Scenario               | Detection          | Recovery Action                |
+| ---------------------- | ------------------ | ------------------------------ |
+| Graph corruption       | Validation failure | Clear cache, reinitialize      |
+| Cache file corruption  | JSON parse error   | Delete cache, fresh fetch      |
+| Database unavailable   | Connection timeout | Retry with exponential backoff |
+| Yahoo Finance outage   | Request timeout    | Fall back to sample data       |
+| Authentication failure | JWT decode error   | Re-authenticate user           |
 
 #### Data Recovery Priority
 
-| Priority | Data | Recovery Source |
-|----------|------|-----------------|
-| 1 | User credentials | SQLite backup |
-| 2 | Graph state | Cache file or Yahoo Finance |
-| 3 | Session state | Stateless (no recovery needed) |
+| Priority | Data             | Recovery Source                |
+| -------- | ---------------- | ------------------------------ |
+| 1        | User credentials | SQLite backup                  |
+| 2        | Graph state      | Cache file or Yahoo Finance    |
+| 3        | Session state    | Stateless (no recovery needed) |
 
 ---
 
@@ -4721,45 +4734,45 @@ sequenceDiagram
 
 ### 5.5.1 Local Development
 
-| Component | Command | Port | Purpose |
-|-----------|---------|------|---------|
-| FastAPI Backend | `uvicorn api.main:app --reload --port 8000` | 8000 | API development |
-| Next.js Frontend | `cd frontend && npm run dev` | 3000 | UI development |
-| Gradio UI | `python app.py` | 7860 | Legacy interface |
+| Component        | Command                                     | Port | Purpose          |
+| ---------------- | ------------------------------------------- | ---- | ---------------- |
+| FastAPI Backend  | `uvicorn api.main:app --reload --port 8000` | 8000 | API development  |
+| Next.js Frontend | `cd frontend && npm run dev`                | 3000 | UI development   |
+| Gradio UI        | `python app.py`                             | 7860 | Legacy interface |
 
 ### 5.5.2 Docker Deployment
 
 **Base Configuration** (from `Dockerfile`):
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| Base Image | `python:3.11-slim` | Minimal Python runtime |
-| Working Directory | `/app` | Application root |
-| User | `appuser` (UID 1000) | Non-root security |
-| Exposed Port | 7860 | Gradio default |
-| Health Check | HTTP probe every 30s | Container health |
+| Setting           | Value                | Purpose                |
+| ----------------- | -------------------- | ---------------------- |
+| Base Image        | `python:3.11-slim`   | Minimal Python runtime |
+| Working Directory | `/app`               | Application root       |
+| User              | `appuser` (UID 1000) | Non-root security      |
+| Exposed Port      | 7860                 | Gradio default         |
+| Health Check      | HTTP probe every 30s | Container health       |
 
 **Docker Compose** (from `docker-compose.yml`):
 
-| Service | Ports | Volumes | Restart Policy |
-|---------|-------|---------|----------------|
-| app | 7860:7860 | `./src:/app/src`, `./data:/app/data` | unless-stopped |
+| Service | Ports     | Volumes                              | Restart Policy |
+| ------- | --------- | ------------------------------------ | -------------- |
+| app     | 7860:7860 | `./src:/app/src`, `./data:/app/data` | unless-stopped |
 
 ### 5.5.3 Vercel Serverless
 
 **Build Configuration** (from `vercel.json`):
 
-| Component | Builder | Configuration |
-|-----------|---------|---------------|
-| Backend | `@vercel/python` | maxLambdaSize: 50mb |
-| Frontend | `@vercel/next` | Default Next.js settings |
+| Component | Builder          | Configuration            |
+| --------- | ---------------- | ------------------------ |
+| Backend   | `@vercel/python` | maxLambdaSize: 50mb      |
+| Frontend  | `@vercel/next`   | Default Next.js settings |
 
 **Route Configuration**:
 
-| Pattern | Destination | Purpose |
-|---------|-------------|---------|
-| `/api/(.*)` | `api/main.py` | Backend API routes |
-| `/(.*)` | `frontend/$1` | Frontend static/SSR |
+| Pattern     | Destination   | Purpose             |
+| ----------- | ------------- | ------------------- |
+| `/api/(.*)` | `api/main.py` | Backend API routes  |
+| `/(.*)`     | `frontend/$1` | Frontend static/SSR |
 
 ### 5.5.4 Deployment Architecture Diagram
 
@@ -4798,12 +4811,12 @@ flowchart TB
 
 The database schema (from `migrations/001_initial.sql`) defines four tables for optional persistence:
 
-| Table | Purpose | Primary Key |
-|-------|---------|-------------|
-| `assets` | Financial instrument storage | `id` |
-| `asset_relationships` | Relationship edges | `source_id, target_id, relationship_type` |
-| `regulatory_events` | Event records | `id` |
-| `regulatory_event_assets` | Event-asset junction | `event_id, asset_id` |
+| Table                     | Purpose                      | Primary Key                               |
+| ------------------------- | ---------------------------- | ----------------------------------------- |
+| `assets`                  | Financial instrument storage | `id`                                      |
+| `asset_relationships`     | Relationship edges           | `source_id, target_id, relationship_type` |
+| `regulatory_events`       | Event records                | `id`                                      |
+| `regulatory_event_assets` | Event-asset junction         | `event_id, asset_id`                      |
 
 ### 5.6.2 Entity Relationships
 
@@ -4848,10 +4861,10 @@ erDiagram
 
 ### 5.6.3 Cascade Behavior
 
-| Parent Deletion | Cascade Target | Behavior |
-|-----------------|----------------|----------|
-| Asset | asset_relationships | Delete related edges |
-| Asset | regulatory_event_assets | Remove junction entries |
+| Parent Deletion  | Cascade Target          | Behavior                |
+| ---------------- | ----------------------- | ----------------------- |
+| Asset            | asset_relationships     | Delete related edges    |
+| Asset            | regulatory_event_assets | Remove junction entries |
 | Regulatory Event | regulatory_event_assets | Remove junction entries |
 
 ---
@@ -4931,23 +4944,23 @@ erDiagram
 
 This architectural decision is documented and intentional, based on the following rationale:
 
-| Evaluation Criteria | System Characteristic | Microservices Applicability |
-|--------------------|-----------------------|----------------------------|
-| Deployment Model | Single Python process | Not Applicable |
-| Service Decomposition | Modular packages within monolith | Not Applicable |
-| Inter-Service Communication | Direct Python function calls | Not Applicable |
-| Service Discovery | No distributed services to discover | Not Applicable |
-| Data Management | Shared in-memory graph singleton | Not Applicable |
+| Evaluation Criteria         | System Characteristic               | Microservices Applicability |
+| --------------------------- | ----------------------------------- | --------------------------- |
+| Deployment Model            | Single Python process               | Not Applicable              |
+| Service Decomposition       | Modular packages within monolith    | Not Applicable              |
+| Inter-Service Communication | Direct Python function calls        | Not Applicable              |
+| Service Discovery           | No distributed services to discover | Not Applicable              |
+| Data Management             | Shared in-memory graph singleton    | Not Applicable              |
 
 #### Explicit Architectural Decision
 
 The technical specification documents this as a deliberate design choice:
 
-| Aspect | Choice | Alternatives Considered |
-|--------|--------|------------------------|
-| Deployment Model | **Monolithic** | Microservices, Serverless-only |
-| API Design | REST/JSON | GraphQL, gRPC |
-| Data Storage | In-memory with optional persistence | Database-first, Event-sourced |
+| Aspect           | Choice                              | Alternatives Considered        |
+| ---------------- | ----------------------------------- | ------------------------------ |
+| Deployment Model | **Monolithic**                      | Microservices, Serverless-only |
+| API Design       | REST/JSON                           | GraphQL, gRPC                  |
+| Data Storage     | In-memory with optional persistence | Database-first, Event-sourced  |
 
 **Documented Rationale from Architecture Decision Records:**
 
@@ -5009,12 +5022,12 @@ flowchart TB
 
 #### Layer Responsibilities
 
-| Layer | Components | Responsibility | Communication Pattern |
-|-------|------------|----------------|----------------------|
-| Presentation | Next.js, Gradio | User interface rendering | HTTP to API, Direct Python calls |
-| API | FastAPI, Auth, Rate Limiter | Request routing, security enforcement | Direct Python imports |
-| Business Logic | Graph Engine, Models, Visualization | Core domain logic, calculations | Direct Python function calls |
-| Data | Fetcher, Cache, SQLite | Data persistence and retrieval | File I/O, SQL queries |
+| Layer          | Components                          | Responsibility                        | Communication Pattern            |
+| -------------- | ----------------------------------- | ------------------------------------- | -------------------------------- |
+| Presentation   | Next.js, Gradio                     | User interface rendering              | HTTP to API, Direct Python calls |
+| API            | FastAPI, Auth, Rate Limiter         | Request routing, security enforcement | Direct Python imports            |
+| Business Logic | Graph Engine, Models, Visualization | Core domain logic, calculations       | Direct Python function calls     |
+| Data           | Fetcher, Cache, SQLite              | Data persistence and retrieval        | File I/O, SQL queries            |
 
 ### 6.1.3 Modular Package Structure
 
@@ -5068,14 +5081,14 @@ flowchart LR
 
 #### Module Boundary Definitions
 
-| Module | Location | Future Service Potential | Dependencies |
-|--------|----------|-------------------------|--------------|
-| Graph Engine | `src/logic/asset_graph.py` | Graph Service | Domain Models only |
-| Domain Models | `src/models/financial_models.py` | Shared Library | Python stdlib |
-| Data Fetcher | `src/data/real_data_fetcher.py` | Data Ingestion Service | yfinance, cache |
-| Visualization | `src/visualizations/` | Rendering Service | Plotly, Graph Engine |
-| Auth Module | `api/auth.py` | Auth Service | PyJWT, passlib |
-| API Gateway | `api/main.py` | API Gateway | All modules |
+| Module        | Location                         | Future Service Potential | Dependencies         |
+| ------------- | -------------------------------- | ------------------------ | -------------------- |
+| Graph Engine  | `src/logic/asset_graph.py`       | Graph Service            | Domain Models only   |
+| Domain Models | `src/models/financial_models.py` | Shared Library           | Python stdlib        |
+| Data Fetcher  | `src/data/real_data_fetcher.py`  | Data Ingestion Service   | yfinance, cache      |
+| Visualization | `src/visualizations/`            | Rendering Service        | Plotly, Graph Engine |
+| Auth Module   | `api/auth.py`                    | Auth Service             | PyJWT, passlib       |
+| API Gateway   | `api/main.py`                    | API Gateway              | All modules          |
 
 ### 6.1.4 Communication Patterns Within Monolith
 
@@ -5083,21 +5096,21 @@ flowchart LR
 
 Since all components run within a single Python process, communication uses direct function calls rather than network protocols:
 
-| Source | Target | Pattern | Example |
-|--------|--------|---------|---------|
-| FastAPI → Graph | Direct import | `from src.logic.asset_graph import get_graph()` |
-| Gradio → Graph | Direct import | `graph.get_assets()` |
-| Graph → Models | Direct instantiation | `Asset(id=..., symbol=...)` |
-| Graph → Fetcher | Direct call | `fetcher.fetch_real_data()` |
-| API → Auth | Direct call | `authenticate_user(username, password)` |
+| Source          | Target               | Pattern                                         | Example |
+| --------------- | -------------------- | ----------------------------------------------- | ------- |
+| FastAPI → Graph | Direct import        | `from src.logic.asset_graph import get_graph()` |
+| Gradio → Graph  | Direct import        | `graph.get_assets()`                            |
+| Graph → Models  | Direct instantiation | `Asset(id=..., symbol=...)`                     |
+| Graph → Fetcher | Direct call          | `fetcher.fetch_real_data()`                     |
+| API → Auth      | Direct call          | `authenticate_user(username, password)`         |
 
 #### External Communication
 
-| Interface | Protocol | Purpose | Configuration |
-|-----------|----------|---------|---------------|
-| Frontend → API | REST/JSON over HTTP | Client-server communication | `NEXT_PUBLIC_API_URL` |
-| API → Yahoo Finance | HTTP via yfinance | External data fetching | `USE_REAL_DATA_FETCHER` |
-| API → SQLite | SQL via sqlite3 | Authentication persistence | `DATABASE_URL` |
+| Interface           | Protocol            | Purpose                     | Configuration           |
+| ------------------- | ------------------- | --------------------------- | ----------------------- |
+| Frontend → API      | REST/JSON over HTTP | Client-server communication | `NEXT_PUBLIC_API_URL`   |
+| API → Yahoo Finance | HTTP via yfinance   | External data fetching      | `USE_REAL_DATA_FETCHER` |
+| API → SQLite        | SQL via sqlite3     | Authentication persistence  | `DATABASE_URL`          |
 
 ### 6.1.5 Thread-Safe Singleton Pattern
 
@@ -5136,12 +5149,12 @@ flowchart TB
 
 #### Implementation Details
 
-| Aspect | Implementation | Purpose |
-|--------|----------------|---------|
-| Lock Type | `threading.Lock()` | Prevent race conditions |
-| Pattern | Double-checked locking | Minimize lock contention |
-| Scope | Module-level global | Single instance per process |
-| Factory Override | `set_graph_factory()` | Test isolation support |
+| Aspect           | Implementation         | Purpose                     |
+| ---------------- | ---------------------- | --------------------------- |
+| Lock Type        | `threading.Lock()`     | Prevent race conditions     |
+| Pattern          | Double-checked locking | Minimize lock contention    |
+| Scope            | Module-level global    | Single instance per process |
+| Factory Override | `set_graph_factory()`  | Test isolation support      |
 
 ### 6.1.6 Resilience Patterns (Monolithic Context)
 
@@ -5176,98 +5189,98 @@ flowchart TB
 
 #### Resilience Pattern Summary
 
-| Pattern | Implementation | Trigger Condition |
-|---------|----------------|-------------------|
-| Cache Fallback | JSON file cache | Cache load failure |
-| Data Source Fallback | Sample data generator | Network unavailable |
-| Partial Data Recovery | Use available data | Partial Yahoo Finance fetch |
-| Atomic Cache Writes | `NamedTemporaryFile` + `os.replace()` | All cache operations |
-| Rate Limiting | slowapi per-endpoint limits | Request threshold exceeded |
-| Health Checks | `/api/health` endpoint | Container orchestration |
+| Pattern               | Implementation                        | Trigger Condition           |
+| --------------------- | ------------------------------------- | --------------------------- |
+| Cache Fallback        | JSON file cache                       | Cache load failure          |
+| Data Source Fallback  | Sample data generator                 | Network unavailable         |
+| Partial Data Recovery | Use available data                    | Partial Yahoo Finance fetch |
+| Atomic Cache Writes   | `NamedTemporaryFile` + `os.replace()` | All cache operations        |
+| Rate Limiting         | slowapi per-endpoint limits           | Request threshold exceeded  |
+| Health Checks         | `/api/health` endpoint                | Container orchestration     |
 
 #### Atomic Cache Write Pattern
 
-| Phase | Operation | Purpose |
-|-------|-----------|---------|
-| 1 | Write to `NamedTemporaryFile` | Isolate incomplete writes |
-| 2 | Flush and sync to disk | Ensure durability |
-| 3 | `os.replace()` atomic rename | Prevent corruption |
-| 4 | Delete temp on failure | Clean up partial state |
+| Phase | Operation                     | Purpose                   |
+| ----- | ----------------------------- | ------------------------- |
+| 1     | Write to `NamedTemporaryFile` | Isolate incomplete writes |
+| 2     | Flush and sync to disk        | Ensure durability         |
+| 3     | `os.replace()` atomic rename  | Prevent corruption        |
+| 4     | Delete temp on failure        | Clean up partial state    |
 
 ### 6.1.7 Error Handling Architecture
 
 #### Error Categories and Responses
 
-| Error Type | HTTP Status | Recovery Action | User Feedback |
-|------------|-------------|-----------------|---------------|
-| Validation Error | 422 | Return Pydantic details | Field-level errors |
-| Authentication Error | 401 | Prompt re-authentication | Login redirect |
-| Rate Limit Exceeded | 429 | Add Retry-After header | Wait message |
-| Resource Not Found | 404 | Return error detail | Item not found |
-| Internal Error | 500 | Log exception | Generic error |
+| Error Type           | HTTP Status | Recovery Action          | User Feedback      |
+| -------------------- | ----------- | ------------------------ | ------------------ |
+| Validation Error     | 422         | Return Pydantic details  | Field-level errors |
+| Authentication Error | 401         | Prompt re-authentication | Login redirect     |
+| Rate Limit Exceeded  | 429         | Add Retry-After header   | Wait message       |
+| Resource Not Found   | 404         | Return error detail      | Item not found     |
+| Internal Error       | 500         | Log exception            | Generic error      |
 
 #### Graph Initialization Error Recovery
 
-| Error Source | Detection | Recovery Action | Fallback |
-|--------------|-----------|-----------------|----------|
-| Cache load failed | JSON parse error | Proceed to fresh fetch | Standard initialization |
-| Network disabled | Connection timeout | Use sample data | Offline mode |
-| Yahoo Finance error | Request exception | Check partial data | Sample data fallback |
-| Critical failure | Unrecoverable exception | Abort startup | Application exit |
+| Error Source        | Detection               | Recovery Action        | Fallback                |
+| ------------------- | ----------------------- | ---------------------- | ----------------------- |
+| Cache load failed   | JSON parse error        | Proceed to fresh fetch | Standard initialization |
+| Network disabled    | Connection timeout      | Use sample data        | Offline mode            |
+| Yahoo Finance error | Request exception       | Check partial data     | Sample data fallback    |
+| Critical failure    | Unrecoverable exception | Abort startup          | Application exit        |
 
 ### 6.1.8 Scalability Approach (Monolithic Context)
 
 #### Current Scale Characteristics
 
-| Metric | Current Capacity | Limiting Factor |
-|--------|-----------------|-----------------|
-| Node Count | <500 assets optimal | In-memory storage |
-| Concurrent Users | Single-threaded graph | Python GIL |
-| Response Time (p95) | <500ms | API processing |
-| Visualization Nodes | 500 nodes, 2000 edges | Browser memory |
+| Metric              | Current Capacity      | Limiting Factor   |
+| ------------------- | --------------------- | ----------------- |
+| Node Count          | <500 assets optimal   | In-memory storage |
+| Concurrent Users    | Single-threaded graph | Python GIL        |
+| Response Time (p95) | <500ms                | API processing    |
+| Visualization Nodes | 500 nodes, 2000 edges | Browser memory    |
 
 #### Scaling Tradeoffs
 
-| Benefit of Monolithic | Associated Cost |
-|----------------------|-----------------|
-| Simpler operations | Limited horizontal scaling of graph |
-| Faster development | All components share runtime |
-| Lower latency | Memory-bound capacity |
-| Single deployment | Single point of failure |
+| Benefit of Monolithic | Associated Cost                     |
+| --------------------- | ----------------------------------- |
+| Simpler operations    | Limited horizontal scaling of graph |
+| Faster development    | All components share runtime        |
+| Lower latency         | Memory-bound capacity               |
+| Single deployment     | Single point of failure             |
 
 #### Future Scaling Path
 
 If the system grows beyond current scale constraints, the modular package structure enables migration to microservices:
 
-| Growth Trigger | Recommended Action | Module to Extract |
-|---------------|-------------------|-------------------|
-| >500 assets | Database persistence | Graph Engine → Graph Service |
-| Multi-tenant requirements | Dedicated auth service | Auth Module → Auth Service |
-| High visualization load | Separate rendering | Visualization → Render Service |
-| Data ingestion volume | Async processing | Data Fetcher → Ingestion Service |
+| Growth Trigger            | Recommended Action     | Module to Extract                |
+| ------------------------- | ---------------------- | -------------------------------- |
+| >500 assets               | Database persistence   | Graph Engine → Graph Service     |
+| Multi-tenant requirements | Dedicated auth service | Auth Module → Auth Service       |
+| High visualization load   | Separate rendering     | Visualization → Render Service   |
+| Data ingestion volume     | Async processing       | Data Fetcher → Ingestion Service |
 
 ### 6.1.9 Performance Optimization
 
 #### Performance Targets (SLAs)
 
-| Operation | Target | Measurement |
-|-----------|--------|-------------|
-| API Response (p95) | <500ms | Request to response |
-| Visualization Rendering | <2 seconds | Data load to interactive |
-| Token Generation | <100ms | Credential to token |
-| Graph Initialization | <3 seconds | Application startup |
-| Relationship Discovery | <500ms | For 100 assets |
-| Initial Page Load | <3 seconds | Navigation to interactive |
+| Operation               | Target     | Measurement               |
+| ----------------------- | ---------- | ------------------------- |
+| API Response (p95)      | <500ms     | Request to response       |
+| Visualization Rendering | <2 seconds | Data load to interactive  |
+| Token Generation        | <100ms     | Credential to token       |
+| Graph Initialization    | <3 seconds | Application startup       |
+| Relationship Discovery  | <500ms     | For 100 assets            |
+| Initial Page Load       | <3 seconds | Navigation to interactive |
 
 #### Optimization Techniques
 
-| Technique | Implementation | Impact |
-|-----------|----------------|--------|
-| Deterministic Layout | Fixed seed (seed=42) | Reproducible 3D positions |
-| Lazy Initialization | Double-checked locking | Fast startup |
-| JSON Caching | Atomic file cache | Reduced API calls |
-| Rate Limiting | Per-endpoint limits | Fair resource allocation |
-| Client-Side Limits | MAX_NODES/MAX_EDGES | Browser stability |
+| Technique            | Implementation         | Impact                    |
+| -------------------- | ---------------------- | ------------------------- |
+| Deterministic Layout | Fixed seed (seed=42)   | Reproducible 3D positions |
+| Lazy Initialization  | Double-checked locking | Fast startup              |
+| JSON Caching         | Atomic file cache      | Reduced API calls         |
+| Rate Limiting        | Per-endpoint limits    | Fair resource allocation  |
+| Client-Side Limits   | MAX_NODES/MAX_EDGES    | Browser stability         |
 
 ### 6.1.10 Deployment Architecture Comparison
 
@@ -5304,51 +5317,51 @@ flowchart TB
 
 #### Deployment Configuration Summary
 
-| Environment | Components | Command | Notes |
-|-------------|------------|---------|-------|
-| Local Dev | FastAPI + Next.js + Gradio | Multiple processes | Full development environment |
-| Docker | Single container | `docker-compose up` | Simplified deployment |
-| Vercel | Lambda + SSR | `vercel deploy` | Serverless production |
+| Environment | Components                 | Command             | Notes                        |
+| ----------- | -------------------------- | ------------------- | ---------------------------- |
+| Local Dev   | FastAPI + Next.js + Gradio | Multiple processes  | Full development environment |
+| Docker      | Single container           | `docker-compose up` | Simplified deployment        |
+| Vercel      | Lambda + SSR               | `vercel deploy`     | Serverless production        |
 
 ### 6.1.11 Constraints and Limitations
 
 #### Documented System Constraints
 
-| ID | Constraint | Mitigation Strategy |
-|----|------------|-------------------|
-| C-001 | In-memory graph limits scalability | Database persistence option planned |
-| C-002 | Single-user JWT authentication | Role-based access planned for Phase 2 |
-| C-003 | Yahoo Finance API rate limits | Caching with atomic file writes |
-| C-004 | Browser memory limits visualization | MAX_NODES/MAX_EDGES guardrails |
+| ID    | Constraint                          | Mitigation Strategy                   |
+| ----- | ----------------------------------- | ------------------------------------- |
+| C-001 | In-memory graph limits scalability  | Database persistence option planned   |
+| C-002 | Single-user JWT authentication      | Role-based access planned for Phase 2 |
+| C-003 | Yahoo Finance API rate limits       | Caching with atomic file writes       |
+| C-004 | Browser memory limits visualization | MAX_NODES/MAX_EDGES guardrails        |
 
 #### Architectural Assumptions
 
-| ID | Assumption | Impact if Invalid |
-|----|------------|------------------|
-| A-001 | Modern browser support | Visualization features may fail |
-| A-002 | Network connectivity available | Falls back to sample data |
-| A-003 | Single concurrent admin sufficient | Multi-user requires extension |
-| A-004 | Dataset size <500 nodes | Larger datasets need pagination |
+| ID    | Assumption                         | Impact if Invalid               |
+| ----- | ---------------------------------- | ------------------------------- |
+| A-001 | Modern browser support             | Visualization features may fail |
+| A-002 | Network connectivity available     | Falls back to sample data       |
+| A-003 | Single concurrent admin sufficient | Multi-user requires extension   |
+| A-004 | Dataset size <500 nodes            | Larger datasets need pagination |
 
 ### 6.1.12 Microservices Migration Readiness
 
 #### Module Extraction Feasibility
 
-| Module | Extraction Complexity | Dependencies to Resolve | Estimated Effort |
-|--------|----------------------|------------------------|------------------|
-| Auth Module | Low | JWT secret management | 1-2 weeks |
-| Data Fetcher | Medium | Cache sharing strategy | 2-4 weeks |
-| Visualization | Medium | Graph data access pattern | 2-4 weeks |
-| Graph Engine | High | State management overhaul | 4-8 weeks |
+| Module        | Extraction Complexity | Dependencies to Resolve   | Estimated Effort |
+| ------------- | --------------------- | ------------------------- | ---------------- |
+| Auth Module   | Low                   | JWT secret management     | 1-2 weeks        |
+| Data Fetcher  | Medium                | Cache sharing strategy    | 2-4 weeks        |
+| Visualization | Medium                | Graph data access pattern | 2-4 weeks        |
+| Graph Engine  | High                  | State management overhaul | 4-8 weeks        |
 
 #### Prerequisites for Migration
 
-| Prerequisite | Current State | Required for Migration |
-|--------------|--------------|----------------------|
-| Database Persistence | Optional (F-015) | Required for shared state |
-| Message Queue | Not implemented | Required for async communication |
-| Service Mesh | Not applicable | Required for service discovery |
-| Distributed Tracing | Not implemented | Required for observability |
+| Prerequisite         | Current State    | Required for Migration           |
+| -------------------- | ---------------- | -------------------------------- |
+| Database Persistence | Optional (F-015) | Required for shared state        |
+| Message Queue        | Not implemented  | Required for async communication |
+| Service Mesh         | Not applicable   | Required for service discovery   |
+| Distributed Tracing  | Not implemented  | Required for observability       |
 
 ### 6.1.13 References
 
@@ -5366,27 +5379,27 @@ flowchart TB
 
 #### Files and Folders Examined
 
-| Path | Relevance |
-|------|-----------|
-| `api/main.py` | FastAPI application with thread-safe singleton graph pattern |
-| `api/auth.py` | JWT authentication module implementation |
-| `src/logic/asset_graph.py` | Graph engine with in-memory storage |
-| `src/data/real_data_fetcher.py` | Fallback mechanism and atomic caching |
-| `src/models/financial_models.py` | Domain model definitions |
-| `src/visualizations/` | Plotly visualization modules |
-| `app.py` | Gradio UI with direct Python function calls |
-| `docker-compose.yml` | Single container deployment configuration |
-| `vercel.json` | Serverless deployment configuration |
-| `frontend/` | Next.js client application |
+| Path                             | Relevance                                                    |
+| -------------------------------- | ------------------------------------------------------------ |
+| `api/main.py`                    | FastAPI application with thread-safe singleton graph pattern |
+| `api/auth.py`                    | JWT authentication module implementation                     |
+| `src/logic/asset_graph.py`       | Graph engine with in-memory storage                          |
+| `src/data/real_data_fetcher.py`  | Fallback mechanism and atomic caching                        |
+| `src/models/financial_models.py` | Domain model definitions                                     |
+| `src/visualizations/`            | Plotly visualization modules                                 |
+| `app.py`                         | Gradio UI with direct Python function calls                  |
+| `docker-compose.yml`             | Single container deployment configuration                    |
+| `vercel.json`                    | Serverless deployment configuration                          |
+| `frontend/`                      | Next.js client application                                   |
 
 #### Architectural Decision Records
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| ADR-001 | Monolithic over Microservices | Operational simplicity at current scale |
-| ADR-002 | REST/JSON over GraphQL/gRPC | Universal client compatibility |
-| ADR-003 | In-memory over Database-first | Sub-millisecond access for <500 assets |
-| ADR-004 | Thread-safe Singleton | Prevent race conditions, enable testing |
+| Decision | Choice                        | Rationale                               |
+| -------- | ----------------------------- | --------------------------------------- |
+| ADR-001  | Monolithic over Microservices | Operational simplicity at current scale |
+| ADR-002  | REST/JSON over GraphQL/gRPC   | Universal client compatibility          |
+| ADR-003  | In-memory over Database-first | Sub-millisecond access for <500 assets  |
+| ADR-004  | Thread-safe Singleton         | Prevent race conditions, enable testing |
 
 ## 6.2 Database Design
 
@@ -5396,12 +5409,12 @@ flowchart TB
 
 The Financial Asset Relationship Database employs a **hybrid data architecture** that combines multiple complementary storage mechanisms optimized for different use cases. This design prioritizes in-memory performance for real-time graph operations while providing optional persistence for durability and scalability.
 
-| Storage Layer | Technology | Purpose | Durability |
-|---------------|------------|---------|------------|
-| Primary Runtime | In-Memory Graph | Relationship traversal | Process lifetime |
-| Authentication | SQLite | User credentials | Persistent |
-| Asset Persistence | SQLAlchemy ORM | Optional durable storage | Persistent |
-| External Data Cache | JSON Files | Yahoo Finance data | Persistent |
+| Storage Layer       | Technology      | Purpose                  | Durability       |
+| ------------------- | --------------- | ------------------------ | ---------------- |
+| Primary Runtime     | In-Memory Graph | Relationship traversal   | Process lifetime |
+| Authentication      | SQLite          | User credentials         | Persistent       |
+| Asset Persistence   | SQLAlchemy ORM  | Optional durable storage | Persistent       |
+| External Data Cache | JSON Files      | Yahoo Finance data       | Persistent       |
 
 #### 6.2.1.2 Storage Layer Architecture Diagram
 
@@ -5440,12 +5453,12 @@ flowchart TB
 
 #### 6.2.1.3 Design Rationale
 
-| Design Choice | Rationale | Trade-off |
-|---------------|-----------|-----------|
-| In-memory primary storage | Sub-millisecond relationship traversal | Memory-bound capacity |
-| Optional database persistence | Flexibility for different deployment scales | Additional complexity |
-| Wide table design | Single-table queries for asset retrieval | Nullable columns for type-specific fields |
-| Cascade deletes on all FKs | Referential integrity without orphans | Potential for bulk deletes |
+| Design Choice                 | Rationale                                   | Trade-off                                 |
+| ----------------------------- | ------------------------------------------- | ----------------------------------------- |
+| In-memory primary storage     | Sub-millisecond relationship traversal      | Memory-bound capacity                     |
+| Optional database persistence | Flexibility for different deployment scales | Additional complexity                     |
+| Wide table design             | Single-table queries for asset retrieval    | Nullable columns for type-specific fields |
+| Cascade deletes on all FKs    | Referential integrity without orphans       | Potential for bulk deletes                |
 
 ---
 
@@ -5457,68 +5470,68 @@ The database schema is defined in `migrations/001_initial.sql` and implements a 
 
 #### Entity Tables Summary
 
-| Table | Purpose | Primary Key | Record Count Expectation |
-|-------|---------|-------------|--------------------------|
-| `assets` | Financial instrument storage | `id` (TEXT) | <500 for optimal performance |
-| `asset_relationships` | Directed relationship edges | `id` (INTEGER) | N × average_degree |
-| `regulatory_events` | Regulatory event records | `id` (TEXT) | Events per asset |
-| `regulatory_event_assets` | Many-to-many junction | `id` (INTEGER) | Events × affected assets |
+| Table                     | Purpose                      | Primary Key    | Record Count Expectation     |
+| ------------------------- | ---------------------------- | -------------- | ---------------------------- |
+| `assets`                  | Financial instrument storage | `id` (TEXT)    | <500 for optimal performance |
+| `asset_relationships`     | Directed relationship edges  | `id` (INTEGER) | N × average_degree           |
+| `regulatory_events`       | Regulatory event records     | `id` (TEXT)    | Events per asset             |
+| `regulatory_event_assets` | Many-to-many junction        | `id` (INTEGER) | Events × affected assets     |
 
 #### 6.2.2.2 Assets Table Schema
 
 The `assets` table uses a **wide table design** with nullable type-specific columns rather than separate tables per asset class, enabling simpler queries at the cost of schema sparsity.
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | TEXT | PRIMARY KEY | Unique asset identifier |
-| `symbol` | TEXT | NOT NULL | Trading symbol |
-| `name` | TEXT | NOT NULL | Display name |
-| `asset_class` | TEXT | NOT NULL | Enum: equity, fixed_income, commodity, currency, derivative |
-| `sector` | TEXT | NOT NULL | Industry sector classification |
-| `price` | REAL | NOT NULL | Current market price |
-| `market_cap` | REAL | NULLABLE | Market capitalization (equities) |
-| `currency` | TEXT | NOT NULL | ISO 4217 currency code |
+| Column        | Type | Constraints | Description                                                 |
+| ------------- | ---- | ----------- | ----------------------------------------------------------- |
+| `id`          | TEXT | PRIMARY KEY | Unique asset identifier                                     |
+| `symbol`      | TEXT | NOT NULL    | Trading symbol                                              |
+| `name`        | TEXT | NOT NULL    | Display name                                                |
+| `asset_class` | TEXT | NOT NULL    | Enum: equity, fixed_income, commodity, currency, derivative |
+| `sector`      | TEXT | NOT NULL    | Industry sector classification                              |
+| `price`       | REAL | NOT NULL    | Current market price                                        |
+| `market_cap`  | REAL | NULLABLE    | Market capitalization (equities)                            |
+| `currency`    | TEXT | NOT NULL    | ISO 4217 currency code                                      |
 
 #### Equity-Specific Columns
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `pe_ratio` | REAL | NULLABLE | Price-to-earnings ratio |
-| `dividend_yield` | REAL | NULLABLE | Annual dividend yield |
-| `earnings_per_share` | REAL | NULLABLE | EPS value |
-| `book_value` | REAL | NULLABLE | Book value per share |
+| Column               | Type | Constraints | Description             |
+| -------------------- | ---- | ----------- | ----------------------- |
+| `pe_ratio`           | REAL | NULLABLE    | Price-to-earnings ratio |
+| `dividend_yield`     | REAL | NULLABLE    | Annual dividend yield   |
+| `earnings_per_share` | REAL | NULLABLE    | EPS value               |
+| `book_value`         | REAL | NULLABLE    | Book value per share    |
 
 #### Fixed Income Columns
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `yield_to_maturity` | REAL | NULLABLE | YTM percentage |
-| `coupon_rate` | REAL | NULLABLE | Annual coupon rate |
-| `maturity_date` | TEXT | NULLABLE | ISO 8601 date |
-| `credit_rating` | TEXT | NULLABLE | Credit rating code |
-| `issuer_id` | TEXT | NULLABLE | FK to issuing entity |
+| Column              | Type | Constraints | Description          |
+| ------------------- | ---- | ----------- | -------------------- |
+| `yield_to_maturity` | REAL | NULLABLE    | YTM percentage       |
+| `coupon_rate`       | REAL | NULLABLE    | Annual coupon rate   |
+| `maturity_date`     | TEXT | NULLABLE    | ISO 8601 date        |
+| `credit_rating`     | TEXT | NULLABLE    | Credit rating code   |
+| `issuer_id`         | TEXT | NULLABLE    | FK to issuing entity |
 
 #### Commodity/Currency Columns
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `contract_size` | REAL | NULLABLE | Commodity contract size |
-| `delivery_date` | TEXT | NULLABLE | Commodity delivery date |
-| `volatility` | REAL | NULLABLE | Price volatility |
-| `exchange_rate` | REAL | NULLABLE | Currency exchange rate |
-| `country` | TEXT | NULLABLE | Currency country |
-| `central_bank_rate` | REAL | NULLABLE | Central bank interest rate |
+| Column              | Type | Constraints | Description                |
+| ------------------- | ---- | ----------- | -------------------------- |
+| `contract_size`     | REAL | NULLABLE    | Commodity contract size    |
+| `delivery_date`     | TEXT | NULLABLE    | Commodity delivery date    |
+| `volatility`        | REAL | NULLABLE    | Price volatility           |
+| `exchange_rate`     | REAL | NULLABLE    | Currency exchange rate     |
+| `country`           | TEXT | NULLABLE    | Currency country           |
+| `central_bank_rate` | REAL | NULLABLE    | Central bank interest rate |
 
 #### 6.2.2.3 Asset Relationships Table Schema
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | Unique edge identifier |
-| `source_asset_id` | TEXT | NOT NULL, FK → assets(id) ON DELETE CASCADE | Origin node |
-| `target_asset_id` | TEXT | NOT NULL, FK → assets(id) ON DELETE CASCADE | Destination node |
-| `relationship_type` | TEXT | NOT NULL | Relationship classification |
-| `strength` | REAL | NOT NULL | Edge weight [0.0, 1.0] |
-| `bidirectional` | INTEGER | NOT NULL DEFAULT 0 | Boolean flag (0/1) |
+| Column              | Type    | Constraints                                 | Description                 |
+| ------------------- | ------- | ------------------------------------------- | --------------------------- |
+| `id`                | INTEGER | PRIMARY KEY AUTOINCREMENT                   | Unique edge identifier      |
+| `source_asset_id`   | TEXT    | NOT NULL, FK → assets(id) ON DELETE CASCADE | Origin node                 |
+| `target_asset_id`   | TEXT    | NOT NULL, FK → assets(id) ON DELETE CASCADE | Destination node            |
+| `relationship_type` | TEXT    | NOT NULL                                    | Relationship classification |
+| `strength`          | REAL    | NOT NULL                                    | Edge weight [0.0, 1.0]      |
+| `bidirectional`     | INTEGER | NOT NULL DEFAULT 0                          | Boolean flag (0/1)          |
 
 **Unique Constraint**: `(source_asset_id, target_asset_id, relationship_type)` prevents duplicate edges.
 
@@ -5526,22 +5539,22 @@ The `assets` table uses a **wide table design** with nullable type-specific colu
 
 #### Regulatory Events Table
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | TEXT | PRIMARY KEY | Unique event identifier |
-| `asset_id` | TEXT | NOT NULL, FK → assets(id) ON DELETE CASCADE | Primary affected asset |
-| `event_type` | TEXT | NOT NULL | Event classification |
-| `date` | TEXT | NOT NULL | ISO 8601 date |
-| `description` | TEXT | NOT NULL | Event description |
-| `impact_score` | REAL | NOT NULL | Impact range [-1.0, 1.0] |
+| Column         | Type | Constraints                                 | Description              |
+| -------------- | ---- | ------------------------------------------- | ------------------------ |
+| `id`           | TEXT | PRIMARY KEY                                 | Unique event identifier  |
+| `asset_id`     | TEXT | NOT NULL, FK → assets(id) ON DELETE CASCADE | Primary affected asset   |
+| `event_type`   | TEXT | NOT NULL                                    | Event classification     |
+| `date`         | TEXT | NOT NULL                                    | ISO 8601 date            |
+| `description`  | TEXT | NOT NULL                                    | Event description        |
+| `impact_score` | REAL | NOT NULL                                    | Impact range [-1.0, 1.0] |
 
 #### Regulatory Event Assets Junction Table
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | Junction record ID |
-| `event_id` | TEXT | NOT NULL, FK → regulatory_events(id) ON DELETE CASCADE | Event reference |
-| `asset_id` | TEXT | NOT NULL, FK → assets(id) ON DELETE CASCADE | Affected asset |
+| Column     | Type    | Constraints                                            | Description        |
+| ---------- | ------- | ------------------------------------------------------ | ------------------ |
+| `id`       | INTEGER | PRIMARY KEY AUTOINCREMENT                              | Junction record ID |
+| `event_id` | TEXT    | NOT NULL, FK → regulatory_events(id) ON DELETE CASCADE | Event reference    |
+| `asset_id` | TEXT    | NOT NULL, FK → assets(id) ON DELETE CASCADE            | Affected asset     |
 
 **Unique Constraint**: `(event_id, asset_id)` prevents duplicate associations.
 
@@ -5549,14 +5562,14 @@ The `assets` table uses a **wide table design** with nullable type-specific colu
 
 Defined in `api/database.py`, the authentication schema provides user credential storage separate from the asset database.
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | User record ID |
-| `username` | TEXT | UNIQUE NOT NULL | Login identifier |
-| `email` | TEXT | NULLABLE | Email address |
-| `full_name` | TEXT | NULLABLE | Display name |
-| `hashed_password` | TEXT | NOT NULL | pbkdf2_sha256 hash |
-| `disabled` | INTEGER | NOT NULL DEFAULT 0 | Active flag (0=active, 1=disabled) |
+| Column            | Type    | Constraints               | Description                        |
+| ----------------- | ------- | ------------------------- | ---------------------------------- |
+| `id`              | INTEGER | PRIMARY KEY AUTOINCREMENT | User record ID                     |
+| `username`        | TEXT    | UNIQUE NOT NULL           | Login identifier                   |
+| `email`           | TEXT    | NULLABLE                  | Email address                      |
+| `full_name`       | TEXT    | NULLABLE                  | Display name                       |
+| `hashed_password` | TEXT    | NOT NULL                  | pbkdf2_sha256 hash                 |
+| `disabled`        | INTEGER | NOT NULL DEFAULT 0        | Active flag (0=active, 1=disabled) |
 
 #### 6.2.2.6 Entity Relationship Diagram
 
@@ -5626,44 +5639,44 @@ erDiagram
 
 All primary keys are automatically indexed by the database engine:
 
-| Table | Index | Type | Purpose |
-|-------|-------|------|---------|
-| `assets` | `id` | B-tree | Direct asset lookup |
-| `asset_relationships` | `id` | B-tree | Edge identification |
-| `regulatory_events` | `id` | B-tree | Event lookup |
-| `regulatory_event_assets` | `id` | B-tree | Junction lookup |
-| `user_credentials` | `id` | B-tree | User record access |
+| Table                     | Index | Type   | Purpose             |
+| ------------------------- | ----- | ------ | ------------------- |
+| `assets`                  | `id`  | B-tree | Direct asset lookup |
+| `asset_relationships`     | `id`  | B-tree | Edge identification |
+| `regulatory_events`       | `id`  | B-tree | Event lookup        |
+| `regulatory_event_assets` | `id`  | B-tree | Junction lookup     |
+| `user_credentials`        | `id`  | B-tree | User record access  |
 
 #### 6.2.3.2 Unique Constraint Indexes
 
-| Table | Constraint | Columns | Purpose |
-|-------|------------|---------|---------|
-| `asset_relationships` | `uq_relationship` | `(source_asset_id, target_asset_id, relationship_type)` | Prevent duplicate edges |
-| `regulatory_event_assets` | `uq_event_asset` | `(event_id, asset_id)` | Prevent duplicate associations |
-| `user_credentials` | `username` | `username` | Unique login enforcement |
+| Table                     | Constraint        | Columns                                                 | Purpose                        |
+| ------------------------- | ----------------- | ------------------------------------------------------- | ------------------------------ |
+| `asset_relationships`     | `uq_relationship` | `(source_asset_id, target_asset_id, relationship_type)` | Prevent duplicate edges        |
+| `regulatory_event_assets` | `uq_event_asset`  | `(event_id, asset_id)`                                  | Prevent duplicate associations |
+| `user_credentials`        | `username`        | `username`                                              | Unique login enforcement       |
 
 #### 6.2.3.3 Foreign Key Indexes
 
 Foreign key columns are indexed to support cascade delete operations and join queries:
 
-| Table | Column | References | Index Type |
-|-------|--------|------------|------------|
-| `asset_relationships` | `source_asset_id` | `assets(id)` | Implicit FK index |
-| `asset_relationships` | `target_asset_id` | `assets(id)` | Implicit FK index |
-| `regulatory_events` | `asset_id` | `assets(id)` | Implicit FK index |
-| `regulatory_event_assets` | `event_id` | `regulatory_events(id)` | Implicit FK index |
-| `regulatory_event_assets` | `asset_id` | `assets(id)` | Implicit FK index |
+| Table                     | Column            | References              | Index Type        |
+| ------------------------- | ----------------- | ----------------------- | ----------------- |
+| `asset_relationships`     | `source_asset_id` | `assets(id)`            | Implicit FK index |
+| `asset_relationships`     | `target_asset_id` | `assets(id)`            | Implicit FK index |
+| `regulatory_events`       | `asset_id`        | `assets(id)`            | Implicit FK index |
+| `regulatory_event_assets` | `event_id`        | `regulatory_events(id)` | Implicit FK index |
+| `regulatory_event_assets` | `asset_id`        | `assets(id)`            | Implicit FK index |
 
 #### 6.2.3.4 Recommended Production Indexes
 
 For PostgreSQL production deployments handling larger datasets:
 
-| Table | Proposed Index | Columns | Rationale |
-|-------|----------------|---------|-----------|
-| `assets` | `idx_assets_sector` | `sector` | Sector-based filtering |
-| `assets` | `idx_assets_class` | `asset_class` | Asset class filtering |
-| `asset_relationships` | `idx_rel_type` | `relationship_type` | Relationship type queries |
-| `regulatory_events` | `idx_events_date` | `date` | Date range queries |
+| Table                 | Proposed Index      | Columns             | Rationale                 |
+| --------------------- | ------------------- | ------------------- | ------------------------- |
+| `assets`              | `idx_assets_sector` | `sector`            | Sector-based filtering    |
+| `assets`              | `idx_assets_class`  | `asset_class`       | Asset class filtering     |
+| `asset_relationships` | `idx_rel_type`      | `relationship_type` | Relationship type queries |
+| `regulatory_events`   | `idx_events_date`   | `date`              | Date range queries        |
 
 ---
 
@@ -5720,14 +5733,14 @@ flowchart TB
 
 #### 6.2.4.2 Data Flow Sequence
 
-| Phase | Operation | Source | Destination |
-|-------|-----------|--------|-------------|
-| 1 | Data Fetch | Yahoo Finance / Sample Generator | Data Fetcher |
-| 2 | Cache Check | JSON Cache | Data Fetcher |
-| 3 | Graph Build | Asset Data | In-Memory Graph |
-| 4 | Relationship Discovery | Graph Nodes | Edge Creation |
-| 5 | Optional Persistence | In-Memory Graph | SQLAlchemy ORM |
-| 6 | API Serving | In-Memory Graph | FastAPI Responses |
+| Phase | Operation              | Source                           | Destination       |
+| ----- | ---------------------- | -------------------------------- | ----------------- |
+| 1     | Data Fetch             | Yahoo Finance / Sample Generator | Data Fetcher      |
+| 2     | Cache Check            | JSON Cache                       | Data Fetcher      |
+| 3     | Graph Build            | Asset Data                       | In-Memory Graph   |
+| 4     | Relationship Discovery | Graph Nodes                      | Edge Creation     |
+| 5     | Optional Persistence   | In-Memory Graph                  | SQLAlchemy ORM    |
+| 6     | API Serving            | In-Memory Graph                  | FastAPI Responses |
 
 ---
 
@@ -5737,20 +5750,20 @@ flowchart TB
 
 Implemented in `src/data/database.py`, the ORM layer supports multiple database backends:
 
-| Configuration | Value | Purpose |
-|---------------|-------|---------|
-| SQLAlchemy Version | >=2.0.0 | Modern ORM syntax |
-| Syntax Style | 2.x with `Mapped`/`mapped_column` | Type-safe mappings |
-| Environment Variable | `ASSET_GRAPH_DATABASE_URL` | Connection string |
-| Default Backend | SQLite | Development simplicity |
+| Configuration        | Value                             | Purpose                |
+| -------------------- | --------------------------------- | ---------------------- |
+| SQLAlchemy Version   | >=2.0.0                           | Modern ORM syntax      |
+| Syntax Style         | 2.x with `Mapped`/`mapped_column` | Type-safe mappings     |
+| Environment Variable | `ASSET_GRAPH_DATABASE_URL`        | Connection string      |
+| Default Backend      | SQLite                            | Development simplicity |
 
 #### 6.2.5.2 Connection Configuration by Backend
 
-| Backend | Use Case | Configuration |
-|---------|----------|---------------|
-| SQLite (file) | Development | `sqlite:///path/to/db.sqlite` |
-| SQLite (in-memory) | Testing | `sqlite:///:memory:` with `StaticPool` |
-| PostgreSQL | Production | `postgresql://user:pass@host/db` |
+| Backend            | Use Case    | Configuration                          |
+| ------------------ | ----------- | -------------------------------------- |
+| SQLite (file)      | Development | `sqlite:///path/to/db.sqlite`          |
+| SQLite (in-memory) | Testing     | `sqlite:///:memory:` with `StaticPool` |
+| PostgreSQL         | Production  | `postgresql://user:pass@host/db`       |
 
 #### 6.2.5.3 ORM Model Classes
 
@@ -5758,46 +5771,46 @@ Defined in `src/data/db_models.py`:
 
 #### AssetORM Model
 
-| Attribute | SQLAlchemy Type | Relationship |
-|-----------|-----------------|--------------|
-| `id` | `Mapped[str]` | Primary Key |
+| Attribute                | SQLAlchemy Type                        | Relationship                              |
+| ------------------------ | -------------------------------------- | ----------------------------------------- |
+| `id`                     | `Mapped[str]`                          | Primary Key                               |
 | `outgoing_relationships` | `Mapped[List["AssetRelationshipORM"]]` | One-to-Many (cascade: all, delete-orphan) |
 | `incoming_relationships` | `Mapped[List["AssetRelationshipORM"]]` | One-to-Many (cascade: all, delete-orphan) |
-| `regulatory_events` | `Mapped[List["RegulatoryEventORM"]]` | One-to-Many (cascade: all, delete-orphan) |
+| `regulatory_events`      | `Mapped[List["RegulatoryEventORM"]]`   | One-to-Many (cascade: all, delete-orphan) |
 
 #### AssetRelationshipORM Model
 
-| Attribute | SQLAlchemy Type | Relationship |
-|-----------|-----------------|--------------|
-| `id` | `Mapped[int]` | Primary Key (autoincrement) |
-| `source_asset` | `Mapped["AssetORM"]` | Many-to-One |
-| `target_asset` | `Mapped["AssetORM"]` | Many-to-One |
+| Attribute      | SQLAlchemy Type      | Relationship                |
+| -------------- | -------------------- | --------------------------- |
+| `id`           | `Mapped[int]`        | Primary Key (autoincrement) |
+| `source_asset` | `Mapped["AssetORM"]` | Many-to-One                 |
+| `target_asset` | `Mapped["AssetORM"]` | Many-to-One                 |
 
 #### RegulatoryEventORM Model
 
-| Attribute | SQLAlchemy Type | Relationship |
-|-----------|-----------------|--------------|
-| `id` | `Mapped[str]` | Primary Key |
-| `asset` | `Mapped["AssetORM"]` | Many-to-One |
+| Attribute        | SQLAlchemy Type                           | Relationship                              |
+| ---------------- | ----------------------------------------- | ----------------------------------------- |
+| `id`             | `Mapped[str]`                             | Primary Key                               |
+| `asset`          | `Mapped["AssetORM"]`                      | Many-to-One                               |
 | `related_assets` | `Mapped[List["RegulatoryEventAssetORM"]]` | One-to-Many (cascade: all, delete-orphan) |
 
 #### 6.2.5.4 Repository Pattern Implementation
 
 The `AssetGraphRepository` class in `src/data/repository.py` provides the data access layer:
 
-| Method | Operation | Transaction Scope |
-|--------|-----------|-------------------|
-| `upsert_asset()` | Insert or update asset | Caller manages |
-| `list_assets()` | Retrieve all assets | Read-only |
-| `get_assets_map()` | Dict by asset ID | Read-only |
-| `delete_asset()` | Remove asset (cascades) | Caller manages |
-| `add_or_update_relationship()` | Upsert edge | Caller manages |
-| `list_relationships()` | Retrieve all edges | Read-only |
-| `get_relationship()` | Single edge lookup | Read-only |
-| `delete_relationship()` | Remove edge | Caller manages |
-| `upsert_regulatory_event()` | Insert/update event | Caller manages |
-| `list_regulatory_events()` | Retrieve all events | Read-only |
-| `delete_regulatory_event()` | Remove event | Caller manages |
+| Method                         | Operation               | Transaction Scope |
+| ------------------------------ | ----------------------- | ----------------- |
+| `upsert_asset()`               | Insert or update asset  | Caller manages    |
+| `list_assets()`                | Retrieve all assets     | Read-only         |
+| `get_assets_map()`             | Dict by asset ID        | Read-only         |
+| `delete_asset()`               | Remove asset (cascades) | Caller manages    |
+| `add_or_update_relationship()` | Upsert edge             | Caller manages    |
+| `list_relationships()`         | Retrieve all edges      | Read-only         |
+| `get_relationship()`           | Single edge lookup      | Read-only         |
+| `delete_relationship()`        | Remove edge             | Caller manages    |
+| `upsert_regulatory_event()`    | Insert/update event     | Caller manages    |
+| `list_regulatory_events()`     | Retrieve all events     | Read-only         |
+| `delete_regulatory_event()`    | Remove event            | Caller manages    |
 
 ---
 
@@ -5807,10 +5820,10 @@ The `AssetGraphRepository` class in `src/data/repository.py` provides the data a
 
 Implemented in `src/data/real_data_fetcher.py`, the cache layer provides persistent storage for external API data:
 
-| Configuration | Environment Variable | Purpose |
-|---------------|---------------------|---------|
-| Real Data Cache | `REAL_DATA_CACHE_PATH` | Yahoo Finance data |
-| Graph Cache | `GRAPH_CACHE_PATH` | Serialized graph state |
+| Configuration   | Environment Variable   | Purpose                |
+| --------------- | ---------------------- | ---------------------- |
+| Real Data Cache | `REAL_DATA_CACHE_PATH` | Yahoo Finance data     |
+| Graph Cache     | `GRAPH_CACHE_PATH`     | Serialized graph state |
 
 #### 6.2.6.2 Atomic Write Pattern
 
@@ -5836,21 +5849,21 @@ flowchart LR
 
 #### 6.2.6.3 Atomic Write Guarantees
 
-| Phase | Operation | Failure Behavior |
-|-------|-----------|------------------|
-| 1 | Create temporary file | No change to target |
-| 2 | Write JSON content | Temp file only |
-| 3 | Flush and sync | Data on disk in temp |
-| 4 | `os.replace()` | Atomic swap or rollback |
+| Phase | Operation             | Failure Behavior        |
+| ----- | --------------------- | ----------------------- |
+| 1     | Create temporary file | No change to target     |
+| 2     | Write JSON content    | Temp file only          |
+| 3     | Flush and sync        | Data on disk in temp    |
+| 4     | `os.replace()`        | Atomic swap or rollback |
 
 #### 6.2.6.4 Cache Content Structure
 
-| Element | Serialization | Purpose |
-|---------|---------------|---------|
-| Assets | JSON with `__type__` discriminator | Type reconstruction |
-| Regulatory Events | Enum values as strings | Serialization compatibility |
-| Relationships | Adjacency list format | Graph reconstruction |
-| Metadata | Timestamps, version info | Cache validation |
+| Element           | Serialization                      | Purpose                     |
+| ----------------- | ---------------------------------- | --------------------------- |
+| Assets            | JSON with `__type__` discriminator | Type reconstruction         |
+| Regulatory Events | Enum values as strings             | Serialization compatibility |
+| Relationships     | Adjacency list format              | Graph reconstruction        |
+| Metadata          | Timestamps, version info           | Cache validation            |
 
 ---
 
@@ -5860,11 +5873,11 @@ flowchart LR
 
 As documented in the system constraints, the current architecture prioritizes simplicity over high availability:
 
-| Constraint ID | Description | Impact |
-|---------------|-------------|--------|
-| C-001 | In-memory graph limits scalability | No built-in replication |
-| A-003 | Single concurrent admin sufficient | Single-user authentication |
-| A-004 | Dataset size <500 nodes | Memory-based storage viable |
+| Constraint ID | Description                        | Impact                      |
+| ------------- | ---------------------------------- | --------------------------- |
+| C-001         | In-memory graph limits scalability | No built-in replication     |
+| A-003         | Single concurrent admin sufficient | Single-user authentication  |
+| A-004         | Dataset size <500 nodes            | Memory-based storage viable |
 
 #### 6.2.7.2 Replication Architecture Diagram
 
@@ -5901,12 +5914,12 @@ flowchart TB
 
 #### 6.2.7.3 Production Scaling Recommendations
 
-| Growth Trigger | Recommended Action | Module Impact |
-|----------------|-------------------|---------------|
-| >500 assets | Enable PostgreSQL persistence | Graph Engine |
-| Multi-user requirements | Implement connection pooling | Auth Module |
-| High availability needs | Deploy multiple instances | All modules |
-| Session management | Add Redis for shared state | API Layer |
+| Growth Trigger          | Recommended Action            | Module Impact |
+| ----------------------- | ----------------------------- | ------------- |
+| >500 assets             | Enable PostgreSQL persistence | Graph Engine  |
+| Multi-user requirements | Implement connection pooling  | Auth Module   |
+| High availability needs | Deploy multiple instances     | All modules   |
+| Session management      | Add Redis for shared state    | API Layer     |
 
 ---
 
@@ -5914,21 +5927,21 @@ flowchart TB
 
 #### 6.2.8.1 Data Durability by Component
 
-| Component | Durability Level | Backup Method |
-|-----------|-----------------|---------------|
-| In-Memory Graph | Process lifetime | JSON cache serialization |
-| SQLite Auth | File-based persistence | File system backup |
-| PostgreSQL (if used) | Database-level | pg_dump, WAL archiving |
-| JSON Cache | File-based | File system backup |
+| Component            | Durability Level       | Backup Method            |
+| -------------------- | ---------------------- | ------------------------ |
+| In-Memory Graph      | Process lifetime       | JSON cache serialization |
+| SQLite Auth          | File-based persistence | File system backup       |
+| PostgreSQL (if used) | Database-level         | pg_dump, WAL archiving   |
+| JSON Cache           | File-based             | File system backup       |
 
 #### 6.2.8.2 Recovery Scenarios
 
-| Scenario | Detection Method | Recovery Action | Data Loss |
-|----------|-----------------|-----------------|-----------|
-| Graph corruption | Validation failure | Reload from cache or fetch | None (if cached) |
-| Cache file corruption | JSON parse error | Fresh fetch from source | None |
-| Auth database loss | Connection failure | Restore from backup | Potential |
-| Process restart | N/A | Graph reinitialization | Session state |
+| Scenario              | Detection Method   | Recovery Action            | Data Loss        |
+| --------------------- | ------------------ | -------------------------- | ---------------- |
+| Graph corruption      | Validation failure | Reload from cache or fetch | None (if cached) |
+| Cache file corruption | JSON parse error   | Fresh fetch from source    | None             |
+| Auth database loss    | Connection failure | Restore from backup        | Potential        |
+| Process restart       | N/A                | Graph reinitialization     | Session state    |
 
 #### 6.2.8.3 Disaster Recovery Flow
 
@@ -5961,12 +5974,12 @@ flowchart TB
 
 #### 6.2.8.4 Data Recovery Priority
 
-| Priority | Data Type | Recovery Source | Maximum Acceptable Loss |
-|----------|-----------|-----------------|------------------------|
-| 1 (Critical) | User credentials | SQLite backup | None |
-| 2 (High) | Graph state | Cache or Yahoo Finance | Minutes of updates |
-| 3 (Medium) | Cached data | Fresh external fetch | Cache refresh time |
-| 4 (Low) | Session state | Stateless (no recovery) | Full session |
+| Priority     | Data Type        | Recovery Source         | Maximum Acceptable Loss |
+| ------------ | ---------------- | ----------------------- | ----------------------- |
+| 1 (Critical) | User credentials | SQLite backup           | None                    |
+| 2 (High)     | Graph state      | Cache or Yahoo Finance  | Minutes of updates      |
+| 3 (Medium)   | Cached data      | Fresh external fetch    | Cache refresh time      |
+| 4 (Low)      | Session state    | Stateless (no recovery) | Full session            |
 
 ---
 
@@ -5974,38 +5987,38 @@ flowchart TB
 
 #### 6.2.9.1 Data Retention Policies
 
-| Data Type | Retention Period | Disposal Method |
-|-----------|-----------------|-----------------|
-| User credentials | Until explicitly deleted | Secure database deletion |
-| Authentication logs | Application runtime | In-memory only |
-| Cached market data | Configurable cache TTL | File overwrite |
-| Graph state | Process lifetime | Memory deallocation |
+| Data Type           | Retention Period         | Disposal Method          |
+| ------------------- | ------------------------ | ------------------------ |
+| User credentials    | Until explicitly deleted | Secure database deletion |
+| Authentication logs | Application runtime      | In-memory only           |
+| Cached market data  | Configurable cache TTL   | File overwrite           |
+| Graph state         | Process lifetime         | Memory deallocation      |
 
 #### 6.2.9.2 Access Control Matrix
 
-| Role | Authentication | Asset Data | User Management |
-|------|----------------|------------|-----------------|
-| Anonymous | None | Read-only API access | None |
-| Authenticated User | JWT token | Full API access | Self-profile only |
-| Admin | JWT + admin flag | Full access | User CRUD |
+| Role               | Authentication   | Asset Data           | User Management   |
+| ------------------ | ---------------- | -------------------- | ----------------- |
+| Anonymous          | None             | Read-only API access | None              |
+| Authenticated User | JWT token        | Full API access      | Self-profile only |
+| Admin              | JWT + admin flag | Full access          | User CRUD         |
 
 #### 6.2.9.3 Privacy Controls
 
-| Control | Implementation | Location |
-|---------|----------------|----------|
-| Password hashing | pbkdf2_sha256 | `api/auth.py` |
-| Token expiration | 30-minute JWT lifetime | `api/auth.py` |
-| Secure transport | HTTPS required in production | Deployment config |
-| Secret management | Environment variables only | Never committed |
+| Control           | Implementation               | Location          |
+| ----------------- | ---------------------------- | ----------------- |
+| Password hashing  | pbkdf2_sha256                | `api/auth.py`     |
+| Token expiration  | 30-minute JWT lifetime       | `api/auth.py`     |
+| Secure transport  | HTTPS required in production | Deployment config |
+| Secret management | Environment variables only   | Never committed   |
 
 #### 6.2.9.4 Audit Mechanisms
 
-| Audit Point | Log Level | Content |
-|-------------|-----------|---------|
-| Graph initialization | INFO | Success/failure status |
-| Authentication attempts | WARNING | Failed login attempts |
-| Request errors | ERROR | Exception details |
-| Cache operations | INFO | Load/save success |
+| Audit Point             | Log Level | Content                |
+| ----------------------- | --------- | ---------------------- |
+| Graph initialization    | INFO      | Success/failure status |
+| Authentication attempts | WARNING   | Failed login attempts  |
+| Request errors          | ERROR     | Exception details      |
+| Cache operations        | INFO      | Load/save success      |
 
 ---
 
@@ -6013,48 +6026,48 @@ flowchart TB
 
 #### 6.2.10.1 Query Optimization Patterns
 
-| Pattern | Implementation | Benefit |
-|---------|----------------|---------|
+| Pattern                   | Implementation                 | Benefit                   |
+| ------------------------- | ------------------------------ | ------------------------- |
 | In-memory primary storage | `Dict[source_id, List[Tuple]]` | Sub-millisecond traversal |
-| Thread-safe singleton | Double-checked locking | Minimal lock contention |
-| Lazy initialization | On-demand graph creation | Fast application startup |
-| Unique constraint indexes | Composite unique keys | O(1) duplicate detection |
+| Thread-safe singleton     | Double-checked locking         | Minimal lock contention   |
+| Lazy initialization       | On-demand graph creation       | Fast application startup  |
+| Unique constraint indexes | Composite unique keys          | O(1) duplicate detection  |
 
 #### 6.2.10.2 Performance Targets
 
-| Operation | Target SLA | Measurement |
-|-----------|------------|-------------|
-| Relationship traversal | <1ms | In-memory graph access |
-| Asset lookup | <10ms | Indexed primary key |
-| Graph initialization | <3 seconds | Application startup |
-| Relationship discovery | <500ms | For 100 assets |
+| Operation              | Target SLA | Measurement            |
+| ---------------------- | ---------- | ---------------------- |
+| Relationship traversal | <1ms       | In-memory graph access |
+| Asset lookup           | <10ms      | Indexed primary key    |
+| Graph initialization   | <3 seconds | Application startup    |
+| Relationship discovery | <500ms     | For 100 assets         |
 
 #### 6.2.10.3 Connection Management
 
 #### SQLite Authentication Database
 
-| Configuration | Value | Purpose |
-|---------------|-------|---------|
-| `check_same_thread` | `False` | Multi-threaded access |
-| Connection sharing | Locked shared connection | In-memory database support |
-| Row factory | Dict-style access | Convenient result handling |
+| Configuration       | Value                    | Purpose                    |
+| ------------------- | ------------------------ | -------------------------- |
+| `check_same_thread` | `False`                  | Multi-threaded access      |
+| Connection sharing  | Locked shared connection | In-memory database support |
+| Row factory         | Dict-style access        | Convenient result handling |
 
 #### SQLAlchemy ORM Connection
 
-| Backend | Pool Configuration | Purpose |
-|---------|-------------------|---------|
-| SQLite in-memory | `StaticPool` | Single shared connection |
-| SQLite file | Default pool | Connection reuse |
-| PostgreSQL | Default pool | Connection pooling |
+| Backend          | Pool Configuration | Purpose                  |
+| ---------------- | ------------------ | ------------------------ |
+| SQLite in-memory | `StaticPool`       | Single shared connection |
+| SQLite file      | Default pool       | Connection reuse         |
+| PostgreSQL       | Default pool       | Connection pooling       |
 
 #### 6.2.10.4 Batch Processing Approach
 
-| Operation | Batch Strategy | Implementation |
-|-----------|----------------|----------------|
-| Graph initialization | Bulk asset loading | Single transaction |
-| Relationship building | Iterate all assets once | O(n) complexity |
-| Cache serialization | Single JSON write | Atomic file operation |
-| Repository upserts | Caller-managed batching | Session scope pattern |
+| Operation             | Batch Strategy          | Implementation        |
+| --------------------- | ----------------------- | --------------------- |
+| Graph initialization  | Bulk asset loading      | Single transaction    |
+| Relationship building | Iterate all assets once | O(n) complexity       |
+| Cache serialization   | Single JSON write       | Atomic file operation |
+| Repository upserts    | Caller-managed batching | Session scope pattern |
 
 ---
 
@@ -6083,22 +6096,22 @@ flowchart TB
 
 The `session_scope` context manager in `src/data/repository.py` provides transaction management:
 
-| Phase | Action | On Exception |
-|-------|--------|--------------|
-| Entry | Create session from factory | N/A |
-| Yield | Expose session for operations | N/A |
-| Exit (success) | Commit transaction | N/A |
-| Exit (error) | N/A | Rollback transaction |
-| Finally | Close session | Close session |
+| Phase          | Action                        | On Exception         |
+| -------------- | ----------------------------- | -------------------- |
+| Entry          | Create session from factory   | N/A                  |
+| Yield          | Expose session for operations | N/A                  |
+| Exit (success) | Commit transaction            | N/A                  |
+| Exit (error)   | N/A                           | Rollback transaction |
+| Finally        | Close session                 | Close session        |
 
 #### 6.2.11.3 Cascade Delete Behavior
 
-| Parent Entity | Child Entities | Cascade Type |
-|---------------|----------------|--------------|
-| Asset | asset_relationships (outgoing) | all, delete-orphan |
-| Asset | asset_relationships (incoming) | all, delete-orphan |
-| Asset | regulatory_events | all, delete-orphan |
-| Regulatory Event | regulatory_event_assets | all, delete-orphan |
+| Parent Entity    | Child Entities                 | Cascade Type       |
+| ---------------- | ------------------------------ | ------------------ |
+| Asset            | asset_relationships (outgoing) | all, delete-orphan |
+| Asset            | asset_relationships (incoming) | all, delete-orphan |
+| Asset            | regulatory_events              | all, delete-orphan |
+| Regulatory Event | regulatory_event_assets        | all, delete-orphan |
 
 ---
 
@@ -6108,13 +6121,13 @@ The `session_scope` context manager in `src/data/repository.py` provides transac
 
 Implemented in `src/models/financial_models.py`:
 
-| Field | Validation Rule | Error Type |
-|-------|-----------------|------------|
-| `id`, `symbol`, `name` | Non-empty string | `ValueError` |
-| `price`, `market_cap` | Non-negative float | `ValueError` |
-| `currency` | 3-character ISO code | `ValueError` |
-| `impact_score` | Range [-1.0, 1.0] | `ValueError` |
-| `date` (events) | ISO 8601 format | `ValueError` |
+| Field                  | Validation Rule      | Error Type   |
+| ---------------------- | -------------------- | ------------ |
+| `id`, `symbol`, `name` | Non-empty string     | `ValueError` |
+| `price`, `market_cap`  | Non-negative float   | `ValueError` |
+| `currency`             | 3-character ISO code | `ValueError` |
+| `impact_score`         | Range [-1.0, 1.0]    | `ValueError` |
+| `date` (events)        | ISO 8601 format      | `ValueError` |
 
 #### 6.2.12.2 Validation Flow
 
@@ -6137,24 +6150,24 @@ flowchart LR
 
 #### 6.2.13.1 Database Environment Variables
 
-| Variable | Purpose | Example Value |
-|----------|---------|---------------|
-| `DATABASE_URL` | SQLite authentication database | `sqlite:///auth.db` |
-| `ASSET_GRAPH_DATABASE_URL` | SQLAlchemy ORM connection | `postgresql://user:pass@host/db` |
-| `GRAPH_CACHE_PATH` | Graph cache file location | `/data/graph_cache.json` |
-| `REAL_DATA_CACHE_PATH` | Yahoo Finance cache location | `/data/real_data.json` |
-| `USE_REAL_DATA_FETCHER` | Enable live data fetching | `true` or `false` |
+| Variable                   | Purpose                        | Example Value                    |
+| -------------------------- | ------------------------------ | -------------------------------- |
+| `DATABASE_URL`             | SQLite authentication database | `sqlite:///auth.db`              |
+| `ASSET_GRAPH_DATABASE_URL` | SQLAlchemy ORM connection      | `postgresql://user:pass@host/db` |
+| `GRAPH_CACHE_PATH`         | Graph cache file location      | `/data/graph_cache.json`         |
+| `REAL_DATA_CACHE_PATH`     | Yahoo Finance cache location   | `/data/real_data.json`           |
+| `USE_REAL_DATA_FETCHER`    | Enable live data fetching      | `true` or `false`                |
 
 #### 6.2.13.2 Security Environment Variables
 
-| Variable | Purpose | Sensitivity |
-|----------|---------|-------------|
-| `SECRET_KEY` | JWT signing key | Critical - never commit |
-| `ADMIN_USERNAME` | Default admin user | Sensitive |
-| `ADMIN_PASSWORD` | Default admin password | Critical - never commit |
-| `ADMIN_EMAIL` | Admin email address | Low |
-| `ADMIN_FULL_NAME` | Admin display name | Low |
-| `ADMIN_DISABLED` | Admin disabled flag | Low |
+| Variable          | Purpose                | Sensitivity             |
+| ----------------- | ---------------------- | ----------------------- |
+| `SECRET_KEY`      | JWT signing key        | Critical - never commit |
+| `ADMIN_USERNAME`  | Default admin user     | Sensitive               |
+| `ADMIN_PASSWORD`  | Default admin password | Critical - never commit |
+| `ADMIN_EMAIL`     | Admin email address    | Low                     |
+| `ADMIN_FULL_NAME` | Admin display name     | Low                     |
+| `ADMIN_DISABLED`  | Admin disabled flag    | Low                     |
 
 ---
 
@@ -6162,21 +6175,21 @@ flowchart LR
 
 #### 6.2.14.1 Planned Improvements
 
-| Enhancement | Priority | Complexity | Impact |
-|-------------|----------|------------|--------|
-| PostgreSQL full support | High | Medium | Production readiness |
-| Connection pooling | Medium | Low | Improved concurrency |
-| Read replicas | Low | High | Horizontal scaling |
-| Partitioning by asset class | Low | Medium | Query performance |
+| Enhancement                 | Priority | Complexity | Impact               |
+| --------------------------- | -------- | ---------- | -------------------- |
+| PostgreSQL full support     | High     | Medium     | Production readiness |
+| Connection pooling          | Medium   | Low        | Improved concurrency |
+| Read replicas               | Low      | High       | Horizontal scaling   |
+| Partitioning by asset class | Low      | Medium     | Query performance    |
 
 #### 6.2.14.2 Migration Path to Microservices
 
-| Current Component | Future Service | Database Change |
-|-------------------|----------------|-----------------|
-| In-memory graph | Graph Service | PostgreSQL + Redis cache |
-| SQLite auth | Auth Service | Dedicated auth database |
-| JSON cache | Cache Service | Redis/Memcached |
-| Repository layer | Data Service | Dedicated asset database |
+| Current Component | Future Service | Database Change          |
+| ----------------- | -------------- | ------------------------ |
+| In-memory graph   | Graph Service  | PostgreSQL + Redis cache |
+| SQLite auth       | Auth Service   | Dedicated auth database  |
+| JSON cache        | Cache Service  | Redis/Memcached          |
+| Repository layer  | Data Service   | Dedicated asset database |
 
 ---
 
@@ -6184,42 +6197,42 @@ flowchart LR
 
 #### 6.2.15.1 Source Files
 
-| Path | Description |
-|------|-------------|
-| `migrations/001_initial.sql` | DDL schema definitions |
-| `api/database.py` | SQLite authentication helpers |
-| `api/auth.py` | JWT authentication and user management |
-| `api/main.py` | FastAPI application with graph lifecycle |
-| `src/data/database.py` | SQLAlchemy engine configuration |
-| `src/data/db_models.py` | ORM model definitions |
-| `src/data/repository.py` | Repository pattern implementation |
-| `src/data/real_data_fetcher.py` | Yahoo Finance caching with atomic writes |
-| `src/data/sample_data.py` | Sample database creation |
-| `src/logic/asset_graph.py` | In-memory graph structure |
-| `src/models/financial_models.py` | Domain model validation |
-| `requirements.txt` | Database dependency declarations |
+| Path                             | Description                              |
+| -------------------------------- | ---------------------------------------- |
+| `migrations/001_initial.sql`     | DDL schema definitions                   |
+| `api/database.py`                | SQLite authentication helpers            |
+| `api/auth.py`                    | JWT authentication and user management   |
+| `api/main.py`                    | FastAPI application with graph lifecycle |
+| `src/data/database.py`           | SQLAlchemy engine configuration          |
+| `src/data/db_models.py`          | ORM model definitions                    |
+| `src/data/repository.py`         | Repository pattern implementation        |
+| `src/data/real_data_fetcher.py`  | Yahoo Finance caching with atomic writes |
+| `src/data/sample_data.py`        | Sample database creation                 |
+| `src/logic/asset_graph.py`       | In-memory graph structure                |
+| `src/models/financial_models.py` | Domain model validation                  |
+| `requirements.txt`               | Database dependency declarations         |
 
 #### 6.2.15.2 Technical Specification Sections
 
-| Section | Relevance |
-|---------|-----------|
-| 5.6 DATABASE SCHEMA | Core schema definitions |
-| 3.6 Databases & Storage | Technology stack details |
-| 4.10 Transaction Boundaries and Persistence | Transaction patterns |
-| 3.8 Security Considerations | Authentication security |
-| 5.4 CROSS-CUTTING CONCERNS | Error handling and monitoring |
-| 5.5 DEPLOYMENT ARCHITECTURE | Deployment configurations |
-| 6.1 Core Services Architecture | Monolithic architecture context |
-| 2.6 Assumptions and Constraints | System limitations |
+| Section                                     | Relevance                       |
+| ------------------------------------------- | ------------------------------- |
+| 5.6 DATABASE SCHEMA                         | Core schema definitions         |
+| 3.6 Databases & Storage                     | Technology stack details        |
+| 4.10 Transaction Boundaries and Persistence | Transaction patterns            |
+| 3.8 Security Considerations                 | Authentication security         |
+| 5.4 CROSS-CUTTING CONCERNS                  | Error handling and monitoring   |
+| 5.5 DEPLOYMENT ARCHITECTURE                 | Deployment configurations       |
+| 6.1 Core Services Architecture              | Monolithic architecture context |
+| 2.6 Assumptions and Constraints             | System limitations              |
 
 #### 6.2.15.3 Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| SQLAlchemy | >=2.0.0 | ORM framework |
-| passlib | (bundled) | Password hashing |
-| PyJWT | (bundled) | JWT token handling |
-| sqlite3 | (stdlib) | Authentication database |
+| Package    | Version   | Purpose                 |
+| ---------- | --------- | ----------------------- |
+| SQLAlchemy | >=2.0.0   | ORM framework           |
+| passlib    | (bundled) | Password hashing        |
+| PyJWT      | (bundled) | JWT token handling      |
+| sqlite3    | (stdlib)  | Authentication database |
 
 ## 6.3 Integration Architecture
 
@@ -6231,13 +6244,13 @@ The Financial Asset Relationship Database implements a **REST/JSON API integrati
 
 The system implements RESTful API communication using modern web standards and type-safe serialization patterns.
 
-| Aspect | Specification | Implementation |
-|--------|---------------|----------------|
-| Protocol | REST over HTTP/HTTPS | HTTP for development, HTTPS for production |
-| Data Format | JSON | Content-Type: application/json |
-| API Framework | FastAPI 0.127.0 | Automatic OpenAPI documentation |
-| ASGI Server | Uvicorn ≥0.24.0 | Async request handling |
-| Serialization | Pydantic 2.12.5 | Strict type validation |
+| Aspect        | Specification        | Implementation                             |
+| ------------- | -------------------- | ------------------------------------------ |
+| Protocol      | REST over HTTP/HTTPS | HTTP for development, HTTPS for production |
+| Data Format   | JSON                 | Content-Type: application/json             |
+| API Framework | FastAPI 0.127.0      | Automatic OpenAPI documentation            |
+| ASGI Server   | Uvicorn ≥0.24.0      | Async request handling                     |
+| Serialization | Pydantic 2.12.5      | Strict type validation                     |
 
 ```mermaid
 flowchart TB
@@ -6264,33 +6277,33 @@ flowchart TB
 
 #### API Endpoint Catalog
 
-| Endpoint | Method | Description | Auth | Rate Limit |
-|----------|--------|-------------|------|------------|
-| `/` | GET | API metadata | No | None |
-| `/token` | POST | JWT issuance | No | 5/min |
-| `/api/health` | GET | Health check | No | None |
-| `/api/assets` | GET | List assets | No | None |
-| `/api/assets/{id}` | GET | Asset details | No | None |
-| `/api/assets/{id}/relationships` | GET | Asset relationships | No | None |
-| `/api/relationships` | GET | All relationships | No | None |
-| `/api/metrics` | GET | Network stats | No | None |
-| `/api/visualization` | GET | 3D visualization | No | None |
-| `/api/asset-classes` | GET | Asset classes | No | None |
-| `/api/sectors` | GET | Sectors | No | None |
-| `/api/users/me` | GET | Current user | Yes | 10/min |
+| Endpoint                         | Method | Description         | Auth | Rate Limit |
+| -------------------------------- | ------ | ------------------- | ---- | ---------- |
+| `/`                              | GET    | API metadata        | No   | None       |
+| `/token`                         | POST   | JWT issuance        | No   | 5/min      |
+| `/api/health`                    | GET    | Health check        | No   | None       |
+| `/api/assets`                    | GET    | List assets         | No   | None       |
+| `/api/assets/{id}`               | GET    | Asset details       | No   | None       |
+| `/api/assets/{id}/relationships` | GET    | Asset relationships | No   | None       |
+| `/api/relationships`             | GET    | All relationships   | No   | None       |
+| `/api/metrics`                   | GET    | Network stats       | No   | None       |
+| `/api/visualization`             | GET    | 3D visualization    | No   | None       |
+| `/api/asset-classes`             | GET    | Asset classes       | No   | None       |
+| `/api/sectors`                   | GET    | Sectors             | No   | None       |
+| `/api/users/me`                  | GET    | Current user        | Yes  | 10/min     |
 
 #### 6.3.1.2 Authentication Methods
 
 The system implements JWT-based authentication with secure password hashing for credential validation.
 
-| Component | Implementation | Configuration |
-|-----------|----------------|---------------|
-| Token Type | JWT (JSON Web Token) | OAuth2 Bearer scheme |
-| Algorithm | HS256 (HMAC-SHA256) | PyJWT ≥2.8.0 |
-| Token Expiration | 30 minutes | `ACCESS_TOKEN_EXPIRE_MINUTES` |
-| Secret Key | Environment variable | `SECRET_KEY` (required) |
-| Password Hashing | pbkdf2_sha256 | passlib CryptContext |
-| Credential Storage | SQLite database | `user_credentials` table |
+| Component          | Implementation       | Configuration                 |
+| ------------------ | -------------------- | ----------------------------- |
+| Token Type         | JWT (JSON Web Token) | OAuth2 Bearer scheme          |
+| Algorithm          | HS256 (HMAC-SHA256)  | PyJWT ≥2.8.0                  |
+| Token Expiration   | 30 minutes           | `ACCESS_TOKEN_EXPIRE_MINUTES` |
+| Secret Key         | Environment variable | `SECRET_KEY` (required)       |
+| Password Hashing   | pbkdf2_sha256        | passlib CryptContext          |
+| Credential Storage | SQLite database      | `user_credentials` table      |
 
 ```mermaid
 sequenceDiagram
@@ -6330,13 +6343,13 @@ sequenceDiagram
 
 Protected endpoint validation follows a five-step verification process ensuring token integrity and user status.
 
-| Step | Action | Failure Response |
-|------|--------|------------------|
-| 1 | Extract Bearer token from header | 401 Not authenticated |
-| 2 | Decode JWT with SECRET_KEY | 401 Could not validate |
-| 3 | Check token expiration | 401 Token has expired |
-| 4 | Lookup user in repository | 401 Invalid credentials |
-| 5 | Verify user is active | 400 Inactive user |
+| Step | Action                           | Failure Response        |
+| ---- | -------------------------------- | ----------------------- |
+| 1    | Extract Bearer token from header | 401 Not authenticated   |
+| 2    | Decode JWT with SECRET_KEY       | 401 Could not validate  |
+| 3    | Check token expiration           | 401 Token has expired   |
+| 4    | Lookup user in repository        | 401 Invalid credentials |
+| 5    | Verify user is active            | 400 Inactive user       |
 
 ```mermaid
 flowchart TB
@@ -6359,13 +6372,14 @@ flowchart TB
 
 The system implements endpoint-specific rate limiting using slowapi with client IP-based tracking.
 
-| Endpoint | Limit | Window | Key Function |
-|----------|-------|--------|--------------|
-| `POST /token` | 5 requests | 1 minute | Client IP |
-| `GET /api/users/me` | 10 requests | 1 minute | Client IP |
-| Other endpoints | Unlimited | N/A | N/A |
+| Endpoint            | Limit       | Window   | Key Function |
+| ------------------- | ----------- | -------- | ------------ |
+| `POST /token`       | 5 requests  | 1 minute | Client IP    |
+| `GET /api/users/me` | 10 requests | 1 minute | Client IP    |
+| Other endpoints     | Unlimited   | N/A      | N/A          |
 
 **Implementation Details:**
+
 - **Library**: slowapi with `get_remote_address` key function
 - **Exception Handling**: `RateLimitExceeded` → custom handler returning HTTP 429
 - **Response Headers**: Includes `Retry-After` header indicating wait time
@@ -6374,13 +6388,14 @@ The system implements endpoint-specific rate limiting using slowapi with client 
 
 Cross-Origin Resource Sharing is configured based on deployment environment with strict origin validation.
 
-| Environment | Allowed Origins | Configuration |
-|-------------|-----------------|---------------|
-| Development | `http://localhost:3000`, `http://localhost:7860` | Hardcoded |
-| Production | HTTPS origins only | Environment variable |
-| Custom | Comma-separated list | `ALLOWED_ORIGINS` |
+| Environment | Allowed Origins                                  | Configuration        |
+| ----------- | ------------------------------------------------ | -------------------- |
+| Development | `http://localhost:3000`, `http://localhost:7860` | Hardcoded            |
+| Production  | HTTPS origins only                               | Environment variable |
+| Custom      | Comma-separated list                             | `ALLOWED_ORIGINS`    |
 
 **CORS Validation Rules:**
+
 - HTTP localhost allowed only in development mode
 - HTTPS localhost allowed in any environment
 - Vercel preview URLs validated via regex: `^https://[a-zA-Z0-9\-\.]+\.vercel\.app$`
@@ -6388,24 +6403,24 @@ Cross-Origin Resource Sharing is configured based on deployment environment with
 
 #### 6.3.1.6 Versioning Approach
 
-| Aspect | Current Implementation |
-|--------|----------------------|
-| API Version | 1.0.0 |
-| Version Exposure | Root endpoint metadata |
-| URL Versioning | Not implemented (single version) |
-| Future Path | URL-based versioning (e.g., `/v2/`) when needed |
+| Aspect           | Current Implementation                          |
+| ---------------- | ----------------------------------------------- |
+| API Version      | 1.0.0                                           |
+| Version Exposure | Root endpoint metadata                          |
+| URL Versioning   | Not implemented (single version)                |
+| Future Path      | URL-based versioning (e.g., `/v2/`) when needed |
 
 #### 6.3.1.7 Documentation Standards
 
 The API implements comprehensive documentation through multiple mechanisms:
 
-| Standard | Implementation |
-|----------|----------------|
-| OpenAPI/Swagger | Auto-generated by FastAPI from type annotations |
-| Interactive Docs | Available at `/docs` (Swagger UI) and `/redoc` (ReDoc) |
-| Docstrings | Comprehensive Python docstrings on all endpoints |
-| Type Annotations | Pydantic models for request/response schemas |
-| Response Examples | Included in OpenAPI specification |
+| Standard          | Implementation                                         |
+| ----------------- | ------------------------------------------------------ |
+| OpenAPI/Swagger   | Auto-generated by FastAPI from type annotations        |
+| Interactive Docs  | Available at `/docs` (Swagger UI) and `/redoc` (ReDoc) |
+| Docstrings        | Comprehensive Python docstrings on all endpoints       |
+| Type Annotations  | Pydantic models for request/response schemas           |
+| Response Examples | Included in OpenAPI specification                      |
 
 ---
 
@@ -6436,11 +6451,11 @@ flowchart TB
     end
 ```
 
-| Event | Trigger | Action | Purpose |
-|-------|---------|--------|---------|
-| Startup | Application launch | Initialize graph singleton | Pre-warm graph data |
-| Request | HTTP request | Thread-safe graph access | Serve API requests |
-| Shutdown | SIGTERM/SIGINT | Log shutdown event | Graceful termination |
+| Event    | Trigger            | Action                     | Purpose              |
+| -------- | ------------------ | -------------------------- | -------------------- |
+| Startup  | Application launch | Initialize graph singleton | Pre-warm graph data  |
+| Request  | HTTP request       | Thread-safe graph access   | Serve API requests   |
+| Shutdown | SIGTERM/SIGINT     | Log shutdown event         | Graceful termination |
 
 #### 6.3.2.2 Batch Processing Flows
 
@@ -6485,15 +6500,15 @@ sequenceDiagram
 
 #### Batch Processing Sequence
 
-| Step | Operation | Fallback Behavior |
-|------|-----------|-------------------|
-| 1 | Check cache file | Proceed if missing |
-| 2 | Fetch equities (AAPL, MSFT, XOM, JPM) | Skip on error |
-| 3 | Fetch bond ETFs (TLT, LQD, HYG) | Skip on error |
-| 4 | Fetch commodities (GC=F, CL=F, SI=F) | Skip on error |
-| 5 | Fetch currencies (EURUSD=X, etc.) | Skip on error |
-| 6 | Build relationships | Process available data |
-| 7 | Atomic cache write | Log error, continue |
+| Step | Operation                             | Fallback Behavior      |
+| ---- | ------------------------------------- | ---------------------- |
+| 1    | Check cache file                      | Proceed if missing     |
+| 2    | Fetch equities (AAPL, MSFT, XOM, JPM) | Skip on error          |
+| 3    | Fetch bond ETFs (TLT, LQD, HYG)       | Skip on error          |
+| 4    | Fetch commodities (GC=F, CL=F, SI=F)  | Skip on error          |
+| 5    | Fetch currencies (EURUSD=X, etc.)     | Skip on error          |
+| 6    | Build relationships                   | Process available data |
+| 7    | Atomic cache write                    | Log error, continue    |
 
 #### 6.3.2.3 Error Handling Strategy
 
@@ -6501,14 +6516,14 @@ The API implements comprehensive error categorization with appropriate HTTP stat
 
 #### API Error Categories
 
-| Status Code | Scenario | Response Detail |
-|-------------|----------|-----------------|
-| 400 | Bad Request | Inactive user, invalid input |
-| 401 | Unauthorized | Invalid/expired token, missing credentials |
-| 404 | Not Found | Asset/resource not found |
-| 422 | Validation Error | Pydantic validation failure with field details |
-| 429 | Too Many Requests | Rate limit exceeded with Retry-After header |
-| 500 | Internal Error | Unexpected exception (logged server-side) |
+| Status Code | Scenario          | Response Detail                                |
+| ----------- | ----------------- | ---------------------------------------------- |
+| 400         | Bad Request       | Inactive user, invalid input                   |
+| 401         | Unauthorized      | Invalid/expired token, missing credentials     |
+| 404         | Not Found         | Asset/resource not found                       |
+| 422         | Validation Error  | Pydantic validation failure with field details |
+| 429         | Too Many Requests | Rate limit exceeded with Retry-After header    |
+| 500         | Internal Error    | Unexpected exception (logged server-side)      |
 
 ```mermaid
 flowchart TB
@@ -6537,12 +6552,12 @@ flowchart TB
 
 #### Graph Initialization Error Recovery
 
-| Error Source | Detection | Recovery Action | Fallback |
-|--------------|-----------|-----------------|----------|
-| Cache load failed | JSON parse error | Proceed to fresh fetch | Standard init |
-| Network disabled | Configuration flag | Use sample data | Offline mode |
-| Yahoo Finance error | Request exception | Check partial data | Sample fallback |
-| Critical failure | Unrecoverable exception | Abort startup | Application exit |
+| Error Source        | Detection               | Recovery Action        | Fallback         |
+| ------------------- | ----------------------- | ---------------------- | ---------------- |
+| Cache load failed   | JSON parse error        | Proceed to fresh fetch | Standard init    |
+| Network disabled    | Configuration flag      | Use sample data        | Offline mode     |
+| Yahoo Finance error | Request exception       | Check partial data     | Sample fallback  |
+| Critical failure    | Unrecoverable exception | Abort startup          | Application exit |
 
 ---
 
@@ -6554,30 +6569,30 @@ flowchart TB
 
 The system integrates with Yahoo Finance via the yfinance library for real-time market data.
 
-| Attribute | Specification |
-|-----------|---------------|
-| Library | yfinance ≥0.2.51 |
-| Enable Flag | `USE_REAL_DATA_FETCHER` environment variable |
-| Implementation | `src/data/real_data_fetcher.py` |
-| Data Source | Yahoo Finance API (via yfinance) |
+| Attribute      | Specification                                |
+| -------------- | -------------------------------------------- |
+| Library        | yfinance ≥0.2.51                             |
+| Enable Flag    | `USE_REAL_DATA_FETCHER` environment variable |
+| Implementation | `src/data/real_data_fetcher.py`              |
+| Data Source    | Yahoo Finance API (via yfinance)             |
 
 **Supported Financial Instruments:**
 
-| Category | Symbols |
-|----------|---------|
-| Equities | AAPL, MSFT, XOM, JPM |
-| Bond ETFs | TLT, LQD, HYG |
+| Category    | Symbols                                      |
+| ----------- | -------------------------------------------- |
+| Equities    | AAPL, MSFT, XOM, JPM                         |
+| Bond ETFs   | TLT, LQD, HYG                                |
 | Commodities | GC=F (Gold), CL=F (Crude Oil), SI=F (Silver) |
-| Currencies | EURUSD=X, GBPUSD=X, JPYUSD=X |
+| Currencies  | EURUSD=X, GBPUSD=X, JPYUSD=X                 |
 
 **Rate Limit Mitigation:**
 
-| Strategy | Implementation |
-|----------|----------------|
-| File Caching | JSON cache with atomic writes via `NamedTemporaryFile` + `os.replace` |
-| Cache Path | Configurable via `REAL_DATA_CACHE_PATH` environment variable |
-| Fallback | Sample data when network disabled or unavailable |
-| Atomic Writes | Prevents cache corruption on write failures |
+| Strategy      | Implementation                                                        |
+| ------------- | --------------------------------------------------------------------- |
+| File Caching  | JSON cache with atomic writes via `NamedTemporaryFile` + `os.replace` |
+| Cache Path    | Configurable via `REAL_DATA_CACHE_PATH` environment variable          |
+| Fallback      | Sample data when network disabled or unavailable                      |
+| Atomic Writes | Prevents cache corruption on write failures                           |
 
 ```mermaid
 flowchart TB
@@ -6608,44 +6623,44 @@ flowchart TB
 
 The system includes support for the Model Context Protocol, enabling AI tool integrations.
 
-| Component | Implementation |
-|-----------|----------------|
-| Framework | FastMCP (`mcp>=1.0.0`, `fastmcp>=0.1.0`) |
-| Server Name | "DashFin-Relationship-Manager" |
+| Component     | Implementation                                 |
+| ------------- | ---------------------------------------------- |
+| Framework     | FastMCP (`mcp>=1.0.0`, `fastmcp>=0.1.0`)       |
+| Server Name   | "DashFin-Relationship-Manager"                 |
 | Thread Safety | `_ThreadSafeGraph` proxy with `threading.Lock` |
-| Entry Point | `mcp_server.py` |
+| Entry Point   | `mcp_server.py`                                |
 
 **Exposed MCP Tools/Resources:**
 
-| Tool/Resource | Type | Description |
-|---------------|------|-------------|
-| `add_equity_node()` | Tool | Add equity asset to graph |
+| Tool/Resource            | Type     | Description                    |
+| ------------------------ | -------- | ------------------------------ |
+| `add_equity_node()`      | Tool     | Add equity asset to graph      |
 | `graph://data/3d-layout` | Resource | 3D visualization data resource |
 
 #### 6.3.3.3 Frontend-Backend Integration
 
 The Next.js frontend communicates with the FastAPI backend through a typed API client layer.
 
-| Aspect | Implementation |
-|--------|----------------|
-| HTTP Client | Axios |
-| Base URL | `NEXT_PUBLIC_API_URL` (default: `http://localhost:8000`) |
-| Content-Type | `application/json` |
-| Location | `frontend/app/lib/api.ts` |
+| Aspect       | Implementation                                           |
+| ------------ | -------------------------------------------------------- |
+| HTTP Client  | Axios                                                    |
+| Base URL     | `NEXT_PUBLIC_API_URL` (default: `http://localhost:8000`) |
+| Content-Type | `application/json`                                       |
+| Location     | `frontend/app/lib/api.ts`                                |
 
 **API Client Methods:**
 
-| Method | Endpoint | Return Type |
-|--------|----------|-------------|
-| `healthCheck()` | GET /api/health | Health status |
-| `getAssets(params?)` | GET /api/assets | Asset[] or paginated |
-| `getAssetDetail(id)` | GET /api/assets/{id} | Asset |
-| `getAssetRelationships(id)` | GET /api/assets/{id}/relationships | Relationship[] |
-| `getAllRelationships()` | GET /api/relationships | Relationship[] |
-| `getMetrics()` | GET /api/metrics | Metrics |
-| `getVisualizationData()` | GET /api/visualization | VisualizationData |
-| `getAssetClasses()` | GET /api/asset-classes | { asset_classes: string[] } |
-| `getSectors()` | GET /api/sectors | { sectors: string[] } |
+| Method                      | Endpoint                           | Return Type                 |
+| --------------------------- | ---------------------------------- | --------------------------- |
+| `healthCheck()`             | GET /api/health                    | Health status               |
+| `getAssets(params?)`        | GET /api/assets                    | Asset[] or paginated        |
+| `getAssetDetail(id)`        | GET /api/assets/{id}               | Asset                       |
+| `getAssetRelationships(id)` | GET /api/assets/{id}/relationships | Relationship[]              |
+| `getAllRelationships()`     | GET /api/relationships             | Relationship[]              |
+| `getMetrics()`              | GET /api/metrics                   | Metrics                     |
+| `getVisualizationData()`    | GET /api/visualization             | VisualizationData           |
+| `getAssetClasses()`         | GET /api/asset-classes             | { asset_classes: string[] } |
+| `getSectors()`              | GET /api/sectors                   | { sectors: string[] }       |
 
 ```mermaid
 sequenceDiagram
@@ -6682,47 +6697,47 @@ sequenceDiagram
 
 The system supports multiple database backends for authentication credential storage.
 
-| Backend | Connection Handling | Use Case |
-|---------|---------------------|----------|
-| SQLite | Single connection for in-memory; file-based for persistence | Development, testing |
-| PostgreSQL | psycopg2-binary with connection pooling | Production |
-| In-Memory Testing | SQLAlchemy `StaticPool` for connection reuse | Unit tests |
+| Backend           | Connection Handling                                         | Use Case             |
+| ----------------- | ----------------------------------------------------------- | -------------------- |
+| SQLite            | Single connection for in-memory; file-based for persistence | Development, testing |
+| PostgreSQL        | psycopg2-binary with connection pooling                     | Production           |
+| In-Memory Testing | SQLAlchemy `StaticPool` for connection reuse                | Unit tests           |
 
 **Authentication Database Schema:**
 
-| Table | Field | Type | Constraint |
-|-------|-------|------|------------|
-| `user_credentials` | `username` | VARCHAR | UNIQUE, NOT NULL |
-| `user_credentials` | `email` | VARCHAR | NULL |
-| `user_credentials` | `full_name` | VARCHAR | NULL |
-| `user_credentials` | `hashed_password` | VARCHAR | NOT NULL |
-| `user_credentials` | `disabled` | BOOLEAN | DEFAULT FALSE |
+| Table              | Field             | Type    | Constraint       |
+| ------------------ | ----------------- | ------- | ---------------- |
+| `user_credentials` | `username`        | VARCHAR | UNIQUE, NOT NULL |
+| `user_credentials` | `email`           | VARCHAR | NULL             |
+| `user_credentials` | `full_name`       | VARCHAR | NULL             |
+| `user_credentials` | `hashed_password` | VARCHAR | NOT NULL         |
+| `user_credentials` | `disabled`        | BOOLEAN | DEFAULT FALSE    |
 
 #### 6.3.3.5 Deployment Platform Integration
 
 #### Vercel Serverless Deployment
 
-| Component | Builder | Configuration |
-|-----------|---------|---------------|
-| Backend | `@vercel/python` | maxLambdaSize: 50mb |
-| Frontend | `@vercel/next` | Default Next.js settings |
+| Component | Builder          | Configuration            |
+| --------- | ---------------- | ------------------------ |
+| Backend   | `@vercel/python` | maxLambdaSize: 50mb      |
+| Frontend  | `@vercel/next`   | Default Next.js settings |
 
 **Route Configuration:**
 
-| Pattern | Destination | Purpose |
-|---------|-------------|---------|
-| `/api/(.*)` | `api/main.py` | Backend API routes |
-| `/(.*)` | `frontend/$1` | Frontend static/SSR |
+| Pattern     | Destination   | Purpose             |
+| ----------- | ------------- | ------------------- |
+| `/api/(.*)` | `api/main.py` | Backend API routes  |
+| `/(.*)`     | `frontend/$1` | Frontend static/SSR |
 
 #### Docker Container Deployment
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| Base Image | `python:3.11-slim` | Minimal Python runtime |
-| Container User | `appuser` (UID 1000) | Non-root security |
-| Exposed Port | 7860 | Gradio default |
-| Health Check | HTTP probe every 30s | Container health |
-| Restart Policy | unless-stopped | Automatic recovery |
+| Setting        | Value                | Purpose                |
+| -------------- | -------------------- | ---------------------- |
+| Base Image     | `python:3.11-slim`   | Minimal Python runtime |
+| Container User | `appuser` (UID 1000) | Non-root security      |
+| Exposed Port   | 7860                 | Gradio default         |
+| Health Check   | HTTP probe every 30s | Container health       |
+| Restart Policy | unless-stopped       | Automatic recovery     |
 
 ```mermaid
 flowchart TB
@@ -6763,50 +6778,50 @@ The API uses Pydantic models for type-safe request/response serialization.
 
 #### AssetResponse Model
 
-| Field | Type | Required | Default |
-|-------|------|----------|---------|
-| `id` | `str` | Yes | - |
-| `symbol` | `str` | Yes | - |
-| `name` | `str` | Yes | - |
-| `asset_class` | `str` | Yes | - |
-| `sector` | `str` | Yes | - |
-| `price` | `float` | Yes | - |
-| `market_cap` | `Optional[float]` | No | `None` |
-| `currency` | `str` | No | `"USD"` |
-| `additional_fields` | `Dict[str, Any]` | No | `{}` |
+| Field               | Type              | Required | Default |
+| ------------------- | ----------------- | -------- | ------- |
+| `id`                | `str`             | Yes      | -       |
+| `symbol`            | `str`             | Yes      | -       |
+| `name`              | `str`             | Yes      | -       |
+| `asset_class`       | `str`             | Yes      | -       |
+| `sector`            | `str`             | Yes      | -       |
+| `price`             | `float`           | Yes      | -       |
+| `market_cap`        | `Optional[float]` | No       | `None`  |
+| `currency`          | `str`             | No       | `"USD"` |
+| `additional_fields` | `Dict[str, Any]`  | No       | `{}`    |
 
 #### RelationshipResponse Model
 
-| Field | Type | Required |
-|-------|------|----------|
-| `source_id` | `str` | Yes |
-| `target_id` | `str` | Yes |
-| `relationship_type` | `str` | Yes |
-| `strength` | `float` | Yes |
+| Field               | Type    | Required |
+| ------------------- | ------- | -------- |
+| `source_id`         | `str`   | Yes      |
+| `target_id`         | `str`   | Yes      |
+| `relationship_type` | `str`   | Yes      |
+| `strength`          | `float` | Yes      |
 
 #### MetricsResponse Model
 
-| Field | Type | Required |
-|-------|------|----------|
-| `total_assets` | `int` | Yes |
-| `total_relationships` | `int` | Yes |
-| `asset_classes` | `Dict[str, int]` | Yes |
-| `avg_degree` | `float` | Yes |
-| `max_degree` | `int` | Yes |
-| `network_density` | `float` | Yes |
-| `relationship_density` | `float` | No (default: 0.0) |
+| Field                  | Type             | Required          |
+| ---------------------- | ---------------- | ----------------- |
+| `total_assets`         | `int`            | Yes               |
+| `total_relationships`  | `int`            | Yes               |
+| `asset_classes`        | `Dict[str, int]` | Yes               |
+| `avg_degree`           | `float`          | Yes               |
+| `max_degree`           | `int`            | Yes               |
+| `network_density`      | `float`          | Yes               |
+| `relationship_density` | `float`          | No (default: 0.0) |
 
 #### 6.3.4.2 Frontend Type Definitions
 
 TypeScript interfaces defined in `frontend/app/types/api.ts` provide compile-time type safety.
 
-| Interface | Purpose |
-|-----------|---------|
-| `Asset` | Asset data structure |
-| `Relationship` | Relationship data structure |
-| `Metrics` | Network metrics |
-| `VisualizationNode` | 3D visualization node |
-| `VisualizationEdge` | 3D visualization edge |
+| Interface           | Purpose                        |
+| ------------------- | ------------------------------ |
+| `Asset`             | Asset data structure           |
+| `Relationship`      | Relationship data structure    |
+| `Metrics`           | Network metrics                |
+| `VisualizationNode` | 3D visualization node          |
+| `VisualizationEdge` | 3D visualization edge          |
 | `VisualizationData` | Complete visualization payload |
 
 ---
@@ -6908,18 +6923,18 @@ flowchart TB
 
 Integration behavior is controlled through environment variables that configure connectivity, security, and feature flags.
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `NEXT_PUBLIC_API_URL` | Frontend API base URL | `http://localhost:8000` |
-| `ALLOWED_ORIGINS` | CORS allowed origins | (none - uses defaults) |
-| `SECRET_KEY` | JWT signing key | **Required** |
-| `DATABASE_URL` | SQLite connection string | **Required** |
-| `USE_REAL_DATA_FETCHER` | Enable Yahoo Finance | `false` |
-| `REAL_DATA_CACHE_PATH` | Cache file path | (none) |
-| `GRAPH_CACHE_PATH` | Graph cache path | (none) |
-| `ADMIN_USERNAME` | Admin user credential | (none) |
-| `ADMIN_PASSWORD` | Admin user credential | (none) |
-| `ENV` | Environment mode | `development` |
+| Variable                | Purpose                  | Default                 |
+| ----------------------- | ------------------------ | ----------------------- |
+| `NEXT_PUBLIC_API_URL`   | Frontend API base URL    | `http://localhost:8000` |
+| `ALLOWED_ORIGINS`       | CORS allowed origins     | (none - uses defaults)  |
+| `SECRET_KEY`            | JWT signing key          | **Required**            |
+| `DATABASE_URL`          | SQLite connection string | **Required**            |
+| `USE_REAL_DATA_FETCHER` | Enable Yahoo Finance     | `false`                 |
+| `REAL_DATA_CACHE_PATH`  | Cache file path          | (none)                  |
+| `GRAPH_CACHE_PATH`      | Graph cache path         | (none)                  |
+| `ADMIN_USERNAME`        | Admin user credential    | (none)                  |
+| `ADMIN_PASSWORD`        | Admin user credential    | (none)                  |
+| `ENV`                   | Environment mode         | `development`           |
 
 ---
 
@@ -6927,23 +6942,23 @@ Integration behavior is controlled through environment variables that configure 
 
 The integration architecture is designed to meet specific service level objectives.
 
-| Operation | Target SLA | Measurement |
-|-----------|-----------|-------------|
-| API Response (p95) | < 500ms | Request to response |
-| Visualization Rendering | < 2 seconds | Data load to interactive |
-| Token Generation | < 100ms | Credential to token |
-| Graph Initialization | < 3 seconds | Application startup |
-| Relationship Discovery | < 500ms | For 100 assets |
-| Initial Page Load | < 3 seconds | Navigation to interactive |
+| Operation               | Target SLA  | Measurement               |
+| ----------------------- | ----------- | ------------------------- |
+| API Response (p95)      | < 500ms     | Request to response       |
+| Visualization Rendering | < 2 seconds | Data load to interactive  |
+| Token Generation        | < 100ms     | Credential to token       |
+| Graph Initialization    | < 3 seconds | Application startup       |
+| Relationship Discovery  | < 500ms     | For 100 assets            |
+| Initial Page Load       | < 3 seconds | Navigation to interactive |
 
 #### Timeout Configuration
 
-| Component | Timeout | Purpose |
-|-----------|---------|---------|
-| JWT Token | 30 minutes | Session expiration |
-| Rate Limit Window | 1 minute | Request counting period |
-| HTTP Client | 30 seconds | API request timeout |
-| Health Check | 30 seconds | Container probe interval |
+| Component         | Timeout    | Purpose                  |
+| ----------------- | ---------- | ------------------------ |
+| JWT Token         | 30 minutes | Session expiration       |
+| Rate Limit Window | 1 minute   | Request counting period  |
+| HTTP Client       | 30 seconds | API request timeout      |
+| Health Check      | 30 seconds | Container probe interval |
 
 ---
 
@@ -6951,27 +6966,27 @@ The integration architecture is designed to meet specific service level objectiv
 
 #### 6.3.8.1 Runtime Dependencies
 
-| Dependency | Version | Purpose |
-|------------|---------|---------|
-| FastAPI | 0.127.0 | REST framework |
-| Uvicorn | ≥0.24.0 | ASGI server |
-| Pydantic | 2.12.5 | Validation |
-| PyJWT | ≥2.8.0 | Token handling |
-| passlib | Latest | Password hashing |
-| slowapi | Latest | Rate limiting |
-| yfinance | ≥0.2.51 | Market data |
-| SQLAlchemy | ≥2.0.0 | Database ORM |
+| Dependency | Version | Purpose          |
+| ---------- | ------- | ---------------- |
+| FastAPI    | 0.127.0 | REST framework   |
+| Uvicorn    | ≥0.24.0 | ASGI server      |
+| Pydantic   | 2.12.5  | Validation       |
+| PyJWT      | ≥2.8.0  | Token handling   |
+| passlib    | Latest  | Password hashing |
+| slowapi    | Latest  | Rate limiting    |
+| yfinance   | ≥0.2.51 | Market data      |
+| SQLAlchemy | ≥2.0.0  | Database ORM     |
 
 #### 6.3.8.2 Frontend Dependencies
 
-| Dependency | Version | Purpose |
-|------------|---------|---------|
-| Next.js | 14.2.35 | React framework |
-| React | 18.2.0 | UI library |
-| TypeScript | ^5.3.0 | Type safety |
-| Axios | Latest | HTTP client |
-| Plotly.js | ^2.27.0 | Visualization |
-| Tailwind CSS | Latest | Styling |
+| Dependency   | Version | Purpose         |
+| ------------ | ------- | --------------- |
+| Next.js      | 14.2.35 | React framework |
+| React        | 18.2.0  | UI library      |
+| TypeScript   | ^5.3.0  | Type safety     |
+| Axios        | Latest  | HTTP client     |
+| Plotly.js    | ^2.27.0 | Visualization   |
+| Tailwind CSS | Latest  | Styling         |
 
 ---
 
@@ -6979,47 +6994,47 @@ The integration architecture is designed to meet specific service level objectiv
 
 #### Files Examined
 
-| Path | Relevance |
-|------|-----------|
-| `api/main.py` | FastAPI application, endpoints, CORS, rate limiting, graph lifecycle |
-| `api/auth.py` | JWT authentication, password hashing, user repository |
-| `api/database.py` | SQLite integration, connection management |
-| `src/data/real_data_fetcher.py` | Yahoo Finance integration, caching strategy |
-| `frontend/app/lib/api.ts` | Frontend HTTP client implementation |
-| `frontend/app/types/api.ts` | TypeScript type definitions |
-| `vercel.json` | Serverless deployment configuration |
-| `docker-compose.yml` | Docker container orchestration |
-| `Dockerfile` | Container build specification |
-| `mcp_server.py` | Model Context Protocol server |
-| `requirements.txt` | Python dependencies |
-| `.env.example` | Environment variable templates |
+| Path                            | Relevance                                                            |
+| ------------------------------- | -------------------------------------------------------------------- |
+| `api/main.py`                   | FastAPI application, endpoints, CORS, rate limiting, graph lifecycle |
+| `api/auth.py`                   | JWT authentication, password hashing, user repository                |
+| `api/database.py`               | SQLite integration, connection management                            |
+| `src/data/real_data_fetcher.py` | Yahoo Finance integration, caching strategy                          |
+| `frontend/app/lib/api.ts`       | Frontend HTTP client implementation                                  |
+| `frontend/app/types/api.ts`     | TypeScript type definitions                                          |
+| `vercel.json`                   | Serverless deployment configuration                                  |
+| `docker-compose.yml`            | Docker container orchestration                                       |
+| `Dockerfile`                    | Container build specification                                        |
+| `mcp_server.py`                 | Model Context Protocol server                                        |
+| `requirements.txt`              | Python dependencies                                                  |
+| `.env.example`                  | Environment variable templates                                       |
 
 #### Folders Explored
 
-| Folder Path | Contents |
-|-------------|----------|
-| `api/` | FastAPI backend modules |
-| `frontend/` | Next.js application |
-| `frontend/app/lib/` | API client layer |
-| `frontend/app/types/` | TypeScript contracts |
-| `src/` | Python core packages |
-| `src/data/` | Data layer modules |
+| Folder Path           | Contents                |
+| --------------------- | ----------------------- |
+| `api/`                | FastAPI backend modules |
+| `frontend/`           | Next.js application     |
+| `frontend/app/lib/`   | API client layer        |
+| `frontend/app/types/` | TypeScript contracts    |
+| `src/`                | Python core packages    |
+| `src/data/`           | Data layer modules      |
 
 #### Technical Specification Sections Referenced
 
-| Section | Topic |
-|---------|-------|
-| 3.1 Technology Stack Overview | Stack architecture and technology choices |
-| 3.5 Third-Party Services | External service integrations |
-| 3.8 Security Considerations | Authentication and API security |
-| 3.9 Integration Requirements | Frontend-backend communication |
-| 4.3 API Request Workflows | API workflow diagrams |
-| 4.5 Error Handling Workflows | Error recovery flows |
-| 4.6 Integration Sequence Diagrams | Integration flow diagrams |
-| 5.2 COMPONENT DETAILS | Component specifications |
-| 5.4 CROSS-CUTTING CONCERNS | Cross-cutting concerns |
-| 5.5 DEPLOYMENT ARCHITECTURE | Deployment options |
-| 6.1 Core Services Architecture | Monolithic architecture overview |
+| Section                           | Topic                                     |
+| --------------------------------- | ----------------------------------------- |
+| 3.1 Technology Stack Overview     | Stack architecture and technology choices |
+| 3.5 Third-Party Services          | External service integrations             |
+| 3.8 Security Considerations       | Authentication and API security           |
+| 3.9 Integration Requirements      | Frontend-backend communication            |
+| 4.3 API Request Workflows         | API workflow diagrams                     |
+| 4.5 Error Handling Workflows      | Error recovery flows                      |
+| 4.6 Integration Sequence Diagrams | Integration flow diagrams                 |
+| 5.2 COMPONENT DETAILS             | Component specifications                  |
+| 5.4 CROSS-CUTTING CONCERNS        | Cross-cutting concerns                    |
+| 5.5 DEPLOYMENT ARCHITECTURE       | Deployment options                        |
+| 6.1 Core Services Architecture    | Monolithic architecture overview          |
 
 ## 6.4 Security Architecture
 
@@ -7031,14 +7046,14 @@ The Financial Asset Relationship Database implements a comprehensive, defense-in
 
 The architecture addresses security concerns across multiple domains:
 
-| Security Domain | Implementation Approach | Primary Controls |
-|-----------------|------------------------|------------------|
-| Identity & Access | JWT with HS256 signing | Token-based authentication |
-| Input Validation | Multi-layer validation | Pydantic models, domain validation |
-| Transport Security | HTTPS enforcement | TLS termination at edge |
-| Rate Protection | IP-based throttling | slowapi middleware |
-| Origin Control | Allowlist validation | Environment-specific CORS |
-| Container Security | Hardened runtime | Non-root execution |
+| Security Domain    | Implementation Approach | Primary Controls                   |
+| ------------------ | ----------------------- | ---------------------------------- |
+| Identity & Access  | JWT with HS256 signing  | Token-based authentication         |
+| Input Validation   | Multi-layer validation  | Pydantic models, domain validation |
+| Transport Security | HTTPS enforcement       | TLS termination at edge            |
+| Rate Protection    | IP-based throttling     | slowapi middleware                 |
+| Origin Control     | Allowlist validation    | Environment-specific CORS          |
+| Container Security | Hardened runtime        | Non-root execution                 |
 
 #### 6.4.1.2 Security Zone Architecture
 
@@ -7081,13 +7096,13 @@ flowchart TB
 
 #### 6.4.1.3 Security Principles
 
-| Principle | Implementation |
-|-----------|----------------|
-| Defense in Depth | Multiple validation layers (CORS → Rate Limit → Auth → Input Validation) |
-| Least Privilege | Non-root container user, minimal API permissions |
-| Fail Secure | Default-deny CORS policy, explicit token validation |
-| Separation of Duties | Authentication separated from business logic |
-| Audit Trail | Security event logging at multiple levels |
+| Principle            | Implementation                                                           |
+| -------------------- | ------------------------------------------------------------------------ |
+| Defense in Depth     | Multiple validation layers (CORS → Rate Limit → Auth → Input Validation) |
+| Least Privilege      | Non-root container user, minimal API permissions                         |
+| Fail Secure          | Default-deny CORS policy, explicit token validation                      |
+| Separation of Duties | Authentication separated from business logic                             |
+| Audit Trail          | Security event logging at multiple levels                                |
 
 ---
 
@@ -7101,41 +7116,41 @@ The identity management system uses a SQLite-backed user repository with secure 
 
 #### User Identity Model
 
-| Field | Type | Purpose | Security Note |
-|-------|------|---------|---------------|
-| `username` | TEXT | Unique login identifier | Unique constraint enforced |
-| `email` | TEXT | Contact information | Optional, nullable |
-| `full_name` | TEXT | Display name | Optional, nullable |
-| `hashed_password` | TEXT | pbkdf2_sha256 hash | Never stored in plaintext |
-| `disabled` | INTEGER | Account status flag | Blocks authentication when true |
+| Field             | Type    | Purpose                 | Security Note                   |
+| ----------------- | ------- | ----------------------- | ------------------------------- |
+| `username`        | TEXT    | Unique login identifier | Unique constraint enforced      |
+| `email`           | TEXT    | Contact information     | Optional, nullable              |
+| `full_name`       | TEXT    | Display name            | Optional, nullable              |
+| `hashed_password` | TEXT    | pbkdf2_sha256 hash      | Never stored in plaintext       |
+| `disabled`        | INTEGER | Account status flag     | Blocks authentication when true |
 
 #### User Repository Pattern
 
 The `UserRepository` class in `api/auth.py` provides secure user management:
 
-| Method | Purpose | Security Control |
-|--------|---------|------------------|
-| `get_user(username)` | Retrieve user by username | Parameterized query protection |
-| `has_users()` | Check for existing users | Used during admin seeding |
-| `create_or_update_user()` | User CRUD operations | Password hashing enforced |
+| Method                    | Purpose                   | Security Control               |
+| ------------------------- | ------------------------- | ------------------------------ |
+| `get_user(username)`      | Retrieve user by username | Parameterized query protection |
+| `has_users()`             | Check for existing users  | Used during admin seeding      |
+| `create_or_update_user()` | User CRUD operations      | Password hashing enforced      |
 
 #### 6.4.2.2 Password Security
 
 Password security is implemented using industry-standard cryptographic hashing with the `passlib` library.
 
-| Aspect | Configuration | Source |
-|--------|---------------|--------|
-| Algorithm | `pbkdf2_sha256` | `passlib.context.CryptContext` |
-| Hash Function | SHA-256 | NIST-approved |
-| Salt | Automatic (per-hash) | Built-in to pbkdf2 |
-| Iterations | passlib defaults | Configurable |
+| Aspect        | Configuration        | Source                         |
+| ------------- | -------------------- | ------------------------------ |
+| Algorithm     | `pbkdf2_sha256`      | `passlib.context.CryptContext` |
+| Hash Function | SHA-256              | NIST-approved                  |
+| Salt          | Automatic (per-hash) | Built-in to pbkdf2             |
+| Iterations    | passlib defaults     | Configurable                   |
 
 #### Password Handling Functions
 
-| Function | Purpose | Security Behavior |
-|----------|---------|-------------------|
-| `get_password_hash(password)` | Hash plaintext password | Returns irreversible hash |
-| `verify_password(plain, hashed)` | Validate credentials | Constant-time comparison |
+| Function                         | Purpose                 | Security Behavior         |
+| -------------------------------- | ----------------------- | ------------------------- |
+| `get_password_hash(password)`    | Hash plaintext password | Returns irreversible hash |
+| `verify_password(plain, hashed)` | Validate credentials    | Constant-time comparison  |
 
 #### 6.4.2.3 Token Handling (JWT)
 
@@ -7143,11 +7158,11 @@ The authentication system uses JSON Web Tokens (JWT) for stateless session manag
 
 **JWT Configuration**:
 
-| Setting | Value | Location |
-|---------|-------|----------|
-| Algorithm | HS256 (HMAC-SHA256) | `api/auth.py` line 23 |
-| Expiration | 30 minutes | `ACCESS_TOKEN_EXPIRE_MINUTES` |
-| Secret Key | Environment variable | `SECRET_KEY` (required) |
+| Setting    | Value                | Location                      |
+| ---------- | -------------------- | ----------------------------- |
+| Algorithm  | HS256 (HMAC-SHA256)  | `api/auth.py` line 23         |
+| Expiration | 30 minutes           | `ACCESS_TOKEN_EXPIRE_MINUTES` |
+| Secret Key | Environment variable | `SECRET_KEY` (required)       |
 
 #### Token Lifecycle
 
@@ -7193,35 +7208,35 @@ sequenceDiagram
 
 #### Token Security Controls
 
-| Control | Implementation | Mitigation |
-|---------|----------------|------------|
-| Algorithm Pinning | Explicit `algorithms=["HS256"]` in decode | Algorithm confusion attacks |
-| Expiration Enforcement | `exp` claim validation | Session hijacking |
-| Secret Key Requirement | `ValueError` if `SECRET_KEY` not set | Weak signing prevention |
-| Bearer Token Standard | OAuth2PasswordBearer scheme | Standard compliance |
+| Control                | Implementation                            | Mitigation                  |
+| ---------------------- | ----------------------------------------- | --------------------------- |
+| Algorithm Pinning      | Explicit `algorithms=["HS256"]` in decode | Algorithm confusion attacks |
+| Expiration Enforcement | `exp` claim validation                    | Session hijacking           |
+| Secret Key Requirement | `ValueError` if `SECRET_KEY` not set      | Weak signing prevention     |
+| Bearer Token Standard  | OAuth2PasswordBearer scheme               | Standard compliance         |
 
 #### 6.4.2.4 Session Management
 
 The system implements stateless session management through JWT tokens:
 
-| Aspect | Implementation | Benefit |
-|--------|----------------|---------|
-| Session Storage | None (stateless) | No server-side session attacks |
-| Token Transport | Bearer header | Standard OAuth2 pattern |
-| Session Termination | Token expiration | Automatic timeout |
-| Token Endpoint | `POST /token` | Form-based credentials |
+| Aspect              | Implementation   | Benefit                        |
+| ------------------- | ---------------- | ------------------------------ |
+| Session Storage     | None (stateless) | No server-side session attacks |
+| Token Transport     | Bearer header    | Standard OAuth2 pattern        |
+| Session Termination | Token expiration | Automatic timeout              |
+| Token Endpoint      | `POST /token`    | Form-based credentials         |
 
 #### 6.4.2.5 Admin Credential Seeding
 
 Initial admin credentials are configured through environment variables for secure bootstrapping:
 
-| Variable | Purpose | Required |
-|----------|---------|----------|
-| `ADMIN_USERNAME` | Initial admin login | Yes |
-| `ADMIN_PASSWORD` | Initial admin password | Yes |
-| `ADMIN_EMAIL` | Admin contact | No |
-| `ADMIN_FULL_NAME` | Admin display name | No |
-| `ADMIN_DISABLED` | Disable flag (default: false) | No |
+| Variable          | Purpose                       | Required |
+| ----------------- | ----------------------------- | -------- |
+| `ADMIN_USERNAME`  | Initial admin login           | Yes      |
+| `ADMIN_PASSWORD`  | Initial admin password        | Yes      |
+| `ADMIN_EMAIL`     | Admin contact                 | No       |
+| `ADMIN_FULL_NAME` | Admin display name            | No       |
+| `ADMIN_DISABLED`  | Disable flag (default: false) | No       |
 
 **Security Enforcement**: The system raises a `ValueError` if no users exist after seeding, preventing operation without proper authentication configuration.
 
@@ -7233,11 +7248,11 @@ Initial admin credentials are configured through environment variables for secur
 
 The current implementation provides a simplified access control model with two user states:
 
-| User State | Permissions | Enforcement |
-|------------|-------------|-------------|
-| Anonymous | Public API endpoints only | No token required |
-| Authenticated Active | All API endpoints | Valid JWT + active flag |
-| Authenticated Disabled | None | `400 Inactive user` returned |
+| User State             | Permissions               | Enforcement                  |
+| ---------------------- | ------------------------- | ---------------------------- |
+| Anonymous              | Public API endpoints only | No token required            |
+| Authenticated Active   | All API endpoints         | Valid JWT + active flag      |
+| Authenticated Disabled | None                      | `400 Inactive user` returned |
 
 #### 6.4.3.2 Protected Endpoint Validation Flow
 
@@ -7277,32 +7292,32 @@ flowchart TB
 
 #### 6.4.3.3 Authorization Dependencies
 
-| Dependency | Purpose | Returns |
-|------------|---------|---------|
-| `get_current_user` | Validates JWT and retrieves user | `UserInDB` object |
-| `get_current_active_user` | Extends above with active check | Active `UserInDB` only |
+| Dependency                | Purpose                          | Returns                |
+| ------------------------- | -------------------------------- | ---------------------- |
+| `get_current_user`        | Validates JWT and retrieves user | `UserInDB` object      |
+| `get_current_active_user` | Extends above with active check  | Active `UserInDB` only |
 
 #### 6.4.3.4 Endpoint Protection Matrix
 
-| Endpoint | HTTP Method | Auth Required | Rate Limited | Description |
-|----------|-------------|---------------|--------------|-------------|
-| `/token` | POST | No | Yes (5/min) | JWT token issuance |
-| `/api/users/me` | GET | Yes | Yes (10/min) | Current user info |
-| `/api/assets` | GET | No | No | List assets |
-| `/api/assets/{id}` | GET | No | No | Single asset details |
-| `/api/metrics` | GET | No | No | Network statistics |
-| `/api/visualization` | GET | No | No | 3D visualization data |
-| `/api/health` | GET | No | No | Health check |
+| Endpoint             | HTTP Method | Auth Required | Rate Limited | Description           |
+| -------------------- | ----------- | ------------- | ------------ | --------------------- |
+| `/token`             | POST        | No            | Yes (5/min)  | JWT token issuance    |
+| `/api/users/me`      | GET         | Yes           | Yes (10/min) | Current user info     |
+| `/api/assets`        | GET         | No            | No           | List assets           |
+| `/api/assets/{id}`   | GET         | No            | No           | Single asset details  |
+| `/api/metrics`       | GET         | No            | No           | Network statistics    |
+| `/api/visualization` | GET         | No            | No           | 3D visualization data |
+| `/api/health`        | GET         | No            | No           | Health check          |
 
 #### 6.4.3.5 Policy Enforcement Points
 
-| Enforcement Point | Location | Control Type |
-|-------------------|----------|--------------|
-| Rate Limiting | `api/main.py` | Pre-authentication throttling |
-| CORS Validation | `api/main.py` | Origin allowlist |
-| Token Validation | `api/auth.py` | JWT signature verification |
-| User State Check | `api/auth.py` | Active account enforcement |
-| Input Validation | Pydantic models | Type/format enforcement |
+| Enforcement Point | Location        | Control Type                  |
+| ----------------- | --------------- | ----------------------------- |
+| Rate Limiting     | `api/main.py`   | Pre-authentication throttling |
+| CORS Validation   | `api/main.py`   | Origin allowlist              |
+| Token Validation  | `api/auth.py`   | JWT signature verification    |
+| User State Check  | `api/auth.py`   | Active account enforcement    |
+| Input Validation  | Pydantic models | Type/format enforcement       |
 
 ---
 
@@ -7314,29 +7329,29 @@ Rate limiting is implemented using the `slowapi` library with IP-based request t
 
 **Configuration Location**: `api/main.py` lines 156-169
 
-| Component | Implementation |
-|-----------|----------------|
-| Library | `slowapi` |
-| Key Function | `get_remote_address` |
-| Exception Handler | `RateLimitExceeded` |
+| Component         | Implementation       |
+| ----------------- | -------------------- |
+| Library           | `slowapi`            |
+| Key Function      | `get_remote_address` |
+| Exception Handler | `RateLimitExceeded`  |
 
 #### 6.4.4.2 Rate Limit Configuration
 
-| Endpoint | Limit | Window | Rationale |
-|----------|-------|--------|-----------|
-| `POST /token` | 5 requests | 1 minute | Brute-force protection |
+| Endpoint            | Limit       | Window   | Rationale                         |
+| ------------------- | ----------- | -------- | --------------------------------- |
+| `POST /token`       | 5 requests  | 1 minute | Brute-force protection            |
 | `GET /api/users/me` | 10 requests | 1 minute | Authenticated endpoint protection |
-| Other endpoints | Unlimited | N/A | Public data access |
+| Other endpoints     | Unlimited   | N/A      | Public data access                |
 
 #### 6.4.4.3 Rate Limit Response
 
 When rate limits are exceeded:
 
-| Response Element | Value |
-|------------------|-------|
-| HTTP Status | 429 Too Many Requests |
-| Header | `Retry-After: <seconds>` |
-| Body | Error message with limit details |
+| Response Element | Value                            |
+| ---------------- | -------------------------------- |
+| HTTP Status      | 429 Too Many Requests            |
+| Header           | `Retry-After: <seconds>`         |
+| Body             | Error message with limit details |
 
 ---
 
@@ -7351,35 +7366,35 @@ Cross-Origin Resource Sharing (CORS) is implemented with environment-aware valid
 #### 6.4.5.2 Origin Validation Rules
 
 | Environment | HTTP localhost | HTTPS localhost | Vercel URLs | Custom HTTPS |
-|-------------|----------------|-----------------|-------------|--------------|
-| Development | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed |
-| Production | ❌ Rejected | ✅ Allowed | ✅ Allowed | ✅ Allowed |
+| ----------- | -------------- | --------------- | ----------- | ------------ |
+| Development | ✅ Allowed     | ✅ Allowed      | ✅ Allowed  | ✅ Allowed   |
+| Production  | ❌ Rejected    | ✅ Allowed      | ✅ Allowed  | ✅ Allowed   |
 
 #### 6.4.5.3 Vercel Preview Domain Validation
 
 Preview deployments are validated using regex pattern matching:
 
-| Pattern Component | Regex |
-|-------------------|-------|
-| Protocol | `^https://` |
-| Subdomain | `[a-zA-Z0-9\-\.]+` |
-| Domain | `\.vercel\.app$` |
+| Pattern Component | Regex              |
+| ----------------- | ------------------ |
+| Protocol          | `^https://`        |
+| Subdomain         | `[a-zA-Z0-9\-\.]+` |
+| Domain            | `\.vercel\.app$`   |
 
 #### 6.4.5.4 CORS Middleware Configuration
 
-| Setting | Value | Security Note |
-|---------|-------|---------------|
-| `allow_origins` | Validated allowlist | No wildcard (`*`) |
-| `allow_credentials` | `True` | Cookie support enabled |
-| `allow_methods` | `["*"]` | All HTTP methods |
-| `allow_headers` | `["*"]` | All headers allowed |
+| Setting             | Value               | Security Note          |
+| ------------------- | ------------------- | ---------------------- |
+| `allow_origins`     | Validated allowlist | No wildcard (`*`)      |
+| `allow_credentials` | `True`              | Cookie support enabled |
+| `allow_methods`     | `["*"]`             | All HTTP methods       |
+| `allow_headers`     | `["*"]`             | All headers allowed    |
 
 #### 6.4.5.5 Custom Origin Configuration
 
 Custom origins can be added via the `ALLOWED_ORIGINS` environment variable:
 
-| Format | Example |
-|--------|---------|
+| Format               | Example                                               |
+| -------------------- | ----------------------------------------------------- |
 | Comma-separated list | `https://app.example.com,https://staging.example.com` |
 
 Origins are validated through `validate_origin()` before inclusion, with invalid origins logged as warnings and skipped.
@@ -7392,11 +7407,11 @@ Origins are validated through `validate_origin()` before inclusion, with invalid
 
 **Location**: `api/database.py`
 
-| Control | Implementation | Protection |
-|---------|----------------|------------|
-| Parameterized Queries | `WHERE username = ?` binding | SQL injection prevention |
-| Thread-Safe Access | `threading.Lock` for shared connection | Race condition prevention |
-| Connection Configuration | `check_same_thread=False` | Multi-threaded compatibility |
+| Control                  | Implementation                         | Protection                   |
+| ------------------------ | -------------------------------------- | ---------------------------- |
+| Parameterized Queries    | `WHERE username = ?` binding           | SQL injection prevention     |
+| Thread-Safe Access       | `threading.Lock` for shared connection | Race condition prevention    |
+| Connection Configuration | `check_same_thread=False`              | Multi-threaded compatibility |
 
 #### 6.4.6.2 Input Validation Layers
 
@@ -7423,31 +7438,31 @@ flowchart TB
 
 #### 6.4.6.3 Domain Model Validation Rules
 
-| Field | Validation Rule | Error Type |
-|-------|-----------------|------------|
-| `id`, `symbol`, `name` | Non-empty string | `ValueError` |
-| `price` | Non-negative float | `ValueError` |
-| `market_cap` | Non-negative float (if present) | `ValueError` |
-| `currency` | 3-character ISO code | `ValueError` |
-| `impact_score` | Range [-1.0, 1.0] | `ValueError` |
-| `date` | ISO 8601 format (YYYY-MM-DD) | `ValueError` |
+| Field                  | Validation Rule                 | Error Type   |
+| ---------------------- | ------------------------------- | ------------ |
+| `id`, `symbol`, `name` | Non-empty string                | `ValueError` |
+| `price`                | Non-negative float              | `ValueError` |
+| `market_cap`           | Non-negative float (if present) | `ValueError` |
+| `currency`             | 3-character ISO code            | `ValueError` |
+| `impact_score`         | Range [-1.0, 1.0]               | `ValueError` |
+| `date`                 | ISO 8601 format (YYYY-MM-DD)    | `ValueError` |
 
 #### 6.4.6.4 Encryption Standards
 
-| Data Type | At Rest | In Transit |
-|-----------|---------|------------|
-| Passwords | pbkdf2_sha256 hash | HTTPS/TLS |
-| JWT Tokens | N/A (ephemeral) | HTTPS/TLS |
-| API Data | Unencrypted (SQLite) | HTTPS/TLS |
-| Cache Files | Unencrypted (JSON) | N/A |
+| Data Type   | At Rest              | In Transit |
+| ----------- | -------------------- | ---------- |
+| Passwords   | pbkdf2_sha256 hash   | HTTPS/TLS  |
+| JWT Tokens  | N/A (ephemeral)      | HTTPS/TLS  |
+| API Data    | Unencrypted (SQLite) | HTTPS/TLS  |
+| Cache Files | Unencrypted (JSON)   | N/A        |
 
 #### 6.4.6.5 Secure Communication
 
-| Environment | Protocol | Implementation |
-|-------------|----------|----------------|
-| Development | HTTP allowed | Local testing |
-| Production | HTTPS required | Vercel TLS termination |
-| Container | HTTP internal | HTTPS at edge |
+| Environment | Protocol       | Implementation         |
+| ----------- | -------------- | ---------------------- |
+| Development | HTTP allowed   | Local testing          |
+| Production  | HTTPS required | Vercel TLS termination |
+| Container   | HTTP internal  | HTTPS at edge          |
 
 ---
 
@@ -7455,31 +7470,31 @@ flowchart TB
 
 #### 6.4.7.1 Required Environment Variables
 
-| Variable | Purpose | Criticality |
-|----------|---------|-------------|
-| `SECRET_KEY` | JWT signing key | **Critical** - Application fails without |
-| `DATABASE_URL` | SQLite connection string | **Critical** - Application fails without |
-| `ADMIN_USERNAME` | Initial admin account | Required for user seeding |
-| `ADMIN_PASSWORD` | Initial admin password | Required for user seeding |
+| Variable         | Purpose                  | Criticality                              |
+| ---------------- | ------------------------ | ---------------------------------------- |
+| `SECRET_KEY`     | JWT signing key          | **Critical** - Application fails without |
+| `DATABASE_URL`   | SQLite connection string | **Critical** - Application fails without |
+| `ADMIN_USERNAME` | Initial admin account    | Required for user seeding                |
+| `ADMIN_PASSWORD` | Initial admin password   | Required for user seeding                |
 
 #### 6.4.7.2 Optional Environment Variables
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `ENV` | Environment mode | `development` |
-| `ALLOWED_ORIGINS` | CORS allowlist | Empty (built-in defaults) |
-| `ADMIN_EMAIL` | Admin email | None |
-| `ADMIN_FULL_NAME` | Admin display name | None |
-| `ADMIN_DISABLED` | Disable admin | `false` |
+| Variable          | Purpose            | Default                   |
+| ----------------- | ------------------ | ------------------------- |
+| `ENV`             | Environment mode   | `development`             |
+| `ALLOWED_ORIGINS` | CORS allowlist     | Empty (built-in defaults) |
+| `ADMIN_EMAIL`     | Admin email        | None                      |
+| `ADMIN_FULL_NAME` | Admin display name | None                      |
+| `ADMIN_DISABLED`  | Disable admin      | `false`                   |
 
 #### 6.4.7.3 Secrets Security Best Practices
 
-| Practice | Implementation |
-|----------|----------------|
+| Practice             | Implementation                        |
+| -------------------- | ------------------------------------- |
 | No committed secrets | `.env.example` provides template only |
-| Runtime injection | Environment variables at deployment |
-| Secret rotation | Manual SECRET_KEY rotation supported |
-| Least privilege | Only required secrets loaded |
+| Runtime injection    | Environment variables at deployment   |
+| Secret rotation      | Manual SECRET_KEY rotation supported  |
+| Least privilege      | Only required secrets loaded          |
 
 ---
 
@@ -7489,13 +7504,13 @@ flowchart TB
 
 **Location**: `Dockerfile`
 
-| Security Measure | Implementation | Benefit |
-|------------------|----------------|---------|
-| Non-root User | `useradd -m -u 1000 appuser` | Privilege escalation prevention |
-| Minimal Base Image | `python:3.11-slim` | Reduced attack surface |
-| No Cache | `pip install --no-cache-dir` | No sensitive data in layers |
-| Health Checks | `HEALTHCHECK` with 30s interval | Container orchestration support |
-| No Bytecode | `PYTHONDONTWRITEBYTECODE=1` | Cleaner runtime |
+| Security Measure   | Implementation                  | Benefit                         |
+| ------------------ | ------------------------------- | ------------------------------- |
+| Non-root User      | `useradd -m -u 1000 appuser`    | Privilege escalation prevention |
+| Minimal Base Image | `python:3.11-slim`              | Reduced attack surface          |
+| No Cache           | `pip install --no-cache-dir`    | No sensitive data in layers     |
+| Health Checks      | `HEALTHCHECK` with 30s interval | Container orchestration support |
+| No Bytecode        | `PYTHONDONTWRITEBYTECODE=1`     | Cleaner runtime                 |
 
 #### 6.4.8.2 Container Security Flow
 
@@ -7522,36 +7537,36 @@ The repository implements comprehensive security scanning through both CircleCI 
 
 #### CircleCI Security Pipeline
 
-| Tool | Purpose | Stage |
-|------|---------|-------|
+| Tool           | Purpose                           | Stage |
+| -------------- | --------------------------------- | ----- |
 | `safety check` | Python dependency vulnerabilities | Build |
-| `bandit` | Python SAST analysis | Build |
-| `pytest --cov` | Test coverage verification | Test |
+| `bandit`       | Python SAST analysis              | Build |
+| `pytest --cov` | Test coverage verification        | Test  |
 
 #### GitHub Actions Security Workflows
 
-| Workflow | Tool | Purpose |
-|----------|------|---------|
-| `bandit.yml` | Bandit | Python static security analysis |
-| `codeql.yml` | CodeQL | Multi-language SAST |
-| `semgrep.yml` | Semgrep | Pattern-based vulnerability detection |
-| `trivy.yml` | Trivy | Container image scanning |
-| `hadolint.yml` | Hadolint | Dockerfile best practices |
-| `snyk-security.yml` | Snyk | Dependency vulnerability scanning |
-| `snyk-container.yml` | Snyk | Container vulnerability scanning |
-| `dependency-review.yml` | GitHub | PR dependency review |
-| `scorecard.yml` | OSSF Scorecard | Supply chain security |
-| `devskim.yml` | DevSkim | Security linting |
+| Workflow                | Tool           | Purpose                               |
+| ----------------------- | -------------- | ------------------------------------- |
+| `bandit.yml`            | Bandit         | Python static security analysis       |
+| `codeql.yml`            | CodeQL         | Multi-language SAST                   |
+| `semgrep.yml`           | Semgrep        | Pattern-based vulnerability detection |
+| `trivy.yml`             | Trivy          | Container image scanning              |
+| `hadolint.yml`          | Hadolint       | Dockerfile best practices             |
+| `snyk-security.yml`     | Snyk           | Dependency vulnerability scanning     |
+| `snyk-container.yml`    | Snyk           | Container vulnerability scanning      |
+| `dependency-review.yml` | GitHub         | PR dependency review                  |
+| `scorecard.yml`         | OSSF Scorecard | Supply chain security                 |
+| `devskim.yml`           | DevSkim        | Security linting                      |
 
 #### 6.4.9.2 SARIF Integration
 
 Security scan results are integrated with GitHub Advanced Security:
 
-| Configuration | Value |
-|---------------|-------|
+| Configuration | Value                                  |
+| ------------- | -------------------------------------- |
 | Upload Action | `github/codeql-action/upload-sarif@v3` |
-| Permission | `security-events: write` |
-| Visibility | GitHub Security tab |
+| Permission    | `security-events: write`               |
+| Visibility    | GitHub Security tab                    |
 
 ---
 
@@ -7561,23 +7576,23 @@ Security scan results are integrated with GitHub Advanced Security:
 
 Error responses are designed to minimize information leakage:
 
-| Status Code | Scenario | Information Disclosed |
-|-------------|----------|----------------------|
-| 400 | Bad Request | Generic "Inactive user" message |
-| 401 | Unauthorized | Generic credential failure message |
-| 404 | Not Found | Resource type and ID only |
-| 422 | Validation Error | Pydantic field details |
-| 429 | Rate Limited | Retry-After header only |
-| 500 | Internal Error | Generic message (details logged internally) |
+| Status Code | Scenario         | Information Disclosed                       |
+| ----------- | ---------------- | ------------------------------------------- |
+| 400         | Bad Request      | Generic "Inactive user" message             |
+| 401         | Unauthorized     | Generic credential failure message          |
+| 404         | Not Found        | Resource type and ID only                   |
+| 422         | Validation Error | Pydantic field details                      |
+| 429         | Rate Limited     | Retry-After header only                     |
+| 500         | Internal Error   | Generic message (details logged internally) |
 
 #### 6.4.10.2 Exception Handling Pattern
 
-| Exception Type | Response Behavior | Internal Action |
-|----------------|-------------------|-----------------|
-| `HTTPException` | Re-raised directly | None |
-| `RateLimitExceeded` | 429 with Retry-After | None |
-| `ValidationError` | 422 with field details | None |
-| Other exceptions | 500 generic message | `logger.exception()` |
+| Exception Type      | Response Behavior      | Internal Action      |
+| ------------------- | ---------------------- | -------------------- |
+| `HTTPException`     | Re-raised directly     | None                 |
+| `RateLimitExceeded` | 429 with Retry-After   | None                 |
+| `ValidationError`   | 422 with field details | None                 |
+| Other exceptions    | 500 generic message    | `logger.exception()` |
 
 ---
 
@@ -7585,22 +7600,22 @@ Error responses are designed to minimize information leakage:
 
 #### 6.4.11.1 Logging Configuration
 
-| Setting | Value |
-|---------|-------|
-| Level | `INFO` |
-| Module | `logging.getLogger(__name__)` |
-| Format | Python standard logging |
+| Setting | Value                         |
+| ------- | ----------------------------- |
+| Level   | `INFO`                        |
+| Module  | `logging.getLogger(__name__)` |
+| Format  | Python standard logging       |
 
 #### 6.4.11.2 Security Event Logging
 
-| Event Category | Log Level | Content |
-|----------------|-----------|---------|
-| Graph initialization | INFO | Success/failure status |
-| Application startup | INFO | Server binding, port |
-| Authentication failures | WARNING | Failed login attempts |
-| Invalid CORS origins | WARNING | Skipped origin value |
-| Request errors | ERROR | Exception details |
-| Cache operations | INFO | Load/save success |
+| Event Category          | Log Level | Content                |
+| ----------------------- | --------- | ---------------------- |
+| Graph initialization    | INFO      | Success/failure status |
+| Application startup     | INFO      | Server binding, port   |
+| Authentication failures | WARNING   | Failed login attempts  |
+| Invalid CORS origins    | WARNING   | Skipped origin value   |
+| Request errors          | ERROR     | Exception details      |
+| Cache operations        | INFO      | Load/save success      |
 
 ---
 
@@ -7608,39 +7623,39 @@ Error responses are designed to minimize information leakage:
 
 #### 6.4.12.1 Security Control Matrix
 
-| Control Category | Control | Status | Evidence |
-|------------------|---------|--------|----------|
-| **Access Control** | JWT Authentication | ✅ Implemented | `api/auth.py` |
-| | Token Expiration | ✅ Implemented | 30-minute default |
-| | Rate Limiting | ✅ Implemented | slowapi integration |
-| **Data Protection** | Password Hashing | ✅ Implemented | pbkdf2_sha256 |
-| | HTTPS Enforcement | ✅ Production | Vercel TLS |
-| | Input Validation | ✅ Implemented | Multi-layer validation |
-| **Audit** | Authentication Logging | ✅ Implemented | WARNING level |
-| | Error Logging | ✅ Implemented | ERROR level |
-| **Infrastructure** | Container Hardening | ✅ Implemented | Non-root user |
-| | Dependency Scanning | ✅ Implemented | CI/CD pipelines |
-| | Secret Management | ✅ Implemented | Environment variables |
+| Control Category    | Control                | Status         | Evidence               |
+| ------------------- | ---------------------- | -------------- | ---------------------- |
+| **Access Control**  | JWT Authentication     | ✅ Implemented | `api/auth.py`          |
+|                     | Token Expiration       | ✅ Implemented | 30-minute default      |
+|                     | Rate Limiting          | ✅ Implemented | slowapi integration    |
+| **Data Protection** | Password Hashing       | ✅ Implemented | pbkdf2_sha256          |
+|                     | HTTPS Enforcement      | ✅ Production  | Vercel TLS             |
+|                     | Input Validation       | ✅ Implemented | Multi-layer validation |
+| **Audit**           | Authentication Logging | ✅ Implemented | WARNING level          |
+|                     | Error Logging          | ✅ Implemented | ERROR level            |
+| **Infrastructure**  | Container Hardening    | ✅ Implemented | Non-root user          |
+|                     | Dependency Scanning    | ✅ Implemented | CI/CD pipelines        |
+|                     | Secret Management      | ✅ Implemented | Environment variables  |
 
 #### 6.4.12.2 Security Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `PyJWT` | >=2.8.0 | JWT authentication |
-| `passlib[bcrypt]` | >=1.7.4 | Password hashing |
-| `slowapi` | >=0.1.4 | Rate limiting |
-| `urllib3` | >=2.6.0 | Snyk security pin |
-| `zipp` | >=3.19.1 | Snyk security pin |
+| Package           | Version  | Purpose            |
+| ----------------- | -------- | ------------------ |
+| `PyJWT`           | >=2.8.0  | JWT authentication |
+| `passlib[bcrypt]` | >=1.7.4  | Password hashing   |
+| `slowapi`         | >=0.1.4  | Rate limiting      |
+| `urllib3`         | >=2.6.0  | Snyk security pin  |
+| `zipp`            | >=3.19.1 | Snyk security pin  |
 
 #### 6.4.12.3 Compliance Recommendations
 
-| Requirement | Current Status | Recommendation |
-|-------------|----------------|----------------|
-| Data Encryption at Rest | Not implemented | Consider SQLCipher for SQLite |
-| Multi-Factor Authentication | Not implemented | Add TOTP support for admin |
-| Audit Log Persistence | In-memory only | Add persistent audit logging |
-| Session Revocation | Token-based expiry only | Implement token blacklist |
-| Key Rotation | Manual only | Implement automated rotation |
+| Requirement                 | Current Status          | Recommendation                |
+| --------------------------- | ----------------------- | ----------------------------- |
+| Data Encryption at Rest     | Not implemented         | Consider SQLCipher for SQLite |
+| Multi-Factor Authentication | Not implemented         | Add TOTP support for admin    |
+| Audit Log Persistence       | In-memory only          | Add persistent audit logging  |
+| Session Revocation          | Token-based expiry only | Implement token blacklist     |
+| Key Rotation                | Manual only             | Implement automated rotation  |
 
 ---
 
@@ -7693,43 +7708,43 @@ flowchart TB
 
 #### 6.4.14.1 Source Files
 
-| Path | Description |
-|------|-------------|
-| `api/auth.py` | Complete authentication module with JWT, password hashing, user repository |
-| `api/database.py` | SQLite database helpers with parameterized queries |
-| `api/main.py` | FastAPI application with CORS, rate limiting, authentication integration |
-| `SECURITY.md` | Security best practices documentation |
-| `Dockerfile` | Container security configuration |
-| `docker-compose.yml` | Docker composition with health checks |
-| `.env.example` | Environment variable template |
-| `requirements.txt` | Security dependency specifications |
-| `tests/unit/test_api_main.py` | CORS and API security tests |
-| `tests/integration/test_api_integration.py` | Authentication flow integration tests |
-| `src/models/financial_models.py` | Domain model validation rules |
+| Path                                        | Description                                                                |
+| ------------------------------------------- | -------------------------------------------------------------------------- |
+| `api/auth.py`                               | Complete authentication module with JWT, password hashing, user repository |
+| `api/database.py`                           | SQLite database helpers with parameterized queries                         |
+| `api/main.py`                               | FastAPI application with CORS, rate limiting, authentication integration   |
+| `SECURITY.md`                               | Security best practices documentation                                      |
+| `Dockerfile`                                | Container security configuration                                           |
+| `docker-compose.yml`                        | Docker composition with health checks                                      |
+| `.env.example`                              | Environment variable template                                              |
+| `requirements.txt`                          | Security dependency specifications                                         |
+| `tests/unit/test_api_main.py`               | CORS and API security tests                                                |
+| `tests/integration/test_api_integration.py` | Authentication flow integration tests                                      |
+| `src/models/financial_models.py`            | Domain model validation rules                                              |
 
 #### 6.4.14.2 CI/CD Security Configuration
 
-| Path | Description |
-|------|-------------|
-| `.circleci/config.yml` | CircleCI security pipeline |
-| `.github/workflows/bandit.yml` | Bandit SAST workflow |
-| `.github/workflows/codeql.yml` | CodeQL analysis workflow |
-| `.github/workflows/semgrep.yml` | Semgrep pattern analysis |
-| `.github/workflows/trivy.yml` | Container scanning workflow |
-| `.github/workflows/snyk-security.yml` | Snyk dependency scanning |
-| `.github/workflows/scorecard.yml` | OSSF supply chain security |
+| Path                                  | Description                 |
+| ------------------------------------- | --------------------------- |
+| `.circleci/config.yml`                | CircleCI security pipeline  |
+| `.github/workflows/bandit.yml`        | Bandit SAST workflow        |
+| `.github/workflows/codeql.yml`        | CodeQL analysis workflow    |
+| `.github/workflows/semgrep.yml`       | Semgrep pattern analysis    |
+| `.github/workflows/trivy.yml`         | Container scanning workflow |
+| `.github/workflows/snyk-security.yml` | Snyk dependency scanning    |
+| `.github/workflows/scorecard.yml`     | OSSF supply chain security  |
 
 #### 6.4.14.3 Technical Specification Cross-References
 
-| Section | Relevance |
-|---------|-----------|
-| 3.8 Security Considerations | Technology stack security overview |
-| 5.2 COMPONENT DETAILS | FastAPI backend security integration |
-| 5.4 CROSS-CUTTING CONCERNS | Authentication framework, error handling |
-| 5.5 DEPLOYMENT ARCHITECTURE | Container and serverless security |
-| 6.2 Database Design | Authentication schema, access control matrix |
-| 4.3 API Request Workflows | Request validation flows |
-| 4.5 Error Handling Workflows | Security error scenarios |
+| Section                      | Relevance                                    |
+| ---------------------------- | -------------------------------------------- |
+| 3.8 Security Considerations  | Technology stack security overview           |
+| 5.2 COMPONENT DETAILS        | FastAPI backend security integration         |
+| 5.4 CROSS-CUTTING CONCERNS   | Authentication framework, error handling     |
+| 5.5 DEPLOYMENT ARCHITECTURE  | Container and serverless security            |
+| 6.2 Database Design          | Authentication schema, access control matrix |
+| 4.3 API Request Workflows    | Request validation flows                     |
+| 4.5 Error Handling Workflows | Security error scenarios                     |
 
 ## 6.5 Monitoring and Observability
 
@@ -7741,14 +7756,14 @@ The Financial Asset Relationship Database implements **essential monitoring capa
 
 The current monitoring implementation provides sufficient observability for the system's operational requirements while maintaining operational simplicity. The following table summarizes the monitoring architecture:
 
-| Component | Implementation Status | Technology |
-|-----------|----------------------|------------|
-| Health Checks | ✅ Implemented | FastAPI endpoint, Docker HEALTHCHECK |
-| Application Logging | ✅ Implemented | Python standard logging |
-| Application Metrics | ✅ Implemented | Custom `/api/metrics` endpoint |
-| Distributed Tracing | ⚠️ Not Required | Monolithic architecture |
-| Log Aggregation | ⚠️ Not Implemented | Basic stdout logging |
-| Alert Management | ⚠️ CI/CD Only | GitHub Actions, CircleCI |
+| Component           | Implementation Status | Technology                           |
+| ------------------- | --------------------- | ------------------------------------ |
+| Health Checks       | ✅ Implemented        | FastAPI endpoint, Docker HEALTHCHECK |
+| Application Logging | ✅ Implemented        | Python standard logging              |
+| Application Metrics | ✅ Implemented        | Custom `/api/metrics` endpoint       |
+| Distributed Tracing | ⚠️ Not Required       | Monolithic architecture              |
+| Log Aggregation     | ⚠️ Not Implemented    | Basic stdout logging                 |
+| Alert Management    | ⚠️ CI/CD Only         | GitHub Actions, CircleCI             |
 
 #### 6.5.1.2 Monitoring Architecture Diagram
 
@@ -7808,9 +7823,9 @@ The system implements comprehensive health checking at multiple levels to ensure
 
 **Location**: `api/main.py` (lines 428-431)
 
-| Endpoint | Method | Response | Purpose |
-|----------|--------|----------|---------|
-| `/api/health` | GET | `{"status": "healthy", "graph_initialized": true}` | Load balancer probe |
+| Endpoint      | Method | Response                                           | Purpose             |
+| ------------- | ------ | -------------------------------------------------- | ------------------- |
+| `/api/health` | GET    | `{"status": "healthy", "graph_initialized": true}` | Load balancer probe |
 
 The health check endpoint provides immediate visibility into application state and is used by container orchestration systems for readiness and liveness probes.
 
@@ -7818,12 +7833,12 @@ The health check endpoint provides immediate visibility into application state a
 
 **Location**: `Dockerfile` (lines 38-40), `docker-compose.yml` (lines 20-25)
 
-| Parameter | Value | Purpose |
-|-----------|-------|---------|
-| `interval` | 30 seconds | Probe frequency |
-| `timeout` | 10 seconds | Maximum probe duration |
-| `retries` | 3 | Failures before unhealthy |
-| `start_period` | 5-40 seconds | Startup grace period |
+| Parameter      | Value        | Purpose                   |
+| -------------- | ------------ | ------------------------- |
+| `interval`     | 30 seconds   | Probe frequency           |
+| `timeout`      | 10 seconds   | Maximum probe duration    |
+| `retries`      | 3            | Failures before unhealthy |
+| `start_period` | 5-40 seconds | Startup grace period      |
 
 #### Health Check Flow
 
@@ -7855,8 +7870,8 @@ flowchart TB
 
 The Next.js frontend includes an API client method for health checking:
 
-| Method | Endpoint | Response Handling |
-|--------|----------|-------------------|
+| Method          | Endpoint          | Response Handling            |
+| --------------- | ----------------- | ---------------------------- |
 | `healthCheck()` | `GET /api/health` | Returns health status object |
 
 #### 6.5.2.2 Logging Strategy
@@ -7867,31 +7882,31 @@ The system implements Python standard logging with structured output for operati
 
 **Backend Logging** (`api/main.py` lines 26-28):
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| Level | `INFO` | Default verbosity |
-| Logger | `logging.getLogger(__name__)` | Module-specific logger |
-| Format | Python default | Standard log format |
+| Setting | Value                         | Purpose                |
+| ------- | ----------------------------- | ---------------------- |
+| Level   | `INFO`                        | Default verbosity      |
+| Logger  | `logging.getLogger(__name__)` | Module-specific logger |
+| Format  | Python default                | Standard log format    |
 
 **Gradio Logging** (`app.py` line 20):
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| Level | `INFO` | Default verbosity |
-| Format | `%(asctime)s - %(name)s - %(levelname)s - %(message)s` | Timestamped structured format |
+| Setting | Value                                                  | Purpose                       |
+| ------- | ------------------------------------------------------ | ----------------------------- |
+| Level   | `INFO`                                                 | Default verbosity             |
+| Format  | `%(asctime)s - %(name)s - %(levelname)s - %(message)s` | Timestamped structured format |
 
 #### Log Point Catalog
 
-| Log Point | Level | Content | Location |
-|-----------|-------|---------|----------|
-| Graph initialization | INFO | Success/failure status | `api/main.py` |
-| Application startup | INFO | Server binding, port | `api/main.py` |
-| Application shutdown | INFO | Shutdown notification | `api/main.py` |
-| Cache operations | INFO | Load/save success | `src/data/real_data_fetcher.py` |
-| Data fetching | INFO | Yahoo Finance fetches | `src/data/real_data_fetcher.py` |
-| Request errors | ERROR | Exception details | `api/main.py` |
-| Authentication failures | WARNING | Failed login attempts | `api/auth.py` |
-| Invalid CORS origins | WARNING | Skipped origin value | `api/main.py` |
+| Log Point               | Level   | Content                | Location                        |
+| ----------------------- | ------- | ---------------------- | ------------------------------- |
+| Graph initialization    | INFO    | Success/failure status | `api/main.py`                   |
+| Application startup     | INFO    | Server binding, port   | `api/main.py`                   |
+| Application shutdown    | INFO    | Shutdown notification  | `api/main.py`                   |
+| Cache operations        | INFO    | Load/save success      | `src/data/real_data_fetcher.py` |
+| Data fetching           | INFO    | Yahoo Finance fetches  | `src/data/real_data_fetcher.py` |
+| Request errors          | ERROR   | Exception details      | `api/main.py`                   |
+| Authentication failures | WARNING | Failed login attempts  | `api/auth.py`                   |
+| Invalid CORS origins    | WARNING | Skipped origin value   | `api/main.py`                   |
 
 #### 6.5.2.3 Metrics Collection
 
@@ -7901,15 +7916,15 @@ The system implements Python standard logging with structured output for operati
 
 The `/api/metrics` endpoint provides graph topology and network analysis metrics:
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `total_assets` | Counter | Count of nodes in graph |
-| `total_relationships` | Counter | Count of edges in graph |
-| `asset_classes` | Dictionary | Count per asset class |
-| `avg_degree` | Gauge | Mean connections per node |
-| `max_degree` | Gauge | Highest connected node |
-| `network_density` | Gauge | Ratio of actual to possible edges |
-| `relationship_density` | Gauge | Calculated relationship density |
+| Metric                 | Type       | Description                       |
+| ---------------------- | ---------- | --------------------------------- |
+| `total_assets`         | Counter    | Count of nodes in graph           |
+| `total_relationships`  | Counter    | Count of edges in graph           |
+| `asset_classes`        | Dictionary | Count per asset class             |
+| `avg_degree`           | Gauge      | Mean connections per node         |
+| `max_degree`           | Gauge      | Highest connected node            |
+| `network_density`      | Gauge      | Ratio of actual to possible edges |
+| `relationship_density` | Gauge      | Calculated relationship density   |
 
 #### Metrics Response Model
 
@@ -7937,25 +7952,25 @@ The system defines clear Service Level Agreements (SLAs) for critical operations
 
 #### Performance SLA Matrix
 
-| Operation | Target SLA | Measurement Point |
-|-----------|-----------|-------------------|
-| API Response (p95) | < 500ms | Request to response |
-| Visualization Rendering | < 2 seconds | Data load to interactive |
-| Token Generation | < 100ms | Credential to token |
-| Graph Initialization | < 3 seconds | Application startup |
-| Relationship Discovery | < 500ms | For 100 assets |
-| Initial Page Load | < 3 seconds | Navigation to interactive |
-| Dataclass Instantiation | < 1ms | Per object |
-| Validation | < 1ms | Per object |
+| Operation               | Target SLA  | Measurement Point         |
+| ----------------------- | ----------- | ------------------------- |
+| API Response (p95)      | < 500ms     | Request to response       |
+| Visualization Rendering | < 2 seconds | Data load to interactive  |
+| Token Generation        | < 100ms     | Credential to token       |
+| Graph Initialization    | < 3 seconds | Application startup       |
+| Relationship Discovery  | < 500ms     | For 100 assets            |
+| Initial Page Load       | < 3 seconds | Navigation to interactive |
+| Dataclass Instantiation | < 1ms       | Per object                |
+| Validation              | < 1ms       | Per object                |
 
 #### Timeout Configuration
 
-| Component | Timeout | Purpose |
-|-----------|---------|---------|
-| JWT Token | 30 minutes | Session expiration |
-| Rate Limit Window | 1 minute | Request counting period |
-| HTTP Client | 30 seconds | API request timeout |
-| Health Check | 30 seconds | Container probe interval |
+| Component         | Timeout    | Purpose                  |
+| ----------------- | ---------- | ------------------------ |
+| JWT Token         | 30 minutes | Session expiration       |
+| Rate Limit Window | 1 minute   | Request counting period  |
+| HTTP Client       | 30 seconds | API request timeout      |
+| Health Check      | 30 seconds | Container probe interval |
 
 #### 6.5.3.2 Rate Limiting Observability
 
@@ -7963,32 +7978,32 @@ Rate limiting provides visibility into API usage patterns and abuse prevention.
 
 **Location**: `api/main.py` (lines 156-169)
 
-| Endpoint | Limit | Window | Key Function |
-|----------|-------|--------|--------------|
-| `POST /token` | 5 requests | 1 minute | Client IP |
-| `GET /api/users/me` | 10 requests | 1 minute | Client IP |
-| Other endpoints | Unlimited | N/A | N/A |
+| Endpoint            | Limit       | Window   | Key Function |
+| ------------------- | ----------- | -------- | ------------ |
+| `POST /token`       | 5 requests  | 1 minute | Client IP    |
+| `GET /api/users/me` | 10 requests | 1 minute | Client IP    |
+| Other endpoints     | Unlimited   | N/A      | N/A          |
 
 #### Rate Limit Response Indicators
 
-| Indicator | Value | Purpose |
-|-----------|-------|---------|
-| HTTP Status | 429 | Too Many Requests |
-| Header | `Retry-After: <seconds>` | Client retry guidance |
-| Body | Error detail message | Limit information |
+| Indicator   | Value                    | Purpose               |
+| ----------- | ------------------------ | --------------------- |
+| HTTP Status | 429                      | Too Many Requests     |
+| Header      | `Retry-After: <seconds>` | Client retry guidance |
+| Body        | Error detail message     | Limit information     |
 
 #### 6.5.3.3 Error Tracking Patterns
 
 #### API Error Categories
 
-| Status Code | Scenario | Monitoring Impact |
-|-------------|----------|-------------------|
-| 400 | Bad Request | User input validation |
-| 401 | Unauthorized | Authentication failures |
-| 404 | Not Found | Missing resource requests |
-| 422 | Validation Error | Schema validation failures |
-| 429 | Too Many Requests | Rate limiting activation |
-| 500 | Internal Error | Application exceptions |
+| Status Code | Scenario          | Monitoring Impact          |
+| ----------- | ----------------- | -------------------------- |
+| 400         | Bad Request       | User input validation      |
+| 401         | Unauthorized      | Authentication failures    |
+| 404         | Not Found         | Missing resource requests  |
+| 422         | Validation Error  | Schema validation failures |
+| 429         | Too Many Requests | Rate limiting activation   |
+| 500         | Internal Error    | Application exceptions     |
 
 #### Error Handling Flow
 
@@ -8018,11 +8033,11 @@ flowchart TB
 
 **Location**: `frontend/app/page.tsx` (lines 109-119)
 
-| Error Category | User Feedback | Recovery Option |
-|----------------|---------------|-----------------|
-| Network Error | "Unable to connect" | Retry button |
-| API Error | Error message display | Retry button |
-| Render Error | Display error state | Refresh page |
+| Error Category | User Feedback         | Recovery Option |
+| -------------- | --------------------- | --------------- |
+| Network Error  | "Unable to connect"   | Retry button    |
+| API Error      | Error message display | Retry button    |
+| Render Error   | Display error state   | Refresh page    |
 
 Client-side errors are logged via `console.error('Error loading data:', err)` for browser developer tools visibility.
 
@@ -8038,30 +8053,30 @@ The system implements comprehensive test coverage monitoring through multiple pl
 
 **Location**: `.github/workflows/codecov.yaml`
 
-| Configuration | Value | Purpose |
-|---------------|-------|---------|
-| Coverage Format | XML/HTML | Report generation |
-| Test Results | JUnit XML | Test outcome tracking |
-| Upload Action | `codecov/codecov-action` | Results publication |
+| Configuration   | Value                    | Purpose               |
+| --------------- | ------------------------ | --------------------- |
+| Coverage Format | XML/HTML                 | Report generation     |
+| Test Results    | JUnit XML                | Test outcome tracking |
+| Upload Action   | `codecov/codecov-action` | Results publication   |
 
 #### CircleCI Coverage Pipeline
 
 **Location**: `.circleci/config.yml` (lines 68-75)
 
-| Coverage Setting | Configuration |
-|------------------|---------------|
-| Source Directories | `src`, `tests` |
-| Report Formats | XML, HTML |
-| Upload Target | Codecov |
-| Artifact Storage | Coverage reports |
+| Coverage Setting   | Configuration    |
+| ------------------ | ---------------- |
+| Source Directories | `src`, `tests`   |
+| Report Formats     | XML, HTML        |
+| Upload Target      | Codecov          |
+| Artifact Storage   | Coverage reports |
 
 #### Coverage Configuration
 
 **Location**: `pyproject.toml` (lines 65-83)
 
-| Setting | Value |
-|---------|-------|
-| Source | `["src"]` |
+| Setting       | Value                                               |
+| ------------- | --------------------------------------------------- |
+| Source        | `["src"]`                                           |
 | Omit Patterns | `*/tests/*`, `*/__pycache__/*`, `*/site-packages/*` |
 | Exclude Lines | `pragma: no cover`, abstract methods, type checking |
 
@@ -8071,37 +8086,37 @@ The repository implements comprehensive security scanning through both CircleCI 
 
 #### GitHub Actions Security Workflows
 
-| Workflow | Tool | Trigger | Purpose |
-|----------|------|---------|---------|
-| `bandit.yml` | Bandit | Push/PR | Python SAST |
-| `codeql.yml` | CodeQL | Push/PR/Schedule | Multi-language SAST |
-| `semgrep.yml` | Semgrep | Push/PR | Pattern-based detection |
-| `trivy.yml` | Trivy | Push/Schedule | Container scanning |
-| `hadolint.yml` | Hadolint | Push/PR | Dockerfile analysis |
-| `snyk-security.yml` | Snyk | Push/PR | Dependency scanning |
-| `snyk-container.yml` | Snyk | Push/PR | Container vulnerabilities |
-| `dependency-review.yml` | GitHub | PR | Dependency review |
-| `scorecard.yml` | OSSF Scorecard | Push/Schedule | Supply chain security |
-| `devskim.yml` | DevSkim | Push/PR | Security linting |
+| Workflow                | Tool           | Trigger          | Purpose                   |
+| ----------------------- | -------------- | ---------------- | ------------------------- |
+| `bandit.yml`            | Bandit         | Push/PR          | Python SAST               |
+| `codeql.yml`            | CodeQL         | Push/PR/Schedule | Multi-language SAST       |
+| `semgrep.yml`           | Semgrep        | Push/PR          | Pattern-based detection   |
+| `trivy.yml`             | Trivy          | Push/Schedule    | Container scanning        |
+| `hadolint.yml`          | Hadolint       | Push/PR          | Dockerfile analysis       |
+| `snyk-security.yml`     | Snyk           | Push/PR          | Dependency scanning       |
+| `snyk-container.yml`    | Snyk           | Push/PR          | Container vulnerabilities |
+| `dependency-review.yml` | GitHub         | PR               | Dependency review         |
+| `scorecard.yml`         | OSSF Scorecard | Push/Schedule    | Supply chain security     |
+| `devskim.yml`           | DevSkim        | Push/PR          | Security linting          |
 
 #### CircleCI Security Pipeline
 
 **Location**: `.circleci/config.yml` (lines 77-100)
 
-| Tool | Purpose | Stage |
-|------|---------|-------|
+| Tool           | Purpose                           | Stage |
+| -------------- | --------------------------------- | ----- |
 | `safety check` | Python dependency vulnerabilities | Build |
-| `bandit` | Python SAST analysis | Build |
+| `bandit`       | Python SAST analysis              | Build |
 
 #### Nightly Security Scan
 
 **Location**: `.circleci/config.yml` (lines 206-216)
 
-| Setting | Value |
-|---------|-------|
+| Setting  | Value                           |
+| -------- | ------------------------------- |
 | Schedule | `0 2 * * *` (2:00 AM UTC daily) |
-| Branch | `main` |
-| Jobs | `python-security` |
+| Branch   | `main`                          |
+| Jobs     | `python-security`               |
 
 #### Security Scan Dashboard
 
@@ -8153,12 +8168,12 @@ flowchart TB
 
 #### Graph Initialization Error Handling
 
-| Error Source | Detection Method | Recovery Action | Fallback |
-|--------------|------------------|-----------------|----------|
-| Cache load failed | JSON parse error | Proceed to fresh fetch | Standard initialization |
-| Network disabled | Connection timeout | Use sample data | Offline mode |
-| Yahoo Finance error | Request exception | Check partial data | Sample data fallback |
-| Critical failure | Unrecoverable exception | Abort startup | Application exit |
+| Error Source        | Detection Method        | Recovery Action        | Fallback                |
+| ------------------- | ----------------------- | ---------------------- | ----------------------- |
+| Cache load failed   | JSON parse error        | Proceed to fresh fetch | Standard initialization |
+| Network disabled    | Connection timeout      | Use sample data        | Offline mode            |
+| Yahoo Finance error | Request exception       | Check partial data     | Sample data fallback    |
+| Critical failure    | Unrecoverable exception | Abort startup          | Application exit        |
 
 #### Graph Initialization Recovery Flow
 
@@ -8230,22 +8245,22 @@ flowchart TB
 
 #### 6.5.5.3 Escalation Procedures
 
-| Severity | Detection | Initial Response | Escalation |
-|----------|-----------|------------------|------------|
-| Critical | Application crash | Restart container | Review logs, investigate root cause |
-| High | Security scan failure | Review findings | Patch dependencies, update codebase |
-| Medium | Test failure | Review failing tests | Fix code, update tests |
-| Low | Coverage drop | Review changes | Improve test coverage |
+| Severity | Detection             | Initial Response     | Escalation                          |
+| -------- | --------------------- | -------------------- | ----------------------------------- |
+| Critical | Application crash     | Restart container    | Review logs, investigate root cause |
+| High     | Security scan failure | Review findings      | Patch dependencies, update codebase |
+| Medium   | Test failure          | Review failing tests | Fix code, update tests              |
+| Low      | Coverage drop         | Review changes       | Improve test coverage               |
 
 #### 6.5.5.4 Recovery Scenarios
 
-| Scenario | Detection | Recovery Action |
-|----------|-----------|-----------------|
-| Graph corruption | Validation failure | Clear cache, reinitialize |
-| Cache file corruption | JSON parse error | Delete cache, fresh fetch |
-| Database unavailable | Connection timeout | Retry with exponential backoff |
-| Yahoo Finance outage | Request timeout | Fall back to sample data |
-| Authentication failure | JWT decode error | Re-authenticate user |
+| Scenario               | Detection          | Recovery Action                |
+| ---------------------- | ------------------ | ------------------------------ |
+| Graph corruption       | Validation failure | Clear cache, reinitialize      |
+| Cache file corruption  | JSON parse error   | Delete cache, fresh fetch      |
+| Database unavailable   | Connection timeout | Retry with exponential backoff |
+| Yahoo Finance outage   | Request timeout    | Fall back to sample data       |
+| Authentication failure | JWT decode error   | Re-authenticate user           |
 
 ---
 
@@ -8278,22 +8293,22 @@ flowchart TB
 
 #### 6.5.6.2 Alert Threshold Matrix
 
-| Metric | Warning Threshold | Critical Threshold | Action |
-|--------|-------------------|-------------------|--------|
-| API Response Time (p95) | > 400ms | > 500ms | Investigate slow endpoints |
-| Error Rate | > 1% | > 5% | Review error logs |
-| Health Check Failures | 1 retry | 3 retries | Container restart |
-| Graph Initialization | > 2.5s | > 3s | Optimize data loading |
-| Token Generation | > 80ms | > 100ms | Review auth performance |
+| Metric                  | Warning Threshold | Critical Threshold | Action                     |
+| ----------------------- | ----------------- | ------------------ | -------------------------- |
+| API Response Time (p95) | > 400ms           | > 500ms            | Investigate slow endpoints |
+| Error Rate              | > 1%              | > 5%               | Review error logs          |
+| Health Check Failures   | 1 retry           | 3 retries          | Container restart          |
+| Graph Initialization    | > 2.5s            | > 3s               | Optimize data loading      |
+| Token Generation        | > 80ms            | > 100ms            | Review auth performance    |
 
 #### 6.5.6.3 SLA Monitoring Dashboard Concept
 
-| Panel | Metric | SLA Target | Visualization |
-|-------|--------|------------|---------------|
-| API Latency | Response time p95 | < 500ms | Time series graph |
-| Availability | Health check status | > 99.9% | Status indicator |
-| Error Rate | 5xx responses | < 0.1% | Percentage gauge |
-| Throughput | Requests per second | Variable | Counter display |
+| Panel        | Metric              | SLA Target | Visualization     |
+| ------------ | ------------------- | ---------- | ----------------- |
+| API Latency  | Response time p95   | < 500ms    | Time series graph |
+| Availability | Health check status | > 99.9%    | Status indicator  |
+| Error Rate   | 5xx responses       | < 0.1%     | Percentage gauge  |
+| Throughput   | Requests per second | Variable   | Counter display   |
 
 ---
 
@@ -8303,46 +8318,46 @@ flowchart TB
 
 Based on industry best practices for FastAPI applications, the following enhancements are recommended for production deployments with increased scale requirements:
 
-| Component | Recommended Tool | Purpose |
-|-----------|------------------|---------|
-| Metrics Collection | Prometheus + prometheus-fastapi-instrumentator | RED metrics (Rate, Error, Duration) |
-| Distributed Tracing | OpenTelemetry | Request flow visualization |
-| Log Aggregation | Loki or ELK Stack | Centralized log management |
-| Visualization | Grafana | Unified dashboard |
-| Error Tracking | Sentry | Exception monitoring |
-| Alerting | Prometheus Alertmanager | Automated notifications |
+| Component           | Recommended Tool                               | Purpose                             |
+| ------------------- | ---------------------------------------------- | ----------------------------------- |
+| Metrics Collection  | Prometheus + prometheus-fastapi-instrumentator | RED metrics (Rate, Error, Duration) |
+| Distributed Tracing | OpenTelemetry                                  | Request flow visualization          |
+| Log Aggregation     | Loki or ELK Stack                              | Centralized log management          |
+| Visualization       | Grafana                                        | Unified dashboard                   |
+| Error Tracking      | Sentry                                         | Exception monitoring                |
+| Alerting            | Prometheus Alertmanager                        | Automated notifications             |
 
 #### 6.5.7.2 OpenTelemetry Integration Path
 
 For future scalability, OpenTelemetry provides a vendor-neutral approach to observability:
 
-| Integration Point | Library | Purpose |
-|-------------------|---------|---------|
-| Auto-instrumentation | `opentelemetry-instrumentation-fastapi` | Automatic request tracing |
-| Metrics Export | `opentelemetry-exporter-prometheus` | Prometheus-compatible metrics |
-| Trace Export | `opentelemetry-exporter-otlp` | Trace data export |
+| Integration Point    | Library                                 | Purpose                       |
+| -------------------- | --------------------------------------- | ----------------------------- |
+| Auto-instrumentation | `opentelemetry-instrumentation-fastapi` | Automatic request tracing     |
+| Metrics Export       | `opentelemetry-exporter-prometheus`     | Prometheus-compatible metrics |
+| Trace Export         | `opentelemetry-exporter-otlp`           | Trace data export             |
 
 #### 6.5.7.3 Structured Logging Enhancement
 
 Recommended logging format upgrade for improved observability:
 
-| Enhancement | Current | Recommended |
-|-------------|---------|-------------|
-| Format | Plain text | JSON structured |
-| Request ID | Not implemented | UUID per request |
-| Correlation | None | Trace ID integration |
-| Context | Basic | User, endpoint, duration |
+| Enhancement | Current         | Recommended              |
+| ----------- | --------------- | ------------------------ |
+| Format      | Plain text      | JSON structured          |
+| Request ID  | Not implemented | UUID per request         |
+| Correlation | None            | Trace ID integration     |
+| Context     | Basic           | User, endpoint, duration |
 
 #### 6.5.7.4 Monitoring Prerequisites for Microservices Migration
 
 As documented in the Core Services Architecture (Section 6.1), the following monitoring capabilities would be required before migrating to a microservices architecture:
 
-| Prerequisite | Current State | Required for Migration |
-|--------------|--------------|----------------------|
-| Database Persistence | Optional | Required for shared state |
-| Message Queue | Not implemented | Required for async communication |
-| Service Mesh | Not applicable | Required for service discovery |
-| Distributed Tracing | Not implemented | Required for observability |
+| Prerequisite         | Current State   | Required for Migration           |
+| -------------------- | --------------- | -------------------------------- |
+| Database Persistence | Optional        | Required for shared state        |
+| Message Queue        | Not implemented | Required for async communication |
+| Service Mesh         | Not applicable  | Required for service discovery   |
+| Distributed Tracing  | Not implemented | Required for observability       |
 
 ---
 
@@ -8350,13 +8365,13 @@ As documented in the Core Services Architecture (Section 6.1), the following mon
 
 #### 6.5.8.1 Security Event Categories
 
-| Event Category | Log Level | Content | Monitoring Action |
-|----------------|-----------|---------|-------------------|
-| Authentication failures | WARNING | Failed login attempts | Track frequency, detect brute force |
-| Invalid CORS origins | WARNING | Skipped origin value | Review CORS configuration |
-| Rate limit exceeded | INFO (429 response) | Client IP, endpoint | Identify abuse patterns |
-| Request errors | ERROR | Exception details | Investigate root cause |
-| Token expiration | INFO | Session timeout | Normal operation tracking |
+| Event Category          | Log Level           | Content               | Monitoring Action                   |
+| ----------------------- | ------------------- | --------------------- | ----------------------------------- |
+| Authentication failures | WARNING             | Failed login attempts | Track frequency, detect brute force |
+| Invalid CORS origins    | WARNING             | Skipped origin value  | Review CORS configuration           |
+| Rate limit exceeded     | INFO (429 response) | Client IP, endpoint   | Identify abuse patterns             |
+| Request errors          | ERROR               | Exception details     | Investigate root cause              |
+| Token expiration        | INFO                | Session timeout       | Normal operation tracking           |
 
 #### 6.5.8.2 CI/CD Security Event Flow
 
@@ -8411,30 +8426,30 @@ flowchart TB
 
 #### 6.5.9.1 Docker Container Monitoring
 
-| Monitoring Aspect | Implementation | Configuration |
-|-------------------|----------------|---------------|
-| Health Probes | HTTP GET `/` | Every 30 seconds |
-| Restart Policy | `unless-stopped` | Automatic recovery |
-| Volume Mounts | `./src:/app/src`, `./data:/app/data` | Persistent storage |
-| Port Exposure | 7860 | External access |
+| Monitoring Aspect | Implementation                       | Configuration      |
+| ----------------- | ------------------------------------ | ------------------ |
+| Health Probes     | HTTP GET `/`                         | Every 30 seconds   |
+| Restart Policy    | `unless-stopped`                     | Automatic recovery |
+| Volume Mounts     | `./src:/app/src`, `./data:/app/data` | Persistent storage |
+| Port Exposure     | 7860                                 | External access    |
 
 #### 6.5.9.2 Container Security Monitoring
 
 **Trivy Vulnerability Scanner** (`.github/workflows/trivy.yml`)
 
-| Configuration | Value |
-|---------------|-------|
-| Trigger | Dockerfile/docker-compose changes |
-| Schedule | Weekly (Saturday 14:30 UTC) |
-| Severity Filter | CRITICAL, HIGH |
-| Results | SARIF upload to GitHub Security |
+| Configuration   | Value                             |
+| --------------- | --------------------------------- |
+| Trigger         | Dockerfile/docker-compose changes |
+| Schedule        | Weekly (Saturday 14:30 UTC)       |
+| Severity Filter | CRITICAL, HIGH                    |
+| Results         | SARIF upload to GitHub Security   |
 
 #### 6.5.9.3 Deployment Environment Comparison
 
-| Environment | Monitoring Approach | Health Check |
-|-------------|---------------------|--------------|
-| Local Development | Console logging | Manual testing |
-| Docker | Docker HEALTHCHECK | HTTP probe |
+| Environment       | Monitoring Approach | Health Check       |
+| ----------------- | ------------------- | ------------------ |
+| Local Development | Console logging     | Manual testing     |
+| Docker            | Docker HEALTHCHECK  | HTTP probe         |
 | Vercel Serverless | Platform monitoring | Edge health checks |
 
 ---
@@ -8443,52 +8458,52 @@ flowchart TB
 
 #### 6.5.10.1 Source Files Examined
 
-| Path | Relevance |
-|------|-----------|
-| `api/main.py` | Health check endpoint, metrics endpoint, logging, rate limiting, error handling |
-| `api/auth.py` | Authentication logging, security event handling |
-| `api/database.py` | Database connection logging |
-| `app.py` | Gradio application logging configuration |
-| `src/data/real_data_fetcher.py` | Data fetch logging, cache operations |
-| `frontend/app/page.tsx` | Frontend error handling, retry pattern |
-| `frontend/app/lib/api.ts` | Frontend health check API client |
-| `Dockerfile` | Docker health check configuration |
-| `docker-compose.yml` | Container orchestration health checks |
-| `pyproject.toml` | Test coverage configuration |
+| Path                            | Relevance                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------- |
+| `api/main.py`                   | Health check endpoint, metrics endpoint, logging, rate limiting, error handling |
+| `api/auth.py`                   | Authentication logging, security event handling                                 |
+| `api/database.py`               | Database connection logging                                                     |
+| `app.py`                        | Gradio application logging configuration                                        |
+| `src/data/real_data_fetcher.py` | Data fetch logging, cache operations                                            |
+| `frontend/app/page.tsx`         | Frontend error handling, retry pattern                                          |
+| `frontend/app/lib/api.ts`       | Frontend health check API client                                                |
+| `Dockerfile`                    | Docker health check configuration                                               |
+| `docker-compose.yml`            | Container orchestration health checks                                           |
+| `pyproject.toml`                | Test coverage configuration                                                     |
 
 #### 6.5.10.2 CI/CD Configuration Files
 
-| Path | Relevance |
-|------|-----------|
-| `.circleci/config.yml` | CircleCI monitoring, coverage, security scanning |
-| `.github/workflows/ci.yml` | Main CI workflow with coverage |
-| `.github/workflows/codecov.yaml` | Coverage upload workflow |
-| `.github/workflows/trivy.yml` | Container security scanning |
-| `.github/workflows/bandit.yml` | Python SAST workflow |
-| `.github/workflows/codeql.yml` | CodeQL analysis workflow |
-| `.github/workflows/semgrep.yml` | Semgrep pattern analysis |
-| `.github/workflows/snyk-security.yml` | Snyk dependency scanning |
-| `.github/workflows/scorecard.yml` | OSSF supply chain security |
+| Path                                  | Relevance                                        |
+| ------------------------------------- | ------------------------------------------------ |
+| `.circleci/config.yml`                | CircleCI monitoring, coverage, security scanning |
+| `.github/workflows/ci.yml`            | Main CI workflow with coverage                   |
+| `.github/workflows/codecov.yaml`      | Coverage upload workflow                         |
+| `.github/workflows/trivy.yml`         | Container security scanning                      |
+| `.github/workflows/bandit.yml`        | Python SAST workflow                             |
+| `.github/workflows/codeql.yml`        | CodeQL analysis workflow                         |
+| `.github/workflows/semgrep.yml`       | Semgrep pattern analysis                         |
+| `.github/workflows/snyk-security.yml` | Snyk dependency scanning                         |
+| `.github/workflows/scorecard.yml`     | OSSF supply chain security                       |
 
 #### 6.5.10.3 Technical Specification Cross-References
 
-| Section | Relevance |
-|---------|-----------|
-| 5.4 CROSS-CUTTING CONCERNS | Monitoring, observability, error handling patterns |
-| 6.4 Security Architecture | Security event logging, audit requirements |
-| 5.5 DEPLOYMENT ARCHITECTURE | Container and serverless deployment monitoring |
-| 4.5 Error Handling Workflows | Error detection and recovery flows |
-| 4.8 Timing and SLA Considerations | Performance targets and timeout configuration |
-| 6.1 Core Services Architecture | Monolithic architecture implications for monitoring |
+| Section                           | Relevance                                           |
+| --------------------------------- | --------------------------------------------------- |
+| 5.4 CROSS-CUTTING CONCERNS        | Monitoring, observability, error handling patterns  |
+| 6.4 Security Architecture         | Security event logging, audit requirements          |
+| 5.5 DEPLOYMENT ARCHITECTURE       | Container and serverless deployment monitoring      |
+| 4.5 Error Handling Workflows      | Error detection and recovery flows                  |
+| 4.8 Timing and SLA Considerations | Performance targets and timeout configuration       |
+| 6.1 Core Services Architecture    | Monolithic architecture implications for monitoring |
 
 #### 6.5.10.4 External References
 
-| Resource | Context |
-|----------|---------|
+| Resource                             | Context                                 |
+| ------------------------------------ | --------------------------------------- |
 | FastAPI Observability Best Practices | Industry recommendations for monitoring |
-| OpenTelemetry Documentation | Distributed tracing standards |
-| Prometheus FastAPI Instrumentator | Metrics collection library |
-| Grafana FastAPI Dashboard | Dashboard design patterns |
+| OpenTelemetry Documentation          | Distributed tracing standards           |
+| Prometheus FastAPI Instrumentator    | Metrics collection library              |
+| Grafana FastAPI Dashboard            | Dashboard design patterns               |
 
 ## 6.6 Testing Strategy
 
@@ -8502,20 +8517,20 @@ The testing architecture aligns with industry best practices for monolithic laye
 
 #### 6.6.1.2 Testing Philosophy
 
-| Principle | Implementation | Rationale |
-|-----------|---------------|-----------|
-| Test Isolation | Separate test databases, fixture reset | Prevent test interference |
-| Behavior-Driven | Test user interactions, not implementation | Resilient to refactoring |
-| Coverage-First | 80%+ coverage targets | Catch regressions early |
-| Fast Feedback | Parallel execution, CI integration | Developer productivity |
+| Principle       | Implementation                             | Rationale                 |
+| --------------- | ------------------------------------------ | ------------------------- |
+| Test Isolation  | Separate test databases, fixture reset     | Prevent test interference |
+| Behavior-Driven | Test user interactions, not implementation | Resilient to refactoring  |
+| Coverage-First  | 80%+ coverage targets                      | Catch regressions early   |
+| Fast Feedback   | Parallel execution, CI integration         | Developer productivity    |
 
 #### 6.6.1.3 Test Suite Statistics
 
-| Component | Test Cases | Test Lines | Coverage Target |
-|-----------|------------|------------|-----------------|
-| Backend Python | 60+ | ~1,042 | >80% |
-| Frontend TypeScript | 80+ | ~937 | >80% |
-| **Total** | **140+** | **~2,000** | **>80%** |
+| Component           | Test Cases | Test Lines | Coverage Target |
+| ------------------- | ---------- | ---------- | --------------- |
+| Backend Python      | 60+        | ~1,042     | >80%            |
+| Frontend TypeScript | 80+        | ~937       | >80%            |
+| **Total**           | **140+**   | **~2,000** | **>80%**        |
 
 ---
 
@@ -8527,12 +8542,12 @@ The Python backend utilizes pytest as the primary testing framework, providing p
 
 #### Testing Framework Stack
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| pytest | >= 7.0.0 | Test runner and framework |
-| pytest-cov | >= 4.0.0 | Coverage reporting |
-| httpx | >= 0.24.0 | Async HTTP client for TestClient |
-| unittest.mock | stdlib | Mocking and patching |
+| Tool          | Version   | Purpose                          |
+| ------------- | --------- | -------------------------------- |
+| pytest        | >= 7.0.0  | Test runner and framework        |
+| pytest-cov    | >= 4.0.0  | Coverage reporting               |
+| httpx         | >= 0.24.0 | Async HTTP client for TestClient |
+| unittest.mock | stdlib    | Mocking and patching             |
 
 #### Test Organization Structure
 
@@ -8561,20 +8576,20 @@ tests/
 
 **Location**: `pyproject.toml`
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| `testpaths` | `["tests"]` | Test discovery root |
-| `python_files` | `["test_*.py", "*_test.py"]` | Test file patterns |
-| `python_classes` | `["Test*"]` | Test class patterns |
-| `python_functions` | `["test_*"]` | Test function patterns |
+| Setting            | Value                        | Purpose                |
+| ------------------ | ---------------------------- | ---------------------- |
+| `testpaths`        | `["tests"]`                  | Test discovery root    |
+| `python_files`     | `["test_*.py", "*_test.py"]` | Test file patterns     |
+| `python_classes`   | `["Test*"]`                  | Test class patterns    |
+| `python_functions` | `["test_*"]`                 | Test function patterns |
 
 #### Test Markers
 
-| Marker | Description | Usage |
-|--------|-------------|-------|
-| `@pytest.mark.unit` | Unit tests | `pytest -m unit` |
-| `@pytest.mark.integration` | Integration tests | `pytest -m integration` |
-| `@pytest.mark.slow` | Slow running tests | `pytest -m "not slow"` |
+| Marker                     | Description        | Usage                   |
+| -------------------------- | ------------------ | ----------------------- |
+| `@pytest.mark.unit`        | Unit tests         | `pytest -m unit`        |
+| `@pytest.mark.integration` | Integration tests  | `pytest -m integration` |
+| `@pytest.mark.slow`        | Slow running tests | `pytest -m "not slow"`  |
 
 #### 6.6.2.2 Backend Mocking Strategy
 
@@ -8582,11 +8597,11 @@ The backend employs a multi-layered mocking approach to isolate components under
 
 #### Graph Instance Mocking
 
-| Pattern | Implementation | Use Case |
-|---------|---------------|----------|
-| Factory Override | `set_graph_factory()` | Test isolation for graph singleton |
-| Fixture Reset | `_reset_graph` fixture | Clean state between tests |
-| Mock Patch | `unittest.mock.patch` | API endpoint isolation |
+| Pattern          | Implementation         | Use Case                           |
+| ---------------- | ---------------------- | ---------------------------------- |
+| Factory Override | `set_graph_factory()`  | Test isolation for graph singleton |
+| Fixture Reset    | `_reset_graph` fixture | Clean state between tests          |
+| Mock Patch       | `unittest.mock.patch`  | API endpoint isolation             |
 
 #### Test Fixture Patterns
 
@@ -8620,20 +8635,20 @@ flowchart TB
 
 **Location**: `tests/conftest.py`
 
-| Fixture | Scope | Purpose |
-|---------|-------|---------|
-| `mock_graph` | function | Isolated graph instance for testing |
-| `sample_equity` | function | Pre-configured equity asset |
-| `dividend_stock` | function | Asset with dividend data |
-| `_reset_graph` | function | Graph state cleanup |
+| Fixture          | Scope    | Purpose                             |
+| ---------------- | -------- | ----------------------------------- |
+| `mock_graph`     | function | Isolated graph instance for testing |
+| `sample_equity`  | function | Pre-configured equity asset         |
+| `dividend_stock` | function | Asset with dividend data            |
+| `_reset_graph`   | function | Graph state cleanup                 |
 
 #### Conditional Test Execution
 
-| Pattern | Implementation | Purpose |
-|---------|---------------|---------|
-| Import Skip | `pytest.importorskip("sqlalchemy")` | Skip if dependency missing |
-| Environment Check | `pytest.mark.skipif(...)` | Environment-specific tests |
-| Parametrization | `@pytest.mark.parametrize` | Multiple test scenarios |
+| Pattern           | Implementation                      | Purpose                    |
+| ----------------- | ----------------------------------- | -------------------------- |
+| Import Skip       | `pytest.importorskip("sqlalchemy")` | Skip if dependency missing |
+| Environment Check | `pytest.mark.skipif(...)`           | Environment-specific tests |
+| Parametrization   | `@pytest.mark.parametrize`          | Multiple test scenarios    |
 
 #### 6.6.2.3 Frontend Unit Testing Framework
 
@@ -8641,12 +8656,12 @@ The Next.js frontend implements Jest with React Testing Library for comprehensiv
 
 #### Testing Framework Stack
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Jest | ^29.7.0 | Test runner and framework |
-| @testing-library/react | ^14.1.2 | React component testing |
-| @testing-library/jest-dom | ^6.4.0 | DOM assertions |
-| jest-environment-jsdom | ^29.7.0 | DOM simulation |
+| Tool                      | Version | Purpose                   |
+| ------------------------- | ------- | ------------------------- |
+| Jest                      | ^29.7.0 | Test runner and framework |
+| @testing-library/react    | ^14.1.2 | React component testing   |
+| @testing-library/jest-dom | ^6.4.0  | DOM assertions            |
+| jest-environment-jsdom    | ^29.7.0 | DOM simulation            |
 
 #### Frontend Test Organization
 
@@ -8672,22 +8687,22 @@ frontend/
 
 **Location**: `frontend/jest.config.js`
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| `testEnvironment` | `jest-environment-jsdom` | DOM simulation |
-| `setupFilesAfterEnv` | `['./jest.setup.js']` | Test environment setup |
-| `moduleNameMapper` | Path aliases | Module resolution |
-| `testMatch` | `['**/__tests__/**/*.test.ts(x)?']` | Test file patterns |
+| Setting              | Value                               | Purpose                |
+| -------------------- | ----------------------------------- | ---------------------- |
+| `testEnvironment`    | `jest-environment-jsdom`            | DOM simulation         |
+| `setupFilesAfterEnv` | `['./jest.setup.js']`               | Test environment setup |
+| `moduleNameMapper`   | Path aliases                        | Module resolution      |
+| `testMatch`          | `['**/__tests__/**/*.test.ts(x)?']` | Test file patterns     |
 
 #### Environment Setup
 
 **Location**: `frontend/jest.setup.js`
 
-| Configuration | Purpose |
-|---------------|---------|
-| `@testing-library/jest-dom` import | Extended DOM matchers |
-| `window.matchMedia` mock | Media query simulation |
-| `IntersectionObserver` mock | Viewport observation |
+| Configuration                      | Purpose                |
+| ---------------------------------- | ---------------------- |
+| `@testing-library/jest-dom` import | Extended DOM matchers  |
+| `window.matchMedia` mock           | Media query simulation |
+| `IntersectionObserver` mock        | Viewport observation   |
 
 #### 6.6.2.4 Frontend Mocking Strategy
 
@@ -8695,32 +8710,32 @@ The frontend testing approach prioritizes testing user behavior over implementat
 
 #### Mock Patterns
 
-| Pattern | Implementation | Use Case |
-|---------|---------------|----------|
-| Module Mock | `jest.mock('axios')` | API client isolation |
-| Component Mock | `jest.mock('../../app/lib/api')` | Component isolation |
-| Module Reset | `jest.resetModules()` | Clean state between tests |
-| Data-TestId | `data-testid` attributes | Element targeting |
+| Pattern        | Implementation                   | Use Case                  |
+| -------------- | -------------------------------- | ------------------------- |
+| Module Mock    | `jest.mock('axios')`             | API client isolation      |
+| Component Mock | `jest.mock('../../app/lib/api')` | Component isolation       |
+| Module Reset   | `jest.resetModules()`            | Clean state between tests |
+| Data-TestId    | `data-testid` attributes         | Element targeting         |
 
 #### Centralized Test Data
 
 **Location**: `frontend/__tests__/test-utils.ts`
 
-| Export | Type | Purpose |
-|--------|------|---------|
-| `mockAssets` | Asset[] | Sample asset collection |
-| `mockMetrics` | Metrics | Network metrics data |
-| `mockVisualization` | VisualizationData | 3D graph data |
-| `mockRelationships` | Relationship[] | Sample relationships |
+| Export              | Type              | Purpose                 |
+| ------------------- | ----------------- | ----------------------- |
+| `mockAssets`        | Asset[]           | Sample asset collection |
+| `mockMetrics`       | Metrics           | Network metrics data    |
+| `mockVisualization` | VisualizationData | 3D graph data           |
+| `mockRelationships` | Relationship[]    | Sample relationships    |
 
 #### 6.6.2.5 Test Naming Conventions
 
-| Component | Convention | Example |
-|-----------|------------|---------|
-| Backend Test Files | `test_<module>.py` | `test_api_main.py` |
-| Frontend Test Files | `<Component>.test.tsx` | `AssetList.test.tsx` |
-| Test Functions | `test_<behavior>` | `test_asset_creation_with_valid_data` |
-| Test Classes | `Test<Feature>` | `TestCompleteAPIFlow` |
+| Component           | Convention             | Example                               |
+| ------------------- | ---------------------- | ------------------------------------- |
+| Backend Test Files  | `test_<module>.py`     | `test_api_main.py`                    |
+| Frontend Test Files | `<Component>.test.tsx` | `AssetList.test.tsx`                  |
+| Test Functions      | `test_<behavior>`      | `test_asset_creation_with_valid_data` |
+| Test Classes        | `Test<Feature>`        | `TestCompleteAPIFlow`                 |
 
 #### 6.6.2.6 Code Coverage Configuration
 
@@ -8728,18 +8743,18 @@ The frontend testing approach prioritizes testing user behavior over implementat
 
 **Location**: `pyproject.toml`
 
-| Setting | Value |
-|---------|-------|
-| Source Directories | `["src"]` |
-| Omit Patterns | `*/tests/*`, `*/__pycache__/*`, `*/site-packages/*` |
-| Exclude Lines | `pragma: no cover`, `def __repr__`, `raise NotImplementedError`, `if TYPE_CHECKING:` |
+| Setting            | Value                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| Source Directories | `["src"]`                                                                            |
+| Omit Patterns      | `*/tests/*`, `*/__pycache__/*`, `*/site-packages/*`                                  |
+| Exclude Lines      | `pragma: no cover`, `def __repr__`, `raise NotImplementedError`, `if TYPE_CHECKING:` |
 
 #### Frontend Coverage
 
-| Command | Description |
-|---------|-------------|
+| Command                  | Description              |
+| ------------------------ | ------------------------ |
 | `npm test -- --coverage` | Generate coverage report |
-| `npm run test:ci` | CI-optimized coverage |
+| `npm run test:ci`        | CI-optimized coverage    |
 
 ---
 
@@ -8753,13 +8768,13 @@ Integration tests validate end-to-end workflows across multiple system component
 
 #### Integration Test Categories
 
-| Category | Test Class | Validation Focus |
-|----------|------------|------------------|
-| Complete API Flow | `TestCompleteAPIFlow` | health → assets → detail → relationships |
-| Metrics Consistency | `TestMetricsConsistency` | Metrics match actual data |
-| Visualization Data | `TestVisualizationData` | All nodes reference existing assets |
-| Performance | `TestPerformance` | Response time SLAs |
-| Authentication | `TestAuthentication` | JWT token flows |
+| Category            | Test Class               | Validation Focus                         |
+| ------------------- | ------------------------ | ---------------------------------------- |
+| Complete API Flow   | `TestCompleteAPIFlow`    | health → assets → detail → relationships |
+| Metrics Consistency | `TestMetricsConsistency` | Metrics match actual data                |
+| Visualization Data  | `TestVisualizationData`  | All nodes reference existing assets      |
+| Performance         | `TestPerformance`        | Response time SLAs                       |
+| Authentication      | `TestAuthentication`     | JWT token flows                          |
 
 #### Integration Test Flow
 
@@ -8790,11 +8805,11 @@ flowchart TB
 
 #### Performance Integration Tests
 
-| Test | Validation | Threshold |
-|------|------------|-----------|
-| `test_response_times` | API endpoint response | < 5 seconds |
+| Test                       | Validation                        | Threshold           |
+| -------------------------- | --------------------------------- | ------------------- |
+| `test_response_times`      | API endpoint response             | < 5 seconds         |
 | `test_concurrent_requests` | ThreadPoolExecutor with 5 workers | 10 requests success |
-| `test_visualization_load` | Graph rendering data | < 2 seconds |
+| `test_visualization_load`  | Graph rendering data              | < 2 seconds         |
 
 #### 6.6.3.2 Database Integration Testing
 
@@ -8802,41 +8817,41 @@ flowchart TB
 
 #### Database Test Strategy
 
-| Approach | Implementation | Purpose |
-|----------|---------------|---------|
-| Isolated Database | `tmp_path` fixture | Test data isolation |
-| Migration Testing | Apply `001_initial.sql` | Schema validation |
-| CRUD Operations | SQLAlchemy sessions | Data layer verification |
-| Transaction Rollback | Session rollback | Clean state |
+| Approach             | Implementation          | Purpose                 |
+| -------------------- | ----------------------- | ----------------------- |
+| Isolated Database    | `tmp_path` fixture      | Test data isolation     |
+| Migration Testing    | Apply `001_initial.sql` | Schema validation       |
+| CRUD Operations      | SQLAlchemy sessions     | Data layer verification |
+| Transaction Rollback | Session rollback        | Clean state             |
 
 #### Database Test Configuration
 
-| Parameter | Value | Purpose |
-|-----------|-------|---------|
-| Database URL | `sqlite:///{tmp_path}/test.db` | Isolated test database |
-| Connection Args | `check_same_thread=False` | Multi-threaded compatibility |
-| Pool Class | `StaticPool` | Connection reuse |
+| Parameter       | Value                          | Purpose                      |
+| --------------- | ------------------------------ | ---------------------------- |
+| Database URL    | `sqlite:///{tmp_path}/test.db` | Isolated test database       |
+| Connection Args | `check_same_thread=False`      | Multi-threaded compatibility |
+| Pool Class      | `StaticPool`                   | Connection reuse             |
 
 #### 6.6.3.3 External Service Mocking
 
 #### Yahoo Finance Mocking
 
-| Strategy | Implementation | Purpose |
-|----------|---------------|---------|
-| Environment Flag | `USE_REAL_DATA_FETCHER=false` | Disable real API calls |
-| Sample Data Fallback | `sample_database.py` | Predictable test data |
-| Cache Mocking | Mock JSON cache files | Cache behavior testing |
+| Strategy             | Implementation                | Purpose                |
+| -------------------- | ----------------------------- | ---------------------- |
+| Environment Flag     | `USE_REAL_DATA_FETCHER=false` | Disable real API calls |
+| Sample Data Fallback | `sample_database.py`          | Predictable test data  |
+| Cache Mocking        | Mock JSON cache files         | Cache behavior testing |
 
 #### 6.6.3.4 Dependency and Workflow Testing
 
 **Location**: `tests/integration/`
 
-| Test File | Purpose |
-|-----------|---------|
-| `test_requirements.py` | Validate production dependencies |
-| `test_requirements_dev.py` | Validate development dependencies |
-| `test_github_workflows.py` | CI/CD workflow validation |
-| `test_debricked_workflow.py` | Security workflow validation |
+| Test File                    | Purpose                           |
+| ---------------------------- | --------------------------------- |
+| `test_requirements.py`       | Validate production dependencies  |
+| `test_requirements_dev.py`   | Validate development dependencies |
+| `test_github_workflows.py`   | CI/CD workflow validation         |
+| `test_debricked_workflow.py` | Security workflow validation      |
 
 ---
 
@@ -8848,31 +8863,31 @@ The system implements component-level E2E simulation through Jest and React Test
 
 #### Frontend E2E Patterns
 
-| Pattern | Implementation | Coverage |
-|---------|---------------|----------|
-| Page Rendering | `page.test.tsx` | Full page lifecycle |
-| Component Interaction | `fireEvent`, `userEvent` | User actions |
-| Loading States | `waitFor` assertions | Async behavior |
-| Error Handling | Mock error responses | Recovery flows |
-| Tab Navigation | State management tests | Navigation behavior |
+| Pattern               | Implementation           | Coverage            |
+| --------------------- | ------------------------ | ------------------- |
+| Page Rendering        | `page.test.tsx`          | Full page lifecycle |
+| Component Interaction | `fireEvent`, `userEvent` | User actions        |
+| Loading States        | `waitFor` assertions     | Async behavior      |
+| Error Handling        | Mock error responses     | Recovery flows      |
+| Tab Navigation        | State management tests   | Navigation behavior |
 
 #### Component Test Scenarios
 
-| Component | Test Scenarios |
-|-----------|----------------|
-| `AssetList` | Render assets, filter by class, search functionality |
-| `MetricsDashboard` | Display metrics, handle loading, show errors |
-| `NetworkVisualization` | 3D graph rendering, node interaction |
-| `page.tsx` | Tab switching, data loading, retry mechanisms |
+| Component              | Test Scenarios                                       |
+| ---------------------- | ---------------------------------------------------- |
+| `AssetList`            | Render assets, filter by class, search functionality |
+| `MetricsDashboard`     | Display metrics, handle loading, show errors         |
+| `NetworkVisualization` | 3D graph rendering, node interaction                 |
+| `page.tsx`             | Tab switching, data loading, retry mechanisms        |
 
 #### 6.6.4.2 Planned E2E Enhancements
 
-| Enhancement | Tool | Priority |
-|-------------|------|----------|
-| Browser E2E Tests | Playwright/Cypress | Medium |
-| Visual Regression | Percy/Chromatic | Low |
-| Load Testing | k6/Artillery | Medium |
-| Accessibility Testing | axe-core | Medium |
+| Enhancement           | Tool               | Priority |
+| --------------------- | ------------------ | -------- |
+| Browser E2E Tests     | Playwright/Cypress | Medium   |
+| Visual Regression     | Percy/Chromatic    | Low      |
+| Load Testing          | k6/Artillery       | Medium   |
+| Accessibility Testing | axe-core           | Medium   |
 
 #### 6.6.4.3 Test Data Management
 
@@ -8880,12 +8895,12 @@ The system implements component-level E2E simulation through Jest and React Test
 
 **Location**: `tests/__init__.py`
 
-| Environment Variable | Test Value | Purpose |
-|---------------------|------------|---------|
-| `SECRET_KEY` | `test-secret-key` | JWT signing |
-| `DATABASE_URL` | `sqlite:///{test_auth.db}` | Auth database |
-| `ADMIN_USERNAME` | `admin` | Test admin user |
-| `ADMIN_PASSWORD` | `changeme` | Test credentials |
+| Environment Variable | Test Value                 | Purpose          |
+| -------------------- | -------------------------- | ---------------- |
+| `SECRET_KEY`         | `test-secret-key`          | JWT signing      |
+| `DATABASE_URL`       | `sqlite:///{test_auth.db}` | Auth database    |
+| `ADMIN_USERNAME`     | `admin`                    | Test admin user  |
+| `ADMIN_PASSWORD`     | `changeme`                 | Test credentials |
 
 #### Test Data Lifecycle
 
@@ -8967,68 +8982,68 @@ flowchart TB
 
 #### CI Job Configuration
 
-| Job | Tools | Failure Behavior |
-|-----|-------|------------------|
-| test | pytest, flake8, black, isort, pylint | fail-fast: false |
-| security | safety, bandit | continue-on-error: true |
+| Job      | Tools                                | Failure Behavior        |
+| -------- | ------------------------------------ | ----------------------- |
+| test     | pytest, flake8, black, isort, pylint | fail-fast: false        |
+| security | safety, bandit                       | continue-on-error: true |
 
 #### CircleCI Secondary CI
 
 **Location**: `.circleci/config.yml`
 
-| Job | Parallelism | Output |
-|-----|-------------|--------|
-| python-lint | 1 | flake8 results |
-| python-test | 4 | pytest with coverage |
-| python-security | 1 | safety + bandit |
-| frontend-lint | 1 | npm run lint |
-| frontend-build | 1 | npm run build |
-| docker-build | 1 | Smoke test |
+| Job             | Parallelism | Output               |
+| --------------- | ----------- | -------------------- |
+| python-lint     | 1           | flake8 results       |
+| python-test     | 4           | pytest with coverage |
+| python-security | 1           | safety + bandit      |
+| frontend-lint   | 1           | npm run lint         |
+| frontend-build  | 1           | npm run build        |
+| docker-build    | 1           | Smoke test           |
 
 #### 6.6.5.2 Frontend CI Pipeline
 
 **Location**: `.github/workflows/node.js.yml`
 
-| Configuration | Value |
-|---------------|-------|
-| Node Matrix | 18.x, 20.x, 22.x |
-| Trigger Paths | `frontend/**` |
-| Jobs | `npm ci`, `npm run build`, `npm test` |
+| Configuration | Value                                 |
+| ------------- | ------------------------------------- |
+| Node Matrix   | 18.x, 20.x, 22.x                      |
+| Trigger Paths | `frontend/**`                         |
+| Jobs          | `npm ci`, `npm run build`, `npm test` |
 
 #### 6.6.5.3 Automated Test Triggers
 
-| Trigger | Event | Tests Executed |
-|---------|-------|----------------|
-| Push | `main` branch | Full suite |
-| Pull Request | To `main` | Full suite |
-| Schedule | Daily 02:00 UTC | Security scans |
-| Manual | `workflow_dispatch` | Selected workflows |
+| Trigger      | Event               | Tests Executed     |
+| ------------ | ------------------- | ------------------ |
+| Push         | `main` branch       | Full suite         |
+| Pull Request | To `main`           | Full suite         |
+| Schedule     | Daily 02:00 UTC     | Security scans     |
+| Manual       | `workflow_dispatch` | Selected workflows |
 
 #### 6.6.5.4 Parallel Test Execution
 
-| Platform | Parallelism | Strategy |
-|----------|-------------|----------|
-| GitHub Actions | Python version matrix | 3.10, 3.11, 3.12 |
-| CircleCI | `parallelism: 4` | Test file distribution |
-| Jest | Default parallel | Worker pool |
+| Platform       | Parallelism           | Strategy               |
+| -------------- | --------------------- | ---------------------- |
+| GitHub Actions | Python version matrix | 3.10, 3.11, 3.12       |
+| CircleCI       | `parallelism: 4`      | Test file distribution |
+| Jest           | Default parallel      | Worker pool            |
 
 #### 6.6.5.5 Test Reporting
 
-| Report Type | Format | Destination |
-|-------------|--------|-------------|
-| Coverage | XML | Codecov upload |
-| Test Results | JUnit XML | CircleCI artifacts |
-| Coverage HTML | HTML | GitHub artifacts |
-| Security | SARIF | GitHub Security tab |
+| Report Type   | Format    | Destination         |
+| ------------- | --------- | ------------------- |
+| Coverage      | XML       | Codecov upload      |
+| Test Results  | JUnit XML | CircleCI artifacts  |
+| Coverage HTML | HTML      | GitHub artifacts    |
+| Security      | SARIF     | GitHub Security tab |
 
 #### 6.6.5.6 Failed Test Handling
 
-| Strategy | Implementation | Purpose |
-|----------|---------------|---------|
-| Matrix Continue | `fail-fast: false` | Complete all versions |
-| Security Continue | `continue-on-error: true` | Non-blocking scans |
-| Artifact Preservation | Always upload | Debug information |
-| Retry Mechanism | Manual re-run | Flaky test recovery |
+| Strategy              | Implementation            | Purpose               |
+| --------------------- | ------------------------- | --------------------- |
+| Matrix Continue       | `fail-fast: false`        | Complete all versions |
+| Security Continue     | `continue-on-error: true` | Non-blocking scans    |
+| Artifact Preservation | Always upload             | Debug information     |
+| Retry Mechanism       | Manual re-run             | Flaky test recovery   |
 
 ---
 
@@ -9036,36 +9051,36 @@ flowchart TB
 
 #### 6.6.6.1 Static Application Security Testing (SAST)
 
-| Tool | Workflow | Purpose |
-|------|----------|---------|
-| Bandit | `.github/workflows/bandit.yml` | Python security linting |
-| CodeQL | `.github/workflows/codeql.yml` | Multi-language SAST |
-| Semgrep | `.github/workflows/semgrep.yml` | Pattern-based scanning |
-| DevSkim | `.github/workflows/devskim.yml` | Security linting |
+| Tool    | Workflow                        | Purpose                 |
+| ------- | ------------------------------- | ----------------------- |
+| Bandit  | `.github/workflows/bandit.yml`  | Python security linting |
+| CodeQL  | `.github/workflows/codeql.yml`  | Multi-language SAST     |
+| Semgrep | `.github/workflows/semgrep.yml` | Pattern-based scanning  |
+| DevSkim | `.github/workflows/devskim.yml` | Security linting        |
 
 #### Bandit Configuration
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| Skip Codes | `B101` | Allow asserts in tests |
-| Output | SARIF | GitHub Security integration |
-| Targets | `src/`, `api/` | Application code only |
+| Setting    | Value          | Purpose                     |
+| ---------- | -------------- | --------------------------- |
+| Skip Codes | `B101`         | Allow asserts in tests      |
+| Output     | SARIF          | GitHub Security integration |
+| Targets    | `src/`, `api/` | Application code only       |
 
 #### 6.6.6.2 Software Composition Analysis (SCA)
 
-| Tool | Workflow | Scope |
-|------|----------|-------|
-| Safety | CircleCI | Python dependencies |
-| Snyk Open Source | `.github/workflows/snyk-security.yml` | All dependencies |
-| Debricked | `.github/workflows/debricked_workflow.yml` | Dependency analysis |
-| OSV Scanner | `.github/workflows/osv-scanner.yml` | Vulnerability database |
+| Tool             | Workflow                                   | Scope                  |
+| ---------------- | ------------------------------------------ | ---------------------- |
+| Safety           | CircleCI                                   | Python dependencies    |
+| Snyk Open Source | `.github/workflows/snyk-security.yml`      | All dependencies       |
+| Debricked        | `.github/workflows/debricked_workflow.yml` | Dependency analysis    |
+| OSV Scanner      | `.github/workflows/osv-scanner.yml`        | Vulnerability database |
 
 #### 6.6.6.3 Container Security
 
-| Tool | Workflow | Purpose |
-|------|----------|---------|
-| Trivy | `.github/workflows/trivy.yml` | Container scanning |
-| Hadolint | `.github/workflows/hadolint.yml` | Dockerfile linting |
+| Tool           | Workflow                               | Purpose               |
+| -------------- | -------------------------------------- | --------------------- |
+| Trivy          | `.github/workflows/trivy.yml`          | Container scanning    |
+| Hadolint       | `.github/workflows/hadolint.yml`       | Dockerfile linting    |
 | Snyk Container | `.github/workflows/snyk-container.yml` | Image vulnerabilities |
 
 #### 6.6.6.4 Security Scanning Pipeline
@@ -9122,12 +9137,12 @@ flowchart TB
 
 #### 6.6.6.5 Authentication Testing
 
-| Test Category | Validation | Location |
-|---------------|------------|----------|
-| JWT Token Flow | Token generation, expiration | `tests/integration/test_api_integration.py` |
-| Password Hashing | pbkdf2_sha256 verification | `tests/unit/test_api_main.py` |
-| Rate Limiting | 5/min on `/token` | Integration tests |
-| CORS Validation | Origin allowlist | Unit tests |
+| Test Category    | Validation                   | Location                                    |
+| ---------------- | ---------------------------- | ------------------------------------------- |
+| JWT Token Flow   | Token generation, expiration | `tests/integration/test_api_integration.py` |
+| Password Hashing | pbkdf2_sha256 verification   | `tests/unit/test_api_main.py`               |
+| Rate Limiting    | 5/min on `/token`            | Integration tests                           |
+| CORS Validation  | Origin allowlist             | Unit tests                                  |
 
 ---
 
@@ -9135,34 +9150,34 @@ flowchart TB
 
 #### 6.6.7.1 Code Coverage Targets
 
-| Component | Current | Target | Critical Paths |
-|-----------|---------|--------|----------------|
-| Backend API | >90% | >80% | 100% |
-| Frontend API Client | >95% | >80% | 100% |
-| React Components | >80% | >80% | 100% |
-| Domain Models | >85% | >80% | 100% |
-| Visualization | >75% | >70% | 100% |
+| Component           | Current | Target | Critical Paths |
+| ------------------- | ------- | ------ | -------------- |
+| Backend API         | >90%    | >80%   | 100%           |
+| Frontend API Client | >95%    | >80%   | 100%           |
+| React Components    | >80%    | >80%   | 100%           |
+| Domain Models       | >85%    | >80%   | 100%           |
+| Visualization       | >75%    | >70%   | 100%           |
 
 #### 6.6.7.2 Static Analysis Thresholds
 
-| Tool | Metric | Threshold | Enforcement |
-|------|--------|-----------|-------------|
-| pylint | Score | >= 7.0 | CI blocking |
-| black | Formatting | 100% | CI blocking |
-| flake8 | Errors | 0 critical | CI blocking |
-| isort | Import order | 100% | CI blocking |
-| ESLint | Errors | 0 | CI blocking |
+| Tool   | Metric       | Threshold  | Enforcement |
+| ------ | ------------ | ---------- | ----------- |
+| pylint | Score        | >= 7.0     | CI blocking |
+| black  | Formatting   | 100%       | CI blocking |
+| flake8 | Errors       | 0 critical | CI blocking |
+| isort  | Import order | 100%       | CI blocking |
+| ESLint | Errors       | 0          | CI blocking |
 
 #### 6.6.7.3 Performance Test Thresholds
 
-| Operation | Target SLA | Measurement |
-|-----------|-----------|-------------|
-| API Response (p95) | < 500ms | Request to response |
-| Visualization Rendering | < 2 seconds | Data load to interactive |
-| Token Generation | < 100ms | Credential to token |
-| Graph Initialization | < 3 seconds | Application startup |
-| Relationship Discovery | < 500ms | For 100 assets |
-| Initial Page Load | < 3 seconds | Navigation to interactive |
+| Operation               | Target SLA  | Measurement               |
+| ----------------------- | ----------- | ------------------------- |
+| API Response (p95)      | < 500ms     | Request to response       |
+| Visualization Rendering | < 2 seconds | Data load to interactive  |
+| Token Generation        | < 100ms     | Credential to token       |
+| Graph Initialization    | < 3 seconds | Application startup       |
+| Relationship Discovery  | < 500ms     | For 100 assets            |
+| Initial Page Load       | < 3 seconds | Navigation to interactive |
 
 #### 6.6.7.4 Quality Gates
 
@@ -9190,12 +9205,12 @@ flowchart TB
 
 #### 6.6.7.5 Test Success Rate Requirements
 
-| Environment | Required Pass Rate | Action on Failure |
-|-------------|-------------------|-------------------|
-| Unit Tests | 100% | Block merge |
-| Integration Tests | 100% | Block merge |
-| Security Scans | No critical | Block merge |
-| Linting | 100% | Block merge |
+| Environment       | Required Pass Rate | Action on Failure |
+| ----------------- | ------------------ | ----------------- |
+| Unit Tests        | 100%               | Block merge       |
+| Integration Tests | 100%               | Block merge       |
+| Security Scans    | No critical        | Block merge       |
+| Linting           | 100%               | Block merge       |
 
 ---
 
@@ -9231,32 +9246,32 @@ flowchart TB
 
 #### 6.6.8.2 Backend Test Environment
 
-| Component | Configuration |
-|-----------|---------------|
-| Python Version | 3.10, 3.11, 3.12 |
-| Database | SQLite in-memory |
-| Graph State | Reset per test |
-| External APIs | Mocked/Sample data |
+| Component      | Configuration      |
+| -------------- | ------------------ |
+| Python Version | 3.10, 3.11, 3.12   |
+| Database       | SQLite in-memory   |
+| Graph State    | Reset per test     |
+| External APIs  | Mocked/Sample data |
 
 #### 6.6.8.3 Frontend Test Environment
 
-| Component | Configuration |
-|-----------|---------------|
-| Node Version | 18.x, 20.x, 22.x |
-| Test Environment | jest-environment-jsdom |
-| API Mocking | jest.mock('axios') |
-| Browser APIs | window.matchMedia, IntersectionObserver mocked |
+| Component        | Configuration                                  |
+| ---------------- | ---------------------------------------------- |
+| Node Version     | 18.x, 20.x, 22.x                               |
+| Test Environment | jest-environment-jsdom                         |
+| API Mocking      | jest.mock('axios')                             |
+| Browser APIs     | window.matchMedia, IntersectionObserver mocked |
 
 #### 6.6.8.4 Docker Test Environment
 
 **Location**: `.github/workflows/docker.yml`
 
-| Test | Command | Validation |
-|------|---------|------------|
-| Build | `docker build` | Image creation |
-| Smoke Test | HTTP probe | 10s health check |
-| Config Validation | `docker-compose config` | YAML syntax |
-| Security Scan | Trivy | Vulnerability check |
+| Test              | Command                 | Validation          |
+| ----------------- | ----------------------- | ------------------- |
+| Build             | `docker build`          | Image creation      |
+| Smoke Test        | HTTP probe              | 10s health check    |
+| Config Validation | `docker-compose config` | YAML syntax         |
+| Security Scan     | Trivy                   | Vulnerability check |
 
 ---
 
@@ -9309,22 +9324,22 @@ flowchart TB
 
 #### Backend Commands
 
-| Command | Description |
-|---------|-------------|
-| `pytest` | Run all tests |
-| `pytest -m unit` | Run unit tests only |
-| `pytest -m integration` | Run integration tests only |
-| `pytest --cov=src --cov-report=html` | Coverage with HTML report |
-| `make test` | Makefile shortcut |
+| Command                              | Description                |
+| ------------------------------------ | -------------------------- |
+| `pytest`                             | Run all tests              |
+| `pytest -m unit`                     | Run unit tests only        |
+| `pytest -m integration`              | Run integration tests only |
+| `pytest --cov=src --cov-report=html` | Coverage with HTML report  |
+| `make test`                          | Makefile shortcut          |
 
 #### Frontend Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm test` | Run all tests |
-| `npm test -- --coverage` | Tests with coverage |
-| `npm test -- --watch` | Watch mode |
-| `npm run test:ci` | CI-optimized execution |
+| Command                  | Description            |
+| ------------------------ | ---------------------- |
+| `npm test`               | Run all tests          |
+| `npm test -- --coverage` | Tests with coverage    |
+| `npm test -- --watch`    | Watch mode             |
+| `npm run test:ci`        | CI-optimized execution |
 
 ---
 
@@ -9332,63 +9347,63 @@ flowchart TB
 
 #### 6.6.10.1 Source Files Examined
 
-| Path | Relevance |
-|------|-----------|
-| `pyproject.toml` | Pytest configuration, coverage settings, tool configs |
-| `conftest.py` (root) | Coverage plugin handling |
-| `tests/conftest.py` | Shared backend fixtures |
-| `tests/__init__.py` | Test environment setup |
-| `tests/unit/test_api.py` | API unit tests |
-| `tests/unit/test_api_main.py` | Comprehensive API tests |
-| `tests/unit/test_financial_models.py` | Domain model validation |
-| `tests/unit/test_repository.py` | Repository tests |
-| `tests/unit/test_graph_visuals.py` | Visualization tests |
-| `tests/integration/test_api_integration.py` | Integration tests |
-| `tests/integration/test_repository.py` | Database integration |
-| `tests/integration/conftest.py` | Integration fixtures |
-| `frontend/jest.config.js` | Jest configuration |
-| `frontend/jest.setup.js` | Jest environment setup |
-| `frontend/package.json` | Frontend test scripts |
-| `frontend/__tests__/test-utils.ts` | Mock data utilities |
-| `frontend/__tests__/lib/api.test.ts` | API client tests |
-| `.github/workflows/ci.yml` | Primary CI workflow |
-| `.github/workflows/codecov.yaml` | Coverage reporting |
-| `.github/workflows/node.js.yml` | Frontend CI |
-| `.github/workflows/docker.yml` | Docker testing |
-| `.github/workflows/bandit.yml` | Security scanning |
-| `.github/workflows/snyk-security.yml` | Snyk scanning |
-| `.circleci/config.yml` | Secondary CI |
+| Path                                        | Relevance                                             |
+| ------------------------------------------- | ----------------------------------------------------- |
+| `pyproject.toml`                            | Pytest configuration, coverage settings, tool configs |
+| `conftest.py` (root)                        | Coverage plugin handling                              |
+| `tests/conftest.py`                         | Shared backend fixtures                               |
+| `tests/__init__.py`                         | Test environment setup                                |
+| `tests/unit/test_api.py`                    | API unit tests                                        |
+| `tests/unit/test_api_main.py`               | Comprehensive API tests                               |
+| `tests/unit/test_financial_models.py`       | Domain model validation                               |
+| `tests/unit/test_repository.py`             | Repository tests                                      |
+| `tests/unit/test_graph_visuals.py`          | Visualization tests                                   |
+| `tests/integration/test_api_integration.py` | Integration tests                                     |
+| `tests/integration/test_repository.py`      | Database integration                                  |
+| `tests/integration/conftest.py`             | Integration fixtures                                  |
+| `frontend/jest.config.js`                   | Jest configuration                                    |
+| `frontend/jest.setup.js`                    | Jest environment setup                                |
+| `frontend/package.json`                     | Frontend test scripts                                 |
+| `frontend/__tests__/test-utils.ts`          | Mock data utilities                                   |
+| `frontend/__tests__/lib/api.test.ts`        | API client tests                                      |
+| `.github/workflows/ci.yml`                  | Primary CI workflow                                   |
+| `.github/workflows/codecov.yaml`            | Coverage reporting                                    |
+| `.github/workflows/node.js.yml`             | Frontend CI                                           |
+| `.github/workflows/docker.yml`              | Docker testing                                        |
+| `.github/workflows/bandit.yml`              | Security scanning                                     |
+| `.github/workflows/snyk-security.yml`       | Snyk scanning                                         |
+| `.circleci/config.yml`                      | Secondary CI                                          |
 
 #### 6.6.10.2 Testing Documentation Files
 
-| Path | Relevance |
-|------|-----------|
-| `TESTING.md` | Testing guide overview |
+| Path               | Relevance                           |
+| ------------------ | ----------------------------------- |
+| `TESTING.md`       | Testing guide overview              |
 | `TESTING_GUIDE.md` | Comprehensive testing documentation |
-| `TEST_SUMMARY.md` | Test generation summary |
-| `tests/README.md` | Test suite documentation |
+| `TEST_SUMMARY.md`  | Test generation summary             |
+| `tests/README.md`  | Test suite documentation            |
 
 #### 6.6.10.3 Technical Specification Cross-References
 
-| Section | Relevance |
-|---------|-----------|
-| 3.1 Technology Stack Overview | Framework versions, tool choices |
-| 5.4 CROSS-CUTTING CONCERNS | Performance SLAs, error handling |
-| 5.5 DEPLOYMENT ARCHITECTURE | Test environment targets |
-| 6.1 Core Services Architecture | Monolithic testing implications |
-| 6.3 Integration Architecture | API testing patterns |
-| 6.4 Security Architecture | Security testing requirements |
-| 6.5 Monitoring and Observability | CI/CD quality gates |
+| Section                          | Relevance                        |
+| -------------------------------- | -------------------------------- |
+| 3.1 Technology Stack Overview    | Framework versions, tool choices |
+| 5.4 CROSS-CUTTING CONCERNS       | Performance SLAs, error handling |
+| 5.5 DEPLOYMENT ARCHITECTURE      | Test environment targets         |
+| 6.1 Core Services Architecture   | Monolithic testing implications  |
+| 6.3 Integration Architecture     | API testing patterns             |
+| 6.4 Security Architecture        | Security testing requirements    |
+| 6.5 Monitoring and Observability | CI/CD quality gates              |
 
 #### 6.6.10.4 External Resources
 
-| Resource | Context |
-|----------|---------|
-| FastAPI Testing Documentation | Official TestClient patterns |
-| pytest Documentation | Test framework reference |
-| Jest Documentation | Frontend testing reference |
-| React Testing Library | Component testing best practices |
-| Codecov | Coverage reporting integration |
+| Resource                      | Context                          |
+| ----------------------------- | -------------------------------- |
+| FastAPI Testing Documentation | Official TestClient patterns     |
+| pytest Documentation          | Test framework reference         |
+| Jest Documentation            | Frontend testing reference       |
+| React Testing Library         | Component testing best practices |
+| Codecov                       | Coverage reporting integration   |
 
 # 7. User Interface Design
 
@@ -9402,14 +9417,14 @@ This architectural decision enables the system to serve multiple user personas�
 
 ### 7.1.2 UI Architecture Overview
 
-| Aspect | Gradio UI | Next.js Frontend |
-|--------|-----------|------------------|
-| **Primary Use Case** | Rapid prototyping, Python development | Production deployment, enterprise users |
-| **Technology Stack** | Python/Gradio/Plotly (server-side) | React/TypeScript/Tailwind/Plotly.js (client-side) |
-| **Integration Pattern** | Direct Python function calls | REST API via FastAPI |
-| **Default Port** | 7860 | 3000 (frontend) + 8000 (API) |
-| **Deployment Target** | Local/Docker | Vercel Edge + FastAPI |
-| **Responsive Design** | Limited | Full mobile support |
+| Aspect                  | Gradio UI                             | Next.js Frontend                                  |
+| ----------------------- | ------------------------------------- | ------------------------------------------------- |
+| **Primary Use Case**    | Rapid prototyping, Python development | Production deployment, enterprise users           |
+| **Technology Stack**    | Python/Gradio/Plotly (server-side)    | React/TypeScript/Tailwind/Plotly.js (client-side) |
+| **Integration Pattern** | Direct Python function calls          | REST API via FastAPI                              |
+| **Default Port**        | 7860                                  | 3000 (frontend) + 8000 (API)                      |
+| **Deployment Target**   | Local/Docker                          | Vercel Edge + FastAPI                             |
+| **Responsive Design**   | Limited                               | Full mobile support                               |
 
 ```mermaid
 flowchart TB
@@ -9452,42 +9467,42 @@ flowchart TB
 
 The modern frontend is built on an enterprise-grade React framework stack optimized for performance, type safety, and developer experience.
 
-| Technology | Version | Purpose | Configuration Location |
-|------------|---------|---------|----------------------|
-| **Next.js** | 14.2.35 | React meta-framework with App Router | `frontend/package.json` |
-| **React** | 18.2.0 | UI component library | `frontend/package.json` |
-| **TypeScript** | ^5.3.0 | Static type checking | `frontend/tsconfig.json` |
-| **Tailwind CSS** | 3.3.0 | Utility-first CSS framework | `frontend/tailwind.config.js` |
-| **Plotly.js** | ^2.27.0 | 3D visualization rendering | `frontend/package.json` |
-| **react-plotly.js** | ^2.6.0 | React Plotly wrapper | `frontend/package.json` |
-| **Axios** | Latest | HTTP client for API communication | `frontend/package.json` |
+| Technology          | Version | Purpose                              | Configuration Location        |
+| ------------------- | ------- | ------------------------------------ | ----------------------------- |
+| **Next.js**         | 14.2.35 | React meta-framework with App Router | `frontend/package.json`       |
+| **React**           | 18.2.0  | UI component library                 | `frontend/package.json`       |
+| **TypeScript**      | ^5.3.0  | Static type checking                 | `frontend/tsconfig.json`      |
+| **Tailwind CSS**    | 3.3.0   | Utility-first CSS framework          | `frontend/tailwind.config.js` |
+| **Plotly.js**       | ^2.27.0 | 3D visualization rendering           | `frontend/package.json`       |
+| **react-plotly.js** | ^2.6.0  | React Plotly wrapper                 | `frontend/package.json`       |
+| **Axios**           | Latest  | HTTP client for API communication    | `frontend/package.json`       |
 
 #### Framework Selection Rationale
 
-| Framework | Selection Criteria | Benefit |
-|-----------|-------------------|---------|
-| Next.js 14 | App Router, SSR capabilities, edge deployment | Modern React patterns with optimized bundling |
-| TypeScript | Type safety across components and API contracts | Catch errors at compile time, improved IDE support |
-| Tailwind CSS | Rapid UI development, consistent design system | Utility classes reduce CSS overhead |
-| Plotly.js | Complex 3D visualization support | Interactive, zoom/rotate/hover capabilities |
+| Framework    | Selection Criteria                              | Benefit                                            |
+| ------------ | ----------------------------------------------- | -------------------------------------------------- |
+| Next.js 14   | App Router, SSR capabilities, edge deployment   | Modern React patterns with optimized bundling      |
+| TypeScript   | Type safety across components and API contracts | Catch errors at compile time, improved IDE support |
+| Tailwind CSS | Rapid UI development, consistent design system  | Utility classes reduce CSS overhead                |
+| Plotly.js    | Complex 3D visualization support                | Interactive, zoom/rotate/hover capabilities        |
 
 ### 7.2.2 Gradio UI Technology Stack
 
 The legacy UI provides a Python-native interface optimized for data science workflows and rapid prototyping.
 
-| Technology | Version | Purpose | Configuration Location |
-|------------|---------|---------|----------------------|
-| **Gradio** | ≥4.0.0,<6.0.0 | Python-native web interface | `requirements.txt` |
-| **Plotly** | ≥6.0.0 | Server-side visualization | `requirements.txt` |
+| Technology | Version       | Purpose                     | Configuration Location |
+| ---------- | ------------- | --------------------------- | ---------------------- |
+| **Gradio** | ≥4.0.0,<6.0.0 | Python-native web interface | `requirements.txt`     |
+| **Plotly** | ≥6.0.0        | Server-side visualization   | `requirements.txt`     |
 
 #### Gradio Selection Rationale
 
-| Capability | Value Proposition |
-|------------|-------------------|
-| Zero Frontend Setup | Python developers can create UIs without JavaScript knowledge |
-| Rapid Prototyping | Interactive UIs from Python functions in minutes |
-| Direct Python Integration | No API serialization overhead for development |
-| Component Library | Pre-built UI widgets for common visualization patterns |
+| Capability                | Value Proposition                                             |
+| ------------------------- | ------------------------------------------------------------- |
+| Zero Frontend Setup       | Python developers can create UIs without JavaScript knowledge |
+| Rapid Prototyping         | Interactive UIs from Python functions in minutes              |
+| Direct Python Integration | No API serialization overhead for development                 |
+| Component Library         | Pre-built UI widgets for common visualization patterns        |
 
 ### 7.2.3 Shared Visualization Foundation
 
@@ -9523,11 +9538,11 @@ flowchart LR
 
 The Next.js frontend implements three primary views accessible via tab navigation:
 
-| Tab | Component | Location | Description |
-|-----|-----------|----------|-------------|
-| **3D Visualization** | `NetworkVisualization` | `frontend/app/components/NetworkVisualization.tsx` | Interactive 3D graph of asset relationships |
-| **Metrics & Analytics** | `MetricsDashboard` | `frontend/app/components/MetricsDashboard.tsx` | Grid display of network statistics |
-| **Asset Explorer** | `AssetList` | `frontend/app/components/AssetList.tsx` | Filterable, paginated asset table |
+| Tab                     | Component              | Location                                           | Description                                 |
+| ----------------------- | ---------------------- | -------------------------------------------------- | ------------------------------------------- |
+| **3D Visualization**    | `NetworkVisualization` | `frontend/app/components/NetworkVisualization.tsx` | Interactive 3D graph of asset relationships |
+| **Metrics & Analytics** | `MetricsDashboard`     | `frontend/app/components/MetricsDashboard.tsx`     | Grid display of network statistics          |
+| **Asset Explorer**      | `AssetList`            | `frontend/app/components/AssetList.tsx`            | Filterable, paginated asset table           |
 
 ## Next.js Screen Structure
 
@@ -9567,14 +9582,14 @@ flowchart TB
 
 The Gradio interface implements six tabbed sections providing comprehensive access to all system capabilities:
 
-| Tab | Description | Primary Components |
-|-----|-------------|-------------------|
+| Tab                                  | Description                              | Primary Components              |
+| ------------------------------------ | ---------------------------------------- | ------------------------------- |
 | **🌐 Network Visualization (2D/3D)** | Interactive network graph with filtering | Plot, Radio buttons, Checkboxes |
-| **Metrics & Analytics** | Distribution charts and statistics | Multiple Plot components |
-| **Schema & Rules** | Auto-generated data model documentation | Markdown display |
-| **Asset Explorer** | Asset detail viewer | Dropdown, JSON displays |
-| **Documentation** | Static help documentation | Markdown display |
-| **📊 Formulaic Analysis** | Mathematical formula dashboard | Plots, Dropdown, Textbox |
+| **Metrics & Analytics**              | Distribution charts and statistics       | Multiple Plot components        |
+| **Schema & Rules**                   | Auto-generated data model documentation  | Markdown display                |
+| **Asset Explorer**                   | Asset detail viewer                      | Dropdown, JSON displays         |
+| **Documentation**                    | Static help documentation                | Markdown display                |
+| **📊 Formulaic Analysis**            | Mathematical formula dashboard           | Plots, Dropdown, Textbox        |
 
 #### Gradio Tab Architecture
 
@@ -9615,22 +9630,22 @@ flowchart TB
 
 ### 7.3.3 Feature Parity Matrix
 
-| Feature | Gradio UI | Next.js UI | Notes |
-|---------|:---------:|:----------:|-------|
-| 3D Network Visualization | ✅ | ✅ | Both use Plotly |
-| 2D Network Visualization | ✅ | ❌ | Gradio-only |
-| Metrics Dashboard | ✅ | ✅ | Different layouts |
-| Asset Explorer | ✅ | ✅ | Next.js has better filtering |
-| Asset Class Filtering | ✅ | ✅ | URL-synced in Next.js |
-| Sector Filtering | ✅ | ✅ | URL-synced in Next.js |
-| Pagination | ❌ | ✅ | Next.js only |
-| Relationship Filtering | ✅ | ❌ | 8 checkboxes in Gradio |
-| Schema Report | ✅ | ❌ | Gradio-only |
-| Documentation Tab | ✅ | ❌ | Gradio-only |
-| Formulaic Analysis | ✅ | ❌ | Advanced analytics |
-| Mobile Responsive | ⚠️ Limited | ✅ | Full Tailwind support |
-| Custom Branding | ⚠️ Limited | ✅ | Full CSS control |
-| REST API Access | ❌ | ✅ | Frontend API client |
+| Feature                  | Gradio UI  | Next.js UI | Notes                        |
+| ------------------------ | :--------: | :--------: | ---------------------------- |
+| 3D Network Visualization |     ✅     |     ✅     | Both use Plotly              |
+| 2D Network Visualization |     ✅     |     ❌     | Gradio-only                  |
+| Metrics Dashboard        |     ✅     |     ✅     | Different layouts            |
+| Asset Explorer           |     ✅     |     ✅     | Next.js has better filtering |
+| Asset Class Filtering    |     ✅     |     ✅     | URL-synced in Next.js        |
+| Sector Filtering         |     ✅     |     ✅     | URL-synced in Next.js        |
+| Pagination               |     ❌     |     ✅     | Next.js only                 |
+| Relationship Filtering   |     ✅     |     ❌     | 8 checkboxes in Gradio       |
+| Schema Report            |     ✅     |     ❌     | Gradio-only                  |
+| Documentation Tab        |     ✅     |     ❌     | Gradio-only                  |
+| Formulaic Analysis       |     ✅     |     ❌     | Advanced analytics           |
+| Mobile Responsive        | ⚠️ Limited |     ✅     | Full Tailwind support        |
+| Custom Branding          | ⚠️ Limited |     ✅     | Full CSS control             |
+| REST API Access          |     ❌     |     ✅     | Frontend API client          |
 
 ---
 
@@ -9680,36 +9695,36 @@ sequenceDiagram
 
 **Location**: `frontend/app/lib/api.ts`
 
-| Configuration | Value | Purpose |
-|---------------|-------|---------|
-| Base URL | `http://localhost:8000` | FastAPI server address |
-| Timeout | Default (Axios) | Request timeout handling |
-| Error Handling | Try/catch with console.error | Development debugging |
+| Configuration  | Value                        | Purpose                  |
+| -------------- | ---------------------------- | ------------------------ |
+| Base URL       | `http://localhost:8000`      | FastAPI server address   |
+| Timeout        | Default (Axios)              | Request timeout handling |
+| Error Handling | Try/catch with console.error | Development debugging    |
 
 #### REST Endpoint Consumption
 
-| Endpoint | Method | Frontend Usage | Component |
-|----------|--------|----------------|-----------|
-| `/api/health` | GET | Health check | Page load validation |
-| `/api/assets` | GET | Asset list with filters | `AssetList.tsx` |
-| `/api/assets/{id}` | GET | Single asset details | Asset detail view |
-| `/api/assets/{id}/relationships` | GET | Asset relationships | Relationship display |
-| `/api/relationships` | GET | All relationships | Visualization edges |
-| `/api/metrics` | GET | Network statistics | `MetricsDashboard.tsx` |
-| `/api/visualization` | GET | 3D graph data | `NetworkVisualization.tsx` |
-| `/api/asset-classes` | GET | Filter dropdown options | `AssetList.tsx` |
-| `/api/sectors` | GET | Filter dropdown options | `AssetList.tsx` |
-| `/token` | POST | JWT authentication | Auth flows |
-| `/api/users/me` | GET | Current user info | User profile |
+| Endpoint                         | Method | Frontend Usage          | Component                  |
+| -------------------------------- | ------ | ----------------------- | -------------------------- |
+| `/api/health`                    | GET    | Health check            | Page load validation       |
+| `/api/assets`                    | GET    | Asset list with filters | `AssetList.tsx`            |
+| `/api/assets/{id}`               | GET    | Single asset details    | Asset detail view          |
+| `/api/assets/{id}/relationships` | GET    | Asset relationships     | Relationship display       |
+| `/api/relationships`             | GET    | All relationships       | Visualization edges        |
+| `/api/metrics`                   | GET    | Network statistics      | `MetricsDashboard.tsx`     |
+| `/api/visualization`             | GET    | 3D graph data           | `NetworkVisualization.tsx` |
+| `/api/asset-classes`             | GET    | Filter dropdown options | `AssetList.tsx`            |
+| `/api/sectors`                   | GET    | Filter dropdown options | `AssetList.tsx`            |
+| `/token`                         | POST   | JWT authentication      | Auth flows                 |
+| `/api/users/me`                  | GET    | Current user info       | User profile               |
 
 #### Security Boundaries
 
-| Security Control | Implementation | Location |
-|-----------------|----------------|----------|
-| CORS | Origin allowlist validation | `api/main.py` |
-| Rate Limiting | IP-based throttling | `/token`: 5/min, `/api/users/me`: 10/min |
-| JWT Authentication | Bearer token header | Protected endpoints |
-| Input Validation | Pydantic models | All API endpoints |
+| Security Control   | Implementation              | Location                                 |
+| ------------------ | --------------------------- | ---------------------------------------- |
+| CORS               | Origin allowlist validation | `api/main.py`                            |
+| Rate Limiting      | IP-based throttling         | `/token`: 5/min, `/api/users/me`: 10/min |
+| JWT Authentication | Bearer token header         | Protected endpoints                      |
+| Input Validation   | Pydantic models             | All API endpoints                        |
 
 ### 7.4.2 Gradio ↔ Python Core Interaction
 
@@ -9742,22 +9757,22 @@ flowchart LR
 
 #### Direct Integration Pattern
 
-| UI Action | Python Function Call | Source Module |
-|-----------|---------------------|---------------|
-| Refresh Visualization | `generate_3d_network_graph()` | `src/visualizations/graph_visuals.py` |
-| Update Metrics | `create_metric_visuals()` | `src/visualizations/metric_visuals.py` |
-| Generate Schema | `SchemaReport.generate_report()` | `src/reports/schema_report.py` |
-| Load Asset Details | `graph.get_asset()` | `src/logic/asset_graph.py` |
-| Formulaic Dashboard | `create_formulaic_dashboard()` | `src/visualizations/formulaic_visuals.py` |
+| UI Action             | Python Function Call             | Source Module                             |
+| --------------------- | -------------------------------- | ----------------------------------------- |
+| Refresh Visualization | `generate_3d_network_graph()`    | `src/visualizations/graph_visuals.py`     |
+| Update Metrics        | `create_metric_visuals()`        | `src/visualizations/metric_visuals.py`    |
+| Generate Schema       | `SchemaReport.generate_report()` | `src/reports/schema_report.py`            |
+| Load Asset Details    | `graph.get_asset()`              | `src/logic/asset_graph.py`                |
+| Formulaic Dashboard   | `create_formulaic_dashboard()`   | `src/visualizations/formulaic_visuals.py` |
 
 ### 7.4.3 Visualization Data Guardrails
 
 Both UIs implement performance guardrails to prevent browser/client overload with large datasets:
 
-| Guardrail | Next.js Value | Environment Variable | Purpose |
-|-----------|---------------|---------------------|---------|
-| Maximum Nodes | 500 (default) | `NEXT_PUBLIC_MAX_NODES` | Client rendering limit |
-| Maximum Edges | 2000 (default) | `NEXT_PUBLIC_MAX_EDGES` | Edge complexity limit |
+| Guardrail     | Next.js Value  | Environment Variable    | Purpose                |
+| ------------- | -------------- | ----------------------- | ---------------------- |
+| Maximum Nodes | 500 (default)  | `NEXT_PUBLIC_MAX_NODES` | Client rendering limit |
+| Maximum Edges | 2000 (default) | `NEXT_PUBLIC_MAX_EDGES` | Edge complexity limit  |
 
 **Implementation Location**: `frontend/app/components/NetworkVisualization.tsx`
 
@@ -9837,22 +9852,22 @@ The FastAPI backend defines Pydantic models that serialize Python objects to JSO
 
 **Location**: `api/main.py`
 
-| Model | Purpose | Key Fields |
-|-------|---------|------------|
-| `AssetResponse` | Single asset serialization | `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, `market_cap`, `currency`, `additional_fields` |
-| `RelationshipResponse` | Relationship edge data | `source_id`, `target_id`, `relationship_type`, `strength` |
-| `MetricsResponse` | Network statistics | `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`, `network_density`, `relationship_density` |
-| `VisualizationDataResponse` | 3D graph payload | `nodes: List[Dict]`, `edges: List[Dict]` |
+| Model                       | Purpose                    | Key Fields                                                                                                                    |
+| --------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `AssetResponse`             | Single asset serialization | `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, `market_cap`, `currency`, `additional_fields`                       |
+| `RelationshipResponse`      | Relationship edge data     | `source_id`, `target_id`, `relationship_type`, `strength`                                                                     |
+| `MetricsResponse`           | Network statistics         | `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`, `network_density`, `relationship_density` |
+| `VisualizationDataResponse` | 3D graph payload           | `nodes: List[Dict]`, `edges: List[Dict]`                                                                                      |
 
 ### 7.5.3 Type Contract Alignment
 
 The TypeScript and Pydantic models maintain structural alignment to ensure seamless serialization:
 
-| TypeScript Type | Pydantic Model | Validation |
-|-----------------|----------------|------------|
-| `Asset` | `AssetResponse` | ✅ Aligned |
-| `Relationship` | `RelationshipResponse` | ✅ Aligned |
-| `Metrics` | `MetricsResponse` | ✅ Aligned |
+| TypeScript Type     | Pydantic Model              | Validation |
+| ------------------- | --------------------------- | ---------- |
+| `Asset`             | `AssetResponse`             | ✅ Aligned |
+| `Relationship`      | `RelationshipResponse`      | ✅ Aligned |
+| `Metrics`           | `MetricsResponse`           | ✅ Aligned |
 | `VisualizationData` | `VisualizationDataResponse` | ✅ Aligned |
 
 ---
@@ -9867,21 +9882,21 @@ The TypeScript and Pydantic models maintain structural alignment to ensure seaml
 
 #### Screen States
 
-| State | Condition | Display |
-|-------|-----------|---------|
-| `loading` | Data fetching in progress | Loading spinner |
-| `ready` | Data loaded, within limits | Interactive 3D graph |
-| `empty` | No nodes returned | "No data available" message |
-| `tooLarge` | Nodes > MAX_NODES or Edges > MAX_EDGES | Size warning with counts |
+| State      | Condition                              | Display                     |
+| ---------- | -------------------------------------- | --------------------------- |
+| `loading`  | Data fetching in progress              | Loading spinner             |
+| `ready`    | Data loaded, within limits             | Interactive 3D graph        |
+| `empty`    | No nodes returned                      | "No data available" message |
+| `tooLarge` | Nodes > MAX_NODES or Edges > MAX_EDGES | Size warning with counts    |
 
 #### Visual Elements
 
-| Element | Implementation | Interaction |
-|---------|---------------|-------------|
-| 3D Node Graph | Plotly Scatter3d traces | Rotate, zoom, pan |
-| Node Markers | Color-coded by asset class | Hover for tooltip |
-| Edge Lines | Colored by relationship type | Visual connection |
-| Hover Tooltip | Asset symbol, name, class | On node hover |
+| Element       | Implementation               | Interaction       |
+| ------------- | ---------------------------- | ----------------- |
+| 3D Node Graph | Plotly Scatter3d traces      | Rotate, zoom, pan |
+| Node Markers  | Color-coded by asset class   | Hover for tooltip |
+| Edge Lines    | Colored by relationship type | Visual connection |
+| Hover Tooltip | Asset symbol, name, class    | On node hover     |
 
 #### Dynamic Import Pattern
 
@@ -9909,26 +9924,26 @@ flowchart TB
 
 #### Metrics Display Grid
 
-| Metric | Label | Format | Grid Position |
-|--------|-------|--------|---------------|
-| `total_assets` | Total Assets | Integer | Row 1, Col 1 |
-| `total_relationships` | Total Relationships | Integer | Row 1, Col 2 |
-| `avg_degree` | Average Degree | 2 decimal places | Row 1, Col 3 |
-| `max_degree` | Maximum Degree | Integer | Row 2, Col 1 |
-| `network_density` | Network Density | Percentage (×100) | Row 2, Col 2 |
-| `relationship_density` | Relationship Density | Percentage (×100) | Row 2, Col 3 |
+| Metric                 | Label                | Format            | Grid Position |
+| ---------------------- | -------------------- | ----------------- | ------------- |
+| `total_assets`         | Total Assets         | Integer           | Row 1, Col 1  |
+| `total_relationships`  | Total Relationships  | Integer           | Row 1, Col 2  |
+| `avg_degree`           | Average Degree       | 2 decimal places  | Row 1, Col 3  |
+| `max_degree`           | Maximum Degree       | Integer           | Row 2, Col 1  |
+| `network_density`      | Network Density      | Percentage (×100) | Row 2, Col 2  |
+| `relationship_density` | Relationship Density | Percentage (×100) | Row 2, Col 3  |
 
 #### Asset Class Distribution
 
 The component renders asset class counts from the `asset_classes` dictionary:
 
-| Asset Class | Display Color | Source Key |
-|-------------|---------------|------------|
-| Equity | Blue | `asset_classes.Equity` |
-| Fixed Income | Green | `asset_classes['Fixed Income']` |
-| Commodity | Orange | `asset_classes.Commodity` |
-| Currency | Red | `asset_classes.Currency` |
-| Derivative | Purple | `asset_classes.Derivative` |
+| Asset Class  | Display Color | Source Key                      |
+| ------------ | ------------- | ------------------------------- |
+| Equity       | Blue          | `asset_classes.Equity`          |
+| Fixed Income | Green         | `asset_classes['Fixed Income']` |
+| Commodity    | Orange        | `asset_classes.Commodity`       |
+| Currency     | Red           | `asset_classes.Currency`        |
+| Derivative   | Purple        | `asset_classes.Derivative`      |
 
 ### 7.6.3 Next.js: Asset Explorer Screen
 
@@ -9938,11 +9953,11 @@ The component renders asset class counts from the `asset_classes` dictionary:
 
 #### Filter Controls
 
-| Control | Type | Options | State Management |
-|---------|------|---------|------------------|
-| Asset Class Filter | Dropdown Select | All asset classes + "All" | URL query param |
-| Sector Filter | Dropdown Select | All sectors + "All" | URL query param |
-| Page Size | Dropdown Select | 10, 20, 50, 100 | Component state |
+| Control            | Type            | Options                   | State Management |
+| ------------------ | --------------- | ------------------------- | ---------------- |
+| Asset Class Filter | Dropdown Select | All asset classes + "All" | URL query param  |
+| Sector Filter      | Dropdown Select | All sectors + "All"       | URL query param  |
+| Page Size          | Dropdown Select | 10, 20, 50, 100           | Component state  |
 
 #### URL State Synchronization
 
@@ -9964,22 +9979,22 @@ flowchart LR
 
 #### Table Columns
 
-| Column | Field | Width | Sortable |
-|--------|-------|-------|----------|
-| Symbol | `symbol` | Auto | No |
-| Name | `name` | Auto | No |
-| Asset Class | `asset_class` | Auto | No |
-| Sector | `sector` | Auto | No |
-| Price | `price` | Auto | No |
-| Market Cap | `market_cap` | Auto | No |
+| Column      | Field         | Width | Sortable |
+| ----------- | ------------- | ----- | -------- |
+| Symbol      | `symbol`      | Auto  | No       |
+| Name        | `name`        | Auto  | No       |
+| Asset Class | `asset_class` | Auto  | No       |
+| Sector      | `sector`      | Auto  | No       |
+| Price       | `price`       | Auto  | No       |
+| Market Cap  | `market_cap`  | Auto  | No       |
 
 #### Pagination Controls
 
-| Control | Behavior | Disabled Condition |
-|---------|----------|-------------------|
-| Previous Button | Decrement page | `page === 1` |
-| Next Button | Increment page | `page >= totalPages` |
-| Page Indicator | "Page X of Y" | N/A |
+| Control         | Behavior       | Disabled Condition   |
+| --------------- | -------------- | -------------------- |
+| Previous Button | Decrement page | `page === 1`         |
+| Next Button     | Increment page | `page >= totalPages` |
+| Page Indicator  | "Page X of Y"  | N/A                  |
 
 ### 7.6.4 Gradio: Network Visualization Tab
 
@@ -9987,30 +10002,30 @@ flowchart LR
 
 #### Control Panel
 
-| Control | Type | Options | Default |
-|---------|------|---------|---------|
-| View Mode | Radio | "3D View", "2D View" | "3D View" |
-| Layout Type | Dropdown | "spring", "circular", "grid" | "spring" |
-| Show Direction Arrows | Checkbox | Boolean | `True` |
+| Control               | Type     | Options                      | Default   |
+| --------------------- | -------- | ---------------------------- | --------- |
+| View Mode             | Radio    | "3D View", "2D View"         | "3D View" |
+| Layout Type           | Dropdown | "spring", "circular", "grid" | "spring"  |
+| Show Direction Arrows | Checkbox | Boolean                      | `True`    |
 
 #### Relationship Visibility Checkboxes
 
-| Checkbox | Relationship Type | Default |
-|----------|-------------------|---------|
-| Same Sector | `same_sector` | `True` |
-| Market Cap Similar | `market_cap_similar` | `True` |
-| Correlation | `correlation` | `True` |
-| Corporate Bond → Equity | `corporate_bond_to_equity` | `True` |
-| Commodity ↔ Currency | `commodity_currency` | `True` |
-| Income Comparison | `income_comparison` | `True` |
-| Regulatory Impact | `regulatory_impact` | `True` |
-| Show All Relationships | All types | `False` |
+| Checkbox                | Relationship Type          | Default |
+| ----------------------- | -------------------------- | ------- |
+| Same Sector             | `same_sector`              | `True`  |
+| Market Cap Similar      | `market_cap_similar`       | `True`  |
+| Correlation             | `correlation`              | `True`  |
+| Corporate Bond → Equity | `corporate_bond_to_equity` | `True`  |
+| Commodity ↔ Currency    | `commodity_currency`       | `True`  |
+| Income Comparison       | `income_comparison`        | `True`  |
+| Regulatory Impact       | `regulatory_impact`        | `True`  |
+| Show All Relationships  | All types                  | `False` |
 
 #### Action Buttons
 
-| Button | Function | Behavior |
-|--------|----------|----------|
-| Refresh | `refresh_all_outputs()` | Regenerate all visualizations |
+| Button     | Function                | Behavior                        |
+| ---------- | ----------------------- | ------------------------------- |
+| Refresh    | `refresh_all_outputs()` | Regenerate all visualizations   |
 | Reset View | `reset_visualization()` | Clear filters, restore defaults |
 
 ### 7.6.5 Gradio: Formulaic Analysis Tab
@@ -10019,14 +10034,14 @@ flowchart LR
 
 #### Dashboard Components
 
-| Component | Type | Content |
-|-----------|------|---------|
-| Formula Dashboard | Plot | Overview of all formula categories |
-| Correlation Network | Plot | Asset correlation visualization |
-| Metric Comparison | Plot | Formula metric comparisons |
-| Formula Selector | Dropdown | Individual formula selection |
-| Formula Details | Textbox | LaTeX formula, variables, example |
-| Summary | Textbox | Analysis summary text |
+| Component           | Type     | Content                            |
+| ------------------- | -------- | ---------------------------------- |
+| Formula Dashboard   | Plot     | Overview of all formula categories |
+| Correlation Network | Plot     | Asset correlation visualization    |
+| Metric Comparison   | Plot     | Formula metric comparisons         |
+| Formula Selector    | Dropdown | Individual formula selection       |
+| Formula Details     | Textbox  | LaTeX formula, variables, example  |
+| Summary             | Textbox  | Analysis summary text              |
 
 ---
 
@@ -10109,23 +10124,23 @@ flowchart TB
 
 ### 7.7.4 3D Visualization Interactions
 
-| Interaction | Action | Result |
-|-------------|--------|--------|
-| **Drag** | Click and drag on graph area | Rotate 3D view |
-| **Scroll** | Mouse wheel | Zoom in/out |
-| **Hover** | Mouse over node | Show tooltip with asset details |
-| **Click** | Click on node | (Future: Asset detail view) |
-| **Double-click** | Double-click on background | Reset view |
+| Interaction      | Action                       | Result                          |
+| ---------------- | ---------------------------- | ------------------------------- |
+| **Drag**         | Click and drag on graph area | Rotate 3D view                  |
+| **Scroll**       | Mouse wheel                  | Zoom in/out                     |
+| **Hover**        | Mouse over node              | Show tooltip with asset details |
+| **Click**        | Click on node                | (Future: Asset detail view)     |
+| **Double-click** | Double-click on background   | Reset view                      |
 
 ### 7.7.5 Asset Explorer Interactions
 
-| Interaction | Action | Result |
-|-------------|--------|--------|
-| **Filter Change** | Select asset class/sector | Update table, modify URL params |
-| **Page Size Change** | Select new page size | Reset to page 1, update display |
-| **Previous Page** | Click Previous button | Load previous page |
-| **Next Page** | Click Next button | Load next page |
-| **Browser Back** | Browser back button | Restore previous filter state |
+| Interaction          | Action                    | Result                          |
+| -------------------- | ------------------------- | ------------------------------- |
+| **Filter Change**    | Select asset class/sector | Update table, modify URL params |
+| **Page Size Change** | Select new page size      | Reset to page 1, update display |
+| **Previous Page**    | Click Previous button     | Load previous page              |
+| **Next Page**        | Click Next button         | Load next page                  |
+| **Browser Back**     | Browser back button       | Restore previous filter state   |
 
 ### 7.7.6 Error Recovery Flow
 
@@ -10164,13 +10179,13 @@ flowchart TB
 
 A consistent color palette maps asset classes to visual representations across both UIs:
 
-| Asset Class | Node Color | Hex Code | Usage |
-|-------------|------------|----------|-------|
-| **Equity** | Blue | `#1f77b4` | Stocks and equity instruments |
-| **Fixed Income** | Green | `#2ca02c` | Bonds and debt instruments |
-| **Commodity** | Orange | `#ff7f0e` | Physical commodity futures |
-| **Currency** | Red | `#d62728` | Foreign exchange pairs |
-| **Derivative** | Purple | `#9467bd` | Derivative instruments |
+| Asset Class      | Node Color | Hex Code  | Usage                         |
+| ---------------- | ---------- | --------- | ----------------------------- |
+| **Equity**       | Blue       | `#1f77b4` | Stocks and equity instruments |
+| **Fixed Income** | Green      | `#2ca02c` | Bonds and debt instruments    |
+| **Commodity**    | Orange     | `#ff7f0e` | Physical commodity futures    |
+| **Currency**     | Red        | `#d62728` | Foreign exchange pairs        |
+| **Derivative**   | Purple     | `#9467bd` | Derivative instruments        |
 
 **Source**: `src/visualizations/graph_visuals.py`
 
@@ -10178,16 +10193,16 @@ A consistent color palette maps asset classes to visual representations across b
 
 Relationship types are distinguished by edge colors in the network visualization:
 
-| Relationship Type | Edge Color | Hex Code |
-|-------------------|------------|----------|
-| `same_sector` | Red | `#FF6B6B` |
-| `market_cap_similar` | Teal | `#4ECDC4` |
-| `correlation` | Blue | `#45B7D1` |
-| `corporate_bond_to_equity` | Green | `#96CEB4` |
-| `commodity_currency` | Yellow | `#FFEAA7` |
-| `income_comparison` | Plum | `#DDA0DD` |
-| `regulatory_impact` | Light Salmon | `#FFA07A` |
-| Default | Gray | `#888888` |
+| Relationship Type          | Edge Color   | Hex Code  |
+| -------------------------- | ------------ | --------- |
+| `same_sector`              | Red          | `#FF6B6B` |
+| `market_cap_similar`       | Teal         | `#4ECDC4` |
+| `correlation`              | Blue         | `#45B7D1` |
+| `corporate_bond_to_equity` | Green        | `#96CEB4` |
+| `commodity_currency`       | Yellow       | `#FFEAA7` |
+| `income_comparison`        | Plum         | `#DDA0DD` |
+| `regulatory_impact`        | Light Salmon | `#FFA07A` |
+| Default                    | Gray         | `#888888` |
 
 **Source**: `src/visualizations/graph_visuals.py` (lines 18-29)
 
@@ -10197,25 +10212,26 @@ Relationship types are distinguished by edge colors in the network visualization
 
 **Location**: `frontend/tailwind.config.js`
 
-| Configuration | Value | Purpose |
-|---------------|-------|---------|
-| Content Paths | `./pages/**`, `./components/**`, `./app/**` | Purge unused CSS |
-| Theme | Extended defaults | Custom design tokens |
-| Plugins | None | Minimal footprint |
+| Configuration | Value                                       | Purpose              |
+| ------------- | ------------------------------------------- | -------------------- |
+| Content Paths | `./pages/**`, `./components/**`, `./app/**` | Purge unused CSS     |
+| Theme         | Extended defaults                           | Custom design tokens |
+| Plugins       | None                                        | Minimal footprint    |
 
 #### Global CSS Variables
 
 **Location**: `frontend/app/globals.css`
 
-| CSS Variable | Light Mode Value | Purpose |
-|--------------|------------------|---------|
-| `--foreground-rgb` | `0, 0, 0` | Text color |
-| `--background-start-rgb` | `214, 219, 220` | Gradient start |
-| `--background-end-rgb` | `255, 255, 255` | Gradient end |
+| CSS Variable             | Light Mode Value | Purpose        |
+| ------------------------ | ---------------- | -------------- |
+| `--foreground-rgb`       | `0, 0, 0`        | Text color     |
+| `--background-start-rgb` | `214, 219, 220`  | Gradient start |
+| `--background-end-rgb`   | `255, 255, 255`  | Gradient end   |
 
 #### Background Gradient
 
 The application uses a subtle vertical gradient:
+
 - Start: `rgb(214, 219, 220)` (light gray)
 - End: `rgb(255, 255, 255)` (white)
 - Direction: Top to bottom
@@ -10225,19 +10241,19 @@ The application uses a subtle vertical gradient:
 The Next.js frontend implements mobile-first responsive design using Tailwind breakpoints:
 
 | Breakpoint | Screen Size | Grid Columns (MetricsDashboard) |
-|------------|-------------|--------------------------------|
-| Default | < 768px | 1 column |
-| `md:` | ≥ 768px | 2 columns |
-| `lg:` | ≥ 1024px | 3 columns |
+| ---------- | ----------- | ------------------------------- |
+| Default    | < 768px     | 1 column                        |
+| `md:`      | ≥ 768px     | 2 columns                       |
+| `lg:`      | ≥ 1024px    | 3 columns                       |
 
 #### Component Responsive Classes
 
-| Component | Responsive Pattern |
-|-----------|-------------------|
-| Container | `container mx-auto px-4` |
-| Card | `bg-white rounded-lg shadow-md p-6` |
-| Grid | `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4` |
-| Button | `px-4 py-2 rounded-md` |
+| Component | Responsive Pattern                                     |
+| --------- | ------------------------------------------------------ |
+| Container | `container mx-auto px-4`                               |
+| Card      | `bg-white rounded-lg shadow-md p-6`                    |
+| Grid      | `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4` |
+| Button    | `px-4 py-2 rounded-md`                                 |
 
 ### 7.8.5 Application Metadata
 
@@ -10245,19 +10261,19 @@ The Next.js frontend implements mobile-first responsive design using Tailwind br
 
 **Location**: `frontend/app/layout.tsx`
 
-| Property | Value |
-|----------|-------|
-| Title | "Financial Asset Relationship Network" |
+| Property    | Value                                                             |
+| ----------- | ----------------------------------------------------------------- |
+| Title       | "Financial Asset Relationship Network"                            |
 | Description | "Interactive 3D visualization of interconnected financial assets" |
 
 #### Gradio Application Title
 
 **Location**: `app.py`
 
-| Property | Value |
-|----------|-------|
-| Title | "Financial Asset Relationship Database Visualization" |
-| Default Port | 7860 |
+| Property     | Value                                                 |
+| ------------ | ----------------------------------------------------- |
+| Title        | "Financial Asset Relationship Database Visualization" |
+| Default Port | 7860                                                  |
 
 ---
 
@@ -10267,12 +10283,12 @@ The Next.js frontend implements mobile-first responsive design using Tailwind br
 
 The Next.js frontend implements comprehensive testing using Jest and React Testing Library:
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Jest | ^29.7.0 | Test runner and framework |
-| @testing-library/react | ^14.1.2 | React component testing |
-| @testing-library/jest-dom | ^6.4.0 | DOM assertions |
-| jest-environment-jsdom | ^29.7.0 | DOM simulation |
+| Tool                      | Version | Purpose                   |
+| ------------------------- | ------- | ------------------------- |
+| Jest                      | ^29.7.0 | Test runner and framework |
+| @testing-library/react    | ^14.1.2 | React component testing   |
+| @testing-library/jest-dom | ^6.4.0  | DOM assertions            |
+| jest-environment-jsdom    | ^29.7.0 | DOM simulation            |
 
 **Configuration Location**: `frontend/jest.config.js`, `frontend/jest.setup.js`
 
@@ -10294,32 +10310,32 @@ frontend/__tests__/
 
 ### 7.9.3 Component Test Coverage
 
-| Component | Test Scenarios | Coverage Focus |
-|-----------|----------------|----------------|
-| `AssetList` | Render assets, filter by class, pagination | User filtering flows |
-| `MetricsDashboard` | Display metrics, handle loading, show errors | Data presentation |
-| `NetworkVisualization` | 3D graph rendering, node interaction | Plotly integration |
-| `page.tsx` | Tab switching, data loading, retry mechanisms | Page lifecycle |
+| Component              | Test Scenarios                                | Coverage Focus       |
+| ---------------------- | --------------------------------------------- | -------------------- |
+| `AssetList`            | Render assets, filter by class, pagination    | User filtering flows |
+| `MetricsDashboard`     | Display metrics, handle loading, show errors  | Data presentation    |
+| `NetworkVisualization` | 3D graph rendering, node interaction          | Plotly integration   |
+| `page.tsx`             | Tab switching, data loading, retry mechanisms | Page lifecycle       |
 
 ### 7.9.4 Mock Data Utilities
 
 **Location**: `frontend/__tests__/test-utils.ts`
 
-| Export | Type | Purpose |
-|--------|------|---------|
-| `mockAssets` | `Asset[]` | Sample asset collection |
-| `mockMetrics` | `Metrics` | Network metrics data |
-| `mockVisualization` | `VisualizationData` | 3D graph data |
-| `mockRelationships` | `Relationship[]` | Sample relationships |
+| Export              | Type                | Purpose                 |
+| ------------------- | ------------------- | ----------------------- |
+| `mockAssets`        | `Asset[]`           | Sample asset collection |
+| `mockMetrics`       | `Metrics`           | Network metrics data    |
+| `mockVisualization` | `VisualizationData` | 3D graph data           |
+| `mockRelationships` | `Relationship[]`    | Sample relationships    |
 
 ### 7.9.5 Test Execution Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm test` | Run all frontend tests |
+| Command                  | Description                |
+| ------------------------ | -------------------------- |
+| `npm test`               | Run all frontend tests     |
 | `npm test -- --coverage` | Tests with coverage report |
-| `npm test -- --watch` | Watch mode for development |
-| `npm run test:ci` | CI-optimized execution |
+| `npm test -- --watch`    | Watch mode for development |
+| `npm run test:ci`        | CI-optimized execution     |
 
 ---
 
@@ -10327,22 +10343,22 @@ frontend/__tests__/
 
 ### 7.10.1 Current Implementation
 
-| Accessibility Feature | Status | Implementation |
-|----------------------|--------|----------------|
-| Semantic HTML | ✅ Implemented | Proper heading hierarchy |
-| Color Contrast | ✅ Implemented | Tailwind default palette |
-| Keyboard Navigation | ⚠️ Partial | Tab navigation works |
-| Screen Reader Support | ⚠️ Limited | Labels on form controls |
-| ARIA Attributes | ⚠️ Partial | Button roles |
+| Accessibility Feature | Status         | Implementation           |
+| --------------------- | -------------- | ------------------------ |
+| Semantic HTML         | ✅ Implemented | Proper heading hierarchy |
+| Color Contrast        | ✅ Implemented | Tailwind default palette |
+| Keyboard Navigation   | ⚠️ Partial     | Tab navigation works     |
+| Screen Reader Support | ⚠️ Limited     | Labels on form controls  |
+| ARIA Attributes       | ⚠️ Partial     | Button roles             |
 
 ### 7.10.2 Planned Enhancements
 
-| Enhancement | Priority | Tool |
-|-------------|----------|------|
-| Full ARIA labeling | Medium | Manual implementation |
-| Accessibility testing | Medium | axe-core integration |
-| Keyboard shortcuts | Low | Custom implementation |
-| High contrast mode | Low | Tailwind dark mode |
+| Enhancement           | Priority | Tool                  |
+| --------------------- | -------- | --------------------- |
+| Full ARIA labeling    | Medium   | Manual implementation |
+| Accessibility testing | Medium   | axe-core integration  |
+| Keyboard shortcuts    | Low      | Custom implementation |
+| High contrast mode    | Low      | Tailwind dark mode    |
 
 ---
 
@@ -10350,52 +10366,52 @@ frontend/__tests__/
 
 ### 7.11.1 Source Files Examined
 
-| Path | Relevance |
-|------|-----------|
-| `frontend/app/page.tsx` | Main Next.js page with tab navigation |
-| `frontend/app/layout.tsx` | Root layout with metadata |
-| `frontend/app/globals.css` | Global CSS styles |
-| `frontend/tailwind.config.js` | Tailwind configuration |
-| `frontend/app/components/NetworkVisualization.tsx` | 3D visualization component |
-| `frontend/app/components/MetricsDashboard.tsx` | Metrics grid component |
-| `frontend/app/components/AssetList.tsx` | Asset explorer component |
-| `frontend/app/types/api.ts` | TypeScript API contracts |
-| `frontend/app/lib/api.ts` | Axios API client |
-| `frontend/package.json` | Frontend dependencies |
-| `frontend/jest.config.js` | Jest configuration |
-| `frontend/jest.setup.js` | Jest environment setup |
-| `frontend/__tests__/test-utils.ts` | Mock data utilities |
-| `app.py` | Gradio UI implementation |
-| `api/main.py` | FastAPI endpoints and response models |
-| `src/visualizations/graph_visuals.py` | Visualization color schemes |
-| `requirements.txt` | Python dependencies |
-| `UI_COMPARISON.md` | UI feature comparison |
+| Path                                               | Relevance                             |
+| -------------------------------------------------- | ------------------------------------- |
+| `frontend/app/page.tsx`                            | Main Next.js page with tab navigation |
+| `frontend/app/layout.tsx`                          | Root layout with metadata             |
+| `frontend/app/globals.css`                         | Global CSS styles                     |
+| `frontend/tailwind.config.js`                      | Tailwind configuration                |
+| `frontend/app/components/NetworkVisualization.tsx` | 3D visualization component            |
+| `frontend/app/components/MetricsDashboard.tsx`     | Metrics grid component                |
+| `frontend/app/components/AssetList.tsx`            | Asset explorer component              |
+| `frontend/app/types/api.ts`                        | TypeScript API contracts              |
+| `frontend/app/lib/api.ts`                          | Axios API client                      |
+| `frontend/package.json`                            | Frontend dependencies                 |
+| `frontend/jest.config.js`                          | Jest configuration                    |
+| `frontend/jest.setup.js`                           | Jest environment setup                |
+| `frontend/__tests__/test-utils.ts`                 | Mock data utilities                   |
+| `app.py`                                           | Gradio UI implementation              |
+| `api/main.py`                                      | FastAPI endpoints and response models |
+| `src/visualizations/graph_visuals.py`              | Visualization color schemes           |
+| `requirements.txt`                                 | Python dependencies                   |
+| `UI_COMPARISON.md`                                 | UI feature comparison                 |
 
 ### 7.11.2 Technical Specification Cross-References
 
-| Section | Relevance |
-|---------|-----------|
-| 2.1 Feature Catalog | Feature requirements (F-016, F-017) |
-| 3.3 Frameworks & Libraries | Technology stack details |
-| 4.4 Frontend Workflows | Page load and event flows |
-| 4.5 Error Handling Workflows | Error recovery patterns |
-| 5.1 HIGH-LEVEL ARCHITECTURE | System architecture overview |
-| 5.2 COMPONENT DETAILS | Component specifications |
-| 6.4 Security Architecture | Authentication and CORS |
-| 6.6 Testing Strategy | Frontend testing approach |
+| Section                      | Relevance                           |
+| ---------------------------- | ----------------------------------- |
+| 2.1 Feature Catalog          | Feature requirements (F-016, F-017) |
+| 3.3 Frameworks & Libraries   | Technology stack details            |
+| 4.4 Frontend Workflows       | Page load and event flows           |
+| 4.5 Error Handling Workflows | Error recovery patterns             |
+| 5.1 HIGH-LEVEL ARCHITECTURE  | System architecture overview        |
+| 5.2 COMPONENT DETAILS        | Component specifications            |
+| 6.4 Security Architecture    | Authentication and CORS             |
+| 6.6 Testing Strategy         | Frontend testing approach           |
 
 ### 7.11.3 Frontend Component Locations
 
-| Component | File Path |
-|-----------|-----------|
-| Root Layout | `frontend/app/layout.tsx` |
-| Home Page | `frontend/app/page.tsx` |
+| Component             | File Path                                          |
+| --------------------- | -------------------------------------------------- |
+| Root Layout           | `frontend/app/layout.tsx`                          |
+| Home Page             | `frontend/app/page.tsx`                            |
 | Network Visualization | `frontend/app/components/NetworkVisualization.tsx` |
-| Metrics Dashboard | `frontend/app/components/MetricsDashboard.tsx` |
-| Asset List | `frontend/app/components/AssetList.tsx` |
-| API Client | `frontend/app/lib/api.ts` |
-| Type Definitions | `frontend/app/types/api.ts` |
-| Test Utilities | `frontend/__tests__/test-utils.ts` |
+| Metrics Dashboard     | `frontend/app/components/MetricsDashboard.tsx`     |
+| Asset List            | `frontend/app/components/AssetList.tsx`            |
+| API Client            | `frontend/app/lib/api.ts`                          |
+| Type Definitions      | `frontend/app/types/api.ts`                        |
+| Test Utilities        | `frontend/__tests__/test-utils.ts`                 |
 
 # 8. Infrastructure
 
@@ -10407,13 +10423,13 @@ The Financial Asset Relationship Database implements a **hybrid deployment archi
 
 The system follows these core infrastructure principles:
 
-| Principle | Implementation | Rationale |
-|-----------|----------------|-----------|
-| **Multi-Target Deployment** | Vercel, Docker, Local | Supports development through production workflows |
-| **Serverless-First Production** | Vercel Edge Functions | Automatic scaling, global distribution, minimal ops |
-| **Container-Based Portability** | Docker with Docker Compose | Consistent environments across all deployment stages |
-| **Infrastructure as Code** | Configuration files, no imperative scripts | Reproducible, version-controlled infrastructure |
-| **Security by Default** | Non-root containers, TLS enforcement | Defense in depth from build through production |
+| Principle                       | Implementation                             | Rationale                                            |
+| ------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
+| **Multi-Target Deployment**     | Vercel, Docker, Local                      | Supports development through production workflows    |
+| **Serverless-First Production** | Vercel Edge Functions                      | Automatic scaling, global distribution, minimal ops  |
+| **Container-Based Portability** | Docker with Docker Compose                 | Consistent environments across all deployment stages |
+| **Infrastructure as Code**      | Configuration files, no imperative scripts | Reproducible, version-controlled infrastructure      |
+| **Security by Default**         | Non-root containers, TLS enforcement       | Defense in depth from build through production       |
 
 ### 8.1.2 Infrastructure Architecture Diagram
 
@@ -10488,87 +10504,87 @@ flowchart TB
 
 The Financial Asset Relationship Database operates in a **hybrid cloud/local** environment model:
 
-| Environment Type | Primary Use | Technology | Scale |
-|------------------|-------------|------------|-------|
-| **Local Development** | Feature development, debugging | Native Python/Node.js | Single developer |
-| **Docker Container** | Integration testing, self-hosted production | Docker, Docker Compose | Single to small cluster |
-| **Vercel Serverless** | Production SaaS deployment | Vercel Edge Network | Auto-scaling global |
-| **Google Cloud Run** | Alternative cloud deployment | GCR, Cloud Run | Auto-scaling regional |
+| Environment Type      | Primary Use                                 | Technology             | Scale                   |
+| --------------------- | ------------------------------------------- | ---------------------- | ----------------------- |
+| **Local Development** | Feature development, debugging              | Native Python/Node.js  | Single developer        |
+| **Docker Container**  | Integration testing, self-hosted production | Docker, Docker Compose | Single to small cluster |
+| **Vercel Serverless** | Production SaaS deployment                  | Vercel Edge Network    | Auto-scaling global     |
+| **Google Cloud Run**  | Alternative cloud deployment                | GCR, Cloud Run         | Auto-scaling regional   |
 
 #### 8.2.1.2 Geographic Distribution
 
-| Deployment Target | Geographic Strategy | Implementation |
-|-------------------|---------------------|----------------|
-| Vercel | Global Edge Network | Automatic CDN distribution to nearest edge location |
-| Docker | Single region | Deployer-determined; no built-in geo-distribution |
-| Cloud Run | Regional with optional multi-region | Configurable via `REGION` environment variable |
+| Deployment Target | Geographic Strategy                 | Implementation                                      |
+| ----------------- | ----------------------------------- | --------------------------------------------------- |
+| Vercel            | Global Edge Network                 | Automatic CDN distribution to nearest edge location |
+| Docker            | Single region                       | Deployer-determined; no built-in geo-distribution   |
+| Cloud Run         | Regional with optional multi-region | Configurable via `REGION` environment variable      |
 
 #### 8.2.1.3 Resource Requirements
 
 **Compute Requirements:**
 
-| Component | Minimum | Recommended | Production |
-|-----------|---------|-------------|------------|
-| **CPU** | 1 vCPU | 2 vCPU | Auto-scaling (Vercel) |
-| **Memory** | 512 MB | 2 GB | 2-4 GB (Vercel Lambda) |
-| **Disk** | 100 MB | 500 MB | N/A (ephemeral) |
-| **Network** | Standard | Low latency | Edge-optimized |
+| Component   | Minimum  | Recommended | Production             |
+| ----------- | -------- | ----------- | ---------------------- |
+| **CPU**     | 1 vCPU   | 2 vCPU      | Auto-scaling (Vercel)  |
+| **Memory**  | 512 MB   | 2 GB        | 2-4 GB (Vercel Lambda) |
+| **Disk**    | 100 MB   | 500 MB      | N/A (ephemeral)        |
+| **Network** | Standard | Low latency | Edge-optimized         |
 
 **Application Constraints:**
 
-| Constraint ID | Description | Impact | Mitigation |
-|---------------|-------------|--------|------------|
-| C-001 | In-memory graph limits scalability | < 500 nodes optimal | Database persistence option |
-| C-002 | Single-user JWT authentication | Limited concurrent sessions | Session isolation per token |
-| C-003 | Yahoo Finance API rate limits | Data freshness affected | JSON file caching with atomic writes |
-| C-004 | Browser memory limits visualization | Large graph rendering issues | MAX_NODES/MAX_EDGES guardrails |
-| C-005 | Vercel Lambda size limit | 50MB maximum | Dependency optimization required |
+| Constraint ID | Description                         | Impact                       | Mitigation                           |
+| ------------- | ----------------------------------- | ---------------------------- | ------------------------------------ |
+| C-001         | In-memory graph limits scalability  | < 500 nodes optimal          | Database persistence option          |
+| C-002         | Single-user JWT authentication      | Limited concurrent sessions  | Session isolation per token          |
+| C-003         | Yahoo Finance API rate limits       | Data freshness affected      | JSON file caching with atomic writes |
+| C-004         | Browser memory limits visualization | Large graph rendering issues | MAX_NODES/MAX_EDGES guardrails       |
+| C-005         | Vercel Lambda size limit            | 50MB maximum                 | Dependency optimization required     |
 
 #### 8.2.1.4 Port Configuration Matrix
 
-| Service | Port | Protocol | Exposure |
-|---------|------|----------|----------|
-| FastAPI Backend | 8000 | HTTP/HTTPS | API endpoints |
-| Next.js Frontend | 3000 | HTTP/HTTPS | User interface |
-| Gradio Legacy UI | 7860 | HTTP | Legacy interface |
-| PostgreSQL (optional) | 5432 | TCP | Database (internal only) |
+| Service               | Port | Protocol   | Exposure                 |
+| --------------------- | ---- | ---------- | ------------------------ |
+| FastAPI Backend       | 8000 | HTTP/HTTPS | API endpoints            |
+| Next.js Frontend      | 3000 | HTTP/HTTPS | User interface           |
+| Gradio Legacy UI      | 7860 | HTTP       | Legacy interface         |
+| PostgreSQL (optional) | 5432 | TCP        | Database (internal only) |
 
 ### 8.2.2 Environment Management
 
 #### 8.2.2.1 Infrastructure as Code Components
 
-| File | Purpose | Platform | Key Configuration |
-|------|---------|----------|-------------------|
-| `Dockerfile` | Container image definition | Docker | Base image, security, health check |
-| `docker-compose.yml` | Multi-service orchestration | Docker Compose | Service definitions, volumes, networking |
-| `vercel.json` | Serverless deployment config | Vercel | Builders, routes, lambda size |
-| `Makefile` | Build and deployment automation | Cross-platform | Targets for common operations |
-| `pyproject.toml` | Python project metadata | Python ecosystem | Build system, tool configs |
-| `.env.example` | Environment variable template | All environments | Required and optional variables |
+| File                 | Purpose                         | Platform         | Key Configuration                        |
+| -------------------- | ------------------------------- | ---------------- | ---------------------------------------- |
+| `Dockerfile`         | Container image definition      | Docker           | Base image, security, health check       |
+| `docker-compose.yml` | Multi-service orchestration     | Docker Compose   | Service definitions, volumes, networking |
+| `vercel.json`        | Serverless deployment config    | Vercel           | Builders, routes, lambda size            |
+| `Makefile`           | Build and deployment automation | Cross-platform   | Targets for common operations            |
+| `pyproject.toml`     | Python project metadata         | Python ecosystem | Build system, tool configs               |
+| `.env.example`       | Environment variable template   | All environments | Required and optional variables          |
 
 #### 8.2.2.2 Environment Variables Configuration
 
 **Required Environment Variables:**
 
-| Variable | Purpose | Default | Criticality |
-|----------|---------|---------|-------------|
-| `SECRET_KEY` | JWT signing key | None | **Critical** - App fails without |
-| `DATABASE_URL` | SQLite connection string | None | **Critical** - App fails without |
-| `ADMIN_USERNAME` | Initial admin account | None | Required for user seeding |
-| `ADMIN_PASSWORD` | Initial admin password | None | Required for user seeding |
+| Variable         | Purpose                  | Default | Criticality                      |
+| ---------------- | ------------------------ | ------- | -------------------------------- |
+| `SECRET_KEY`     | JWT signing key          | None    | **Critical** - App fails without |
+| `DATABASE_URL`   | SQLite connection string | None    | **Critical** - App fails without |
+| `ADMIN_USERNAME` | Initial admin account    | None    | Required for user seeding        |
+| `ADMIN_PASSWORD` | Initial admin password   | None    | Required for user seeding        |
 
 **Optional Environment Variables:**
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `ENV` | Environment mode | `development` |
-| `ALLOWED_ORIGINS` | CORS allowlist | Built-in defaults |
-| `USE_REAL_DATA_FETCHER` | Yahoo Finance toggle | `false` |
-| `REAL_DATA_CACHE_PATH` | Cache file location | Default path |
-| `GRAPH_CACHE_PATH` | Graph serialization path | Default path |
-| `NEXT_PUBLIC_API_URL` | Frontend API endpoint | `http://localhost:8000` |
-| `GRADIO_SERVER_NAME` | Gradio binding address | `0.0.0.0` |
-| `GRADIO_SERVER_PORT` | Gradio port | `7860` |
+| Variable                | Purpose                  | Default                 |
+| ----------------------- | ------------------------ | ----------------------- |
+| `ENV`                   | Environment mode         | `development`           |
+| `ALLOWED_ORIGINS`       | CORS allowlist           | Built-in defaults       |
+| `USE_REAL_DATA_FETCHER` | Yahoo Finance toggle     | `false`                 |
+| `REAL_DATA_CACHE_PATH`  | Cache file location      | Default path            |
+| `GRAPH_CACHE_PATH`      | Graph serialization path | Default path            |
+| `NEXT_PUBLIC_API_URL`   | Frontend API endpoint    | `http://localhost:8000` |
+| `GRADIO_SERVER_NAME`    | Gradio binding address   | `0.0.0.0`               |
+| `GRADIO_SERVER_PORT`    | Gradio port              | `7860`                  |
 
 #### 8.2.2.3 Environment Promotion Strategy
 
@@ -10605,21 +10621,21 @@ flowchart LR
 
 **Promotion Rules:**
 
-| Stage Transition | Trigger | Gates |
-|------------------|---------|-------|
-| Development → Integration | Pull Request opened | Automated CI initiation |
-| Integration → Staging | PR review approved | All quality gates passed |
-| Staging → Production | Merge to `main` | Security scans, Docker build success |
+| Stage Transition          | Trigger             | Gates                                |
+| ------------------------- | ------------------- | ------------------------------------ |
+| Development → Integration | Pull Request opened | Automated CI initiation              |
+| Integration → Staging     | PR review approved  | All quality gates passed             |
+| Staging → Production      | Merge to `main`     | Security scans, Docker build success |
 
 #### 8.2.2.4 Backup and Disaster Recovery
 
-| Component | Backup Strategy | Recovery Time Objective |
-|-----------|-----------------|------------------------|
-| **Application Code** | Git repository (GitHub) | Immediate (re-deploy) |
-| **Docker Images** | GHCR versioned tags | < 5 minutes |
-| **User Database (SQLite)** | Volume mount persistence | Container restart |
-| **Graph Cache (JSON)** | Volume mount persistence | Cache rebuild < 30 seconds |
-| **Configuration** | Git-tracked (except secrets) | Immediate (re-deploy) |
+| Component                  | Backup Strategy              | Recovery Time Objective    |
+| -------------------------- | ---------------------------- | -------------------------- |
+| **Application Code**       | Git repository (GitHub)      | Immediate (re-deploy)      |
+| **Docker Images**          | GHCR versioned tags          | < 5 minutes                |
+| **User Database (SQLite)** | Volume mount persistence     | Container restart          |
+| **Graph Cache (JSON)**     | Volume mount persistence     | Cache rebuild < 30 seconds |
+| **Configuration**          | Git-tracked (except secrets) | Immediate (re-deploy)      |
 
 ---
 
@@ -10631,13 +10647,13 @@ Vercel serves as the primary production deployment platform, providing serverles
 
 #### 8.3.1.1 Platform Selection Justification
 
-| Criterion | Vercel Advantage | Alternative Consideration |
-|-----------|------------------|---------------------------|
-| **Next.js Integration** | Native framework support | Manual configuration on other platforms |
-| **Python Functions** | Built-in `@vercel/python` builder | Requires container deployment elsewhere |
-| **Global Edge Network** | Automatic CDN distribution | Manual CDN setup required |
-| **Preview Deployments** | Automatic per-PR previews | Additional CI configuration needed |
-| **Zero-Config Scaling** | Automatic scaling | Manual scaling configuration |
+| Criterion               | Vercel Advantage                  | Alternative Consideration               |
+| ----------------------- | --------------------------------- | --------------------------------------- |
+| **Next.js Integration** | Native framework support          | Manual configuration on other platforms |
+| **Python Functions**    | Built-in `@vercel/python` builder | Requires container deployment elsewhere |
+| **Global Edge Network** | Automatic CDN distribution        | Manual CDN setup required               |
+| **Preview Deployments** | Automatic per-PR previews         | Additional CI configuration needed      |
+| **Zero-Config Scaling** | Automatic scaling                 | Manual scaling configuration            |
 
 #### 8.3.1.2 Vercel Build Configuration
 
@@ -10663,17 +10679,17 @@ Vercel serves as the primary production deployment platform, providing serverles
 }
 ```
 
-| Component | Builder | Configuration |
-|-----------|---------|---------------|
-| Backend API | `@vercel/python` | maxLambdaSize: 50MB |
-| Frontend | `@vercel/next` | Default Next.js settings |
+| Component   | Builder          | Configuration            |
+| ----------- | ---------------- | ------------------------ |
+| Backend API | `@vercel/python` | maxLambdaSize: 50MB      |
+| Frontend    | `@vercel/next`   | Default Next.js settings |
 
 #### 8.3.1.3 Route Configuration
 
-| Pattern | Destination | Purpose |
-|---------|-------------|---------|
-| `/api/(.*)` | `api/main.py` | Backend API routes |
-| `/(.*)` | `frontend/$1` | Frontend static/SSR pages |
+| Pattern     | Destination   | Purpose                   |
+| ----------- | ------------- | ------------------------- |
+| `/api/(.*)` | `api/main.py` | Backend API routes        |
+| `/(.*)`     | `frontend/$1` | Frontend static/SSR pages |
 
 ### 8.3.2 High Availability Design
 
@@ -10711,20 +10727,20 @@ flowchart TB
     Edge3 --> CDN
 ```
 
-| HA Component | Implementation | Benefit |
-|--------------|----------------|---------|
-| Edge Distribution | Multiple global edge locations | Low latency worldwide |
-| Function Replicas | Automatic instance scaling | Handle traffic spikes |
-| Static CDN | Globally distributed cache | Fast asset delivery |
-| Health Monitoring | Platform-level monitoring | Automatic unhealthy instance removal |
+| HA Component      | Implementation                 | Benefit                              |
+| ----------------- | ------------------------------ | ------------------------------------ |
+| Edge Distribution | Multiple global edge locations | Low latency worldwide                |
+| Function Replicas | Automatic instance scaling     | Handle traffic spikes                |
+| Static CDN        | Globally distributed cache     | Fast asset delivery                  |
+| Health Monitoring | Platform-level monitoring      | Automatic unhealthy instance removal |
 
 #### 8.3.2.2 Docker High Availability
 
-| Strategy | Implementation | Configuration |
-|----------|----------------|---------------|
-| Health Checks | HTTP probe on container | 30s interval, 3 retries |
-| Restart Policy | `unless-stopped` | Automatic recovery |
-| Volume Persistence | Mounted data volumes | Data survives restarts |
+| Strategy           | Implementation          | Configuration           |
+| ------------------ | ----------------------- | ----------------------- |
+| Health Checks      | HTTP probe on container | 30s interval, 3 retries |
+| Restart Policy     | `unless-stopped`        | Automatic recovery      |
+| Volume Persistence | Mounted data volumes    | Data survives restarts  |
 
 ### 8.3.3 Alternative Platform: Google Cloud Run
 
@@ -10732,13 +10748,14 @@ A deployment template is available for Google Cloud Run as an alternative cloud 
 
 **Source:** `.github/workflows/google-cloudrun-docker.yml`
 
-| Configuration | Purpose |
-|---------------|---------|
+| Configuration                | Purpose                            |
+| ---------------------------- | ---------------------------------- |
 | Workload Identity Federation | OIDC authentication for deployment |
-| Artifact Registry | Container image storage |
-| Cloud Run Service | Serverless container hosting |
+| Artifact Registry            | Container image storage            |
+| Cloud Run Service            | Serverless container hosting       |
 
 **Required Google Cloud APIs:**
+
 - Artifact Registry API
 - Cloud Run Admin API
 - IAM Credentials API
@@ -10747,22 +10764,22 @@ A deployment template is available for Google Cloud Run as an alternative cloud 
 
 #### 8.3.4.1 Vercel Cost Considerations
 
-| Resource | Hobby (Free) | Pro ($20/user/month) | Optimization Strategy |
-|----------|--------------|---------------------|----------------------|
-| **Bandwidth** | 100 GB/month | 1 TB/month | Enable compression, optimize assets |
-| **Function Invocations** | 150K/month | 1M/month | Implement caching |
-| **Active CPU Time** | Limited | 40 hours/month | Optimize function execution |
-| **Edge Requests** | Included | 10M/month | Static asset CDN caching |
+| Resource                 | Hobby (Free) | Pro ($20/user/month) | Optimization Strategy               |
+| ------------------------ | ------------ | -------------------- | ----------------------------------- |
+| **Bandwidth**            | 100 GB/month | 1 TB/month           | Enable compression, optimize assets |
+| **Function Invocations** | 150K/month   | 1M/month             | Implement caching                   |
+| **Active CPU Time**      | Limited      | 40 hours/month       | Optimize function execution         |
+| **Edge Requests**        | Included     | 10M/month            | Static asset CDN caching            |
 
 #### 8.3.4.2 Infrastructure Cost Estimates
 
-| Deployment Model | Monthly Cost Estimate | Best For |
-|------------------|----------------------|----------|
-| **Local Development** | $0 | Development, testing |
-| **Vercel Hobby** | $0 | Personal projects, demos |
-| **Vercel Pro** | $20/user | Small teams, production |
+| Deployment Model       | Monthly Cost Estimate    | Best For                  |
+| ---------------------- | ------------------------ | ------------------------- |
+| **Local Development**  | $0                       | Development, testing      |
+| **Vercel Hobby**       | $0                       | Personal projects, demos  |
+| **Vercel Pro**         | $20/user                 | Small teams, production   |
 | **Docker Self-Hosted** | Infrastructure cost only | Full control requirements |
-| **Google Cloud Run** | ~$5-50 (usage-based) | GCP ecosystem integration |
+| **Google Cloud Run**   | ~$5-50 (usage-based)     | GCP ecosystem integration |
 
 ---
 
@@ -10776,11 +10793,11 @@ The system uses Docker for containerization, providing consistent runtime enviro
 
 **Source:** `Dockerfile`
 
-| Attribute | Value | Rationale |
-|-----------|-------|-----------|
-| **Base Image** | `python:3.11-slim` | Minimal attack surface, small image size |
-| **Python Version** | 3.11 | Stable, performance improvements |
-| **Image Variant** | `slim` | No unnecessary development tools |
+| Attribute          | Value              | Rationale                                |
+| ------------------ | ------------------ | ---------------------------------------- |
+| **Base Image**     | `python:3.11-slim` | Minimal attack surface, small image size |
+| **Python Version** | 3.11               | Stable, performance improvements         |
+| **Image Variant**  | `slim`             | No unnecessary development tools         |
 
 #### 8.4.1.2 Container Security Architecture
 
@@ -10816,26 +10833,26 @@ flowchart TB
 
 **Security Measures Implementation:**
 
-| Security Measure | Implementation | Protection |
-|------------------|----------------|------------|
-| Non-root User | `useradd -m -u 1000 appuser` | Privilege escalation prevention |
-| Minimal Base Image | `python:3.11-slim` | Reduced attack surface |
-| No Cache | `pip install --no-cache-dir` | No sensitive data in layers |
-| Health Checks | `HEALTHCHECK` instruction | Container orchestration support |
-| No Bytecode | `PYTHONDONTWRITEBYTECODE=1` | Cleaner runtime |
-| Unbuffered Output | `PYTHONUNBUFFERED=1` | Real-time logging |
+| Security Measure   | Implementation               | Protection                      |
+| ------------------ | ---------------------------- | ------------------------------- |
+| Non-root User      | `useradd -m -u 1000 appuser` | Privilege escalation prevention |
+| Minimal Base Image | `python:3.11-slim`           | Reduced attack surface          |
+| No Cache           | `pip install --no-cache-dir` | No sensitive data in layers     |
+| Health Checks      | `HEALTHCHECK` instruction    | Container orchestration support |
+| No Bytecode        | `PYTHONDONTWRITEBYTECODE=1`  | Cleaner runtime                 |
+| Unbuffered Output  | `PYTHONUNBUFFERED=1`         | Real-time logging               |
 
 #### 8.4.1.3 Dockerfile Configuration
 
-| Configuration | Value | Purpose |
-|---------------|-------|---------|
-| Working Directory | `/app` | Application root |
-| User | `appuser` (UID 1000) | Non-root execution |
-| Exposed Port | 7860 | Gradio interface |
-| Health Check Interval | 30 seconds | Container health monitoring |
-| Health Check Timeout | 10 seconds | Probe timeout |
-| Health Check Retries | 3 | Failures before unhealthy |
-| Health Check Start Period | 5 seconds | Startup grace period |
+| Configuration             | Value                | Purpose                     |
+| ------------------------- | -------------------- | --------------------------- |
+| Working Directory         | `/app`               | Application root            |
+| User                      | `appuser` (UID 1000) | Non-root execution          |
+| Exposed Port              | 7860                 | Gradio interface            |
+| Health Check Interval     | 30 seconds           | Container health monitoring |
+| Health Check Timeout      | 10 seconds           | Probe timeout               |
+| Health Check Retries      | 3                    | Failures before unhealthy   |
+| Health Check Start Period | 5 seconds            | Startup grace period        |
 
 ### 8.4.2 Docker Compose Configuration
 
@@ -10843,61 +10860,61 @@ flowchart TB
 
 #### 8.4.2.1 Service Definition
 
-| Service | Image | Ports | Restart Policy |
-|---------|-------|-------|----------------|
-| `app` | `financial-asset-db:latest` | `7860:7860` | `unless-stopped` |
-| `postgres` (optional) | `postgres:15-alpine` | `5432:5432` | `unless-stopped` |
+| Service               | Image                       | Ports       | Restart Policy   |
+| --------------------- | --------------------------- | ----------- | ---------------- |
+| `app`                 | `financial-asset-db:latest` | `7860:7860` | `unless-stopped` |
+| `postgres` (optional) | `postgres:15-alpine`        | `5432:5432` | `unless-stopped` |
 
 #### 8.4.2.2 Volume Configuration
 
-| Volume Mount | Purpose | Persistence |
-|--------------|---------|-------------|
-| `./src:/app/src` | Application source | Development hot-reload |
-| `./data:/app/data` | Data persistence | Cache and database files |
+| Volume Mount       | Purpose            | Persistence              |
+| ------------------ | ------------------ | ------------------------ |
+| `./src:/app/src`   | Application source | Development hot-reload   |
+| `./data:/app/data` | Data persistence   | Cache and database files |
 
 #### 8.4.2.3 Health Check Configuration
 
-| Parameter | Value | Purpose |
-|-----------|-------|---------|
-| Test Command | `curl -f http://localhost:7860/` | HTTP health probe |
-| Interval | 30 seconds | Check frequency |
-| Timeout | 10 seconds | Maximum probe duration |
-| Retries | 3 | Failures before unhealthy |
-| Start Period | 40 seconds | Startup grace period |
+| Parameter    | Value                            | Purpose                   |
+| ------------ | -------------------------------- | ------------------------- |
+| Test Command | `curl -f http://localhost:7860/` | HTTP health probe         |
+| Interval     | 30 seconds                       | Check frequency           |
+| Timeout      | 10 seconds                       | Maximum probe duration    |
+| Retries      | 3                                | Failures before unhealthy |
+| Start Period | 40 seconds                       | Startup grace period      |
 
 ### 8.4.3 Image Versioning Approach
 
-| Version Pattern | Example | Use Case |
-|-----------------|---------|----------|
-| `latest` | `financial-asset-db:latest` | Development, CI |
-| Semantic Version | `financial-asset-db:v1.2.3` | Production releases |
-| Git SHA | `financial-asset-db:abc1234` | Traceability |
-| Date-based | `financial-asset-db:2025-01-03` | Scheduled builds |
+| Version Pattern  | Example                         | Use Case            |
+| ---------------- | ------------------------------- | ------------------- |
+| `latest`         | `financial-asset-db:latest`     | Development, CI     |
+| Semantic Version | `financial-asset-db:v1.2.3`     | Production releases |
+| Git SHA          | `financial-asset-db:abc1234`    | Traceability        |
+| Date-based       | `financial-asset-db:2025-01-03` | Scheduled builds    |
 
 ### 8.4.4 Build Optimization Techniques
 
-| Technique | Implementation | Benefit |
-|-----------|----------------|---------|
-| Multi-stage builds | Separate build and runtime stages | Smaller final image |
-| Layer caching | Order Dockerfile commands strategically | Faster rebuilds |
-| `.dockerignore` | Exclude unnecessary files | Smaller build context |
-| Dependency pinning | Exact versions in requirements.txt | Reproducible builds |
+| Technique          | Implementation                          | Benefit               |
+| ------------------ | --------------------------------------- | --------------------- |
+| Multi-stage builds | Separate build and runtime stages       | Smaller final image   |
+| Layer caching      | Order Dockerfile commands strategically | Faster rebuilds       |
+| `.dockerignore`    | Exclude unnecessary files               | Smaller build context |
+| Dependency pinning | Exact versions in requirements.txt      | Reproducible builds   |
 
 ### 8.4.5 Security Scanning Requirements
 
-| Tool | Workflow | Trigger | Severity |
-|------|----------|---------|----------|
-| Trivy | `.github/workflows/trivy.yml` | Push, PR, Weekly schedule | CRITICAL, HIGH |
-| Hadolint | `.github/workflows/hadolint.yml` | Push, PR | All levels |
-| Snyk Container | `.github/workflows/snyk-container.yml` | Push, PR | CRITICAL, HIGH |
+| Tool           | Workflow                               | Trigger                   | Severity       |
+| -------------- | -------------------------------------- | ------------------------- | -------------- |
+| Trivy          | `.github/workflows/trivy.yml`          | Push, PR, Weekly schedule | CRITICAL, HIGH |
+| Hadolint       | `.github/workflows/hadolint.yml`       | Push, PR                  | All levels     |
+| Snyk Container | `.github/workflows/snyk-container.yml` | Push, PR                  | CRITICAL, HIGH |
 
 **Scanning Schedule:**
 
-| Scan Type | Frequency | Configuration |
-|-----------|-----------|---------------|
-| On-demand | Every push/PR | Immediate feedback |
+| Scan Type | Frequency                   | Configuration                       |
+| --------- | --------------------------- | ----------------------------------- |
+| On-demand | Every push/PR               | Immediate feedback                  |
 | Scheduled | Weekly (Saturday 14:30 UTC) | Continuous vulnerability monitoring |
-| Nightly | Daily (02:00 UTC) | Security regression detection |
+| Nightly   | Daily (02:00 UTC)           | Security regression detection       |
 
 ---
 
@@ -10909,15 +10926,16 @@ The system uses **Docker Compose** for container orchestration rather than Kuber
 
 #### 8.5.1.1 Platform Justification
 
-| Factor | Docker Compose | Kubernetes |
-|--------|----------------|------------|
-| **Complexity** | Low | High |
-| **Scale Target** | < 500 assets | Enterprise-scale |
-| **Operational Overhead** | Minimal | Significant |
-| **Learning Curve** | Gentle | Steep |
-| **Current Fit** | ✅ Optimal | ❌ Over-engineered |
+| Factor                   | Docker Compose | Kubernetes         |
+| ------------------------ | -------------- | ------------------ |
+| **Complexity**           | Low            | High               |
+| **Scale Target**         | < 500 assets   | Enterprise-scale   |
+| **Operational Overhead** | Minimal        | Significant        |
+| **Learning Curve**       | Gentle         | Steep              |
+| **Current Fit**          | ✅ Optimal     | ❌ Over-engineered |
 
 **Rationale from Architecture:**
+
 - Monolithic core architecture optimized for < 500 assets
 - Single deployable Python process with modular packages
 - Simplifies deployment for current scale
@@ -10957,21 +10975,21 @@ flowchart TB
 
 #### 8.5.2.1 Current Services
 
-| Service | Purpose | Dependencies | Health Check |
-|---------|---------|--------------|--------------|
-| `app` | Primary application | None | HTTP probe |
-| `postgres` (optional) | Database persistence | None | TCP probe |
+| Service               | Purpose              | Dependencies | Health Check |
+| --------------------- | -------------------- | ------------ | ------------ |
+| `app`                 | Primary application  | None         | HTTP probe   |
+| `postgres` (optional) | Database persistence | None         | TCP probe    |
 
 ### 8.5.3 Auto-Scaling Configuration
 
 #### 8.5.3.1 Vercel Auto-Scaling
 
-| Scaling Aspect | Configuration | Behavior |
-|----------------|---------------|----------|
-| Function Instances | Automatic | Scale to zero, scale up on demand |
-| Cold Start | Expected | First request may have latency |
-| Concurrent Requests | Platform-managed | Automatic instance distribution |
-| Geographic Distribution | Automatic | Route to nearest edge |
+| Scaling Aspect          | Configuration    | Behavior                          |
+| ----------------------- | ---------------- | --------------------------------- |
+| Function Instances      | Automatic        | Scale to zero, scale up on demand |
+| Cold Start              | Expected         | First request may have latency    |
+| Concurrent Requests     | Platform-managed | Automatic instance distribution   |
+| Geographic Distribution | Automatic        | Route to nearest edge             |
 
 #### 8.5.3.2 Docker Manual Scaling
 
@@ -10980,22 +10998,22 @@ flowchart TB
 docker-compose up --scale app=3 -d
 ```
 
-| Consideration | Current State | Production Recommendation |
-|---------------|---------------|---------------------------|
-| Load Balancing | Not configured | Add nginx/traefik for multi-instance |
-| Session Affinity | N/A (stateless JWT) | Not required |
-| Health-based Routing | Docker health checks | Configure orchestrator probes |
+| Consideration        | Current State        | Production Recommendation            |
+| -------------------- | -------------------- | ------------------------------------ |
+| Load Balancing       | Not configured       | Add nginx/traefik for multi-instance |
+| Session Affinity     | N/A (stateless JWT)  | Not required                         |
+| Health-based Routing | Docker health checks | Configure orchestrator probes        |
 
 ### 8.5.4 Future Kubernetes Support
 
 A Kubernetes deployment template is documented in `DOCKER.md` for future enterprise deployments:
 
-| Resource | Configuration |
-|----------|---------------|
+| Resource   | Configuration                       |
+| ---------- | ----------------------------------- |
 | Deployment | 3 replicas, rolling update strategy |
-| Service | ClusterIP, port 7860 |
-| ConfigMap | Environment variables |
-| Secret | Sensitive credentials |
+| Service    | ClusterIP, port 7860                |
+| ConfigMap  | Environment variables               |
+| Secret     | Sensitive credentials               |
 
 ---
 
@@ -11055,82 +11073,82 @@ flowchart TB
 
 #### 8.6.2.1 Source Control Triggers
 
-| Trigger | Event | Branches | Actions |
-|---------|-------|----------|---------|
-| Push | Code push | `main` | Full CI pipeline |
-| Pull Request | PR opened/updated | `main` | CI + preview deployment |
-| Schedule | Cron | `main` | Security scans (nightly) |
-| Tag | Version tag | `v*.*.*` | Release build + publish |
-| Manual | `workflow_dispatch` | Selected | On-demand execution |
+| Trigger      | Event               | Branches | Actions                  |
+| ------------ | ------------------- | -------- | ------------------------ |
+| Push         | Code push           | `main`   | Full CI pipeline         |
+| Pull Request | PR opened/updated   | `main`   | CI + preview deployment  |
+| Schedule     | Cron                | `main`   | Security scans (nightly) |
+| Tag          | Version tag         | `v*.*.*` | Release build + publish  |
+| Manual       | `workflow_dispatch` | Selected | On-demand execution      |
 
 #### 8.6.2.2 Build Environment Requirements
 
 **Python Environment Matrix:**
 
-| Version | Status | Purpose |
-|---------|--------|---------|
-| Python 3.10 | ✅ Tested | Legacy support |
-| Python 3.11 | ✅ Primary | Production runtime |
-| Python 3.12 | ✅ Tested | Forward compatibility |
+| Version     | Status     | Purpose               |
+| ----------- | ---------- | --------------------- |
+| Python 3.10 | ✅ Tested  | Legacy support        |
+| Python 3.11 | ✅ Primary | Production runtime    |
+| Python 3.12 | ✅ Tested  | Forward compatibility |
 
 **Node.js Environment Matrix:**
 
-| Version | Status | Purpose |
-|---------|--------|---------|
-| Node.js 18.x | ✅ Tested | LTS support |
-| Node.js 20.x | ✅ Primary | Current LTS |
-| Node.js 22.x | ✅ Tested | Forward compatibility |
+| Version      | Status     | Purpose               |
+| ------------ | ---------- | --------------------- |
+| Node.js 18.x | ✅ Tested  | LTS support           |
+| Node.js 20.x | ✅ Primary | Current LTS           |
+| Node.js 22.x | ✅ Tested  | Forward compatibility |
 
 #### 8.6.2.3 Dependency Management
 
 **Python Dependencies (requirements.txt):**
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `fastapi` | ==0.127.0 | API framework (pinned) |
-| `pydantic` | ==2.12.5 | Data validation (pinned) |
-| `numpy` | ==2.2.6 | Numerical computing (pinned) |
-| `gradio` | >=4.0.0,<6.0.0 | Legacy UI |
-| `plotly` | >=6.0.0 | Visualization |
-| `yfinance` | >=0.2.51 | Financial data |
-| `PyJWT` | >=2.8.0 | Authentication |
-| `passlib[bcrypt]` | >=1.7.4 | Password hashing |
-| `slowapi` | >=0.1.4 | Rate limiting |
-| `urllib3` | >=2.6.0 | Security pin |
-| `zipp` | >=3.19.1 | Security pin |
+| Package           | Version        | Purpose                      |
+| ----------------- | -------------- | ---------------------------- |
+| `fastapi`         | ==0.127.0      | API framework (pinned)       |
+| `pydantic`        | ==2.12.5       | Data validation (pinned)     |
+| `numpy`           | ==2.2.6        | Numerical computing (pinned) |
+| `gradio`          | >=4.0.0,<6.0.0 | Legacy UI                    |
+| `plotly`          | >=6.0.0        | Visualization                |
+| `yfinance`        | >=0.2.51       | Financial data               |
+| `PyJWT`           | >=2.8.0        | Authentication               |
+| `passlib[bcrypt]` | >=1.7.4        | Password hashing             |
+| `slowapi`         | >=0.1.4        | Rate limiting                |
+| `urllib3`         | >=2.6.0        | Security pin                 |
+| `zipp`            | >=3.19.1       | Security pin                 |
 
 **Frontend Dependencies (package.json):**
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `next` | ^14.2.35 | React framework |
-| `react` | ^18.2.0 | UI library |
-| `axios` | ^1.6.0 | HTTP client |
-| `plotly.js` | ^2.27.0 | Visualization |
-| `jest` | ^29.7.0 | Test runner |
-| `typescript` | ^5.3.0 | Type checking |
+| Package      | Version  | Purpose         |
+| ------------ | -------- | --------------- |
+| `next`       | ^14.2.35 | React framework |
+| `react`      | ^18.2.0  | UI library      |
+| `axios`      | ^1.6.0   | HTTP client     |
+| `plotly.js`  | ^2.27.0  | Visualization   |
+| `jest`       | ^29.7.0  | Test runner     |
+| `typescript` | ^5.3.0   | Type checking   |
 
 #### 8.6.2.4 Quality Gates
 
-| Gate | Tool | Threshold | Blocking |
-|------|------|-----------|----------|
-| Critical Lint Errors | flake8 | 0 errors | Yes |
-| Full Lint | flake8 + statistics | Pass | Yes |
-| Formatting | black --check | 100% | Yes |
-| Import Sorting | isort --check-only | 100% | Yes |
-| Static Analysis | pylint | >= 7.0 score | Yes |
-| Type Checking | mypy | Pass | Yes |
-| Unit Tests | pytest | 100% pass | Yes |
-| Coverage | Codecov | 80%+ target | Warning |
+| Gate                 | Tool                | Threshold    | Blocking |
+| -------------------- | ------------------- | ------------ | -------- |
+| Critical Lint Errors | flake8              | 0 errors     | Yes      |
+| Full Lint            | flake8 + statistics | Pass         | Yes      |
+| Formatting           | black --check       | 100%         | Yes      |
+| Import Sorting       | isort --check-only  | 100%         | Yes      |
+| Static Analysis      | pylint              | >= 7.0 score | Yes      |
+| Type Checking        | mypy                | Pass         | Yes      |
+| Unit Tests           | pytest              | 100% pass    | Yes      |
+| Coverage             | Codecov             | 80%+ target  | Warning  |
 
 #### 8.6.2.5 Artifact Generation and Storage
 
-| Artifact | Destination | Trigger | Retention |
-|----------|-------------|---------|-----------|
-| Coverage Reports (XML/HTML) | Codecov, GitHub Artifacts | Test completion | 90 days |
-| Docker Images | GHCR (ghcr.io) | Push to main, tags | Permanent |
-| Security Scan Results | SARIF → GitHub Security | Push/PR | 90 days |
-| Build Outputs | CircleCI Artifacts | Build completion | 30 days |
+| Artifact                    | Destination               | Trigger            | Retention |
+| --------------------------- | ------------------------- | ------------------ | --------- |
+| Coverage Reports (XML/HTML) | Codecov, GitHub Artifacts | Test completion    | 90 days   |
+| Docker Images               | GHCR (ghcr.io)            | Push to main, tags | Permanent |
+| Security Scan Results       | SARIF → GitHub Security   | Push/PR            | 90 days   |
+| Build Outputs               | CircleCI Artifacts        | Build completion   | 30 days   |
 
 ### 8.6.3 GitHub Actions Primary Pipeline
 
@@ -11142,9 +11160,9 @@ flowchart TB
 name: Python CI
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 permissions:
   contents: read
 concurrency:
@@ -11154,11 +11172,11 @@ concurrency:
 
 #### 8.6.3.2 Job Structure
 
-| Job | Actions | Dependencies |
-|-----|---------|--------------|
-| `test` | Lint, format check, type check, pytest | None |
-| `security` | safety, bandit | test |
-| `coverage` | Codecov upload | test |
+| Job        | Actions                                | Dependencies |
+| ---------- | -------------------------------------- | ------------ |
+| `test`     | Lint, format check, type check, pytest | None         |
+| `security` | safety, bandit                         | test         |
+| `coverage` | Codecov upload                         | test         |
 
 ### 8.6.4 CircleCI Secondary Pipeline
 
@@ -11166,21 +11184,21 @@ concurrency:
 
 #### 8.6.4.1 Executor Configuration
 
-| Executor | Image | Purpose |
-|----------|-------|---------|
-| `python-executor` | `cimg/python:3.11` | Python jobs |
-| `node-executor` | `cimg/node:18.19` | Node.js jobs |
+| Executor          | Image              | Purpose      |
+| ----------------- | ------------------ | ------------ |
+| `python-executor` | `cimg/python:3.11` | Python jobs  |
+| `node-executor`   | `cimg/node:18.19`  | Node.js jobs |
 
 #### 8.6.4.2 Job Definitions
 
-| Job | Actions | Parallelism |
-|-----|---------|-------------|
-| `python-lint` | flake8 (critical errors) | 1 |
-| `python-test` | pytest with coverage | 4 |
-| `python-security` | safety + bandit | 1 |
-| `frontend-lint` | npm run lint | 1 |
-| `frontend-build` | npm run build | 1 |
-| `docker-build` | Build + smoke test | 1 |
+| Job               | Actions                  | Parallelism |
+| ----------------- | ------------------------ | ----------- |
+| `python-lint`     | flake8 (critical errors) | 1           |
+| `python-test`     | pytest with coverage     | 4           |
+| `python-security` | safety + bandit          | 1           |
+| `frontend-lint`   | npm run lint             | 1           |
+| `frontend-build`  | npm run build            | 1           |
+| `docker-build`    | Build + smoke test       | 1           |
 
 #### 8.6.4.3 Workflow Definitions
 
@@ -11207,19 +11225,19 @@ flowchart LR
 
 **Source:** `.github/workflows/docker-publish.yml`
 
-| Configuration | Value | Purpose |
-|---------------|-------|---------|
-| Registry | `ghcr.io` | GitHub Container Registry |
-| Image Name | `${{ github.repository }}` | Repository-based naming |
-| Signing | `sigstore/cosign` | Supply chain security |
+| Configuration | Value                      | Purpose                   |
+| ------------- | -------------------------- | ------------------------- |
+| Registry      | `ghcr.io`                  | GitHub Container Registry |
+| Image Name    | `${{ github.repository }}` | Repository-based naming   |
+| Signing       | `sigstore/cosign`          | Supply chain security     |
 
 **Triggers:**
 
-| Trigger | Condition | Action |
-|---------|-----------|--------|
-| Schedule | Daily 15:27 UTC | Regular builds |
-| Push | `main` branch, Docker paths | Auto-publish |
-| Tag | `v*.*.*` pattern | Versioned release |
+| Trigger  | Condition                   | Action            |
+| -------- | --------------------------- | ----------------- |
+| Schedule | Daily 15:27 UTC             | Regular builds    |
+| Push     | `main` branch, Docker paths | Auto-publish      |
+| Tag      | `v*.*.*` pattern            | Versioned release |
 
 **Publishing Steps:**
 
@@ -11235,12 +11253,12 @@ flowchart LR
 
 **GitHub Integration (Recommended):**
 
-| Step | Action | Outcome |
-|------|--------|---------|
-| 1 | Push to GitHub | Triggers deployment |
-| 2 | Vercel build | Frontend + API compiled |
-| 3 | Preview URL | PR gets unique preview |
-| 4 | Production deploy | Main branch auto-deploys |
+| Step | Action            | Outcome                  |
+| ---- | ----------------- | ------------------------ |
+| 1    | Push to GitHub    | Triggers deployment      |
+| 2    | Vercel build      | Frontend + API compiled  |
+| 3    | Preview URL       | PR gets unique preview   |
+| 4    | Production deploy | Main branch auto-deploys |
 
 **CLI Deployment:**
 
@@ -11253,11 +11271,11 @@ vercel --prod   # Production deployment
 
 #### 8.6.5.3 Deployment Strategy Comparison
 
-| Environment | Strategy | Rollback | Downtime |
-|-------------|----------|----------|----------|
-| Vercel | Instant replacement | Promote previous | Zero |
-| Docker | Build and restart | Previous image tag | Minimal |
-| Cloud Run | Blue-green traffic split | Revert traffic | Zero |
+| Environment | Strategy                 | Rollback           | Downtime |
+| ----------- | ------------------------ | ------------------ | -------- |
+| Vercel      | Instant replacement      | Promote previous   | Zero     |
+| Docker      | Build and restart        | Previous image tag | Minimal  |
+| Cloud Run   | Blue-green traffic split | Revert traffic     | Zero     |
 
 ### 8.6.6 Environment Promotion Workflow
 
@@ -11304,12 +11322,12 @@ flowchart TB
 
 #### 8.6.7.1 Vercel Rollback
 
-| Step | Action | Location |
-|------|--------|----------|
-| 1 | Navigate to Vercel Dashboard | vercel.com |
-| 2 | Select Deployments tab | Project settings |
-| 3 | Find previous working deployment | Deployment history |
-| 4 | Click "Promote to Production" | Deployment actions |
+| Step | Action                           | Location           |
+| ---- | -------------------------------- | ------------------ |
+| 1    | Navigate to Vercel Dashboard     | vercel.com         |
+| 2    | Select Deployments tab           | Project settings   |
+| 3    | Find previous working deployment | Deployment history |
+| 4    | Click "Promote to Production"    | Deployment actions |
 
 #### 8.6.7.2 Docker Rollback
 
@@ -11326,24 +11344,24 @@ docker run -d -p 7860:7860 ghcr.io/<repo>:<previous-tag>
 
 ### 8.6.8 Post-Deployment Validation
 
-| Check | Endpoint | Expected Result | Timeout |
-|-------|----------|-----------------|---------|
-| Health Check | `/api/health` | `{"status": "healthy"}` | 5s |
-| API Docs | `/docs` | OpenAPI documentation loads | 10s |
-| Frontend Load | `/` | Page renders | 3s |
-| 3D Visualization | Tab interaction | Renders smoothly | 5s |
-| Authentication | `/token` | Returns JWT | 2s |
+| Check            | Endpoint        | Expected Result             | Timeout |
+| ---------------- | --------------- | --------------------------- | ------- |
+| Health Check     | `/api/health`   | `{"status": "healthy"}`     | 5s      |
+| API Docs         | `/docs`         | OpenAPI documentation loads | 10s     |
+| Frontend Load    | `/`             | Page renders                | 3s      |
+| 3D Visualization | Tab interaction | Renders smoothly            | 5s      |
+| Authentication   | `/token`        | Returns JWT                 | 2s      |
 
 ### 8.6.9 Reusable CI Components
 
 **Source:** `.github/actions/ci-common/action.yml`
 
-| Feature | Description |
-|---------|-------------|
-| Language Support | Python or Node.js |
-| Caching | pip/npm cache integration |
-| Configurable Commands | Install, build, test |
-| Error Handling | `set -euo pipefail` strict mode |
+| Feature               | Description                     |
+| --------------------- | ------------------------------- |
+| Language Support      | Python or Node.js               |
+| Caching               | pip/npm cache integration       |
+| Configurable Commands | Install, build, test            |
+| Error Handling        | `set -euo pipefail` strict mode |
 
 ---
 
@@ -11392,11 +11410,11 @@ flowchart TB
 
 #### 8.7.2.1 Health Check Implementation
 
-| Level | Implementation | Configuration |
-|-------|----------------|---------------|
-| API Endpoint | `GET /api/health` | Returns status and graph state |
-| Docker | `HEALTHCHECK` instruction | 30s interval, 10s timeout |
-| Docker Compose | `healthcheck` service config | 40s start period |
+| Level          | Implementation               | Configuration                  |
+| -------------- | ---------------------------- | ------------------------------ |
+| API Endpoint   | `GET /api/health`            | Returns status and graph state |
+| Docker         | `HEALTHCHECK` instruction    | 30s interval, 10s timeout      |
+| Docker Compose | `healthcheck` service config | 40s start period               |
 
 **Health Response Schema:**
 
@@ -11411,110 +11429,110 @@ flowchart TB
 
 **Endpoint:** `GET /api/metrics`
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `total_assets` | Counter | Count of nodes in graph |
-| `total_relationships` | Counter | Count of edges in graph |
-| `asset_classes` | Dictionary | Count per asset class |
-| `avg_degree` | Gauge | Mean connections per node |
-| `max_degree` | Gauge | Highest connected node |
-| `network_density` | Gauge | Edge ratio metric |
-| `relationship_density` | Gauge | Calculated density |
+| Metric                 | Type       | Description               |
+| ---------------------- | ---------- | ------------------------- |
+| `total_assets`         | Counter    | Count of nodes in graph   |
+| `total_relationships`  | Counter    | Count of edges in graph   |
+| `asset_classes`        | Dictionary | Count per asset class     |
+| `avg_degree`           | Gauge      | Mean connections per node |
+| `max_degree`           | Gauge      | Highest connected node    |
+| `network_density`      | Gauge      | Edge ratio metric         |
+| `relationship_density` | Gauge      | Calculated density        |
 
 ### 8.7.3 Performance Metrics and SLAs
 
-| Operation | Target SLA | Measurement Point |
-|-----------|-----------|-------------------|
-| API Response (p95) | < 500ms | Request to response |
-| Visualization Rendering | < 2 seconds | Data load to interactive |
-| Token Generation | < 100ms | Credential to token |
-| Graph Initialization | < 3 seconds | Application startup |
-| Relationship Discovery | < 500ms | For 100 assets |
-| Initial Page Load | < 3 seconds | Navigation to interactive |
+| Operation               | Target SLA  | Measurement Point         |
+| ----------------------- | ----------- | ------------------------- |
+| API Response (p95)      | < 500ms     | Request to response       |
+| Visualization Rendering | < 2 seconds | Data load to interactive  |
+| Token Generation        | < 100ms     | Credential to token       |
+| Graph Initialization    | < 3 seconds | Application startup       |
+| Relationship Discovery  | < 500ms     | For 100 assets            |
+| Initial Page Load       | < 3 seconds | Navigation to interactive |
 
 ### 8.7.4 Logging Configuration
 
 #### 8.7.4.1 Backend Logging
 
-| Setting | Value | Location |
-|---------|-------|----------|
-| Level | `INFO` | `api/main.py` |
-| Logger | `logging.getLogger(__name__)` | Module-specific |
-| Format | Python default | Standard library |
+| Setting | Value                         | Location         |
+| ------- | ----------------------------- | ---------------- |
+| Level   | `INFO`                        | `api/main.py`    |
+| Logger  | `logging.getLogger(__name__)` | Module-specific  |
+| Format  | Python default                | Standard library |
 
 #### 8.7.4.2 Log Point Catalog
 
-| Log Point | Level | Content | Location |
-|-----------|-------|---------|----------|
-| Graph initialization | INFO | Success/failure | `api/main.py` |
-| Application startup | INFO | Server binding, port | `api/main.py` |
-| Application shutdown | INFO | Shutdown notification | `api/main.py` |
-| Cache operations | INFO | Load/save success | `real_data_fetcher.py` |
-| Authentication failures | WARNING | Failed login attempts | `api/auth.py` |
-| Invalid CORS origins | WARNING | Skipped origin | `api/main.py` |
-| Request errors | ERROR | Exception details | `api/main.py` |
+| Log Point               | Level   | Content               | Location               |
+| ----------------------- | ------- | --------------------- | ---------------------- |
+| Graph initialization    | INFO    | Success/failure       | `api/main.py`          |
+| Application startup     | INFO    | Server binding, port  | `api/main.py`          |
+| Application shutdown    | INFO    | Shutdown notification | `api/main.py`          |
+| Cache operations        | INFO    | Load/save success     | `real_data_fetcher.py` |
+| Authentication failures | WARNING | Failed login attempts | `api/auth.py`          |
+| Invalid CORS origins    | WARNING | Skipped origin        | `api/main.py`          |
+| Request errors          | ERROR   | Exception details     | `api/main.py`          |
 
 ### 8.7.5 Security Monitoring
 
 #### 8.7.5.1 CI/CD Security Scanning Matrix
 
-| Tool | Workflow | Purpose | Trigger |
-|------|----------|---------|---------|
-| Bandit | `bandit.yml` | Python SAST | Push/PR |
-| CodeQL | `codeql.yml` | Multi-language SAST | Push/PR/Schedule |
-| Semgrep | `semgrep.yml` | Pattern detection | Push/PR |
-| Trivy | `trivy.yml` | Container scanning | Push/PR/Weekly |
-| Hadolint | `hadolint.yml` | Dockerfile linting | Push/PR |
-| Snyk | `snyk-security.yml` | Dependency scanning | Push/PR |
-| OSSF Scorecard | `scorecard.yml` | Supply chain | Push/Schedule |
-| DevSkim | `devskim.yml` | Security linting | Push/PR |
-| Safety | CircleCI | Python vulnerabilities | Nightly |
+| Tool           | Workflow            | Purpose                | Trigger          |
+| -------------- | ------------------- | ---------------------- | ---------------- |
+| Bandit         | `bandit.yml`        | Python SAST            | Push/PR          |
+| CodeQL         | `codeql.yml`        | Multi-language SAST    | Push/PR/Schedule |
+| Semgrep        | `semgrep.yml`       | Pattern detection      | Push/PR          |
+| Trivy          | `trivy.yml`         | Container scanning     | Push/PR/Weekly   |
+| Hadolint       | `hadolint.yml`      | Dockerfile linting     | Push/PR          |
+| Snyk           | `snyk-security.yml` | Dependency scanning    | Push/PR          |
+| OSSF Scorecard | `scorecard.yml`     | Supply chain           | Push/Schedule    |
+| DevSkim        | `devskim.yml`       | Security linting       | Push/PR          |
+| Safety         | CircleCI            | Python vulnerabilities | Nightly          |
 
 #### 8.7.5.2 SARIF Integration
 
 All security scans upload results to GitHub Advanced Security via SARIF format:
 
-| Configuration | Value |
-|---------------|-------|
+| Configuration | Value                                  |
+| ------------- | -------------------------------------- |
 | Upload Action | `github/codeql-action/upload-sarif@v3` |
-| Permission | `security-events: write` |
-| Visibility | GitHub Security tab |
+| Permission    | `security-events: write`               |
+| Visibility    | GitHub Security tab                    |
 
 ### 8.7.6 Rate Limiting Monitoring
 
-| Endpoint | Limit | Window | Response |
-|----------|-------|--------|----------|
-| `POST /token` | 5 requests | 1 minute | 429 + Retry-After |
+| Endpoint            | Limit       | Window   | Response          |
+| ------------------- | ----------- | -------- | ----------------- |
+| `POST /token`       | 5 requests  | 1 minute | 429 + Retry-After |
 | `GET /api/users/me` | 10 requests | 1 minute | 429 + Retry-After |
 
 ### 8.7.7 Cost Monitoring
 
 #### 8.7.7.1 Vercel Cost Monitoring
 
-| Method | Implementation |
-|--------|----------------|
-| Usage Dashboard | Vercel project settings |
-| Spend Alerts | Email notifications at thresholds |
-| Budget Limits | $200 default on-demand cap |
-| Hard Limits | Optional auto-pause at 100% |
+| Method          | Implementation                    |
+| --------------- | --------------------------------- |
+| Usage Dashboard | Vercel project settings           |
+| Spend Alerts    | Email notifications at thresholds |
+| Budget Limits   | $200 default on-demand cap        |
+| Hard Limits     | Optional auto-pause at 100%       |
 
 #### 8.7.7.2 Container Registry Cost
 
-| Registry | Free Tier | Overage |
-|----------|-----------|---------|
-| GHCR (public) | Unlimited | N/A |
+| Registry       | Free Tier                   | Overage          |
+| -------------- | --------------------------- | ---------------- |
+| GHCR (public)  | Unlimited                   | N/A              |
 | GHCR (private) | 1 GB storage, 1 GB transfer | $0.25/GB storage |
 
 ### 8.7.8 Future Monitoring Recommendations
 
-| Component | Recommended Tool | Purpose |
-|-----------|------------------|---------|
-| Metrics Collection | Prometheus + prometheus-fastapi-instrumentator | RED metrics |
-| Distributed Tracing | OpenTelemetry | Request flow visualization |
-| Log Aggregation | Loki or ELK Stack | Centralized management |
-| Visualization | Grafana | Unified dashboard |
-| Error Tracking | Sentry | Exception monitoring |
-| Alerting | Prometheus Alertmanager | Automated notifications |
+| Component           | Recommended Tool                               | Purpose                    |
+| ------------------- | ---------------------------------------------- | -------------------------- |
+| Metrics Collection  | Prometheus + prometheus-fastapi-instrumentator | RED metrics                |
+| Distributed Tracing | OpenTelemetry                                  | Request flow visualization |
+| Log Aggregation     | Loki or ELK Stack                              | Centralized management     |
+| Visualization       | Grafana                                        | Unified dashboard          |
+| Error Tracking      | Sentry                                         | Exception monitoring       |
+| Alerting            | Prometheus Alertmanager                        | Automated notifications    |
 
 ---
 
@@ -11551,49 +11569,50 @@ flowchart TB
 
 ### 8.8.2 Primary Storage: In-Memory Graph
 
-| Attribute | Specification |
-|-----------|---------------|
-| Data Structure | `Dict[source_id, List[Tuple[target_id, rel_type, strength]]]` |
-| Implementation | `src/logic/asset_graph.py` |
-| Thread Safety | Double-checked locking singleton pattern |
-| Size Constraint | Optimal performance for < 500 nodes |
+| Attribute       | Specification                                                 |
+| --------------- | ------------------------------------------------------------- |
+| Data Structure  | `Dict[source_id, List[Tuple[target_id, rel_type, strength]]]` |
+| Implementation  | `src/logic/asset_graph.py`                                    |
+| Thread Safety   | Double-checked locking singleton pattern                      |
+| Size Constraint | Optimal performance for < 500 nodes                           |
 
 ### 8.8.3 SQLite Authentication Database
 
-| Attribute | Specification |
-|-----------|---------------|
-| Purpose | User credentials storage |
-| Implementation | `api/database.py` |
-| Environment Variable | `DATABASE_URL` |
-| Schema | `user_credentials` table |
+| Attribute            | Specification            |
+| -------------------- | ------------------------ |
+| Purpose              | User credentials storage |
+| Implementation       | `api/database.py`        |
+| Environment Variable | `DATABASE_URL`           |
+| Schema               | `user_credentials` table |
 
 ### 8.8.4 PostgreSQL (Optional Production)
 
-| Attribute | Specification |
-|-----------|---------------|
-| Image | `postgres:15-alpine` |
-| Database | `financial_assets` |
-| User | `finuser` |
-| Port | `5432` |
-| ORM | SQLAlchemy >= 2.0.0 |
+| Attribute | Specification        |
+| --------- | -------------------- |
+| Image     | `postgres:15-alpine` |
+| Database  | `financial_assets`   |
+| User      | `finuser`            |
+| Port      | `5432`               |
+| ORM       | SQLAlchemy >= 2.0.0  |
 
 **Database Schema (migrations/001_initial.sql):**
 
-| Table | Purpose |
-|-------|---------|
-| `assets` | Primary entity table |
-| `asset_relationships` | Directed edge table |
-| `regulatory_events` | Event records |
-| `regulatory_event_assets` | Junction table |
+| Table                     | Purpose              |
+| ------------------------- | -------------------- |
+| `assets`                  | Primary entity table |
+| `asset_relationships`     | Directed edge table  |
+| `regulatory_events`       | Event records        |
+| `regulatory_event_assets` | Junction table       |
 
 ### 8.8.5 Caching Strategy
 
-| Cache Type | Implementation | Configuration |
-|------------|----------------|---------------|
+| Cache Type      | Implementation          | Configuration          |
+| --------------- | ----------------------- | ---------------------- |
 | Real Data Cache | JSON with atomic writes | `REAL_DATA_CACHE_PATH` |
-| Graph Cache | JSON serialization | `GRAPH_CACHE_PATH` |
+| Graph Cache     | JSON serialization      | `GRAPH_CACHE_PATH`     |
 
 **Atomic Write Pattern:**
+
 1. Write to NamedTemporaryFile
 2. Flush and sync to disk
 3. `os.replace()` atomic rename
@@ -11607,50 +11626,50 @@ flowchart TB
 
 **Script:** `run-dev.sh`
 
-| Action | Command | Result |
-|--------|---------|--------|
-| Create venv | `python -m venv venv` | Virtual environment |
-| Activate venv | `source venv/bin/activate` | Environment active |
-| Install Python deps | `pip install -r requirements.txt` | Dependencies ready |
-| Start FastAPI | `uvicorn api.main:app --reload` | Backend on 8000 |
-| Install frontend deps | `npm install` | Node modules ready |
-| Start Next.js | `npm run dev` | Frontend on 3000 |
+| Action                | Command                           | Result              |
+| --------------------- | --------------------------------- | ------------------- |
+| Create venv           | `python -m venv venv`             | Virtual environment |
+| Activate venv         | `source venv/bin/activate`        | Environment active  |
+| Install Python deps   | `pip install -r requirements.txt` | Dependencies ready  |
+| Start FastAPI         | `uvicorn api.main:app --reload`   | Backend on 8000     |
+| Install frontend deps | `npm install`                     | Node modules ready  |
+| Start Next.js         | `npm run dev`                     | Frontend on 3000    |
 
 **Access Points:**
 
-| Service | URL | Purpose |
-|---------|-----|---------|
-| Frontend | http://localhost:3000 | User interface |
-| Backend API | http://localhost:8000 | API endpoints |
-| API Docs | http://localhost:8000/docs | OpenAPI documentation |
+| Service     | URL                        | Purpose               |
+| ----------- | -------------------------- | --------------------- |
+| Frontend    | http://localhost:3000      | User interface        |
+| Backend API | http://localhost:8000      | API endpoints         |
+| API Docs    | http://localhost:8000/docs | OpenAPI documentation |
 
 ### 8.9.2 Makefile Commands
 
-| Command | Description |
-|---------|-------------|
-| `make install` | Install production dependencies |
-| `make install-dev` | Install development dependencies |
-| `make test` | Run tests with coverage |
-| `make lint` | Run flake8 + pylint |
-| `make format` | Format with black + isort |
-| `make type-check` | Run mypy type checking |
-| `make check` | Full quality check pipeline |
-| `make docker-build` | Build Docker image |
-| `make docker-run` | Run Docker container |
-| `make docker-compose-up` | Start with docker-compose |
-| `make docker-shell` | Shell into container |
+| Command                  | Description                      |
+| ------------------------ | -------------------------------- |
+| `make install`           | Install production dependencies  |
+| `make install-dev`       | Install development dependencies |
+| `make test`              | Run tests with coverage          |
+| `make lint`              | Run flake8 + pylint              |
+| `make format`            | Format with black + isort        |
+| `make type-check`        | Run mypy type checking           |
+| `make check`             | Full quality check pipeline      |
+| `make docker-build`      | Build Docker image               |
+| `make docker-run`        | Run Docker container             |
+| `make docker-compose-up` | Start with docker-compose        |
+| `make docker-shell`      | Shell into container             |
 
 ### 8.9.3 Pre-Commit Hooks
 
 **Source:** `.pre-commit-config.yaml`
 
-| Hook | Tool | Version | Configuration |
-|------|------|---------|---------------|
-| Formatting | black | v25.12.0 | Python 3 |
-| Import Sorting | isort | v7.0.0 | profile: black |
-| Linting | flake8 | v7.3.0 | + flake8-docstrings |
-| Type Checking | mypy | v1.19.1 | --ignore-missing-imports |
-| Standard Hooks | pre-commit | latest | trailing-whitespace, end-of-file-fixer |
+| Hook           | Tool       | Version  | Configuration                          |
+| -------------- | ---------- | -------- | -------------------------------------- |
+| Formatting     | black      | v25.12.0 | Python 3                               |
+| Import Sorting | isort      | v7.0.0   | profile: black                         |
+| Linting        | flake8     | v7.3.0   | + flake8-docstrings                    |
+| Type Checking  | mypy       | v1.19.1  | --ignore-missing-imports               |
+| Standard Hooks | pre-commit | latest   | trailing-whitespace, end-of-file-fixer |
 
 ---
 
@@ -11706,19 +11725,19 @@ flowchart TB
 
 ### 8.10.2 Port Exposure Matrix
 
-| Port | Service | Protocol | External Access |
-|------|---------|----------|-----------------|
-| 3000 | Next.js Frontend | HTTP/HTTPS | Yes (via Vercel) |
-| 7860 | Gradio UI | HTTP | Yes (Docker) |
-| 8000 | FastAPI Backend | HTTP/HTTPS | Yes (via Vercel) |
-| 5432 | PostgreSQL | TCP | No (internal only) |
+| Port | Service          | Protocol   | External Access    |
+| ---- | ---------------- | ---------- | ------------------ |
+| 3000 | Next.js Frontend | HTTP/HTTPS | Yes (via Vercel)   |
+| 7860 | Gradio UI        | HTTP       | Yes (Docker)       |
+| 8000 | FastAPI Backend  | HTTP/HTTPS | Yes (via Vercel)   |
+| 5432 | PostgreSQL       | TCP        | No (internal only) |
 
 ### 8.10.3 CORS Configuration
 
 | Environment | HTTP localhost | HTTPS localhost | Vercel URLs | Custom HTTPS |
-|-------------|----------------|-----------------|-------------|--------------|
-| Development | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed |
-| Production | ❌ Rejected | ✅ Allowed | ✅ Allowed | ✅ Allowed |
+| ----------- | -------------- | --------------- | ----------- | ------------ |
+| Development | ✅ Allowed     | ✅ Allowed      | ✅ Allowed  | ✅ Allowed   |
+| Production  | ❌ Rejected    | ✅ Allowed      | ✅ Allowed  | ✅ Allowed   |
 
 ---
 
@@ -11726,22 +11745,22 @@ flowchart TB
 
 ### 8.11.1 Cost Comparison Matrix
 
-| Deployment Model | Fixed Monthly | Variable Costs | Best For |
-|------------------|---------------|----------------|----------|
-| **Local Development** | $0 | $0 | Development |
-| **Vercel Hobby** | $0 | Overages possible | Personal projects |
-| **Vercel Pro** | $20/user | Bandwidth, CPU overage | Small teams |
-| **Docker Self-Hosted** | Server cost | N/A | Full control |
-| **Google Cloud Run** | $0 | Usage-based (~$5-50/month) | GCP integration |
+| Deployment Model       | Fixed Monthly | Variable Costs             | Best For          |
+| ---------------------- | ------------- | -------------------------- | ----------------- |
+| **Local Development**  | $0            | $0                         | Development       |
+| **Vercel Hobby**       | $0            | Overages possible          | Personal projects |
+| **Vercel Pro**         | $20/user      | Bandwidth, CPU overage     | Small teams       |
+| **Docker Self-Hosted** | Server cost   | N/A                        | Full control      |
+| **Google Cloud Run**   | $0            | Usage-based (~$5-50/month) | GCP integration   |
 
 ### 8.11.2 Resource Sizing Guidelines
 
-| Scale | Users | Assets | Recommended Deployment |
-|-------|-------|--------|----------------------|
-| Development | 1-5 | < 100 | Local, Vercel Hobby |
-| Small | 5-50 | < 300 | Vercel Pro, Docker |
-| Medium | 50-500 | < 500 | Vercel Pro + caching |
-| Large | 500+ | 500+ | Requires architecture changes |
+| Scale       | Users  | Assets | Recommended Deployment        |
+| ----------- | ------ | ------ | ----------------------------- |
+| Development | 1-5    | < 100  | Local, Vercel Hobby           |
+| Small       | 5-50   | < 300  | Vercel Pro, Docker            |
+| Medium      | 50-500 | < 500  | Vercel Pro + caching          |
+| Large       | 500+   | 500+   | Requires architecture changes |
 
 ---
 
@@ -11749,22 +11768,22 @@ flowchart TB
 
 ### 8.12.1 Routine Maintenance
 
-| Task | Frequency | Procedure |
-|------|-----------|-----------|
-| Dependency Updates | Weekly | Review Dependabot PRs |
-| Security Scans | Daily (automated) | Review SARIF alerts |
-| Docker Image Refresh | Weekly | Rebuild with latest base |
-| Cache Cleanup | As needed | Clear `GRAPH_CACHE_PATH` |
-| Log Review | Weekly | Check for error patterns |
+| Task                 | Frequency         | Procedure                |
+| -------------------- | ----------------- | ------------------------ |
+| Dependency Updates   | Weekly            | Review Dependabot PRs    |
+| Security Scans       | Daily (automated) | Review SARIF alerts      |
+| Docker Image Refresh | Weekly            | Rebuild with latest base |
+| Cache Cleanup        | As needed         | Clear `GRAPH_CACHE_PATH` |
+| Log Review           | Weekly            | Check for error patterns |
 
 ### 8.12.2 Emergency Procedures
 
-| Scenario | Detection | Response |
-|----------|-----------|----------|
-| Security Vulnerability | SARIF alert, CVE notice | Patch dependencies, redeploy |
-| Service Outage | Health check failures | Rollback to previous deployment |
-| Data Corruption | Validation errors | Clear cache, reinitialize |
-| Rate Limit Abuse | 429 response spike | Review IP patterns, adjust limits |
+| Scenario               | Detection               | Response                          |
+| ---------------------- | ----------------------- | --------------------------------- |
+| Security Vulnerability | SARIF alert, CVE notice | Patch dependencies, redeploy      |
+| Service Outage         | Health check failures   | Rollback to previous deployment   |
+| Data Corruption        | Validation errors       | Clear cache, reinitialize         |
+| Rate Limit Abuse       | 429 response spike      | Review IP patterns, adjust limits |
 
 ---
 
@@ -11772,54 +11791,54 @@ flowchart TB
 
 ### 8.13.1 Configuration Files
 
-| Path | Description |
-|------|-------------|
-| `Dockerfile` | Container image definition, security measures, health checks |
-| `docker-compose.yml` | Service orchestration, volumes, environment |
-| `vercel.json` | Serverless deployment configuration, routing |
-| `Makefile` | Build automation commands |
-| `.github/workflows/ci.yml` | Primary CI pipeline configuration |
-| `.github/workflows/docker-publish.yml` | Container image publishing |
-| `.github/workflows/trivy.yml` | Container security scanning |
-| `.circleci/config.yml` | Secondary CI platform configuration |
-| `.github/actions/ci-common/action.yml` | Reusable CI composite action |
-| `.pre-commit-config.yaml` | Pre-commit hook configuration |
-| `.env.example` | Environment variable template |
-| `pyproject.toml` | Python project metadata and tooling |
-| `requirements.txt` | Python dependencies |
-| `run-dev.sh` | Development startup script |
-| `frontend/package.json` | Frontend dependencies and scripts |
-| `migrations/001_initial.sql` | Database schema definition |
+| Path                                   | Description                                                  |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `Dockerfile`                           | Container image definition, security measures, health checks |
+| `docker-compose.yml`                   | Service orchestration, volumes, environment                  |
+| `vercel.json`                          | Serverless deployment configuration, routing                 |
+| `Makefile`                             | Build automation commands                                    |
+| `.github/workflows/ci.yml`             | Primary CI pipeline configuration                            |
+| `.github/workflows/docker-publish.yml` | Container image publishing                                   |
+| `.github/workflows/trivy.yml`          | Container security scanning                                  |
+| `.circleci/config.yml`                 | Secondary CI platform configuration                          |
+| `.github/actions/ci-common/action.yml` | Reusable CI composite action                                 |
+| `.pre-commit-config.yaml`              | Pre-commit hook configuration                                |
+| `.env.example`                         | Environment variable template                                |
+| `pyproject.toml`                       | Python project metadata and tooling                          |
+| `requirements.txt`                     | Python dependencies                                          |
+| `run-dev.sh`                           | Development startup script                                   |
+| `frontend/package.json`                | Frontend dependencies and scripts                            |
+| `migrations/001_initial.sql`           | Database schema definition                                   |
 
 ### 8.13.2 Documentation Files
 
-| Path | Description |
-|------|-------------|
-| `DEPLOYMENT.md` | Deployment guide |
-| `DOCKER.md` | Docker deployment guide |
-| `VERCEL_DEPLOYMENT_CHECKLIST.md` | Deployment checklist |
-| `SECURITY.md` | Security best practices |
+| Path                             | Description             |
+| -------------------------------- | ----------------------- |
+| `DEPLOYMENT.md`                  | Deployment guide        |
+| `DOCKER.md`                      | Docker deployment guide |
+| `VERCEL_DEPLOYMENT_CHECKLIST.md` | Deployment checklist    |
+| `SECURITY.md`                    | Security best practices |
 
 ### 8.13.3 Technical Specification Cross-References
 
-| Section | Relevance |
-|---------|-----------|
-| 5.5 DEPLOYMENT ARCHITECTURE | Deployment configurations |
+| Section                          | Relevance                 |
+| -------------------------------- | ------------------------- |
+| 5.5 DEPLOYMENT ARCHITECTURE      | Deployment configurations |
 | 6.5 Monitoring and Observability | Monitoring implementation |
-| 6.4 Security Architecture | Security controls |
-| 3.7 Development & Deployment | Development workflow |
-| 2.6 Assumptions and Constraints | System constraints |
-| 3.6 Databases & Storage | Storage architecture |
-| 3.5 Third-Party Services | External dependencies |
+| 6.4 Security Architecture        | Security controls         |
+| 3.7 Development & Deployment     | Development workflow      |
+| 2.6 Assumptions and Constraints  | System constraints        |
+| 3.6 Databases & Storage          | Storage architecture      |
+| 3.5 Third-Party Services         | External dependencies     |
 
 ### 8.13.4 External References
 
-| Resource | Purpose |
-|----------|---------|
-| Vercel Documentation | Serverless deployment |
-| Docker Documentation | Container configuration |
-| GitHub Actions Documentation | CI/CD pipelines |
-| CircleCI Documentation | Secondary CI platform |
+| Resource                     | Purpose                 |
+| ---------------------------- | ----------------------- |
+| Vercel Documentation         | Serverless deployment   |
+| Docker Documentation         | Container configuration |
+| GitHub Actions Documentation | CI/CD pipelines         |
+| CircleCI Documentation       | Secondary CI platform   |
 
 # 9. Appendices
 
@@ -11833,132 +11852,132 @@ The system requires specific environment variables for proper operation, categor
 
 #### 9.1.1.1 Required Environment Variables
 
-| Variable | Purpose | Example Value |
-|----------|---------|---------------|
-| `SECRET_KEY` | JWT signing key for authentication | `your-secure-secret-key` |
-| `DATABASE_URL` | SQLite authentication database connection | `sqlite:///auth.db` |
-| `ADMIN_USERNAME` | Initial admin user login credential | `admin` |
-| `ADMIN_PASSWORD` | Initial admin user password | `secure-password` |
+| Variable         | Purpose                                   | Example Value            |
+| ---------------- | ----------------------------------------- | ------------------------ |
+| `SECRET_KEY`     | JWT signing key for authentication        | `your-secure-secret-key` |
+| `DATABASE_URL`   | SQLite authentication database connection | `sqlite:///auth.db`      |
+| `ADMIN_USERNAME` | Initial admin user login credential       | `admin`                  |
+| `ADMIN_PASSWORD` | Initial admin user password               | `secure-password`        |
 
 #### 9.1.1.2 Optional Environment Variables
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `ENV` | `development` | Environment mode (development/production) |
-| `ALLOWED_ORIGINS` | (built-in defaults) | Comma-separated CORS allowlist |
-| `USE_REAL_DATA_FETCHER` | `false` | Enable Yahoo Finance integration |
-| `REAL_DATA_CACHE_PATH` | None | Yahoo Finance cache file location |
-| `GRAPH_CACHE_PATH` | None | Graph serialization cache location |
-| `ASSET_GRAPH_DATABASE_URL` | None | SQLAlchemy ORM connection string |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Frontend API base URL |
-| `ADMIN_EMAIL` | None | Admin user email address |
-| `ADMIN_FULL_NAME` | None | Admin user display name |
-| `ADMIN_DISABLED` | `false` | Disable admin account flag |
+| Variable                   | Default                 | Purpose                                   |
+| -------------------------- | ----------------------- | ----------------------------------------- |
+| `ENV`                      | `development`           | Environment mode (development/production) |
+| `ALLOWED_ORIGINS`          | (built-in defaults)     | Comma-separated CORS allowlist            |
+| `USE_REAL_DATA_FETCHER`    | `false`                 | Enable Yahoo Finance integration          |
+| `REAL_DATA_CACHE_PATH`     | None                    | Yahoo Finance cache file location         |
+| `GRAPH_CACHE_PATH`         | None                    | Graph serialization cache location        |
+| `ASSET_GRAPH_DATABASE_URL` | None                    | SQLAlchemy ORM connection string          |
+| `NEXT_PUBLIC_API_URL`      | `http://localhost:8000` | Frontend API base URL                     |
+| `ADMIN_EMAIL`              | None                    | Admin user email address                  |
+| `ADMIN_FULL_NAME`          | None                    | Admin user display name                   |
+| `ADMIN_DISABLED`           | `false`                 | Disable admin account flag                |
 
 ### 9.1.2 Relationship Types Reference
 
 The graph engine supports eight relationship types with specific detection rules and directionality configurations.
 
-| Type | Directionality | Detection Rule |
-|------|----------------|----------------|
-| `same_sector` | Bidirectional | Assets share identical sector value |
-| `corporate_bond_to_equity` | Directional | Bond `issuer_id` matches equity `id` |
-| `commodity_exposure` | Directional | Equity sector linked to commodity type |
-| `currency_risk` | Directional | Asset currency ≠ "USD" |
-| `income_comparison` | Bidirectional | Dividend yield vs bond yield proximity |
-| `regulatory_impact` | Directional | Shared regulatory event reference |
-| `market_cap_similar` | Bidirectional | Market cap within 50% range |
-| `correlation` | Bidirectional | Price correlation exceeds threshold |
+| Type                       | Directionality | Detection Rule                         |
+| -------------------------- | -------------- | -------------------------------------- |
+| `same_sector`              | Bidirectional  | Assets share identical sector value    |
+| `corporate_bond_to_equity` | Directional    | Bond `issuer_id` matches equity `id`   |
+| `commodity_exposure`       | Directional    | Equity sector linked to commodity type |
+| `currency_risk`            | Directional    | Asset currency ≠ "USD"                 |
+| `income_comparison`        | Bidirectional  | Dividend yield vs bond yield proximity |
+| `regulatory_impact`        | Directional    | Shared regulatory event reference      |
+| `market_cap_similar`       | Bidirectional  | Market cap within 50% range            |
+| `correlation`              | Bidirectional  | Price correlation exceeds threshold    |
 
 ### 9.1.3 HTTP Status Codes Reference
 
 The API returns standardized HTTP status codes with consistent error message formatting.
 
-| Code | Meaning | Usage Context |
-|------|---------|---------------|
-| 200 | OK | Successful GET/POST request |
-| 400 | Bad Request | Invalid input, inactive user account |
-| 401 | Unauthorized | Invalid/expired token, missing credentials |
-| 403 | Forbidden | Invalid CORS origin |
-| 404 | Not Found | Asset or resource not found |
-| 422 | Validation Error | Pydantic validation failure |
-| 429 | Too Many Requests | Rate limit exceeded |
-| 500 | Internal Server Error | Unexpected exception |
+| Code | Meaning               | Usage Context                              |
+| ---- | --------------------- | ------------------------------------------ |
+| 200  | OK                    | Successful GET/POST request                |
+| 400  | Bad Request           | Invalid input, inactive user account       |
+| 401  | Unauthorized          | Invalid/expired token, missing credentials |
+| 403  | Forbidden             | Invalid CORS origin                        |
+| 404  | Not Found             | Asset or resource not found                |
+| 422  | Validation Error      | Pydantic validation failure                |
+| 429  | Too Many Requests     | Rate limit exceeded                        |
+| 500  | Internal Server Error | Unexpected exception                       |
 
 ### 9.1.4 Default Port Assignments
 
-| Component | Port | Purpose |
-|-----------|------|---------|
-| FastAPI Backend | 8000 | REST API development server |
+| Component        | Port | Purpose                      |
+| ---------------- | ---- | ---------------------------- |
+| FastAPI Backend  | 8000 | REST API development server  |
 | Next.js Frontend | 3000 | Modern UI development server |
-| Gradio UI | 7860 | Legacy Python UI server |
+| Gradio UI        | 7860 | Legacy Python UI server      |
 
 ### 9.1.5 Asset Class Color Scheme
 
 The visualization layer uses a consistent color scheme for asset class identification.
 
-| Asset Class | Hex Color | RGB Value |
-|-------------|-----------|-----------|
-| Equity | #1f77b4 | rgb(31, 119, 180) |
-| Fixed Income | #2ca02c | rgb(44, 160, 44) |
-| Commodity | #ff7f0e | rgb(255, 127, 14) |
-| Currency | #d62728 | rgb(214, 39, 40) |
-| Derivative | #9467bd | rgb(148, 103, 189) |
+| Asset Class  | Hex Color | RGB Value          |
+| ------------ | --------- | ------------------ |
+| Equity       | #1f77b4   | rgb(31, 119, 180)  |
+| Fixed Income | #2ca02c   | rgb(44, 160, 44)   |
+| Commodity    | #ff7f0e   | rgb(255, 127, 14)  |
+| Currency     | #d62728   | rgb(214, 39, 40)   |
+| Derivative   | #9467bd   | rgb(148, 103, 189) |
 
 ### 9.1.6 Visualization Guardrails
 
-| Parameter | Default Value | Purpose |
-|-----------|---------------|---------|
-| MAX_NODES | 500 | Prevent browser memory exhaustion |
-| MAX_EDGES | 2000 | Limit rendering complexity |
-| Seed | 42 | Deterministic 3D layout reproduction |
+| Parameter | Default Value | Purpose                              |
+| --------- | ------------- | ------------------------------------ |
+| MAX_NODES | 500           | Prevent browser memory exhaustion    |
+| MAX_EDGES | 2000          | Limit rendering complexity           |
+| Seed      | 42            | Deterministic 3D layout reproduction |
 
 ### 9.1.7 Rate Limiting Configuration
 
-| Endpoint | Limit | Window |
-|----------|-------|--------|
-| `POST /token` | 5 requests | 1 minute |
+| Endpoint            | Limit       | Window   |
+| ------------------- | ----------- | -------- |
+| `POST /token`       | 5 requests  | 1 minute |
 | `GET /api/users/me` | 10 requests | 1 minute |
-| Other endpoints | Unlimited | N/A |
+| Other endpoints     | Unlimited   | N/A      |
 
 ### 9.1.8 Performance SLA Targets
 
-| Operation | Target SLA |
-|-----------|------------|
-| API Response (p95) | < 500ms |
-| Visualization Rendering | < 2 seconds |
-| Token Generation | < 100ms |
-| Graph Initialization | < 3 seconds |
-| Relationship Discovery (100 assets) | < 500ms |
-| Initial Page Load | < 3 seconds |
+| Operation                           | Target SLA  |
+| ----------------------------------- | ----------- |
+| API Response (p95)                  | < 500ms     |
+| Visualization Rendering             | < 2 seconds |
+| Token Generation                    | < 100ms     |
+| Graph Initialization                | < 3 seconds |
+| Relationship Discovery (100 assets) | < 500ms     |
+| Initial Page Load                   | < 3 seconds |
 
 ### 9.1.9 Timeout Configuration
 
-| Component | Timeout | Purpose |
-|-----------|---------|---------|
-| JWT Token | 30 minutes | Session expiration |
-| Rate Limit Window | 1 minute | Request counting period |
-| HTTP Client | 30 seconds | API request timeout |
-| Health Check | 30 seconds | Container probe interval |
+| Component         | Timeout    | Purpose                  |
+| ----------------- | ---------- | ------------------------ |
+| JWT Token         | 30 minutes | Session expiration       |
+| Rate Limit Window | 1 minute   | Request counting period  |
+| HTTP Client       | 30 seconds | API request timeout      |
+| Health Check      | 30 seconds | Container probe interval |
 
 ### 9.1.10 Yahoo Finance Supported Symbols
 
-| Category | Symbols |
-|----------|---------|
-| Equities | AAPL, MSFT, XOM, JPM |
-| Bond ETFs | TLT, LQD, HYG |
+| Category    | Symbols                                      |
+| ----------- | -------------------------------------------- |
+| Equities    | AAPL, MSFT, XOM, JPM                         |
+| Bond ETFs   | TLT, LQD, HYG                                |
 | Commodities | GC=F (Gold), CL=F (Crude Oil), SI=F (Silver) |
-| Currencies | EURUSD=X, GBPUSD=X, JPYUSD=X |
+| Currencies  | EURUSD=X, GBPUSD=X, JPYUSD=X                 |
 
 ### 9.1.11 Sample Data Statistics
 
 The sample database provides baseline testing and offline development data.
 
-| Entity Type | Count |
-|-------------|-------|
-| Total Assets | 19 |
-| Regulatory Events | 4 |
-| Asset Classes | 5 (all supported) |
+| Entity Type       | Count             |
+| ----------------- | ----------------- |
+| Total Assets      | 19                |
+| Regulatory Events | 4                 |
+| Asset Classes     | 5 (all supported) |
 
 ---
 
@@ -11968,91 +11987,91 @@ This glossary defines key terms used throughout the Technical Specification, org
 
 ### 9.2.1 Financial Domain Terms
 
-| Term | Definition |
-|------|------------|
-| **Asset** | A financial instrument with tradeable value. Base domain entity requiring id, symbol, name, asset_class, sector, and price fields. |
-| **Asset Class** | Category classification for financial instruments. Supported values: Equity, Fixed Income, Commodity, Currency, Derivative. |
-| **Asset Relationship Graph** | Core in-memory data structure storing assets as nodes and relationships as weighted edges in an adjacency list format. |
-| **Average Degree** | Network metric representing the mean number of connections per node, calculated as (2 × total_relationships) / total_assets. |
-| **Bidirectional Relationship** | A relationship type where the connection applies equally in both directions (e.g., same_sector, income_comparison). |
-| **Bond** | Fixed income security with specialized attributes: yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id. |
-| **Commodity** | Asset class representing tradeable goods contracts with attributes: contract_size, delivery_date, and volatility. |
-| **Commodity Exposure** | Directional relationship linking equity companies to commodity price movements based on sector exposure. |
-| **Corporate Bond to Equity** | Directional relationship linking bonds to issuing companies via issuer_id matching equity id. |
-| **Coupon Rate** | Annual interest rate paid on a bond's face value, expressed as a percentage. |
-| **Credit Rating** | Assessment of bond issuer creditworthiness, typically represented as letter grades (e.g., AAA, BBB). |
-| **Currency** | Asset class for foreign exchange pairs with attributes: exchange_rate, country, and central_bank_rate. |
-| **Currency Risk** | Directional relationship for assets with non-USD currency exposure, indicating foreign exchange risk. |
-| **Derivative** | Financial instrument whose value is derived from underlying assets. Reserved for future expansion. |
-| **Directional Relationship** | A relationship type where the connection flows from source to target (e.g., corporate_bond_to_equity). |
-| **Dividend Yield** | Annual dividend payment as percentage of stock price, applicable to equity assets. |
-| **Earnings Per Share (EPS)** | Company profitability metric calculated as net income divided by outstanding shares. |
-| **Equity** | Stock/share ownership in a company with attributes: pe_ratio, dividend_yield, earnings_per_share, and book_value. |
-| **Fixed Income** | Asset class for bonds and debt securities generating regular income payments. |
-| **Impact Score** | Numerical measure (-1.0 to +1.0) representing regulatory event impact. Negative indicates adverse impact, positive indicates favorable. |
-| **Income Comparison** | Bidirectional relationship comparing dividend yields to bond yields for cross-asset income analysis. |
-| **Market Cap** | Market Capitalization; total market value of a company's outstanding shares. |
-| **Max Degree** | Network metric representing the highest-connected node in the graph by edge count. |
-| **Network Density** | Ratio of actual relationships to maximum possible relationships, calculated as total_edges / (nodes × (nodes-1) / 2). |
-| **P/E Ratio** | Price-to-Earnings ratio; stock price divided by earnings per share, indicating valuation. |
-| **Regulatory Activity** | Enumerated type of corporate or regulatory event: earnings_report, sec_filing, dividend_announcement, bond_issuance, acquisition, bankruptcy. |
-| **Regulatory Event** | Corporate or regulatory activity affecting one or more assets with dated occurrence, description, and scored impact. |
-| **Relationship Strength** | Normalized weight (0.0-1.0) indicating connection intensity between assets in a relationship. |
-| **Same Sector** | Bidirectional relationship linking assets operating in the same industry sector classification. |
-| **Sector** | Industry classification for assets (e.g., Technology, Energy, Financial Services, Healthcare). |
-| **Yield to Maturity (YTM)** | Total return anticipated on a bond if held until maturity, accounting for coupon payments and price difference. |
+| Term                           | Definition                                                                                                                                    |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Asset**                      | A financial instrument with tradeable value. Base domain entity requiring id, symbol, name, asset_class, sector, and price fields.            |
+| **Asset Class**                | Category classification for financial instruments. Supported values: Equity, Fixed Income, Commodity, Currency, Derivative.                   |
+| **Asset Relationship Graph**   | Core in-memory data structure storing assets as nodes and relationships as weighted edges in an adjacency list format.                        |
+| **Average Degree**             | Network metric representing the mean number of connections per node, calculated as (2 × total_relationships) / total_assets.                  |
+| **Bidirectional Relationship** | A relationship type where the connection applies equally in both directions (e.g., same_sector, income_comparison).                           |
+| **Bond**                       | Fixed income security with specialized attributes: yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.               |
+| **Commodity**                  | Asset class representing tradeable goods contracts with attributes: contract_size, delivery_date, and volatility.                             |
+| **Commodity Exposure**         | Directional relationship linking equity companies to commodity price movements based on sector exposure.                                      |
+| **Corporate Bond to Equity**   | Directional relationship linking bonds to issuing companies via issuer_id matching equity id.                                                 |
+| **Coupon Rate**                | Annual interest rate paid on a bond's face value, expressed as a percentage.                                                                  |
+| **Credit Rating**              | Assessment of bond issuer creditworthiness, typically represented as letter grades (e.g., AAA, BBB).                                          |
+| **Currency**                   | Asset class for foreign exchange pairs with attributes: exchange_rate, country, and central_bank_rate.                                        |
+| **Currency Risk**              | Directional relationship for assets with non-USD currency exposure, indicating foreign exchange risk.                                         |
+| **Derivative**                 | Financial instrument whose value is derived from underlying assets. Reserved for future expansion.                                            |
+| **Directional Relationship**   | A relationship type where the connection flows from source to target (e.g., corporate_bond_to_equity).                                        |
+| **Dividend Yield**             | Annual dividend payment as percentage of stock price, applicable to equity assets.                                                            |
+| **Earnings Per Share (EPS)**   | Company profitability metric calculated as net income divided by outstanding shares.                                                          |
+| **Equity**                     | Stock/share ownership in a company with attributes: pe_ratio, dividend_yield, earnings_per_share, and book_value.                             |
+| **Fixed Income**               | Asset class for bonds and debt securities generating regular income payments.                                                                 |
+| **Impact Score**               | Numerical measure (-1.0 to +1.0) representing regulatory event impact. Negative indicates adverse impact, positive indicates favorable.       |
+| **Income Comparison**          | Bidirectional relationship comparing dividend yields to bond yields for cross-asset income analysis.                                          |
+| **Market Cap**                 | Market Capitalization; total market value of a company's outstanding shares.                                                                  |
+| **Max Degree**                 | Network metric representing the highest-connected node in the graph by edge count.                                                            |
+| **Network Density**            | Ratio of actual relationships to maximum possible relationships, calculated as total_edges / (nodes × (nodes-1) / 2).                         |
+| **P/E Ratio**                  | Price-to-Earnings ratio; stock price divided by earnings per share, indicating valuation.                                                     |
+| **Regulatory Activity**        | Enumerated type of corporate or regulatory event: earnings_report, sec_filing, dividend_announcement, bond_issuance, acquisition, bankruptcy. |
+| **Regulatory Event**           | Corporate or regulatory activity affecting one or more assets with dated occurrence, description, and scored impact.                          |
+| **Relationship Strength**      | Normalized weight (0.0-1.0) indicating connection intensity between assets in a relationship.                                                 |
+| **Same Sector**                | Bidirectional relationship linking assets operating in the same industry sector classification.                                               |
+| **Sector**                     | Industry classification for assets (e.g., Technology, Energy, Financial Services, Healthcare).                                                |
+| **Yield to Maturity (YTM)**    | Total return anticipated on a bond if held until maturity, accounting for coupon payments and price difference.                               |
 
 ### 9.2.2 Technical Architecture Terms
 
-| Term | Definition |
-|------|------------|
-| **Adjacency List** | Graph data structure where each node stores a list of connected nodes, implemented as Dict[str, List[Tuple[str, str, float]]]. |
-| **App Router** | Next.js 14 routing paradigm using file-system-based routing in the app/ directory with React Server Components. |
-| **Atomic Write** | File operation pattern using NamedTemporaryFile + os.replace() to prevent data corruption during writes. |
-| **Bearer Token** | HTTP authorization scheme where the token is passed in the Authorization header as "Bearer {token}". |
-| **Context Manager** | Python pattern using `with` statements for resource management, implemented as session_scope() for database transactions. |
-| **Dataclass** | Python @dataclass decorator providing automatic __init__, __repr__, and field handling for domain models. |
-| **Dependency Injection** | Design pattern where dependencies are passed to components rather than created internally, used in FastAPI route dependencies. |
-| **Double-Checked Locking** | Thread-safe singleton pattern checking instance existence before and after acquiring lock to minimize contention. |
-| **Enum** | Python enumeration type for type-safe constant values (e.g., AssetClass, RegulatoryActivity). |
-| **Graph Engine** | Core component managing asset relationships, 3D layout calculation, and network metrics computation. |
-| **Hybrid Storage** | Architecture combining multiple storage mechanisms: in-memory graph, SQLite auth, optional ORM, and JSON cache. |
-| **Layered Architecture** | System design separating concerns into Presentation, API, Business Logic, and Data layers for maintainability. |
-| **Lifespan Context Manager** | FastAPI pattern for managing application startup/shutdown events using asynccontextmanager decorator. |
-| **Middleware** | Software layer intercepting requests/responses for cross-cutting concerns (CORS, rate limiting, authentication). |
-| **Monolithic Architecture** | Single deployable unit containing all application components, as opposed to microservices. |
-| **Post-Init Validation** | Dataclass validation in __post_init__ method executing after instance creation for business rule enforcement. |
-| **Repository Pattern** | Data access abstraction providing collection-like interface over storage, implemented as AssetGraphRepository. |
-| **Seed Value** | Random number generator initialization value (42) for deterministic/reproducible 3D layouts. |
-| **Session Scope** | Database transaction boundary context manager committing on success, rolling back on error. |
-| **Singleton Pattern** | Design pattern ensuring only one instance of a class exists, applied to the graph instance with thread-safety. |
-| **Thread-Safe** | Code safe for concurrent execution by multiple threads without race conditions. |
-| **Type Contract** | Formal interface defining expected data types through Pydantic models and TypeScript interfaces. |
-| **Wide Table Design** | Database schema with nullable columns for type-specific attributes in a single table for simpler queries. |
+| Term                         | Definition                                                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Adjacency List**           | Graph data structure where each node stores a list of connected nodes, implemented as Dict[str, List[Tuple[str, str, float]]]. |
+| **App Router**               | Next.js 14 routing paradigm using file-system-based routing in the app/ directory with React Server Components.                |
+| **Atomic Write**             | File operation pattern using NamedTemporaryFile + os.replace() to prevent data corruption during writes.                       |
+| **Bearer Token**             | HTTP authorization scheme where the token is passed in the Authorization header as "Bearer {token}".                           |
+| **Context Manager**          | Python pattern using `with` statements for resource management, implemented as session_scope() for database transactions.      |
+| **Dataclass**                | Python @dataclass decorator providing automatic **init**, **repr**, and field handling for domain models.                      |
+| **Dependency Injection**     | Design pattern where dependencies are passed to components rather than created internally, used in FastAPI route dependencies. |
+| **Double-Checked Locking**   | Thread-safe singleton pattern checking instance existence before and after acquiring lock to minimize contention.              |
+| **Enum**                     | Python enumeration type for type-safe constant values (e.g., AssetClass, RegulatoryActivity).                                  |
+| **Graph Engine**             | Core component managing asset relationships, 3D layout calculation, and network metrics computation.                           |
+| **Hybrid Storage**           | Architecture combining multiple storage mechanisms: in-memory graph, SQLite auth, optional ORM, and JSON cache.                |
+| **Layered Architecture**     | System design separating concerns into Presentation, API, Business Logic, and Data layers for maintainability.                 |
+| **Lifespan Context Manager** | FastAPI pattern for managing application startup/shutdown events using asynccontextmanager decorator.                          |
+| **Middleware**               | Software layer intercepting requests/responses for cross-cutting concerns (CORS, rate limiting, authentication).               |
+| **Monolithic Architecture**  | Single deployable unit containing all application components, as opposed to microservices.                                     |
+| **Post-Init Validation**     | Dataclass validation in **post_init** method executing after instance creation for business rule enforcement.                  |
+| **Repository Pattern**       | Data access abstraction providing collection-like interface over storage, implemented as AssetGraphRepository.                 |
+| **Seed Value**               | Random number generator initialization value (42) for deterministic/reproducible 3D layouts.                                   |
+| **Session Scope**            | Database transaction boundary context manager committing on success, rolling back on error.                                    |
+| **Singleton Pattern**        | Design pattern ensuring only one instance of a class exists, applied to the graph instance with thread-safety.                 |
+| **Thread-Safe**              | Code safe for concurrent execution by multiple threads without race conditions.                                                |
+| **Type Contract**            | Formal interface defining expected data types through Pydantic models and TypeScript interfaces.                               |
+| **Wide Table Design**        | Database schema with nullable columns for type-specific attributes in a single table for simpler queries.                      |
 
 ### 9.2.3 UI/UX Terms
 
-| Term | Definition |
-|------|------------|
+| Term                         | Definition                                                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **3D Network Visualization** | Interactive Plotly-based graph rendering with rotation, zoom, pan, and hover capabilities for spatial exploration. |
-| **2D Network Visualization** | Flat network view with selectable layout algorithms (spring, circular, grid) for static analysis. |
-| **Asset Explorer** | Filterable, paginated table view for browsing assets by class and sector with direct detail access. |
-| **Color Mapping** | Visual encoding scheme mapping asset classes to distinct colors for identification in visualizations. |
-| **Hover Text** | Tooltip content displayed when cursor hovers over visualization elements showing asset details. |
-| **Metrics Dashboard** | UI component displaying network statistics including node/edge counts and distribution analytics. |
-| **Schema Report** | Auto-generated Markdown documentation of data models, relationships, and business rules. |
-| **Tabbed Interface** | UI organization with multiple content areas accessible via tab controls (Gradio implements 6 tabs). |
+| **2D Network Visualization** | Flat network view with selectable layout algorithms (spring, circular, grid) for static analysis.                  |
+| **Asset Explorer**           | Filterable, paginated table view for browsing assets by class and sector with direct detail access.                |
+| **Color Mapping**            | Visual encoding scheme mapping asset classes to distinct colors for identification in visualizations.              |
+| **Hover Text**               | Tooltip content displayed when cursor hovers over visualization elements showing asset details.                    |
+| **Metrics Dashboard**        | UI component displaying network statistics including node/edge counts and distribution analytics.                  |
+| **Schema Report**            | Auto-generated Markdown documentation of data models, relationships, and business rules.                           |
+| **Tabbed Interface**         | UI organization with multiple content areas accessible via tab controls (Gradio implements 6 tabs).                |
 
 ### 9.2.4 Infrastructure Terms
 
-| Term | Definition |
-|------|------------|
-| **ASGI Server** | Asynchronous Server Gateway Interface server (Uvicorn) handling async HTTP requests for FastAPI. |
-| **Container Hardening** | Security measures applied to Docker containers including non-root user execution and minimal base images. |
-| **Edge Network** | Vercel's globally distributed CDN network for TLS termination and static asset delivery. |
-| **Health Check** | HTTP endpoint probe (/api/health) returning system status for load balancer and orchestration verification. |
-| **Lambda Function** | Serverless compute unit on Vercel handling individual API requests without persistent server. |
-| **Static Pool** | SQLAlchemy connection pool configuration for in-memory SQLite maintaining single shared connection. |
+| Term                    | Definition                                                                                                  |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **ASGI Server**         | Asynchronous Server Gateway Interface server (Uvicorn) handling async HTTP requests for FastAPI.            |
+| **Container Hardening** | Security measures applied to Docker containers including non-root user execution and minimal base images.   |
+| **Edge Network**        | Vercel's globally distributed CDN network for TLS termination and static asset delivery.                    |
+| **Health Check**        | HTTP endpoint probe (/api/health) returning system status for load balancer and orchestration verification. |
+| **Lambda Function**     | Serverless compute unit on Vercel handling individual API requests without persistent server.               |
+| **Static Pool**         | SQLAlchemy connection pool configuration for in-memory SQLite maintaining single shared connection.         |
 
 ---
 
@@ -12062,95 +12081,95 @@ This section provides expanded forms for all acronyms used throughout the Techni
 
 ### 9.3.1 Standard Technical Acronyms
 
-| Acronym | Expansion |
-|---------|-----------|
-| API | Application Programming Interface |
-| ASGI | Asynchronous Server Gateway Interface |
-| CDN | Content Delivery Network |
-| CI/CD | Continuous Integration/Continuous Deployment |
-| CLI | Command Line Interface |
-| CORS | Cross-Origin Resource Sharing |
-| CPU | Central Processing Unit |
-| CRUD | Create, Read, Update, Delete |
-| CSS | Cascading Style Sheets |
-| DAG | Directed Acyclic Graph |
-| DDL | Data Definition Language |
-| DNS | Domain Name System |
-| DOM | Document Object Model |
-| DRY | Don't Repeat Yourself |
-| ERD | Entity Relationship Diagram |
-| FK | Foreign Key |
-| GUI | Graphical User Interface |
-| HTML | HyperText Markup Language |
-| HTTP | HyperText Transfer Protocol |
-| HTTPS | HTTP Secure (over TLS) |
-| IDE | Integrated Development Environment |
-| IP | Internet Protocol |
-| JSON | JavaScript Object Notation |
-| KPI | Key Performance Indicator |
-| LTS | Long-Term Support |
-| ORM | Object-Relational Mapping |
-| PK | Primary Key |
-| PR | Pull Request |
-| RAM | Random Access Memory |
-| REST | Representational State Transfer |
-| SDK | Software Development Kit |
-| SLA | Service Level Agreement |
-| SQL | Structured Query Language |
-| SSR | Server-Side Rendering |
-| TLS | Transport Layer Security |
-| TTL | Time To Live |
-| UID | User Identifier |
-| UK | Unique Key |
-| URI | Uniform Resource Identifier |
-| URL | Uniform Resource Locator |
-| UTC | Coordinated Universal Time |
-| UUID | Universally Unique Identifier |
-| WSGI | Web Server Gateway Interface |
-| XML | eXtensible Markup Language |
-| YAML | YAML Ain't Markup Language |
+| Acronym | Expansion                                    |
+| ------- | -------------------------------------------- |
+| API     | Application Programming Interface            |
+| ASGI    | Asynchronous Server Gateway Interface        |
+| CDN     | Content Delivery Network                     |
+| CI/CD   | Continuous Integration/Continuous Deployment |
+| CLI     | Command Line Interface                       |
+| CORS    | Cross-Origin Resource Sharing                |
+| CPU     | Central Processing Unit                      |
+| CRUD    | Create, Read, Update, Delete                 |
+| CSS     | Cascading Style Sheets                       |
+| DAG     | Directed Acyclic Graph                       |
+| DDL     | Data Definition Language                     |
+| DNS     | Domain Name System                           |
+| DOM     | Document Object Model                        |
+| DRY     | Don't Repeat Yourself                        |
+| ERD     | Entity Relationship Diagram                  |
+| FK      | Foreign Key                                  |
+| GUI     | Graphical User Interface                     |
+| HTML    | HyperText Markup Language                    |
+| HTTP    | HyperText Transfer Protocol                  |
+| HTTPS   | HTTP Secure (over TLS)                       |
+| IDE     | Integrated Development Environment           |
+| IP      | Internet Protocol                            |
+| JSON    | JavaScript Object Notation                   |
+| KPI     | Key Performance Indicator                    |
+| LTS     | Long-Term Support                            |
+| ORM     | Object-Relational Mapping                    |
+| PK      | Primary Key                                  |
+| PR      | Pull Request                                 |
+| RAM     | Random Access Memory                         |
+| REST    | Representational State Transfer              |
+| SDK     | Software Development Kit                     |
+| SLA     | Service Level Agreement                      |
+| SQL     | Structured Query Language                    |
+| SSR     | Server-Side Rendering                        |
+| TLS     | Transport Layer Security                     |
+| TTL     | Time To Live                                 |
+| UID     | User Identifier                              |
+| UK      | Unique Key                                   |
+| URI     | Uniform Resource Identifier                  |
+| URL     | Uniform Resource Locator                     |
+| UTC     | Coordinated Universal Time                   |
+| UUID    | Universally Unique Identifier                |
+| WSGI    | Web Server Gateway Interface                 |
+| XML     | eXtensible Markup Language                   |
+| YAML    | YAML Ain't Markup Language                   |
 
 ### 9.3.2 Security & Authentication Acronyms
 
-| Acronym | Expansion |
-|---------|-----------|
-| HMAC | Hash-based Message Authentication Code |
-| HS256 | HMAC-SHA256 (JWT signing algorithm) |
-| JWT | JSON Web Token |
-| NIST | National Institute of Standards and Technology |
-| RBAC | Role-Based Access Control |
-| SARIF | Static Analysis Results Interchange Format |
-| SAST | Static Application Security Testing |
-| SHA | Secure Hash Algorithm |
-| TOTP | Time-based One-Time Password |
-| WAL | Write-Ahead Logging |
+| Acronym | Expansion                                      |
+| ------- | ---------------------------------------------- |
+| HMAC    | Hash-based Message Authentication Code         |
+| HS256   | HMAC-SHA256 (JWT signing algorithm)            |
+| JWT     | JSON Web Token                                 |
+| NIST    | National Institute of Standards and Technology |
+| RBAC    | Role-Based Access Control                      |
+| SARIF   | Static Analysis Results Interchange Format     |
+| SAST    | Static Application Security Testing            |
+| SHA     | Secure Hash Algorithm                          |
+| TOTP    | Time-based One-Time Password                   |
+| WAL     | Write-Ahead Logging                            |
 
 ### 9.3.3 Financial Domain Acronyms
 
-| Acronym | Expansion |
-|---------|-----------|
-| EPS | Earnings Per Share |
-| ETF | Exchange-Traded Fund |
-| FX | Foreign Exchange |
-| P/E | Price-to-Earnings (ratio) |
-| SEC | Securities and Exchange Commission |
-| YTM | Yield to Maturity |
+| Acronym | Expansion                          |
+| ------- | ---------------------------------- |
+| EPS     | Earnings Per Share                 |
+| ETF     | Exchange-Traded Fund               |
+| FX      | Foreign Exchange                   |
+| P/E     | Price-to-Earnings (ratio)          |
+| SEC     | Securities and Exchange Commission |
+| YTM     | Yield to Maturity                  |
 
 ### 9.3.4 Platform & Tool Acronyms
 
-| Acronym | Expansion |
-|---------|-----------|
-| GHCR | GitHub Container Registry |
-| MCP | Model Context Protocol |
-| OSSF | Open Source Security Foundation |
-| ISO | International Organization for Standardization |
+| Acronym | Expansion                                      |
+| ------- | ---------------------------------------------- |
+| GHCR    | GitHub Container Registry                      |
+| MCP     | Model Context Protocol                         |
+| OSSF    | Open Source Security Foundation                |
+| ISO     | International Organization for Standardization |
 
 ### 9.3.5 Version-Specific Designations
 
-| Designation | Meaning |
-|-------------|---------|
-| ISO 4217 | International standard for currency codes (e.g., USD, EUR) |
-| ISO 8601 | International standard for date/time format (YYYY-MM-DD) |
+| Designation | Meaning                                                    |
+| ----------- | ---------------------------------------------------------- |
+| ISO 4217    | International standard for currency codes (e.g., USD, EUR) |
+| ISO 8601    | International standard for date/time format (YYYY-MM-DD)   |
 
 ---
 
@@ -12180,45 +12199,45 @@ flowchart LR
     Client --> ProtectedEndpoints
 ```
 
-| Endpoint | Method | Authentication | Rate Limited |
-|----------|--------|----------------|--------------|
-| `/` | GET | No | No |
-| `/api/health` | GET | No | No |
-| `/token` | POST | No | Yes (5/min) |
-| `/api/assets` | GET | No | No |
-| `/api/assets/{id}` | GET | No | No |
-| `/api/assets/{id}/relationships` | GET | No | No |
-| `/api/relationships` | GET | No | No |
-| `/api/metrics` | GET | No | No |
-| `/api/visualization` | GET | No | No |
-| `/api/asset-classes` | GET | No | No |
-| `/api/sectors` | GET | No | No |
-| `/api/users/me` | GET | Yes | Yes (10/min) |
+| Endpoint                         | Method | Authentication | Rate Limited |
+| -------------------------------- | ------ | -------------- | ------------ |
+| `/`                              | GET    | No             | No           |
+| `/api/health`                    | GET    | No             | No           |
+| `/token`                         | POST   | No             | Yes (5/min)  |
+| `/api/assets`                    | GET    | No             | No           |
+| `/api/assets/{id}`               | GET    | No             | No           |
+| `/api/assets/{id}/relationships` | GET    | No             | No           |
+| `/api/relationships`             | GET    | No             | No           |
+| `/api/metrics`                   | GET    | No             | No           |
+| `/api/visualization`             | GET    | No             | No           |
+| `/api/asset-classes`             | GET    | No             | No           |
+| `/api/sectors`                   | GET    | No             | No           |
+| `/api/users/me`                  | GET    | Yes            | Yes (10/min) |
 
 ### 9.4.2 Development Commands Quick Reference
 
-| Task | Command |
-|------|---------|
-| Start FastAPI Backend | `uvicorn api.main:app --reload --port 8000` |
-| Start Next.js Frontend | `cd frontend && npm run dev` |
-| Start Gradio UI | `python app.py` |
-| Run Python Tests | `pytest` |
-| Run Tests with Coverage | `pytest --cov=api --cov=src --cov-report=html` |
-| Run Frontend Tests | `cd frontend && npm test` |
-| Docker Build | `docker-compose up --build` |
-| Lint Python Code | `flake8 && black --check . && isort --check-only .` |
+| Task                    | Command                                             |
+| ----------------------- | --------------------------------------------------- |
+| Start FastAPI Backend   | `uvicorn api.main:app --reload --port 8000`         |
+| Start Next.js Frontend  | `cd frontend && npm run dev`                        |
+| Start Gradio UI         | `python app.py`                                     |
+| Run Python Tests        | `pytest`                                            |
+| Run Tests with Coverage | `pytest --cov=api --cov=src --cov-report=html`      |
+| Run Frontend Tests      | `cd frontend && npm test`                           |
+| Docker Build            | `docker-compose up --build`                         |
+| Lint Python Code        | `flake8 && black --check . && isort --check-only .` |
 
 ### 9.4.3 Domain Model Validation Rules
 
-| Entity | Field | Rule |
-|--------|-------|------|
-| Asset | id, symbol, name | Non-empty string required |
-| Asset | price | Non-negative float required |
-| Asset | market_cap | Non-negative float (optional) |
-| Asset | currency | 3-character ISO code |
-| RegulatoryEvent | impact_score | Range [-1.0, 1.0] |
-| RegulatoryEvent | date | ISO 8601 format (YYYY-MM-DD) |
-| Relationship | strength | Normalized range [0.0, 1.0] |
+| Entity          | Field            | Rule                          |
+| --------------- | ---------------- | ----------------------------- |
+| Asset           | id, symbol, name | Non-empty string required     |
+| Asset           | price            | Non-negative float required   |
+| Asset           | market_cap       | Non-negative float (optional) |
+| Asset           | currency         | 3-character ISO code          |
+| RegulatoryEvent | impact_score     | Range [-1.0, 1.0]             |
+| RegulatoryEvent | date             | ISO 8601 format (YYYY-MM-DD)  |
+| Relationship    | strength         | Normalized range [0.0, 1.0]   |
 
 ---
 
@@ -12226,26 +12245,26 @@ flowchart LR
 
 This index maps key topics to their primary documentation locations within this Technical Specification.
 
-| Topic | Primary Section(s) |
-|-------|-------------------|
-| Asset Class Definitions | 1.2.2, 2.1.2, 6.2.2 |
-| Authentication System | 5.4.3, 6.4.2, 6.4.3 |
-| CI/CD Pipeline | 8.6 |
-| CORS Configuration | 5.4.5, 6.3.1.5, 6.4.5 |
-| Database Schema | 5.6, 6.2.2, 6.2.3 |
-| Deployment Options | 5.5, 8.2-8.5 |
-| Environment Variables | 6.2.13, 6.3.6, 6.4.7 |
-| Error Handling | 4.5, 5.4.2, 6.3.2.3 |
-| Feature Catalog | 2.1 |
-| Graph Engine | 2.1.3, 5.1.2, 5.2 |
-| Integration Architecture | 6.3 |
-| Metrics & Analytics | 2.1.5 (F-010), 4.3, 5.4.1 |
-| Rate Limiting | 2.1.4 (F-007), 5.4.4, 6.4.4 |
-| Relationship Types | 1.2.2, 2.1.3, 6.2.2.3 |
-| Security Architecture | 3.8, 6.4 |
-| Technology Stack | 1.2.3, 3.1-3.4 |
-| UI Technologies | 7.2 |
-| Visualization Features | 2.1.5, 4.3.2, 7.3 |
+| Topic                    | Primary Section(s)          |
+| ------------------------ | --------------------------- |
+| Asset Class Definitions  | 1.2.2, 2.1.2, 6.2.2         |
+| Authentication System    | 5.4.3, 6.4.2, 6.4.3         |
+| CI/CD Pipeline           | 8.6                         |
+| CORS Configuration       | 5.4.5, 6.3.1.5, 6.4.5       |
+| Database Schema          | 5.6, 6.2.2, 6.2.3           |
+| Deployment Options       | 5.5, 8.2-8.5                |
+| Environment Variables    | 6.2.13, 6.3.6, 6.4.7        |
+| Error Handling           | 4.5, 5.4.2, 6.3.2.3         |
+| Feature Catalog          | 2.1                         |
+| Graph Engine             | 2.1.3, 5.1.2, 5.2           |
+| Integration Architecture | 6.3                         |
+| Metrics & Analytics      | 2.1.5 (F-010), 4.3, 5.4.1   |
+| Rate Limiting            | 2.1.4 (F-007), 5.4.4, 6.4.4 |
+| Relationship Types       | 1.2.2, 2.1.3, 6.2.2.3       |
+| Security Architecture    | 3.8, 6.4                    |
+| Technology Stack         | 1.2.3, 3.1-3.4              |
+| UI Technologies          | 7.2                         |
+| Visualization Features   | 2.1.5, 4.3.2, 7.3           |
 
 ---
 
@@ -12253,57 +12272,57 @@ This index maps key topics to their primary documentation locations within this 
 
 ### 9.6.1 Source Files Examined
 
-| Path | Description |
-|------|-------------|
-| `app.py` | Gradio UI implementation with tabbed interface |
-| `api/main.py` | FastAPI application with endpoints, CORS, rate limiting |
-| `api/auth.py` | JWT authentication and user management |
-| `api/database.py` | SQLite database connection management |
-| `src/models/financial_models.py` | Domain model definitions and validation |
-| `src/logic/asset_graph.py` | Graph engine implementation |
-| `src/data/real_data_fetcher.py` | Yahoo Finance integration with caching |
-| `src/data/sample_data.py` | Sample database generation |
-| `src/data/database.py` | SQLAlchemy ORM configuration |
-| `src/data/db_models.py` | ORM model definitions |
-| `src/data/repository.py` | Repository pattern implementation |
-| `src/reports/schema_report.py` | Schema documentation generator |
-| `src/visualizations/graph_visuals.py` | 3D visualization generation |
-| `src/visualizations/graph_2d_visuals.py` | 2D visualization generation |
-| `mcp_server.py` | Model Context Protocol server |
-| `migrations/001_initial.sql` | Database DDL schema |
-| `requirements.txt` | Python dependencies |
-| `frontend/package.json` | Frontend dependencies |
-| `Dockerfile` | Container configuration |
-| `docker-compose.yml` | Container orchestration |
-| `vercel.json` | Serverless deployment configuration |
-| `.circleci/config.yml` | CircleCI pipeline configuration |
-| `.github/workflows/` | GitHub Actions workflow definitions |
+| Path                                     | Description                                             |
+| ---------------------------------------- | ------------------------------------------------------- |
+| `app.py`                                 | Gradio UI implementation with tabbed interface          |
+| `api/main.py`                            | FastAPI application with endpoints, CORS, rate limiting |
+| `api/auth.py`                            | JWT authentication and user management                  |
+| `api/database.py`                        | SQLite database connection management                   |
+| `src/models/financial_models.py`         | Domain model definitions and validation                 |
+| `src/logic/asset_graph.py`               | Graph engine implementation                             |
+| `src/data/real_data_fetcher.py`          | Yahoo Finance integration with caching                  |
+| `src/data/sample_data.py`                | Sample database generation                              |
+| `src/data/database.py`                   | SQLAlchemy ORM configuration                            |
+| `src/data/db_models.py`                  | ORM model definitions                                   |
+| `src/data/repository.py`                 | Repository pattern implementation                       |
+| `src/reports/schema_report.py`           | Schema documentation generator                          |
+| `src/visualizations/graph_visuals.py`    | 3D visualization generation                             |
+| `src/visualizations/graph_2d_visuals.py` | 2D visualization generation                             |
+| `mcp_server.py`                          | Model Context Protocol server                           |
+| `migrations/001_initial.sql`             | Database DDL schema                                     |
+| `requirements.txt`                       | Python dependencies                                     |
+| `frontend/package.json`                  | Frontend dependencies                                   |
+| `Dockerfile`                             | Container configuration                                 |
+| `docker-compose.yml`                     | Container orchestration                                 |
+| `vercel.json`                            | Serverless deployment configuration                     |
+| `.circleci/config.yml`                   | CircleCI pipeline configuration                         |
+| `.github/workflows/`                     | GitHub Actions workflow definitions                     |
 
 ### 9.6.2 Technical Specification Sections Referenced
 
-| Section | Topic |
-|---------|-------|
-| 1.1 Executive Summary | System overview and business context |
-| 1.2 System Overview | Architecture and technology stack |
-| 2.1 Feature Catalog | Complete feature descriptions |
-| 2.6 Assumptions and Constraints | System limitations |
-| 3.4 Open Source Dependencies | Dependency specifications |
-| 3.5 Third-Party Services | External integrations |
-| 5.1 High-Level Architecture | Architectural patterns |
-| 5.4 Cross-Cutting Concerns | Logging, error handling, authentication |
-| 5.5 Deployment Architecture | Deployment options |
-| 6.2 Database Design | Schema and indexing |
-| 6.3 Integration Architecture | API design and protocols |
-| 6.4 Security Architecture | Security framework |
-| 7.2 Core UI Technologies | Frontend specifications |
-| 8.6 CI/CD Pipeline | Build and deployment automation |
+| Section                         | Topic                                   |
+| ------------------------------- | --------------------------------------- |
+| 1.1 Executive Summary           | System overview and business context    |
+| 1.2 System Overview             | Architecture and technology stack       |
+| 2.1 Feature Catalog             | Complete feature descriptions           |
+| 2.6 Assumptions and Constraints | System limitations                      |
+| 3.4 Open Source Dependencies    | Dependency specifications               |
+| 3.5 Third-Party Services        | External integrations                   |
+| 5.1 High-Level Architecture     | Architectural patterns                  |
+| 5.4 Cross-Cutting Concerns      | Logging, error handling, authentication |
+| 5.5 Deployment Architecture     | Deployment options                      |
+| 6.2 Database Design             | Schema and indexing                     |
+| 6.3 Integration Architecture    | API design and protocols                |
+| 6.4 Security Architecture       | Security framework                      |
+| 7.2 Core UI Technologies        | Frontend specifications                 |
+| 8.6 CI/CD Pipeline              | Build and deployment automation         |
 
 ### 9.6.3 External Standards Referenced
 
-| Standard | Usage |
-|----------|-------|
-| ISO 4217 | Currency code validation (3-character format) |
-| ISO 8601 | Date format validation (YYYY-MM-DD) |
-| OpenAPI 3.x | API documentation specification |
-| OAuth2 | Bearer token authentication scheme |
-| RFC 7519 | JSON Web Token standard |
+| Standard    | Usage                                         |
+| ----------- | --------------------------------------------- |
+| ISO 4217    | Currency code validation (3-character format) |
+| ISO 8601    | Date format validation (YYYY-MM-DD)           |
+| OpenAPI 3.x | API documentation specification               |
+| OAuth2      | Bearer token authentication scheme            |
+| RFC 7519    | JSON Web Token standard                       |

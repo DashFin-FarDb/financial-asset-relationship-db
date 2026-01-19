@@ -6,10 +6,10 @@ This document summarizes the repository's architecture, conventions, and recurri
 
 - **Financial Asset Relationship Database** provides interactive 3D views and analytics over interconnected assets spanning equities, fixed income, commodities, currencies, and regulatory events. The same core logic powers two UIs: the legacy **Gradio** app (`app.py`) and the **Next.js + FastAPI** stack (`frontend` + `api`).
 - Quick development startup: run the backend and frontend explicitly (examples below). The Gradio legacy UI can be launched directly with `python app.py`.
-
   - FastAPI (backend): `uvicorn api.main:app --reload --port 8000`
   - Next.js (frontend): `npm run dev` (from the `frontend/` directory)
   - Legacy Gradio UI: `python app.py` (defaults to port 7860)
+
 - The API exposes typical graph endpoints and metadata, including asset listings and visualization payloads. Notable endpoints include `/api/assets`, `/api/assets/{asset_id}`, `/api/assets/{asset_id}/relationships`, `/api/relationships`, `/api/metrics`, `/api/visualization`, and new convenience endpoints `/api/asset-classes` and `/api/sectors`.
 
 ## High-Level Architecture
@@ -33,11 +33,11 @@ This document summarizes the repository's architecture, conventions, and recurri
 ## Domain Model & Relationship Patterns
 
 - **Domain Model** (authoritative definitions live in `src/models/financial_models.py`):
-
   - Assets are categorized by the `AssetClass` enum (e.g., equity, fixed income, commodity, currency, derivative).
   - The base `Asset` dataclass defines the required identity fields (see the dataclass for the exact names) and is validated according to the rules implemented in the model layer.
   - Specialized classes (e.g., Equity, Bond, Commodity, Currency) extend the base asset with type-specific fields.
   - Regulatory events include a scored impact field plus date/description fields (see the model for exact naming); constraints and validation behavior should be kept in sync with the model implementation and its tests.
+
 - Relationship discovery emphasizes both **bidirectional** (e.g., same sector) and **directional** (e.g., corporate bond → equity) links with deterministic 3D layouts using fixed seeds so visual output remains stable.
 - Visualization inputs are normalized: graph nodes/edges are colored by asset class, node sizes scale by importance, and metrics include relationship density and top relationships.
 
@@ -67,16 +67,15 @@ This document summarizes the repository's architecture, conventions, and recurri
 ## Testing & Quality Checks
 
 - **Backend**:
-
   - Run unit/integration tests with `pytest`.
   - Generate a coverage report with `pytest --cov=api --cov=src --cov-report=html`.
   - Key API tests live under `tests/` (commonly `tests/unit/`) and validate (examples):
-
     - CORS
     - Graph singleton behavior
     - Pydantic models
     - API endpoints
     - Error handling
+
 - **Frontend**: From `frontend/`, run `npm test` (or `npm test -- --coverage`) after `npm install`. Jest setup lives in `jest.config.js` and `jest.setup.js`.
 - **Makefile** shortcuts exist for installing dev dependencies, linting, and running checks; pre-commit hooks enforce formatting (black, isort) and linting (flake8, pylint) when enabled.
 

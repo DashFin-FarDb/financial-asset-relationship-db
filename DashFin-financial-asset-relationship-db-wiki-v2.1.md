@@ -64,18 +64,19 @@ graph TD
     C --> D1
     C --> D2
 ```
+
 Sources: [ARCHITECTURE.md:3-63](), [CONTRIBUTING.md:175-185]()
 
 ### Key Components
 
-| Component | Description | Source File(s) |
-| --- | --- | --- |
-| **Gradio UI** | The original interactive web interface for demos and direct interaction with Python logic. | `app.py` |
-| **Next.js Frontend** | A modern, responsive web application built with React and TypeScript. | `frontend/` |
-| **FastAPI Backend** | A REST API server that exposes the core logic to the Next.js frontend. | `api/main.py` |
-| **`AssetRelationshipGraph`** | The core engine responsible for graph algorithms, relationship discovery, and metric calculations. | `src/logic/asset_graph.py` |
-| **Financial Models** | Dataclasses defining the structure for all asset types (e.g., `Equity`, `Bond`). | `src/models/financial_models.py` |
-| **Data Sources** | Modules for fetching data, either from static samples or real-time sources like Yahoo Finance. | `src/data/` |
+| Component                    | Description                                                                                        | Source File(s)                   |
+| ---------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------- |
+| **Gradio UI**                | The original interactive web interface for demos and direct interaction with Python logic.         | `app.py`                         |
+| **Next.js Frontend**         | A modern, responsive web application built with React and TypeScript.                              | `frontend/`                      |
+| **FastAPI Backend**          | A REST API server that exposes the core logic to the Next.js frontend.                             | `api/main.py`                    |
+| **`AssetRelationshipGraph`** | The core engine responsible for graph algorithms, relationship discovery, and metric calculations. | `src/logic/asset_graph.py`       |
+| **Financial Models**         | Dataclasses defining the structure for all asset types (e.g., `Equity`, `Bond`).                   | `src/models/financial_models.py` |
+| **Data Sources**             | Modules for fetching data, either from static samples or real-time sources like Yahoo Finance.     | `src/data/`                      |
 
 Sources: [README.md:100-112](), [ARCHITECTURE.md:70-90](), [frontend/README.md:40-52]()
 
@@ -83,12 +84,12 @@ Sources: [README.md:100-112](), [ARCHITECTURE.md:70-90](), [frontend/README.md:4
 
 The platform provides a rich set of features for financial analysis and visualization.
 
-| Feature | Description |
-| --- | --- |
-| **3D Network Visualization** | An interactive 3D graph of asset relationships, rendered using Plotly. |
-| **Cross-Asset Analysis** | Automatically discovers and models relationships between different asset classes. |
-| **Regulatory Integration** | Models the impact of corporate events and SEC filings on the asset network. |
-| **Real-time Metrics** | Provides network statistics like density, degree, and relationship strength analysis. |
+| Feature                      | Description                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| **3D Network Visualization** | An interactive 3D graph of asset relationships, rendered using Plotly.                |
+| **Cross-Asset Analysis**     | Automatically discovers and models relationships between different asset classes.     |
+| **Regulatory Integration**   | Models the impact of corporate events and SEC filings on the asset network.           |
+| **Real-time Metrics**        | Provides network statistics like density, degree, and relationship strength analysis. |
 
 Sources: [README.md:71-75]()
 
@@ -96,13 +97,13 @@ Sources: [README.md:71-75]()
 
 The database is designed to handle a variety of financial instruments.
 
-| Asset Class | Key Attributes |
-| --- | --- |
-| **Equities** | P/E ratios, dividend yields, EPS |
-| **Fixed Income (Bonds)** | Yield, duration, credit ratings |
-| **Commodities** | Futures and spot prices, contract specifications |
-| **Currencies** | FX pairs, exchange rates, monetary policy links |
-| **Regulatory Events** | Earnings, SEC filings, M&A activities |
+| Asset Class              | Key Attributes                                   |
+| ------------------------ | ------------------------------------------------ |
+| **Equities**             | P/E ratios, dividend yields, EPS                 |
+| **Fixed Income (Bonds)** | Yield, duration, credit ratings                  |
+| **Commodities**          | Futures and spot prices, contract specifications |
+| **Currencies**           | FX pairs, exchange rates, monetary policy links  |
+| **Regulatory Events**    | Earnings, SEC filings, M&A activities            |
 
 Sources: [README.md:78-84]()
 
@@ -152,6 +153,7 @@ erDiagram
     ASSET ||--o{ RELATIONSHIP : "has"
     REGULATORY_EVENT ||--|{ ASSET : "impacts"
 ```
+
 Sources: [README.md:114-120](), [AUDIT_REPORT.md:32-35]()
 
 ### Data Flow for Relationship Discovery
@@ -169,6 +171,7 @@ flowchart TD
     G --> H[JSON for API]
     G --> I[Plotly Figure for Gradio]
 ```
+
 Sources: [ARCHITECTURE.md:183-207](), [README.md:133-134]()
 
 ## Technology Stack
@@ -178,29 +181,29 @@ Sources: [AI_RULES.md:5-24]()
 
 ### Backend & Core Logic
 
-| Technology | Purpose |
-| --- | --- |
-| **Python 3.8+** | Foundational programming language. |
-| **FastAPI** | High-performance REST API framework. |
-| **Gradio** | UI framework for the original interactive demo. |
-| **Pandas** | Data manipulation and analysis. |
-| **NumPy** | Numerical operations and array computations. |
-| **Plotly** | Generation of all interactive charts and 3D graphs. |
-| **yfinance** | Fetching real-time and historical financial market data. |
-| **dataclasses & enum** | Defining structured data models and enumerations. |
+| Technology             | Purpose                                                  |
+| ---------------------- | -------------------------------------------------------- |
+| **Python 3.8+**        | Foundational programming language.                       |
+| **FastAPI**            | High-performance REST API framework.                     |
+| **Gradio**             | UI framework for the original interactive demo.          |
+| **Pandas**             | Data manipulation and analysis.                          |
+| **NumPy**              | Numerical operations and array computations.             |
+| **Plotly**             | Generation of all interactive charts and 3D graphs.      |
+| **yfinance**           | Fetching real-time and historical financial market data. |
+| **dataclasses & enum** | Defining structured data models and enumerations.        |
 
 Sources: [AI_RULES.md:7-24](), [ARCHITECTURE.md:168-180]()
 
 ### Frontend
 
-| Technology | Purpose |
-| --- | --- |
-| **Next.js 14** | React framework for the modern UI. |
-| **React 18** | UI component library. |
-| **TypeScript** | Type safety for JavaScript. |
-| **Tailwind CSS** | Utility-first CSS framework for styling. |
-| **Plotly.js** | Rendering 3D visualizations in the browser. |
-| **Axios** | HTTP client for communicating with the FastAPI backend. |
+| Technology       | Purpose                                                 |
+| ---------------- | ------------------------------------------------------- |
+| **Next.js 14**   | React framework for the modern UI.                      |
+| **React 18**     | UI component library.                                   |
+| **TypeScript**   | Type safety for JavaScript.                             |
+| **Tailwind CSS** | Utility-first CSS framework for styling.                |
+| **Plotly.js**    | Rendering 3D visualizations in the browser.             |
+| **Axios**        | HTTP client for communicating with the FastAPI backend. |
 
 Sources: [ARCHITECTURE.md:154-165](), [frontend/README.md:55-56]()
 
@@ -223,21 +226,22 @@ flowchart TD
     F --> G(Merge to main)
     G --> H(Delete Branch)
 ```
+
 Sources: [CONTRIBUTING.md:51-100]()
 
 ### Development Commands
 
 A `Makefile` provides shortcuts for common development tasks.
 
-| Command | Description |
-| --- | --- |
-| `make install-dev` | Install all production and development dependencies. |
-| `make pre-commit` | Install pre-commit hooks for automated quality checks. |
-| `make format` | Format code with `black` and `isort`. |
-| `make lint` | Run linters (`flake8`, `pylint`). |
-| `make type-check` | Run the `mypy` type checker. |
-| `make test` | Run the `pytest` test suite with coverage. |
-| `make check` | Run all checks (format, lint, type-check, test) at once. |
+| Command            | Description                                              |
+| ------------------ | -------------------------------------------------------- |
+| `make install-dev` | Install all production and development dependencies.     |
+| `make pre-commit`  | Install pre-commit hooks for automated quality checks.   |
+| `make format`      | Format code with `black` and `isort`.                    |
+| `make lint`        | Run linters (`flake8`, `pylint`).                        |
+| `make type-check`  | Run the `mypy` type checker.                             |
+| `make test`        | Run the `pytest` test suite with coverage.               |
+| `make check`       | Run all checks (format, lint, type-check, test) at once. |
 
 Sources: [SUMMARY.md:60-76](), [CONTRIBUTING.md:41-44, 72-81]()
 
@@ -285,9 +289,9 @@ Sources: [README.md:3-4](), [QUICK_START.md:3-4]()
 Before you begin, ensure you have the following software installed on your system.
 
 | Software | Minimum Version |
-| :--- | :--- |
-| Python | 3.10+ |
-| Node.js | 18+ |
+| :------- | :-------------- |
+| Python   | 3.10+           |
+| Node.js  | 18+             |
 
 Sources: [README.md:7-9](), [QUICK_START.md:5-7]()
 
@@ -302,6 +306,7 @@ Sources: [README.md:28-30]()
 The repository includes convenience scripts to start both the backend and frontend servers simultaneously.
 
 This diagram illustrates the process initiated by the `run-dev` scripts.
+
 ```mermaid
 flowchart TD
     A[Start Script] --> B{Check OS};
@@ -312,16 +317,19 @@ flowchart TD
     E --> F[Start Next.js Frontend on Port 3000];
     F --> G[Application Ready];
 ```
+
 Sources: [run-dev.sh](), [run-dev.bat]()
 
 To run the automated setup:
 
 **Linux/macOS**
+
 ```bash
 ./run-dev.sh
 ```
 
 **Windows**
+
 ```cmd
 run-dev.bat
 ```
@@ -341,6 +349,7 @@ If you prefer to run the services separately, follow these steps.
 pip install -r requirements.txt
 python -m uvicorn api.main:app --reload --port 8000
 ```
+
 Sources: [README.md:44-46](), [QUICK_START.md:25-33]()
 
 #### 2. Start the Next.js Frontend
@@ -352,16 +361,17 @@ cd frontend
 npm install
 npm run dev
 ```
+
 Sources: [README.md:49-51](), [QUICK_START.md:36-44]()
 
 ### Accessing the Application
 
 Once running, the different parts of the application are accessible at the following URLs.
 
-| Service | URL |
-| :--- | :--- |
-| Next.js Frontend | `http://localhost:3000` |
-| FastAPI Backend | `http://localhost:8000` |
+| Service                     | URL                          |
+| :-------------------------- | :--------------------------- |
+| Next.js Frontend            | `http://localhost:3000`      |
+| FastAPI Backend             | `http://localhost:8000`      |
 | API Documentation (Swagger) | `http://localhost:8000/docs` |
 
 Sources: [README.md:54-56](), [QUICK_START.md:20-22]()
@@ -371,22 +381,26 @@ Sources: [README.md:54-56](), [QUICK_START.md:20-22]()
 This method runs the original Python-based Gradio interface.
 
 1.  **Clone the repository and set up a Python virtual environment.**
+
     ```bash
     git clone <repository-url>
     cd financial-asset-relationship-db
     python -m venv .venv
     ```
+
     Sources: [README.md:12-15]()
 
 2.  **Activate the environment.**
-    -   macOS/Linux: `source .venv/bin/activate`
-    -   Windows: `.venv\Scripts\activate.bat`
-    Sources: [README.md:18-26]()
+    - macOS/Linux: `source .venv/bin/activate`
+    - Windows: `.venv\Scripts\activate.bat`
+      Sources: [README.md:18-26]()
 
 3.  **Install dependencies.**
+
     ```bash
     pip install -r requirements.txt
     ```
+
     Sources: [README.md:29-31]()
 
 4.  **Run the application.**
@@ -405,6 +419,7 @@ For a containerized setup that encapsulates all dependencies, use Docker.
 The `docker-compose.yml` file defines the application service.
 
 This diagram shows the services defined in the Docker Compose configuration.
+
 ```mermaid
 graph TD
     subgraph Docker Environment
@@ -416,15 +431,19 @@ graph TD
 
     style A fill:#f9f,stroke:#333,stroke-width:2px
 ```
+
 Sources: [docker-compose.yml]()
 
 To build and run the application using Docker Compose:
+
 ```bash
 docker-compose up --build
 ```
+
 This command builds the image for the `app` service and starts the container, making the Gradio UI available on `http://localhost:7860`.
 
 The `docker-compose.yml` defines a single service named `app`.
+
 ```yaml
 # docker-compose.yml
 services:
@@ -435,6 +454,7 @@ services:
     volumes:
       - ./src:/app/src
 ```
+
 Sources: [README.md:61-63](), [DOCKER.md:5-9](), [docker-compose.yml:2-8]()
 
 ### Direct Docker Commands
@@ -446,10 +466,10 @@ Alternatively, you can build and run the Docker image directly without Docker Co
     docker build -t financial-asset-db .
     ```
 2.  **Run the container:**
-    ```bash
-    docker run -p 7860:7860 financial-asset-db
-    ```
-Sources: [README.md:66-69](), [DOCKER.md:12-15]()
+    `bash
+docker run -p 7860:7860 financial-asset-db
+`
+    Sources: [README.md:66-69](), [DOCKER.md:12-15]()
 
 ## Summary
 
@@ -488,12 +508,12 @@ The primary goal is to transform complex, abstract financial data into an intuit
 
 ### Key Features
 
-| Feature | Description | Source |
-| :--- | :--- | :--- |
-| **3D Network Visualization** | An interactive 3D graph of asset relationships, rendered using Plotly. | [README.md:52](), [frontend/README.md:43]() |
-| **Cross-Asset Analysis** | Automatically discovers and models relationships between different asset classes. | [README.md:53]() |
-| **Regulatory Integration** | Models the impact of corporate events and SEC filings on the asset network. | [README.md:54]() |
-| **Real-time Metrics** | Provides a dashboard with network statistics and relationship strength analysis. | [README.md:55](), [frontend/README.md:44]() |
+| Feature                      | Description                                                                       | Source                                      |
+| :--------------------------- | :-------------------------------------------------------------------------------- | :------------------------------------------ |
+| **3D Network Visualization** | An interactive 3D graph of asset relationships, rendered using Plotly.            | [README.md:52](), [frontend/README.md:43]() |
+| **Cross-Asset Analysis**     | Automatically discovers and models relationships between different asset classes. | [README.md:53]()                            |
+| **Regulatory Integration**   | Models the impact of corporate events and SEC filings on the asset network.       | [README.md:54]()                            |
+| **Real-time Metrics**        | Provides a dashboard with network statistics and relationship strength analysis.  | [README.md:55](), [frontend/README.md:44]() |
 
 Sources: [README.md:51-55](), [frontend/README.md:42-45]()
 
@@ -533,21 +553,22 @@ erDiagram
     ASSET ||--o{ RELATIONSHIP : "has"
     REGULATORY_EVENT ||--|{ ASSET : "impacts"
 ```
-*Sources: [README.md:73-80](), [src/models/financial_models.py (inferred from project structure)]()*
+
+_Sources: [README.md:73-80](), [src/models/financial_models.py (inferred from project structure)]()_
 
 ## Supported Asset Ecosystem
 
 The project aims to cover all major financial asset classes to provide a holistic view of the market.
 
-| Asset Class | Key Attributes | Source |
-| :--- | :--- | :--- |
-| **Equities** | P/E Ratios, Dividend Yields, EPS, Sector | [README.md:58]() |
-| **Fixed Income (Bonds)** | Yield, Duration, Credit Ratings | [README.md:59]() |
-| **Commodities** | Futures and Spot Prices, Contract Specifications | [README.md:60]() |
-| **Currencies** | FX Pairs, Exchange Rates, Monetary Policy Links | [README.md:61]() |
-| **Regulatory Events** | Earnings, SEC Filings, M&A Activities, Impact Score | [README.md:62]() |
+| Asset Class              | Key Attributes                                      | Source           |
+| :----------------------- | :-------------------------------------------------- | :--------------- |
+| **Equities**             | P/E Ratios, Dividend Yields, EPS, Sector            | [README.md:58]() |
+| **Fixed Income (Bonds)** | Yield, Duration, Credit Ratings                     | [README.md:59]() |
+| **Commodities**          | Futures and Spot Prices, Contract Specifications    | [README.md:60]() |
+| **Currencies**           | FX Pairs, Exchange Rates, Monetary Policy Links     | [README.md:61]() |
+| **Regulatory Events**    | Earnings, SEC Filings, M&A Activities, Impact Score | [README.md:62]() |
 
-*Sources: [README.md:57-62](), [AI_RULES.md:16]()*
+_Sources: [README.md:57-62](), [AI_RULES.md:16]()_
 
 ### Relationship Discovery
 
@@ -567,20 +588,21 @@ flowchart TD
     D -- No --> B;
     B -- Done --> H[Graph Complete];
 ```
-*Sources: [ARCHITECTURE.md:104-122](), [README.md:95]()*
+
+_Sources: [ARCHITECTURE.md:104-122](), [README.md:95]()_
 
 The system identifies several types of relationships:
 
-| Relationship Type | Description | Source |
-| :--- | :--- | :--- |
-| **Sector Affinity** | Assets belonging to the same industry sector. | [README.md:65]() |
-| **Corporate Links** | Bonds issued by a publicly traded company (equity). | [README.md:66]() |
+| Relationship Type      | Description                                                  | Source           |
+| :--------------------- | :----------------------------------------------------------- | :--------------- |
+| **Sector Affinity**    | Assets belonging to the same industry sector.                | [README.md:65]() |
+| **Corporate Links**    | Bonds issued by a publicly traded company (equity).          | [README.md:66]() |
 | **Commodity Exposure** | Equity companies whose business is tied to commodity prices. | [README.md:67]() |
-| **Currency Risk** | FX exposure for assets not denominated in USD. | [README.md:68]() |
-| **Income Comparison** | Comparing stock dividends against bond yields. | [README.md:69]() |
-| **Event Impact** | A single regulatory event affecting multiple assets. | [README.md:70]() |
+| **Currency Risk**      | FX exposure for assets not denominated in USD.               | [README.md:68]() |
+| **Income Comparison**  | Comparing stock dividends against bond yields.               | [README.md:69]() |
+| **Event Impact**       | A single regulatory event affecting multiple assets.         | [README.md:70]() |
 
-*Sources: [README.md:64-70]()*
+_Sources: [README.md:64-70]()_
 
 ## Technical Vision and Architecture
 
@@ -618,7 +640,8 @@ graph TD
     GraphEngine --> RealData;
     GraphEngine --> SampleData;
 ```
-*Sources: [ARCHITECTURE.md:3-82](), [INTEGRATION_SUMMARY.md:64-90]()*
+
+_Sources: [ARCHITECTURE.md:3-82](), [INTEGRATION_SUMMARY.md:64-90]()_
 
 ### API-First Approach
 
@@ -640,27 +663,28 @@ sequenceDiagram
     FastAPI-->>NextApp: JSON Response
     NextApp-->>User: Render 3D Graph with Plotly
 ```
-*Sources: [ARCHITECTURE.md:85-102](), [INTEGRATION_SUMMARY.md:20-33]()*
+
+_Sources: [ARCHITECTURE.md:85-102](), [INTEGRATION_SUMMARY.md:20-33]()_
 
 ## Development Philosophy and Quality
 
 The project vision includes a strong emphasis on high-quality code, robust testing, and a streamlined development workflow. This is supported by a suite of modern development tools and clear contribution guidelines.
 
-*Sources: [CONTRIBUTING.md](), [AUDIT_REPORT.md:10-14]()*
+_Sources: [CONTRIBUTING.md](), [AUDIT_REPORT.md:10-14]()_
 
 ### Development Tooling
 
-| Tool | Purpose | Source |
-| :--- | :--- | :--- |
-| `pytest` | Backend testing framework. | [README.md:102](), [CONTRIBUTING.md:129]() |
-| `Jest` | Frontend testing framework. | [frontend/README.md:30]() |
-| `black`, `isort` | Automatic code formatting for Python. | [CONTRIBUTING.md:103](), [AUDIT_REPORT.md:150]() |
-| `flake8`, `pylint` | Python linting to enforce code style. | [CONTRIBUTING.md:106](), [AUDIT_REPORT.md:149]() |
-| `mypy` | Static type checking for Python. | [CONTRIBUTING.md:109](), [AUDIT_REPORT.md:151]() |
-| `pre-commit` | Runs automated quality checks before each commit. | [CONTRIBUTING.md:44-47](), [AUDIT_REPORT.md:183-191]() |
-| `GitHub Actions` | Continuous Integration (CI) to run checks automatically. | [AUDIT_REPORT.md:158-166]() |
+| Tool               | Purpose                                                  | Source                                                 |
+| :----------------- | :------------------------------------------------------- | :----------------------------------------------------- |
+| `pytest`           | Backend testing framework.                               | [README.md:102](), [CONTRIBUTING.md:129]()             |
+| `Jest`             | Frontend testing framework.                              | [frontend/README.md:30]()                              |
+| `black`, `isort`   | Automatic code formatting for Python.                    | [CONTRIBUTING.md:103](), [AUDIT_REPORT.md:150]()       |
+| `flake8`, `pylint` | Python linting to enforce code style.                    | [CONTRIBUTING.md:106](), [AUDIT_REPORT.md:149]()       |
+| `mypy`             | Static type checking for Python.                         | [CONTRIBUTING.md:109](), [AUDIT_REPORT.md:151]()       |
+| `pre-commit`       | Runs automated quality checks before each commit.        | [CONTRIBUTING.md:44-47](), [AUDIT_REPORT.md:183-191]() |
+| `GitHub Actions`   | Continuous Integration (CI) to run checks automatically. | [AUDIT_REPORT.md:158-166]()                            |
 
-*Sources: [CONTRIBUTING.md](), [AUDIT_REPORT.md](), [README.md]()*
+_Sources: [CONTRIBUTING.md](), [AUDIT_REPORT.md](), [README.md]()_
 
 ### Guiding Principles
 
@@ -670,7 +694,7 @@ The project vision includes a strong emphasis on high-quality code, robust testi
 - **Consistency**: Adherence to defined coding styles (PEP 8, Black) and project conventions.
 - **Documentation**: Public functions and classes require docstrings, and key architectural decisions are documented in Markdown files.
 
-*Sources: [AI_RULES.md:43-53](), [CONTRIBUTING.md:80-127](), [AUDIT_REPORT.md:20-40]()*
+_Sources: [AI_RULES.md:43-53](), [CONTRIBUTING.md:80-127](), [AUDIT_REPORT.md:20-40]()_
 
 ## Future Vision and Extensibility
 
@@ -678,22 +702,21 @@ The project is designed to be a foundation for more advanced financial analysis 
 
 ### Potential Future Features
 
-| Feature Area | Description | Source |
-| :--- | :--- | :--- |
-| **Data Persistence** | Storing asset and relationship data in a database like SQLite or PostgreSQL. | [IMPROVEMENTS.md:200-207]() |
-| **Real-time Updates** | Using WebSockets to stream live data and automatically refresh visualizations. | [IMPROVEMENTS.md:268-273]() |
-| **Advanced Analytics** | Integrating machine learning for relationship prediction, anomaly detection, and trend analysis. | [IMPROVEMENTS.md:262-266]() |
+| Feature Area                      | Description                                                                                      | Source                      |
+| :-------------------------------- | :----------------------------------------------------------------------------------------------- | :-------------------------- |
+| **Data Persistence**              | Storing asset and relationship data in a database like SQLite or PostgreSQL.                     | [IMPROVEMENTS.md:200-207]() |
+| **Real-time Updates**             | Using WebSockets to stream live data and automatically refresh visualizations.                   | [IMPROVEMENTS.md:268-273]() |
+| **Advanced Analytics**            | Integrating machine learning for relationship prediction, anomaly detection, and trend analysis. | [IMPROVEMENTS.md:262-266]() |
 | **Service-Oriented Architecture** | Abstracting logic into a service layer with repositories for better testability and maintenance. | [IMPROVEMENTS.md:194-216]() |
-| **Enhanced Monitoring** | Adding health check endpoints, Prometheus metrics, and structured logging for observability. | [IMPROVEMENTS.md:237-259]() |
+| **Enhanced Monitoring**           | Adding health check endpoints, Prometheus metrics, and structured logging for observability.     | [IMPROVEMENTS.md:237-259]() |
 
-*Sources: [IMPROVEMENTS.md](), [INTEGRATION_SUMMARY.md:181-188]()*
+_Sources: [IMPROVEMENTS.md](), [INTEGRATION_SUMMARY.md:181-188]()_
 
 ## Conclusion
 
 The project's goal is to be more than just a visualization tool; it aims to be an extensible, high-quality, and modern platform for financial data analysis. The vision combines a powerful analytical engine with a user-friendly interface, supported by a robust and scalable technical architecture. By prioritizing clean code, comprehensive testing, and clear documentation, the project is well-positioned for future growth and community contribution.
 
-*Sources: [AUDIT_REPORT.md:275-281](), [README.md:3-4]()*
-
+_Sources: [AUDIT_REPORT.md:275-281](), [README.md:3-4]()_
 
 ## System Architecture
 
@@ -754,19 +777,20 @@ graph TD
     AssetGraph --> Models
     AssetGraph --> DataSources
 ```
+
 Sources: [ARCHITECTURE.md:5-48](), [README.md:104-118]()
 
 ### Key Components
 
-| Component | Description | Source File |
-| --- | --- | --- |
-| `app.py` | The main application entry point for the Gradio web interface and its event handlers. | `README.md:105` |
-| `api/main.py` | The FastAPI backend that serves the REST API for the Next.js frontend. | `ARCHITECTURE.md:20-29` |
-| `src/logic/asset_graph.py` | Contains the core graph algorithms and the relationship discovery engine. | `README.md:106` |
-| `src/models/financial_models.py` | Defines the domain model dataclasses (e.g., `Asset`, `Equity`) and enums. | `README.md:107` |
-| `src/data/sample_data.py` | Responsible for creating the sample dataset used in the application. | `README.md:108` |
-| `src/visualizations/` | Contains modules for generating Plotly-based charts and 3D graphs. | `README.md:109` |
-| `src/reports/` | Includes logic for generating schema and business rules documentation. | `README.md:110` |
+| Component                        | Description                                                                           | Source File             |
+| -------------------------------- | ------------------------------------------------------------------------------------- | ----------------------- |
+| `app.py`                         | The main application entry point for the Gradio web interface and its event handlers. | `README.md:105`         |
+| `api/main.py`                    | The FastAPI backend that serves the REST API for the Next.js frontend.                | `ARCHITECTURE.md:20-29` |
+| `src/logic/asset_graph.py`       | Contains the core graph algorithms and the relationship discovery engine.             | `README.md:106`         |
+| `src/models/financial_models.py` | Defines the domain model dataclasses (e.g., `Asset`, `Equity`) and enums.             | `README.md:107`         |
+| `src/data/sample_data.py`        | Responsible for creating the sample dataset used in the application.                  | `README.md:108`         |
+| `src/visualizations/`            | Contains modules for generating Plotly-based charts and 3D graphs.                    | `README.md:109`         |
+| `src/reports/`                   | Includes logic for generating schema and business rules documentation.                | `README.md:110`         |
 
 Sources: [README.md:104-118](), [CONTRIBUTING.md:197-203]()
 
@@ -798,6 +822,7 @@ sequenceDiagram
     deactivate FastAPI
     NextJS->>User: Renders 3D Visualization
 ```
+
 Sources: [ARCHITECTURE.md:52-71]()
 
 ### Gradio UI Flow
@@ -819,6 +844,7 @@ sequenceDiagram
     deactivate CoreLogic
     Gradio->>User: Updates Visualization in UI
 ```
+
 Sources: [ARCHITECTURE.md:73-89]()
 
 ## Technology Stack
@@ -829,30 +855,30 @@ Sources: [AI_RULES.md:5-20](), [ARCHITECTURE.md:92-120]()
 
 ### Backend & Core Logic
 
-| Technology | Role |
-| --- | --- |
-| **Python 3.8+** | Foundational programming language for all backend and logic. |
-| **FastAPI** | High-performance REST API framework for the Next.js frontend. |
-| **Uvicorn** | ASGI server to run the FastAPI application. |
-| **Pydantic** | Data validation and settings management. |
-| **NumPy** | High-performance numerical operations and graph algorithms. |
-| **Pandas** | Data manipulation and analysis. |
-| **yfinance** | Fetching real-time and historical financial market data. |
-| **dataclasses & enum** | Defining structured data models and enumerations. |
+| Technology             | Role                                                          |
+| ---------------------- | ------------------------------------------------------------- |
+| **Python 3.8+**        | Foundational programming language for all backend and logic.  |
+| **FastAPI**            | High-performance REST API framework for the Next.js frontend. |
+| **Uvicorn**            | ASGI server to run the FastAPI application.                   |
+| **Pydantic**           | Data validation and settings management.                      |
+| **NumPy**              | High-performance numerical operations and graph algorithms.   |
+| **Pandas**             | Data manipulation and analysis.                               |
+| **yfinance**           | Fetching real-time and historical financial market data.      |
+| **dataclasses & enum** | Defining structured data models and enumerations.             |
 
 Sources: [AI_RULES.md:7-20](), [ARCHITECTURE.md:109-120]()
 
 ### Frontend
 
-| Technology | Role |
-| --- | --- |
-| **Next.js 14** | React framework for the modern web UI. |
-| **React 18** | UI component library. |
-| **TypeScript** | Type safety for the frontend codebase. |
-| **Gradio** | Framework for the original Python-based interactive UI. |
+| Technology             | Role                                                                |
+| ---------------------- | ------------------------------------------------------------------- |
+| **Next.js 14**         | React framework for the modern web UI.                              |
+| **React 18**           | UI component library.                                               |
+| **TypeScript**         | Type safety for the frontend codebase.                              |
+| **Gradio**             | Framework for the original Python-based interactive UI.             |
 | **Plotly / Plotly.js** | Exclusive library for all interactive charts and 3D visualizations. |
-| **Axios** | HTTP client for the Next.js frontend to communicate with the API. |
-| **Tailwind CSS** | Styling for the Next.js frontend. |
+| **Axios**              | HTTP client for the Next.js frontend to communicate with the API.   |
+| **Tailwind CSS**       | Styling for the Next.js frontend.                                   |
 
 Sources: [ARCHITECTURE.md:94-107](), [AI_RULES.md:8](), [AI_RULES.md:13]()
 
@@ -900,11 +926,13 @@ classDiagram
     Asset <|-- Commodity
     Asset <|-- Currency
 ```
+
 Sources: [AUDIT_REPORT.md:19-22](), [README.md:93-97]()
 
 ### Data Sources
 
 Data is ingested from two primary sources:
+
 1.  **Static Sample Data**: A predefined set of assets located in `src/data/sample_data.py` for demonstration and testing.
 2.  **Yahoo Finance**: Real-time and historical market data is fetched using the `yfinance` library, as defined in `src/data/real_data_fetcher.py`.
 
@@ -930,6 +958,7 @@ services:
     environment:
       - GRADIO_SERVER_NAME=0.0.0.0
 ```
+
 This configuration builds a Docker image from the local Dockerfile and maps port 7860 for the Gradio application.
 
 Sources: [README.md:65-76](), [docker-compose.yml:1-9]()
@@ -939,6 +968,7 @@ Sources: [README.md:65-76](), [docker-compose.yml:1-9]()
 The Next.js application is optimized for deployment on Vercel. The frontend is served from Vercel's Edge Network, while the Python backend (FastAPI) is deployed as a Vercel Serverless Function. This provides auto-scaling capabilities and a seamless deployment experience integrated with Git.
 
 This diagram shows the Vercel deployment model.
+
 ```mermaid
 graph TD
     User["Internet Users"] -->|HTTPS| Vercel
@@ -948,6 +978,7 @@ graph TD
         NextJS -- "Internal Network" --> FastAPI
     end
 ```
+
 Sources: [ARCHITECTURE.md:158-176]()
 
 ## Conclusion
@@ -1016,6 +1047,7 @@ graph TD
     D -- "Uses" --> E
 
 ```
+
 Sources: [ARCHITECTURE.md](), [README.md:19-33]()
 
 ## API Layer (FastAPI)
@@ -1028,16 +1060,16 @@ Sources: [api/main.py:34-48](), [INTEGRATION_SUMMARY.md]()
 
 The API provides endpoints for retrieving assets, relationships, metrics, and visualization data.
 
-| Method | Endpoint                      | Description                                                                 | Core Logic Called                               |
-| :----- | :---------------------------- | :-------------------------------------------------------------------------- | :---------------------------------------------- |
-| `GET`  | `/api/health`                 | Health check for the service.                                               | N/A                                             |
-| `GET`  | `/api/assets`                 | Retrieves a list of all assets, with optional filtering by class and sector.  | `graph.assets`                                  |
-| `GET`  | `/api/assets/{asset_id}`      | Fetches detailed information for a single asset.                            | `graph.get_asset_by_id()`                       |
-| `GET`  | `/api/relationships`          | Returns all relationships in the graph.                                     | `graph.relationships`                           |
-| `GET`  | `/api/metrics`                | Calculates and returns key network metrics.                                 | `graph.calculate_metrics()`                     |
-| `GET`  | `/api/visualization`          | Generates node and edge data for 3D visualization.                          | `graph.get_3d_visualization_data()`             |
-| `GET`  | `/api/asset-classes`          | Lists all available asset classes.                                          | `graph.get_all_asset_classes()`                 |
-| `GET`  | `/api/sectors`                | Lists all unique sectors present in the data.                               | `graph.get_all_sectors()`                       |
+| Method | Endpoint                 | Description                                                                  | Core Logic Called                   |
+| :----- | :----------------------- | :--------------------------------------------------------------------------- | :---------------------------------- |
+| `GET`  | `/api/health`            | Health check for the service.                                                | N/A                                 |
+| `GET`  | `/api/assets`            | Retrieves a list of all assets, with optional filtering by class and sector. | `graph.assets`                      |
+| `GET`  | `/api/assets/{asset_id}` | Fetches detailed information for a single asset.                             | `graph.get_asset_by_id()`           |
+| `GET`  | `/api/relationships`     | Returns all relationships in the graph.                                      | `graph.relationships`               |
+| `GET`  | `/api/metrics`           | Calculates and returns key network metrics.                                  | `graph.calculate_metrics()`         |
+| `GET`  | `/api/visualization`     | Generates node and edge data for 3D visualization.                           | `graph.get_3d_visualization_data()` |
+| `GET`  | `/api/asset-classes`     | Lists all available asset classes.                                           | `graph.get_all_asset_classes()`     |
+| `GET`  | `/api/sectors`           | Lists all unique sectors present in the data.                                | `graph.get_all_sectors()`           |
 
 Sources: [api/main.py:51-168]()
 
@@ -1064,6 +1096,7 @@ sequenceDiagram
     deactivate FastAPI
     NextApp->>User: Render Plotly.js graph
 ```
+
 Sources: [api/main.py:133-140](), [ARCHITECTURE.md]()
 
 ## Core Business Logic Layer
@@ -1090,6 +1123,7 @@ classDiagram
         -_find_relationships(asset1, asset2)
     }
 ```
+
 Sources: [src/logic/asset_graph.py:21-255]()
 
 ### Relationship Discovery
@@ -1109,6 +1143,7 @@ flowchart TD
     D -- No --> B
     B -- Loop finished --> G[End]
 ```
+
 Sources: [src/logic/asset_graph.py:100-120]()
 
 The `_find_relationships` method contains the specific business rules, such as identifying assets in the same sector or linking a corporate bond to its parent equity.
@@ -1163,6 +1198,7 @@ classDiagram
     Asset <|-- Commodity
     Asset <|-- Currency
 ```
+
 Sources: [src/models/financial_models.py:25-108]()
 
 ### Data Fetching
@@ -1186,6 +1222,7 @@ graph TD
     CoreLogic -- "Returns Data/Figure" --> EventHandler
     EventHandler -- "Updates UI" --> GradioUI
 ```
+
 Sources: [app.py:117-158]()
 
 ## Summary
@@ -1222,18 +1259,18 @@ Sources: [frontend/README.md](), [INTEGRATION_SUMMARY.md](), [ARCHITECTURE.md]()
 
 The frontend leverages a modern technology stack centered around the React ecosystem. The core technologies and their roles are detailed below.
 
-| Technology | Version | Role |
-| :--- | :--- | :--- |
-| **Next.js** | `14.2.35` | The React framework for server-side rendering, routing, and building the application. |
-| **React** | `^18.2.0` | The UI library for building components. |
-| **TypeScript** | `^5.3.0` | Provides static typing for the entire codebase, ensuring type safety. |
-| **Tailwind CSS** | `^3.3.0` | A utility-first CSS framework for styling the application. |
-| **Plotly.js** | `^2.27.0` | The core library for creating the interactive 3D network visualization. |
-| **react-plotly.js** | `^2.6.0` | A React wrapper for Plotly.js, integrating it into the component model. |
-| **Recharts** | `^2.10.0` | A composable charting library used for the metrics dashboard. |
-| **Axios** | `^1.13.2` | A promise-based HTTP client for communicating with the backend REST API. |
-| **Jest** | `^29.7.0` | The testing framework used for unit and component tests. |
-| **React Testing Library** | `^14.1.2` | Provides utilities for testing React components in a user-centric way. |
+| Technology                | Version   | Role                                                                                  |
+| :------------------------ | :-------- | :------------------------------------------------------------------------------------ |
+| **Next.js**               | `14.2.35` | The React framework for server-side rendering, routing, and building the application. |
+| **React**                 | `^18.2.0` | The UI library for building components.                                               |
+| **TypeScript**            | `^5.3.0`  | Provides static typing for the entire codebase, ensuring type safety.                 |
+| **Tailwind CSS**          | `^3.3.0`  | A utility-first CSS framework for styling the application.                            |
+| **Plotly.js**             | `^2.27.0` | The core library for creating the interactive 3D network visualization.               |
+| **react-plotly.js**       | `^2.6.0`  | A React wrapper for Plotly.js, integrating it into the component model.               |
+| **Recharts**              | `^2.10.0` | A composable charting library used for the metrics dashboard.                         |
+| **Axios**                 | `^1.13.2` | A promise-based HTTP client for communicating with the backend REST API.              |
+| **Jest**                  | `^29.7.0` | The testing framework used for unit and component tests.                              |
+| **React Testing Library** | `^14.1.2` | Provides utilities for testing React components in a user-centric way.                |
 
 Sources: [frontend/package.json](), [frontend/README.md]()
 
@@ -1262,7 +1299,8 @@ frontend/
 ├── tsconfig.json       # TypeScript configuration
 └── tailwind.config.js  # Tailwind CSS configuration
 ```
-*Source: [frontend/README.md]()*
+
+_Source: [frontend/README.md]()_
 
 - **`app/`**: The core of the application, following the Next.js App Router convention.
   - **`components/`**: Contains reusable React components that form the building blocks of the UI.
@@ -1326,23 +1364,24 @@ sequenceDiagram
     Page-->>User: Renders UI with data
     deactivate Page
 ```
+
 This diagram shows the initial parallel data fetching when the main page component mounts.
-*Sources: [frontend/app/page.tsx](), [frontend/app/lib/api.ts](), [ARCHITECTURE.md]()*
+_Sources: [frontend/app/page.tsx](), [frontend/app/lib/api.ts](), [ARCHITECTURE.md]()_
 
 ### Key API Functions
 
 The `api.ts` module exposes several functions to interact with the backend endpoints.
 
-| Function Name | HTTP Method | Endpoint | Description |
-| :--- | :--- | :--- | :--- |
-| `healthCheck` | `GET` | `/api/health` | Checks the health of the backend API. |
-| `getAssets` | `GET` | `/api/assets` | Fetches a list of all assets, with optional filtering by class or sector. |
-| `getAssetDetail` | `GET` | `/api/assets/{id}` | Retrieves details for a single asset. |
-| `getAllRelationships` | `GET` | `/api/relationships` | Fetches all relationships in the graph. |
-| `getMetrics` | `GET` | `/api/metrics` | Retrieves network-wide metrics. |
-| `getVisualizationData` | `GET` | `/api/visualization` | Fetches the node and edge data required for the 3D graph. |
-| `getAssetClasses` | `GET` | `/api/asset-classes` | Gets a list of all available asset classes. |
-| `getSectors` | `GET` | `/api/sectors` | Gets a list of all available industry sectors. |
+| Function Name          | HTTP Method | Endpoint             | Description                                                               |
+| :--------------------- | :---------- | :------------------- | :------------------------------------------------------------------------ |
+| `healthCheck`          | `GET`       | `/api/health`        | Checks the health of the backend API.                                     |
+| `getAssets`            | `GET`       | `/api/assets`        | Fetches a list of all assets, with optional filtering by class or sector. |
+| `getAssetDetail`       | `GET`       | `/api/assets/{id}`   | Retrieves details for a single asset.                                     |
+| `getAllRelationships`  | `GET`       | `/api/relationships` | Fetches all relationships in the graph.                                   |
+| `getMetrics`           | `GET`       | `/api/metrics`       | Retrieves network-wide metrics.                                           |
+| `getVisualizationData` | `GET`       | `/api/visualization` | Fetches the node and edge data required for the 3D graph.                 |
+| `getAssetClasses`      | `GET`       | `/api/asset-classes` | Gets a list of all available asset classes.                               |
+| `getSectors`           | `GET`       | `/api/sectors`       | Gets a list of all available industry sectors.                            |
 
 Sources: [frontend/app/lib/api.ts](), [INTEGRATION_SUMMARY.md]()
 
@@ -1351,6 +1390,7 @@ Sources: [frontend/app/lib/api.ts](), [INTEGRATION_SUMMARY.md]()
 State management within the frontend is handled primarily by React hooks (`useState`, `useEffect`) inside the `HomePage` component (`app/page.tsx`). There is no external state management library like Redux or Zustand.
 
 The main page component manages several state variables:
+
 - Data for each component (`vizData`, `metrics`, `assets`).
 - Loading status (`loading`).
 - Error status (`error`).
@@ -1368,30 +1408,34 @@ flowchart TD
     D -- No --> G[Set error message];
     G --> F;
 ```
+
 This diagram shows the simple loading, success, and error state flow managed within the main page component.
-*Source: [frontend/app/page.tsx]()*
+_Source: [frontend/app/page.tsx]()_
 
 ## Configuration and Scripts
 
 Project configuration and build scripts are managed through standard Next.js and Node.js files.
 
 ### Environment Variables
+
 The frontend requires a single environment variable to be set in a `.env.local` file to connect to the backend API.
+
 - `NEXT_PUBLIC_API_URL`: The base URL for the FastAPI backend (e.g., `http://localhost:8000`).
 
 Sources: [frontend/README.md](), [QUICK_START.md]()
 
 ### `package.json` Scripts
+
 The `package.json` file defines scripts for development, building, and testing.
 
-| Script | Command | Description |
-| :--- | :--- | :--- |
-| `dev` | `next dev` | Starts the Next.js development server. |
-| `build` | `next build` | Creates a production-optimized build of the application. |
-| `start` | `next start` | Starts the production server after a build. |
-| `lint` | `next lint` | Runs ESLint to find and fix problems in the code. |
-| `test` | `jest --silent` | Runs the Jest test suite in silent mode. |
-| `test:coverage` | `jest --coverage --silent` | Runs tests and generates a code coverage report. |
+| Script          | Command                    | Description                                              |
+| :-------------- | :------------------------- | :------------------------------------------------------- |
+| `dev`           | `next dev`                 | Starts the Next.js development server.                   |
+| `build`         | `next build`               | Creates a production-optimized build of the application. |
+| `start`         | `next start`               | Starts the production server after a build.              |
+| `lint`          | `next lint`                | Runs ESLint to find and fix problems in the code.        |
+| `test`          | `jest --silent`            | Runs the Jest test suite in silent mode.                 |
+| `test:coverage` | `jest --coverage --silent` | Runs tests and generates a code coverage report.         |
 
 Source: [frontend/package.json:5-12]()
 
@@ -1431,6 +1475,7 @@ Sources: [ARCHITECTURE.md](), [CONTRIBUTING.md]()
 ## Core Concepts
 
 ### Dataclasses and Enums
+
 The project exclusively uses Python's built-in `dataclasses` and `enum` modules for data modeling. This approach ensures type safety, clarity, and maintainability without introducing heavy external dependencies for data definition.
 
 - **`dataclasses`**: Used to define all structured data objects like `Asset`, `Equity`, and `Bond`.
@@ -1439,6 +1484,7 @@ The project exclusively uses Python's built-in `dataclasses` and `enum` modules 
 Sources: [AI_RULES.md](), [AUDIT_REPORT.md]()
 
 ### Inheritance Model
+
 The system employs a clear inheritance hierarchy, with a base `Asset` class defining common properties. Specific asset types like `Equity`, `Bond`, `Commodity`, and `Currency` inherit from this base class and add their own unique attributes. This promotes code reuse and a consistent structure across all asset types.
 
 Sources: [AUDIT_REPORT.md](), [src/models/financial_models.py]()
@@ -1481,124 +1527,136 @@ classDiagram
     Asset <|-- Commodity
     Asset <|-- Currency
 ```
+
 Sources: [src/models/financial_models.py](), [AUDIT_REPORT.md]()
 
 ## Data Model Schema
 
 ### Enumerations
+
 Enumerations are used to standardize categorical data within the models.
 
 #### AssetClass
+
 Defines the supported types of financial assets.
 
-| Member      | Description                |
-|-------------|----------------------------|
-| `EQUITY`    | Represents stocks.         |
-| `BOND`      | Represents fixed income.   |
-| `COMMODITY` | Represents commodities.    |
-| `CURRENCY`  | Represents foreign exchange. |
-| `DERIVATIVE`| Represents derivatives.    |
+| Member       | Description                  |
+| ------------ | ---------------------------- |
+| `EQUITY`     | Represents stocks.           |
+| `BOND`       | Represents fixed income.     |
+| `COMMODITY`  | Represents commodities.      |
+| `CURRENCY`   | Represents foreign exchange. |
+| `DERIVATIVE` | Represents derivatives.      |
 
 Sources: [src/models/financial_models.py](), [README.md]()
 
 #### RegulatoryActivity
+
 Defines the types of regulatory or corporate events.
 
-| Member        | Description                               |
-|---------------|-------------------------------------------|
-| `EARNINGS`    | Corporate earnings announcement.          |
-| `SEC_FILING`  | Filing with the Securities and Exchange Commission. |
-| `MERGER_ACQUISITION` | Merger or acquisition activity. |
+| Member               | Description                                         |
+| -------------------- | --------------------------------------------------- |
+| `EARNINGS`           | Corporate earnings announcement.                    |
+| `SEC_FILING`         | Filing with the Securities and Exchange Commission. |
+| `MERGER_ACQUISITION` | Merger or acquisition activity.                     |
 
 Sources: [src/models/financial_models.py](), [README.md]()
 
 ### Core Data Models
 
 #### Asset (Base Class)
+
 The `Asset` class is the abstract base for all financial instruments in the system.
 
-| Field               | Type                  | Description                                      |
-|---------------------|-----------------------|--------------------------------------------------|
-| `id`                | `str`                 | Unique identifier for the asset.                 |
-| `symbol`            | `str`                 | Ticker symbol or unique code.                    |
-| `name`              | `str`                 | Full name of the asset.                          |
-| `asset_class`       | `AssetClass`          | The type of the asset (e.g., EQUITY, BOND).      |
-| `currency`          | `str`                 | The currency of the asset's price (ISO 4217 code). |
-| `price`             | `float`               | The current market price.                        |
-| `sector`            | `str` (Optional)      | Industry sector the asset belongs to.            |
-| `additional_fields` | `dict` (Optional)     | A dictionary for any extra, non-standard data.   |
+| Field               | Type              | Description                                        |
+| ------------------- | ----------------- | -------------------------------------------------- |
+| `id`                | `str`             | Unique identifier for the asset.                   |
+| `symbol`            | `str`             | Ticker symbol or unique code.                      |
+| `name`              | `str`             | Full name of the asset.                            |
+| `asset_class`       | `AssetClass`      | The type of the asset (e.g., EQUITY, BOND).        |
+| `currency`          | `str`             | The currency of the asset's price (ISO 4217 code). |
+| `price`             | `float`           | The current market price.                          |
+| `sector`            | `str` (Optional)  | Industry sector the asset belongs to.              |
+| `additional_fields` | `dict` (Optional) | A dictionary for any extra, non-standard data.     |
 
 Sources: [src/models/financial_models.py]()
 
 #### Equity
+
 Inherits from `Asset` and adds fields specific to stocks.
 
-| Field            | Type    | Description                   |
-|------------------|---------|-------------------------------|
-| `pe_ratio`       | `float` | Price-to-Earnings ratio.      |
+| Field            | Type    | Description                                                     |
+| ---------------- | ------- | --------------------------------------------------------------- |
+| `pe_ratio`       | `float` | Price-to-Earnings ratio.                                        |
 | `dividend_yield` | `float` | Annual dividend per share as a percentage of the share's price. |
-| `eps`            | `float` | Earnings Per Share.           |
+| `eps`            | `float` | Earnings Per Share.                                             |
 
 Sources: [src/models/financial_models.py](), [README.md]()
 
 #### Bond
+
 Inherits from `Asset` and adds fields specific to fixed-income securities.
 
-| Field               | Type    | Description                               |
-|---------------------|---------|-------------------------------------------|
-| `yield_to_maturity` | `float` | The total return anticipated on a bond if held until it matures. |
+| Field               | Type    | Description                                                         |
+| ------------------- | ------- | ------------------------------------------------------------------- |
+| `yield_to_maturity` | `float` | The total return anticipated on a bond if held until it matures.    |
 | `duration`          | `float` | A measure of the bond's price sensitivity to interest rate changes. |
-| `credit_rating`     | `str`   | A rating of the bond issuer's creditworthiness. |
+| `credit_rating`     | `str`   | A rating of the bond issuer's creditworthiness.                     |
 
 Sources: [src/models/financial_models.py](), [README.md]()
 
 #### Commodity
+
 Inherits from `Asset` and adds fields for commodities.
 
-| Field             | Type    | Description                               |
-|-------------------|---------|-------------------------------------------|
-| `contract_size`   | `str`   | The amount of the commodity in one contract. |
-| `unit_of_measure` | `str`   | The unit for the contract size (e.g., barrels, bushels). |
+| Field             | Type  | Description                                              |
+| ----------------- | ----- | -------------------------------------------------------- |
+| `contract_size`   | `str` | The amount of the commodity in one contract.             |
+| `unit_of_measure` | `str` | The unit for the contract size (e.g., barrels, bushels). |
 
 Sources: [src/models/financial_models.py](), [README.md]()
 
 #### Currency
+
 Inherits from `Asset` and adds fields for currencies.
 
-| Field     | Type  | Description                               |
-|-----------|-------|-------------------------------------------|
+| Field     | Type  | Description                                       |
+| --------- | ----- | ------------------------------------------------- |
 | `country` | `str` | The primary country associated with the currency. |
 
 Sources: [src/models/financial_models.py](), [README.md]()
 
 #### RegulatoryEvent
+
 Represents a corporate or regulatory event that can impact assets.
 
-| Field          | Type                 | Description                                      |
-|----------------|----------------------|--------------------------------------------------|
-| `id`           | `str`                | Unique identifier for the event.                 |
-| `event_type`   | `RegulatoryActivity` | The type of event (e.g., EARNINGS).              |
-| `date`         | `str`                | The date of the event (ISO 8601 format).         |
-| `description`  | `str`                | A description of the event.                      |
-| `impact_score` | `float`              | A score from -1.0 to 1.0 indicating the event's impact. |
-| `related_assets` | `list[str]`        | A list of asset IDs affected by this event.      |
+| Field            | Type                 | Description                                             |
+| ---------------- | -------------------- | ------------------------------------------------------- |
+| `id`             | `str`                | Unique identifier for the event.                        |
+| `event_type`     | `RegulatoryActivity` | The type of event (e.g., EARNINGS).                     |
+| `date`           | `str`                | The date of the event (ISO 8601 format).                |
+| `description`    | `str`                | A description of the event.                             |
+| `impact_score`   | `float`              | A score from -1.0 to 1.0 indicating the event's impact. |
+| `related_assets` | `list[str]`          | A list of asset IDs affected by this event.             |
 
 Sources: [src/models/financial_models.py]()
 
 #### AssetRelationship
+
 Defines a connection between two assets.
 
-| Field          | Type      | Description                                      |
-|----------------|-----------|--------------------------------------------------|
-| `source`       | `str`     | The ID of the source asset.                      |
-| `target`       | `str`     | The ID of the target asset.                      |
-| `type`         | `str`     | The nature of the relationship (e.g., `same_sector`). |
-| `strength`     | `float`   | The strength of the relationship, normalized from 0.0 to 1.0. |
-| `is_bidirectional` | `bool`| Whether the relationship is symmetric.           |
+| Field              | Type    | Description                                                   |
+| ------------------ | ------- | ------------------------------------------------------------- |
+| `source`           | `str`   | The ID of the source asset.                                   |
+| `target`           | `str`   | The ID of the target asset.                                   |
+| `type`             | `str`   | The nature of the relationship (e.g., `same_sector`).         |
+| `strength`         | `float` | The strength of the relationship, normalized from 0.0 to 1.0. |
+| `is_bidirectional` | `bool`  | Whether the relationship is symmetric.                        |
 
 Sources: [src/models/financial_models.py]()
 
 ### Entity Relationship Diagram
+
 This diagram shows the relationships between the main data entities. An `AssetRelationship` connects two `Asset` entities, and a `RegulatoryEvent` can be linked to multiple `Asset` entities.
 
 ```mermaid
@@ -1628,12 +1686,15 @@ erDiagram
     ASSET ||--o{ ASSET_RELATIONSHIP : "has target"
     ASSET }o--o{ REGULATORY_EVENT : "is affected by"
 ```
+
 Sources: [src/models/financial_models.py](), [README.md]()
 
 ## Data Validation
+
 Data integrity is enforced through validation logic within the `__post_init__` method of the dataclasses. This ensures that all created objects adhere to predefined business rules.
 
 Key validation rules include:
+
 - Asset `price` must be non-negative.
 - `currency` codes must be 3-letter ISO format strings.
 - `RegulatoryEvent` `impact_score` must be within the range of -1.0 to 1.0.
@@ -1642,8 +1703,8 @@ Key validation rules include:
 Sources: [AUDIT_REPORT.md](), [IMPROVEMENTS.md](), [src/models/financial_models.py]()
 
 ## Conclusion
-The financial data models provide a robust and well-structured schema for the application's core data. By leveraging Python's native `dataclasses` and a clear inheritance structure, the models are both easy to understand and simple to extend. The built-in validation ensures a high level of data quality, which is critical for the accuracy of the relationship analysis and visualizations that form the core of the project.
 
+The financial data models provide a robust and well-structured schema for the application's core data. By leveraging Python's native `dataclasses` and a clear inheritance structure, the models are both easy to understand and simple to extend. The built-in validation ensures a high level of data quality, which is critical for the accuracy of the relationship analysis and visualizations that form the core of the project.
 
 ## Core Features
 
@@ -1660,8 +1721,8 @@ The following files were used as context for generating this wiki page:
 - [ARCHITECTURE.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/ARCHITECTURE.md)
 - [INTEGRATION_SUMMARY.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/INTEGRATION_SUMMARY.md)
 - [frontend/app/components/NetworkVisualization.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/app/components/NetworkVisualization.tsx)
-- [frontend/__tests__/components/NetworkVisualization.test.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/components/NetworkVisualization.test.tsx)
-- [frontend/__tests__/test-utils.test.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/test-utils.test.ts)
+- [frontend/**tests**/components/NetworkVisualization.test.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/components/NetworkVisualization.test.tsx)
+- [frontend/**tests**/test-utils.test.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/test-utils.test.ts)
 - [api/main.py](https://github.com/DashFin/financial-asset-relationship-db/blob/main/api/main.py)
 - [src/logic/asset_graph.py](https://github.com/DashFin/financial-asset-relationship-db/blob/main/src/logic/asset_graph.py)
 
@@ -1698,6 +1759,7 @@ sequenceDiagram
     FastAPI-->>NextJS: JSON Response with visualization data
     NextJS-->>User: Renders interactive 3D graph using Plotly.js
 ```
+
 This sequence shows the clear separation of concerns: the frontend handles rendering, the backend provides a dedicated API endpoint, and the core logic is responsible for generating the visualization data structure.
 
 Sources: [ARCHITECTURE.md](), [INTEGRATION_SUMMARY.md](), [frontend/app/components/NetworkVisualization.tsx](), [api/main.py]()
@@ -1724,6 +1786,7 @@ flowchart TD
     F --> G[Format Node and Edge Data];
     G --> H[Return JSON: {nodes, edges}];
 ```
+
 Sources: [README.md](), [src/logic/asset_graph.py](), [src/visualizations/graph_visuals.py]()
 
 ### API Endpoint: `/api/visualization`
@@ -1738,9 +1801,9 @@ The response from this endpoint contains two main keys: `nodes` and `edges`.
 
 #### Response Data Structure
 
-| Key | Type | Description |
-| --- | --- | --- |
-| `nodes` | `Array<Node>` | An array of objects, where each object represents an asset in the graph. |
+| Key     | Type          | Description                                                                          |
+| ------- | ------------- | ------------------------------------------------------------------------------------ |
+| `nodes` | `Array<Node>` | An array of objects, where each object represents an asset in the graph.             |
 | `edges` | `Array<Edge>` | An array of objects, where each object represents a relationship between two assets. |
 
 **Node Object Structure**
@@ -1762,7 +1825,7 @@ The response from this endpoint contains two main keys: `nodes` and `edges`.
 | `relationship_type` | `string` | The type of relationship (e.g., "SAME_SECTOR"). |
 | `strength` | `number` | The strength of the relationship, typically a value between 0 and 1. |
 
-Sources: [api/main.py](), [frontend/__tests__/test-utils.test.ts](), [INTEGRATION_SUMMARY.md]()
+Sources: [api/main.py](), [frontend/**tests**/test-utils.test.ts](), [INTEGRATION_SUMMARY.md]()
 
 ## Frontend Implementation
 
@@ -1773,6 +1836,7 @@ Sources: [frontend/app/components/NetworkVisualization.tsx](), [INTEGRATION_SUMM
 ### Component: `NetworkVisualization.tsx`
 
 This component is responsible for:
+
 1.  Receiving the `nodes` and `edges` data as props.
 2.  Processing this data into a format compatible with Plotly.
 3.  Configuring the layout and appearance of the 3D graph.
@@ -1793,17 +1857,19 @@ graph TD
         E --> F[Render Interactive 3D Graph];
     end
 ```
-Sources: [frontend/app/components/NetworkVisualization.tsx](), [frontend/__tests__/components/NetworkVisualization.test.tsx]()
+
+Sources: [frontend/app/components/NetworkVisualization.tsx](), [frontend/**tests**/components/NetworkVisualization.test.tsx]()
 
 ### Visualization Libraries
 
 The frontend relies on two key libraries for rendering:
+
 - **`plotly.js`**: The core JavaScript charting library that provides the 3D graphing capabilities.
 - **`react-plotly.js`**: A React wrapper for `plotly.js` that simplifies its integration into React components.
 
 These dependencies are declared in `frontend/package.json`.
 
-Sources: [frontend/README.md](), [frontend/__tests__/config/package-validation.test.ts]()
+Sources: [frontend/README.md](), [frontend/**tests**/config/package-validation.test.ts]()
 
 ## Conclusion
 
@@ -1866,7 +1932,8 @@ graph TD
     C --> F
     D --> E
 ```
-*This diagram shows the data flow from data sources and models into the Asset Relationship Engine, which then serves both the FastAPI backend and the Gradio UI.*
+
+_This diagram shows the data flow from data sources and models into the Asset Relationship Engine, which then serves both the FastAPI backend and the Gradio UI._
 
 Sources: [ARCHITECTURE.md:5-75](), [README.md:58-65]()
 
@@ -1910,7 +1977,8 @@ classDiagram
     Asset <|-- Commodity
     Asset <|-- Currency
 ```
-*This diagram shows the inheritance structure of the financial data models.*
+
+_This diagram shows the inheritance structure of the financial data models._
 
 Sources: [README.md:40-45](), [AI_RULES.md:15-17](), [CONTRIBUTING.md:183]()
 
@@ -1938,7 +2006,8 @@ flowchart TD
     G --> A
     A -- Loop finished --> stop[End]
 ```
-*This flowchart shows the process of iterating through assets to find and add relationships to the graph.*
+
+_This flowchart shows the process of iterating through assets to find and add relationships to the graph._
 
 Sources: [src/logic/asset_graph.py](), [README.md:82-83]()
 
@@ -1946,14 +2015,14 @@ Sources: [src/logic/asset_graph.py](), [README.md:82-83]()
 
 The engine can identify several types of relationships, each with a predefined strength score.
 
-| Relationship Type | Condition | Default Strength | Source File |
-|-------------------|-----------|------------------|-------------|
-| `same_sector` | Two equities are in the same industry sector. | 0.7 | `README.md:48` |
-| `corporate_bond_to_equity` | A bond is issued by the same company as an equity. | 0.9 | `README.md:49`, `IMPROVEMENTS.md:31` |
-| `commodity_exposure` | An equity company is exposed to commodity prices. | Varies | `README.md:50` |
-| `currency_risk` | An asset has exposure to foreign exchange risk. | 0.8 | `README.md:51`, `IMPROVEMENTS.md:30` |
-| `income_comparison` | Comparing an equity's dividend yield to a bond's yield. | Varies | `README.md:52` |
-| `event_impact` | A regulatory event affects multiple assets. | Varies | `README.md:53` |
+| Relationship Type          | Condition                                               | Default Strength | Source File                          |
+| -------------------------- | ------------------------------------------------------- | ---------------- | ------------------------------------ |
+| `same_sector`              | Two equities are in the same industry sector.           | 0.7              | `README.md:48`                       |
+| `corporate_bond_to_equity` | A bond is issued by the same company as an equity.      | 0.9              | `README.md:49`, `IMPROVEMENTS.md:31` |
+| `commodity_exposure`       | An equity company is exposed to commodity prices.       | Varies           | `README.md:50`                       |
+| `currency_risk`            | An asset has exposure to foreign exchange risk.         | 0.8              | `README.md:51`, `IMPROVEMENTS.md:30` |
+| `income_comparison`        | Comparing an equity's dividend yield to a bond's yield. | Varies           | `README.md:52`                       |
+| `event_impact`             | A regulatory event affects multiple assets.             | Varies           | `README.md:53`                       |
 
 Sources: [README.md:47-54](), [IMPROVEMENTS.md:28-32]()
 
@@ -1963,14 +2032,14 @@ The engine provides analytical capabilities through the `calculate_metrics()` me
 
 ### Calculated Metrics
 
-| Metric | Description |
-|---|---|
-| `total_assets` | The total number of assets (nodes) in the graph. |
-| `total_relationships` | The total number of connections (edges) in the graph. |
-| `network_density` | A measure of how interconnected the assets are, on a scale from 0 to 1. |
-| `avg_degree` | The average number of relationships per asset. |
-| `max_degree` | The highest number of relationships held by a single asset. |
-| `asset_classes` | A dictionary counting the number of assets in each class (e.g., Equity, Bond). |
+| Metric                | Description                                                                    |
+| --------------------- | ------------------------------------------------------------------------------ |
+| `total_assets`        | The total number of assets (nodes) in the graph.                               |
+| `total_relationships` | The total number of connections (edges) in the graph.                          |
+| `network_density`     | A measure of how interconnected the assets are, on a scale from 0 to 1.        |
+| `avg_degree`          | The average number of relationships per asset.                                 |
+| `max_degree`          | The highest number of relationships held by a single asset.                    |
+| `asset_classes`       | A dictionary counting the number of assets in each class (e.g., Equity, Bond). |
 
 Sources: [src/logic/asset_graph.py](), [TEST_SUMMARY.md:48](), [INTEGRATION_SUMMARY.md:22]()
 
@@ -2011,7 +2080,8 @@ sequenceDiagram
     API-->>User: JSON Response
     deactivate API
 ```
-*This diagram shows the sequence of calls from the UI to the API and finally to the Asset Relationship Engine to fetch visualization data.*
+
+_This diagram shows the sequence of calls from the UI to the API and finally to the Asset Relationship Engine to fetch visualization data._
 
 Sources: [ARCHITECTURE.md:80-97](), [INTEGRATION_SUMMARY.md:15-23]()
 
@@ -2019,12 +2089,12 @@ Sources: [ARCHITECTURE.md:80-97](), [INTEGRATION_SUMMARY.md:15-23]()
 
 The following endpoints directly leverage the Asset Relationship Engine:
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/assets` | GET | Lists all assets from the graph. |
-| `/api/relationships` | GET | Returns all discovered relationships. |
-| `/api/metrics` | GET | Calculates and returns network metrics. |
-| `/api/visualization` | GET | Generates and returns data for the 3D graph. |
+| Endpoint             | Method | Description                                  |
+| -------------------- | ------ | -------------------------------------------- |
+| `/api/assets`        | GET    | Lists all assets from the graph.             |
+| `/api/relationships` | GET    | Returns all discovered relationships.        |
+| `/api/metrics`       | GET    | Calculates and returns network metrics.      |
+| `/api/visualization` | GET    | Generates and returns data for the 3D graph. |
 
 Sources: [INTEGRATION_SUMMARY.md:15-23](), [TESTING_GUIDE.md:43-51]()
 
@@ -2057,33 +2127,33 @@ The Financial Asset Relationship Database is designed to model and visualize con
 
 The core of this feature is a well-defined data model using Python's `dataclasses` and `enum` modules. A base `Asset` class provides common attributes, and specific subclasses extend it with fields relevant to each asset type. This object-oriented hierarchy is fundamental to the system's architecture, enabling consistent handling and analysis across different financial instruments.
 
-*Sources: [README.md:31-37](), [AI_RULES.md:14-16](), [ARCHITECTURE.md:83-89]()*
+_Sources: [README.md:31-37](), [AI_RULES.md:14-16](), [ARCHITECTURE.md:83-89]()_
 
 ## Core Data Model
 
 The foundation of the asset representation is built upon a base `Asset` dataclass and an `AssetClass` enumeration to categorize each instrument.
 
-*Sources: [src/models/financial_models.py]()*
+_Sources: [src/models/financial_models.py]()_
 
 ### AssetClass Enum
 
 The `AssetClass` enum provides a controlled vocabulary for classifying assets. This ensures type safety and consistency throughout the application, from data creation to visualization.
 
-*Sources: [src/models/financial_models.py:11-19](), [AI_RULES.md:34-35]()*
+_Sources: [src/models/financial_models.py:11-19](), [AI_RULES.md:34-35]()_
 
-| Member | Description |
-| --- | --- |
-| `EQUITY` | Represents stocks or shares in a company. |
-| `BOND` | Represents fixed-income instruments. |
-| `COMMODITY` | Represents raw materials or primary agricultural products. |
-| `CURRENCY` | Represents foreign exchange pairs. |
+| Member             | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| `EQUITY`           | Represents stocks or shares in a company.                   |
+| `BOND`             | Represents fixed-income instruments.                        |
+| `COMMODITY`        | Represents raw materials or primary agricultural products.  |
+| `CURRENCY`         | Represents foreign exchange pairs.                          |
 | `REGULATORY_EVENT` | Represents corporate or regulatory events affecting assets. |
 
 ### Asset Class Hierarchy
 
 All specific asset models inherit from a common `Asset` base class. This design ensures that all assets share a fundamental set of properties, while allowing for specialized attributes in subclasses. The diagram below illustrates this inheritance structure.
 
-*Sources: [src/models/financial_models.py:22-101](), [ARCHITECTURE.md:83-89]()*
+_Sources: [src/models/financial_models.py:22-101](), [ARCHITECTURE.md:83-89]()_
 
 ```mermaid
 classDiagram
@@ -2143,85 +2213,85 @@ classDiagram
 
 The `Asset` dataclass defines the common attributes shared by all financial instruments in the system. It includes validation in its `__post_init__` method to ensure data integrity, such as checking for non-negative prices.
 
-*Sources: [src/models/financial_models.py:22-47](), [AUDIT_REPORT.md:21-23]()*
+_Sources: [src/models/financial_models.py:22-47](), [AUDIT_REPORT.md:21-23]()_
 
-| Attribute | Type | Description | Constraints |
-| --- | --- | --- | --- |
-| `id` | `str` | A unique identifier for the asset. | |
-| `symbol` | `str` | The ticker symbol or other short identifier. | |
-| `name` | `str` | The full name of the asset. | |
-| `asset_class` | `AssetClass` | The type of the asset, from the `AssetClass` enum. | |
-| `sector` | `str` | The industry sector the asset belongs to. | |
-| `currency` | `str` | The currency of the asset's price (3-letter ISO code). | Must be 3 uppercase letters. |
-| `price` | `float` | The current market price of the asset. | Must be non-negative. |
-| `market_cap` | `float` | The total market capitalization. | |
-| `additional_fields` | `dict` | A dictionary for any extra, non-standard data. | |
+| Attribute           | Type         | Description                                            | Constraints                  |
+| ------------------- | ------------ | ------------------------------------------------------ | ---------------------------- |
+| `id`                | `str`        | A unique identifier for the asset.                     |                              |
+| `symbol`            | `str`        | The ticker symbol or other short identifier.           |                              |
+| `name`              | `str`        | The full name of the asset.                            |                              |
+| `asset_class`       | `AssetClass` | The type of the asset, from the `AssetClass` enum.     |                              |
+| `sector`            | `str`        | The industry sector the asset belongs to.              |                              |
+| `currency`          | `str`        | The currency of the asset's price (3-letter ISO code). | Must be 3 uppercase letters. |
+| `price`             | `float`      | The current market price of the asset.                 | Must be non-negative.        |
+| `market_cap`        | `float`      | The total market capitalization.                       |                              |
+| `additional_fields` | `dict`       | A dictionary for any extra, non-standard data.         |                              |
 
 ## Detailed Asset Classes
 
 The system supports five specialized asset classes, each inheriting from the base `Asset` model and adding its own unique attributes. These were introduced in version 1.0.0 of the project.
 
-*Sources: [CHANGELOG.md:52-56](), [README.md:32-37]()*
+_Sources: [CHANGELOG.md:52-56](), [README.md:32-37]()_
 
 ### Equities
 
 Represents ownership stakes in a public company. The `Equity` class adds standard financial metrics used for stock valuation.
 
-*Sources: [src/models/financial_models.py:50-57]()*
+_Sources: [src/models/financial_models.py:50-57]()_
 
-| Attribute | Type | Description |
-| --- | --- | --- |
-| `pe_ratio` | `float` | Price-to-Earnings ratio. |
-| `dividend_yield`| `float` | The ratio of the annual dividend to the share price. |
-| `eps` | `float` | Earnings Per Share. |
+| Attribute        | Type    | Description                                          |
+| ---------------- | ------- | ---------------------------------------------------- |
+| `pe_ratio`       | `float` | Price-to-Earnings ratio.                             |
+| `dividend_yield` | `float` | The ratio of the annual dividend to the share price. |
+| `eps`            | `float` | Earnings Per Share.                                  |
 
 ### Fixed Income (Bonds)
 
 Represents debt instruments. The `Bond` class includes attributes related to yield and credit risk.
 
-*Sources: [src/models/financial_models.py:60-67]()*
+_Sources: [src/models/financial_models.py:60-67]()_
 
-| Attribute | Type | Description |
-| --- | --- | --- |
-| `yield_` | `float` | The yield to maturity of the bond. |
-| `duration`| `float` | A measure of the bond's interest rate sensitivity. |
-| `credit_rating` | `str` | The credit rating from an agency (e.g., AAA, BB+). |
+| Attribute       | Type    | Description                                        |
+| --------------- | ------- | -------------------------------------------------- |
+| `yield_`        | `float` | The yield to maturity of the bond.                 |
+| `duration`      | `float` | A measure of the bond's interest rate sensitivity. |
+| `credit_rating` | `str`   | The credit rating from an agency (e.g., AAA, BB+). |
 
 ### Commodities
 
 Represents physical goods or raw materials. The `Commodity` class includes details about futures contracts and spot pricing.
 
-*Sources: [src/models/financial_models.py:70-75]()*
+_Sources: [src/models/financial_models.py:70-75]()_
 
-| Attribute | Type | Description |
-| --- | --- | --- |
-| `futures_contract_specs` | `str` | Specifications for the futures contract. |
-| `spot_price`| `float` | The current market price for immediate delivery. |
+| Attribute                | Type    | Description                                      |
+| ------------------------ | ------- | ------------------------------------------------ |
+| `futures_contract_specs` | `str`   | Specifications for the futures contract.         |
+| `spot_price`             | `float` | The current market price for immediate delivery. |
 
 ### Currencies
 
 Represents foreign exchange instruments. The `Currency` class adds macroeconomic indicators relevant to a currency's value.
 
-*Sources: [src/models/financial_models.py:78-84]()*
+_Sources: [src/models/financial_models.py:78-84]()_
 
-| Attribute | Type | Description |
-| --- | --- | --- |
-| `country` | `str` | The primary country associated with the currency. |
-| `interest_rate`| `float` | The central bank's benchmark interest rate. |
-| `central_bank` | `str` | The name of the central bank issuing the currency. |
+| Attribute       | Type    | Description                                        |
+| --------------- | ------- | -------------------------------------------------- |
+| `country`       | `str`   | The primary country associated with the currency.  |
+| `interest_rate` | `float` | The central bank's benchmark interest rate.        |
+| `central_bank`  | `str`   | The name of the central bank issuing the currency. |
 
 ### Regulatory Events
 
 Represents significant events that can impact other assets. The `RegulatoryEvent` model includes an impact score and a type classification.
 
-*Sources: [src/models/financial_models.py:87-101]()*
+_Sources: [src/models/financial_models.py:87-101]()_
 
-| Attribute | Type | Description | Constraints |
-| --- | --- | --- | --- |
-| `activity_type` | `RegulatoryActivity` | The type of event (e.g., Earnings, M&A). | |
-| `event_date`| `date` | The date the event occurred. | Must be a valid ISO 8601 date. |
-| `impact_score` | `float` | A score from -1.0 (negative) to 1.0 (positive). | Must be within [-1.0, 1.0]. |
-| `description` | `str` | A brief description of the event. | |
+| Attribute       | Type                 | Description                                     | Constraints                    |
+| --------------- | -------------------- | ----------------------------------------------- | ------------------------------ |
+| `activity_type` | `RegulatoryActivity` | The type of event (e.g., Earnings, M&A).        |                                |
+| `event_date`    | `date`               | The date the event occurred.                    | Must be a valid ISO 8601 date. |
+| `impact_score`  | `float`              | A score from -1.0 (negative) to 1.0 (positive). | Must be within [-1.0, 1.0].    |
+| `description`   | `str`                | A brief description of the event.               |                                |
 
 ## Extensibility
 
@@ -2229,7 +2299,7 @@ The system is designed to be extensible, allowing for the addition of new asset 
 
 The example below, taken from the project's documentation, shows how a `Derivative` asset could be added.
 
-*Sources: [README.md:73-84]()*
+_Sources: [README.md:73-84]()_
 
 ```python
 from src.models.financial_models import Asset, AssetClass
@@ -2297,6 +2367,7 @@ graph TD
         end
     end
 ```
+
 Sources: [ARCHITECTURE.md](), [TESTING_GUIDE.md]()
 
 ## Backend: Metric Calculation
@@ -2311,15 +2382,15 @@ This method is responsible for calculating all network statistics. It raises a `
 
 The following table details the metrics calculated by this method.
 
-| Metric Key | Description | Calculation Logic |
-| :--- | :--- | :--- |
-| `total_assets` | The total number of assets (nodes) in the graph. | `len(self.assets)` |
-| `total_relationships` | The total number of relationships (edges) in the graph. | `len(self.relationships)` |
-| `average_relationship_strength` | The mean strength of all relationships, clamped between 0 and 1. | `np.mean([r['strength'] for r in self.relationships])` |
-| `network_density` | A measure of how interconnected the graph is. A value of 1 means all possible connections exist. | `(2 * num_relationships) / (num_assets * (num_assets - 1))` |
-| `asset_classes` | A breakdown of assets by their class (e.g., Equity, Bond). | Counts assets for each `AssetClass` enum member. |
-| `average_degree` | The average number of connections per asset. | `(2 * num_relationships) / num_assets` |
-| `max_degree` | The highest number of connections for any single asset in the network. | `max(degrees)` where `degrees` is a list of connection counts per asset. |
+| Metric Key                      | Description                                                                                      | Calculation Logic                                                        |
+| :------------------------------ | :----------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------- |
+| `total_assets`                  | The total number of assets (nodes) in the graph.                                                 | `len(self.assets)`                                                       |
+| `total_relationships`           | The total number of relationships (edges) in the graph.                                          | `len(self.relationships)`                                                |
+| `average_relationship_strength` | The mean strength of all relationships, clamped between 0 and 1.                                 | `np.mean([r['strength'] for r in self.relationships])`                   |
+| `network_density`               | A measure of how interconnected the graph is. A value of 1 means all possible connections exist. | `(2 * num_relationships) / (num_assets * (num_assets - 1))`              |
+| `asset_classes`                 | A breakdown of assets by their class (e.g., Equity, Bond).                                       | Counts assets for each `AssetClass` enum member.                         |
+| `average_degree`                | The average number of connections per asset.                                                     | `(2 * num_relationships) / num_assets`                                   |
+| `max_degree`                    | The highest number of connections for any single asset in the network.                           | `max(degrees)` where `degrees` is a list of connection counts per asset. |
 
 Sources: [src/logic/asset_graph.py:218-268](), [IMPROVEMENTS.md]()
 
@@ -2353,6 +2424,7 @@ sequenceDiagram
     deactivate API
     NextApp-->>User: Renders Metric Cards
 ```
+
 This sequence shows the Next.js application fetching metrics from the FastAPI backend, which in turn calls the core logic to perform the calculation.
 
 Sources: [ARCHITECTURE.md](), [TESTING_GUIDE.md]()
@@ -2361,15 +2433,15 @@ Sources: [ARCHITECTURE.md](), [TESTING_GUIDE.md]()
 
 The API response is validated using a Pydantic model to ensure type safety and consistency.
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `total_assets` | `int` | Total number of assets. |
-| `total_relationships` | `int` | Total number of relationships. |
-| `average_relationship_strength` | `float` | Average strength of relationships. |
-| `network_density` | `float` | Density of the network graph. |
-| `asset_classes` | `Dict[str, int]` | Count of assets per class. |
-| `average_degree` | `float` | Average connections per asset. |
-| `max_degree` | `int` | Maximum connections for a single asset. |
+| Field                           | Type             | Description                             |
+| :------------------------------ | :--------------- | :-------------------------------------- |
+| `total_assets`                  | `int`            | Total number of assets.                 |
+| `total_relationships`           | `int`            | Total number of relationships.          |
+| `average_relationship_strength` | `float`          | Average strength of relationships.      |
+| `network_density`               | `float`          | Density of the network graph.           |
+| `asset_classes`                 | `Dict[str, int]` | Count of assets per class.              |
+| `average_degree`                | `float`          | Average connections per asset.          |
+| `max_degree`                    | `int`            | Maximum connections for a single asset. |
 
 Sources: [TESTING_GUIDE.md](), [TEST_SUMMARY.md]()
 
@@ -2386,26 +2458,28 @@ Sources: [frontend/app/components/MetricsDashboard.tsx](), [TESTING_GUIDE.md]()
 #### Component: `MetricsDashboard.tsx`
 
 This component is responsible for:
+
 1.  Receiving metrics data as props.
 2.  Rendering individual "metric cards" for each key statistic.
 3.  Formatting numerical data for readability (e.g., percentages, large numbers).
 4.  Displaying the asset class breakdown.
 
 Key features of the component include:
+
 - **Data Formatting**: Values like `network_density` are formatted as percentages.
 - **Edge Case Handling**: Correctly displays `0` for metrics when the data is empty or null, preventing `NaN` errors.
 - **Visual Consistency**: Ensures a uniform look and feel for all displayed metrics.
 
 The following metrics are displayed on the dashboard:
 
-| Metric Displayed | Data Source | Formatting |
-| :--- | :--- | :--- |
-| Total Assets | `metrics.total_assets` | Raw integer |
-| Total Relationships | `metrics.total_relationships` | Raw integer |
-| Network Density | `metrics.network_density` | Percentage (2 decimal places) |
-| Average Degree | `metrics.average_degree` | Number (2 decimal places) |
-| Max Degree | `metrics.max_degree` | Raw integer |
-| Asset Classes | `metrics.asset_classes` | List of class names and counts |
+| Metric Displayed    | Data Source                   | Formatting                     |
+| :------------------ | :---------------------------- | :----------------------------- |
+| Total Assets        | `metrics.total_assets`        | Raw integer                    |
+| Total Relationships | `metrics.total_relationships` | Raw integer                    |
+| Network Density     | `metrics.network_density`     | Percentage (2 decimal places)  |
+| Average Degree      | `metrics.average_degree`      | Number (2 decimal places)      |
+| Max Degree          | `metrics.max_degree`          | Raw integer                    |
+| Asset Classes       | `metrics.asset_classes`       | List of class names and counts |
 
 Sources: [frontend/app/components/MetricsDashboard.tsx:11-80](), [TESTING_GUIDE.md]()
 
@@ -2500,19 +2574,20 @@ classDiagram
     Asset <|-- RegulatoryEvent
     RegulatoryEvent o-- RegulatoryActivity
 ```
+
 Sources: [src/models/financial_models.py]()
 
 The fields of the `RegulatoryEvent` dataclass are detailed in the table below.
 
-| Field              | Type                     | Description                                                                                             | Constraints                                  |
-| ------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `id`               | `str`                    | Unique identifier for the event.                                                                        | Inherited from `Asset`.                      |
-| `name`             | `str`                    | A descriptive name for the event.                                                                       | Inherited from `Asset`.                      |
-| `date`             | `str`                    | The date of the event in ISO 8601 format.                                                               | Must be a valid ISO 8601 date string.        |
-| `activity_type`    | `RegulatoryActivity`     | The type of regulatory activity (e.g., `EARNINGS_RELEASE`).                                             | Must be a member of the `RegulatoryActivity` enum. |
-| `impacted_symbols` | `List[str]`              | A list of asset symbols (e.g., stock tickers) that are affected by this event.                          | -                                            |
-| `impact_score`     | `float`                  | A normalized score from -1.0 (negative impact) to +1.0 (positive impact) quantifying the event's effect. | Must be between -1.0 and 1.0, inclusive.     |
-| `description`      | `str`                    | A detailed text description of the event.                                                               | -                                            |
+| Field              | Type                 | Description                                                                                              | Constraints                                        |
+| ------------------ | -------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `id`               | `str`                | Unique identifier for the event.                                                                         | Inherited from `Asset`.                            |
+| `name`             | `str`                | A descriptive name for the event.                                                                        | Inherited from `Asset`.                            |
+| `date`             | `str`                | The date of the event in ISO 8601 format.                                                                | Must be a valid ISO 8601 date string.              |
+| `activity_type`    | `RegulatoryActivity` | The type of regulatory activity (e.g., `EARNINGS_RELEASE`).                                              | Must be a member of the `RegulatoryActivity` enum. |
+| `impacted_symbols` | `List[str]`          | A list of asset symbols (e.g., stock tickers) that are affected by this event.                           | -                                                  |
+| `impact_score`     | `float`              | A normalized score from -1.0 (negative impact) to +1.0 (positive impact) quantifying the event's effect. | Must be between -1.0 and 1.0, inclusive.           |
+| `description`      | `str`                | A detailed text description of the event.                                                                | -                                                  |
 
 The `__post_init__` method in the `RegulatoryEvent` dataclass performs validation to ensure the `impact_score` is within its valid range and that the `date` conforms to the ISO 8601 standard.
 
@@ -2549,14 +2624,15 @@ flowchart TD
     C -- No --> B;
     B -- End of pairs --> G[End];
 ```
+
 Sources: [src/logic/asset_graph.py]()
 
 ## The 'Event Impact' Relationship
 
 The integration of regulatory events introduces a unique, directional relationship type called `event_impact`.
 
--   **Directionality**: The relationship is always directed *from* the `RegulatoryEvent` *to* the impacted financial asset (e.g., an `Equity`). This signifies that the event causes an effect on the asset.
--   **Strength**: The strength of the `event_impact` relationship is directly derived from the `impact_score` of the `RegulatoryEvent`. This allows the graph to model both the existence and the magnitude of an event's influence.
+- **Directionality**: The relationship is always directed _from_ the `RegulatoryEvent` _to_ the impacted financial asset (e.g., an `Equity`). This signifies that the event causes an effect on the asset.
+- **Strength**: The strength of the `event_impact` relationship is directly derived from the `impact_score` of the `RegulatoryEvent`. This allows the graph to model both the existence and the magnitude of an event's influence.
 
 This diagram shows an example of an `event_impact` relationship.
 
@@ -2570,14 +2646,15 @@ graph TD
         Event -- "event_impact<br>strength: 0.8" --> Asset
     end
 ```
+
 Sources: [src/logic/asset_graph.py](), [README.md]()
 
 ## Validation and Testing
 
 The system ensures the integrity of regulatory event data through validation and comprehensive testing.
 
--   **Data Validation**: As noted in the audit report, the `RegulatoryEvent` model includes `__post_init__` validation for the `impact_score` (must be between -1 and 1) and the date format (must be ISO 8601). This prevents malformed event data from entering the system.
--   **Unit Testing**: The test suite includes fixtures like `sample_regulatory_event` in `tests/conftest.py` to create valid event objects for testing. Unit tests in `tests/unit/test_financial_models.py` and `tests/unit/test_asset_graph.py` verify both the model's validation logic and the graph's ability to correctly build relationships from these events.
+- **Data Validation**: As noted in the audit report, the `RegulatoryEvent` model includes `__post_init__` validation for the `impact_score` (must be between -1 and 1) and the date format (must be ISO 8601). This prevents malformed event data from entering the system.
+- **Unit Testing**: The test suite includes fixtures like `sample_regulatory_event` in `tests/conftest.py` to create valid event objects for testing. Unit tests in `tests/unit/test_financial_models.py` and `tests/unit/test_asset_graph.py` verify both the model's validation logic and the graph's ability to correctly build relationships from these events.
 
 Sources: [AUDIT_REPORT.md]()
 
@@ -2586,7 +2663,6 @@ Sources: [AUDIT_REPORT.md]()
 The Regulatory Event Integration feature is a key component for adding qualitative depth to the financial asset graph. By modeling external events as nodes and creating directional, weighted relationships, the system can represent how non-market activities influence specific assets. This is supported by a robust data model with built-in validation and is a core part of the relationship discovery engine.
 
 Sources: [README.md](), [CHANGELOG.md]()
-
 
 ## Data Management and Flow
 
@@ -2664,6 +2740,7 @@ classDiagram
     Asset <|-- Currency
 
 ```
+
 Sources: [`README.md:65-73`](), [`AI_RULES.md`]()
 
 ### Core Asset Models
@@ -2674,20 +2751,21 @@ The system supports several asset classes, each with specific attributes.
 
 This is the foundational data class from which all specific asset types inherit.
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `id` | `str` | Unique identifier for the asset. |
-| `symbol` | `str` | The ticker or symbol for the asset. |
-| `name` | `str` | The full name of the asset. |
-| `asset_class` | `Enum` | The type of asset (e.g., EQUITY, BOND). |
-| `sector` | `str` | The industry sector the asset belongs to. |
-| `price` | `float` | The current market price. |
-| `currency` | `str` | The currency of the price (3-letter ISO code). |
-| `additional_fields` | `dict` | A dictionary for any extra attributes. |
+| Field               | Type    | Description                                    |
+| :------------------ | :------ | :--------------------------------------------- |
+| `id`                | `str`   | Unique identifier for the asset.               |
+| `symbol`            | `str`   | The ticker or symbol for the asset.            |
+| `name`              | `str`   | The full name of the asset.                    |
+| `asset_class`       | `Enum`  | The type of asset (e.g., EQUITY, BOND).        |
+| `sector`            | `str`   | The industry sector the asset belongs to.      |
+| `price`             | `float` | The current market price.                      |
+| `currency`          | `str`   | The currency of the price (3-letter ISO code). |
+| `additional_fields` | `dict`  | A dictionary for any extra attributes.         |
 
 Sources: [`README.md:65-73`](), [`AUDIT_REPORT.md`]()
 
 #### Other Asset Types
+
 - **Equity**: Represents stocks and includes fields like `pe_ratio` and `dividend_yield`.
 - **Bond**: Represents fixed-income securities with fields like `yield`, `duration`, and `credit_rating`.
 - **Commodity**: Represents physical goods or raw materials.
@@ -2733,6 +2811,7 @@ graph TD
         G
     end
 ```
+
 This architecture allows the application to switch between an in-memory store and a persistent PostgreSQL database by simply changing the repository implementation injected into the service layer.
 
 Sources: [`IMPROVEMENTS.md`]()
@@ -2796,6 +2875,7 @@ erDiagram
     ASSET ||--|{ EVENT_ASSET_LINK : "is affected by"
 
 ```
+
 This schema normalizes asset-specific data into separate tables (`EQUITY`, `BOND`) linked back to the main `ASSET` table. Relationships are stored in a dedicated `ASSET_RELATIONSHIP` table.
 
 Sources: [`README.md:65-73`](), [`IMPROVEMENTS.md`]()
@@ -2804,14 +2884,14 @@ Sources: [`README.md:65-73`](), [`IMPROVEMENTS.md`]()
 
 When implementing the database, several security best practices are recommended to protect sensitive financial data.
 
-| Practice | Description |
-| :--- | :--- |
-| **Parameterized Queries** | Use parameterized queries or ORMs to prevent SQL injection attacks. |
-| **Secrets Management** | Store database credentials securely using environment variables or a secrets manager (e.g., AWS Secrets Manager, Azure Key Vault), not in code. |
-| **Connection Pooling** | Use connection pooling to manage database connections efficiently and securely. |
-| **Encryption** | Enable encryption at rest for stored data and encryption in transit (TLS/SSL) for data moving between the application and the database. |
-| **Role-Based Access** | Configure specific database user roles with the minimum required permissions. |
-| **Audit Logging** | Enable audit logging on the database to track access and changes to data. |
+| Practice                  | Description                                                                                                                                     |
+| :------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Parameterized Queries** | Use parameterized queries or ORMs to prevent SQL injection attacks.                                                                             |
+| **Secrets Management**    | Store database credentials securely using environment variables or a secrets manager (e.g., AWS Secrets Manager, Azure Key Vault), not in code. |
+| **Connection Pooling**    | Use connection pooling to manage database connections efficiently and securely.                                                                 |
+| **Encryption**            | Enable encryption at rest for stored data and encryption in transit (TLS/SSL) for data moving between the application and the database.         |
+| **Role-Based Access**     | Configure specific database user roles with the minimum required permissions.                                                                   |
+| **Audit Logging**         | Enable audit logging on the database to track access and changes to data.                                                                       |
 
 Sources: [`SECURITY.md`](), [`DEPENDENCY_IMPROVEMENTS.md`]()
 
@@ -2825,6 +2905,7 @@ from sqlalchemy import text
 query = text("SELECT * FROM assets WHERE id = :asset_id")
 result = session.execute(query, {"asset_id": asset_id})
 ```
+
 Sources: [`SECURITY.md`]()
 
 ## Conclusion
@@ -2882,7 +2963,8 @@ graph TD
 
     style C fill:#f9f,stroke:#333,stroke-width:2px
 ```
-*Diagram showing the API/UI layers directly calling `AssetRelationshipGraph`, which manages in-memory data.*
+
+_Diagram showing the API/UI layers directly calling `AssetRelationshipGraph`, which manages in-memory data._
 
 Sources: [README.md:65-68](), [TESTING_GUIDE.md:38-46]()
 
@@ -2896,11 +2978,11 @@ Sources: [IMPROVEMENTS.md:123-125]()
 
 The proposed architecture consists of three main components:
 
-| Component | Description | Source File |
-| :--- | :--- | :--- |
-| **AssetRepository** | An interface or class that defines data access methods like `get_by_id`, `get_all`, and `save`. It abstracts the underlying data storage mechanism. | `IMPROVEMENTS.md` |
-| **AssetService** | A business logic layer that consumes the `AssetRepository`. It contains the core application logic, such as calculating portfolio risk, without knowing how data is stored. | `IMPROVEMENTS.md` |
-| **Dependency Injection** | A mechanism to provide the `AssetService` with a concrete implementation of the `AssetRepository`, facilitating easier testing and decoupling. | `IMPROVEMENTS.md` |
+| Component                | Description                                                                                                                                                                 | Source File       |
+| :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------- |
+| **AssetRepository**      | An interface or class that defines data access methods like `get_by_id`, `get_all`, and `save`. It abstracts the underlying data storage mechanism.                         | `IMPROVEMENTS.md` |
+| **AssetService**         | A business logic layer that consumes the `AssetRepository`. It contains the core application logic, such as calculating portfolio risk, without knowing how data is stored. | `IMPROVEMENTS.md` |
+| **Dependency Injection** | A mechanism to provide the `AssetService` with a concrete implementation of the `AssetRepository`, facilitating easier testing and decoupling.                              | `IMPROVEMENTS.md` |
 
 Sources: [IMPROVEMENTS.md:123-150]()
 
@@ -2922,7 +3004,8 @@ flowchart TD
         C
     end
 ```
-*Diagram illustrating the proposed layered architecture where the API interacts with a Service Layer, which in turn uses a Repository to access data.*
+
+_Diagram illustrating the proposed layered architecture where the API interacts with a Service Layer, which in turn uses a Repository to access data._
 
 Sources: [IMPROVEMENTS.md:123-150]()
 
@@ -2942,7 +3025,8 @@ class AssetRepository:
     def save(self, asset: Asset) -> None:
         pass
 ```
-*Source: [IMPROVEMENTS.md:126-135]()*
+
+_Source: [IMPROVEMENTS.md:126-135]()_
 
 The following class diagram shows the proposed `AssetRepository` and its relationship with the `Asset` model.
 
@@ -2961,7 +3045,8 @@ classDiagram
     }
     AssetRepository ..> Asset : "manages"
 ```
-*Class diagram for the proposed `AssetRepository` interface.*
+
+_Class diagram for the proposed `AssetRepository` interface._
 
 Sources: [IMPROVEMENTS.md:126-135](), [AI_RULES.md:12-13]()
 
@@ -2979,7 +3064,8 @@ class AssetService:
         # Business logic here
         pass
 ```
-*Source: [IMPROVEMENTS.md:139-147]()*
+
+_Source: [IMPROVEMENTS.md:139-147]()_
 
 ### Sequence of Operations
 
@@ -3003,7 +3089,8 @@ sequenceDiagram
     Service-->>API: Asset JSON response
     deactivate Service
 ```
-*Sequence diagram showing an API request being handled by the Service, which uses the Repository to fetch data.*
+
+_Sequence diagram showing an API request being handled by the Service, which uses the Repository to fetch data._
 
 Sources: [IMPROVEMENTS.md:123-150]()
 
@@ -3031,7 +3118,7 @@ Sources: [IMPROVEMENTS.md](), [README.md]()
 
 The following files were used as context for generating this wiki page:
 
-- [src/data/real\_data\_fetcher.py](https://github.com/DashFin/financial-asset-relationship-db/blob/main/src/data/real_data_fetcher.py)
+- [src/data/real_data_fetcher.py](https://github.com/DashFin/financial-asset-relationship-db/blob/main/src/data/real_data_fetcher.py)
 - [AI_RULES.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/AI_RULES.md)
 - [INTEGRATION_SUMMARY.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/INTEGRATION_SUMMARY.md)
 - [IMPROVEMENTS.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/IMPROVEMENTS.md)
@@ -3063,6 +3150,7 @@ Sources: [AI_RULES.md](), [README.md]()
 The data fetching mechanism is centralized within the `src/data/` directory and is called by higher-level application layers like the API backend.
 
 This diagram illustrates the data flow from the API layer to the external data source.
+
 ```mermaid
 flowchart TD
     A[API Layer / App Logic] --> B[real_data_fetcher.py];
@@ -3072,6 +3160,7 @@ flowchart TD
     C -->> B;
     B -->> A[Returns Populated Asset Models];
 ```
+
 Sources: [ARCHITECTURE.md](), [AI_RULES.md]()
 
 ### Sequence of Operations
@@ -3102,6 +3191,7 @@ sequenceDiagram
     FastAPI-->>Next_js: JSON Response with Asset Data
     deactivate FastAPI
 ```
+
 This flow demonstrates the clear separation of concerns, where the API layer delegates data acquisition to the specialized fetcher module.
 
 Sources: [INTEGRATION_SUMMARY.md](), [IMPROVEMENTS.md]()
@@ -3130,11 +3220,11 @@ The `IMPROVEMENTS.md` document highlights an area for enhancement within the `re
 
 The current implementation in `real_data_fetcher.py` uses broad `except Exception` clauses. This pattern is discouraged because it can catch unexpected exceptions, making debugging more difficult.
 
-| Current (Discouraged) | Recommended |
-| :--- | :--- |
-| Catches all exceptions, including system-level ones. | Catches specific, expected exceptions like `ValueError` or `ConnectionError`. |
-| Can hide bugs by catching errors that should have been propagated. | Allows unexpected errors to propagate for easier debugging. |
-| Makes it hard to distinguish between different error types (e.g., data vs. network). | Provides distinct handling for different error scenarios. |
+| Current (Discouraged)                                                                | Recommended                                                                   |
+| :----------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
+| Catches all exceptions, including system-level ones.                                 | Catches specific, expected exceptions like `ValueError` or `ConnectionError`. |
+| Can hide bugs by catching errors that should have been propagated.                   | Allows unexpected errors to propagate for easier debugging.                   |
+| Makes it hard to distinguish between different error types (e.g., data vs. network). | Provides distinct handling for different error scenarios.                     |
 
 **Recommendation:**
 Refactor the `try...except` blocks to catch more specific exceptions first, with a final `except Exception` to log and re-raise any truly unexpected errors.
@@ -3157,6 +3247,7 @@ except Exception as e:
     logger.exception(f"Unexpected error: {e}")
     raise  # Re-raise unexpected errors
 ```
+
 Sources: [IMPROVEMENTS.md]()
 
 ## Conclusion
@@ -3223,6 +3314,7 @@ flowchart TD
     H --> I[Return list of Assets];
     I --> J[End];
 ```
+
 This diagram shows the sequential creation of different asset types, which are then aggregated and returned.
 
 Sources: [README.md](), [AI_RULES.md]()
@@ -3280,6 +3372,7 @@ classDiagram
     Asset <|-- Currency
     Asset <|-- RegulatoryEvent
 ```
+
 This diagram shows the base `Asset` class and the specialized classes for `Equity`, `Bond`, `Commodity`, `Currency`, and `RegulatoryEvent`.
 
 Sources: [AUDIT_REPORT.md](), [AI_RULES.md](), [README.md]()
@@ -3288,9 +3381,9 @@ Sources: [AUDIT_REPORT.md](), [AI_RULES.md](), [README.md]()
 
 To enforce a fixed set of choices for categories, the system uses `enum`.
 
-| Enum Name | Purpose |
-| --- | --- |
-| `AssetClass` | Defines the major types of assets (e.g., EQUITY, BOND). |
+| Enum Name            | Purpose                                                              |
+| -------------------- | -------------------------------------------------------------------- |
+| `AssetClass`         | Defines the major types of assets (e.g., EQUITY, BOND).              |
 | `RegulatoryActivity` | Defines the types of regulatory events (e.g., EARNINGS, SEC_FILING). |
 
 Sources: [AI_RULES.md](), [AUDIT_REPORT.md]()
@@ -3305,12 +3398,12 @@ Sources: [README.md](), [IMPROVEMENTS.md]()
 
 Sample stocks are created with financial metrics like P/E ratio and dividend yield.
 
-| Symbol | Name | Sector |
-| --- | --- | --- |
-| AAPL | Apple Inc. | Technology |
-| MSFT | Microsoft Corp. | Technology |
-| JPM | JPMorgan Chase & Co. | Financials |
-| XOM | Exxon Mobil Corp. | Energy |
+| Symbol | Name                 | Sector     |
+| ------ | -------------------- | ---------- |
+| AAPL   | Apple Inc.           | Technology |
+| MSFT   | Microsoft Corp.      | Technology |
+| JPM    | JPMorgan Chase & Co. | Financials |
+| XOM    | Exxon Mobil Corp.    | Energy     |
 
 Sources: [README.md](), [TESTING_GUIDE.md]()
 
@@ -3318,9 +3411,9 @@ Sources: [README.md](), [TESTING_GUIDE.md]()
 
 Corporate bonds are included, often linked to the equities of the issuing company.
 
-| Symbol | Name | Issuer |
-| --- | --- | --- |
-| AAPL25 | Apple 2.4% 2025 | Apple Inc. |
+| Symbol | Name                | Issuer          |
+| ------ | ------------------- | --------------- |
+| AAPL25 | Apple 2.4% 2025     | Apple Inc.      |
 | MSFT30 | Microsoft 3.1% 2030 | Microsoft Corp. |
 
 Sources: [README.md](), [TESTING_GUIDE.md]()
@@ -3328,6 +3421,7 @@ Sources: [README.md](), [TESTING_GUIDE.md]()
 ### Other Asset Classes
 
 The sample dataset also includes:
+
 - **Commodities**: Such as Gold (GC=F) and Crude Oil (CL=F).
 - **Currencies**: FX pairs like EUR/USD and GBP/USD.
 - **Regulatory Events**: SEC filings or earnings reports linked to specific assets.
@@ -3369,6 +3463,7 @@ sequenceDiagram
     App-->>User: Renders 3D Graph
     deactivate App
 ```
+
 This flow demonstrates the critical role of `sample_data.py` in bootstrapping the application's primary feature.
 
 Sources: [README.md](), [CONTRIBUTING.md](), [TEST_SUMMARY.md]()
@@ -3384,7 +3479,6 @@ Sources: [SUMMARY.md](), [AUDIT_REPORT.md](), [TESTING_GUIDE.md]()
 ## Conclusion
 
 The sample data generation module is a cornerstone of the `financial-asset-relationship-db` project. It provides a self-contained, deterministic, and representative dataset that enables immediate visualization and robust testing. By decoupling the application's core logic from live data sources, it enhances developer productivity, ensures consistent demonstrations, and provides a stable foundation for the entire test suite.
-
 
 ## Backend Systems
 
@@ -3410,13 +3504,13 @@ The FastAPI backend serves as the primary data provider for the modern Next.js f
 
 This API is designed to be run as a serverless function on platforms like Vercel, working in tandem with the Next.js application. It includes automatic OpenAPI documentation, which can be accessed at the `/docs` endpoint during local development.
 
-*Sources: [INTEGRATION_SUMMARY.md](), [ARCHITECTURE.md](), [QUICK_START.md]()*
+_Sources: [INTEGRATION_SUMMARY.md](), [ARCHITECTURE.md](), [QUICK_START.md]()_
 
 ## Architecture
 
 The API is built using the FastAPI framework and runs on a Uvicorn ASGI server. It acts as a wrapper around the existing Python business logic, primarily interacting with a singleton instance of the `AssetRelationshipGraph` class. This design separates the web-serving layer from the core data processing engine.
 
-*Sources: [ARCHITECTURE.md](), [api/main.py:18-24]()*
+_Sources: [ARCHITECTURE.md](), [api/main.py:18-24]()_
 
 The following diagram illustrates the high-level architecture and data flow from the user to the core logic via the FastAPI layer.
 
@@ -3439,7 +3533,8 @@ graph TD
     B -- "Function Calls" --> C
     C -- "Fetches Data" --> D
 ```
-*Sources: [ARCHITECTURE.md](), [INTEGRATION_SUMMARY.md]()*
+
+_Sources: [ARCHITECTURE.md](), [INTEGRATION_SUMMARY.md]()_
 
 ### Core Logic Integration
 
@@ -3447,7 +3542,7 @@ To ensure efficiency and maintain state, the API uses a thread-safe singleton pa
 
 A `threading.Lock` is used to prevent race conditions during the initial creation of the graph, making it safe for concurrent requests.
 
-*Sources: [api/main.py:31-48](), [tests/unit/test_api_main.py:70-93]()*
+_Sources: [api/main.py:31-48](), [tests/unit/test_api_main.py:70-93]()_
 
 This diagram shows the logic for initializing the singleton graph instance.
 
@@ -3464,23 +3559,25 @@ flowchart TD
     G --> H;
     H --> I[Process Request];
 ```
-*Sources: [api/main.py:31-48]()*
+
+_Sources: [api/main.py:31-48]()_
 
 ### CORS Configuration
 
 The API is configured with CORS (Cross-Origin Resource Sharing) middleware to allow requests from the Next.js frontend, which runs on a different port during local development (`http://localhost:3000`) and on Vercel deployment domains (`https://*.vercel.app`).
 
-*Sources: [api/main.py:220-229](), [DEPLOYMENT.md]()*
+_Sources: [api/main.py:220-229](), [DEPLOYMENT.md]()_
 
 ## API Endpoints
 
 The API is available under the `/api/` prefix.
 
-*Sources: [api/main.py](), [DEPLOYMENT.md](), [INTEGRATION_SUMMARY.md]()*
+_Sources: [api/main.py](), [DEPLOYMENT.md](), [INTEGRATION_SUMMARY.md]()_
 
 ### Health & Metadata
 
 #### `GET /api/health`
+
 Returns the operational status of the API.
 
 - **Response:**
@@ -3490,83 +3587,83 @@ Returns the operational status of the API.
     "graph_initialized": true
   }
   ```
-*Sources: [api/main.py:100-106](), [tests/unit/test_api_main.py:130-135]()*
+  _Sources: [api/main.py:100-106](), [tests/unit/test_api_main.py:130-135]()_
 
 #### `GET /api/asset-classes`
+
 Returns a list of all available asset classes.
 
 - **Response:**
   ```json
-  [
-    "EQUITY",
-    "BOND",
-    "COMMODITY",
-    "CURRENCY"
-  ]
+  ["EQUITY", "BOND", "COMMODITY", "CURRENCY"]
   ```
-*Sources: [api/main.py:189-194](), [tests/unit/test_api_main.py:302-307]()*
+  _Sources: [api/main.py:189-194](), [tests/unit/test_api_main.py:302-307]()_
 
 #### `GET /api/sectors`
+
 Returns a list of all unique sectors available in the asset graph.
 
 - **Response:**
   ```json
-  [
-    "Technology",
-    "Financial Services",
-    "Consumer Cyclical"
-  ]
+  ["Technology", "Financial Services", "Consumer Cyclical"]
   ```
-*Sources: [api/main.py:197-202](), [tests/unit/test_api_main.py:309-314]()*
+  _Sources: [api/main.py:197-202](), [tests/unit/test_api_main.py:309-314]()_
 
 ### Assets
 
 #### `GET /api/assets`
+
 Retrieves a list of all assets, with optional filtering.
 
-| Parameter | Type | Description |
-|---|---|---|
+| Parameter     | Type  | Description                                                          |
+| ------------- | ----- | -------------------------------------------------------------------- |
 | `asset_class` | `str` | (Optional) Filter assets by a specific asset class (e.g., `EQUITY`). |
-| `sector` | `str` | (Optional) Filter assets by a specific sector (e.g., `Technology`). |
+| `sector`      | `str` | (Optional) Filter assets by a specific sector (e.g., `Technology`).  |
 
 - **Response:** An array of `AssetResponse` objects.
-*Sources: [api/main.py:110-129](), [tests/unit/test_api_main.py:151-189]()*
+  _Sources: [api/main.py:110-129](), [tests/unit/test_api_main.py:151-189]()_
 
 #### `GET /api/assets/{asset_id}`
+
 Retrieves detailed information for a single asset by its ID.
 
 - **Response:** A single `AssetResponse` object or a 404 error if not found.
-*Sources: [api/main.py:132-143](), [tests/unit/test_api_main.py:191-203]()*
+  _Sources: [api/main.py:132-143](), [tests/unit/test_api_main.py:191-203]()_
 
 #### `GET /api/assets/{asset_id}/relationships`
+
 Retrieves all relationships for a specific asset.
 
 - **Response:** An array of `RelationshipResponse` objects.
-*Sources: [api/main.py:146-157](), [tests/unit/test_api_main.py:221-233]()*
+  _Sources: [api/main.py:146-157](), [tests/unit/test_api_main.py:221-233]()_
 
 ### Relationships
 
 #### `GET /api/relationships`
+
 Retrieves all relationships in the graph.
 
 - **Response:** An array of `RelationshipResponse` objects.
-*Sources: [api/main.py:160-166](), [tests/unit/test_api_main.py:235-241]()*
+  _Sources: [api/main.py:160-166](), [tests/unit/test_api_main.py:235-241]()_
 
 ### Metrics & Visualization
 
 #### `GET /api/metrics`
+
 Calculates and returns key metrics about the network graph.
 
 - **Response:** A `MetricsResponse` object.
-*Sources: [api/main.py:169-175](), [tests/unit/test_api_main.py:243-256]()*
+  _Sources: [api/main.py:169-175](), [tests/unit/test_api_main.py:243-256]()_
 
 #### `GET /api/visualization`
+
 Returns the data required for the frontend to render the 3D network graph.
 
 - **Response:** A `VisualizationDataResponse` object containing nodes and edges.
-*Sources: [api/main.py:178-186](), [tests/unit/test_api_main.py:258-279]()*
+  _Sources: [api/main.py:178-186](), [tests/unit/test_api_main.py:258-279]()_
 
 The following sequence diagram shows a typical request to the visualization endpoint.
+
 ```mermaid
 sequenceDiagram
     participant Client as "Next.js Frontend"
@@ -3581,13 +3678,14 @@ sequenceDiagram
     Graph-->>API: {nodes: [...], links: [...]}
     API-->>Client: 200 OK with JSON payload
 ```
-*Sources: [api/main.py:178-186](), [ARCHITECTURE.md]()*
+
+_Sources: [api/main.py:178-186](), [ARCHITECTURE.md]()_
 
 ## Data Models
 
 The API uses Pydantic models to define and validate the structure of JSON responses.
 
-*Sources: [api/main.py:51-97](), [tests/unit/test_api_main.py:95-128]()*
+_Sources: [api/main.py:51-97](), [tests/unit/test_api_main.py:95-128]()_
 
 ```mermaid
 classDiagram
@@ -3647,38 +3745,43 @@ classDiagram
     VisualizationNode ..> AssetResponse : (derived from)
     VisualizationLink ..> RelationshipResponse : (derived from)
 ```
-*Sources: [api/main.py:51-97]()*
+
+_Sources: [api/main.py:51-97]()_
 
 ### AssetResponse
-| Field | Type | Description |
-|---|---|---|
-| `id` | `str` | Unique identifier for the asset. |
-| `symbol` | `str` | Ticker symbol or identifier. |
-| `name` | `str` | Full name of the asset. |
-| `asset_class` | `str` | The class of the asset (e.g., `EQUITY`). |
-| `sector` | `str` | The industry sector. |
-| `currency` | `str` | The currency of the asset price. |
-| `price` | `float` | The current price. |
-| `market_cap` | `float` | The market capitalization. |
-| `additional_fields` | `dict` | A dictionary of asset-specific fields. |
-*Sources: [api/main.py:52-63]()*
+
+| Field               | Type    | Description                              |
+| ------------------- | ------- | ---------------------------------------- |
+| `id`                | `str`   | Unique identifier for the asset.         |
+| `symbol`            | `str`   | Ticker symbol or identifier.             |
+| `name`              | `str`   | Full name of the asset.                  |
+| `asset_class`       | `str`   | The class of the asset (e.g., `EQUITY`). |
+| `sector`            | `str`   | The industry sector.                     |
+| `currency`          | `str`   | The currency of the asset price.         |
+| `price`             | `float` | The current price.                       |
+| `market_cap`        | `float` | The market capitalization.               |
+| `additional_fields` | `dict`  | A dictionary of asset-specific fields.   |
+
+_Sources: [api/main.py:52-63]()_
 
 ### MetricsResponse
-| Field | Type | Description |
-|---|---|---|
-| `total_assets` | `int` | Total number of assets in the graph. |
-| `total_relationships` | `int` | Total number of relationships. |
-| `network_density` | `float` | The density of the network graph. |
-| `average_degree` | `float` | The average number of connections per node. |
-| `max_degree` | `int` | The highest number of connections for any single node. |
-| `asset_class_distribution` | `dict` | A count of assets per asset class. |
-*Sources: [api/main.py:72-80]()*
+
+| Field                      | Type    | Description                                            |
+| -------------------------- | ------- | ------------------------------------------------------ |
+| `total_assets`             | `int`   | Total number of assets in the graph.                   |
+| `total_relationships`      | `int`   | Total number of relationships.                         |
+| `network_density`          | `float` | The density of the network graph.                      |
+| `average_degree`           | `float` | The average number of connections per node.            |
+| `max_degree`               | `int`   | The highest number of connections for any single node. |
+| `asset_class_distribution` | `dict`  | A count of assets per asset class.                     |
+
+_Sources: [api/main.py:72-80]()_
 
 ## Error Handling
 
 The API includes a generic exception handler that catches any unhandled server-side errors. This prevents internal stack traces from being exposed to the client and returns a standard `500 Internal Server Error` response. Specific errors, such as a non-existent asset, result in a `404 Not Found` status code.
 
-*Sources: [api/main.py:205-217](), [tests/unit/test_api_main.py:316-332]()*
+_Sources: [api/main.py:205-217](), [tests/unit/test_api_main.py:316-332]()_
 
 ## Summary
 
@@ -3739,28 +3842,29 @@ classDiagram
     Token --|> TokenData : "Decodes to"
     UserInDB --|> User : "Extends"
 ```
+
 Sources: [api/auth.py:28-51]()
 
-| Model | Description | Fields | Source File |
-|---|---|---|---|
-| `User` | Basic user model. | `username`, `email`, `full_name`, `disabled` | `api/auth.py:43-47` |
-| `UserInDB` | Extends `User` to include the hashed password for storage. | Inherits from `User`, adds `hashed_password` | `api/auth.py:50-51` |
-| `Token` | Represents the access token returned to the client. | `access_token`, `token_type` | `api/auth.py:28-30` |
-| `TokenData` | Represents the data encoded within the JWT. | `username` | `api/auth.py:33-34` |
+| Model       | Description                                                | Fields                                       | Source File         |
+| ----------- | ---------------------------------------------------------- | -------------------------------------------- | ------------------- |
+| `User`      | Basic user model.                                          | `username`, `email`, `full_name`, `disabled` | `api/auth.py:43-47` |
+| `UserInDB`  | Extends `User` to include the hashed password for storage. | Inherits from `User`, adds `hashed_password` | `api/auth.py:50-51` |
+| `Token`     | Represents the access token returned to the client.        | `access_token`, `token_type`                 | `api/auth.py:28-30` |
+| `TokenData` | Represents the data encoded within the JWT.                | `username`                                   | `api/auth.py:33-34` |
 
 ### Configuration
 
 Authentication behavior is configured through environment variables. A hardcoded user database is present for simplicity, with credentials also loaded from the environment.
 
-| Variable | Description | Default Value | Source File |
-|---|---|---|---|
-| `SECRET_KEY` | A secret string for encoding and decoding JWTs. | "a_very_secret_key" | `api/auth.py:18` |
-| `ALGORITHM` | The algorithm used for JWT signing. | "HS256" | `api/auth.py:19` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | The token's validity period in minutes. | 30 | `api/auth.py:20` |
-| `ADMIN_USERNAME` | Username for the default admin user. | "admin" | `api/auth.py:57` |
-| `ADMIN_PASSWORD` | Password for the default admin user. | "admin" | `api/auth.py:58` |
-| `ADMIN_EMAIL` | Email for the default admin user. | "admin@example.com" | `api/auth.py:59` |
-| `ADMIN_FULL_NAME` | Full name for the default admin user. | "Admin User" | `api/auth.py:60` |
+| Variable                      | Description                                     | Default Value       | Source File      |
+| ----------------------------- | ----------------------------------------------- | ------------------- | ---------------- |
+| `SECRET_KEY`                  | A secret string for encoding and decoding JWTs. | "a_very_secret_key" | `api/auth.py:18` |
+| `ALGORITHM`                   | The algorithm used for JWT signing.             | "HS256"             | `api/auth.py:19` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | The token's validity period in minutes.         | 30                  | `api/auth.py:20` |
+| `ADMIN_USERNAME`              | Username for the default admin user.            | "admin"             | `api/auth.py:57` |
+| `ADMIN_PASSWORD`              | Password for the default admin user.            | "admin"             | `api/auth.py:58` |
+| `ADMIN_EMAIL`                 | Email for the default admin user.               | "admin@example.com" | `api/auth.py:59` |
+| `ADMIN_FULL_NAME`             | Full name for the default admin user.           | "Admin User"        | `api/auth.py:60` |
 
 The use of these environment variables is confirmed in the integration tests.
 Sources: [api/auth.py:17-21, 56-61](), [tests/integration/test_api_integration.py:139-142]()
@@ -3769,10 +3873,10 @@ Sources: [api/auth.py:17-21, 56-61](), [tests/integration/test_api_integration.p
 
 The authentication logic is handled by a set of functions in `api/auth.py`.
 
-| Function | Description | Source File |
-|---|---|---|
-| `authenticate_user()` | Verifies a user's credentials (username and password) against the user database. | `api/auth.py:70-79` |
-| `create_access_token()` | Generates a new JWT for a given username and expiration time. | `api/auth.py:82-90` |
+| Function                    | Description                                                                                                    | Source File          |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `authenticate_user()`       | Verifies a user's credentials (username and password) against the user database.                               | `api/auth.py:70-79`  |
+| `create_access_token()`     | Generates a new JWT for a given username and expiration time.                                                  | `api/auth.py:82-90`  |
 | `get_current_active_user()` | A FastAPI dependency that decodes the JWT from the request header and retrieves the corresponding active user. | `api/auth.py:93-111` |
 
 ## Authentication Flow
@@ -3784,6 +3888,7 @@ The process of obtaining and using an access token follows the standard OAuth2 P
 A client requests an access token by sending its credentials to the `/token` endpoint.
 
 The following sequence diagram shows the token issuance process.
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -3809,6 +3914,7 @@ sequenceDiagram
     end
     deactivate API
 ```
+
 This flow is initiated by the `login_for_access_token` function in `api/main.py`, which handles the `/token` endpoint.
 Sources: [api/main.py:129-142](), [api/auth.py:70-90](), [tests/integration/test_api_integration.py:137-150]()
 
@@ -3817,6 +3923,7 @@ Sources: [api/main.py:129-142](), [api/auth.py:70-90](), [tests/integration/test
 Once the client has an access token, it can access protected endpoints by including the token in the `Authorization` header.
 
 This flowchart shows how a request to a protected endpoint is validated.
+
 ```mermaid
 flowchart TD
     A[Client sends request with 'Authorization: Bearer TOKEN'] --> B{Protected Endpoint};
@@ -3831,6 +3938,7 @@ flowchart TD
     E -- No --> K[HTTPException 401 Unauthorized];
     H -- No --> K;
 ```
+
 The `get_current_active_user` function serves as the FastAPI dependency that enforces this validation. Any endpoint that includes `Depends(get_current_active_user)` in its signature is automatically protected.
 Sources: [api/auth.py:93-111](), [api/main.py:145-149]()
 
@@ -3838,10 +3946,10 @@ Sources: [api/auth.py:93-111](), [api/main.py:145-149]()
 
 ### Authentication Endpoints
 
-| Endpoint | Method | Description | Parameters (form-data) | Response | Source File |
-|---|---|---|---|---|---|
-| `/token` | `POST` | Issues a JWT access token upon successful authentication. | `username: str`, `password: str` | `Token` model | `api/main.py:129-142` |
-| `/api/users/me` | `GET` | Returns the details of the currently authenticated user. Protected endpoint. | None | `User` model | `api/main.py:145-149` |
+| Endpoint        | Method | Description                                                                  | Parameters (form-data)           | Response      | Source File           |
+| --------------- | ------ | ---------------------------------------------------------------------------- | -------------------------------- | ------------- | --------------------- |
+| `/token`        | `POST` | Issues a JWT access token upon successful authentication.                    | `username: str`, `password: str` | `Token` model | `api/main.py:129-142` |
+| `/api/users/me` | `GET`  | Returns the details of the currently authenticated user. Protected endpoint. | None                             | `User` model  | `api/main.py:145-149` |
 
 ### Example Usage
 
@@ -3852,6 +3960,7 @@ curl -X POST "http://localhost:8000/token" \
 -H "Content-Type: application/x-www-form-urlencoded" \
 -d "username=admin&password=admin"
 ```
+
 The response will be a JSON object containing the access token.
 
 ```json
@@ -3860,12 +3969,14 @@ The response will be a JSON object containing the access token.
   "token_type": "bearer"
 }
 ```
+
 This token is then used to access protected endpoints.
 
 ```bash
 curl -X GET "http://localhost:8000/api/users/me" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
+
 Sources: [tests/integration/test_api_integration.py:137-165]()
 
 ## Security Considerations
@@ -3902,19 +4013,20 @@ The Gradio application, defined in `app.py`, serves as the original, Python-nati
 
 This application runs as a standalone web server and is launched via the command `python app.py`. While it remains fully functional, it is considered the legacy UI in comparison to the newer [Next.js Frontend](#), which offers a more modern and scalable architecture. The Gradio app is particularly suited for data scientists and Python developers who need a quick way to visualize and interact with the asset graph without requiring a separate frontend development environment.
 
-*Sources: [app.py](), [UI_COMPARISON.md](), [README.md](), [ARCHITECTURE.md]()*
+_Sources: [app.py](), [UI_COMPARISON.md](), [README.md](), [ARCHITECTURE.md]()_
 
 ## Architecture and Core Components
 
 The application's logic is encapsulated within the `FinancialAssetApp` class in `app.py`. This class manages the application state, handles data initialization, and defines the methods that respond to user interactions in the UI.
 
-*Sources: [app.py:141-144]()*
+_Sources: [app.py:141-144]()_
 
 ### `FinancialAssetApp` Class
 
 The `FinancialAssetApp` class is the central controller for the Gradio interface. It initializes the core `AssetRelationshipGraph` and connects UI components to backend data processing and visualization functions.
 
 The diagram below shows the key methods within the `FinancialAssetApp` class.
+
 ```mermaid
 classDiagram
     class FinancialAssetApp {
@@ -3932,17 +4044,18 @@ classDiagram
         -_format_formula_summary() str
     }
 ```
-*Sources: [app.py:141-419]()*
+
+_Sources: [app.py:141-419]()_
 
 ### Key Methods
 
-| Method | Description | Source |
-| --- | --- | --- |
-| `_initialize_graph()` | Initializes the `AssetRelationshipGraph` by calling `create_real_database()` to fetch data from Yahoo Finance. | `app.py:146-156` |
-| `create_interface()` | Constructs the entire Gradio UI, defining all tabs, components, and their layouts. | `app.py:421-638` |
-| `refresh_all_outputs()` | A master function that refreshes all visualizations and reports across all tabs simultaneously. | `app.py:206-236` |
-| `refresh_visualization()` | Updates the 2D/3D network graph based on user-selected filters (e.g., view mode, relationship types). | `app.py:238-280` |
-| `update_asset_info()` | Fetches and displays detailed JSON data for a selected asset in the "Asset Explorer" tab. | `app.py:189-204` |
+| Method                          | Description                                                                                                               | Source           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `_initialize_graph()`           | Initializes the `AssetRelationshipGraph` by calling `create_real_database()` to fetch data from Yahoo Finance.            | `app.py:146-156` |
+| `create_interface()`            | Constructs the entire Gradio UI, defining all tabs, components, and their layouts.                                        | `app.py:421-638` |
+| `refresh_all_outputs()`         | A master function that refreshes all visualizations and reports across all tabs simultaneously.                           | `app.py:206-236` |
+| `refresh_visualization()`       | Updates the 2D/3D network graph based on user-selected filters (e.g., view mode, relationship types).                     | `app.py:238-280` |
+| `update_asset_info()`           | Fetches and displays detailed JSON data for a selected asset in the "Asset Explorer" tab.                                 | `app.py:189-204` |
 | `generate_formulaic_analysis()` | Runs the `FormulaicdAnalyzer` and uses `FormulaicVisualizer` to create and display plots in the "Formulaic Analysis" tab. | `app.py:282-336` |
 
 ## Application Startup Flow
@@ -3950,6 +4063,7 @@ classDiagram
 When the application is started with `python app.py`, it follows a clear initialization sequence before launching the web interface.
 
 The following flowchart illustrates the startup process.
+
 ```mermaid
 flowchart TD
     A[Start `python app.py`] --> B{`if __name__ == "__main__"`};
@@ -3965,22 +4079,23 @@ flowchart TD
     K --> L[Gradio UI available at http://localhost:7860];
     E -- On Error --> M{Log Error & Raise};
 ```
-*Sources: [app.py:641-648](), [app.py:146-156](), [README.md]()*
+
+_Sources: [app.py:641-648](), [app.py:146-156](), [README.md]()_
 
 ## User Interface Tabs
 
 The UI is organized into several tabs, each serving a distinct purpose for exploring the financial asset data. The interface is built using Gradio and Plotly for visualizations.
 
-*Sources: [app.py:424-533](), [AI_RULES.md]()*
+_Sources: [app.py:424-533](), [AI_RULES.md]()_
 
-| Tab Name | Purpose | Key Functions |
-| --- | --- | --- |
-| **Network Visualization (2D/3D)** | The main interactive view of the asset network. Supports 2D and 3D modes with extensive filtering. | `refresh_visualization`, `visualize_3d_graph_with_filters`, `visualize_2d_graph` |
-| **Metrics & Analytics** | Displays quantitative statistics and charts about the network, such as asset distribution and relationship types. | `update_all_metrics_outputs`, `visualize_metrics` |
-| **Schema & Rules** | Shows a generated report of the database schema, data models, and business rules for relationships. | `refresh_all_outputs`, `generate_schema_report` |
-| **Asset Explorer** | Allows users to select a specific asset from a dropdown and view its detailed attributes and connections in JSON format. | `update_asset_info` |
-| **Formulaic Analysis** | Provides advanced mathematical analysis, extracting and visualizing formulas and correlations between financial variables. | `generate_formulaic_analysis`, `show_formula_details` |
-| **Documentation** | A static tab containing help text and a quick start guide on how to use the application. | N/A (Static Markdown) |
+| Tab Name                          | Purpose                                                                                                                    | Key Functions                                                                    |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Network Visualization (2D/3D)** | The main interactive view of the asset network. Supports 2D and 3D modes with extensive filtering.                         | `refresh_visualization`, `visualize_3d_graph_with_filters`, `visualize_2d_graph` |
+| **Metrics & Analytics**           | Displays quantitative statistics and charts about the network, such as asset distribution and relationship types.          | `update_all_metrics_outputs`, `visualize_metrics`                                |
+| **Schema & Rules**                | Shows a generated report of the database schema, data models, and business rules for relationships.                        | `refresh_all_outputs`, `generate_schema_report`                                  |
+| **Asset Explorer**                | Allows users to select a specific asset from a dropdown and view its detailed attributes and connections in JSON format.   | `update_asset_info`                                                              |
+| **Formulaic Analysis**            | Provides advanced mathematical analysis, extracting and visualizing formulas and correlations between financial variables. | `generate_formulaic_analysis`, `show_formula_details`                            |
+| **Documentation**                 | A static tab containing help text and a quick start guide on how to use the application.                                   | N/A (Static Markdown)                                                            |
 
 ### Network Visualization Tab
 
@@ -3988,14 +4103,14 @@ This is the primary tab for visual exploration. It provides numerous controls to
 
 #### Visualization Controls
 
-| Control | Type | Options | Description | Source |
-| --- | --- | --- | --- | --- |
-| Visualization Mode | Radio | `3D`, `2D` | Toggles between 2D and 3D graph layouts. | `app.py:437` |
-| 2D Layout Type | Radio | `spring`, `circular`, `grid` | Selects the algorithm for the 2D graph layout. Visible only in 2D mode. | `app.py:441` |
-| Relationship Filters | Checkbox | (Multiple) | A series of checkboxes to toggle the visibility of different relationship types (e.g., "Same Sector", "Regulatory Impact"). | `app.py:451-465` |
-| Show Direction Arrows | Checkbox | `True`, `False` | Toggles the visibility of arrows indicating relationship direction in the 3D view. | `app.py:466` |
+| Control               | Type     | Options                      | Description                                                                                                                 | Source           |
+| --------------------- | -------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Visualization Mode    | Radio    | `3D`, `2D`                   | Toggles between 2D and 3D graph layouts.                                                                                    | `app.py:437`     |
+| 2D Layout Type        | Radio    | `spring`, `circular`, `grid` | Selects the algorithm for the 2D graph layout. Visible only in 2D mode.                                                     | `app.py:441`     |
+| Relationship Filters  | Checkbox | (Multiple)                   | A series of checkboxes to toggle the visibility of different relationship types (e.g., "Same Sector", "Regulatory Impact"). | `app.py:451-465` |
+| Show Direction Arrows | Checkbox | `True`, `False`              | Toggles the visibility of arrows indicating relationship direction in the 3D view.                                          | `app.py:466`     |
 
-*Sources: [app.py:432-466]()*
+_Sources: [app.py:432-466]()_
 
 ## Event Handling and Data Flow
 
@@ -4021,27 +4136,27 @@ sequenceDiagram
     FinancialAssetApp-->>Gradio_UI: Returns Figure and error state
     Gradio_UI-->>User: Updates 3D Plot component
 ```
-*Sources: [app.py:596-601](), [app.py:238-280]()*
+
+_Sources: [app.py:596-601](), [app.py:238-280]()_
 
 ## Dependencies
 
 The Gradio application relies on several key Python libraries defined in the project's configuration.
 
-| Library | Usage | Source |
-| --- | --- | --- |
-| `gradio` | The core framework for building the web UI. | `pyproject.toml:16` |
-| `plotly` | The exclusive library used for all 2D and 3D visualizations. | `pyproject.toml:17` |
-| `pandas` | Used for data manipulation before visualization. | `pyproject.toml:22` |
-| `yfinance` | Fetches real-time financial data to populate the graph. | `pyproject.toml:20` |
+| Library    | Usage                                                        | Source              |
+| ---------- | ------------------------------------------------------------ | ------------------- |
+| `gradio`   | The core framework for building the web UI.                  | `pyproject.toml:16` |
+| `plotly`   | The exclusive library used for all 2D and 3D visualizations. | `pyproject.toml:17` |
+| `pandas`   | Used for data manipulation before visualization.             | `pyproject.toml:22` |
+| `yfinance` | Fetches real-time financial data to populate the graph.      | `pyproject.toml:20` |
 
-*Sources: [pyproject.toml:15-23](), [AI_RULES.md]()*
+_Sources: [pyproject.toml:15-23](), [AI_RULES.md]()_
 
 ## Conclusion
 
 The `app.py` file provides a powerful, self-contained, and interactive tool for financial data analysis. As the original UI, it demonstrates the core value of the project by enabling direct, visual interaction with the asset relationship graph. While the project has evolved to include a more modern Next.js frontend, the Gradio application remains a valuable asset for rapid development, debugging, and Python-centric data exploration.
 
-*Sources: [app.py](), [UI_COMPARISON.md]()*
-
+_Sources: [app.py](), [UI_COMPARISON.md]()_
 
 ## Frontend Components
 
@@ -4058,7 +4173,7 @@ The following files were used as context for generating this wiki page:
 - [INTEGRATION_SUMMARY.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/INTEGRATION_SUMMARY.md)
 - [QUICK_START.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/QUICK_START.md)
 - [TESTING_GUIDE.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/TESTING_GUIDE.md)
-- [frontend/__tests__/config/package-validation.test.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/config/package-validation.test.ts)
+- [frontend/**tests**/config/package-validation.test.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/config/package-validation.test.ts)
 - [UI_COMPARISON.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/UI_COMPARISON.md)
 </details>
 
@@ -4077,6 +4192,7 @@ The frontend application is a client-side Next.js/React application that interac
 Sources: [ARCHITECTURE.md:4-43](), [INTEGRATION_SUMMARY.md:65-95]()
 
 This diagram illustrates the high-level system architecture, showing the interaction between the Next.js frontend, the FastAPI backend, and the core Python logic.
+
 ```mermaid
 graph TD
     subgraph User_Browser
@@ -4094,23 +4210,24 @@ graph TD
     style A fill:#cde4ff
     style B fill:#d5f0d5
 ```
+
 Sources: [ARCHITECTURE.md:120-136](), [INTEGRATION_SUMMARY.md:65-95]()
 
 ### Technology Stack
 
 The frontend leverages a modern web development stack to deliver a high-quality user experience.
 
-| Technology | Version | Purpose |
-| --- | --- | --- |
-| **Next.js** | `14.2.35` | React framework for server-side rendering, routing, and build optimization. |
-| **React** | `^18.2.0` | UI library for building components. |
-| **TypeScript** | `^5.3.0` | Provides static typing for code quality and maintainability. |
-| **Tailwind CSS** | `^3.3.0` | A utility-first CSS framework for styling. |
-| **Plotly.js** | `^2.27.0` | Library for creating interactive 2D and 3D visualizations. |
-| **Recharts** | `^2.10.0` | A composable charting library built on React components. |
-| **Axios** | `^1.13.2` | HTTP client for making REST API requests to the backend. |
-| **Jest** | `^29.7.0` | Testing framework for unit and component tests. |
-| **React Testing Library** | `^14.1.2` | Utilities for testing React components in a user-centric way. |
+| Technology                | Version   | Purpose                                                                     |
+| ------------------------- | --------- | --------------------------------------------------------------------------- |
+| **Next.js**               | `14.2.35` | React framework for server-side rendering, routing, and build optimization. |
+| **React**                 | `^18.2.0` | UI library for building components.                                         |
+| **TypeScript**            | `^5.3.0`  | Provides static typing for code quality and maintainability.                |
+| **Tailwind CSS**          | `^3.3.0`  | A utility-first CSS framework for styling.                                  |
+| **Plotly.js**             | `^2.27.0` | Library for creating interactive 2D and 3D visualizations.                  |
+| **Recharts**              | `^2.10.0` | A composable charting library built on React components.                    |
+| **Axios**                 | `^1.13.2` | HTTP client for making REST API requests to the backend.                    |
+| **Jest**                  | `^29.7.0` | Testing framework for unit and component tests.                             |
+| **React Testing Library** | `^14.1.2` | Utilities for testing React components in a user-centric way.               |
 
 Sources: [frontend/package.json:15-39](), [frontend/README.md:63-69](), [ARCHITECTURE.md:100-107]()
 
@@ -4119,6 +4236,7 @@ Sources: [frontend/package.json:15-39](), [frontend/README.md:63-69](), [ARCHITE
 The `frontend` directory is organized to follow Next.js conventions, separating UI components, business logic, type definitions, and static assets.
 
 This diagram shows the layout of the key directories within the `frontend` folder.
+
 ```mermaid
 graph TD
     A(frontend/) --> B(app/)
@@ -4141,23 +4259,24 @@ graph TD
 
     B2 --> B2a(api.ts)
 ```
+
 Sources: [frontend/README.md:38-53](), [INTEGRATION_SUMMARY.md:30-46]()
 
 ### Key Directories and Files
 
-| Path | Description |
-| --- | --- |
-| `app/` | Contains all application routes, components, and logic, following the Next.js App Router convention. |
-| `app/components/` | Houses reusable React components like `NetworkVisualization.tsx`, `MetricsDashboard.tsx`, and `AssetList.tsx`. |
-| `app/lib/api.ts` | The API client module responsible for all communication with the backend. It uses `axios`. |
-| `app/types/api.ts` | Contains TypeScript type definitions for API request and response objects. |
-| `app/page.tsx` | The main entry point page for the application, which integrates all the major components into a tabbed interface. |
-| `app/layout.tsx` | The root layout component for the application. |
-| `public/` | Stores static assets like images and fonts. |
-| `__tests__/` | Contains all Jest tests for components, libraries, and configuration. |
-| `package.json` | Defines project metadata, dependencies, and npm scripts. |
-| `next.config.js` | Configuration file for the Next.js framework. |
-| `tailwind.config.js` | Configuration file for Tailwind CSS. |
+| Path                 | Description                                                                                                       |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `app/`               | Contains all application routes, components, and logic, following the Next.js App Router convention.              |
+| `app/components/`    | Houses reusable React components like `NetworkVisualization.tsx`, `MetricsDashboard.tsx`, and `AssetList.tsx`.    |
+| `app/lib/api.ts`     | The API client module responsible for all communication with the backend. It uses `axios`.                        |
+| `app/types/api.ts`   | Contains TypeScript type definitions for API request and response objects.                                        |
+| `app/page.tsx`       | The main entry point page for the application, which integrates all the major components into a tabbed interface. |
+| `app/layout.tsx`     | The root layout component for the application.                                                                    |
+| `public/`            | Stores static assets like images and fonts.                                                                       |
+| `__tests__/`         | Contains all Jest tests for components, libraries, and configuration.                                             |
+| `package.json`       | Defines project metadata, dependencies, and npm scripts.                                                          |
+| `next.config.js`     | Configuration file for the Next.js framework.                                                                     |
+| `tailwind.config.js` | Configuration file for Tailwind CSS.                                                                              |
 
 Sources: [frontend/README.md:38-53](), [INTEGRATION_SUMMARY.md:30-46](), [TESTING_GUIDE.md:121-122]()
 
@@ -4165,11 +4284,11 @@ Sources: [frontend/README.md:38-53](), [INTEGRATION_SUMMARY.md:30-46](), [TESTIN
 
 The UI is built from a set of modular React components, each responsible for a specific feature.
 
-| Component | Description | Features |
-| --- | --- | --- |
-| **NetworkVisualization.tsx** | Renders the interactive 3D network graph of financial assets. | Uses Plotly.js, supports zoom/pan/rotate, displays node and edge details on hover. |
-| **MetricsDashboard.tsx** | Displays key statistics and analytics about the asset network. | Shows total assets, relationships, network density, and asset class distribution. |
-| **AssetList.tsx** | Provides a filterable and searchable table of all financial assets. | Allows filtering by asset class and sector. |
+| Component                    | Description                                                         | Features                                                                           |
+| ---------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **NetworkVisualization.tsx** | Renders the interactive 3D network graph of financial assets.       | Uses Plotly.js, supports zoom/pan/rotate, displays node and edge details on hover. |
+| **MetricsDashboard.tsx**     | Displays key statistics and analytics about the asset network.      | Shows total assets, relationships, network density, and asset class distribution.  |
+| **AssetList.tsx**            | Provides a filterable and searchable table of all financial assets. | Allows filtering by asset class and sector.                                        |
 
 These components are integrated into the main page (`app/page.tsx`) and organized within a tabbed layout, allowing users to switch between different views of the data.
 
@@ -4180,6 +4299,7 @@ Sources: [frontend/README.md:40-43](), [INTEGRATION_SUMMARY.md:49-63](), [TESTIN
 User interactions in the frontend trigger API calls to the FastAPI backend to fetch data, which is then rendered by the React components. The `app/lib/api.ts` module centralizes all data-fetching logic.
 
 The following sequence diagram shows the data flow for loading the 3D visualization.
+
 ```mermaid
 sequenceDiagram
     participant User as User
@@ -4205,6 +4325,7 @@ sequenceDiagram
     ReactComponent->>ReactComponent: Renders data with Plotly.js
     deactivate ReactComponent
 ```
+
 Sources: [ARCHITECTURE.md:73-95](), [INTEGRATION_SUMMARY.md:10-23, 37-38]()
 
 ## Setup and Development
@@ -4212,12 +4333,14 @@ Sources: [ARCHITECTURE.md:73-95](), [INTEGRATION_SUMMARY.md:10-23, 37-38]()
 To run the frontend locally, a few setup steps are required.
 
 ### Prerequisites
+
 - Node.js 18 or higher
 - npm or yarn
 
 Sources: [frontend/README.md:8-9]()
 
 ### Installation and Execution
+
 1.  **Install dependencies** from the `frontend` directory:
     ```bash
     npm install
@@ -4227,10 +4350,10 @@ Sources: [frontend/README.md:8-9]()
     NEXT_PUBLIC_API_URL=http://localhost:8000
     ```
 3.  **Run the development server**:
-    ```bash
-    npm run dev
-    ```
-The application will be available at `http://localhost:3000`.
+    `bash
+npm run dev
+`
+    The application will be available at `http://localhost:3000`.
 
 Sources: [frontend/README.md:12-24](), [QUICK_START.md:41-52]()
 
@@ -4238,18 +4361,18 @@ Sources: [frontend/README.md:12-24](), [QUICK_START.md:41-52]()
 
 The `package.json` file defines several scripts for managing the development lifecycle.
 
-| Script | Description |
-| --- | --- |
-| `dev` | Starts the Next.js development server with hot-reloading. |
-| `build` | Creates an optimized production build of the application. |
-| `start` | Starts the production server (requires a build first). |
-| `lint` | Runs ESLint to check for code quality and style issues. |
-| `test` | Runs the Jest test suite. |
-| `test:watch` | Runs tests in interactive watch mode. |
-| `test:coverage` | Runs tests and generates a code coverage report. |
-| `test:ci` | Runs tests in a CI-friendly mode. |
+| Script          | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| `dev`           | Starts the Next.js development server with hot-reloading. |
+| `build`         | Creates an optimized production build of the application. |
+| `start`         | Starts the production server (requires a build first).    |
+| `lint`          | Runs ESLint to check for code quality and style issues.   |
+| `test`          | Runs the Jest test suite.                                 |
+| `test:watch`    | Runs tests in interactive watch mode.                     |
+| `test:coverage` | Runs tests and generates a code coverage report.          |
+| `test:ci`       | Runs tests in a CI-friendly mode.                         |
 
-Sources: [frontend/package.json:5-12](), [frontend/__tests__/config/package-validation.test.ts:88-95]()
+Sources: [frontend/package.json:5-12](), [frontend/**tests**/config/package-validation.test.ts:88-95]()
 
 ## Testing
 
@@ -4260,6 +4383,7 @@ The frontend includes a comprehensive test suite using Jest and React Testing Li
 - **Configuration Tests**: The `package-validation.test.ts` file validates the `package.json` for correct dependencies, scripts, and versioning.
 
 To run the tests, use the following commands from the `frontend` directory:
+
 - `npm test`: Run all tests.
 - `npm test -- --coverage`: Run tests with a coverage report.
 - `npm test -- --watch`: Run tests in watch mode.
@@ -4281,7 +4405,7 @@ The following files were used as context for generating this wiki page:
 
 - [frontend/app/lib/api.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/app/lib/api.ts)
 - [frontend/app/types/api.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/app/types/api.ts)
-- [frontend/__tests__/lib/api.test.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/lib/api.test.ts)
+- [frontend/**tests**/lib/api.test.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/lib/api.test.ts)
 - [INTEGRATION_SUMMARY.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/INTEGRATION_SUMMARY.md)
 - [ARCHITECTURE.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/ARCHITECTURE.md)
 - [TEST_SUMMARY.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/TEST_SUMMARY.md)
@@ -4310,10 +4434,11 @@ An Axios instance is created with the `baseURL` set to the value of `NEXT_PUBLIC
 ```typescript
 // Source: frontend/app/lib/api.ts:7-11
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
   timeout: 10000, // Example timeout
 });
 ```
+
 Sources: [frontend/app/lib/api.ts:7-11](), [frontend/README.md]()
 
 The following diagram illustrates the configuration flow for the API client.
@@ -4327,6 +4452,7 @@ graph TD
     D --> E;
     E --> F(apiClient Instance);
 ```
+
 This diagram shows how the `apiClient` instance is configured with the correct base URL.
 Sources: [frontend/app/lib/api.ts:7-11](), [frontend/README.md]()
 
@@ -4340,23 +4466,24 @@ Sources: [frontend/app/lib/api.ts](), [TEST_SUMMARY.md]()
 
 The table below maps the client functions to their respective backend API endpoints.
 
-| Function Name | HTTP Method | Endpoint Path | Description |
-| :--- | :--- | :--- | :--- |
-| `healthCheck` | `GET` | `/api/health` | Checks the health of the backend API. |
-| `getAssets` | `GET` | `/api/assets` | Fetches a list of assets, with optional filtering. |
-| `getAssetDetail` | `GET` | `/api/assets/{id}` | Fetches detailed information for a single asset. |
-| `getAssetRelationships` | `GET` | `/api/assets/{id}/relationships` | Fetches relationships for a specific asset. |
-| `getAllRelationships` | `GET` | `/api/relationships` | Fetches all relationships in the graph. |
-| `getMetrics` | `GET` | `/api/metrics` | Fetches network-wide metrics. |
-| `getVisualizationData` | `GET` | `/api/visualization` | Fetches data required for the 3D network graph. |
-| `getAssetClasses` | `GET` | `/api/asset-classes` | Fetches the list of available asset classes. |
-| `getSectors` | `GET` | `/api/sectors` | Fetches the list of available industry sectors. |
+| Function Name           | HTTP Method | Endpoint Path                    | Description                                        |
+| :---------------------- | :---------- | :------------------------------- | :------------------------------------------------- |
+| `healthCheck`           | `GET`       | `/api/health`                    | Checks the health of the backend API.              |
+| `getAssets`             | `GET`       | `/api/assets`                    | Fetches a list of assets, with optional filtering. |
+| `getAssetDetail`        | `GET`       | `/api/assets/{id}`               | Fetches detailed information for a single asset.   |
+| `getAssetRelationships` | `GET`       | `/api/assets/{id}/relationships` | Fetches relationships for a specific asset.        |
+| `getAllRelationships`   | `GET`       | `/api/relationships`             | Fetches all relationships in the graph.            |
+| `getMetrics`            | `GET`       | `/api/metrics`                   | Fetches network-wide metrics.                      |
+| `getVisualizationData`  | `GET`       | `/api/visualization`             | Fetches data required for the 3D network graph.    |
+| `getAssetClasses`       | `GET`       | `/api/asset-classes`             | Fetches the list of available asset classes.       |
+| `getSectors`            | `GET`       | `/api/sectors`                   | Fetches the list of available industry sectors.    |
 
 Sources: [frontend/app/lib/api.ts](), [INTEGRATION_SUMMARY.md](), [TEST_SUMMARY.md]()
 
 ### Function Details
 
 #### `getAssets`
+
 This function retrieves a list of financial assets. It supports optional filtering by `assetClass` and `sector`.
 
 - **Parameters**:
@@ -4392,6 +4519,7 @@ sequenceDiagram
     APIClient-->>Component: return response.data
     deactivate APIClient
 ```
+
 This diagram shows the journey of a request from a React component to the backend and back.
 Sources: [frontend/app/lib/api.ts:25-36](), [ARCHITECTURE.md]()
 
@@ -4459,22 +4587,23 @@ classDiagram
     Node "1" -- "1" Asset : contains
     Edge "1" -- "1" Relationship : represents
 ```
+
 This class diagram outlines the structure of the primary data types used in the API communication.
 Sources: [frontend/app/types/api.ts](), [TEST_SUMMARY.md]()
 
 ### `Asset` Interface
 
-| Property | Type | Description |
-| :--- | :--- | :--- |
-| `id` | `string` | Unique identifier for the asset. |
-| `symbol` | `string` | The ticker symbol or identifier. |
-| `name` | `string` | The full name of the asset. |
-| `asset_class` | `string` | The class of the asset (e.g., 'Equity', 'Bond'). |
-| `sector` | `string` | The industry sector. |
-| `currency` | `string` | The currency the asset is priced in (ISO code). |
-| `market_cap`| `number` | The market capitalization. |
-| `price` | `number` | The current price of the asset. |
-| `additional_fields` | `Record<string, any>` | A key-value map for asset-specific data. |
+| Property            | Type                  | Description                                      |
+| :------------------ | :-------------------- | :----------------------------------------------- |
+| `id`                | `string`              | Unique identifier for the asset.                 |
+| `symbol`            | `string`              | The ticker symbol or identifier.                 |
+| `name`              | `string`              | The full name of the asset.                      |
+| `asset_class`       | `string`              | The class of the asset (e.g., 'Equity', 'Bond'). |
+| `sector`            | `string`              | The industry sector.                             |
+| `currency`          | `string`              | The currency the asset is priced in (ISO code).  |
+| `market_cap`        | `number`              | The market capitalization.                       |
+| `price`             | `number`              | The current price of the asset.                  |
+| `additional_fields` | `Record<string, any>` | A key-value map for asset-specific data.         |
 
 Sources: [frontend/app/types/api.ts:1-11]()
 
@@ -4484,7 +4613,7 @@ Error handling is implemented using `try...catch` blocks within each API functio
 
 The test suite validates this behavior by mocking various error scenarios, including network errors, timeouts, and HTTP status codes like 404 and 500.
 
-Sources: [frontend/app/lib/api.ts](), [frontend/__tests__/lib/api.test.ts]()
+Sources: [frontend/app/lib/api.ts](), [frontend/**tests**/lib/api.test.ts]()
 
 ### Error Handling Flow
 
@@ -4501,12 +4630,14 @@ flowchart TD
     I --> J[Calling component handles error];
     E --> J;
 ```
+
 This flowchart shows the standardized error handling process for all API calls.
-Sources: [frontend/app/lib/api.ts:13-23](), [frontend/__tests__/lib/api.test.ts]()
+Sources: [frontend/app/lib/api.ts:13-23](), [frontend/**tests**/lib/api.test.ts]()
 
 ## Testing
 
 The API client is extensively tested using Jest. The tests cover every exported function and validate multiple scenarios:
+
 - **Configuration**: Ensures the Axios instance is created correctly.
 - **Successful Responses**: Verifies that data is returned in the expected format.
 - **Filtering**: Confirms that query parameters are correctly passed for functions like `getAssets`.
@@ -4515,7 +4646,7 @@ The API client is extensively tested using Jest. The tests cover every exported 
 
 These tests provide a safety net against regressions and ensure the API client remains reliable and consistent with the backend contract.
 
-Sources: [frontend/__tests__/lib/api.test.ts](), [TEST_SUMMARY.md](), [TESTING_GUIDE.md]()
+Sources: [frontend/**tests**/lib/api.test.ts](), [TEST_SUMMARY.md](), [TESTING_GUIDE.md]()
 
 ### Component: NetworkVisualization
 
@@ -4524,7 +4655,7 @@ Sources: [frontend/__tests__/lib/api.test.ts](), [TEST_SUMMARY.md](), [TESTING_G
 The following files were used as context for generating this wiki page:
 
 - [frontend/app/components/NetworkVisualization.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/app/components/NetworkVisualization.tsx)
-- [frontend/__tests__/components/NetworkVisualization.test.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/components/NetworkVisualization.test.tsx)
+- [frontend/**tests**/components/NetworkVisualization.test.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/components/NetworkVisualization.test.tsx)
 - [frontend/app/types/api.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/app/types/api.ts)
 - [frontend/app/page.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/app/page.tsx)
 - [api/main.py](https://github.com/DashFin/financial-asset-relationship-db/blob/main/api/main.py)
@@ -4547,15 +4678,16 @@ The component receives visualization data as a prop and processes it into a form
 
 The component accepts a single prop:
 
-| Prop  | Type                      | Description                               |
-| :---- | :------------------------ | :---------------------------------------- |
-| `data`  | `VisualizationData | null` | An object containing node and edge data for the graph, or `null` if data is loading. |
+| Prop   | Type               | Description |
+| :----- | :----------------- | :---------- | ------------------------------------------------------------------------------------ |
+| `data` | `VisualizationData | null`       | An object containing node and edge data for the graph, or `null` if data is loading. |
 
 Sources: [frontend/app/components/NetworkVisualization.tsx:11]()
 
 ### State Management
 
 The component is stateless and derives its entire view from the `data` prop. It implements conditional rendering based on the state of this prop:
+
 1.  If `data` is `null`, it displays a "Loading visualization..." message.
 2.  If `data` is present but `data.nodes` is an empty array, it displays a "No visualization data available." message.
 3.  If `data` and `data.nodes` are populated, it renders the Plotly graph.
@@ -4576,7 +4708,8 @@ flowchart TD
     F --> G[Configure Plotly Data and Layout];
     G --> H[Render Plotly 3D Graph];
 ```
-*This diagram shows the conditional rendering path based on the `data` prop.*
+
+_This diagram shows the conditional rendering path based on the `data` prop._
 
 Sources: [frontend/app/components/NetworkVisualization.tsx:13-89]()
 
@@ -4612,7 +4745,8 @@ classDiagram
     VisualizationData "1" *-- "0..*" Node
     VisualizationData "1" *-- "0..*" Edge
 ```
-*This diagram shows the structure of the `VisualizationData` object, including its `Node` and `Edge` arrays.*
+
+_This diagram shows the structure of the `VisualizationData` object, including its `Node` and `Edge` arrays._
 
 Sources: [frontend/app/types/api.ts:25-41]()
 
@@ -4636,27 +4770,27 @@ Two `scatter3d` traces are generated: one for nodes and one for edges.
 
 #### Node Trace (`nodeTrace`)
 
-| Property        | Value                                         | Description                               |
-| :-------------- | :-------------------------------------------- | :---------------------------------------- |
-| `x`, `y`, `z`   | Arrays of coordinates from `data.nodes`       | Positions the nodes in 3D space.          |
-| `text`          | Array of labels from `data.nodes`             | Text to display on hover.                 |
-| `mode`          | `'markers'`                                   | Renders nodes as markers (points).        |
-| `hoverinfo`     | `'text'`                                      | Shows only the `text` field on hover.     |
-| `marker.color`  | Array of colors from `data.nodes`             | Sets the color for each node.             |
-| `marker.size`   | Array of sizes from `data.nodes`              | Sets the size for each node.              |
-| `marker.sizemode` | `'diameter'`                                | Interprets `size` as the marker diameter. |
+| Property          | Value                                   | Description                               |
+| :---------------- | :-------------------------------------- | :---------------------------------------- |
+| `x`, `y`, `z`     | Arrays of coordinates from `data.nodes` | Positions the nodes in 3D space.          |
+| `text`            | Array of labels from `data.nodes`       | Text to display on hover.                 |
+| `mode`            | `'markers'`                             | Renders nodes as markers (points).        |
+| `hoverinfo`       | `'text'`                                | Shows only the `text` field on hover.     |
+| `marker.color`    | Array of colors from `data.nodes`       | Sets the color for each node.             |
+| `marker.size`     | Array of sizes from `data.nodes`        | Sets the size for each node.              |
+| `marker.sizemode` | `'diameter'`                            | Interprets `size` as the marker diameter. |
 
 Sources: [frontend/app/components/NetworkVisualization.tsx:21-33]()
 
 #### Edge Trace (`edgeTrace`)
 
-| Property      | Value                                                              | Description                               |
-| :------------ | :----------------------------------------------------------------- | :---------------------------------------- |
+| Property      | Value                                                               | Description                                          |
+| :------------ | :------------------------------------------------------------------ | :--------------------------------------------------- |
 | `x`, `y`, `z` | Arrays of interleaved source/target coordinates separated by `null` | Defines the start and end points for each edge line. |
-| `mode`        | `'lines'`                                                          | Renders edges as lines.                   |
-| `hoverinfo`   | `'none'`                                                           | Disables hover interactions for edges.    |
-| `line.color`  | `'#888'`                                                           | Sets a default gray color for all edges.  |
-| `line.width`  | `1`                                                                | Sets a default width for all edges.       |
+| `mode`        | `'lines'`                                                           | Renders edges as lines.                              |
+| `hoverinfo`   | `'none'`                                                            | Disables hover interactions for edges.               |
+| `line.color`  | `'#888'`                                                            | Sets a default gray color for all edges.             |
+| `line.width`  | `1`                                                                 | Sets a default width for all edges.                  |
 
 Sources: [frontend/app/components/NetworkVisualization.tsx:34-53]()
 
@@ -4664,19 +4798,19 @@ Sources: [frontend/app/components/NetworkVisualization.tsx:34-53]()
 
 The `layout` object configures the overall appearance and behavior of the 3D scene.
 
-| Property              | Value                                     | Description                                       |
-| :-------------------- | :---------------------------------------- | :------------------------------------------------ |
-| `title`               | `'Financial Asset Relationship Network'`  | The title of the graph.                           |
-| `autosize`            | `true`                                    | Allows the plot to fill its container.            |
-| `showlegend`          | `false`                                   | Hides the plot legend.                            |
-| `scene.xaxis.visible` | `false`                                   | Hides the x-axis lines, labels, and grid.         |
-| `scene.yaxis.visible` | `false`                                   | Hides the y-axis lines, labels, and grid.         |
-| `scene.zaxis.visible` | `false`                                   | Hides the z-axis lines, labels, and grid.         |
-| `margin`              | `{ l: 0, r: 0, b: 0, t: 40 }`             | Removes margins around the plot area.             |
-| `paper_bgcolor`       | `'#f0f2f5'` (light) or `'#1a202c'` (dark) | Sets the background color of the plot container.  |
-| `plot_bgcolor`        | `'#f0f2f5'` (light) or `'#1a202c'` (dark) | Sets the background color of the plotting area.   |
+| Property              | Value                                     | Description                                      |
+| :-------------------- | :---------------------------------------- | :----------------------------------------------- |
+| `title`               | `'Financial Asset Relationship Network'`  | The title of the graph.                          |
+| `autosize`            | `true`                                    | Allows the plot to fill its container.           |
+| `showlegend`          | `false`                                   | Hides the plot legend.                           |
+| `scene.xaxis.visible` | `false`                                   | Hides the x-axis lines, labels, and grid.        |
+| `scene.yaxis.visible` | `false`                                   | Hides the y-axis lines, labels, and grid.        |
+| `scene.zaxis.visible` | `false`                                   | Hides the z-axis lines, labels, and grid.        |
+| `margin`              | `{ l: 0, r: 0, b: 0, t: 40 }`             | Removes margins around the plot area.            |
+| `paper_bgcolor`       | `'#f0f2f5'` (light) or `'#1a202c'` (dark) | Sets the background color of the plot container. |
+| `plot_bgcolor`        | `'#f0f2f5'` (light) or `'#1a202c'` (dark) | Sets the background color of the plotting area.  |
 
-*Note: Background colors are conditionally set based on the theme, but the provided file only shows one set of values.*
+_Note: Background colors are conditionally set based on the theme, but the provided file only shows one set of values._
 Sources: [frontend/app/components/NetworkVisualization.tsx:55-73]()
 
 ## Integration
@@ -4694,7 +4828,8 @@ sequenceDiagram
     Page->>Viz: Renders <NetworkVisualization data={vizData} />
     Note over Viz: Component processes data and renders Plotly graph
 ```
-*This diagram shows how the main page fetches data and passes it to the `NetworkVisualization` component.*
+
+_This diagram shows how the main page fetches data and passes it to the `NetworkVisualization` component._
 
 In `page.tsx`, it is rendered inside a `TabsContent` container, making it visible when the "3D Visualization" tab is active. The `vizData` state from the page is passed directly to the component's `data` prop.
 
@@ -4717,7 +4852,7 @@ The component is tested in `frontend/__tests__/components/NetworkVisualization.t
   - Handles scenarios with a single node and no edges.
   - Handles empty data gracefully.
 
-Sources: [frontend/__tests__/components/NetworkVisualization.test.tsx]()
+Sources: [frontend/**tests**/components/NetworkVisualization.test.tsx]()
 
 ## Summary
 
@@ -4731,7 +4866,7 @@ The `NetworkVisualization` component is a specialized, presentation-focused comp
 The following files were used as context for generating this wiki page:
 
 - [frontend/app/components/AssetList.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/app/components/AssetList.tsx)
-- [frontend/__tests__/components/AssetList.test.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/components/AssetList.test.tsx)
+- [frontend/**tests**/components/AssetList.test.tsx](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/__tests__/components/AssetList.test.tsx)
 - [frontend/app/lib/api.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/app/lib/api.ts)
 - [frontend/app/types/api.ts](https://github.com/DashFin/financial-asset-relationship-db/blob/main/frontend/app/types/api.ts)
 - [TESTING_GUIDE.md](https://github.com/DashFin/financial-asset-relationship-db/blob/main/TESTING_GUIDE.md)
@@ -4774,17 +4909,19 @@ flowchart TD
 
     K --> D;
 ```
+
 This diagram shows the reactive loop where changes to URL parameters trigger a data refetch.
 Sources: [frontend/app/components/AssetList.tsx:28-69]()
 
 ### API Interaction
 
 `AssetList` interacts with three main functions from the API client library (`app/lib/api.ts`):
+
 1.  `api.getAssetClasses()`: To populate the "Asset Class" filter dropdown.
 2.  `api.getSectors()`: To populate the "Sector" filter dropdown.
 3.  `api.getAssets()`: To fetch the paginated list of assets based on current filters.
 
-Sources: [frontend/app/components/AssetList.tsx:44-50](), [frontend/__tests__/components/AssetList.test.tsx:43-45]()
+Sources: [frontend/app/components/AssetList.tsx:44-50](), [frontend/**tests**/components/AssetList.test.tsx:43-45]()
 
 The following sequence diagram details the process of fetching assets.
 
@@ -4814,6 +4951,7 @@ sequenceDiagram
     AssetList-->>User: Renders updated asset table
     deactivate AssetList
 ```
+
 This diagram illustrates how a user filter change propagates through the component to the backend API and back to the UI.
 Sources: [frontend/app/components/AssetList.tsx:41-69](), [frontend/app/lib/api.ts:20-33]()
 
@@ -4821,36 +4959,37 @@ Sources: [frontend/app/components/AssetList.tsx:41-69](), [frontend/app/lib/api.
 
 The `getAssets` function accepts several parameters to filter and paginate the results.
 
-| Parameter | Type | Description | Source |
-| :--- | :--- | :--- | :--- |
-| `page` | `number` | The page number to retrieve. | `[frontend/app/lib/api.ts:21]()` |
-| `per_page` | `number` | The number of assets to retrieve per page. | `[frontend/app/lib/api.ts:21]()` |
-| `asset_class` | `string` | Filters assets by their class (e.g., 'EQUITY'). | `[frontend/app/lib/api.ts:21]()` |
-| `sector` | `string` | Filters assets by their sector (e.g., 'Technology'). | `[frontend/app/lib/api.ts:21]()` |
+| Parameter     | Type     | Description                                          | Source                           |
+| :------------ | :------- | :--------------------------------------------------- | :------------------------------- |
+| `page`        | `number` | The page number to retrieve.                         | `[frontend/app/lib/api.ts:21]()` |
+| `per_page`    | `number` | The number of assets to retrieve per page.           | `[frontend/app/lib/api.ts:21]()` |
+| `asset_class` | `string` | Filters assets by their class (e.g., 'EQUITY').      | `[frontend/app/lib/api.ts:21]()` |
+| `sector`      | `string` | Filters assets by their sector (e.g., 'Technology'). | `[frontend/app/lib/api.ts:21]()` |
 
 ## UI Components
 
 ### Filters
 
 The "Filters" section contains two dropdown menus: "Asset Class" and "Sector".
+
 - The options for these dropdowns are fetched from the `getAssetClasses` and `getSectors` API endpoints on component mount.
 - Changing a filter's value triggers the `handleFilterChange` function, which updates the corresponding URL search parameter and resets the page to 1. This change automatically triggers a data refetch via the `useEffect` hook.
 
-Sources: [frontend/app/components/AssetList.tsx:75-111](), [frontend/__tests__/components/AssetList.test.tsx:81-96]()
+Sources: [frontend/app/components/AssetList.tsx:75-111](), [frontend/**tests**/components/AssetList.test.tsx:81-96]()
 
 ### Asset Table
 
 The main content area is a table that displays the fetched assets. If the data is loading or an error occurs, a message is displayed instead.
 
-| Column | Description | Data Type |
-| :--- | :--- | :--- |
-| **Symbol** | The asset's ticker symbol. | `string` |
-| **Name** | The full name of the asset. | `string` |
-| **Asset Class** | The class of the asset (e.g., EQUITY, BOND). | `string` |
-| **Sector** | The industry sector of the asset. | `string` |
-| **Price** | The current price of the asset. | `number` |
-| **Market Cap** | The market capitalization of the asset. | `number` |
-| **Currency** | The currency of the price and market cap. | `string` |
+| Column          | Description                                  | Data Type |
+| :-------------- | :------------------------------------------- | :-------- |
+| **Symbol**      | The asset's ticker symbol.                   | `string`  |
+| **Name**        | The full name of the asset.                  | `string`  |
+| **Asset Class** | The class of the asset (e.g., EQUITY, BOND). | `string`  |
+| **Sector**      | The industry sector of the asset.            | `string`  |
+| **Price**       | The current price of the asset.              | `number`  |
+| **Market Cap**  | The market capitalization of the asset.      | `number`  |
+| **Currency**    | The currency of the price and market cap.    | `string`  |
 
 The data for this table corresponds to the `Asset` type definition.
 Sources: [frontend/app/components/AssetList.tsx:125-163](), [frontend/app/types/api.ts:1-10]()
@@ -4858,24 +4997,27 @@ Sources: [frontend/app/components/AssetList.tsx:125-163](), [frontend/app/types/
 ### Pagination
 
 Pagination controls are rendered below the table.
+
 - They include "Previous" and "Next" buttons.
 - The component calculates whether to disable these buttons based on the current `page` and the `total` number of assets returned from the API.
 - Clicking a button updates the `page` search parameter in the URL, triggering a refetch for the new page.
 
-Sources: [frontend/app/components/AssetList.tsx:165-186](), [frontend/__tests__/components/AssetList.test.tsx:128-143]()
+Sources: [frontend/app/components/AssetList.tsx:165-186](), [frontend/**tests**/components/AssetList.test.tsx:128-143]()
 
 ## Error Handling and Loading States
 
 The component manages its state through `useState` hooks for `loading` and `error`.
+
 - **Loading**: The `loading` state is `true` while an API request is in progress. The UI displays a "Loading results..." message.
 - **Error**: If an API call fails, the `error` state is set with an error message. The UI displays an alert with the error, and the error is logged to the console via `console.error`.
 - **Empty State**: If the API returns no assets, a "No assets found" message is displayed.
 
-Sources: [frontend/app/components/AssetList.tsx:23-24, 60-64, 113-124](), [frontend/__tests__/components/AssetList.test.tsx:116-127]()
+Sources: [frontend/app/components/AssetList.tsx:23-24, 60-64, 113-124](), [frontend/**tests**/components/AssetList.test.tsx:116-127]()
 
 ## Testing
 
 The component is tested comprehensively in `AssetList.test.tsx`. The tests cover:
+
 - Initial component rendering.
 - Data loading and display from a mocked API.
 - Functionality of asset class and sector filters.
@@ -4885,12 +5027,11 @@ The component is tested comprehensively in `AssetList.test.tsx`. The tests cover
 
 The tests use `jest.mock` to mock the `api` client and `next/navigation` hooks, ensuring the component's logic is tested in isolation.
 
-Sources: [frontend/__tests__/components/AssetList.test.tsx](), [TESTING_GUIDE.md:73-93]()
+Sources: [frontend/**tests**/components/AssetList.test.tsx](), [TESTING_GUIDE.md:73-93]()
 
 ## Summary
 
 The `AssetList` component serves as a robust and interactive data browser for financial assets. By leveraging URL parameters for state management, it provides a clean, shareable, and bookmarkable user experience. Its clear separation of concerns—fetching data, managing state, and rendering UI—makes it a maintainable and central part of the application's frontend.
-
 
 ## Deployment and Infrastructure
 
@@ -4919,11 +5060,11 @@ For more information on the system's components and how they interact, refer to 
 
 Before starting, ensure you have the following tools installed on your system.
 
-| Tool | Minimum Version | Source |
-| --- | --- | --- |
-| Python | 3.8+ | `CONTRIBUTING.md` |
-| Node.js | 18+ | `README.md` |
-| Git | N/A | `CONTRIBUTING.md` |
+| Tool             | Minimum Version                  | Source            |
+| ---------------- | -------------------------------- | ----------------- |
+| Python           | 3.8+                             | `CONTRIBUTING.md` |
+| Node.js          | 18+                              | `README.md`       |
+| Git              | N/A                              | `CONTRIBUTING.md` |
 | Virtual Env Tool | `venv`, `virtualenv`, or `conda` | `CONTRIBUTING.md` |
 
 Sources: [CONTRIBUTING.md:16-20](), [README.md:8-9]()
@@ -4942,14 +5083,16 @@ Sources: [CONTRIBUTING.md:25-28]()
 It is crucial to use a virtual environment to isolate project dependencies.
 
 **Create the environment:**
+
 ```bash
 python -m venv .venv
 ```
 
 **Activate the environment:**
--   **Windows (PowerShell):** `.\.venv\Scripts\Activate.ps1`
--   **Windows (Command Prompt):** `.venv\Scripts\activate.bat`
--   **macOS/Linux:** `source .venv/bin/activate`
+
+- **Windows (PowerShell):** `.\.venv\Scripts\Activate.ps1`
+- **Windows (Command Prompt):** `.venv\Scripts\activate.bat`
+- **macOS/Linux:** `source .venv/bin/activate`
 
 Sources: [CONTRIBUTING.md:40-56](), [README.md:17-29]()
 
@@ -4961,7 +5104,9 @@ The project separates production and development dependencies. The `install-dev`
 # Install all dependencies using the Makefile
 make install-dev
 ```
+
 Alternatively, you can install them manually:
+
 ```bash
 # Install production dependencies
 pip install -r requirements.txt
@@ -4969,6 +5114,7 @@ pip install -r requirements.txt
 # Install development dependencies
 pip install -r requirements-dev.txt
 ```
+
 Sources: [CONTRIBUTING.md:58-68](), [SUMMARY.md:32-33]()
 
 ## Development Environment Options
@@ -4983,12 +5129,13 @@ This setup runs the modern web frontend and the REST API backend. It is the reco
 
 The easiest way to start is by using the provided run scripts, which launch both the backend and frontend servers concurrently.
 
--   **Linux/macOS:** `./run-dev.sh`
--   **Windows:** `run-dev.bat`
+- **Linux/macOS:** `./run-dev.sh`
+- **Windows:** `run-dev.bat`
 
 This will start the FastAPI backend on `http://localhost:8000` and the Next.js frontend on `http://localhost:3000`.
 
 The following diagram illustrates the process executed by the `run-dev` scripts.
+
 ```mermaid
 flowchart TD
     A[Start run-dev.sh / run-dev.bat] --> B{Terminal 1};
@@ -5000,6 +5147,7 @@ flowchart TD
     E --> H[Backend running on port 8000];
     G --> I[Frontend running on port 3000];
 ```
+
 Sources: [README.md:35-42](), [INTEGRATION_SUMMARY.md:129-137](), [run-dev.sh](), [run-dev.bat]()
 
 #### Manual Setup
@@ -5008,9 +5156,11 @@ You can also start the servers manually in two separate terminals.
 
 1.  **Start the FastAPI Backend (Terminal 1):**
     Ensure your Python virtual environment is activated.
+
     ```bash
     python -m uvicorn api.main:app --reload --port 8000
     ```
+
     The API and its auto-generated documentation will be available at `http://localhost:8000` and `http://localhost:8000/docs` respectively.
 
 2.  **Start the Next.js Frontend (Terminal 2):**
@@ -5022,6 +5172,7 @@ You can also start the servers manually in two separate terminals.
     The frontend application will be accessible at `http://localhost:3000`.
 
 The local development architecture for this option is shown below.
+
 ```mermaid
 graph TD
     subgraph "Developer Machine"
@@ -5030,6 +5181,7 @@ graph TD
         Frontend -- "HTTP REST API" --> Backend
     end
 ```
+
 Sources: [README.md:44-58](), [frontend/README.md:15-21](), [ARCHITECTURE.md:204-217]()
 
 ### Option 2: Gradio UI (Original)
@@ -5051,10 +5203,13 @@ For a containerized environment that encapsulates all dependencies, you can use 
 
 1.  **Using Docker Compose (Recommended):**
     This command builds the necessary images and starts the services defined in `docker-compose.yml`.
+
     ```bash
     docker-compose up --build
     ```
+
     You can also use the Makefile shortcut:
+
     ```bash
     make docker-compose-up
     ```
@@ -5091,17 +5246,17 @@ Sources: [CONTRIBUTING.md:70-76](), [SUMMARY.md:35-36](), [AUDIT_REPORT.md:195-2
 
 The `Makefile` provides shortcuts for common development tasks.
 
-| Command | Description | Source |
-| --- | --- | --- |
-| `make help` | Show all available commands. | `SUMMARY.md` |
+| Command            | Description                                           | Source            |
+| ------------------ | ----------------------------------------------------- | ----------------- |
+| `make help`        | Show all available commands.                          | `SUMMARY.md`      |
 | `make install-dev` | Install both production and development dependencies. | `CONTRIBUTING.md` |
-| `make check` | Run all checks: format, lint, type-check, and test. | `CONTRIBUTING.md` |
-| `make format` | Format code with `black` and `isort`. | `CONTRIBUTING.md` |
-| `make lint` | Run linters (`flake8` and `pylint`). | `CONTRIBUTING.md` |
-| `make type-check` | Run `mypy` type checker. | `CONTRIBUTING.md` |
-| `make test` | Run `pytest` with coverage. | `CONTRIBUTING.md` |
-| `make test-fast` | Run `pytest` without coverage. | `CONTRIBUTING.md` |
-| `make run` | Run the application (likely `python app.py`). | `SUMMARY.md` |
+| `make check`       | Run all checks: format, lint, type-check, and test.   | `CONTRIBUTING.md` |
+| `make format`      | Format code with `black` and `isort`.                 | `CONTRIBUTING.md` |
+| `make lint`        | Run linters (`flake8` and `pylint`).                  | `CONTRIBUTING.md` |
+| `make type-check`  | Run `mypy` type checker.                              | `CONTRIBUTING.md` |
+| `make test`        | Run `pytest` with coverage.                           | `CONTRIBUTING.md` |
+| `make test-fast`   | Run `pytest` without coverage.                        | `CONTRIBUTING.md` |
+| `make run`         | Run the application (likely `python app.py`).         | `SUMMARY.md`      |
 
 Sources: [SUMMARY.md:47-62](), [CONTRIBUTING.md:95-112]()
 
@@ -5112,6 +5267,7 @@ The project has separate test suites for the backend and frontend.
 #### Backend Testing (Python)
 
 Use `pytest` to run the backend tests.
+
 ```bash
 # Run all tests
 pytest
@@ -5119,12 +5275,14 @@ pytest
 # Run with coverage
 pytest --cov=src
 ```
+
 Makefile shortcuts are also available: `make test` or `make test-fast`.
 Sources: [CONTRIBUTING.md:173-189](), [README.md:188-196]()
 
 #### Frontend Testing (TypeScript)
 
 The frontend tests use Jest.
+
 ```bash
 cd frontend
 
@@ -5134,6 +5292,7 @@ npm test
 # Run tests with coverage
 npm test -- --coverage
 ```
+
 Sources: [README.md:198-206](), [frontend/README.md:25-31]()
 
 ## Summary
@@ -5175,6 +5334,7 @@ This method builds and starts the application service defined in `docker-compose
 # Build and start the application
 docker-compose up --build
 ```
+
 The application will be accessible at `http://localhost:7860`.
 
 Sources: [DOCKER.md:6-11](), [README.md:52-54]()
@@ -5190,6 +5350,7 @@ docker build -t financial-asset-db .
 # 2. Run the container, mapping port 7860
 docker run -p 7860:7860 financial-asset-db
 ```
+
 The application will be accessible at `http://localhost:7860`.
 
 Sources: [DOCKER.md:13-20](), [README.md:56-58]()
@@ -5217,6 +5378,7 @@ graph TD
     style App_Service fill:#d4f0fd
     style Postgres_Service fill:#fcf3cf
 ```
+
 This diagram shows the user accessing the `app` service, which can optionally connect to a `postgres` database service within the same Docker network.
 
 Sources: [DOCKER.md:36-46]()
@@ -5233,11 +5395,11 @@ Sources: [DOCKER.md:24-28, 36-38]()
 
 Application behavior is configured via environment variables set in `docker-compose.yml`.
 
-| Variable | Description | Default Value |
-| :--- | :--- | :--- |
-| `GRADIO_SERVER_NAME` | The host address the Gradio server binds to. `0.0.0.0` makes it accessible externally. | `0.0.0.0` |
-| `GRADIO_SERVER_PORT` | The port the Gradio server listens on inside the container. | `7860` |
-| `DATABASE_URL` | The connection string for the PostgreSQL database. | `postgresql://finuser:changeme@postgres:5432/financial_assets` |
+| Variable             | Description                                                                            | Default Value                                                  |
+| :------------------- | :------------------------------------------------------------------------------------- | :------------------------------------------------------------- |
+| `GRADIO_SERVER_NAME` | The host address the Gradio server binds to. `0.0.0.0` makes it accessible externally. | `0.0.0.0`                                                      |
+| `GRADIO_SERVER_PORT` | The port the Gradio server listens on inside the container.                            | `7860`                                                         |
+| `DATABASE_URL`       | The connection string for the PostgreSQL database.                                     | `postgresql://finuser:changeme@postgres:5432/financial_assets` |
 
 Sources: [DOCKER.md:48-53]()
 
@@ -5247,8 +5409,9 @@ To avoid conflicts, the host port can be changed in `docker-compose.yml`. The fo
 
 ```yaml
 ports:
-  - "8080:7860"  # Use port 8080 on the host
+  - "8080:7860" # Use port 8080 on the host
 ```
+
 Sources: [DOCKER.md:100-103]()
 
 ## Dockerfile and Security
@@ -5265,6 +5428,7 @@ Sources: [SECURITY.md:13-18, 209-229](), [DOCKER.md:115-118]()
 - **Health Checks**: The application includes health checks that Docker can use to verify the container's status.
 
 This diagram shows the flow for checking container health.
+
 ```mermaid
 flowchart TD
     A[Docker Daemon] -- Periodically runs --> B{Health Check Command}
@@ -5293,6 +5457,7 @@ COPY . .
 ENV PATH=/root/.local/bin:$PATH
 CMD ["python", "app.py"]
 ```
+
 Sources: [DOCKER.md:128-141]()
 
 ## Command Reference
@@ -5301,29 +5466,29 @@ The `DOCKER.md` file provides a comprehensive list of commands for managing the 
 
 ### Docker Commands
 
-| Command | Description |
-| :--- | :--- |
-| `docker build -t financial-asset-db .` | Build the Docker image. |
+| Command                                      | Description                      |
+| :------------------------------------------- | :------------------------------- |
+| `docker build -t financial-asset-db .`       | Build the Docker image.          |
 | `docker run -p 7860:7860 financial-asset-db` | Run the container and map ports. |
-| `docker ps` | List running containers. |
-| `docker logs -f <container_name>` | Follow the logs of a container. |
-| `docker stop <container_name>` | Stop a running container. |
-| `docker rm <container_name>` | Remove a stopped container. |
-| `docker rmi <image_name>` | Remove a Docker image. |
+| `docker ps`                                  | List running containers.         |
+| `docker logs -f <container_name>`            | Follow the logs of a container.  |
+| `docker stop <container_name>`               | Stop a running container.        |
+| `docker rm <container_name>`                 | Remove a stopped container.      |
+| `docker rmi <image_name>`                    | Remove a Docker image.           |
 
 Sources: [DOCKER.md:55-86]()
 
 ### Docker Compose Commands
 
-| Command | Description |
-| :--- | :--- |
-| `docker-compose up` | Start services in the foreground. |
-| `docker-compose up -d` | Start services in detached (background) mode. |
-| `docker-compose down` | Stop and remove containers, networks. |
-| `docker-compose down -v` | Stop and remove containers, networks, and volumes. |
-| `docker-compose build` | Rebuild service images. |
-| `docker-compose up --build` | Rebuild images and then start services. |
-| `docker-compose logs -f app` | Follow logs for the `app` service. |
+| Command                      | Description                                        |
+| :--------------------------- | :------------------------------------------------- |
+| `docker-compose up`          | Start services in the foreground.                  |
+| `docker-compose up -d`       | Start services in detached (background) mode.      |
+| `docker-compose down`        | Stop and remove containers, networks.              |
+| `docker-compose down -v`     | Stop and remove containers, networks, and volumes. |
+| `docker-compose build`       | Rebuild service images.                            |
+| `docker-compose up --build`  | Rebuild images and then start services.            |
+| `docker-compose logs -f app` | Follow logs for the `app` service.                 |
 
 Sources: [DOCKER.md:88-113]()
 
@@ -5389,6 +5554,7 @@ graph TD
     style C fill:#f9f,stroke:#333,stroke-width:2px
     style D fill:#ccf,stroke:#333,stroke-width:2px
 ```
+
 This diagram shows that user requests are routed by Vercel's Edge Network. Requests to the root path (`/`) are served by the Next.js frontend, while requests to `/api/...` are directed to the Python Serverless Function running the FastAPI application.
 
 Sources: [ARCHITECTURE.md](), [DEPLOYMENT.md]()
@@ -5430,16 +5596,17 @@ The configuration is split into two main sections: `builds` and `routes`.
   ]
 }
 ```
+
 Sources: [vercel.json](), [VERCEL_DEPLOYMENT_CHECKLIST.md:126-135]()
 
 #### Builds Configuration
 
 The `builds` array defines how Vercel should compile the project source code.
 
-| `src` | `use` | `config` | Description |
-| :--- | :--- | :--- | :--- |
-| `api/main.py` | `@vercel/python` | `{"maxLambdaSize": "50mb"}` | Specifies that the Python API entrypoint is `api/main.py` and should be built using the Vercel Python runtime. The `maxLambdaSize` is increased to 50MB to accommodate dependencies. |
-| `frontend/package.json` | `@vercel/next` | N/A | Specifies that the `frontend` directory contains a Next.js application, identified by its `package.json` file. It will be built using the Vercel Next.js runtime. |
+| `src`                   | `use`            | `config`                    | Description                                                                                                                                                                          |
+| :---------------------- | :--------------- | :-------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api/main.py`           | `@vercel/python` | `{"maxLambdaSize": "50mb"}` | Specifies that the Python API entrypoint is `api/main.py` and should be built using the Vercel Python runtime. The `maxLambdaSize` is increased to 50MB to accommodate dependencies. |
+| `frontend/package.json` | `@vercel/next`   | N/A                         | Specifies that the `frontend` directory contains a Next.js application, identified by its `package.json` file. It will be built using the Vercel Next.js runtime.                    |
 
 Sources: [vercel.json:2-15](), [VERCEL_DEPLOYMENT_CHECKLIST.md:126-135](), [tests/unit/test_dev_scripts.py:25-35]()
 
@@ -5456,10 +5623,10 @@ flowchart TD
     B -- "/..." --> D[Route to frontend];
 ```
 
-| `src` | `dest` | Description |
-| :--- | :--- | :--- |
+| `src`       | `dest`        | Description                                                                                                                 |
+| :---------- | :------------ | :-------------------------------------------------------------------------------------------------------------------------- |
 | `/api/(.*)` | `api/main.py` | Any request path starting with `/api/` is rewritten and handled by the Python serverless function defined in `api/main.py`. |
-| `/(.*)` | `frontend/$1` | All other requests are routed to the Next.js application in the `frontend` directory. |
+| `/(.*)`     | `frontend/$1` | All other requests are routed to the Next.js application in the `frontend` directory.                                       |
 
 Sources: [vercel.json:16-26](), [tests/unit/test_dev_scripts.py:37-45]()
 
@@ -5489,7 +5656,9 @@ sequenceDiagram
     Vercel-->>Vercel: Deploys to production URL
     deactivate Vercel
 ```
+
 **Steps:**
+
 1.  **Push to GitHub**: Ensure all code is committed and pushed to the `main` branch.
 2.  **Connect to Vercel**: In the Vercel dashboard, create a "New Project" and import the GitHub repository.
 3.  **Configure Project**: Vercel will auto-detect the Next.js framework. The root directory should be left as the default.
@@ -5511,18 +5680,18 @@ This method is useful for manual deployments from your local machine.
     vercel login
     ```
 3.  **Deploy**: From the project root, run the deployment command and follow the prompts.
-    ```bash
+    `bash
     # Deploy to production
     vercel --prod
-    ```
-Sources: [VERCEL_DEPLOYMENT_CHECKLIST.md:80-108](), [DEPLOYMENT.md:63-70]()
+    `
+    Sources: [VERCEL_DEPLOYMENT_CHECKLIST.md:80-108](), [DEPLOYMENT.md:63-70]()
 
 ## Environment Variables
 
 The frontend requires an environment variable to know the URL of the backend API.
 
-| Variable | Description | Example Value (Production) |
-| :--- | :--- | :--- |
+| Variable              | Description                                                                                                | Example Value (Production)        |
+| :-------------------- | :--------------------------------------------------------------------------------------------------------- | :-------------------------------- |
 | `NEXT_PUBLIC_API_URL` | The absolute URL of the deployed backend API. The `NEXT_PUBLIC_` prefix makes it available in the browser. | `https://your-project.vercel.app` |
 
 This variable must be set in the Vercel project settings under "Environment Variables". After the first deployment, you must update this variable with the actual Vercel project URL and redeploy if necessary.
@@ -5534,6 +5703,7 @@ Sources: [VERCEL_DEPLOYMENT_CHECKLIST.md:63-78, 100-103, 149-155](), [DEPLOYMENT
 After each deployment, it is crucial to verify that the application is functioning correctly. A checklist is provided for this purpose.
 
 ### Verification Checklist
+
 - [ ] Open the deployed URL and check that the frontend loads without errors.
 - [ ] Verify the API health by visiting `https://your-project.vercel.app/api/health`.
 - [ ] Test the interactive API documentation at `https://your-project.vercel.app/docs`.
@@ -5544,16 +5714,17 @@ Sources: [VERCEL_DEPLOYMENT_CHECKLIST.md:110-124]()
 
 ### Common Issues and Solutions
 
-| Issue | Solution |
-| :--- | :--- |
-| **Build Failed** | Check build logs in the Vercel dashboard. Verify all dependencies are listed in `requirements.txt` and `frontend/package.json`. Run the build locally (`cd frontend && npm run build`) to debug. |
-| **API Not Found (404)** | Ensure `vercel.json` is in the project root and correctly configured. Verify that `api/main.py` exists and is the correct entry point. |
-| **CORS Errors** | The FastAPI backend must be configured to allow origins from your Vercel domain. Update the `allow_origins` list in `api/main.py`. |
-| **Lambda Size Exceeded** | The Python serverless function has a size limit. This is pre-configured to `50mb` in `vercel.json`. If this error occurs, remove unused dependencies or consider lighter alternatives. |
+| Issue                    | Solution                                                                                                                                                                                         |
+| :----------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Build Failed**         | Check build logs in the Vercel dashboard. Verify all dependencies are listed in `requirements.txt` and `frontend/package.json`. Run the build locally (`cd frontend && npm run build`) to debug. |
+| **API Not Found (404)**  | Ensure `vercel.json` is in the project root and correctly configured. Verify that `api/main.py` exists and is the correct entry point.                                                           |
+| **CORS Errors**          | The FastAPI backend must be configured to allow origins from your Vercel domain. Update the `allow_origins` list in `api/main.py`.                                                               |
+| **Lambda Size Exceeded** | The Python serverless function has a size limit. This is pre-configured to `50mb` in `vercel.json`. If this error occurs, remove unused dependencies or consider lighter alternatives.           |
 
 Sources: [VERCEL_DEPLOYMENT_CHECKLIST.md:137-183]()
 
 A code snippet for configuring CORS in `api/main.py`:
+
 ```python
 # In api/main.py
 app.add_middleware(
@@ -5564,6 +5735,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 ```
+
 Sources: [VERCEL_DEPLOYMENT_CHECKLIST.md:160-168]()
 
 ### Configuration
@@ -5630,16 +5802,17 @@ graph TD
         G
     end
 ```
+
 Sources: [pyproject.toml](), [SUMMARY.md:83-90]()
 
-| Tool | Purpose | Key Configurations |
-| --- | --- | --- |
-| `pytest` | Test runner | Verbose output, test markers (`unit`, `integration`, `slow`). |
-| `coverage` | Code coverage | Generates HTML and XML reports, sets a failure threshold of 80%. |
-| `black` | Code formatter | Line length set to 120, targets Python 3.8+. |
-| `isort` | Import sorter | Uses a `black`-compatible profile. |
-| `mypy` | Static type checker | Checks untyped definitions, warns on return issues. |
-| `pylint` | Linter | Fails on a score below 8.0, ignores docstring warnings. |
+| Tool       | Purpose             | Key Configurations                                               |
+| ---------- | ------------------- | ---------------------------------------------------------------- |
+| `pytest`   | Test runner         | Verbose output, test markers (`unit`, `integration`, `slow`).    |
+| `coverage` | Code coverage       | Generates HTML and XML reports, sets a failure threshold of 80%. |
+| `black`    | Code formatter      | Line length set to 120, targets Python 3.8+.                     |
+| `isort`    | Import sorter       | Uses a `black`-compatible profile.                               |
+| `mypy`     | Static type checker | Checks untyped definitions, warns on return issues.              |
+| `pylint`   | Linter              | Fails on a score below 8.0, ignores docstring warnings.          |
 
 Sources: [pyproject.toml](), [SUMMARY.md:83-90](), [AUDIT_REPORT.md:121-127]()
 
@@ -5647,11 +5820,11 @@ Sources: [pyproject.toml](), [SUMMARY.md:83-90](), [AUDIT_REPORT.md:121-127]()
 
 While most tools are configured in `pyproject.toml`, `flake8` uses a dedicated `.flake8` file.
 
-| Option | Value | Description |
-| --- | --- | --- |
-| `max-line-length` | 120 | Sets the maximum line length to 120 characters. |
-| `max-complexity` | 15 | Sets the maximum cyclomatic complexity for functions. |
-| `ignore` | E203, E501, W503 | Ignores specific error codes that conflict with `black`. |
+| Option            | Value            | Description                                              |
+| ----------------- | ---------------- | -------------------------------------------------------- |
+| `max-line-length` | 120              | Sets the maximum line length to 120 characters.          |
+| `max-complexity`  | 15               | Sets the maximum cyclomatic complexity for functions.    |
+| `ignore`          | E203, E501, W503 | Ignores specific error codes that conflict with `black`. |
 
 Sources: [.flake8](), [SUMMARY.md:84](), [AUDIT_REPORT.md:129-134]()
 
@@ -5674,17 +5847,18 @@ flowchart TD
     TypeCheck -- Fails --> Stop_Type(Stop & Report Error)
     Test -- Fails --> Stop_Test(Stop & Report Error)
 ```
+
 Sources: [Makefile:54-55](), [SUMMARY.md:65-79]()
 
-| Command | Description |
-| --- | --- |
-| `install-dev` | Installs both production and development dependencies. |
-| `pre-commit` | Installs pre-commit hooks. |
-| `format` | Formats code using `black` and `isort`. |
-| `lint` | Runs linters (`flake8` and `pylint`). |
-| `type-check` | Runs `mypy` for static type analysis. |
-| `test` | Runs `pytest` with code coverage. |
-| `check` | Runs all checks: format check, lint, type-check, and test. |
+| Command       | Description                                                |
+| ------------- | ---------------------------------------------------------- |
+| `install-dev` | Installs both production and development dependencies.     |
+| `pre-commit`  | Installs pre-commit hooks.                                 |
+| `format`      | Formats code using `black` and `isort`.                    |
+| `lint`        | Runs linters (`flake8` and `pylint`).                      |
+| `type-check`  | Runs `mypy` for static type analysis.                      |
+| `test`        | Runs `pytest` with code coverage.                          |
+| `check`       | Runs all checks: format check, lint, type-check, and test. |
 
 Sources: [Makefile](), [CONTRIBUTING.md:73-90]()
 
@@ -5693,6 +5867,7 @@ Sources: [Makefile](), [CONTRIBUTING.md:73-90]()
 The `.pre-commit-config.yaml` file configures hooks that run automatically before each commit to ensure code quality.
 
 The sequence diagram below shows the pre-commit process.
+
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
@@ -5718,6 +5893,7 @@ sequenceDiagram
     end
     deactivate Hooks
 ```
+
 Sources: [.pre-commit-config.yaml](), [AUDIT_REPORT.md:154-164]()
 
 ## Backend API Configuration (`api/main.py`)
@@ -5728,12 +5904,12 @@ The FastAPI server configuration is defined directly within `api/main.py`.
 
 The API uses `CORSMiddleware` to control cross-origin requests from the frontend.
 
-| Configuration | Description |
-| --- | --- |
-| `allow_origins` | A list of allowed origins, including localhost for development and Vercel deployment URLs. |
-| `allow_credentials` | `True`, allows cookies to be included in cross-origin requests. |
-| `allow_methods` | `["*"]`, allows all standard HTTP methods. |
-| `allow_headers` | `["*"]`, allows all request headers. |
+| Configuration       | Description                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| `allow_origins`     | A list of allowed origins, including localhost for development and Vercel deployment URLs. |
+| `allow_credentials` | `True`, allows cookies to be included in cross-origin requests.                            |
+| `allow_methods`     | `["*"]`, allows all standard HTTP methods.                                                 |
+| `allow_headers`     | `["*"]`, allows all request headers.                                                       |
 
 The allowed origins are dynamically generated based on the `VERCEL_URL` environment variable for production/preview deployments on Vercel, with localhost ports for local development.
 
@@ -5746,6 +5922,7 @@ The FastAPI application is launched using Uvicorn. The recommended command for d
 ```bash
 python -m uvicorn api.main:app --reload --port 8000
 ```
+
 Sources: [README.md:52](), [QUICK_START.md:43]()
 
 ## Frontend Configuration
@@ -5756,16 +5933,16 @@ The Next.js frontend configuration is split between `package.json` for scripts a
 
 The `scripts` section in `package.json` defines commands for building, running, and testing the frontend application.
 
-| Script | Command | Description |
-| --- | --- | --- |
-| `dev` | `next dev` | Starts the Next.js development server. |
-| `build` | `next build` | Creates an optimized production build. |
-| `start` | `next start` | Starts a production server. |
-| `lint` | `next lint` | Runs the Next.js linter (ESLint). |
-| `test` | `jest --silent` | Runs Jest tests. |
+| Script          | Command                    | Description                                      |
+| --------------- | -------------------------- | ------------------------------------------------ |
+| `dev`           | `next dev`                 | Starts the Next.js development server.           |
+| `build`         | `next build`               | Creates an optimized production build.           |
+| `start`         | `next start`               | Starts a production server.                      |
+| `lint`          | `next lint`                | Runs the Next.js linter (ESLint).                |
+| `test`          | `jest --silent`            | Runs Jest tests.                                 |
 | `test:coverage` | `jest --coverage --silent` | Runs Jest tests and generates a coverage report. |
 
-Sources: [frontend/package.json](), [frontend/__tests__/config/package-validation.test.ts:90-128]()
+Sources: [frontend/package.json](), [frontend/**tests**/config/package-validation.test.ts:90-128]()
 
 ### Next.js Build (`frontend/next.config.js`)
 
@@ -5779,6 +5956,7 @@ const nextConfig = {
 
 module.exports = nextConfig;
 ```
+
 This setting helps identify potential problems in the application by running effects and checks twice in development mode.
 
 Sources: [frontend/next.config.js:1-6]()
@@ -5787,8 +5965,8 @@ Sources: [frontend/next.config.js:1-6]()
 
 The frontend relies on an environment variable to locate the backend API.
 
-| Variable | Description | Example |
-| --- | --- | --- |
+| Variable              | Description                           | Example                 |
+| --------------------- | ------------------------------------- | ----------------------- |
 | `NEXT_PUBLIC_API_URL` | The base URL for the FastAPI backend. | `http://localhost:8000` |
 
 This is configured in a `.env.local` file in the `frontend` directory, based on the `.env.example` template in the project root.
@@ -5809,10 +5987,10 @@ graph TD
         B -- else --> D[Next.js Frontend]
     end
 ```
+
 This configuration ensures that API calls are correctly forwarded to the serverless Python function, while all other paths are handled by the Next.js application.
 
 Sources: [INTEGRATION_SUMMARY.md:104-108](), [TESTING_GUIDE.md:65-68]()
-
 
 ## Extensibility and Customization
 
@@ -5845,6 +6023,7 @@ Sources: [README.md](), [ARCHITECTURE.md]()
 The overall process for adding a new asset type involves modifications to the data, logic, and potentially the presentation layers.
 
 This flowchart shows the high-level workflow for integrating a new asset type.
+
 ```mermaid
 flowchart TD
     A[Step 1: Extend Data Model<br/>Create new dataclass] --> B[Step 2: Update AssetClass Enum<br/>Add new type to enum]
@@ -5853,6 +6032,7 @@ flowchart TD
     D --> E[Step 5: Update Frontend<br/>(If needed) Modify types and components]
     E --> F[Step 6: Add Tests<br/>Unit and integration tests]
 ```
+
 Sources: [README.md:112-122](), [CONTRIBUTING.md:195-203]()
 
 ## Step 1: Extend the Data Model
@@ -5866,6 +6046,7 @@ Sources: [AI_RULES.md:14](), [CONTRIBUTING.md:201]()
 Create a new Python file or add to the existing `financial_models.py` a new dataclass that inherits from `Asset`. This new class should include fields specific to the new asset type. The project standard is to use Python's `dataclasses` module for all structured data objects.
 
 For example, to add a `Derivative` asset type:
+
 ```python
 from src.models.financial_models import Asset, AssetClass
 
@@ -5875,11 +6056,13 @@ class Derivative(Asset):
     expiration_date: str
     strike_price: Optional[float] = None
 ```
+
 Sources: [README.md:112-118](), [AI_RULES.md:37-38]()
 
 The base `Asset` class provides a set of common fields that all asset types must have.
 
 This class diagram illustrates how a new `Derivative` class inherits from the base `Asset` class, alongside other existing asset types.
+
 ```mermaid
 classDiagram
     class Asset {
@@ -5910,6 +6093,7 @@ classDiagram
     Asset <|-- Bond
     Asset <|-- Derivative
 ```
+
 Sources: [README.md:112-118](), [src/models/financial_models.py]()
 
 ## Step 2: Update the `AssetClass` Enum
@@ -5928,6 +6112,7 @@ class AssetClass(Enum):
     REGULATORY_EVENT = "Regulatory Event"
     DERIVATIVE = "Derivative" # Add the new type here
 ```
+
 Sources: [AI_RULES.md:39-40](), [src/models/financial_models.py]()
 
 ## Step 3: Add Sample Data (Optional)
@@ -5945,6 +6130,7 @@ The core of the system is the `AssetRelationshipGraph` in `src/logic/asset_graph
 This method iterates through pairs of assets and appends relationship tuples `(type, strength, is_bidirectional)` based on custom logic.
 
 The following flowchart shows the logic inside the `_find_relationships` method.
+
 ```mermaid
 flowchart TD
     start[Start _find_relationships] --> loop{For each pair of assets (asset1, asset2)}
@@ -5958,15 +6144,18 @@ flowchart TD
     other_rules --> loop
     loop --> finish[End]
 ```
+
 Sources: [README.md:120-122](), [ARCHITECTURE.md:46-53]()
 
 Add a new conditional block to implement the logic for your new asset type. For example, to link a `Derivative` to its underlying `Equity`:
+
 ```python
 # Add to _find_relationships() in AssetRelationshipGraph
 if isinstance(asset1, Derivative) and isinstance(asset2, Equity):
     if asset1.underlying_asset == asset2.symbol:
         relationships.append(("derivative_underlying", 0.95, False))
 ```
+
 Sources: [README.md:120-122]()
 
 ## Step 5: Update the Frontend (If Applicable)
@@ -5974,9 +6163,10 @@ Sources: [README.md:120-122]()
 If the new asset type has unique fields that need to be displayed in the user interface, you may need to update the frontend code. The project has a Next.js frontend that communicates with a FastAPI backend.
 
 Key files to update include:
--   **`frontend/app/types/api.ts`**: Add the new asset type and its specific fields to the TypeScript interfaces to ensure type safety.
--   **`frontend/app/components/AssetList.tsx`**: Modify the component to display the new fields in the asset explorer table.
--   **`api/main.py`**: Ensure the FastAPI endpoint serializes the new asset's fields correctly.
+
+- **`frontend/app/types/api.ts`**: Add the new asset type and its specific fields to the TypeScript interfaces to ensure type safety.
+- **`frontend/app/components/AssetList.tsx`**: Modify the component to display the new fields in the asset explorer table.
+- **`api/main.py`**: Ensure the FastAPI endpoint serializes the new asset's fields correctly.
 
 Sources: [INTEGRATION_SUMMARY.md:41-58](), [frontend/README.md:41-51]()
 
@@ -5984,8 +6174,8 @@ Sources: [INTEGRATION_SUMMARY.md:41-58](), [frontend/README.md:41-51]()
 
 Finally, it is crucial to add tests for the new functionality. The project uses `pytest` for backend testing.
 
--   **Unit Tests**: Add tests to `tests/unit/test_models.py` to validate the new dataclass, including any custom validation in `__post_init__`.
--   **Integration Tests**: Add tests to `tests/unit/test_graph.py` to verify that the new relationship rules are correctly identified and that metrics are calculated properly with the new asset type included.
+- **Unit Tests**: Add tests to `tests/unit/test_models.py` to validate the new dataclass, including any custom validation in `__post_init__`.
+- **Integration Tests**: Add tests to `tests/unit/test_graph.py` to verify that the new relationship rules are correctly identified and that metrics are calculated properly with the new asset type included.
 
 Follow the guidelines in `CONTRIBUTING.md` for writing and running tests. New features must be accompanied by tests.
 
@@ -6060,6 +6250,7 @@ classDiagram
     Asset <|-- Commodity
     Asset <|-- Currency
 ```
+
 This class diagram illustrates the inheritance hierarchy for financial asset models.
 
 Sources: [AUDIT_REPORT.md:21-25](), [AI_RULES.md:31-34]()
@@ -6084,6 +6275,7 @@ sequenceDiagram
     deactivate Graph
     App-->>App: Relationships built
 ```
+
 This diagram shows the method calls involved in the automatic relationship discovery process.
 
 Sources: [README.md:85](), [src/logic/asset_graph.py]()
@@ -6109,7 +6301,8 @@ class Derivative(Asset):
     expiration_date: str
     strike_price: Optional[float] = None
 ```
-*Source: [README.md:88-96]()*
+
+_Source: [README.md:88-96]()_
 
 Sources: [README.md:88-96](), [AI_RULES.md:31-34]()
 
@@ -6118,6 +6311,7 @@ Sources: [README.md:88-96](), [AI_RULES.md:31-34]()
 The logic for all relationship rules is centralized in the `_find_relationships()` method within `src/logic/asset_graph.py`. This method contains a nested loop that compares every asset with every other asset.
 
 The general flow of this method is as follows:
+
 1.  Iterate through each asset (`asset1`).
 2.  Iterate through each subsequent asset (`asset2`) to form a pair.
 3.  Apply a series of `if` statements to check the types and attributes of `asset1` and `asset2`.
@@ -6144,6 +6338,7 @@ flowchart TD
     B -- All pairs checked --> K[Add all found relationships to graph];
     K --> L[End];
 ```
+
 This diagram shows the logical flow for checking relationship rules between asset pairs.
 
 Sources: [src/logic/asset_graph.py](), [README.md:85]()
@@ -6160,7 +6355,7 @@ When a relationship is found, you must create a tuple with the following structu
 | `strength`      | `float` | A normalized value from 0.0 to 1.0 indicating the relationship's strength.  |
 | `bidirectional` | `bool`  | `True` if the relationship is symmetric (A->B and B->A), `False` otherwise. |
 
-*Source: [src/logic/asset_graph.py]()*
+_Source: [src/logic/asset_graph.py]()_
 
 Here is an example of adding a rule to link a `Derivative` to its underlying `Equity`.
 
@@ -6170,7 +6365,8 @@ if isinstance(asset1, Derivative) and isinstance(asset2, Equity):
     if asset1.underlying_asset == asset2.symbol:
         relationships.append(("derivative_underlying", 0.95, False))
 ```
-*Source: [README.md:99-102]()*
+
+_Source: [README.md:99-102]()_
 
 This code checks if one asset is a `Derivative` and the other is an `Equity`. If the derivative's underlying asset symbol matches the equity's symbol, it creates a directional relationship with a strength of 0.95.
 
@@ -6186,7 +6382,7 @@ The codebase has been identified as having hardcoded "magic numbers" for relatio
 | `corporate_bond_to_equity` | `0.9`              | `CORPORATE_BOND_STRENGTH`    |
 | `currency_exposure`        | `0.8`              | `CURRENCY_EXPOSURE_STRENGTH` |
 
-*Source: [IMPROVEMENTS.md:23-39]()*
+_Source: [IMPROVEMENTS.md:23-39]()_
 
 ### Testing Your New Rule
 
@@ -6195,17 +6391,16 @@ All new features and bug fixes must be accompanied by tests. When you add a new 
 1.  **Test Structure**: Tests for the graph logic are located in `tests/unit/test_asset_graph.py`.
 2.  **Fixtures**: Use shared fixtures from `tests/conftest.py` to create sample assets for your test cases.
 3.  **Test Case**: Write a test function that:
-    *   Creates an `AssetRelationshipGraph`.
-    *   Adds the specific assets needed to trigger your new rule.
-    *   Calls `build_relationships()`.
-    *   Asserts that the new relationship was created correctly with the expected type and strength.
+    - Creates an `AssetRelationshipGraph`.
+    - Adds the specific assets needed to trigger your new rule.
+    - Calls `build_relationships()`.
+    - Asserts that the new relationship was created correctly with the expected type and strength.
 
-*Sources: [CONTRIBUTING.md:129-161](), [AUDIT_REPORT.md:105-118]()*
+_Sources: [CONTRIBUTING.md:129-161](), [AUDIT_REPORT.md:105-118]()_
 
 ## Summary
 
 Creating a custom relationship rule is a straightforward process that extends the core functionality of the application. The key steps are to define the necessary asset models, add conditional logic to the `_find_relationships` method in `AssetRelationshipGraph`, and provide comprehensive tests to ensure the rule functions as expected. By centralizing rule strengths and following the established testing patterns, you can contribute new, maintainable, and robust features to the relationship discovery engine.
-
 
 ## Development and Testing
 
@@ -6234,13 +6429,14 @@ The project employs a comprehensive testing strategy that covers both the Python
 
 The testing infrastructure was a significant addition to the project, which initially had no tests. The current suite includes over 140 test cases across backend and frontend, validating everything from API endpoints and component rendering to Markdown file structure and dependency consistency.
 
-*Sources: [TESTING_GUIDE.md](), [AUDIT_REPORT.md:21-26](), [CONTRIBUTING.md:113-145]()*
+_Sources: [TESTING_GUIDE.md](), [AUDIT_REPORT.md:21-26](), [CONTRIBUTING.md:113-145]()_
 
 ## Test Architecture
 
 The testing architecture is segregated by application layer (backend, frontend) and test type (unit, integration). This separation ensures clarity and maintainability.
 
 This diagram illustrates the high-level organization of the test suites.
+
 ```mermaid
 graph TD
     subgraph Testing
@@ -6268,27 +6464,28 @@ graph TD
         D1 --> D4[Requirements Validation: `test_requirements.py`];
     end
 ```
-*Sources: [AUDIT_REPORT.md:104-112](), [CONTRIBUTING.md:114-120](), [TESTING_GUIDE.md:18, 59]()*
+
+_Sources: [AUDIT_REPORT.md:104-112](), [CONTRIBUTING.md:114-120](), [TESTING_GUIDE.md:18, 59]()_
 
 ### Directory Structure
 
 The project organizes test files into dedicated directories:
 
-| Path | Description |
-| --- | --- |
-| `tests/` | Root directory for all backend Python tests. |
-| `tests/unit/` | Contains unit tests for isolated backend components like API endpoints and data models. |
-| `tests/integration/` | Contains integration tests for backend components, such as documentation and workflow validation. |
-| `tests/conftest.py` | Provides shared `pytest` fixtures for backend tests. |
-| `frontend/__tests__/` | Root directory for all frontend TypeScript/React tests. |
+| Path                  | Description                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------- |
+| `tests/`              | Root directory for all backend Python tests.                                                      |
+| `tests/unit/`         | Contains unit tests for isolated backend components like API endpoints and data models.           |
+| `tests/integration/`  | Contains integration tests for backend components, such as documentation and workflow validation. |
+| `tests/conftest.py`   | Provides shared `pytest` fixtures for backend tests.                                              |
+| `frontend/__tests__/` | Root directory for all frontend TypeScript/React tests.                                           |
 
-*Sources: [AUDIT_REPORT.md:104-112](), [CONTRIBUTING.md:114-120]()*
+_Sources: [AUDIT_REPORT.md:104-112](), [CONTRIBUTING.md:114-120]()_
 
 ## Backend Testing (Python)
 
 Backend testing is performed using `pytest` and focuses on the FastAPI application, data models, and core logic. The suite covers API endpoints, CORS configuration, Pydantic model validation, and error handling.
 
-*Sources: [TESTING_GUIDE.md:18-58](), [TEST_SUMMARY.md:10-56]()*
+_Sources: [TESTING_GUIDE.md:18-58](), [TEST_SUMMARY.md:10-56]()_
 
 ### Key Test Areas
 
@@ -6299,6 +6496,7 @@ Backend testing is performed using `pytest` and focuses on the FastAPI applicati
 - **Error Handling**: The system is tested against invalid requests, server errors, and 404 not-found scenarios.
 
 This class diagram shows some of the key test classes for the backend.
+
 ```mermaid
 classDiagram
     direction LR
@@ -6321,18 +6519,20 @@ classDiagram
         +test_thread_safe_double_check_locking()
     }
 ```
-*Sources: [TESTING_GUIDE.md:37-54](), [TEST_SUMMARY.md:16-56]()*
+
+_Sources: [TESTING_GUIDE.md:37-54](), [TEST_SUMMARY.md:16-56]()_
 
 ### Test Fixtures
+
 Shared test data and setup are managed using fixtures in `tests/conftest.py`. This includes sample assets (`sample_equity`, `sample_bond`) and graph instances (`empty_graph`, `populated_graph`), promoting test isolation and reusability.
 
-*Sources: [AUDIT_REPORT.md:114-122]()*
+_Sources: [AUDIT_REPORT.md:114-122]()_
 
 ## Frontend Testing (TypeScript)
 
 Frontend testing uses `Jest` and `@testing-library/react` to validate React components, the API client, and user interactions. Tests are located in the `frontend/__tests__` directory.
 
-*Sources: [TESTING_GUIDE.md:59-130](), [README.md:191-199]()*
+_Sources: [TESTING_GUIDE.md:59-130](), [README.md:191-199]()_
 
 ### Key Test Areas
 
@@ -6342,6 +6542,7 @@ Frontend testing uses `Jest` and `@testing-library/react` to validate React comp
 - **Page-Level Integration**: The main application page is tested to ensure correct component integration, tab switching, and data loading flows.
 
 This diagram shows the structure of the frontend test suites.
+
 ```mermaid
 graph TD
     subgraph Frontend_Tests
@@ -6357,16 +6558,19 @@ graph TD
         Comp --> NV[NetworkVisualization.test.tsx];
     end
 ```
-*Sources: [TESTING_GUIDE.md:61-130](), [COMPREHENSIVE_TEST_SUMMARY.md:20-44]()*
+
+_Sources: [TESTING_GUIDE.md:61-130](), [COMPREHENSIVE_TEST_SUMMARY.md:20-44]()_
 
 ## Documentation and Configuration Testing
 
 A unique aspect of this project's testing strategy is the validation of non-code artifacts like Markdown documentation and configuration files. These tests run within the `pytest` framework and ensure that project metadata and documentation remain accurate and well-formatted.
 
-*Sources: [TEST_DOCUMENTATION_SUMMARY.md](), [tests/unit/test_documentation_validation.py]()*
+_Sources: [TEST_DOCUMENTATION_SUMMARY.md](), [tests/unit/test_documentation_validation.py]()_
 
 ### Documentation Validation
+
 Tests in `tests/unit/test_documentation_validation.py` and `tests/integration/test_workflow_documentation.py` validate `.md` files for:
+
 - **Structure**: Presence of required titles and sections (e.g., `## Overview`).
 - **Formatting**: Correct Markdown syntax, no trailing whitespace, and proper code block closure.
 - **Content Accuracy**: Mentions of key files and technologies (e.g., `pytest`, `pr-agent.yml`).
@@ -6374,6 +6578,7 @@ Tests in `tests/unit/test_documentation_validation.py` and `tests/integration/te
 - **Security**: Checks for hardcoded secrets like GitHub tokens.
 
 The following class diagram outlines the test classes responsible for documentation validation.
+
 ```mermaid
 classDiagram
     class TestDependencyMatrix {
@@ -6402,38 +6607,42 @@ classDiagram
     TestDocumentationRealisticContent --|> DocumentationValidation
     TestSecurityAndBestPractices --|> DocumentationValidation
 ```
-*Sources: [TEST_DOCUMENTATION_SUMMARY.md:21-65](), [tests/unit/test_documentation_validation.py](), [tests/integration/test_documentation_validation.py:228-244]()*
+
+_Sources: [TEST_DOCUMENTATION_SUMMARY.md:21-65](), [tests/unit/test_documentation_validation.py](), [tests/integration/test_documentation_validation.py:228-244]()_
 
 ### Configuration and Dependency Testing
+
 Tests like `tests/unit/test_config_validation.py` and `tests/integration/test_requirements.py` validate:
+
 - **JSON/YAML Syntax**: Ensures configuration files like `vercel.json` and `.github/workflows/pr-agent.yml` are well-formed.
 - **Dependency Integrity**: `requirements.txt` and `package.json` are checked for required packages, consistent versioning, and security pins.
 
-*Sources: [TESTING_GUIDE.md:40-58](), [TEST_GENERATION_SUMMARY.md:10-31](), [COMPREHENSIVE_TEST_SUMMARY.md:83-85]()*
+_Sources: [TESTING_GUIDE.md:40-58](), [TEST_GENERATION_SUMMARY.md:10-31](), [COMPREHENSIVE_TEST_SUMMARY.md:83-85]()_
 
 ## Execution and CI/CD
 
 Tests are designed to be run locally by developers and automatically in a CI/CD pipeline.
 
-*Sources: [CONTRIBUTING.md:99-111](), [TESTING_GUIDE.md:132-171]()*
+_Sources: [CONTRIBUTING.md:99-111](), [TESTING_GUIDE.md:132-171]()_
 
 ### Local Execution
 
-| Environment | Command | Description |
-| --- | --- | --- |
-| **Backend** | `pytest` | Runs all Python tests. |
-| | `pytest --cov=api --cov=src` | Runs tests with a coverage report. |
-| **Frontend** | `cd frontend && npm test` | Runs all TypeScript/React tests. |
-| | `cd frontend && npm test -- --coverage` | Runs frontend tests with coverage. |
-| **All Checks** | `make check` | A utility command to run formatting, linting, type-checking, and all tests. |
+| Environment    | Command                                 | Description                                                                 |
+| -------------- | --------------------------------------- | --------------------------------------------------------------------------- |
+| **Backend**    | `pytest`                                | Runs all Python tests.                                                      |
+|                | `pytest --cov=api --cov=src`            | Runs tests with a coverage report.                                          |
+| **Frontend**   | `cd frontend && npm test`               | Runs all TypeScript/React tests.                                            |
+|                | `cd frontend && npm test -- --coverage` | Runs frontend tests with coverage.                                          |
+| **All Checks** | `make check`                            | A utility command to run formatting, linting, type-checking, and all tests. |
 
-*Sources: [CONTRIBUTING.md:104, 133-145](), [TESTING_GUIDE.md:134-158](), [README.md:185-212]()*
+_Sources: [CONTRIBUTING.md:104, 133-145](), [TESTING_GUIDE.md:134-158](), [README.md:185-212]()_
 
 ### CI/CD Integration
 
 Tests are integrated into a GitHub Actions workflow (`.github/workflows/ci.yml`), which runs on every push and pull request.
 
 This flowchart shows the CI testing pipeline.
+
 ```mermaid
 flowchart TD
     A[Push or PR] --> B{CI Workflow};
@@ -6451,18 +6660,20 @@ flowchart TD
         D2 --> D3[Run Jest Tests];
     end
 ```
-*Sources: [TESTING_GUIDE.md:239-268](), [AUDIT_REPORT.md:144-155]()*
+
+_Sources: [TESTING_GUIDE.md:239-268](), [AUDIT_REPORT.md:144-155]()_
 
 ### Pre-commit Hooks
+
 To ensure code quality before commits, the project uses `pre-commit` hooks. These hooks automatically run formatters (`black`, `isort`), linters (`flake8`), and type checkers (`mypy`), catching issues early.
 
-*Sources: [CONTRIBUTING.md:86-92](), [AUDIT_REPORT.md:159-168]()*
+_Sources: [CONTRIBUTING.md:86-92](), [AUDIT_REPORT.md:159-168]()_
 
 ## Conclusion
 
 The testing strategy for the Financial Asset Relationship Database is robust and multi-faceted. It provides comprehensive coverage for backend logic, frontend components, and critical project artifacts like documentation and configuration. By integrating automated checks into both pre-commit hooks and the CI/CD pipeline, the strategy enforces high standards of quality and stability, enabling developers to contribute with confidence.
 
-*Sources: [AUDIT_REPORT.md:255-265](), [SUMMARY.md:167-171]()*
+_Sources: [AUDIT_REPORT.md:255-265](), [SUMMARY.md:167-171]()_
 
 ### Running Tests
 
@@ -6524,6 +6735,7 @@ graph TD
     B2 --> B7[Coverage Report];
     F2 --> F7[Coverage Report];
 ```
+
 This diagram shows the separate testing stacks for the backend (Pytest) and frontend (Jest), both of which are executed during the CI/CD process.
 
 Sources: [TESTING_GUIDE.md:10-21](), [CONTRIBUTING.md:105-112](), [AUDIT_REPORT.md:104-107]()
@@ -6536,24 +6748,25 @@ Sources: [TESTING_GUIDE.md:23-25](), [CONTRIBUTING.md:105-112]()
 
 ### Structure and Configuration
 
--   **Test Runner**: `pytest`
--   **Configuration**: `pyproject.toml` defines pytest settings, including test paths and markers.
--   **Fixtures**: Shared test fixtures, such as `sample_equity` and `populated_graph`, are defined in `tests/conftest.py` to provide reusable data for tests.
--   **Directory Structure**:
-    -   `tests/unit/`: For isolated tests of individual components, such as API endpoints or data models.
-    -   `tests/integration/`: For tests that verify interactions between multiple components or validate entire files (e.g., documentation, requirements).
+- **Test Runner**: `pytest`
+- **Configuration**: `pyproject.toml` defines pytest settings, including test paths and markers.
+- **Fixtures**: Shared test fixtures, such as `sample_equity` and `populated_graph`, are defined in `tests/conftest.py` to provide reusable data for tests.
+- **Directory Structure**:
+  - `tests/unit/`: For isolated tests of individual components, such as API endpoints or data models.
+  - `tests/integration/`: For tests that verify interactions between multiple components or validate entire files (e.g., documentation, requirements).
 
 Sources: [CONTRIBUTING.md:105-112](), [AUDIT_REPORT.md:113-122](), [TEST_DOCUMENTATION_SUMMARY.md:11]()
 
 ### Test Coverage
 
 The backend tests provide extensive coverage, including:
--   API endpoints, query parameters, and filtering.
--   CORS configuration and security validation.
--   Pydantic model validation and error handling.
--   Thread-safe graph initialization.
--   Configuration file validation (`vercel.json`, `requirements.txt`).
--   Documentation file integrity and formatting.
+
+- API endpoints, query parameters, and filtering.
+- CORS configuration and security validation.
+- Pydantic model validation and error handling.
+- Thread-safe graph initialization.
+- Configuration file validation (`vercel.json`, `requirements.txt`).
+- Documentation file integrity and formatting.
 
 Sources: [TESTING_GUIDE.md:31-59](), [TEST_DOCUMENTATION_SUMMARY.md:15-49]()
 
@@ -6561,14 +6774,14 @@ Sources: [TESTING_GUIDE.md:31-59](), [TEST_DOCUMENTATION_SUMMARY.md:15-49]()
 
 The following table summarizes the commands used to run backend tests. These can be executed directly or via the `Makefile`.
 
-| Command | Description | Source |
-| :--- | :--- | :--- |
-| `pytest` | Runs all tests in the `tests/` directory. | [CONTRIBUTING.md:126]() |
-| `pytest -v` | Runs all tests with verbose output. | [TESTING_GUIDE.md:121]() |
-| `pytest --cov=api --cov=src` | Runs tests and generates a coverage report. | [TESTING_GUIDE.md:124]() |
-| `pytest -m unit` | Runs only tests marked with the `unit` marker. | [CONTRIBUTING.md:132]() |
-| `make test` | Makefile shortcut to run tests with coverage. | [CONTRIBUTING.md:87]() |
-| `make lint` | Runs linters like `flake8` and `pylint`. | [CONTRIBUTING.md:84]() |
+| Command                      | Description                                    | Source                   |
+| :--------------------------- | :--------------------------------------------- | :----------------------- |
+| `pytest`                     | Runs all tests in the `tests/` directory.      | [CONTRIBUTING.md:126]()  |
+| `pytest -v`                  | Runs all tests with verbose output.            | [TESTING_GUIDE.md:121]() |
+| `pytest --cov=api --cov=src` | Runs tests and generates a coverage report.    | [TESTING_GUIDE.md:124]() |
+| `pytest -m unit`             | Runs only tests marked with the `unit` marker. | [CONTRIBUTING.md:132]()  |
+| `make test`                  | Makefile shortcut to run tests with coverage.  | [CONTRIBUTING.md:87]()   |
+| `make lint`                  | Runs linters like `flake8` and `pylint`.       | [CONTRIBUTING.md:84]()   |
 
 ## Frontend Testing (TypeScript)
 
@@ -6578,20 +6791,21 @@ Sources: [TESTING_GUIDE.md:61-66](), [README.md:157-159]()
 
 ### Structure and Configuration
 
--   **Test Runner**: `Jest`, configured via `frontend/jest.config.js`.
--   **Utilities**: `React Testing Library` is used for rendering components and simulating user interactions.
--   **Setup**: `frontend/jest.setup.js` configures the test environment, including mocks for browser APIs like `window.matchMedia`.
--   **Test Location**: All test files are located within the `frontend/__tests__` directory, mirroring the structure of the `app` directory.
+- **Test Runner**: `Jest`, configured via `frontend/jest.config.js`.
+- **Utilities**: `React Testing Library` is used for rendering components and simulating user interactions.
+- **Setup**: `frontend/jest.setup.js` configures the test environment, including mocks for browser APIs like `window.matchMedia`.
+- **Test Location**: All test files are located within the `frontend/__tests__` directory, mirroring the structure of the `app` directory.
 
 Sources: [TESTING_GUIDE.md:61-66](), [TEST_SUMMARY.md:88-96]()
 
 ### Test Coverage
 
 Frontend tests validate:
--   The API client library (`app/lib/api.ts`), including all endpoint functions and error handling.
--   React components, covering rendering, data loading, user interactions (filtering), and empty/error states.
--   The main application page, including tab switching and component integration.
--   Configuration files like `package.json` and `package-lock.json` for dependency integrity.
+
+- The API client library (`app/lib/api.ts`), including all endpoint functions and error handling.
+- React components, covering rendering, data loading, user interactions (filtering), and empty/error states.
+- The main application page, including tab switching and component integration.
+- Configuration files like `package.json` and `package-lock.json` for dependency integrity.
 
 Sources: [TESTING_GUIDE.md:68-117](), [TEST_GENERATION_REPORT.md:21-46]()
 
@@ -6599,12 +6813,12 @@ Sources: [TESTING_GUIDE.md:68-117](), [TEST_GENERATION_REPORT.md:21-46]()
 
 The following commands are run from the `frontend/` directory.
 
-| Command | Description | Source |
-| :--- | :--- | :--- |
-| `npm test` | Runs all frontend tests. | [TESTING_GUIDE.md:133]() |
-| `npm run test:watch` | Runs tests in interactive watch mode. | [TESTING_GUIDE.md:136]() |
-| `npm run test:coverage` | Runs tests and generates a coverage report. | [TESTING_GUIDE.md:139]() |
-| `npm test -- AssetList.test.tsx` | Runs tests for a specific file. | [TESTING_GUIDE.md:94]() |
+| Command                          | Description                                 | Source                   |
+| :------------------------------- | :------------------------------------------ | :----------------------- |
+| `npm test`                       | Runs all frontend tests.                    | [TESTING_GUIDE.md:133]() |
+| `npm run test:watch`             | Runs tests in interactive watch mode.       | [TESTING_GUIDE.md:136]() |
+| `npm run test:coverage`          | Runs tests and generates a coverage report. | [TESTING_GUIDE.md:139]() |
+| `npm test -- AssetList.test.tsx` | Runs tests for a specific file.             | [TESTING_GUIDE.md:94]()  |
 
 ## Specialized Test Suites
 
@@ -6635,10 +6849,11 @@ flowchart TD
 ```
 
 These tests are located in files like `tests/integration/test_documentation_validation.py` and `tests/unit/test_documentation_validation.py`. They check for:
--   Correct Markdown syntax and heading structure.
--   Presence of required sections like "Overview".
--   Absence of hardcoded secrets.
--   Consistency of information between different documentation files.
+
+- Correct Markdown syntax and heading structure.
+- Presence of required sections like "Overview".
+- Absence of hardcoded secrets.
+- Consistency of information between different documentation files.
 
 Sources: [tests/integration/test_documentation_validation.py](), [TEST_DOCUMENTATION_SUMMARY.md:15-49]()
 
@@ -6646,9 +6861,9 @@ Sources: [tests/integration/test_documentation_validation.py](), [TEST_DOCUMENTA
 
 Tests are in place to validate various configuration files, preventing common errors related to dependencies and deployment settings.
 
--   **`requirements.txt` / `requirements-dev.txt`**: Tests ensure required packages are present, versions are correctly specified, and security pins are in place.
--   **`package.json` / `package-lock.json`**: Tests validate dependency versions, script availability, and integrity between the two files.
--   **`vercel.json` / `tsconfig.json`**: Deployment and TypeScript compiler settings are validated for correctness.
+- **`requirements.txt` / `requirements-dev.txt`**: Tests ensure required packages are present, versions are correctly specified, and security pins are in place.
+- **`package.json` / `package-lock.json`**: Tests validate dependency versions, script availability, and integrity between the two files.
+- **`vercel.json` / `tsconfig.json`**: Deployment and TypeScript compiler settings are validated for correctness.
 
 Sources: [TEST_GENERATION_SUMMARY.md:14-35](), [TESTING_GUIDE.md:47-59](), [TEST_GENERATION_REPORT.md:21-72]()
 
@@ -6657,6 +6872,7 @@ Sources: [TEST_GENERATION_SUMMARY.md:14-35](), [TESTING_GUIDE.md:47-59](), [TEST
 All tests are designed to run automatically in the CI/CD pipeline using GitHub Actions. The workflow is configured to execute both backend and frontend test suites on every push and pull request, ensuring that no failing tests are merged into the main branch.
 
 The CI pipeline performs the following steps:
+
 1.  Checks out the code.
 2.  Sets up Python and Node.js environments.
 3.  Installs backend and frontend dependencies.
@@ -6694,6 +6910,7 @@ Sources: [AUDIT_REPORT.md:40-47, 102-113](), [SUMMARY.md:12-20](), [tests/integr
 The project utilizes several GitHub Actions workflows, each triggered by different events, to automate testing, security scanning, PR management, and repository maintenance. The main workflows are `ci.yml`, `pr-agent.yml`, `codeql.yml`, `dependency-review.yml`, and `branch-cleanup.yml`.
 
 This diagram illustrates the high-level architecture of the GitHub Actions workflows, their triggers, and their primary functions.
+
 ```mermaid
 graph TD
     subgraph Triggers
@@ -6732,14 +6949,17 @@ graph TD
     W4 --> J4
     W5 --> J5
 ```
+
 Sources: [SUMMARY.md:104-109](), [AUDIT_REPORT.md:109-113](), [BRANCH_CLEANUP_SUMMARY.md:21-28](), [tests/integration/test_github_workflows.py:215-220]()
 
 ## Consolidated CI Pipeline (`ci.yml`)
+
 Sources: [SUMMARY.md:104-119](), [AUDIT_REPORT.md:102-113]()
 
 The `ci.yml` workflow is the primary CI/CD pipeline, responsible for running a suite of quality and security checks on every push and pull request to the `main` branch. It replaced several redundant Python-specific workflows like `python-app.yml` and `pylint.yml`. The pipeline is structured into two main jobs: `test` and `security`.
 
 The flow diagram below shows the sequence of jobs and steps within the `ci.yml` pipeline.
+
 ```mermaid
 flowchart TD
     Start[Trigger: Push/PR] --> TestJob{Test Job};
@@ -6757,9 +6977,11 @@ flowchart TD
 
     SecurityJob --> Finish[End]
 ```
+
 Sources: [SUMMARY.md:107-119](), [AUDIT_REPORT.md:105-108]()
 
 ### Test Job
+
 The `test` job runs in a matrix across multiple Python versions to ensure compatibility. It performs a sequence of checks, and a failure in any step will fail the job.
 
 | Python Versions Tested |
@@ -6773,6 +6995,7 @@ The `test` job runs in a matrix across multiple Python versions to ensure compat
 Sources: [SUMMARY.md:108-109]()
 
 The steps executed in the `test` job are:
+
 1.  **Install Dependencies**: Installs production and development dependencies from `requirements.txt` and `requirements-dev.txt`, using a cache to speed up builds.
 2.  **Lint**: Runs `flake8` and `pylint` to check for code style and errors.
 3.  **Format Check**: Runs `black` and `isort` to ensure code is formatted correctly.
@@ -6782,30 +7005,36 @@ The steps executed in the `test` job are:
 Sources: [SUMMARY.md:109-112](), [CONTRIBUTING.md:79-92]()
 
 ### Security Job
+
 The `security` job runs after the `test` job completes successfully. It uses two tools to scan for potential security vulnerabilities:
-*   **`safety`**: Checks for known vulnerabilities in installed Python dependencies.
-*   **`bandit`**: Performs static security analysis on the Python codebase to find common security issues.
+
+- **`safety`**: Checks for known vulnerabilities in installed Python dependencies.
+- **`bandit`**: Performs static security analysis on the Python codebase to find common security issues.
 
 Sources: [SUMMARY.md:115-118](), [AUDIT_REPORT.md:108]()
 
 ## PR Agent Workflow (`pr-agent.yml`)
+
 Sources: [tests/integration/test_github_workflows.py:207-404]()
 
 The `pr-agent.yml` workflow automates pull request reviews, comments, and merging based on specific triggers like PR review comments. It is designed to respond to commands like `@copilot` in comments. The workflow is composed of three distinct jobs.
 
 ### Jobs
-| Job Name             | Description                                                                                             |
-| :------------------- | :------------------------------------------------------------------------------------------------------ |
-| `pr-agent-trigger`   | The main job that runs on PR comments or reviews. It lints, tests, and posts results back to the PR.      |
-| `auto-merge-check`   | Checks if a PR can be auto-merged based on approval status and successful checks.                         |
-| `dependency-update`  | Auto-approves and merges dependency updates from trusted bots like Dependabot and Renovate.               |
+
+| Job Name            | Description                                                                                          |
+| :------------------ | :--------------------------------------------------------------------------------------------------- |
+| `pr-agent-trigger`  | The main job that runs on PR comments or reviews. It lints, tests, and posts results back to the PR. |
+| `auto-merge-check`  | Checks if a PR can be auto-merged based on approval status and successful checks.                    |
+| `dependency-update` | Auto-approves and merges dependency updates from trusted bots like Dependabot and Renovate.          |
 
 Sources: [tests/integration/test_github_workflows.py:414-424]()
 
 ### Trigger and Logic Flow
+
 The workflow uses conditional logic (`if`) to execute jobs based on the event context.
 
 This diagram shows the conditional logic for the `pr-agent.yml` jobs.
+
 ```mermaid
 flowchart TD
     subgraph Triggers
@@ -6828,10 +7057,13 @@ flowchart TD
 
     J1 --> J1_S1[Setup Env] --> J1_S2[Install Deps] --> J1_S3[Lint & Test] --> J1_S4[Post Comment to PR]
 ```
+
 Sources: [tests/integration/test_github_workflows.py:440-447, 532-542, 550-556]()
 
 ### Permissions
+
 The workflow requests specific, limited permissions to follow the principle of least privilege.
+
 - **Top-Level**: `contents: read`
 - **`pr-agent-trigger`**: `issues: write` (to comment on PRs)
 - **`auto-merge-check`**: `issues: write`, `pull-requests: write` (to merge)
@@ -6840,11 +7072,13 @@ The workflow requests specific, limited permissions to follow the principle of l
 Sources: [tests/integration/test_githubworkflows.py:426-439]()
 
 ## Branch Management Workflow (`branch-cleanup.yml`)
+
 Sources: [BRANCH_CLEANUP_SUMMARY.md:21-28]()
 
 To maintain repository hygiene, the `branch-cleanup.yml` workflow runs automatically on a weekly schedule. Its purpose is to identify and report on stale branches that have not been updated recently.
 
 **Key Features:**
+
 - **Schedule**: Runs weekly to detect stale branches.
 - **Manual Trigger**: Can be run on-demand from the GitHub Actions UI.
 - **Reporting**: Generates a report of stale branches in the workflow run summary.
@@ -6854,6 +7088,7 @@ This automation helps prevent the accumulation of unnecessary branches, as detai
 Sources: [BRANCH_CLEANUP_SUMMARY.md:21-28]()
 
 ## Security Workflows
+
 The repository uses standard, GitHub-provided security workflows to proactively identify vulnerabilities.
 
 | Workflow File           | Purpose                                                              |
@@ -6864,9 +7099,11 @@ The repository uses standard, GitHub-provided security workflows to proactively 
 Sources: [SUMMARY.md:104-109](), [AUDIT_REPORT.md:109-113]()
 
 ## Workflow Validation Testing
+
 A unique aspect of this project is its comprehensive integration test suite for the GitHub Actions workflows themselves, located in `tests/integration/test_github_workflows.py`. These tests use `pytest` to parse the workflow YAML files and validate them against a series of rules, ensuring their correctness and security before they are even run by GitHub Actions.
 
 This diagram shows the structure of the workflow test suite.
+
 ```mermaid
 graph TD
     subgraph Pytest Suite
@@ -6891,23 +7128,25 @@ graph TD
     A --> C6
     A --> C7
 ```
+
 Sources: [tests/integration/test_github_workflows.py]()
 
 ### Test Coverage
+
 The test suite is organized into multiple classes, each targeting a specific aspect of workflow validation.
 
-| Test Class                    | Validation Checks                                                                                             |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------------ |
-| `TestWorkflowSyntax`          | Valid YAML syntax, no duplicate keys, file is readable.                                                       |
-| `TestWorkflowStructure`       | Presence of `name`, `on`, and `jobs` fields. Ensures jobs have steps.                                         |
-| `TestWorkflowActions`         | Actions use version tags (e.g., `@v2`), steps have `name` or `uses`.                                          |
-| `TestPrAgentWorkflow`         | Specific checks for `pr-agent.yml`, including triggers, job structure, and step configurations.               |
-| `TestWorkflowSecurity`        | No hardcoded secrets, sensitive data uses the `secrets` context.                                              |
-| `TestWorkflowMaintainability` | Steps have descriptive names, file size is reasonable.                                                        |
-| `TestWorkflowEdgeCases`       | Correct file extensions (`.yml`/`.yaml`), UTF-8 encoding, no tabs for indentation.                              |
-| `TestWorkflowPerformance`     | Recommends use of caching to improve performance.                                                             |
-| `TestWorkflowAdvancedSecurity`| Checks for potential environment variable injection and secrets being logged.                                   |
-| `TestWorkflowJobConfiguration`| Jobs specify a standard runner (`runs-on`).                                                                    |
+| Test Class                     | Validation Checks                                                                               |
+| :----------------------------- | :---------------------------------------------------------------------------------------------- |
+| `TestWorkflowSyntax`           | Valid YAML syntax, no duplicate keys, file is readable.                                         |
+| `TestWorkflowStructure`        | Presence of `name`, `on`, and `jobs` fields. Ensures jobs have steps.                           |
+| `TestWorkflowActions`          | Actions use version tags (e.g., `@v2`), steps have `name` or `uses`.                            |
+| `TestPrAgentWorkflow`          | Specific checks for `pr-agent.yml`, including triggers, job structure, and step configurations. |
+| `TestWorkflowSecurity`         | No hardcoded secrets, sensitive data uses the `secrets` context.                                |
+| `TestWorkflowMaintainability`  | Steps have descriptive names, file size is reasonable.                                          |
+| `TestWorkflowEdgeCases`        | Correct file extensions (`.yml`/`.yaml`), UTF-8 encoding, no tabs for indentation.              |
+| `TestWorkflowPerformance`      | Recommends use of caching to improve performance.                                               |
+| `TestWorkflowAdvancedSecurity` | Checks for potential environment variable injection and secrets being logged.                   |
+| `TestWorkflowJobConfiguration` | Jobs specify a standard runner (`runs-on`).                                                     |
 
 Sources: [tests/integration/test_github_workflows.py:79, 134, 183, 207, 313, 357, 386, 406, 611, 706](), [COMPREHENSIVE_TEST_SUMMARY.md:120-129]()
 
@@ -6953,22 +7192,22 @@ Sources: [SUMMARY.md:37-55](), [CONTRIBUTING.md:65-71]()
 
 The following table summarizes the available `make` commands and their functions.
 
-| Command | Description |
-| :--- | :--- |
-| `make help` | Shows all available commands. |
-| `make install` | Installs production dependencies from `requirements.txt`. |
-| `make install-dev` | Installs all development and production dependencies. |
-| `make test` | Runs the test suite with `pytest` and generates a coverage report. |
-| `make test-fast` | Runs the test suite without coverage for quicker feedback. |
-| `make lint` | Runs linters, specifically `flake8` and `pylint`. |
-| `make format` | Formats code using `black` and sorts imports with `isort`. |
-| `make format-check` | Checks formatting with `black` and `isort` without making changes. |
-| `make type-check` | Runs static type checking using `mypy`. |
-| `make pre-commit` | Installs the pre-commit hooks. |
-| `make pre-commit-run` | Runs the pre-commit hooks on all files in the repository. |
-| `make clean` | Cleans up generated files like `.pytest_cache`, `.coverage`, and `htmlcov/`. |
-| `make run` | Runs the main application (`app.py`). |
-| `make check` | A comprehensive check that runs `format-check`, `lint`, `type-check`, and `test`. |
+| Command               | Description                                                                       |
+| :-------------------- | :-------------------------------------------------------------------------------- |
+| `make help`           | Shows all available commands.                                                     |
+| `make install`        | Installs production dependencies from `requirements.txt`.                         |
+| `make install-dev`    | Installs all development and production dependencies.                             |
+| `make test`           | Runs the test suite with `pytest` and generates a coverage report.                |
+| `make test-fast`      | Runs the test suite without coverage for quicker feedback.                        |
+| `make lint`           | Runs linters, specifically `flake8` and `pylint`.                                 |
+| `make format`         | Formats code using `black` and sorts imports with `isort`.                        |
+| `make format-check`   | Checks formatting with `black` and `isort` without making changes.                |
+| `make type-check`     | Runs static type checking using `mypy`.                                           |
+| `make pre-commit`     | Installs the pre-commit hooks.                                                    |
+| `make pre-commit-run` | Runs the pre-commit hooks on all files in the repository.                         |
+| `make clean`          | Cleans up generated files like `.pytest_cache`, `.coverage`, and `htmlcov/`.      |
+| `make run`            | Runs the main application (`app.py`).                                             |
+| `make check`          | A comprehensive check that runs `format-check`, `lint`, `type-check`, and `test`. |
 
 Sources: [SUMMARY.md:60-75](), [CONTRIBUTING.md:94-113]()
 
@@ -6988,6 +7227,7 @@ flowchart TD
     E -- Pass --> G[End: Success];
     E -- Fail --> F;
 ```
+
 This diagram shows the sequential execution of format checking, linting, type checking, and testing when `make check` is run.
 
 Sources: [SUMMARY.md:75](), [CONTRIBUTING.md:112-113]()
@@ -7002,14 +7242,14 @@ Sources: [BRANCH_CLEANUP_ANALYSIS.md](), [CONTRIBUTING.md:120-140](), [BRANCH_CL
 
 To keep branches organized, the project follows a descriptive naming convention based on the type of work being done.
 
-| Prefix | Purpose | Example |
-| :--- | :--- | :--- |
-| `feature/` | New feature development | `feature/add-api-endpoint` |
-| `bugfix/` | Bug fixes | `bugfix/database-connection` |
-| `docs/` | Documentation updates | `docs/update-readme` |
-| `refactor/` | Code refactoring | `refactor/simplify-graph-logic` |
-| `test/` | Test additions or improvements | `test/add-model-validation-tests` |
-| `chore/` | Maintenance tasks | `chore/upgrade-dependencies` |
+| Prefix      | Purpose                        | Example                           |
+| :---------- | :----------------------------- | :-------------------------------- |
+| `feature/`  | New feature development        | `feature/add-api-endpoint`        |
+| `bugfix/`   | Bug fixes                      | `bugfix/database-connection`      |
+| `docs/`     | Documentation updates          | `docs/update-readme`              |
+| `refactor/` | Code refactoring               | `refactor/simplify-graph-logic`   |
+| `test/`     | Test additions or improvements | `test/add-model-validation-tests` |
+| `chore/`    | Maintenance tasks              | `chore/upgrade-dependencies`      |
 
 Sources: [CONTRIBUTING.md:124-132](), [BRANCH_CLEANUP_QUICK_REFERENCE.md:83-91]()
 
@@ -7043,6 +7283,7 @@ flowchart TD
         D2 --> F;
     end
 ```
+
 This diagram outlines the user's journey through the `cleanup-branches.sh` script, from selecting an action to confirming and executing branch deletion.
 
 Sources: [BRANCH_CLEANUP_SUMMARY.md:40-47](), [BRANCH_CLEANUP_QUICK_REFERENCE.md]()
@@ -7058,13 +7299,14 @@ Sources: [AUDIT_REPORT.md:121-145](), [CONTRIBUTING.md:100-113]()
 Pre-commit hooks are configured in `.pre-commit-config.yaml` to run a series of checks automatically before a commit is created. This prevents common issues and ensures code adheres to project standards.
 
 The configured hooks perform the following actions:
--   Trailing whitespace removal
--   End-of-file fixing
--   Validation of YAML, JSON, and TOML files
--   Code formatting with `black`
--   Import sorting with `isort`
--   Linting with `flake8`
--   Static type checking with `mypy`
+
+- Trailing whitespace removal
+- End-of-file fixing
+- Validation of YAML, JSON, and TOML files
+- Code formatting with `black`
+- Import sorting with `isort`
+- Linting with `flake8`
+- Static type checking with `mypy`
 
 To install the hooks, a developer runs `make pre-commit` or `pre-commit install`.
 
@@ -7101,6 +7343,7 @@ sequenceDiagram
     Remote-->>Dev: PR checks pass/fail
     deactivate Remote
 ```
+
 This sequence diagram illustrates how a developer's actions trigger automated quality checks both locally (pre-commit) and remotely (CI workflow).
 
 Sources: [CONTRIBUTING.md:81-118](), [AUDIT_REPORT.md:148-160]()
@@ -7109,9 +7352,9 @@ Sources: [CONTRIBUTING.md:81-118](), [AUDIT_REPORT.md:148-160]()
 
 Testing is managed through `pytest` and can be invoked using simple `Makefile` commands.
 
--   `make test`: Runs all tests with coverage reporting. This is the standard command for full validation.
--   `make test-fast`: Runs tests without coverage, which is faster and useful for quick checks during development.
--   `pytest -m <marker>`: Allows running specific test groups, such as `unit` tests.
+- `make test`: Runs all tests with coverage reporting. This is the standard command for full validation.
+- `make test-fast`: Runs tests without coverage, which is faster and useful for quick checks during development.
+- `pytest -m <marker>`: Allows running specific test groups, such as `unit` tests.
 
 The project contains a comprehensive test suite, including unit tests for models and logic, and integration tests for configurations and workflows.
 
