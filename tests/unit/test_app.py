@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 from typing import Dict, List, Optional, Tuple
-from unittest.mock import MagicMock, Mock, patch, call
+from unittest.mock import Mock, patch
 
 import pytest
 
