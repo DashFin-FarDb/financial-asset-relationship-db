@@ -55,9 +55,9 @@ class TestSerializeDataclass:
             market_cap=2.4e12,
             pe_ratio=25.5,
         )
-        
+
         result = _serialize_dataclass(equity)
-        
+
         assert result["id"] == "AAPL"
         assert result["symbol"] == "AAPL"
         assert result["asset_class"] == "equity"
@@ -75,9 +75,9 @@ class TestSerializeDataclass:
             price=1000.0,
             yield_to_maturity=0.03,
         )
-        
+
         result = _serialize_dataclass(bond)
-        
+
         assert result["asset_class"] == "fixed_income"
         assert result["yield_to_maturity"] == 0.03
 
@@ -92,9 +92,9 @@ class TestSerializeDataclass:
             description="Q4 Earnings",
             impact_score=0.1,
         )
-        
+
         result = _serialize_dataclass(event)
-        
+
         assert result["event_type"] == "earnings_report"
         assert result["impact_score"] == 0.1
 
@@ -113,9 +113,9 @@ class TestSerializeAsset:
             sector="Tech",
             price=100.0,
         )
-        
+
         result = _serialize_asset(equity)
-        
+
         assert "__type__" in result
         assert result["__type__"] == "Equity"
 
@@ -131,9 +131,9 @@ class TestSerializeAsset:
             price=2000.0,
             contract_size=100.0,
         )
-        
+
         result = _serialize_asset(commodity)
-        
+
         assert result["__type__"] == "Commodity"
         assert result["contract_size"] == 100.0
 
@@ -149,9 +149,9 @@ class TestSerializeAsset:
             price=1.10,
             exchange_rate=1.10,
         )
-        
+
         result = _serialize_asset(currency)
-        
+
         assert result["__type__"] == "Currency"
         assert result["exchange_rate"] == 1.10
 
@@ -172,9 +172,9 @@ class TestDeserializeAsset:
             "price": 150.0,
             "market_cap": 2.4e12,
         }
-        
+
         result = _deserialize_asset(data)
-        
+
         assert isinstance(result, Equity)
         assert result.id == "AAPL"
         assert result.price == 150.0
@@ -192,9 +192,9 @@ class TestDeserializeAsset:
             "price": 1000.0,
             "yield_to_maturity": 0.03,
         }
-        
+
         result = _deserialize_asset(data)
-        
+
         assert isinstance(result, Bond)
         assert result.yield_to_maturity == 0.03
 
@@ -205,7 +205,7 @@ class TestDeserializeAsset:
             "__type__": "UnknownAsset",
             "id": "TEST",
         }
-        
+
         with pytest.raises(ValueError, match="Unknown asset type"):
             _deserialize_asset(data)
 
@@ -226,9 +226,9 @@ class TestGraphSerialization:
             price=100.0,
         )
         graph.add_asset(equity)
-        
+
         result = _serialize_graph(graph)
-        
+
         assert "assets" in result
         assert len(result["assets"]) == 1
         assert result["assets"][0]["id"] == "TEST"
@@ -237,14 +237,28 @@ class TestGraphSerialization:
     def test_serialize_graph_with_relationships():
         """Test serializing graph with relationships."""
         graph = AssetRelationshipGraph()
-        equity1 = Equity(id="A1", symbol="A", name="A", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
-        equity2 = Equity(id="A2", symbol="B", name="B", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0)
+        equity1 = Equity(
+            id="A1",
+            symbol="A",
+            name="A",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        equity2 = Equity(
+            id="A2",
+            symbol="B",
+            name="B",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
         graph.add_asset(equity1)
         graph.add_asset(equity2)
         graph.build_relationships()
-        
+
         result = _serialize_graph(graph)
-        
+
         assert "relationships" in result
         # Should have same-sector relationship
         assert len(result["relationships"]) > 0
@@ -267,9 +281,9 @@ class TestGraphSerialization:
             "regulatory_events": [],
             "relationships": {},
         }
-        
+
         graph = _deserialize_graph(graph_data)
-        
+
         assert isinstance(graph, AssetRelationshipGraph)
         assert len(graph.assets) == 1
         assert "TEST" in graph.assets
@@ -283,11 +297,18 @@ class TestCacheOperations:
         """Test that saving to cache creates a file."""
         cache_path = tmp_path / "cache.pkl"
         graph = AssetRelationshipGraph()
-        equity = Equity(id="TEST", symbol="TEST", name="Test", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
+        equity = Equity(
+            id="TEST",
+            symbol="TEST",
+            name="Test",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
         graph.add_asset(equity)
-        
+
         _save_to_cache(graph, cache_path)
-        
+
         assert cache_path.exists()
         assert cache_path.stat().st_size > 0
 
@@ -296,12 +317,19 @@ class TestCacheOperations:
         """Test that loading from cache restores the graph."""
         cache_path = tmp_path / "cache.pkl"
         original_graph = AssetRelationshipGraph()
-        equity = Equity(id="TEST", symbol="TEST", name="Test", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
+        equity = Equity(
+            id="TEST",
+            symbol="TEST",
+            name="Test",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
         original_graph.add_asset(equity)
         _save_to_cache(original_graph, cache_path)
-        
+
         loaded_graph = _load_from_cache(cache_path)
-        
+
         assert len(loaded_graph.assets) == 1
         assert "TEST" in loaded_graph.assets
 
@@ -309,7 +337,7 @@ class TestCacheOperations:
     def test_load_from_cache_nonexistent_file():
         """Test that loading nonexistent cache raises FileNotFoundError."""
         cache_path = Path("/nonexistent/cache.pkl")
-        
+
         with pytest.raises(FileNotFoundError):
             _load_from_cache(cache_path)
 
@@ -321,7 +349,7 @@ class TestRealDataFetcher:
     def test_init_default_params():
         """Test RealDataFetcher initialization with defaults."""
         fetcher = RealDataFetcher()
-        
+
         assert fetcher.enable_network is True
         assert fetcher.use_cache is True
         assert fetcher.cache_path is not None
@@ -335,25 +363,25 @@ class TestRealDataFetcher:
             use_cache=False,
             cache_path=cache_path,
         )
-        
+
         assert fetcher.enable_network is False
         assert fetcher.use_cache is False
         assert fetcher.cache_path == cache_path
 
     @staticmethod
-    @patch('src.data.real_data_fetcher._load_from_cache')
+    @patch("src.data.real_data_fetcher._load_from_cache")
     def test_create_database_uses_cache_when_available(mock_load):
         """Test that create_database uses cache when available."""
         mock_graph = AssetRelationshipGraph()
         mock_load.return_value = mock_graph
-        
+
         with tempfile.NamedTemporaryFile(suffix=".pkl") as tmp:
             tmp.write(b"dummy")
             tmp.flush()
-            
+
             fetcher = RealDataFetcher(use_cache=True, cache_path=Path(tmp.name))
             graph = fetcher.create_database()
-            
+
             assert graph is mock_graph
             mock_load.assert_called_once()
 
@@ -361,44 +389,44 @@ class TestRealDataFetcher:
     def test_create_database_skips_cache_when_disabled():
         """Test that create_database skips cache when disabled."""
         fetcher = RealDataFetcher(use_cache=False, enable_network=False)
-        
+
         # Should use fallback since both cache and network are disabled
         graph = fetcher.create_database()
-        
+
         assert isinstance(graph, AssetRelationshipGraph)
 
     @staticmethod
-    @patch('src.data.real_data_fetcher.yf.Ticker')
+    @patch("src.data.real_data_fetcher.yf.Ticker")
     def test_fetch_equity_data_success(mock_ticker_class):
         """Test successful equity data fetch."""
         mock_ticker = MagicMock()
         mock_ticker.info = {
-            'shortName': 'Apple Inc.',
-            'sector': 'Technology',
-            'currentPrice': 150.0,
-            'marketCap': 2.4e12,
-            'trailingPE': 25.5,
-            'dividendYield': 0.005,
-            'trailingEps': 6.0,
+            "shortName": "Apple Inc.",
+            "sector": "Technology",
+            "currentPrice": 150.0,
+            "marketCap": 2.4e12,
+            "trailingPE": 25.5,
+            "dividendYield": 0.005,
+            "trailingEps": 6.0,
         }
         mock_ticker_class.return_value = mock_ticker
-        
+
         fetcher = RealDataFetcher()
         equities = fetcher._fetch_equity_data(["AAPL"])
-        
+
         assert len(equities) == 1
         assert equities[0].symbol == "AAPL"
         assert equities[0].price == 150.0
 
     @staticmethod
-    @patch('src.data.real_data_fetcher.yf.Ticker')
+    @patch("src.data.real_data_fetcher.yf.Ticker")
     def test_fetch_equity_data_handles_errors(mock_ticker_class):
         """Test that equity fetch handles errors gracefully."""
         mock_ticker_class.side_effect = Exception("Network error")
-        
+
         fetcher = RealDataFetcher()
         equities = fetcher._fetch_equity_data(["AAPL"])
-        
+
         # Should return empty list on error
         assert len(equities) == 0
 
@@ -407,7 +435,7 @@ class TestRealDataFetcher:
         """Test that _fallback returns a sample database."""
         fetcher = RealDataFetcher()
         graph = fetcher._fallback()
-        
+
         assert isinstance(graph, AssetRelationshipGraph)
         assert len(graph.assets) > 0
 
@@ -428,9 +456,9 @@ class TestEdgeCases:
             market_cap=None,
             pe_ratio=None,
         )
-        
+
         result = _serialize_asset(equity)
-        
+
         assert "market_cap" in result
         assert result["market_cap"] is None
 
@@ -446,9 +474,9 @@ class TestEdgeCases:
             "sector": "Tech",
             "price": 100.0,
         }
-        
+
         result = _deserialize_asset(data)
-        
+
         assert isinstance(result, Equity)
         # Should use defaults for missing fields
 
@@ -456,9 +484,9 @@ class TestEdgeCases:
     def test_serialize_graph_empty():
         """Test serializing an empty graph."""
         graph = AssetRelationshipGraph()
-        
+
         result = _serialize_graph(graph)
-        
+
         assert result["assets"] == []
         assert result["regulatory_events"] == []
         assert result["relationships"] == {}
@@ -468,8 +496,8 @@ class TestEdgeCases:
         """Test that cache save creates parent directories."""
         cache_path = tmp_path / "subdir" / "cache.pkl"
         graph = AssetRelationshipGraph()
-        
+
         _save_to_cache(graph, cache_path)
-        
+
         assert cache_path.exists()
         assert cache_path.parent.exists()

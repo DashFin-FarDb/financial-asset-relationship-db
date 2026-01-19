@@ -231,7 +231,9 @@ class TestDataQualityScore:
         assert re.search(pattern, report)
 
     @staticmethod
-    def test_quality_score_calculation_with_events(populated_graph, sample_regulatory_event):
+    def test_quality_score_calculation_with_events(
+        populated_graph, sample_regulatory_event
+    ):
         """Test quality score calculation with regulatory events."""
         populated_graph.add_regulatory_event(sample_regulatory_event)
         report = generate_schema_report(populated_graph)
@@ -466,9 +468,9 @@ class TestSchemaReportEdgeCases:
     def test_schema_report_empty_graph():
         """Test generating schema report for empty graph."""
         graph = AssetRelationshipGraph()
-        
+
         report = generate_schema_report(graph)
-        
+
         assert report is not None
         assert "Total Assets: 0" in report
         assert "Total Relationships: 0" in report
@@ -486,9 +488,9 @@ class TestSchemaReportEdgeCases:
             price=100.0,
         )
         graph.add_asset(equity)
-        
+
         report = generate_schema_report(graph)
-        
+
         assert "Total Assets: 1" in report
         assert "equity: 1" in report.lower()
 
@@ -496,7 +498,7 @@ class TestSchemaReportEdgeCases:
     def test_schema_report_high_density():
         """Test schema report with high relationship density."""
         graph = AssetRelationshipGraph()
-        
+
         # Add multiple assets in same sector for high connectivity
         for i in range(10):
             equity = Equity(
@@ -508,11 +510,11 @@ class TestSchemaReportEdgeCases:
                 price=100.0 + i,
             )
             graph.add_asset(equity)
-        
+
         graph.build_relationships()
-        
+
         report = generate_schema_report(graph)
-        
+
         # Should recommend normalization for high density
         metrics = graph.calculate_metrics()
         if metrics["relationship_density"] > 30:
@@ -522,7 +524,7 @@ class TestSchemaReportEdgeCases:
     def test_schema_report_low_density():
         """Test schema report with low relationship density."""
         graph = AssetRelationshipGraph()
-        
+
         # Add assets in different sectors for low connectivity
         for i in range(5):
             equity = Equity(
@@ -534,23 +536,26 @@ class TestSchemaReportEdgeCases:
                 price=100.0 + i,
             )
             graph.add_asset(equity)
-        
+
         graph.build_relationships()
-        
+
         report = generate_schema_report(graph)
-        
+
         # Should recommend adding relationships for low density
         metrics = graph.calculate_metrics()
         if metrics["relationship_density"] <= 10:
-            assert "sparse" in report.lower() or "adding more relationships" in report.lower()
+            assert (
+                "sparse" in report.lower()
+                or "adding more relationships" in report.lower()
+            )
 
     @staticmethod
     def test_schema_report_all_relationship_types():
         """Test that report includes all relationship types."""
         graph = create_sample_database()
-        
+
         report = generate_schema_report(graph)
-        
+
         # Should list relationship types
         assert "Relationship Types" in report or "relationship" in report.lower()
 
@@ -558,9 +563,9 @@ class TestSchemaReportEdgeCases:
     def test_schema_report_quality_score_calculation():
         """Test data quality score calculation."""
         graph = create_sample_database()
-        
+
         report = generate_schema_report(graph)
-        
+
         # Should include quality score
         assert "Data Quality Score" in report or "quality" in report.lower()
 
@@ -568,9 +573,9 @@ class TestSchemaReportEdgeCases:
     def test_schema_report_with_regulatory_events():
         """Test report includes regulatory events."""
         graph = create_sample_database()
-        
+
         report = generate_schema_report(graph)
-        
+
         # Should mention regulatory events
         assert "Regulatory Events" in report
 
@@ -578,9 +583,9 @@ class TestSchemaReportEdgeCases:
     def test_schema_report_top_relationships():
         """Test that top relationships are included."""
         graph = create_sample_database()
-        
+
         report = generate_schema_report(graph)
-        
+
         # Should have top relationships section
         assert "Top Relationships" in report
 
@@ -588,9 +593,9 @@ class TestSchemaReportEdgeCases:
     def test_schema_report_formatting():
         """Test that report has proper markdown formatting."""
         graph = create_sample_database()
-        
+
         report = generate_schema_report(graph)
-        
+
         # Should have markdown headers
         assert report.startswith("#")
         assert "##" in report

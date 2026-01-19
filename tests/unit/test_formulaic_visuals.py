@@ -542,11 +542,11 @@ class TestFormulaDashboardEdgeCases:
             "empirical_relationships": {},
             "categories": {},
         }
-        
+
         fig = visualizer.create_formula_dashboard(analysis_results)
-        
+
         assert fig is not None
-        assert hasattr(fig, 'layout')
+        assert hasattr(fig, "layout")
 
     @staticmethod
     def test_create_dashboard_with_single_formula():
@@ -561,15 +561,15 @@ class TestFormulaDashboardEdgeCases:
             category="Test",
             r_squared=0.95,
         )
-        
+
         analysis_results = {
             "formulas": [formula],
             "empirical_relationships": {},
             "categories": {"Test": 1},
         }
-        
+
         fig = visualizer.create_formula_dashboard(analysis_results)
-        
+
         assert fig is not None
 
     @staticmethod
@@ -588,42 +588,38 @@ class TestFormulaDashboardEdgeCases:
             )
             for i in range(50)
         ]
-        
+
         categories = {}
         for f in formulas:
             categories[f.category] = categories.get(f.category, 0) + 1
-        
+
         analysis_results = {
             "formulas": formulas,
             "empirical_relationships": {},
             "categories": categories,
         }
-        
+
         fig = visualizer.create_formula_dashboard(analysis_results)
-        
+
         assert fig is not None
 
     @staticmethod
     def test_correlation_network_with_empty_relationships():
         """Test correlation network with no relationships."""
         visualizer = FormulaicVisualizer()
-        
+
         fig = visualizer.create_correlation_network({})
-        
+
         assert fig is not None
 
     @staticmethod
     def test_correlation_network_with_single_pair():
         """Test correlation network with one correlation pair."""
         visualizer = FormulaicVisualizer()
-        relationships = {
-            "correlation_matrix": {
-                "ASSET1-ASSET2": 0.85
-            }
-        }
-        
+        relationships = {"correlation_matrix": {"ASSET1-ASSET2": 0.85}}
+
         fig = visualizer.create_correlation_network(relationships)
-        
+
         assert fig is not None
 
     @staticmethod
@@ -634,10 +630,10 @@ class TestFormulaDashboardEdgeCases:
             "formulas": [],
             # Missing 'summary' and other expected fields
         }
-        
+
         # Should handle gracefully
         fig = visualizer.create_metric_comparison_chart(analysis_results)
-        
+
         assert fig is not None
 
 
@@ -648,7 +644,7 @@ class TestColorScheme:
     def test_color_scheme_completeness():
         """Test that all expected categories have colors."""
         visualizer = FormulaicVisualizer()
-        
+
         expected_categories = [
             "Valuation",
             "Income",
@@ -659,7 +655,7 @@ class TestColorScheme:
             "Currency Markets",
             "Cross-Asset",
         ]
-        
+
         for category in expected_categories:
             assert category in visualizer.color_scheme
             assert visualizer.color_scheme[category].startswith("#")
@@ -679,13 +675,13 @@ class TestColorScheme:
                 r_squared=0.9,
             )
         ]
-        
+
         analysis_results = {
             "formulas": formulas,
             "categories": {"UnknownCategory": 1},
             "empirical_relationships": {},
         }
-        
+
         # Should use fallback color #CCCCCC
         fig = visualizer.create_formula_dashboard(analysis_results)
         assert fig is not None

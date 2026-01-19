@@ -30,18 +30,20 @@ class TestDatabaseURLParsing:
         """Test retrieving DATABASE_URL when set."""
         expected_url = "sqlite:///test.db"
         monkeypatch.setenv("DATABASE_URL", expected_url)
-        
+
         # Need to reload to pick up new env
         importlib.reload(database)
-        
+
         assert database.DATABASE_URL == expected_url
 
     @staticmethod
     def test_get_database_url_raises_when_missing(monkeypatch):
         """Test that missing DATABASE_URL raises ValueError."""
         monkeypatch.delenv("DATABASE_URL", raising=False)
-        
-        with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
+
+        with pytest.raises(
+            ValueError, match="DATABASE_URL environment variable must be set"
+        ):
             importlib.reload(database)
 
     @staticmethod
@@ -49,7 +51,7 @@ class TestDatabaseURLParsing:
         """Test resolving relative SQLite paths."""
         url = "sqlite:///relative.db"
         resolved = database._resolve_sqlite_path(url)
-        
+
         assert "relative.db" in resolved
         assert Path(resolved).is_absolute()
 
@@ -58,7 +60,7 @@ class TestDatabaseURLParsing:
         """Test resolving absolute SQLite paths."""
         url = "sqlite:////tmp/absolute.db"
         resolved = database._resolve_sqlite_path(url)
-        
+
         assert resolved == str(Path("/tmp/absolute.db").resolve())
 
     @staticmethod
@@ -66,7 +68,7 @@ class TestDatabaseURLParsing:
         """Test resolving :memory: SQLite path."""
         url = "sqlite:///:memory:"
         resolved = database._resolve_sqlite_path(url)
-        
+
         assert resolved == ":memory:"
 
     @staticmethod
@@ -74,7 +76,7 @@ class TestDatabaseURLParsing:
         """Test resolving /:memory: SQLite path."""
         url = "sqlite:////:memory:"
         resolved = database._resolve_sqlite_path(url)
-        
+
         assert resolved == ":memory:"
 
     @staticmethod
@@ -82,7 +84,7 @@ class TestDatabaseURLParsing:
         """Test resolving URI-style memory database."""
         url = "sqlite:///file::memory:?cache=shared"
         resolved = database._resolve_sqlite_path(url)
-        
+
         assert "file::memory:?cache=shared" in resolved
 
     @staticmethod
@@ -90,14 +92,14 @@ class TestDatabaseURLParsing:
         """Test resolving path with percent-encoded characters."""
         url = "sqlite:///path%20with%20spaces.db"
         resolved = database._resolve_sqlite_path(url)
-        
+
         assert "path with spaces.db" in resolved
 
     @staticmethod
     def test_resolve_sqlite_path_invalid_scheme():
         """Test that non-sqlite scheme raises ValueError."""
         url = "postgresql://localhost/db"
-        
+
         with pytest.raises(ValueError, match="Not a valid sqlite URI"):
             database._resolve_sqlite_path(url)
 
@@ -124,7 +126,7 @@ class TestIsMemoryDB:
     @staticmethod
     def test_is_memory_db_uses_default_when_none():
         """Test that None uses configured DATABASE_PATH."""
-        with patch.object(database, 'DATABASE_PATH', ':memory:'):
+        with patch.object(database, "DATABASE_PATH", ":memory:"):
             assert database._is_memory_db(None) is True
 
 
@@ -137,7 +139,7 @@ class TestConnectionManagement:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         conn = database._connect()
         assert conn is not None
         assert isinstance(conn, sqlite3.Connection)
@@ -149,7 +151,7 @@ class TestConnectionManagement:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         conn = database._connect()
         assert conn.row_factory == sqlite3.Row
         conn.close()
@@ -159,10 +161,10 @@ class TestConnectionManagement:
         """Test that memory connections are singleton."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         importlib.reload(database)
-        
+
         conn1 = database._connect()
         conn2 = database._connect()
-        
+
         # Should be same object for in-memory
         assert conn1 is conn2
 
@@ -172,7 +174,7 @@ class TestConnectionManagement:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         with database.get_connection() as conn:
             assert conn is not None
             assert isinstance(conn, sqlite3.Connection)
@@ -183,10 +185,10 @@ class TestConnectionManagement:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         with database.get_connection() as conn:
             pass
-        
+
         # Connection should be closed
         with pytest.raises(sqlite3.ProgrammingError):
             conn.execute("SELECT 1")
@@ -201,9 +203,9 @@ class TestDatabaseOperations:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)")
-        
+
         with database.get_connection() as conn:
             cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
             tables = [row[0] for row in cursor.fetchall()]
@@ -215,10 +217,10 @@ class TestDatabaseOperations:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER, value TEXT)")
         database.execute("INSERT INTO test (id, value) VALUES (?, ?)", (1, "test"))
-        
+
         row = database.fetch_one("SELECT value FROM test WHERE id = ?", (1,))
         assert row["value"] == "test"
 
@@ -228,11 +230,11 @@ class TestDatabaseOperations:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER, name TEXT)")
         database.execute("INSERT INTO test VALUES (1, 'first')")
         database.execute("INSERT INTO test VALUES (2, 'second')")
-        
+
         row = database.fetch_one("SELECT * FROM test ORDER BY id")
         assert row["id"] == 1
         assert row["name"] == "first"
@@ -243,10 +245,10 @@ class TestDatabaseOperations:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER)")
         row = database.fetch_one("SELECT * FROM test")
-        
+
         assert row is None
 
     @staticmethod
@@ -255,10 +257,10 @@ class TestDatabaseOperations:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER, name TEXT)")
         database.execute("INSERT INTO test VALUES (42, 'answer')")
-        
+
         value = database.fetch_value("SELECT id FROM test")
         assert value == 42
 
@@ -268,10 +270,10 @@ class TestDatabaseOperations:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER)")
         value = database.fetch_value("SELECT * FROM test")
-        
+
         assert value is None
 
 
@@ -284,9 +286,9 @@ class TestSchemaInitialization:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.initialize_schema()
-        
+
         with database.get_connection() as conn:
             cursor = conn.execute(
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='user_credentials'"
@@ -299,7 +301,7 @@ class TestSchemaInitialization:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         # Should not raise error when called multiple times
         database.initialize_schema()
         database.initialize_schema()
@@ -315,7 +317,7 @@ class TestEdgeCases:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER)", [])
         database.execute("CREATE TABLE test2 (id INTEGER)", ())
 
@@ -325,7 +327,7 @@ class TestEdgeCases:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER)", None)
 
     @staticmethod
@@ -334,7 +336,7 @@ class TestEdgeCases:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER)")
         row = database.fetch_one("SELECT * FROM test", [])
         assert row is None
@@ -345,15 +347,15 @@ class TestEdgeCases:
         db_path = tmp_path / "test.db"
         monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
         importlib.reload(database)
-        
+
         database.execute("CREATE TABLE test (id INTEGER)")
-        
+
         # Multiple context managers should work
         with database.get_connection() as conn1:
             with database.get_connection() as conn2:
                 conn1.execute("INSERT INTO test VALUES (1)")
                 conn1.commit()
-                
+
                 result = conn2.execute("SELECT * FROM test").fetchone()
                 # File-based connections see committed data
                 assert result is not None
