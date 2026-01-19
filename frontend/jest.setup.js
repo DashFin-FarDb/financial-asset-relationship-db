@@ -8,7 +8,7 @@ process.env.NEXT_PUBLIC_API_BASE_URL =
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -16,30 +16,30 @@ Object.defineProperty(window, 'matchMedia', {
     removeListener: jest.fn(),
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
+    dispatchEvent: jest.fn()
+  }))
 })
 
 // Mock IntersectionObserver
 class MockIntersectionObserver {
-  constructor(callback = () => {}, options = {}) {
+  constructor (callback = () => {}, options = {}) {
     this.callback = callback
     this.options = options
   }
 
-  observe(target) {
+  observe (target) {
     // no-op
   }
 
-  unobserve(target) {
+  unobserve (target) {
     // no-op
   }
 
-  disconnect() {
+  disconnect () {
     // no-op
   }
 
-  takeRecords() {
+  takeRecords () {
     return []
   }
 }
