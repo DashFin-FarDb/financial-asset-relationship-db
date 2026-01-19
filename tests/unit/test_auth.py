@@ -224,7 +224,12 @@ class TestUserRepository:
 
     @pytest.fixture
     def mock_execute(self):
-        """Mock execute for database operations."""
+        """
+        Provide a patched 'api.auth.execute' during the test and yield the mock.
+        
+        Yields:
+            unittest.mock.MagicMock: Mock object that replaces api.auth.execute.
+        """
         with patch('api.auth.execute') as mock:
             yield mock
 
@@ -337,7 +342,12 @@ class TestGetUser:
 
     @pytest.fixture
     def mock_repository(self):
-        """Create a mock UserRepository."""
+        """
+        Create a Mock configured to match the UserRepository interface.
+        
+        Returns:
+            Mock: A mock object with its spec set to UserRepository.
+        """
         return Mock(spec=UserRepository)
 
     def test_get_user_uses_default_repository(self, mock_repository):
@@ -371,7 +381,12 @@ class TestAuthenticateUser:
 
     @pytest.fixture
     def mock_repository(self):
-        """Create a mock UserRepository."""
+        """
+        Create a mock UserRepository.
+        
+        Returns:
+            Mock: A unittest.mock.Mock configured with UserRepository as its spec.
+        """
         repo = Mock(spec=UserRepository)
         return repo
 
@@ -494,7 +509,12 @@ class TestGetCurrentUser:
 
     @pytest.fixture
     def mock_get_user_func(self):
-        """Mock the get_user function."""
+        """
+        Provide a pytest fixture that patches api.auth.get_user.
+        
+        Yields:
+            The mocked `get_user` object.
+        """
         with patch('api.auth.get_user') as mock:
             yield mock
 
@@ -622,7 +642,12 @@ class TestSeedCredentialsFromEnv:
 
     @pytest.fixture
     def mock_repository(self):
-        """Create a mock UserRepository."""
+        """
+        Create a Mock configured to match the UserRepository interface.
+        
+        Returns:
+            Mock: A mock object with its spec set to UserRepository.
+        """
         return Mock(spec=UserRepository)
 
     def test_seed_credentials_both_env_vars_set(self, mock_repository):

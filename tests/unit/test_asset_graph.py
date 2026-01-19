@@ -552,7 +552,11 @@ class TestAssetRelationshipGraphEdgeCases:
         assert len(asset_ids) == 2
 
     def test_duplicate_relationships_same_pair(self):
-        """Test multiple relationships between same pair of nodes."""
+        """
+        Verify that multiple relationship entries between the same asset pair produce only two unique nodes in the visualization output.
+        
+        Asserts that the list of asset IDs returned by get_3d_visualization_data_enhanced contains exactly the two distinct assets involved ('A' and 'B') and no duplicate entries.
+        """
         graph = AssetRelationshipGraph()
         graph.relationships = {
             'A': [
