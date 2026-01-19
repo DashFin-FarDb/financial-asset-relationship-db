@@ -15,6 +15,7 @@ from src.visualizations.graph_visuals import (
 class DummyGraph(AssetRelationshipGraph):
     def __init__(self, relationships):
         # relationships: Dict[str, List[Tuple[str, str, float]]]
+        super().__init__(relationships)
         self.relationships = relationships
 
     def get_3d_visualization_data_enhanced(self):
