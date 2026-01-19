@@ -18,12 +18,17 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
-  constructor () {}
-  disconnect () {}
-  observe () {}
+  disconnect () {
+    // no-op: required placeholder for teardown
+  }
+  observe () {
+    // intentionally empty placeholder for tests
+  }
   takeRecords () {
     return []
   }
 
-  unobserve () {}
+  unobserve () {
+    // no-op placeholder for ResizeObserver.unobserve in Jest environment
+  }
 }
