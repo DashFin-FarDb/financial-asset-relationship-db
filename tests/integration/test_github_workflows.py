@@ -97,8 +97,6 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
         Extends GitHubActionsYamlLoader to record any duplicate keys found in mappings.
         """
 
-        pass
-
     def constructor_with_dup_check(loader, node):
         """
         Construct a dict from a YAML mapping node while recording duplicate keys.
@@ -649,7 +647,7 @@ class TestWorkflowPerformance:
 
         # This is informational, not a hard requirement
         if not has_cache:
-            pass
+            print(f"No caching detected in workflow {workflow_file}")
 
 
 class TestWorkflowTriggers:
@@ -1334,13 +1332,6 @@ class TestWorkflowCachingStrategies:
                             assert True
 
 
-"""Integration tests for GitHub workflows permissions and best practices.
-
-
-This module contains tests to verify correct permissions configurations and complex scenarios for GitHub workflows.
-"""
-
-
 class TestWorkflowPermissionsBestPractices:
     """Tests for proper permissions configuration."""
 
@@ -1368,7 +1359,7 @@ class TestWorkflowPermissionsBestPractices:
 
         def check_perms(perms):
             """Check given permissions dict for 'write' values and verify appropriate justification."""
-            pass
+            raise NotImplementedError()
 
         if "permissions" in data:
             check_perms(data["permissions"])
@@ -1509,11 +1500,6 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
                             ), f"Output '{output_name}' references undefined step '{ref}' in {workflow_file.name}"
 
 
-"""Integration tests for GitHub workflow files.
-This module verifies that each workflow file has reasonable artifact retention settings
-and consistent, non-duplicated environment variable usage."""
-
-
 @pytest.mark.parametrize("workflow_file", get_workflow_files())
 def test_artifacts_have_reasonable_retention(workflow_file: Path):
     """Test that artifact retention is reasonable."""
@@ -1535,7 +1521,6 @@ def test_artifacts_have_reasonable_retention(workflow_file: Path):
 
 class TestWorkflowEnvironmentVariables:
     """Tests for environment variable usage."""
-
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_env_vars_use_consistent_naming(self, workflow_file: Path):
         """Test that environment variables follow naming conventions."""
