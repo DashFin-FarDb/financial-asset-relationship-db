@@ -19,7 +19,12 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-from .db_models import AssetORM, AssetRelationshipORM, RegulatoryEventAssetORM, RegulatoryEventORM
+from .db_models import (
+    AssetORM,
+    AssetRelationshipORM,
+    RegulatoryEventAssetORM,
+    RegulatoryEventORM,
+)
 
 
 @dataclass
@@ -54,7 +59,9 @@ class AssetGraphRepository:
     def list_assets(self) -> List[Asset]:
         """Return all assets as dataclass instances ordered by id."""
 
-        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        result = (
+            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        )
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
@@ -74,7 +81,13 @@ class AssetGraphRepository:
     # Relationship helpers
     # ------------------------------------------------------------------
     def add_or_update_relationship(
-        self, source_id: str, target_id: str, rel_type: str, strength: float, *, bidirectional: bool
+        self,
+        source_id: str,
+        target_id: str,
+        rel_type: str,
+        strength: float,
+        *,
+        bidirectional: bool,
     ) -> None:
         """Insert or update a relationship between two assets."""
 
@@ -112,7 +125,9 @@ class AssetGraphRepository:
             for rel in result
         ]
 
-    def get_relationship(self, source_id: str, target_id: str, rel_type: str) -> Optional[RelationshipRecord]:
+    def get_relationship(
+        self, source_id: str, target_id: str, rel_type: str
+    ) -> Optional[RelationshipRecord]:
         """Fetch a single relationship if it exists."""
 
         stmt = select(AssetRelationshipORM).where(
@@ -131,7 +146,9 @@ class AssetGraphRepository:
             bidirectional=relationship.bidirectional,
         )
 
-    def delete_relationship(self, source_id: str, target_id: str, rel_type: str) -> None:
+    def delete_relationship(
+        self, source_id: str, target_id: str, rel_type: str
+    ) -> None:
         """Remove a relationship."""
 
         stmt = select(AssetRelationshipORM).where(
@@ -187,7 +204,9 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap) if asset.market_cap is not None else None
+        )
         orm.currency = asset.currency
 
         # Reset all optional fields to avoid stale values

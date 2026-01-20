@@ -66,7 +66,9 @@ class TestVisualize2DGraph:
         # Assert
         assert isinstance(fig, go.Figure)
         # Verify layout type is mentioned in annotations
-        has_layout_info = any("spring" in str(ann.text).lower() for ann in fig.layout.annotations)
+        has_layout_info = any(
+            "spring" in str(ann.text).lower() for ann in fig.layout.annotations
+        )
         assert has_layout_info, "Layout type should be indicated in figure"
 
     def test_visualize_2d_graph_circular_layout(self, populated_graph):
@@ -76,7 +78,9 @@ class TestVisualize2DGraph:
 
         # Assert
         assert isinstance(fig, go.Figure)
-        has_layout_info = any("circular" in str(ann.text).lower() for ann in fig.layout.annotations)
+        has_layout_info = any(
+            "circular" in str(ann.text).lower() for ann in fig.layout.annotations
+        )
         assert has_layout_info
 
     def test_visualize_2d_graph_grid_layout(self, populated_graph):
@@ -86,7 +90,9 @@ class TestVisualize2DGraph:
 
         # Assert
         assert isinstance(fig, go.Figure)
-        has_layout_info = any("grid" in str(ann.text).lower() for ann in fig.layout.annotations)
+        has_layout_info = any(
+            "grid" in str(ann.text).lower() for ann in fig.layout.annotations
+        )
         assert has_layout_info
 
     def test_visualize_2d_graph_with_relationship_filters(self, populated_graph):
@@ -123,7 +129,11 @@ class TestVisualize2DGraph:
         fig = visualize_2d_graph(populated_graph)
 
         # Find node trace
-        node_traces = [trace for trace in fig.data if hasattr(trace, "mode") and "markers" in trace.mode]
+        node_traces = [
+            trace
+            for trace in fig.data
+            if hasattr(trace, "mode") and "markers" in trace.mode
+        ]
         assert len(node_traces) > 0, "Should have node traces"
 
         node_trace = node_traces[0]
@@ -273,10 +283,17 @@ class TestRelationshipTraces:
     def test_create_2d_relationship_traces_with_relationships(self, populated_graph):
         """Test creating relationship traces with existing relationships."""
         # Add some relationships
-        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8)
+        populated_graph.add_relationship(
+            "TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8
+        )
 
         # Create positions
-        positions = {"TEST_AAPL": (0, 0), "TEST_BOND": (1, 1), "TEST_GOLD": (2, 2), "TEST_EUR": (3, 3)}
+        positions = {
+            "TEST_AAPL": (0, 0),
+            "TEST_BOND": (1, 1),
+            "TEST_GOLD": (2, 2),
+            "TEST_EUR": (3, 3),
+        }
         asset_ids = list(positions.keys())
 
         # Execute
@@ -398,10 +415,14 @@ class TestEdgeCases:
         # Assert - should still create valid figure (defaults to spring)
         assert isinstance(fig, go.Figure)
 
-    def test_relationship_traces_with_missing_assets_in_positions(self, populated_graph):
+    def test_relationship_traces_with_missing_assets_in_positions(
+        self, populated_graph
+    ):
         """Test creating traces when some assets in relationships aren't in positions."""
         # Add relationship
-        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8)
+        populated_graph.add_relationship(
+            "TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8
+        )
 
         # Create positions without TEST_BOND
         positions = {"TEST_AAPL": (0, 0)}

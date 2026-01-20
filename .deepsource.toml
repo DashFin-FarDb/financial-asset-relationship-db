@@ -33,3 +33,6 @@ name = "standardjs"
 
 [[code_formatters]]
 name = "prettier"
+
+[[code_formatters]]
+name = "ruff"

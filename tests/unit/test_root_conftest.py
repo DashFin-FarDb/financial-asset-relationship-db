@@ -240,7 +240,12 @@ class TestCoverageFilteringEdgeCases:
         """Test that flags similar to coverage flags are not removed."""
         import conftest
 
-        args = ["--coverage", "--discover", "--report", "tests/"]  # Different flag  # Different flag  # Different flag
+        args = [
+            "--coverage",
+            "--discover",
+            "--report",
+            "tests/",
+        ]  # Different flag  # Different flag  # Different flag
         original = args.copy()
 
         with patch.object(conftest, "_cov_plugin_available", return_value=False):
@@ -268,7 +273,15 @@ class TestCoverageFilteringEdgeCases:
         """Test handling of mixed --flag=value and --flag value syntax."""
         import conftest
 
-        args = ["--cov=src", "--cov", "api", "--cov-report=html", "--cov-report", "term", "--verbose"]
+        args = [
+            "--cov=src",
+            "--cov",
+            "api",
+            "--cov-report=html",
+            "--cov-report",
+            "term",
+            "--verbose",
+        ]
 
         with patch.object(conftest, "_cov_plugin_available", return_value=False):
             conftest.pytest_load_initial_conftests(args, None, None)
@@ -280,7 +293,11 @@ class TestCoverageFilteringEdgeCases:
         """Test handling of coverage flags with complex path values."""
         import conftest
 
-        args = ["--cov=src/module/submodule", "--cov-report=html:reports/coverage", "--verbose"]
+        args = [
+            "--cov=src/module/submodule",
+            "--cov-report=html:reports/coverage",
+            "--verbose",
+        ]
 
         with patch.object(conftest, "_cov_plugin_available", return_value=False):
             conftest.pytest_load_initial_conftests(args, None, None)
@@ -319,7 +336,9 @@ class TestDocumentationAndCodeQuality:
 
         docstring = conftest.__doc__.lower()
         # Should mention coverage and pytest-cov
-        assert "coverage" in docstring or "pytest-cov" in docstring or "cov" in docstring
+        assert (
+            "coverage" in docstring or "pytest-cov" in docstring or "cov" in docstring
+        )
 
     @staticmethod
     def test_cov_plugin_available_has_docstring():
@@ -424,7 +443,15 @@ class TestRealWorldScenarios:
         """Test scenario with mixed short and long flags."""
         import conftest
 
-        args = ["-v", "-x", "--cov=src", "-s", "--cov-report=html", "--tb=short", "tests/"]
+        args = [
+            "-v",
+            "-x",
+            "--cov=src",
+            "-s",
+            "--cov-report=html",
+            "--tb=short",
+            "tests/",
+        ]
 
         with patch.object(conftest, "_cov_plugin_available", return_value=False):
             conftest.pytest_load_initial_conftests(args, None, None)

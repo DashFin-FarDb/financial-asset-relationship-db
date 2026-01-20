@@ -12,11 +12,12 @@ import { mockAssetClasses, mockSectors } from "../test-utils";
 jest.mock("../../app/lib/api");
 const mockedApi = api as jest.Mocked<typeof api>;
 
+let mockSearch = "";
+
 const mockRouterReplace = jest.fn((url: string) => {
   const queryString = url.split("?")[1] ?? "";
   mockSearch = queryString;
 });
-let mockSearch = "";
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mockRouterReplace }),

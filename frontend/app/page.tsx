@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { api } from "./lib/api";
 import NetworkVisualization from "./components/NetworkVisualization";
 import MetricsDashboard from "./components/MetricsDashboard";
@@ -47,6 +47,18 @@ export default function Home() {
     }
   };
 
+  const handleVisualizationTabClick = useCallback(() => {
+    setActiveTab("visualization");
+  }, []);
+
+  const handleMetricsTabClick = useCallback(() => {
+    setActiveTab("metrics");
+  }, []);
+
+  const handleAssetsTabClick = useCallback(() => {
+    setActiveTab("assets");
+  }, []);
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
@@ -66,7 +78,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex space-x-8">
             <button
-              onClick={() => setActiveTab("visualization")}
+              onClick={handleVisualizationTabClick}
               className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === "visualization"
                   ? "border-blue-500 text-blue-600"
@@ -76,7 +88,7 @@ export default function Home() {
               3D Visualization
             </button>
             <button
-              onClick={() => setActiveTab("metrics")}
+              onClick={handleMetricsTabClick}
               className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === "metrics"
                   ? "border-blue-500 text-blue-600"
@@ -86,7 +98,7 @@ export default function Home() {
               Metrics & Analytics
             </button>
             <button
-              onClick={() => setActiveTab("assets")}
+              onClick={handleAssetsTabClick}
               className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === "assets"
                   ? "border-blue-500 text-blue-600"

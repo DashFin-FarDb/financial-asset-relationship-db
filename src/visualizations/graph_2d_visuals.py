@@ -1,7 +1,12 @@
-"""2D graph visualization module for financial asset relationships.
+"""
+2D graph visualization module for financial asset relationships.
 
-This module provides 2D visualization capabilities for asset relationship graphs,
-including multiple layout algorithms (spring, circular, grid) and relationship filtering.
+This module provides 2D visualization capabilities for asset relationship
+graphs,
+including multiple layout algorithms (spring, circular, grid) and
+relationship filtering.
+
+
 """
 
 import logging
@@ -134,22 +139,19 @@ def _create_2d_relationship_traces(
     if not asset_ids or not positions:
         return []
 
-    # Build relationship filter
-    if not show_all_relationships:
-        relationship_filters = {
-            "same_sector": show_same_sector,
-            "market_cap_similar": show_market_cap,
-            "correlation": show_correlation,
-            "corporate_bond_to_equity": show_corporate_bond,
-            "commodity_currency": show_commodity_currency,
-            "income_comparison": show_income_comparison,
-            "regulatory_impact": show_regulatory,
-        }
-    else:
-        relationship_filters = None
-
     traces = []
     asset_id_set = set(asset_ids)
+
+    # Construct relationship filters dictionary
+    relationship_filters = {
+        "same_sector": show_same_sector,
+        "market_cap_similar": show_market_cap,
+        "correlation": show_correlation,
+        "corporate_bond_to_equity": show_corporate_bond,
+        "commodity_currency": show_commodity_currency,
+        "income_comparison": show_income_comparison,
+        "regulatory_impact": show_regulatory,
+    }
 
     # Group relationships by type
     relationship_groups = {}
@@ -163,16 +165,21 @@ def _create_2d_relationship_traces(
             if target_id not in positions or target_id not in asset_id_set:
                 continue
 
-            # Apply filters
-            if relationship_filters and rel_type in relationship_filters:
-                if not relationship_filters[rel_type]:
-                    continue
+            # Apply filters if not showing all relationships
+            if (
+                not show_all_relationships
+                and rel_type in relationship_filters
+                and not relationship_filters[rel_type]
+            ):
+                continue
 
             # Group by relationship type
             if rel_type not in relationship_groups:
                 relationship_groups[rel_type] = []
 
-            relationship_groups[rel_type].append({"source_id": source_id, "target_id": target_id, "strength": strength})
+            relationship_groups[rel_type].append(
+                {"source_id": source_id, "target_id": target_id, "strength": strength}
+            )
 
     # Create traces for each relationship type
     for rel_type, relationships in relationship_groups.items():
@@ -191,7 +198,9 @@ def _create_2d_relationship_traces(
             edges_y.extend([source_pos[1], target_pos[1], None])
 
             hover_text = (
-                f"{rel['source_id']} → {rel['target_id']}<br>" f"Type: {rel_type}<br>Strength: {rel['strength']:.2f}"
+                f"{rel['source_id']} → {rel['target_id']}<br>"
+                f"Type: {rel_type}<br>"
+                f"Strength: {rel['strength']:.2f}"
             )
             hover_texts.extend([hover_text, hover_text, None])
 
@@ -266,9 +275,17 @@ def visualize_2d_graph(
     else:  # Default to spring layout
         # Get 3D positions and convert to 2D
         if hasattr(graph, "get_3d_visualization_data_enhanced"):
-            positions_3d_array, asset_ids_ordered, _, _ = graph.get_3d_visualization_data_enhanced()
+            (
+                positions_3d_array,
+                asset_ids_ordered,
+                _,
+                _,
+            ) = graph.get_3d_visualization_data_enhanced()
             # Convert array to dictionary
-            positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
+            positions_3d = {
+                asset_ids_ordered[i]: tuple(positions_3d_array[i])
+                for i in range(len(asset_ids_ordered))
+            }
             positions = _create_spring_layout_2d(positions_3d, asset_ids)
         else:
             # Fallback to circular if 3D data not available
@@ -303,7 +320,11 @@ def visualize_2d_graph(
     colors = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
+        asset_class = (
+            asset.asset_class.value
+            if hasattr(asset.asset_class, "value")
+            else str(asset.asset_class)
+        )
 
         # Color mapping by asset class
         color_map = {
@@ -326,7 +347,11 @@ def visualize_2d_graph(
     hover_texts = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        hover_text = f"{asset_id}<br>Class: {asset.asset_class.value if hasattr(asset.asset_class, 'value') else asset.asset_class}"
+        hover_text = f"{asset_id}<br>Class: " + (
+            asset.asset_class.value
+            if hasattr(asset.asset_class, "value")
+            else str(asset.asset_class)
+        )
         hover_texts.append(hover_text)
 
     node_trace = go.Scatter(

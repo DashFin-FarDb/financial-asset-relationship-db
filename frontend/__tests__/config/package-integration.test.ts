@@ -125,7 +125,7 @@ describe("Package Configuration Integration", () => {
       const axiosLocked = packageLock.packages?.["node_modules/axios"];
 
       if (axiosLocked?.dependencies) {
-        Object.entries(axiosLocked.dependencies).forEach(([dep, version]) => {
+        Object.entries(axiosLocked.dependencies).forEach(([dep, _version]) => {
           const topLevelPkg = packageLock.packages?.[`node_modules/${dep}`];
 
           if (topLevelPkg) {
@@ -142,7 +142,7 @@ describe("Package Configuration Integration", () => {
       const versionRequirements = new Map<string, Set<string>>();
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { dependencies?: Record<string, string> }]) => {
+        ([_path, pkg]: [string, { dependencies?: Record<string, string> }]) => {
           if (pkg.dependencies) {
             Object.entries(pkg.dependencies).forEach(([dep, version]) => {
               if (!versionRequirements.has(dep)) {
@@ -166,7 +166,7 @@ describe("Package Configuration Integration", () => {
 
     it("all transitive dependencies should be resolved", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { dependencies?: Record<string, unknown> }]) => {
+        ([, pkg]: [string, { dependencies?: Record<string, unknown> }]) => {
           if (pkg.dependencies) {
             Object.keys(pkg.dependencies).forEach((dep) => {
               // Dependency should exist somewhere in the tree
@@ -264,7 +264,7 @@ describe("Package Configuration Integration", () => {
 
     it("no packages should use insecure protocols", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { resolved?: string }]) => {
+        ([_path, pkg]: [string, { resolved?: string }]) => {
           if (pkg.resolved) {
             expect(pkg.resolved).not.toMatch(/^http:/);
             expect(pkg.resolved).not.toMatch(/^git:/);
@@ -308,7 +308,7 @@ describe("Package Configuration Integration", () => {
         ...packageLock.packages?.[""]?.devDependencies,
       };
 
-      Object.entries(rootDeps).forEach(([name, range]) => {
+      Object.entries(rootDeps).forEach(([name, _range]) => {
         const pkg = packageLock.packages?.[`node_modules/${name}`];
         const version = pkg?.version;
         expect(version).toBeDefined();

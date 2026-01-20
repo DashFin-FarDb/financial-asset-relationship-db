@@ -168,9 +168,30 @@ class TestAssetOperations:
     def test_list_assets_ordered_by_id(repository):
         """Test that list_assets returns assets ordered by id."""
         assets_to_add = [
-            Equity(id="C_ASSET", symbol="C", name="C", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0),
-            Equity(id="A_ASSET", symbol="A", name="A", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0),
-            Equity(id="B_ASSET", symbol="B", name="B", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0),
+            Equity(
+                id="C_ASSET",
+                symbol="C",
+                name="C",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=100.0,
+            ),
+            Equity(
+                id="A_ASSET",
+                symbol="A",
+                name="A",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=100.0,
+            ),
+            Equity(
+                id="B_ASSET",
+                symbol="B",
+                name="B",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=100.0,
+            ),
         ]
 
         for asset in assets_to_add:
@@ -187,10 +208,20 @@ class TestAssetOperations:
     def test_get_assets_map(repository):
         """Test retrieving assets as a dictionary."""
         equity1 = Equity(
-            id="EQUITY1", symbol="E1", name="Equity 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
+            id="EQUITY1",
+            symbol="E1",
+            name="Equity 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
         )
         equity2 = Equity(
-            id="EQUITY2", symbol="E2", name="Equity 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0
+            id="EQUITY2",
+            symbol="E2",
+            name="Equity 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
         )
 
         repository.upsert_asset(equity1)
@@ -207,7 +238,12 @@ class TestAssetOperations:
     def test_delete_asset(repository):
         """Test deleting an asset."""
         equity = Equity(
-            id="DELETE_ME", symbol="DEL", name="Delete", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
+            id="DELETE_ME",
+            symbol="DEL",
+            name="Delete",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
         )
 
         repository.upsert_asset(equity)
@@ -235,17 +271,29 @@ class TestRelationshipOperations:
         """Test adding a new relationship."""
         # Create assets
         asset1 = Equity(
-            id="ASSET1", symbol="A1", name="Asset 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
+            id="ASSET1",
+            symbol="A1",
+            name="Asset 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
         )
         asset2 = Equity(
-            id="ASSET2", symbol="A2", name="Asset 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0
+            id="ASSET2",
+            symbol="A2",
+            name="Asset 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
         )
         repository.upsert_asset(asset1)
         repository.upsert_asset(asset2)
         repository.session.commit()
 
         # Add relationship
-        repository.add_or_update_relationship("ASSET1", "ASSET2", "same_sector", 0.7, bidirectional=True)
+        repository.add_or_update_relationship(
+            "ASSET1", "ASSET2", "same_sector", 0.7, bidirectional=True
+        )
         repository.session.commit()
 
         relationships = repository.list_relationships()
@@ -258,21 +306,35 @@ class TestRelationshipOperations:
     def test_update_existing_relationship(repository):
         """Test updating an existing relationship."""
         asset1 = Equity(
-            id="UPDATE1", symbol="U1", name="Update 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
+            id="UPDATE1",
+            symbol="U1",
+            name="Update 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
         )
         asset2 = Equity(
-            id="UPDATE2", symbol="U2", name="Update 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0
+            id="UPDATE2",
+            symbol="U2",
+            name="Update 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
         )
         repository.upsert_asset(asset1)
         repository.upsert_asset(asset2)
         repository.session.commit()
 
         # Add relationship
-        repository.add_or_update_relationship("UPDATE1", "UPDATE2", "test_rel", 0.5, bidirectional=False)
+        repository.add_or_update_relationship(
+            "UPDATE1", "UPDATE2", "test_rel", 0.5, bidirectional=False
+        )
         repository.session.commit()
 
         # Update relationship
-        repository.add_or_update_relationship("UPDATE1", "UPDATE2", "test_rel", 0.9, bidirectional=True)
+        repository.add_or_update_relationship(
+            "UPDATE1", "UPDATE2", "test_rel", 0.9, bidirectional=True
+        )
         repository.session.commit()
 
         relationships = repository.list_relationships()
@@ -297,8 +359,12 @@ class TestRelationshipOperations:
         repository.session.commit()
 
         # Add relationships
-        repository.add_or_update_relationship("ASSET0", "ASSET1", "rel1", 0.5, bidirectional=False)
-        repository.add_or_update_relationship("ASSET1", "ASSET2", "rel2", 0.6, bidirectional=False)
+        repository.add_or_update_relationship(
+            "ASSET0", "ASSET1", "rel1", 0.5, bidirectional=False
+        )
+        repository.add_or_update_relationship(
+            "ASSET1", "ASSET2", "rel2", 0.6, bidirectional=False
+        )
         repository.session.commit()
 
         relationships = repository.list_relationships()
@@ -307,13 +373,29 @@ class TestRelationshipOperations:
     @staticmethod
     def test_get_specific_relationship(repository):
         """Test retrieving a specific relationship."""
-        asset1 = Equity(id="GET1", symbol="G1", name="Get 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
-        asset2 = Equity(id="GET2", symbol="G2", name="Get 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0)
+        asset1 = Equity(
+            id="GET1",
+            symbol="G1",
+            name="Get 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        asset2 = Equity(
+            id="GET2",
+            symbol="G2",
+            name="Get 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
         repository.upsert_asset(asset1)
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship("GET1", "GET2", "specific_rel", 0.8, bidirectional=True)
+        repository.add_or_update_relationship(
+            "GET1", "GET2", "specific_rel", 0.8, bidirectional=True
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("GET1", "GET2", "specific_rel")
@@ -330,13 +412,29 @@ class TestRelationshipOperations:
     @staticmethod
     def test_delete_relationship(repository):
         """Test deleting a relationship."""
-        asset1 = Equity(id="DEL1", symbol="D1", name="Del 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
-        asset2 = Equity(id="DEL2", symbol="D2", name="Del 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0)
+        asset1 = Equity(
+            id="DEL1",
+            symbol="D1",
+            name="Del 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        asset2 = Equity(
+            id="DEL2",
+            symbol="D2",
+            name="Del 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
         repository.upsert_asset(asset1)
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship("DEL1", "DEL2", "to_delete", 0.5, bidirectional=False)
+        repository.add_or_update_relationship(
+            "DEL1", "DEL2", "to_delete", 0.5, bidirectional=False
+        )
         repository.session.commit()
 
         repository.delete_relationship("DEL1", "DEL2", "to_delete")
@@ -377,7 +475,12 @@ class TestRegulatoryEventOperations:
     def test_upsert_new_regulatory_event(repository):
         """Test inserting a new regulatory event."""
         asset = Equity(
-            id="EVENT_ASSET", symbol="EA", name="Event Asset", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
+            id="EVENT_ASSET",
+            symbol="EA",
+            name="Event Asset",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
         )
         repository.upsert_asset(asset)
         repository.session.commit()
@@ -433,7 +536,9 @@ class TestRegulatoryEventOperations:
         repository.upsert_regulatory_event(event)
         repository.session.commit()
 
-        events = repository.session.query(RegulatoryEventORM).filter_by(id="EVENT002").all()
+        events = (
+            repository.session.query(RegulatoryEventORM).filter_by(id="EVENT002").all()
+        )
         assert len(events) == 1
         assert events[0].impact_score == 0.9
         assert events[0].description == "Updated filing"
@@ -442,12 +547,29 @@ class TestRegulatoryEventOperations:
     def test_upsert_event_with_related_assets(repository):
         """Test upserting event with related assets."""
         # Create assets
-        main = Equity(id="MAIN", symbol="M", name="Main", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
+        main = Equity(
+            id="MAIN",
+            symbol="M",
+            name="Main",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
         related1 = Equity(
-            id="REL1", symbol="R1", name="Related 1", asset_class=AssetClass.EQUITY, sector="Tech", price=50.0
+            id="REL1",
+            symbol="R1",
+            name="Related 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=50.0,
         )
         related2 = Equity(
-            id="REL2", symbol="R2", name="Related 2", asset_class=AssetClass.EQUITY, sector="Tech", price=75.0
+            id="REL2",
+            symbol="R2",
+            name="Related 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=75.0,
         )
 
         repository.upsert_asset(main)
@@ -469,7 +591,11 @@ class TestRegulatoryEventOperations:
         repository.session.commit()
 
         # Verify related assets were linked
-        event_orm = repository.session.query(RegulatoryEventORM).filter_by(id="EVENT003").first()
+        event_orm = (
+            repository.session.query(RegulatoryEventORM)
+            .filter_by(id="EVENT003")
+            .first()
+        )
         assert len(event_orm.related_assets) == 2
 
 
@@ -532,7 +658,12 @@ class TestDataTransformation:
     def test_multiple_asset_types(repository):
         """Test handling multiple asset types simultaneously."""
         equity = Equity(
-            id="MULTI1", symbol="M1", name="Multi 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
+            id="MULTI1",
+            symbol="M1",
+            name="Multi 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
         )
         bond = Bond(
             id="MULTI2",
@@ -608,16 +739,28 @@ class TestEdgeCases:
     def test_relationship_with_zero_strength(repository):
         """Test relationship with zero strength."""
         asset1 = Equity(
-            id="ZERO1", symbol="Z1", name="Zero 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0
+            id="ZERO1",
+            symbol="Z1",
+            name="Zero 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
         )
         asset2 = Equity(
-            id="ZERO2", symbol="Z2", name="Zero 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0
+            id="ZERO2",
+            symbol="Z2",
+            name="Zero 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
         )
         repository.upsert_asset(asset1)
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship("ZERO1", "ZERO2", "zero_strength", 0.0, bidirectional=False)
+        repository.add_or_update_relationship(
+            "ZERO1", "ZERO2", "zero_strength", 0.0, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("ZERO1", "ZERO2", "zero_strength")
@@ -627,13 +770,29 @@ class TestEdgeCases:
     @staticmethod
     def test_relationship_with_max_strength(repository):
         """Test relationship with maximum strength."""
-        asset1 = Equity(id="MAX1", symbol="M1", name="Max 1", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
-        asset2 = Equity(id="MAX2", symbol="M2", name="Max 2", asset_class=AssetClass.EQUITY, sector="Tech", price=200.0)
+        asset1 = Equity(
+            id="MAX1",
+            symbol="M1",
+            name="Max 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        asset2 = Equity(
+            id="MAX2",
+            symbol="M2",
+            name="Max 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
         repository.upsert_asset(asset1)
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship("MAX1", "MAX2", "max_strength", 1.0, bidirectional=False)
+        repository.add_or_update_relationship(
+            "MAX1", "MAX2", "max_strength", 1.0, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("MAX1", "MAX2", "max_strength")

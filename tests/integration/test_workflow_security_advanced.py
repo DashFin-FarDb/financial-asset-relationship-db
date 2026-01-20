@@ -40,7 +40,9 @@ class TestWorkflowInjectionPrevention:
                             for match in matches:
                                 # Ensure the specific context variable occurrence is within quotes
                                 quoted = re.search(
-                                    r'(["\']).*?' + re.escape(match) + r".*?\1", run_command, flags=re.DOTALL
+                                    r'(["\']).*?' + re.escape(match) + r".*?\1",
+                                    run_command,
+                                    flags=re.DOTALL,
                                 )
                                 assert quoted, (
                                     f"Unquoted context variable in {workflow['path']} "
@@ -88,8 +90,12 @@ class TestWorkflowSecretHandling:
                     if secret_ref in line:
                         # Should not be in echo, print, or printf
                         assert not re.search(
-                            r"(echo|print|printf)\s+.*" + re.escape(secret_ref), line, re.IGNORECASE
-                        ), f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
+                            r"(echo|print|printf)\s+.*" + re.escape(secret_ref),
+                            line,
+                            re.IGNORECASE,
+                        ), (
+                            f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
+                        )
 
     @staticmethod
     def test_secrets_not_in_artifact_uploads(all_workflows):
@@ -114,7 +120,9 @@ class TestWorkflowPermissionsHardening:
     def test_workflows_define_explicit_permissions(all_workflows):
         """Verify workflows explicitly define permissions."""
         for workflow in all_workflows:
-            assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
+            assert "permissions" in workflow["content"], (
+                f"Workflow {workflow['path']} should define permissions"
+            )
 
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):
@@ -126,14 +134,18 @@ class TestWorkflowPermissionsHardening:
                 assert permissions in [
                     "read-all",
                     "none",
-                ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
+                ], (
+                    f"Workflow {workflow['path']} has overly permissive default: {permissions}"
+                )
             elif isinstance(permissions, dict):
-                default_write_perms = [k for k, v in permissions.items() if v == "write"]
+                default_write_perms = [
+                    k for k, v in permissions.items() if v == "write"
+                ]
                 allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
                 unexpected_write = set(default_write_perms) - allowed_write_perms
-                assert (
-                    len(unexpected_write) == 0
-                ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
+                assert len(unexpected_write) == 0, (
+                    f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
+                )
 
     @staticmethod
     def test_no_workflows_with_write_all_permission(all_workflows):
@@ -141,7 +153,9 @@ class TestWorkflowPermissionsHardening:
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})
             if isinstance(permissions, str):
-                assert permissions != "write-all", f"Workflow {workflow['path']} uses dangerous 'write-all'"
+                assert permissions != "write-all", (
+                    f"Workflow {workflow['path']} uses dangerous 'write-all'"
+                )
 
 
 class TestWorkflowSupplyChainSecurity:
@@ -170,7 +184,11 @@ class TestWorkflowSupplyChainSecurity:
         """Verify no insecure HTTP downloads in workflows."""
         for workflow in all_workflows:
             raw_content = workflow["raw"]
-            insecure_downloads = re.findall(r"(curl|wget|download)\s+[^\s]*http://[^\s]+", raw_content, re.IGNORECASE)
-            assert (
-                len(insecure_downloads) == 0
-            ), f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
+            insecure_downloads = re.findall(
+                r"(curl|wget|download)\s+[^\s]*http://[^\s]+",
+                raw_content,
+                re.IGNORECASE,
+            )
+            assert len(insecure_downloads) == 0, (
+                f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
+            )

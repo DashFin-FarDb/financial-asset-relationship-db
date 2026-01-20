@@ -210,14 +210,14 @@ describe("Package.json Validation", () => {
   describe("Version Constraints", () => {
     it("should have version constraints for all dependencies", () => {
       const deps = Object.entries(packageJson.dependencies);
-      deps.forEach(([name, version]) => {
+      deps.forEach(([_name, version]) => {
         expect(version).toMatch(/^[\^~><=]?\d+\.\d+/);
       });
     });
 
     it("should have version constraints for all devDependencies", () => {
       const devDeps = Object.entries(packageJson.devDependencies);
-      devDeps.forEach(([name, version]) => {
+      devDeps.forEach(([_name, version]) => {
         expect(version).toMatch(/^[\^~><=]?\d+\.\d+/);
       });
     });
@@ -238,7 +238,7 @@ describe("Package.json Validation", () => {
         ...packageJson.devDependencies,
       };
 
-      Object.entries(allDeps).forEach(([name, version]) => {
+      Object.entries(allDeps).forEach(([_name, version]) => {
         expect(version).not.toBe("*");
         expect(version).not.toBe("latest");
       });
@@ -607,7 +607,7 @@ describe("Package.json Validation", () => {
     });
 
     it("scripts should not have obvious syntax errors", () => {
-      Object.entries(packageJson.scripts).forEach(([name, script]) => {
+      Object.entries(packageJson.scripts).forEach(([_name, script]) => {
         expect(script).toBeTruthy();
         expect(typeof script).toBe("string");
         expect((script as string).trim().length).toBeGreaterThan(0);
@@ -644,7 +644,7 @@ describe("Package.json Validation", () => {
         ...packageJson.devDependencies,
       };
 
-      Object.entries(allDeps).forEach(([name, version]) => {
+      Object.entries(allDeps).forEach(([_name, version]) => {
         // Should not use overly permissive ranges
         expect(version).not.toMatch(/^[*x]/);
         expect(version).not.toMatch(/\|\|/); // Or operator

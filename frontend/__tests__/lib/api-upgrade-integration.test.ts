@@ -15,7 +15,6 @@
 
 import axios from "axios";
 import type { AxiosInstance } from "axios";
-import type { Asset, Metrics, VisualizationData } from "../../app/types/api";
 import { mockAsset, mockMetrics, mockVizData, mockAssets } from "../test-utils";
 
 jest.mock("axios");

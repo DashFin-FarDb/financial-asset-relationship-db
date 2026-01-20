@@ -50,7 +50,11 @@ class TestFormulaicVisualizer:
                 sample_formula,
                 dict(
                     description="Percentage return from dividends",
-                    variables={"Div_Yield": "Dividend Yield (%)", "D_annual": "Annual Dividends ($)", "P": "Price ($)"},
+                    variables={
+                        "Div_Yield": "Dividend Yield (%)",
+                        "D_annual": "Annual Dividends ($)",
+                        "P": "Price ($)",
+                    },
                     example_calculation="MSFT: Yield = 2.5%",
                     category="Income",
                     r_squared=1.0,
@@ -64,13 +68,29 @@ class TestFormulaicVisualizer:
                     "MSFT-GOOGL": 0.75,
                 },
                 "strongest_correlations": [
-                    {"asset1": "AAPL", "asset2": "MSFT", "correlation": 0.8, "strength": "Strong"},
-                    {"asset1": "MSFT", "asset2": "GOOGL", "correlation": 0.75, "strength": "Strong"},
+                    {
+                        "asset1": "AAPL",
+                        "asset2": "MSFT",
+                        "correlation": 0.8,
+                        "strength": "Strong",
+                    },
+                    {
+                        "asset1": "MSFT",
+                        "asset2": "GOOGL",
+                        "correlation": 0.75,
+                        "strength": "Strong",
+                    },
                 ],
             },
-            "asset_class_relationships": {"Equity": {"asset_count": 3, "avg_price": 150.0, "total_value": 450.0}},
+            "asset_class_relationships": {
+                "Equity": {"asset_count": 3, "avg_price": 150.0, "total_value": 450.0}
+            },
             "sector_relationships": {
-                "Technology": {"asset_count": 3, "avg_price": 150.0, "price_range": "$100.00 - $200.00"}
+                "Technology": {
+                    "asset_count": 3,
+                    "avg_price": 150.0,
+                    "price_range": "$100.00 - $200.00",
+                }
             },
         }
 
@@ -98,11 +118,17 @@ class TestFormulaicVisualizer:
         ]
 
         for category in expected_categories:
-            assert category in visualizer.color_scheme, f"Color scheme should include {category}"
-            assert isinstance(visualizer.color_scheme[category], str), f"Color for {category} should be a string"
+            assert category in visualizer.color_scheme, (
+                f"Color scheme should include {category}"
+            )
+            assert isinstance(visualizer.color_scheme[category], str), (
+                f"Color for {category} should be a string"
+            )
 
     @staticmethod
-    def test_create_formula_dashboard_with_full_data(visualizer, sample_analysis_results):
+    def test_create_formula_dashboard_with_full_data(
+        visualizer, sample_analysis_results
+    ):
         """Test creating a formula dashboard with comprehensive data."""
         # Execute
         fig = visualizer.create_formula_dashboard(sample_analysis_results)
@@ -115,7 +141,6 @@ class TestFormulaicVisualizer:
         assert fig.layout.plot_bgcolor == "white"
         assert fig.layout.paper_bgcolor == "#F8F9FA"
 
-    @staticmethod
     @staticmethod
     def test_create_formula_dashboard_with_empty_data(visualizer):
         """Test creating a formula dashboard with empty data."""
@@ -133,8 +158,9 @@ class TestFormulaicVisualizer:
         assert fig.layout.title.text == "📊 Financial Formulaic Analysis Dashboard"
 
     @staticmethod
-    @staticmethod
-    def test_create_formula_dashboard_categories_pie_chart(visualizer, sample_analysis_results):
+    def test_create_formula_dashboard_categories_pie_chart(
+        visualizer, sample_analysis_results
+    ):
         """Test that formula categories pie chart is created correctly."""
         # Execute
         fig = visualizer.create_formula_dashboard(sample_analysis_results)
@@ -149,8 +175,9 @@ class TestFormulaicVisualizer:
         assert len(pie_trace.values) > 0, "Should have category values"
 
     @staticmethod
-    @staticmethod
-    def test_create_formula_dashboard_reliability_bar_chart(visualizer, sample_analysis_results):
+    def test_create_formula_dashboard_reliability_bar_chart(
+        visualizer, sample_analysis_results
+    ):
         """Test that formula reliability bar chart is created correctly."""
         # Execute
         fig = visualizer.create_formula_dashboard(sample_analysis_results)
@@ -160,8 +187,9 @@ class TestFormulaicVisualizer:
         assert len(bar_traces) > 0, "Should have at least one bar chart"
 
     @staticmethod
-    @staticmethod
-    def test_create_formula_dashboard_correlation_heatmap(visualizer, sample_analysis_results):
+    def test_create_formula_dashboard_correlation_heatmap(
+        visualizer, sample_analysis_results
+    ):
         """Test that correlation heatmap is created correctly."""
         # Execute
         fig = visualizer.create_formula_dashboard(sample_analysis_results)
@@ -176,7 +204,6 @@ class TestFormulaicVisualizer:
         assert heatmap.zmax == 1
 
     @staticmethod
-    @staticmethod
     def test_create_formula_dashboard_with_table(visualizer, sample_analysis_results):
         """Test that formula examples table is created."""
         # Execute
@@ -190,7 +217,6 @@ class TestFormulaicVisualizer:
         assert hasattr(table, "header")
         assert hasattr(table, "cells")
 
-    @staticmethod
     @staticmethod
     def test_create_formula_detail_view(visualizer, sample_formula):
         """Test creating a detailed formula view."""
@@ -211,7 +237,6 @@ class TestFormulaicVisualizer:
         assert sample_formula.formula in annotation.text
         assert sample_formula.description in annotation.text
 
-    @staticmethod
     @staticmethod
     def test_create_formula_detail_view_includes_all_fields(visualizer, sample_formula):
         """Test that detail view includes all formula fields."""
@@ -237,7 +262,9 @@ class TestFormulaicVisualizer:
     def test_create_correlation_network_with_data(visualizer, sample_analysis_results):
         """Test creating a correlation network with data."""
         # Execute
-        fig = visualizer.create_correlation_network(sample_analysis_results["empirical_relationships"])
+        fig = visualizer.create_correlation_network(
+            sample_analysis_results["empirical_relationships"]
+        )
 
         # Assert
         assert isinstance(fig, go.Figure)
@@ -258,10 +285,14 @@ class TestFormulaicVisualizer:
         assert "No correlation data available" in fig.layout.annotations[0].text
 
     @staticmethod
-    def test_create_correlation_network_node_positioning(visualizer, sample_analysis_results):
+    def test_create_correlation_network_node_positioning(
+        visualizer, sample_analysis_results
+    ):
         """Test that correlation network positions nodes in a circle."""
         # Execute
-        fig = visualizer.create_correlation_network(sample_analysis_results["empirical_relationships"])
+        fig = visualizer.create_correlation_network(
+            sample_analysis_results["empirical_relationships"]
+        )
 
         # Find node trace (should be the last trace with mode containing 'markers')
         node_traces = [trace for trace in fig.data if "markers" in trace.mode]
@@ -270,9 +301,10 @@ class TestFormulaicVisualizer:
         node_trace = node_traces[-1]
         assert len(node_trace.x) > 0, "Should have node x coordinates"
         assert len(node_trace.y) > 0, "Should have node y coordinates"
-        assert len(node_trace.x) == len(node_trace.y), "Should have matching x and y coordinates"
+        assert len(node_trace.x) == len(node_trace.y), (
+            "Should have matching x and y coordinates"
+        )
 
-    @staticmethod
     @staticmethod
     def test_create_correlation_network_edge_colors(visualizer):
         """Test that correlation network uses correct edge colors based on strength."""
@@ -280,8 +312,16 @@ class TestFormulaicVisualizer:
         relationships = {
             "strongest_correlations": [
                 {"asset1": "AAPL", "asset2": "MSFT", "correlation": 0.8},  # red (>0.7)
-                {"asset1": "AAPL", "asset2": "GOOGL", "correlation": 0.5},  # orange (>0.4)
-                {"asset1": "MSFT", "asset2": "AMZN", "correlation": 0.3},  # lightgray (<0.4)
+                {
+                    "asset1": "AAPL",
+                    "asset2": "GOOGL",
+                    "correlation": 0.5,
+                },  # orange (>0.4)
+                {
+                    "asset1": "MSFT",
+                    "asset2": "AMZN",
+                    "correlation": 0.3,
+                },  # lightgray (<0.4)
             ]
         }
 
@@ -292,7 +332,6 @@ class TestFormulaicVisualizer:
         edge_traces = [trace for trace in fig.data if trace.mode == "lines"]
         assert len(edge_traces) > 0, "Should have edge traces"
 
-    @staticmethod
     @staticmethod
     def test_create_metric_comparison_chart(visualizer, sample_analysis_results):
         """Test creating a metric comparison chart."""
@@ -316,7 +355,6 @@ class TestFormulaicVisualizer:
         # Assert - should create valid figure even with no data
         assert isinstance(fig, go.Figure)
 
-    @staticmethod
     @staticmethod
     def test_create_metric_comparison_chart_multiple_categories(visualizer):
         """Test metric comparison chart with multiple categories."""
@@ -362,7 +400,9 @@ class TestFormulaicVisualizer:
         assert len(fig.data) == 2, "Should have two bar traces (R-squared and count)"
 
         # Find the traces
-        r_squared_trace = next((t for t in fig.data if t.name == "Average R-squared"), None)
+        r_squared_trace = next(
+            (t for t in fig.data if t.name == "Average R-squared"), None
+        )
         count_trace = next((t for t in fig.data if t.name == "Formula Count"), None)
 
         assert r_squared_trace is not None, "Should have R-squared trace"
@@ -427,7 +467,12 @@ class TestFormulaicVisualizer:
         # Create many correlations
         relationships = {
             "strongest_correlations": [
-                {"asset1": f"ASSET_{i}", "asset2": f"ASSET_{i+1}", "correlation": 0.9 - i * 0.05} for i in range(20)
+                {
+                    "asset1": f"ASSET_{i}",
+                    "asset2": f"ASSET_{i + 1}",
+                    "correlation": 0.9 - i * 0.05,
+                }
+                for i in range(20)
             ]
         }
 
@@ -472,10 +517,14 @@ class TestFormulaicVisualizer:
         fig = visualizer.create_metric_comparison_chart(results)
 
         # Assert
-        r_squared_trace = next((t for t in fig.data if t.name == "Average R-squared"), None)
+        r_squared_trace = next(
+            (t for t in fig.data if t.name == "Average R-squared"), None
+        )
         assert r_squared_trace is not None
 
         # Average should be (0.9 + 0.7) / 2 = 0.8
         assert len(r_squared_trace.y) > 0
         avg_value = r_squared_trace.y[0]
-        assert abs(avg_value - 0.8) < 0.01, "Should correctly calculate average R-squared"
+        assert abs(avg_value - 0.8) < 0.01, (
+            "Should correctly calculate average R-squared"
+        )

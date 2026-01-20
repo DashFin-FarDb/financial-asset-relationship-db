@@ -214,7 +214,7 @@ export default function AssetList() {
     updateQueryParams({ per_page: String(nextSize), page: "1" });
   };
 
-  const goToPage = (requestedPage: number) => {
+  const _goToPage = (requestedPage: number) => {
     const lowerBounded = Math.max(1, requestedPage);
     const bounded =
       totalPages !== null ? Math.min(lowerBounded, totalPages) : lowerBounded;
@@ -238,8 +238,6 @@ export default function AssetList() {
               htmlFor="asset-class-filter"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Asset Class
-            </label>
             <select
               className="w-full border border-gray-300 rounded-md px-3 py-2"
               id="asset-class-filter"
@@ -377,7 +375,7 @@ export default function AssetList() {
           <div className="flex items-center space-x-2">
             <button
               type="button"
-              onClick={() => goToPage(page - 1)}
+              onClick={handlePrevPage}
               disabled={!canGoPrev}
               className={`px-3 py-1 rounded-md border ${
                 canGoPrev
@@ -393,7 +391,7 @@ export default function AssetList() {
             </span>
             <button
               type="button"
-              onClick={() => goToPage(page + 1)}
+              onClick={handleNextPage}
               disabled={!canGoNext}
               className={`px-3 py-1 rounded-md border ${
                 canGoNext

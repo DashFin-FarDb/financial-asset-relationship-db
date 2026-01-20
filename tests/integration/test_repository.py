@@ -10,7 +10,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.data.repository import AssetGraphRepository
-from src.models.financial_models import AssetClass, Bond, Equity, RegulatoryActivity, RegulatoryEvent
+from src.models.financial_models import (
+    AssetClass,
+    Bond,
+    Equity,
+    RegulatoryActivity,
+    RegulatoryEvent,
+)
 
 pytest.importorskip("sqlalchemy")
 
@@ -115,8 +121,12 @@ def test_relationship_and_event_crud_flow(session):
     session.commit()
     session.expire_all()
 
-    repo.add_or_update_relationship("PARENT", "PARENT_BOND", "test", 0.5, False)
-    repo.add_or_update_relationship("PARENT", "PARENT_BOND", "test", 0.8, False)
+    repo.add_or_update_relationship(
+        "PARENT", "PARENT_BOND", "test", 0.5, bidirectional=False
+    )
+    repo.add_or_update_relationship(
+        "PARENT", "PARENT_BOND", "test", 0.8, bidirectional=False
+    )
     session.commit()
     session.expire_all()
 

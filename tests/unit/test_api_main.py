@@ -162,7 +162,12 @@ class TestPydanticModels:
     def test_asset_response_model_optional_fields(self):
         """Test AssetResponse with optional fields omitted."""
         asset = AssetResponse(
-            id="AAPL", symbol="AAPL", name="Apple Inc.", asset_class="EQUITY", sector="Technology", price=150.00
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class="EQUITY",
+            sector="Technology",
+            price=150.00,
         )
         assert asset.market_cap is None
         assert asset.currency == "USD"  # Default value
@@ -170,7 +175,12 @@ class TestPydanticModels:
 
     def test_relationship_response_model(self):
         """Test RelationshipResponse model."""
-        rel = RelationshipResponse(source_id="AAPL", target_id="MSFT", relationship_type="same_sector", strength=0.8)
+        rel = RelationshipResponse(
+            source_id="AAPL",
+            target_id="MSFT",
+            relationship_type="same_sector",
+            strength=0.8,
+        )
         assert rel.source_id == "AAPL"
         assert rel.strength == 0.8
 
@@ -190,7 +200,8 @@ class TestPydanticModels:
     def test_visualization_data_response_model(self):
         """Test VisualizationDataResponse model."""
         viz = VisualizationDataResponse(
-            nodes=[{"id": "AAPL", "x": 1.0, "y": 2.0, "z": 3.0}], edges=[{"source": "AAPL", "target": "MSFT"}]
+            nodes=[{"id": "AAPL", "x": 1.0, "y": 2.0, "z": 3.0}],
+            edges=[{"source": "AAPL", "target": "MSFT"}],
         )
         assert len(viz.nodes) == 1
         assert len(viz.edges) == 1
@@ -551,7 +562,9 @@ class TestErrorHandling:
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
         mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = mock_graph.get_3d_visualization_data
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
 
         response = client.get("/api/metrics")
         assert response.status_code == 500
@@ -632,9 +645,16 @@ class TestAdditionalFields:
             additional = asset.get("additional_fields", {})
 
             # Check for equity-specific fields
-            possible_fields = ["pe_ratio", "dividend_yield", "earnings_per_share", "book_value"]
+            possible_fields = [
+                "pe_ratio",
+                "dividend_yield",
+                "earnings_per_share",
+                "book_value",
+            ]
             has_equity_field = any(field in additional for field in possible_fields)
-            assert has_equity_field or len(additional) == 0  # Either has fields or empty
+            assert (
+                has_equity_field or len(additional) == 0
+            )  # Either has fields or empty
 
     @staticmethod
     def test_bond_additional_fields(client):
@@ -647,7 +667,12 @@ class TestAdditionalFields:
             additional = asset.get("additional_fields", {})
 
             # Check for bond-specific fields
-            possible_fields = ["yield_to_maturity", "coupon_rate", "maturity_date", "credit_rating"]
+            possible_fields = [
+                "yield_to_maturity",
+                "coupon_rate",
+                "maturity_date",
+                "credit_rating",
+            ]
             has_bond_field = any(field in additional for field in possible_fields)
             assert has_bond_field or len(additional) == 0
 

@@ -143,7 +143,7 @@ describe("Package-lock.json Validation", () => {
     it("axios dependencies should be resolved", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
       if (axiosLock?.dependencies) {
-        Object.entries(axiosLock.dependencies).forEach(([dep, version]) => {
+        Object.entries(axiosLock.dependencies).forEach(([_dep, version]) => {
           expect(version).toBeDefined();
           expect(typeof version).toBe("string");
         });
@@ -328,7 +328,7 @@ describe("Package-lock.json Validation", () => {
   describe("Peer Dependencies", () => {
     it("should not have unresolved peer dependencies", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [
+        ([_path, pkg]: [
           string,
           {
             peerDependencies?: Record<string, string>;
@@ -362,7 +362,7 @@ describe("Package-lock.json Validation", () => {
 
       // Check packages that have React as peer dependency
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [
+        ([, pkg]: [
           string,
           {
             peerDependencies?: { react?: string };
@@ -396,7 +396,7 @@ describe("Package-lock.json Validation", () => {
 
     it("should not have version ranges in lockfile", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { version?: string }]) => {
+        ([_path, pkg]: [string, { version?: string }]) => {
           if (pkg.version) {
             expect(pkg.version).not.toContain("||");
             expect(pkg.version).not.toContain("*");
@@ -408,7 +408,7 @@ describe("Package-lock.json Validation", () => {
 
     it("dependency constraints should use exact versions or ranges", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { dependencies?: Record<string, string> }]) => {
+        ([_path, pkg]: [string, { dependencies?: Record<string, string> }]) => {
           if (pkg.dependencies) {
             Object.values(pkg.dependencies).forEach((version) => {
               expect(typeof version).toBe("string");
@@ -423,7 +423,7 @@ describe("Package-lock.json Validation", () => {
   describe("Security and Integrity", () => {
     it("all integrity hashes should use SHA-512 or higher", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { integrity?: string }]) => {
+        ([_path, pkg]: [string, { integrity?: string }]) => {
           if (pkg.integrity) {
             // Should use sha512 or sha256 at minimum
             expect(pkg.integrity).toMatch(/^sha(256|384|512)-/);
@@ -440,7 +440,7 @@ describe("Package-lock.json Validation", () => {
 
     it("should not have git:// URLs (use https:// instead)", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { resolved?: string }]) => {
+        ([_path, pkg]: [string, { resolved?: string }]) => {
           if (pkg.resolved) {
             expect(pkg.resolved).not.toMatch(/^git:/);
           }
@@ -450,7 +450,7 @@ describe("Package-lock.json Validation", () => {
 
     it("should use registry.npmjs.org or known registries", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { resolved?: string }]) => {
+        ([_path, pkg]: [string, { resolved?: string }]) => {
           if (pkg.resolved && !pkg.resolved.startsWith("file:")) {
             const validRegistries = [
               "registry.npmjs.org",
@@ -584,7 +584,7 @@ describe("Package-lock.json Validation", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
 
       if (axiosLock?.dependencies) {
-        Object.entries(axiosLock.dependencies).forEach(([dep, version]) => {
+        Object.entries(axiosLock.dependencies).forEach(([_dep, version]) => {
           expect(version).toBeDefined();
           expect(typeof version).toBe("string");
           // Should have version constraint
@@ -611,15 +611,12 @@ describe("Package-lock.json Validation", () => {
 
     it("should not break any peer dependencies with upgrade", () => {
       // Check if any package has axios as peer dependency
-      let axiosPeerDepFound = false;
-
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [
+        ([_path, pkg]: [
           string,
           { peerDependencies?: Record<string, string> },
         ]) => {
           if (pkg.peerDependencies?.axios) {
-            axiosPeerDepFound = true;
             const peerVersion = pkg.peerDependencies.axios;
 
             // 1.13.2 should satisfy the peer dependency
