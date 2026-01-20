@@ -41,9 +41,7 @@ def load_workflow(workflow_name: str) -> Dict[str, Any]:
         pytest.skip(f"{workflow_name} not found")
     with open(workflow_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
-        return yaml.safe_load(f)
-        return yaml.safe_load(f)
-        return yaml.safe_load(f)
+        
     def test_agent_enabled(self, config: Dict[str, Any]):
         """Test that agent is enabled."""
         agent_config = config.get('agent', {})
