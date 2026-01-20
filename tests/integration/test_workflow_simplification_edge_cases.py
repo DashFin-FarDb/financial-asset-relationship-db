@@ -11,7 +11,7 @@ import yaml
 # Paths
 # ---------------------------------------------------------------------------
 
-ROOT_DIR = Path(__file__).resolve().parents[3]
+ROOT_DIR = Path(__file__).resolve().parents[2]
 WORKFLOWS_DIR = ROOT_DIR / ".github" / "workflows"
 CONFIG_FILE = ROOT_DIR / "pr-agent-config.yml"
 
