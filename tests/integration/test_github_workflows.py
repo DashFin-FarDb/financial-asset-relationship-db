@@ -155,12 +155,12 @@ class TestWorkflowStructure:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_has_triggers(self, workflow_file: Path):
         """
-        Verify that the workflow file defines at least one trigger via the top-level 'on' key.
+        Ensure the workflow YAML defines at least one trigger via the top-level 'on' key.
         
-        Asserts that the parsed YAML is a mapping and contains a top-level 'on' entry. Raises an AssertionError if the file does not parse to a mapping or if the 'on' key is missing.
+        Asserts that the file parses to a mapping and contains the top-level 'on' entry.
         
         Parameters:
-            workflow_file (Path): Path to the workflow YAML file being tested.
+            workflow_file (Path): Path to the workflow YAML file under test.
         """
         config = load_yaml_safe(workflow_file)
         assert isinstance(config, dict), (
@@ -440,10 +440,10 @@ class TestPrAgentWorkflow:
     
     def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Verify that every actions/setup-python step in the "pr-agent-trigger" job specifies the Python version "3.11".
+        Ensure every actions/setup-python step in the 'pr-agent-trigger' job specifies Python version 3.11.
         
         Parameters:
-            pr_agent_workflow (dict): Parsed workflow mapping for pr-agent.yml.
+            pr_agent_workflow (dict): Parsed workflow mapping for pr-agent.yml (top-level workflow mapping).
         """
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
@@ -1924,7 +1924,11 @@ class TestTestSuiteCompleteness:
     """Meta-test to ensure test suite is comprehensive."""
     
     def test_all_workflow_files_tested(self):
-        """Verify that all workflow files are included in tests."""
+        """
+        Ensure every workflow file in the repository's workflows directory is discoverable and has a YAML extension.
+        
+        Asserts that at least one workflow file is found, each listed path exists, and each file uses the `.yml` or `.yaml` extension.
+        """
         workflow_files = get_workflow_files()
         assert len(workflow_files) > 0, "Should find at least one workflow file"
         
@@ -2034,7 +2038,11 @@ class TestPRAgentWorkflowSpecific:
                     )
 
     def test_pr_agent_uses_actions_checkout(self):
-        """Test that pr-agent workflow uses actions/checkout correctly."""
+        """
+        Ensure every job in .github/workflows/pr-agent.yml contains at least one actions/checkout step and validate any checkout `fetch-depth`.
+        
+        Verifies that the pr-agent workflow file exists, that each job has at least one step using `actions/checkout`, and that when a checkout step includes a `with.fetch-depth` value it is either `0` or a positive integer.
+        """
         pr_agent_file = Path(".github/workflows/pr-agent.yml")
         assert pr_agent_file.exists(), "pr-agent.yml workflow file not found"
         

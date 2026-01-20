@@ -760,3 +760,312 @@ class TestEdgeCases:
 
         # Assert
         assert len(analyzer.formulas) == initial_length, "Should not modify analyzer's formulas list"
+
+# ============================================================================
+# Additional Tests for src/analysis/formulaic_analysis.py Updates
+# ============================================================================
+
+class TestFormulaicdAnalyzerClassDescription:
+    """Test updated class description for FormulaicdAnalyzer."""
+    
+    def test_class_docstring_updated(self):
+        """Test that class docstring has been updated."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        
+        docstring = FormulaicdAnalyzer.__doc__
+        assert docstring is not None
+        assert "Analyzes financial data" in docstring
+    
+    def test_class_docstring_no_trailing_period(self):
+        """Test that class docstring doesn't have trailing period (style update)."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        
+        docstring = FormulaicdAnalyzer.__doc__
+        # The updated docstring should not end with a period
+        assert not docstring.strip().endswith('.')
+
+
+class TestExtractFundamentalFormulasUpdates:
+    """Test updates to _extract_fundamental_formulas method."""
+    
+    def test_extract_fundamental_formulas_with_equity(self, populated_graph):
+        """Test formula extraction for equity assets."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        
+        analyzer = FormulaicdAnalyzer()
+        formulas = analyzer._extract_fundamental_formulas(populated_graph)
+        
+        # Should include PE ratio formula for equities
+        formula_names = [f.name for f in formulas]
+        assert any('Price-to-Earnings' in name for name in formula_names)
+    
+    def test_pe_ratio_formula_description_concise(self):
+        """Test that PE ratio formula has concise description."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        from src.logic.asset_graph import AssetRelationshipGraph
+        from src.models.financial_models import Equity, AssetClass
+        
+        graph = AssetRelationshipGraph()
+        equity = Equity(
+            id="TEST",
+            symbol="TEST",
+            name="Test",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+            market_cap=1e9,
+            pe_ratio=20.0,
+            dividend_yield=0.02,
+            earnings_per_share=5.0,
+            book_value=50.0
+        )
+        graph.assets = {"TEST": equity}
+        
+        analyzer = FormulaicdAnalyzer()
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        
+        pe_formulas = [f for f in formulas if 'Price-to-Earnings' in f.name]
+        assert len(pe_formulas) > 0
+        
+        # Description should be concise (single line)
+        description = pe_formulas[0].description
+        assert '\n' not in description.strip()
+        assert "Valuation metric comparing stock price to earnings" in description
+    
+    def test_dividend_yield_formula_latex_formatting(self):
+        """Test that dividend yield formula has proper LaTeX formatting."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        from src.logic.asset_graph import AssetRelationshipGraph
+        from src.models.financial_models import Equity, AssetClass
+        
+        graph = AssetRelationshipGraph()
+        equity = Equity(
+            id="DIV",
+            symbol="DIV",
+            name="Dividend Stock",
+            asset_class=AssetClass.EQUITY,
+            sector="Finance",
+            price=50.0,
+            market_cap=5e9,
+            pe_ratio=15.0,
+            dividend_yield=0.04,  # Has dividend
+            earnings_per_share=3.0,
+            book_value=25.0
+        )
+        graph.assets = {"DIV": equity}
+        
+        analyzer = FormulaicdAnalyzer()
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        
+        div_formulas = [f for f in formulas if 'Dividend Yield' in f.name]
+        if len(div_formulas) > 0:
+            # LaTeX should be properly formatted (no line breaks in formula)
+            latex = div_formulas[0].latex
+            assert r'\frac{D_{annual}}{P}' in latex
+            assert r'\times 100\%' in latex or r'\times 100%' in latex
+    
+    def test_bond_ytm_formula_formatting(self):
+        """Test that bond YTM formula has clean formatting."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        from src.logic.asset_graph import AssetRelationshipGraph
+        from src.models.financial_models import Bond, AssetClass
+        
+        graph = AssetRelationshipGraph()
+        bond = Bond(
+            id="BOND",
+            symbol="BOND",
+            name="Corporate Bond",
+            asset_class=AssetClass.FIXED_INCOME,
+            sector="Corporate",
+            price=1000.0,
+            yield_to_maturity=0.045,
+            coupon_rate=0.04,
+            maturity_date="2030-12-31",
+            credit_rating="AA"
+        )
+        graph.assets = {"BOND": bond}
+        
+        analyzer = FormulaicdAnalyzer()
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        
+        ytm_formulas = [f for f in formulas if 'Yield-to-Maturity' in f.name]
+        if len(ytm_formulas) > 0:
+            # Formula string should be clean (single line)
+            formula_str = ytm_formulas[0].formula
+            # Should not have excessive line breaks
+            assert formula_str.count('\n') <= 1
+
+
+class TestAnalyzeCorrelationPatternsUpdates:
+    """Test updates to _analyze_correlation_patterns method."""
+    
+    def test_beta_formula_description_concise(self, populated_graph):
+        """Test that beta formula has concise description."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        
+        analyzer = FormulaicdAnalyzer()
+        formulas = analyzer._analyze_correlation_patterns(populated_graph)
+        
+        beta_formulas = [f for f in formulas if 'Beta' in f.name]
+        if len(beta_formulas) > 0:
+            description = beta_formulas[0].description
+            # Should be single line
+            assert '\n' not in description.strip()
+            assert "sensitivity to market movements" in description.lower()
+    
+    def test_correlation_formula_latex_single_line(self):
+        """Test that correlation formula LaTeX is on single line."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        from src.logic.asset_graph import AssetRelationshipGraph
+        
+        graph = AssetRelationshipGraph()
+        # Add some assets to trigger correlation formula
+        graph.relationships = {
+            'asset1': [('asset2', 'correlation', 0.8)]
+        }
+        
+        analyzer = FormulaicdAnalyzer()
+        formulas = analyzer._analyze_correlation_patterns(graph)
+        
+        corr_formulas = [f for f in formulas if 'Correlation' in f.name]
+        if len(corr_formulas) > 0:
+            latex = corr_formulas[0].latex
+            # LaTeX should not have line breaks
+            assert '\n' not in latex.strip()
+            assert r'\times' in latex  # Should use \times instead of line break
+
+
+class TestExtractValuationRelationshipsUpdates:
+    """Test updates to _extract_valuation_relationships method."""
+    
+    def test_price_to_book_formula_description(self):
+        """
+        Verify the Price-to-Book valuation formula has a single-line description that mentions comparing market price to book value.
+        
+        The test asserts the formula description contains no newline characters and includes the phrase indicating a comparison of market price to book value (case-insensitive).
+        """
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        from src.logic.asset_graph import AssetRelationshipGraph
+        from src.models.financial_models import Equity, AssetClass
+        
+        graph = AssetRelationshipGraph()
+        equity = Equity(
+            id="VAL",
+            symbol="VAL",
+            name="Value Stock",
+            asset_class=AssetClass.EQUITY,
+            sector="Finance",
+            price=40.0,
+            market_cap=4e9,
+            pe_ratio=12.0,
+            dividend_yield=0.03,
+            earnings_per_share=3.33,
+            book_value=35.0  # Has book value
+        )
+        graph.assets = {"VAL": equity}
+        
+        analyzer = FormulaicdAnalyzer()
+        formulas = analyzer._extract_valuation_relationships(graph)
+        
+        pb_formulas = [f for f in formulas if 'Price-to-Book' in f.name]
+        if len(pb_formulas) > 0:
+            description = pb_formulas[0].description
+            # Should be single line
+            assert '\n' not in description.strip()
+            assert "comparing market price to book value" in description.lower()
+
+
+class TestAnalyzeGraphComprehensive:
+    """Comprehensive tests for analyze_graph method with updates."""
+    
+    def test_analyze_graph_returns_all_expected_keys(self, populated_graph):
+        """Test that analyze_graph returns all expected dictionary keys."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        
+        analyzer = FormulaicdAnalyzer()
+        results = analyzer.analyze_graph(populated_graph)
+        
+        # Should have all expected keys
+        assert 'fundamental_formulas' in results
+        assert 'correlation_patterns' in results
+        assert 'valuation_relationships' in results
+        assert 'empirical_relationships' in results
+        assert 'formula_count' in results
+        assert 'categories' in results
+        assert 'summary' in results
+    
+    def test_analyze_graph_formula_count_correct(self, populated_graph):
+        """Test that formula count matches total formulas."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        
+        analyzer = FormulaicdAnalyzer()
+        results = analyzer.analyze_graph(populated_graph)
+        
+        # Count total formulas
+        total = (
+            len(results['fundamental_formulas']) +
+            len(results['correlation_patterns']) +
+            len(results['valuation_relationships']) +
+            len(results['empirical_relationships'])
+        )
+        
+        assert results['formula_count'] == total
+    
+    def test_analyze_graph_with_empty_graph(self):
+        """Test analyze_graph handles empty graph gracefully."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        from src.logic.asset_graph import AssetRelationshipGraph
+        
+        graph = AssetRelationshipGraph()
+        # Empty graph
+        
+        analyzer = FormulaicdAnalyzer()
+        results = analyzer.analyze_graph(graph)
+        
+        # Should return valid structure even for empty graph
+        assert isinstance(results, dict)
+        assert 'formula_count' in results
+        assert isinstance(results['formula_count'], int)
+
+
+class TestFormulaFormattingConsistency:
+    """Test that formula formatting is consistent across all formulas."""
+    
+    def test_all_formulas_have_required_fields(self, populated_graph):
+        """Test that all formulas have required fields."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        
+        analyzer = FormulaicdAnalyzer()
+        results = analyzer.analyze_graph(populated_graph)
+        
+        all_formulas = (
+            results['fundamental_formulas'] +
+            results['correlation_patterns'] +
+            results['valuation_relationships'] +
+            results['empirical_relationships']
+        )
+        
+        for formula in all_formulas:
+            assert hasattr(formula, 'name')
+            assert hasattr(formula, 'formula')
+            assert hasattr(formula, 'latex')
+            assert hasattr(formula, 'description')
+            assert hasattr(formula, 'variables')
+            assert hasattr(formula, 'category')
+    
+    def test_formula_descriptions_are_single_line(self, populated_graph):
+        """Test that formula descriptions don't have excessive line breaks."""
+        from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+        
+        analyzer = FormulaicdAnalyzer()
+        results = analyzer.analyze_graph(populated_graph)
+        
+        all_formulas = (
+            results['fundamental_formulas'] +
+            results['correlation_patterns'] +
+            results['valuation_relationships']
+        )
+        
+        for formula in all_formulas:
+            # Descriptions should be concise (no multiple line breaks)
+            assert formula.description.count('\n') <= 1

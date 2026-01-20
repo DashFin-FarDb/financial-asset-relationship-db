@@ -251,7 +251,22 @@ class TestVersionSpecifications:
         Each tuple contains the package name and a single version specifier string; the version spec is an empty string when no specifier is present.
 
         Returns:
-            List[Tuple[str, str]]: Parsed requirements as (package_name, version_spec) pairs.
+            """
+    Parse a requirements file into a list of package name and normalized version-specifier pairs.
+    
+    Blank lines and full-line comments are ignored; inline comments (text after '#') are stripped before parsing. Each non-empty line is parsed with packaging.Requirement; environment markers are rejected, duplicate package entries (case-insensitive) are rejected, and version specifiers are normalized into a comma-separated string with no extraneous spaces. If a package has no specifier, the returned specifier string is empty.
+    
+    Parameters:
+        file_path (Path): Path to the requirements file to parse.
+    
+    Returns:
+        List[Tuple[str, str]]: A list of (package_name, version_spec) tuples where `version_spec` is a comma-separated specifier string (e.g., ">=1.0,<=2.0") or an empty string when no specifiers are present.
+    
+    Raises:
+        AssertionError: If a requirement line is malformed, contains an environment marker, is a duplicate, or has an invalid version specifier.
+        RequirementsFileError: If the requirements file cannot be opened or read (for example, due to FileNotFoundError or PermissionError).
+    """
+    List[Tuple[str, str]]: Parsed requirements as (package_name, version_spec) pairs.
         """
         return parse_requirements(REQUIREMENTS_FILE)
 

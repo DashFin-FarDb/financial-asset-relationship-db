@@ -109,7 +109,7 @@ class TestMarkdownFormatting:
         open_block = False
         for i, line in enumerate(summary_lines, start=1):
             stripped = line.strip()
-            if re.match(r'^```', stripped):
+            if stripped.startswith('```'):
                 # Toggle open/close state on a fence line
                 open_block = not open_block
         assert open_block is False, "Code blocks not properly closed or mismatched triple backticks detected"
@@ -121,6 +121,9 @@ class TestMarkdownFormatting:
         
         Parameters:
             summary_lines (List[str]): Lines of the Markdown summary file to inspect.
+        
+        Raises:
+            AssertionError: If any list item has an odd number of leading spaces.
         """
         list_lines = [line for line in summary_lines if re.match(r'^\s*[-*+] ', line)]
         if list_lines:
@@ -292,7 +295,7 @@ class TestDocumentMaintainability:
         
         assert h1_count >= 1, "Should have at least one H1 heading"
         assert h2_count >= 3, "Should have at least 3 H2 headings for organization"
-    
+
     def test_sections_have_content(self, summary_content: str):
         """Test that major sections have substantial content."""
         sections = re.split(r'\n## ', summary_content)
@@ -310,13 +313,13 @@ class TestLinkValidation:
 
     def test_internal_links_valid(self, summary_lines: List[str], summary_content: str):
         """
-        Validates that every GitHub-style internal link in the Markdown points to an existing header.
+        Ensure every GitHub-style internal link ([text](#anchor)) points to an existing header.
         
-        Checks internal links of the form [text](#anchor) in the full document content against the set of GitHub Flavored Markdown anchors derived from the document headers; the test fails if any anchor does not match an existing header.
+        Extracts headers from summary_lines, derives GitHub Flavored Markdown (GFM) anchors, and asserts that every internal link target found in summary_content matches one of those anchors.
         
         Parameters:
-            summary_lines (List[str]): The file split into lines; used to extract headers.
-            summary_content (str): The full file content; used to extract internal link targets.
+            summary_lines (List[str]): File content split into lines; used to extract headers.
+            summary_content (str): Full file content as a single string; used to find internal link targets.
         """
         import unicodedata
 
@@ -325,15 +328,13 @@ class TestLinkValidation:
             """
             Convert a header string into a GitHub Flavored Markdown (GFM) anchor.
             
-            The returned string is a lowercase, URL-friendly anchor suitable for internal Markdown links:
-            diacritics are removed, punctuation and special characters are stripped (except hyphens),
-            whitespace is collapsed to single hyphens, and leading/trailing hyphens are removed.
+            The result is a lowercase, URL-friendly anchor: diacritics are removed, punctuation and special characters are stripped except hyphens, whitespace is collapsed to single hyphens, multiple hyphens are collapsed, and leading/trailing hyphens are removed.
             
             Parameters:
                 text (str): Header text to convert into an anchor.
             
             Returns:
-                anchor (str): A GFM-compatible anchor string for use in internal links (e.g. "my-section-title").
+                anchor (str): GFM-compatible anchor string suitable for internal Markdown links (e.g., "my-section-title").
             """
             s = text.strip().lower()
             # Normalize unicode to NFKD and remove diacritics

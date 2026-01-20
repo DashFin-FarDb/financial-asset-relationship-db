@@ -771,3 +771,304 @@ class TestRealDataFetcherFallback:
 
         assert len(graph.assets) == len(reference_graph.assets)
         assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys())
+
+
+# ============================================================================
+# Additional Tests for api/auth.py Changes (UserInDB move, instance methods)
+# ============================================================================
+
+class TestUserInDBClassRefactoring:
+    """Test suite for UserInDB class that was moved from api.models."""
+    
+    def test_user_in_db_class_exists_in_auth_module(self):
+        """Test that UserInDB is now defined in api.auth module."""
+        from api.auth import UserInDB
+        
+        assert UserInDB is not None
+        assert hasattr(UserInDB, '__annotations__')
+    
+    def test_user_in_db_inherits_from_user_base_class(self):
+        """Test that UserInDB properly inherits from User."""
+        from api.auth import User, UserInDB
+        
+        user_in_db = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            full_name="Test User",
+            disabled=False,
+            hashed_password="$2b$12$hashedpasswordexample"
+        )
+        
+        assert isinstance(user_in_db, User)
+        assert user_in_db.username == "testuser"
+        assert user_in_db.email == "test@example.com"
+        assert user_in_db.full_name == "Test User"
+        assert user_in_db.disabled is False
+        assert user_in_db.hashed_password == "$2b$12$hashedpasswordexample"
+    
+    def test_user_in_db_requires_hashed_password_field(self):
+        """Test that UserInDB requires hashed_password field."""
+        from api.auth import UserInDB
+        
+        # Should work with hashed_password
+        user = UserInDB(username="test", hashed_password="$2b$12$hash")
+        assert user.hashed_password == "$2b$12$hash"
+        
+        # Test that it's part of the model
+        assert 'hashed_password' in UserInDB.__annotations__
+    
+    def test_user_in_db_optional_fields(self):
+        """Test that UserInDB handles optional fields correctly."""
+        from api.auth import UserInDB
+        
+        user = UserInDB(username="minimaluser", hashed_password="$2b$12$hash")
+        
+        # Optional fields should be None or have defaults
+        assert user.username == "minimaluser"
+        assert user.hashed_password == "$2b$12$hash"
+
+
+class TestUserRepositoryInstanceMethodConversions:
+    """Test suite for UserRepository methods converted from static to instance."""
+    
+    @pytest.fixture
+    def mock_db_setup(self):
+        """
+        Prepare an ephemeral in-memory SQLite database and initialize its schema for tests.
+        
+        Sets the DATABASE_URL environment variable to use an in-memory SQLite database, runs the test schema initialization, and yields control so tests can run against the prepared database. No explicit teardown is required because the database exists only in memory.
+        """
+        import os
+        os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+        from api.database import initialize_schema
+        initialize_schema()
+        yield
+        # Cleanup handled by in-memory database
+    
+    def test_get_user_is_instance_method(self, mock_db_setup):
+        """Test that get_user now works as an instance method."""
+        from api.auth import UserRepository
+        
+        repo = UserRepository()
+        
+        # Verify it's an instance method (not decorated with @staticmethod)
+        assert not isinstance(UserRepository.__dict__.get('get_user'), staticmethod)
+        
+        # Test functionality
+        repo.create_or_update_user(
+            username="instancetest",
+            hashed_password="$2b$12$hashed",
+            email="instance@test.com"
+        )
+        
+        user = repo.get_user("instancetest")
+        assert user is not None
+        assert user.username == "instancetest"
+        assert user.email == "instance@test.com"
+    
+    def test_has_users_is_instance_method(self, mock_db_setup):
+        """Test that has_users now works as an instance method."""
+        from api.auth import UserRepository
+        
+        repo = UserRepository()
+        
+        # Verify it's an instance method
+        assert not isinstance(UserRepository.__dict__.get('has_users'), staticmethod)
+        
+        # Test functionality - initially no users
+        assert repo.has_users() is False
+        
+        # Add a user
+        repo.create_or_update_user(
+            username="hasusertest",
+            hashed_password="$2b$12$hash"
+        )
+        
+        # Now should have users
+        assert repo.has_users() is True
+    
+    def test_create_or_update_user_parameter_name_changes(self, mock_db_setup):
+        """Test renamed parameters in create_or_update_user method."""
+        from api.auth import UserRepository
+        
+        repo = UserRepository()
+        
+        # New parameter names: email, full_name, disabled (instead of user_email, user_full_name, is_disabled)
+        repo.create_or_update_user(
+            username="paramtest",
+            hashed_password="$2b$12$hash",
+            email="param@test.com",
+            full_name="Param Test User",
+            disabled=True
+        )
+        
+        user = repo.get_user("paramtest")
+        assert user is not None
+        assert user.email == "param@test.com"
+        assert user.full_name == "Param Test User"
+        assert user.disabled is True
+    
+    def test_create_or_update_user_with_default_disabled_value(self, mock_db_setup):
+        """Test that disabled parameter defaults to False."""
+        from api.auth import UserRepository
+        
+        repo = UserRepository()
+        
+        # Don't provide disabled parameter
+        repo.create_or_update_user(
+            username="defaulttest",
+            hashed_password="$2b$12$hash",
+            email="default@test.com"
+        )
+        
+        user = repo.get_user("defaulttest")
+        assert user is not None
+        assert user.disabled is False  # Default value
+    
+    def test_create_or_update_user_update_existing(self, mock_db_setup):
+        """Test updating an existing user with new parameters."""
+        from api.auth import UserRepository
+        
+        repo = UserRepository()
+        
+        # Create initial user
+        repo.create_or_update_user(
+            username="updatetest",
+            hashed_password="$2b$12$oldhash",
+            email="old@test.com"
+        )
+        
+        # Update same user
+        repo.create_or_update_user(
+            username="updatetest",
+            hashed_password="$2b$12$newhash",
+            email="new@test.com",
+            full_name="Updated Name"
+        )
+        
+        user = repo.get_user("updatetest")
+        assert user.email == "new@test.com"
+        assert user.full_name == "Updated Name"
+
+
+class TestIsTruthyHelperFunction:
+    """Comprehensive tests for the _is_truthy helper function."""
+    
+    def test_is_truthy_with_true_variations(self):
+        """Test _is_truthy recognizes 'true' in various cases."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("true") is True
+        assert _is_truthy("True") is True
+        assert _is_truthy("TRUE") is True
+        assert _is_truthy("TrUe") is True
+    
+    def test_is_truthy_with_numeric_one(self):
+        """Test _is_truthy recognizes '1' as truthy."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("1") is True
+    
+    def test_is_truthy_with_yes_variations(self):
+        """Test _is_truthy recognizes 'yes' in various cases."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("yes") is True
+        assert _is_truthy("Yes") is True
+        assert _is_truthy("YES") is True
+        assert _is_truthy("YeS") is True
+    
+    def test_is_truthy_with_on_variations(self):
+        """Test _is_truthy recognizes 'on' in various cases."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("on") is True
+        assert _is_truthy("On") is True
+        assert _is_truthy("ON") is True
+        assert _is_truthy("oN") is True
+    
+    def test_is_truthy_with_false_string(self):
+        """Test _is_truthy returns False for 'false' string."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("false") is False
+        assert _is_truthy("False") is False
+        assert _is_truthy("FALSE") is False
+    
+    def test_is_truthy_with_numeric_zero(self):
+        """Test _is_truthy returns False for '0'."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("0") is False
+    
+    def test_is_truthy_with_no_string(self):
+        """Test _is_truthy returns False for 'no'."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("no") is False
+        assert _is_truthy("No") is False
+        assert _is_truthy("NO") is False
+    
+    def test_is_truthy_with_none_value(self):
+        """Test _is_truthy handles None gracefully."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy(None) is False
+    
+    def test_is_truthy_with_empty_string(self):
+        """Test _is_truthy handles empty string."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("") is False
+    
+    def test_is_truthy_with_whitespace_string(self):
+        """Test _is_truthy with whitespace string."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("   ") is False
+    
+    def test_is_truthy_with_arbitrary_strings(self):
+        """Test _is_truthy returns False for unrecognized strings."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy("maybe") is False
+        assert _is_truthy("random") is False
+        assert _is_truthy("2") is False
+        assert _is_truthy("off") is False
+        assert _is_truthy("disabled") is False
+    
+    def test_is_truthy_with_truthy_strings_containing_spaces(self):
+        """Test _is_truthy with truthy values that have leading/trailing spaces."""
+        from api.auth import _is_truthy
+        
+        # The function calls .lower() on the value, so leading/trailing spaces would affect the result
+        # Based on implementation: value.lower() in ('true', '1', 'yes', 'on')
+        # So " true " would not match
+        assert _is_truthy(" true") is False  # Has leading space
+        assert _is_truthy("true ") is False  # Has trailing space
+
+
+class TestAuthModuleDocstringUpdates:
+    """Test that documentation updates are reflected correctly."""
+    
+    def test_is_truthy_function_has_proper_docstring(self):
+        """Test that _is_truthy has updated docstring."""
+        from api.auth import _is_truthy
+        
+        assert _is_truthy.__doc__ is not None
+        assert "Determine whether a string value represents a truthy boolean" in _is_truthy.__doc__
+    
+    def test_user_repository_get_user_docstring(self):
+        """Test that UserRepository.get_user has proper docstring."""
+        from api.auth import UserRepository
+        
+        assert UserRepository.get_user.__doc__ is not None
+        assert "Retrieve a user record by username" in UserRepository.get_user.__doc__
+    
+    def test_user_repository_has_users_docstring(self):
+        """Test that UserRepository.has_users has proper docstring."""
+        from api.auth import UserRepository
+        
+        assert UserRepository.has_users.__doc__ is not None
+        assert "Check whether any user credential records exist" in UserRepository.has_users.__doc__
+

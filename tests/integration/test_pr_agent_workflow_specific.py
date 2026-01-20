@@ -29,7 +29,7 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         Load and parse the GitHub Actions workflow YAML into a Python mapping.
         
         Parameters:
-            workflow_file (Path): Path to the workflow YAML file.
+            workflow_file (Path): Path to the workflow YAML file to read and parse.
         
         Returns:
             Dict[str, Any]: Parsed YAML content as a dictionary.
@@ -133,10 +133,12 @@ class TestPRAgentWorkflowStructureValidation:
         @pytest.fixture(scope='module')
         def workflow_content() -> Dict[str, Any]:
             """
-            Load and parse the GitHub Actions workflow YAML at .github/workflows/pr-agent.yml.
-    
+            Load and parse the PR agent GitHub Actions workflow YAML into a dictionary.
+            
+            Skips the test if the workflow file is missing and fails the test if the YAML is invalid.
+            
             Returns:
-                workflow (Dict[str, Any]): Parsed YAML content of the workflow file as a dictionary.
+                Parsed workflow content as a dictionary (mapping YAML keys to Python values).
             """
             try:
                 with open('.github/workflows/pr-agent.yml', 'r', encoding='utf-8') as f:
@@ -266,7 +268,7 @@ class TestPRAgentWorkflowSetupSteps:
     
     def test_setup_nodejs_exists(self, pr_agent_job: Dict[str, Any]):
         """
-        Assert the job contains at least one step named "Setup Node.js".
+        Verify the job contains at least one step named "Setup Node.js".
         
         Raises:
             AssertionError: If no step named "Setup Node.js" is present.
@@ -288,7 +290,14 @@ class TestPRAgentWorkflowSetupSteps:
                     f"Expected Python version '3.11', got '{version}'"
     
     def test_nodejs_version_is_18(self, pr_agent_job: Dict[str, Any]):
-        """Test that Node.js 18 is specified."""
+        """
+        Asserts the pr-agent-trigger job specifies Node.js version 18 for its "Setup Node.js" step.
+        
+        Checks the job's steps for one named "Setup Node.js" and verifies its `with.node-version` is exactly "18".
+        
+        Parameters:
+            pr_agent_job (dict): Mapping representing the `pr-agent-trigger` job configuration from the workflow YAML.
+        """
         steps = pr_agent_job.get('steps', [])
         for step in steps:
             if step.get('name') == 'Setup Node.js':

@@ -43,10 +43,12 @@ class TestDocumentationExists:
 @pytest.fixture(scope='session')
 def doc_content() -> str:
     """
-    Load the documentation file into a single string for use by tests.
+    Load the entire documentation file content as a single string for use by tests.
+    
+    If the file cannot be found or read, fails the test session via pytest.fail with a descriptive message.
     
     Returns:
-        content (str): The entire contents of the documentation file at DOC_FILE.
+        The full text contents of DOC_FILE.
     """
     try:
         with open(DOC_FILE, 'r', encoding='utf-8') as f:

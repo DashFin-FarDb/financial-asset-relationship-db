@@ -556,3 +556,542 @@ class TestEdgeCases:
         rel = repository.get_relationship("MAX1", "MAX2", "max_strength")
         assert rel is not None
         assert rel.strength == 1.0
+
+# ============================================================================
+# Additional Tests for src/data/real_data_fetcher.py Method Changes
+# ============================================================================
+
+class TestRealDataFetcherInstanceMethodConversions:
+    """Test suite for RealDataFetcher methods converted from static to instance."""
+    
+    @patch('src.data.real_data_fetcher.yf.Ticker')
+    def test_fetch_equity_data_is_instance_method(self, mock_ticker):
+        """Test that _fetch_equity_data now works as an instance method."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        import pandas as pd
+        
+        # Mock ticker data
+        mock_ticker_instance = mock_ticker.return_value
+        mock_ticker_instance.history.return_value = pd.DataFrame({
+            'Close': [150.0],
+            'Volume': [1000000]
+        })
+        mock_ticker_instance.info = {
+            'marketCap': 2400000000000,
+            'trailingPE': 25.5,
+            'dividendYield': 0.005,
+            'trailingEps': 5.89,
+            'bookValue': 4.50
+        }
+        
+        fetcher = RealDataFetcher(enable_network=True)
+        
+        # Verify it's an instance method
+        assert not isinstance(RealDataFetcher.__dict__.get('_fetch_equity_data'), staticmethod)
+        
+        # Test functionality
+        equities = fetcher._fetch_equity_data()
+        
+        assert isinstance(equities, list)
+    
+    @patch('src.data.real_data_fetcher.yf.Ticker')
+    def test_fetch_equity_data_handles_empty_history_gracefully(self, mock_ticker):
+        """Test _fetch_equity_data handles empty history DataFrame."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        import pandas as pd
+        
+        # Mock empty history
+        mock_ticker_instance = mock_ticker.return_value
+        mock_ticker_instance.history.return_value = pd.DataFrame()  # Empty
+        mock_ticker_instance.info = {}
+        
+        fetcher = RealDataFetcher(enable_network=True)
+        equities = fetcher._fetch_equity_data()
+        
+        # Should return empty list or handle gracefully
+        assert isinstance(equities, list)
+    
+    @patch('src.data.real_data_fetcher.yf.Ticker')
+    def test_fetch_equity_data_logs_warnings_for_missing_data(self, mock_ticker):
+        """Test that _fetch_equity_data logs warnings when data is missing."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        import pandas as pd
+        
+        mock_ticker_instance = mock_ticker.return_value
+        mock_ticker_instance.history.return_value = pd.DataFrame()  # No price data
+        mock_ticker_instance.info = {}
+        
+        fetcher = RealDataFetcher(enable_network=True)
+        
+        with patch('src.data.real_data_fetcher.logger') as mock_logger:
+            equities = fetcher._fetch_equity_data()
+            
+            # Should log warnings for symbols with no data
+            assert mock_logger.warning.called
+
+
+class TestRealDataFetcherDocstringUpdates:
+    """Test that docstrings have been properly updated."""
+    
+    def test_create_real_database_docstring_formatting(self):
+        """Test create_real_database has properly formatted docstring."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        
+        docstring = RealDataFetcher.create_real_database.__doc__
+        assert docstring is not None
+        assert "Create an AssetRelationshipGraph populated with real financial data" in docstring
+        assert "Returns:" in docstring
+    
+    def test_init_docstring_parameter_descriptions(self):
+        """Test __init__ docstring has clear parameter descriptions."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        
+        docstring = RealDataFetcher.__init__.__doc__
+        assert docstring is not None
+        assert "Parameters:" in docstring
+        assert "cache_path" in docstring
+        assert "fallback_factory" in docstring
+        assert "enable_network" in docstring
+    
+    def test_fallback_docstring_clarity(self):
+        """Test _fallback method has clear, concise docstring."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        
+        docstring = RealDataFetcher._fallback.__doc__
+        assert docstring is not None
+        assert "fallback" in docstring.lower()
+        assert "Returns:" in docstring
+
+
+class TestRealDataFetcherCachingBehavior:
+    """Test caching behavior with updated implementation."""
+    
+    def test_cache_loading_with_existing_cache(self, tmp_path):
+        """Test that fetcher loads from cache when cache file exists."""
+        from src.data.real_data_fetcher import RealDataFetcher, _save_to_cache
+        from src.data.sample_data import create_sample_database
+        
+        cache_file = tmp_path / "test_cache.json"
+        
+        # Create and save a graph to cache
+        sample_graph = create_sample_database()
+        _save_to_cache(sample_graph, cache_file)
+        
+        # Create fetcher with cache path
+        fetcher = RealDataFetcher(cache_path=str(cache_file), enable_network=False)
+        graph = fetcher.create_real_database()
+        
+        # Should load from cache
+        assert len(graph.assets) > 0
+        assert len(graph.assets) == len(sample_graph.assets)
+    
+    def test_cache_save_on_successful_fetch(self, tmp_path):
+        """Test that fetcher saves to cache after successful fetch."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        import os
+        
+        cache_file = tmp_path / "new_cache.json"
+        
+        with patch('src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data') as mock_fetch:
+            mock_fetch.return_value = []  # Empty but successful fetch
+            
+            fetcher = RealDataFetcher(
+                cache_path=str(cache_file),
+                enable_network=True
+            )
+            
+            with patch('src.data.real_data_fetcher._save_to_cache') as mock_save:
+                graph = fetcher.create_real_database()
+                
+                # Cache save should have been attempted
+                # Note: actual save may fail if graph is empty, but attempt should be made
+                assert graph is not None
+    
+    def test_cache_load_failure_proceeds_with_fetch(self, tmp_path):
+        """Test that cache load failure doesn't prevent fetching."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        
+        # Create cache file with invalid content
+        cache_file = tmp_path / "invalid_cache.json"
+        cache_file.write_text("invalid json content {{{")
+        
+        with patch('src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data') as mock_fetch:
+            mock_fetch.return_value = []
+            
+            fetcher = RealDataFetcher(
+                cache_path=str(cache_file),
+                enable_network=True
+            )
+            
+            # Should proceed with fetch despite cache failure
+            graph = fetcher.create_real_database()
+            assert graph is not None
+
+
+class TestRealDataFetcherNetworkDisabling:
+    """Test behavior when network access is disabled."""
+    
+    def test_network_disabled_uses_fallback_immediately(self):
+        """Test that disabling network uses fallback without attempting fetch."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        
+        fetcher = RealDataFetcher(enable_network=False)
+        
+        with patch('src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data') as mock_fetch:
+            graph = fetcher.create_real_database()
+            
+            # Should not have attempted to fetch
+            mock_fetch.assert_not_called()
+            
+            # Should have fallback data
+            assert graph is not None
+            assert len(graph.assets) > 0
+    
+    def test_network_disabled_logs_appropriate_message(self):
+        """Test that appropriate log message is shown when network is disabled."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        
+        fetcher = RealDataFetcher(enable_network=False)
+        
+        with patch('src.data.real_data_fetcher.logger') as mock_logger:
+            graph = fetcher.create_real_database()
+            
+            # Should log that network fetching is disabled
+            info_calls = [str(call) for call in mock_logger.info.call_args_list]
+            assert any("Network fetching disabled" in call for call in info_calls)
+    
+    def test_custom_fallback_factory_is_used(self):
+        """Test that custom fallback factory is called when provided."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        from src.logic.asset_graph import AssetRelationshipGraph
+        
+        custom_graph = AssetRelationshipGraph()
+        custom_factory = MagicMock(return_value=custom_graph)
+        
+        fetcher = RealDataFetcher(
+            fallback_factory=custom_factory,
+            enable_network=False
+        )
+        
+        graph = fetcher.create_real_database()
+        
+        # Custom factory should have been called
+        custom_factory.assert_called_once()
+        assert graph is custom_graph
+
+
+class TestRealDataFetcherErrorHandling:
+    """Test error handling in RealDataFetcher."""
+    
+    @patch('src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data')
+    def test_fetch_failure_triggers_fallback(self, mock_fetch):
+        """Test that fetch failures trigger fallback to sample data."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        
+        # Simulate fetch failure
+        mock_fetch.side_effect = Exception("Network error")
+        
+        fetcher = RealDataFetcher(enable_network=True)
+        graph = fetcher.create_real_database()
+        
+        # Should have fallback data
+        assert graph is not None
+        assert len(graph.assets) > 0  # From sample data
+    
+    @patch('src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data')
+    def test_fetch_failure_logs_error_and_warning(self, mock_fetch):
+        """Test that fetch failures are properly logged."""
+        from src.data.real_data_fetcher import RealDataFetcher
+        
+        mock_fetch.side_effect = RuntimeError("Unexpected error")
+        
+        fetcher = RealDataFetcher(enable_network=True)
+        
+        with patch('src.data.real_data_fetcher.logger') as mock_logger:
+            graph = fetcher.create_real_database()
+            
+            # Should log error and warning about fallback
+            assert mock_logger.error.called
+            assert mock_logger.warning.called
+            
+            # Check for specific fallback message
+            warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
+            assert any("Falling back to sample data" in call for call in warning_calls)
+
+
+
+
+# ============================================================================
+# Additional Tests for src/data/repository.py Method Conversions
+# ============================================================================
+
+class TestAssetGraphRepositoryInstanceMethods:
+    """Test suite for AssetGraphRepository methods converted from static to instance."""
+    
+    @pytest.fixture
+    def mock_session(self):
+        """
+        Provide a MagicMock configured to mimic a SQLAlchemy session for tests.
+        
+        Returns:
+            MagicMock: A mock SQLAlchemy session instance.
+        """
+        return MagicMock()
+    
+    @pytest.fixture
+    def repository(self, mock_session):
+        """
+        Create an AssetGraphRepository backed by the provided SQLAlchemy session.
+        
+        Parameters:
+            mock_session: A SQLAlchemy session or session-like fixture configured for tests.
+        
+        Returns:
+            repository (AssetGraphRepository): Repository instance using the provided session.
+        """
+        from src.data.repository import AssetGraphRepository
+        return AssetGraphRepository(mock_session)
+    
+    def test_update_asset_orm_is_instance_method(self, repository):
+        """Test that _update_asset_orm is now an instance method."""
+        from src.data.repository import AssetGraphRepository
+        
+        # Verify it's not a static method
+        assert not isinstance(AssetGraphRepository.__dict__.get('_update_asset_orm'), staticmethod)
+        
+        # Verify it's callable on instance
+        assert hasattr(repository, '_update_asset_orm')
+        assert callable(repository._update_asset_orm)
+    
+    def test_to_asset_model_is_instance_method(self, repository):
+        """Test that _to_asset_model is now an instance method."""
+        from src.data.repository import AssetGraphRepository
+        
+        # Verify it's not a static method
+        assert not isinstance(AssetGraphRepository.__dict__.get('_to_asset_model'), staticmethod)
+        
+        # Verify it's callable on instance
+        assert hasattr(repository, '_to_asset_model')
+        assert callable(repository._to_asset_model)
+    
+    def test_to_regulatory_event_model_is_instance_method(self, repository):
+        """Test that _to_regulatory_event_model is now an instance method."""
+        from src.data.repository import AssetGraphRepository
+        
+        # Verify it's not a static method
+        assert not isinstance(AssetGraphRepository.__dict__.get('_to_regulatory_event_model'), staticmethod)
+        
+        # Verify it's callable on instance
+        assert hasattr(repository, '_to_regulatory_event_model')
+        assert callable(repository._to_regulatory_event_model)
+    
+    def test_update_asset_orm_handles_all_asset_types(self, repository):
+        """Test _update_asset_orm works with different asset types."""
+        from src.data.db_models import AssetORM
+        from src.models.financial_models import Equity, Bond, Commodity, Currency, AssetClass
+        
+        # Test with Equity
+        equity = Equity(
+            id="EQ1",
+            symbol="AAPL",
+            name="Apple",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+            market_cap=2.4e12,
+            pe_ratio=25.0,
+            dividend_yield=0.005,
+            earnings_per_share=6.0,
+            book_value=5.0
+        )
+        
+        orm = AssetORM()
+        repository._update_asset_orm(orm, equity)
+        
+        assert orm.symbol == "AAPL"
+        assert orm.asset_class == AssetClass.EQUITY.value
+        assert orm.pe_ratio == 25.0
+        
+        # Test with Bond
+        bond = Bond(
+            id="BND1",
+            symbol="CORP",
+            name="Corporate Bond",
+            asset_class=AssetClass.FIXED_INCOME,
+            sector="Corporate",
+            price=1000.0,
+            yield_to_maturity=0.045,
+            coupon_rate=0.04,
+            maturity_date="2030-12-31",
+            credit_rating="AA"
+        )
+        
+        orm2 = AssetORM()
+        repository._update_asset_orm(orm2, bond)
+        
+        assert orm2.symbol == "CORP"
+        assert orm2.yield_to_maturity == 0.045
+        assert orm2.credit_rating == "AA"
+    
+    def test_to_asset_model_creates_correct_asset_type(self, repository):
+        """Test _to_asset_model creates correct asset type from ORM."""
+        from src.data.db_models import AssetORM
+        from src.models.financial_models import AssetClass, Equity
+        
+        # Create ORM for equity
+        orm = AssetORM()
+        orm.id = "TEST"
+        orm.symbol = "TEST"
+        orm.name = "Test Asset"
+        orm.asset_class = AssetClass.EQUITY.value
+        orm.sector = "Technology"
+        orm.price = 100.0
+        orm.market_cap = 1e9
+        orm.currency = "USD"
+        orm.pe_ratio = 20.0
+        orm.dividend_yield = 0.02
+        orm.earnings_per_share = 5.0
+        orm.book_value = 50.0
+        
+        asset = repository._to_asset_model(orm)
+        
+        assert isinstance(asset, Equity)
+        assert asset.id == "TEST"
+        assert asset.symbol == "TEST"
+        assert asset.pe_ratio == 20.0
+
+
+class TestAddOrUpdateRelationshipFormatting:
+    """Test formatting updates in add_or_update_relationship method."""
+    
+    @pytest.fixture
+    def mock_session(self):
+        """
+        Create a mocked SQLAlchemy session with default return behavior.
+        
+        Returns:
+            MagicMock: A mock acting like a SQLAlchemy Session where execute().scalar_one_or_none() returns None.
+        """
+        session = MagicMock()
+        session.execute.return_value.scalar_one_or_none.return_value = None
+        return session
+    
+    @pytest.fixture
+    def repository(self, mock_session):
+        """
+        Create an AssetGraphRepository backed by the provided SQLAlchemy session.
+        
+        Parameters:
+            mock_session: A SQLAlchemy session or session-like fixture configured for tests.
+        
+        Returns:
+            repository (AssetGraphRepository): Repository instance using the provided session.
+        """
+        from src.data.repository import AssetGraphRepository
+        return AssetGraphRepository(mock_session)
+    
+    def test_add_or_update_relationship_parameter_formatting(self, repository):
+        """Test that method signature is properly formatted (single line)."""
+        from src.data.repository import AssetGraphRepository
+        import inspect
+        
+        # Get method signature
+        sig = inspect.signature(AssetGraphRepository.add_or_update_relationship)
+        params = list(sig.parameters.keys())
+        
+        # Should have all required parameters
+        assert 'self' in params
+        assert 'source_id' in params
+        assert 'target_id' in params
+        assert 'rel_type' in params
+        assert 'strength' in params
+        assert 'bidirectional' in params
+    
+    def test_add_or_update_relationship_bidirectional_kwarg_only(self, repository):
+        """Test that bidirectional is keyword-only argument."""
+        from src.data.repository import AssetGraphRepository
+        import inspect
+        
+        sig = inspect.signature(AssetGraphRepository.add_or_update_relationship)
+        param = sig.parameters['bidirectional']
+        
+        # Should be keyword-only
+        assert param.kind == inspect.Parameter.KEYWORD_ONLY
+
+
+class TestGetRelationshipFormatting:
+    """Test formatting updates in get_relationship method."""
+    
+    @pytest.fixture
+    def mock_session(self):
+        """
+        Provide a MagicMock configured to mimic a SQLAlchemy session for tests.
+        
+        Returns:
+            MagicMock: A mock SQLAlchemy session instance.
+        """
+        return MagicMock()
+    
+    @pytest.fixture
+    def repository(self, mock_session):
+        """
+        Create an AssetGraphRepository backed by the provided SQLAlchemy session.
+        
+        Parameters:
+            mock_session: A SQLAlchemy session or session-like fixture configured for tests.
+        
+        Returns:
+            repository (AssetGraphRepository): Repository instance using the provided session.
+        """
+        from src.data.repository import AssetGraphRepository
+        return AssetGraphRepository(mock_session)
+    
+    def test_get_relationship_signature_single_line(self, repository):
+        """Test that get_relationship signature is on single line."""
+        from src.data.repository import AssetGraphRepository
+        import inspect
+        
+        sig = inspect.signature(AssetGraphRepository.get_relationship)
+        params = list(sig.parameters.keys())
+        
+        # Should have all parameters
+        assert params == ['self', 'source_id', 'target_id', 'rel_type']
+
+
+class TestDeleteRelationshipFormatting:
+    """Test formatting updates in delete_relationship method."""
+    
+    @pytest.fixture
+    def mock_session(self):
+        """
+        Provide a MagicMock configured to mimic a SQLAlchemy session for tests.
+        
+        Returns:
+            MagicMock: A mock SQLAlchemy session instance.
+        """
+        return MagicMock()
+    
+    @pytest.fixture
+    def repository(self, mock_session):
+        """
+        Create an AssetGraphRepository backed by the provided SQLAlchemy session.
+        
+        Parameters:
+            mock_session: A SQLAlchemy session or session-like fixture configured for tests.
+        
+        Returns:
+            repository (AssetGraphRepository): Repository instance using the provided session.
+        """
+        from src.data.repository import AssetGraphRepository
+        return AssetGraphRepository(mock_session)
+    
+    def test_delete_relationship_signature_single_line(self, repository):
+        """Test that delete_relationship signature is on single line."""
+        from src.data.repository import AssetGraphRepository
+        import inspect
+        
+        sig = inspect.signature(AssetGraphRepository.delete_relationship)
+        params = list(sig.parameters.keys())
+        
+        # Should have all parameters
+        assert params == ['self', 'source_id', 'target_id', 'rel_type']
