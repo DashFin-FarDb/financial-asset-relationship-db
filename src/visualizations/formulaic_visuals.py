@@ -104,7 +104,9 @@ class FormulaicVisualizer:
             names.append(name)
             categories.append(getattr(f, "category", "N/A"))
             r_value = getattr(f, "r_squared", None)
-            r_squares.append(f"{r_value:.4f}" if isinstance(r_value, (int, float)) else "N/A")
+            r_squares.append(
+                f"{r_value:.4f}" if isinstance(r_value, (int, float)) else "N/A"
+            )
 
         fig.add_trace(
             go.Table(
@@ -121,7 +123,6 @@ class FormulaicVisualizer:
             row=3,
             col=2,
         )
-
 
         # 1. Formula Categories Pie Chart
         categories = analysis_results.get("categories", {})
