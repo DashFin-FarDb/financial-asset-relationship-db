@@ -375,7 +375,12 @@ class FinancialAssetApp:
     ):
         """Show detailed view of a specific formula."""
         try:
-            pass
+            # Placeholder successful result until detailed implementation is added.
+            # Return an empty figure and hide any error message.
+            return (
+                go.Figure(),
+                gr.update(visible=False),
+            )
         except Exception as e:
             logger.error("Error showing formula details: %s", e)
             return (
