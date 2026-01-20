@@ -62,16 +62,16 @@ def doc_content() -> str:
 @pytest.fixture(scope='session')
 def doc_lines(doc_content: str) -> List[str]:
     """
-    Split documentation content into lines while preserving original line endings.
+    Split the documentation text into a list of lines while preserving original line endings.
     
     Parameters:
-        doc_content (str): Full documentation text to split.
+        doc_content (str): Full documentation text to split; must be non-empty.
     
     Returns:
-        List[str]: Lines of the documentation with original line ending characters preserved.
+        List[str]: Lines from `doc_content` in order, each retaining its trailing newline or line-ending characters.
     
     Raises:
-        pytest.fail: If `doc_content` is empty, fails the test session.
+        pytest.fail: If `doc_content` is empty, fails the test session with an explanatory message.
     """
     if not doc_content:
         pytest.fail("Loaded documentation content is empty.")
