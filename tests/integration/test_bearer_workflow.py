@@ -12,12 +12,12 @@ This test suite validates:
 - Security best practices
 """
 
+import re
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 import yaml
-from urllib.parse import urlparse
-import re
 
 
 @pytest.fixture
