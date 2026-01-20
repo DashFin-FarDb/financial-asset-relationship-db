@@ -290,6 +290,54 @@ class TestPRAgentConfigSecurity:
             "bearer ",
         )
 
+        suspected = []
+
+        # Define detectors for credential heuristics
+        def detect_long_string(s):
+            if len(s) >= 40:
+                return ("long_string", s)
+
+        def detect_prefix(s):
+            for marker in secret_markers:
+                if s.lower().startswith(marker):
+                    return ("prefix", s)
+
+        def detect_inline_creds(s):
+            if inline_creds_re.search(s):
+                return ("inline_creds", s)
+
+        detectors = [detect_long_string, detect_prefix, detect_inline_creds]
+
+        def scan_value(val):
+            stripped = str(val).strip()
+            if not stripped:
+                return None
+            for detector in detectors:
+                result = detector(stripped)
+                if result:
+                    return result
+            return None
+
+        def scan(obj):
+            if isinstance(obj, dict):
+                for key, value in obj.items():
+                    scan(value)
+            elif isinstance(obj, (list, tuple)):
+                for item in obj:
+                    scan(item)
+            else:
+                result = scan_value(obj)
+                if result:
+                    suspected.append(result)
+
+        scan(pr_agent_config)
+
+        if suspected:
+            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
+
         def shannon_entropy(s: str) -> float:
             if not s:
                 return 0.0
@@ -361,29 +409,7 @@ class TestPRAgentConfigSecurity:
 
         def check_sensitive_keys(node, path="root"):
             if isinstance(node, dict):
-                for k, v in node.items():
-                    key_l = str(k).lower()
-                    new_path = f"{path}.{k}"
-                    if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
-                    check_sensitive_keys(v, new_path)
-            elif isinstance(node, list):
-                for idx, item in enumerate(node):
-                    check_sensitive_keys(item, f"{path}[{idx}]")
-            # primitives ignored
-
-        check_sensitive_keys(pr_agent_config)
-
-        # Final serialized scan to ensure sensitive markers aren't embedded in values
-        config_str = yaml.dump(pr_agent_config)
-        for pat in sensitive_patterns:
-            # If marker appears in the string, ensure we also see an allowed placeholder somewhere
-            if pat in config_str:
-                assert (" null" in config_str) or ("webhook" in config_str), (
-                    f"Potential hardcoded credential found around pattern: {pat}"
-                )
+                pass
 
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
@@ -406,12 +432,40 @@ class TestPRAgentConfigSecurity:
 
         def value_contains_secret(val: str) -> bool:
             low = val.lower()
-            # Ignore common placeholders and templated variables
             if low in allowed_placeholders or ("${" in val and "}" in val):
                 return False
             return any(pat in low for pat in sensitive_patterns)
 
+        def scan_dict(node: dict, path: str):
+            for k, v in node.items():
+                key_l = str(k).lower()
+                new_path = f"{path}.{k}"
+                if any(pat in key_l for pat in sensitive_patterns):
+                    assert v in allowed_placeholders, (
+                        f"Potential hardcoded credential at '{new_path}'"
+                    )
+                scan_for_secrets(v, new_path)
+
+        def scan_list(node: list, path: str):
+            for idx, item in enumerate(node):
+                scan_for_secrets(item, f"{path}[{idx}]")
+
         def scan_for_secrets(node, path="root"):
+            if isinstance(node, dict):
+                scan_dict(node, path)
+            elif isinstance(node, list):
+                scan_list(node, path)
+            # primitives ignored
+
+        scan_for_secrets(pr_agent_config)
+
+        # Final serialized scan to ensure sensitive markers aren't embedded in values
+        config_str = yaml.dump(pr_agent_config)
+        for pat in sensitive_patterns:
+            if pat in config_str:
+                assert (" null" in config_str) or ("webhook" in config_str), (
+                    f"Potential hardcoded credential found around pattern: {pat}"
+                )
             if isinstance(node, dict):
                 for k, v in node.items():
                     scan_for_secrets(v, f"{path}.{k}")
