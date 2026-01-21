@@ -98,7 +98,9 @@ class TestPRAgentWorkflowChanges:
         pr_agent_job = jobs.get("pr-agent-action", {})
         steps = pr_agent_job.get("steps", [])
 
-        setup_python_step = next((s for s in steps if s.get("name") == "Setup Python"), None)
+        setup_python_step = next(
+            (s for s in steps if s.get("name") == "Setup Python"), None
+        )
         assert setup_python_step is not None
         assert "with" in setup_python_step
         assert "python-version" in setup_python_step["with"]
@@ -110,7 +112,9 @@ class TestPRAgentWorkflowChanges:
         pr_agent_job = jobs.get("pr-agent-action", {})
         steps = pr_agent_job.get("steps", [])
 
-        checkout_step = next((s for s in steps if "actions/checkout" in s.get("uses", "")), None)
+        checkout_step = next(
+            (s for s in steps if "actions/checkout" in s.get("uses", "")), None
+        )
         assert checkout_step is not None
         assert checkout_step.get("with", {}).get("fetch-depth") == 0
 
@@ -207,7 +211,9 @@ class TestGreetingsWorkflowChanges:
         greeting_job = jobs.get("greeting", {})
         steps = greeting_job.get("steps", [])
 
-        action_step = next((s for s in steps if "actions/first-interaction" in s.get("uses", "")), None)
+        action_step = next(
+            (s for s in steps if "actions/first-interaction" in s.get("uses", "")), None
+        )
 
         assert action_step is not None
         assert "with" in action_step
@@ -226,7 +232,9 @@ class TestGreetingsWorkflowChanges:
         greeting_job = jobs.get("greeting", {})
         steps = greeting_job.get("steps", [])
 
-        action_step = next((s for s in steps if "actions/first-interaction" in s.get("uses", "")), None)
+        action_step = next(
+            (s for s in steps if "actions/first-interaction" in s.get("uses", "")), None
+        )
 
         if action_step and "with" in action_step:
             issue_message = action_step["with"].get("issue-message", "")
@@ -266,7 +274,9 @@ class TestLabelWorkflowChanges:
         steps = label_job.get("steps", [])
 
         # Should not have config check step
-        config_check_steps = [s for s in steps if s.get("name") == "Check for labeler config"]
+        config_check_steps = [
+            s for s in steps if s.get("name") == "Check for labeler config"
+        ]
         assert len(config_check_steps) == 0
 
     def test_no_checkout_step(self, label_workflow):
@@ -341,7 +351,9 @@ class TestAPISecScanWorkflowChanges:
         scan_job = jobs.get("Trigger_APIsec_scan", {})
         steps = scan_job.get("steps", [])
 
-        credential_check_steps = [s for s in steps if s.get("name") == "Check for APIsec credentials"]
+        credential_check_steps = [
+            s for s in steps if s.get("name") == "Check for APIsec credentials"
+        ]
         assert len(credential_check_steps) == 0
 
     def test_scan_step_is_first_step(self, apisec_workflow):
@@ -391,12 +403,14 @@ class TestWorkflowSecurityBestPractices:
             for pattern in dangerous_patterns:
                 # Allow if it's using secrets context
                 lines_with_pattern = [
-                    line for line in content.split("\n") if pattern in line.lower() and "secrets." not in line
+                    line
+                    for line in content.split("\n")
+                    if pattern in line.lower() and "secrets." not in line
                 ]
 
-                assert (
-                    len(lines_with_pattern) == 0
-                ), f"Potential hardcoded secret in {workflow_file}: {lines_with_pattern}"
+                assert len(lines_with_pattern) == 0, (
+                    f"Potential hardcoded secret in {workflow_file}: {lines_with_pattern}"
+                )
 
     def test_workflows_use_pinned_action_versions(self):
         """Verify workflows use pinned action versions."""
@@ -414,7 +428,9 @@ class TestWorkflowSecurityBestPractices:
                         action = step["uses"]
                         # Should have @version or @sha
                         assert (
-                            action.startswith("./") or action.startswith("docker://") or "@" in action
+                            action.startswith("./")
+                            or action.startswith("docker://")
+                            or "@" in action
                         ), f"Action {action} in {workflow_file} should be pinned"
 
     def test_workflows_use_read_only_permissions_by_default(self):
@@ -436,7 +452,9 @@ class TestWorkflowSecurityBestPractices:
                     # If specific permissions are set, verify they're intentional
                     write_perms = [k for k, v in perms.items() if v == "write"]
                     # Write permissions should be justified by workflow purpose
-                    assert len(write_perms) <= 3, f"Too many write permissions in {workflow_file}: {write_perms}"
+                    assert len(write_perms) <= 3, (
+                        f"Too many write permissions in {workflow_file}: {write_perms}"
+                    )
 
 
 class TestWorkflowYAMLQuality:
@@ -472,9 +490,9 @@ class TestWorkflowYAMLQuality:
                 is_descriptive_id = len(job_id) > 5 and "_" in job_id
                 has_name_field = "name" in job_config
 
-                assert (
-                    is_descriptive_id or has_name_field
-                ), f"Job {job_id} in {workflow_file} needs better identification"
+                assert is_descriptive_id or has_name_field, (
+                    f"Job {job_id} in {workflow_file} needs better identification"
+                )
 
     def test_workflows_have_consistent_indentation(self):
         """
@@ -495,7 +513,9 @@ class TestWorkflowYAMLQuality:
                     # Count leading spaces
                     spaces = len(line) - len(line.lstrip(" "))
                     # Should be multiple of 2
-                    assert spaces % 2 == 0, f"{workflow_file} line {i}: inconsistent indentation ({spaces} spaces)"
+                    assert spaces % 2 == 0, (
+                        f"{workflow_file} line {i}: inconsistent indentation ({spaces} spaces)"
+                    )
 
 
 class TestDeletedFiles:
@@ -544,7 +564,9 @@ class TestRequirementsDevChanges:
 
         # Should have version specifier
         pyyaml_line = pyyaml_lines[0]
-        assert any(op in pyyaml_line for op in ["==", ">=", "<=", "~="]), "PyYAML should have version constraint"
+        assert any(op in pyyaml_line for op in ["==", ">=", "<=", "~="]), (
+            "PyYAML should have version constraint"
+        )
 
     def test_no_duplicate_dependencies(self):
         """
@@ -554,12 +576,16 @@ class TestRequirementsDevChanges:
         """
         req_path = Path("requirements-dev.txt")
         with open(req_path, "r") as f:
-            lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            lines = [
+                line.strip() for line in f if line.strip() and not line.startswith("#")
+            ]
 
         # Extract package names (before version specifiers)
         package_names = []
         for line in lines:
-            pkg_name = line.split("=")[0].split(">")[0].split("<")[0].split("~")[0].strip()
+            pkg_name = (
+                line.split("=")[0].split(">")[0].split("<")[0].split("~")[0].strip()
+            )
             package_names.append(pkg_name.lower())
 
         # Check for duplicates
@@ -574,7 +600,7 @@ class TestAPISecScanWorkflowConfigChanges:
     def apisec_workflow(self) -> Dict[str, Any]:
         """Load apisec-scan.yml workflow."""
         workflow_path = Path(".github/workflows/apisec-scan.yml")
-        with open(workflow_path, 'r') as f:
+        with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
     def test_workflow_has_valid_yaml_syntax(self, apisec_workflow):
@@ -584,61 +610,58 @@ class TestAPISecScanWorkflowConfigChanges:
 
     def test_no_job_level_credential_conditional(self, apisec_workflow):
         """Verify job-level credential check conditional was removed."""
-        jobs = apisec_workflow.get('jobs', {})
-        trigger_job = jobs.get('Trigger_APIsec_scan', {})
+        jobs = apisec_workflow.get("jobs", {})
+        trigger_job = jobs.get("Trigger_APIsec_scan", {})
 
         # The 'if' condition should not check for credentials
-        job_if = trigger_job.get('if', '')
+        job_if = trigger_job.get("if", "")
 
         # Should not contain credential checks
-        assert 'apisec_username' not in str(job_if).lower()
-        assert 'apisec_password' not in str(job_if).lower()
+        assert "apisec_username" not in str(job_if).lower()
+        assert "apisec_password" not in str(job_if).lower()
 
     def test_no_credential_check_step(self, apisec_workflow):
         """Verify the credential check step was removed."""
-        jobs = apisec_workflow.get('jobs', {})
-        trigger_job = jobs.get('Trigger_APIsec_scan', {})
-        steps = trigger_job.get('steps', [])
+        jobs = apisec_workflow.get("jobs", {})
+        trigger_job = jobs.get("Trigger_APIsec_scan", {})
+        steps = trigger_job.get("steps", [])
 
         # Find any step that checks for credentials
         credential_check_steps = [
-            s for s in steps
-            if 'Check for APIsec credentials' in s.get('name', '')
+            s for s in steps if "Check for APIsec credentials" in s.get("name", "")
         ]
 
-        assert len(credential_check_steps) == 0, \
+        assert len(credential_check_steps) == 0, (
             "Credential check step should be removed"
+        )
 
     def test_apisec_scan_step_present(self, apisec_workflow):
         """Verify APIsec scan step is still present."""
-        jobs = apisec_workflow.get('jobs', {})
-        trigger_job = jobs.get('Trigger_APIsec_scan', {})
-        steps = trigger_job.get('steps', [])
+        jobs = apisec_workflow.get("jobs", {})
+        trigger_job = jobs.get("Trigger_APIsec_scan", {})
+        steps = trigger_job.get("steps", [])
 
         # Find the APIsec scan step
-        scan_step = next(
-            (s for s in steps if 'APIsec scan' in s.get('name', '')),
-            None
-        )
+        scan_step = next((s for s in steps if "APIsec scan" in s.get("name", "")), None)
 
         assert scan_step is not None, "APIsec scan step should be present"
-        assert 'uses' in scan_step
-        assert 'apisec-inc/apisec-run-scan' in scan_step['uses']
+        assert "uses" in scan_step
+        assert "apisec-inc/apisec-run-scan" in scan_step["uses"]
 
     def test_concurrency_configuration(self, apisec_workflow):
         """Verify concurrency configuration is present."""
-        jobs = apisec_workflow.get('jobs', {})
-        trigger_job = jobs.get('Trigger_APIsec_scan', {})
+        jobs = apisec_workflow.get("jobs", {})
+        trigger_job = jobs.get("Trigger_APIsec_scan", {})
 
-        assert 'concurrency' in trigger_job, "Concurrency config should be present"
-        concurrency = trigger_job['concurrency']
-        assert 'group' in concurrency
-        assert 'cancel-in-progress' in concurrency
+        assert "concurrency" in trigger_job, "Concurrency config should be present"
+        concurrency = trigger_job["concurrency"]
+        assert "group" in concurrency
+        assert "cancel-in-progress" in concurrency
 
     def test_permissions_configured(self, apisec_workflow):
         """Verify workflow permissions are properly configured."""
-        assert 'permissions' in apisec_workflow
-        permissions = apisec_workflow['permissions']
+        assert "permissions" in apisec_workflow
+        permissions = apisec_workflow["permissions"]
 
         # Should have some permissions configured
         assert isinstance(permissions, dict)
@@ -646,23 +669,24 @@ class TestAPISecScanWorkflowConfigChanges:
 
     def test_workflow_triggers_on_schedule(self, apisec_workflow):
         """Verify workflow has schedule trigger."""
-        triggers = apisec_workflow.get('on', {})
+        triggers = apisec_workflow.get("on", {})
 
         # Should have schedule trigger
-        assert 'schedule' in triggers or 'workflow_dispatch' in triggers
+        assert "schedule" in triggers or "workflow_dispatch" in triggers
 
     def test_no_exit_zero_on_missing_credentials(self, apisec_workflow):
         """Verify workflow doesn't exit 0 on missing credentials."""
-        jobs = apisec_workflow.get('jobs', {})
-        trigger_job = jobs.get('Trigger_APIsec_scan', {})
-        steps = trigger_job.get('steps', [])
+        jobs = apisec_workflow.get("jobs", {})
+        trigger_job = jobs.get("Trigger_APIsec_scan", {})
+        steps = trigger_job.get("steps", [])
 
         # Check that no step contains 'exit 0' for credential checks
         for step in steps:
-            run_script = step.get('run', '')
-            if 'apisec_username' in run_script or 'apisec_password' in run_script:
-                assert 'exit 0' not in run_script, \
+            run_script = step.get("run", "")
+            if "apisec_username" in run_script or "apisec_password" in run_script:
+                assert "exit 0" not in run_script, (
                     "Should not silently exit on missing credentials"
+                )
 
 
 class TestGitignoreChanges:
@@ -672,7 +696,7 @@ class TestGitignoreChanges:
     def gitignore_content(self) -> str:
         """Load .gitignore file content."""
         gitignore_path = Path(".gitignore")
-        with open(gitignore_path, 'r') as f:
+        with open(gitignore_path, "r") as f:
             return f.read()
 
     def test_gitignore_file_exists(self):
@@ -683,35 +707,39 @@ class TestGitignoreChanges:
     def test_junit_xml_not_ignored(self, gitignore_content):
         """Verify junit.xml is NOT in .gitignore (was removed)."""
         # junit.xml should not be in gitignore anymore
-        assert 'junit.xml' not in gitignore_content, \
+        assert "junit.xml" not in gitignore_content, (
             "junit.xml should not be in .gitignore"
+        )
 
     def test_test_db_patterns_not_ignored(self, gitignore_content):
         """Verify test database patterns are NOT in .gitignore (were removed)."""
         # test_*.db and *_test.db should not be in gitignore
-        assert 'test_*.db' not in gitignore_content, \
+        assert "test_*.db" not in gitignore_content, (
             "test_*.db pattern should not be in .gitignore"
-        assert '*_test.db' not in gitignore_content, \
+        )
+        assert "*_test.db" not in gitignore_content, (
             "*_test.db pattern should not be in .gitignore"
+        )
 
     def test_pytest_cache_still_ignored(self, gitignore_content):
         """Verify .pytest_cache is still ignored."""
-        assert '.pytest_cache' in gitignore_content, \
+        assert ".pytest_cache" in gitignore_content, (
             ".pytest_cache should still be in .gitignore"
+        )
 
     def test_coverage_files_still_ignored(self, gitignore_content):
         """Verify coverage files are still ignored."""
-        assert '.coverage' in gitignore_content
-        assert 'coverage.xml' in gitignore_content
-        assert 'htmlcov/' in gitignore_content
+        assert ".coverage" in gitignore_content
+        assert "coverage.xml" in gitignore_content
+        assert "htmlcov/" in gitignore_content
 
     def test_tox_still_ignored(self, gitignore_content):
         """Verify .tox directory is still ignored."""
-        assert '.tox' in gitignore_content
+        assert ".tox" in gitignore_content
 
     def test_hypothesis_still_ignored(self, gitignore_content):
         """Verify .hypothesis directory is still ignored."""
-        assert '.hypothesis' in gitignore_content
+        assert ".hypothesis" in gitignore_content
 
 
 class TestGitignoreChanges:
@@ -721,7 +749,7 @@ class TestGitignoreChanges:
     def gitignore_content(self) -> str:
         """Load .gitignore file content."""
         gitignore_path = Path(".gitignore")
-        with open(gitignore_path, 'r') as f:
+        with open(gitignore_path, "r") as f:
             return f.read()
 
     def test_gitignore_file_exists(self):
@@ -732,42 +760,46 @@ class TestGitignoreChanges:
     def test_junit_xml_not_ignored(self, gitignore_content):
         """Verify junit.xml is NOT in .gitignore (was removed)."""
         # junit.xml should not be in gitignore anymore
-        assert 'junit.xml' not in gitignore_content, \
+        assert "junit.xml" not in gitignore_content, (
             "junit.xml should not be in .gitignore"
+        )
 
     def test_test_db_patterns_not_ignored(self, gitignore_content):
         """Verify test database patterns are NOT in .gitignore (were removed)."""
         # test_*.db and *_test.db should not be in gitignore
-        assert 'test_*.db' not in gitignore_content, \
+        assert "test_*.db" not in gitignore_content, (
             "test_*.db pattern should not be in .gitignore"
-        assert '*_test.db' not in gitignore_content, \
+        )
+        assert "*_test.db" not in gitignore_content, (
             "*_test.db pattern should not be in .gitignore"
+        )
 
     def test_pytest_cache_still_ignored(self, gitignore_content):
         """Verify .pytest_cache is still ignored."""
-        assert '.pytest_cache' in gitignore_content, \
+        assert ".pytest_cache" in gitignore_content, (
             ".pytest_cache should still be in .gitignore"
+        )
 
     def test_coverage_files_still_ignored(self, gitignore_content):
         """Verify coverage files are still ignored."""
-        assert '.coverage' in gitignore_content
-        assert 'coverage.xml' in gitignore_content
-        assert 'htmlcov/' in gitignore_content
+        assert ".coverage" in gitignore_content
+        assert "coverage.xml" in gitignore_content
+        assert "htmlcov/" in gitignore_content
 
     def test_tox_still_ignored(self, gitignore_content):
         """Verify .tox directory is still ignored."""
-        assert '.tox' in gitignore_content
+        assert ".tox" in gitignore_content
 
     def test_hypothesis_still_ignored(self, gitignore_content):
         """Verify .hypothesis directory is still ignored."""
-        assert '.hypothesis' in gitignore_content
+        assert ".hypothesis" in gitignore_content
 
     def test_no_duplicate_patterns(self, gitignore_content):
         """Verify no duplicate ignore patterns."""
         lines = [
             line.strip()
-            for line in gitignore_content.split('\n')
-            if line.strip() and not line.strip().startswith('#')
+            for line in gitignore_content.split("\n")
+            if line.strip() and not line.strip().startswith("#")
         ]
 
         # Use set for O(1) lookups
@@ -782,7 +814,7 @@ class TestGitignoreChanges:
 
     def test_frontend_coverage_still_ignored(self, gitignore_content):
         """Verify frontend coverage directory is still ignored."""
-        assert 'frontend/coverage/' in gitignore_content
+        assert "frontend/coverage/" in gitignore_content
 
 
 class TestTypesYAMLVersionPinning:
@@ -792,70 +824,72 @@ class TestTypesYAMLVersionPinning:
     def requirements_content(self) -> str:
         """Load requirements-dev.txt content."""
         req_path = Path("requirements-dev.txt")
-        with open(req_path, 'r') as f:
+        with open(req_path, "r") as f:
             return f.read()
 
     def test_types_pyyaml_has_version_specifier(self, requirements_content):
         """Verify types-PyYAML has explicit version specifier."""
         # Find the types-PyYAML line
-        lines = requirements_content.split('\n')
+        lines = requirements_content.split("\n")
         types_pyyaml_lines = [
-            line for line in lines
-            if line.strip() and 'types-pyyaml' in line.lower()
+            line for line in lines if line.strip() and "types-pyyaml" in line.lower()
         ]
 
         assert len(types_pyyaml_lines) > 0, "types-PyYAML should be present"
 
         types_pyyaml_line = types_pyyaml_lines[0]
         # Should have >=6.0.0 version constraint
-        assert '>=6.0' in types_pyyaml_line or '>=6.0.0' in types_pyyaml_line, \
+        assert ">=6.0" in types_pyyaml_line or ">=6.0.0" in types_pyyaml_line, (
             "types-PyYAML should have >=6.0.0 version constraint"
+        )
 
     def test_types_pyyaml_not_unpinned(self, requirements_content):
         """Verify types-PyYAML is not unpinned (no version)."""
-        lines = requirements_content.split('\n')
+        lines = requirements_content.split("\n")
         for line in lines:
-            if 'types-pyyaml' in line.lower():
+            if "types-pyyaml" in line.lower():
                 # Should have version specifier
-                assert any(op in line for op in ['>=', '==', '<=', '~=']), \
+                assert any(op in line for op in [">=", "==", "<=", "~="]), (
                     "types-PyYAML should have version specifier"
+                )
 
     def test_pyyaml_and_types_pyyaml_both_present(self, requirements_content):
         """Verify both PyYAML and types-PyYAML are present."""
         content_lower = requirements_content.lower()
 
         # Should have both
-        assert 'pyyaml' in content_lower, "PyYAML should be present"
-        assert 'types-pyyaml' in content_lower, "types-PyYAML should be present"
+        assert "pyyaml" in content_lower, "PyYAML should be present"
+        assert "types-pyyaml" in content_lower, "types-PyYAML should be present"
 
     def test_pyyaml_version_constraint(self, requirements_content):
         """Verify PyYAML has proper version constraint."""
-        lines = requirements_content.split('\n')
+        lines = requirements_content.split("\n")
         pyyaml_lines = [
-            line for line in lines
-            if line.strip() and line.strip().lower().startswith('pyyaml')
+            line
+            for line in lines
+            if line.strip() and line.strip().lower().startswith("pyyaml")
         ]
 
         assert len(pyyaml_lines) > 0, "PyYAML should be present"
 
         pyyaml_line = pyyaml_lines[0]
         # Should have >=6.0 constraint
-        assert '>=6.0' in pyyaml_line, "PyYAML should have >=6.0 constraint"
+        assert ">=6.0" in pyyaml_line, "PyYAML should have >=6.0 constraint"
 
     def test_requirements_file_ends_with_newline(self, requirements_content):
         """Verify requirements-dev.txt ends with a newline."""
-        assert requirements_content.endswith('\n'), \
+        assert requirements_content.endswith("\n"), (
             "requirements-dev.txt should end with newline"
+        )
 
     def test_no_trailing_whitespace(self, requirements_content):
         """Verify no lines have trailing whitespace."""
-        lines = requirements_content.split('\n')
+        lines = requirements_content.split("\n")
 
         for i, line in enumerate(lines, 1):
-            if line and not line.startswith('#'):
+            if line and not line.startswith("#"):
                 # Check for trailing whitespace (excluding blank lines)
-                assert line == line.rstrip(), \
-                    f"Line {i} has trailing whitespace"
+                assert line == line.rstrip(), f"Line {i} has trailing whitespace"
 
 
 class TestWorkflowEdgeCases:
@@ -866,74 +900,82 @@ class TestWorkflowEdgeCases:
         workflow_dir = Path(".github/workflows")
 
         for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, 'r') as f:
+            with open(workflow_file, "r") as f:
                 workflow = yaml.safe_load(f)
 
-            assert 'name' in workflow, \
+            assert "name" in workflow, (
                 f"{workflow_file.name} should have a 'name' field"
-            assert workflow['name'], \
-                f"{workflow_file.name} name should not be empty"
+            )
+            assert workflow["name"], f"{workflow_file.name} name should not be empty"
 
     def test_workflows_have_on_triggers(self):
         """Verify all workflows have trigger definitions."""
         workflow_dir = Path(".github/workflows")
 
         for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, 'r') as f:
+            with open(workflow_file, "r") as f:
                 content = f.read()
                 workflow = yaml.safe_load(content)
 
             # Check for 'on' or 'true' (which is quoted 'on')
-            has_trigger = 'on' in workflow or '"on"' in content
+            has_trigger = "on" in workflow or '"on"' in content
 
-            assert has_trigger, \
+            assert has_trigger, (
                 f"{workflow_file.name} should have trigger definition ('on' field)"
+            )
 
     def test_workflows_have_jobs(self):
         """Verify all workflows define at least one job."""
         workflow_dir = Path(".github/workflows")
 
         for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, 'r') as f:
+            with open(workflow_file, "r") as f:
                 workflow = yaml.safe_load(f)
 
-            assert 'jobs' in workflow, \
+            assert "jobs" in workflow, (
                 f"{workflow_file.name} should have 'jobs' section"
-            assert len(workflow['jobs']) > 0, \
+            )
+            assert len(workflow["jobs"]) > 0, (
                 f"{workflow_file.name} should have at least one job"
+            )
 
     def test_job_steps_are_lists(self):
         """Verify all job steps are properly formatted as lists."""
         workflow_dir = Path(".github/workflows")
 
         for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, 'r') as f:
+            with open(workflow_file, "r") as f:
                 workflow = yaml.safe_load(f)
 
-            jobs = workflow.get('jobs', {})
+            jobs = workflow.get("jobs", {})
             for job_id, job_config in jobs.items():
-                if 'steps' in job_config:
-                    steps = job_config['steps']
-                    assert isinstance(steps, list), \
+                if "steps" in job_config:
+                    steps = job_config["steps"]
+                    assert isinstance(steps, list), (
                         f"{workflow_file.name} job '{job_id}' steps should be a list"
-                    assert len(steps) > 0, \
+                    )
+                    assert len(steps) > 0, (
                         f"{workflow_file.name} job '{job_id}' should have at least one step"
+                    )
 
     def test_steps_have_name_or_uses(self):
         """Verify all steps have either 'name' or 'uses' field."""
         workflow_dir = Path(".github/workflows")
 
         for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, 'r') as f:
+            with open(workflow_file, "r") as f:
                 workflow = yaml.safe_load(f)
 
-            jobs = workflow.get('jobs', {})
+            jobs = workflow.get("jobs", {})
             for job_id, job_config in jobs.items():
-                steps = job_config.get('steps', [])
+                steps = job_config.get("steps", [])
                 for i, step in enumerate(steps):
-                    has_identification = 'name' in step or 'uses' in step or 'run' in step
-                    assert has_identification, \
+                    has_identification = (
+                        "name" in step or "uses" in step or "run" in step
+                    )
+                    assert has_identification, (
                         f"{workflow_file.name} job '{job_id}' step {i} needs name, uses, or run"
+                    )
 
 
 class TestWorkflowSecretPatternsAndCheckoutVersion:
@@ -960,9 +1002,9 @@ class TestWorkflowSecretPatternsAndCheckoutVersion:
 
             for pattern in secret_patterns:
                 matches = re.findall(pattern, content, re.IGNORECASE)
-                assert (
-                    len(matches) == 0
-                ), f"{workflow_file.name} may contain hardcoded secrets"
+                assert len(matches) == 0, (
+                    f"{workflow_file.name} may contain hardcoded secrets"
+                )
 
     def test_checkout_actions_use_v4_or_newer(self):
         """Verify checkout actions use v4 or newer."""
@@ -984,61 +1026,61 @@ class TestWorkflowSecretPatternsAndCheckoutVersion:
                             try:
                                 version_str = uses.split("@v")[1].split(".")[0]
                                 version = int(version_str)
-                                assert (
-                                    version >= 4
-                                ), f"{workflow_file.name} uses outdated checkout action"
+                                assert version >= 4, (
+                                    f"{workflow_file.name} uses outdated checkout action"
+                                )
                             except (IndexError, ValueError):
                                 pytest.fail(
                                     f"Could not parse checkout action version in {workflow_file.name}: '{uses}'"
                                 )
                         else:
-                            assert uses.endswith("@v4") or uses.endswith(
-                                "@main"
-                            ), f"{workflow_file.name} uses non-versioned checkout action"
+                            assert uses.endswith("@v4") or uses.endswith("@main"), (
+                                f"{workflow_file.name} uses non-versioned checkout action"
+                            )
 
 
 class TestPRAgentConfigurationRobustness:
     """Robustness tests for PR Agent configuration."""
 
-    @ pytest.fixture
+    @pytest.fixture
     def pr_agent_config(self) -> Dict[str, Any]:
         """Load pr-agent-config.yml."""
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             return yaml.safe_load(f)
 
     def test_config_sections_are_dicts(self, pr_agent_config):
         """Verify all major config sections are dictionaries."""
-        assert isinstance(pr_agent_config.get('agent', {}), dict)
-        assert isinstance(pr_agent_config.get('monitoring', {}), dict)
-        assert isinstance(pr_agent_config.get('limits', {}), dict)
+        assert isinstance(pr_agent_config.get("agent", {}), dict)
+        assert isinstance(pr_agent_config.get("monitoring", {}), dict)
+        assert isinstance(pr_agent_config.get("limits", {}), dict)
 
     def test_agent_name_is_string(self, pr_agent_config):
         """Verify agent name is a non-empty string."""
-        agent_name = pr_agent_config.get('agent', {}).get('name')
+        agent_name = pr_agent_config.get("agent", {}).get("name")
         assert isinstance(agent_name, str)
         assert len(agent_name) > 0
 
     def test_agent_enabled_is_boolean(self, pr_agent_config):
         """Verify agent enabled flag is boolean."""
-        enabled = pr_agent_config.get('agent', {}).get('enabled')
+        enabled = pr_agent_config.get("agent", {}).get("enabled")
         assert isinstance(enabled, bool)
 
     def test_monitoring_interval_is_positive_integer(self, pr_agent_config):
         """Verify monitoring interval is positive integer."""
-        interval = pr_agent_config.get('monitoring', {}).get('check_interval')
+        interval = pr_agent_config.get("monitoring", {}).get("check_interval")
         assert isinstance(interval, int)
         assert interval > 0
 
     def test_rate_limit_is_positive_integer(self, pr_agent_config):
         """Verify rate limit is positive integer."""
-        rate_limit = pr_agent_config.get('limits', {}).get('rate_limit_requests')
+        rate_limit = pr_agent_config.get("limits", {}).get("rate_limit_requests")
         assert isinstance(rate_limit, int)
         assert rate_limit > 0
 
     def test_max_concurrent_prs_is_positive(self, pr_agent_config):
         """Verify max concurrent PRs is positive integer."""
-        max_prs = pr_agent_config.get('limits', {}).get('max_concurrent_prs')
+        max_prs = pr_agent_config.get("limits", {}).get("max_concurrent_prs")
         assert isinstance(max_prs, int)
         assert max_prs > 0
 
