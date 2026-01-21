@@ -298,7 +298,7 @@ export default function AssetList() {
 
   interface AssetListContentProps {
     loading: boolean;
-    error: Error | null;
+    error: string | null;
     assets: Asset[];
     page: number;
     pageSize: number;
