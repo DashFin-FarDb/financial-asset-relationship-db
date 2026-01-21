@@ -2898,6 +2898,7 @@ class TestWorkflowScheduledExecutionBestPractices:
             schedules = triggers["schedule"]
             for schedule in schedules:
                 _ = schedule.get("cron", "")
+                pass
 
 
 # Additional test to verify all new test classes are properly structured

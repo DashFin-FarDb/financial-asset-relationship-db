@@ -231,6 +231,6 @@ class TestDocumentationSummary:
         Provide the path to the test documentation summary file.
 
         Returns:
-            Path: Path to "TEST_DOCUMENTATION_SUMMARY.md".
+            Path: Path to 'TEST_DOCUMENTATION_SUMMARY.md'.
         """
         return Path("TEST_DOCUMENTATION_SUMMARY.md")
