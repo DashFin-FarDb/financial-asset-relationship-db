@@ -8,6 +8,12 @@ interface PaginatedAssetsResponse {
   per_page: number;
 }
 
+/**
+ * Type guard to check if a value is a PaginatedAssetsResponse.
+ *
+ * @param value - The value to check.
+ * @returns True if the value conforms to PaginatedAssetsResponse, otherwise false.
+ */
 const isPaginatedResponse = (
   value: unknown,
 ): value is PaginatedAssetsResponse => {
@@ -25,6 +31,13 @@ const isPaginatedResponse = (
   );
 };
 
+/**
+ * Parses a string into a positive integer or returns a fallback if parsing fails or result is non-positive.
+ *
+ * @param value - The string value to parse.
+ * @param fallback - The fallback number to return if parsing fails or is non-positive.
+ * @returns The parsed positive integer or the fallback.
+ */
 export const parsePositiveInteger = (
   value: string | null,
   fallback: number,
@@ -33,6 +46,14 @@ export const parsePositiveInteger = (
   return Number.isNaN(parsed) || parsed <= 0 ? fallback : parsed;
 };
 
+/**
+ * Builds a summary string for query parameters.
+ *
+ * @param page - The current page number.
+ * @param pageSize - The number of items per page.
+ * @param filter - The filter object containing asset_class and sector.
+ * @returns A summary string of the query parameters.
+ */
 export const buildQuerySummary = (
   page: number,
   pageSize: number,
@@ -41,16 +62,23 @@ export const buildQuerySummary = (
   const summaryParts = [`page ${page}`, `${pageSize} per page`];
 
   if (filter.asset_class) {
-    summaryParts.push(`asset class \"${filter.asset_class}\"`);
+    summaryParts.push(`asset class "${filter.asset_class}"`);
   }
 
   if (filter.sector) {
-    summaryParts.push(`sector \"${filter.sector}\"`);
+    summaryParts.push(`sector "${filter.sector}"`);
   }
 
   return summaryParts.join(", ");
 };
 
+/**
+ * Loads asset classes and sectors metadata and sets state with provided setters.
+ *
+ * @param setAssetClasses - Callback to set the list of asset classes.
+ * @param setSectors - Callback to set the list of sectors.
+ * @returns A promise that resolves when metadata is loaded.
+ */
 export const loadMetadata = async (
   setAssetClasses: (next: string[]) => void,
   setSectors: (next: string[]) => void,
@@ -68,6 +96,18 @@ export const loadMetadata = async (
   }
 };
 
+/**
+ * Loads assets based on pagination and filter, sets assets, total, error and optional query summary.
+ *
+ * @param page - The current page number.
+ * @param pageSize - The number of items per page.
+ * @param filter - The filter object containing asset_class and sector.
+ * @param setAssets - Callback to set the list of loaded assets.
+ * @param setTotal - Callback to set the total number of assets.
+ * @param setError - Callback to set error messages.
+ * @param querySummary - Optional summary of the query.
+ * @returns A promise that resolves when assets are loaded.
+ */
 export const loadAssets = async (
   page: number,
   pageSize: number,
