@@ -377,7 +377,11 @@ export default function AssetList() {
           <div>
             <label>Show </label>
             <select value={pageSize} onChange={onPageSizeChange}>
-              {[10, 20, 50].map(renderPageSizeOption)}
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
             </select>
             <label> entries</label>
           </div>
