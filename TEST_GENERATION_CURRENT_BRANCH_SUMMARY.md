@@ -18,7 +18,7 @@ Comprehensive unit tests have been generated for all testable files that changed
 
 **Purpose**: Unit tests for helper functions in test_github_workflows.py
 
-+**Test Classes**: 2
+**Test Classes**: 2
 
 - `TestGetWorkflowFiles` - 10 tests for workflow file discovery
 - `TestLoadYamlSafe` - 8 tests for YAML loading
