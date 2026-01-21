@@ -936,62 +936,65 @@ class TestWorkflowEdgeCases:
                         f"{workflow_file.name} job '{job_id}' step {i} needs name, uses, or run"
 
 
-# Enhanced secret patterns
-secret_patterns = [
-    r'password:\s*["\'](?!.*\$\{)',
-    r'token:\s*["\'](?!.*\$\{)',
-    r'api[_-]?key:\s*["\'](?!.*\$\{)',
-    r'secret[_-]?key:\s*["\'](?!.*\$\{)',
-    r'aws[_-]?(?:access[_-]?key|secret[_-]?key):\s*["\'](?!.*\$\{)',
-    r'gh[_-]?token:\s*["\'](?!.*\$\{)',
-    r'["\'][A-Za-z0-9+/]{40,}["\']',  # Base64-like long strings
-]
+class TestWorkflowSecretPatternsAndCheckoutVersion:
+    """Additional tests for secrets and checkout action versions in workflows."""
+
+    def test_enhanced_no_hardcoded_secrets_in_workflows(self):
+        """Use enhanced regex patterns to detect hardcoded secrets."""
+        workflow_dir = Path(".github/workflows")
+        secret_patterns = [
+            r'password:\s*["\'](?!.*\$\{)',
+            r'token:\s*["\'](?!.*\$\{)',
+            r'api[_-]?key:\s*["\'](?!.*\$\{)',
+            r'secret[_-]?key:\s*["\'](?!.*\$\{)',
+            r'aws[_-]?(?:access[_-]?key|secret[_-]?key):\s*["\'](?!.*\$\{)',
+            r'gh[_-]?token:\s*["\'](?!.*\$\{)',
+            r'["\'][A-Za-z0-9+/]{40,}["\']',  # Base64-like long strings
         ]
 
         import re
+
         for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, 'r') as f:
+            with open(workflow_file, "r") as f:
                 content = f.read()
 
             for pattern in secret_patterns:
                 matches = re.findall(pattern, content, re.IGNORECASE)
-                assert len(matches) == 0,
-                    f"{workflow_file.name} may contain hardcoded secrets"
+                assert (
+                    len(matches) == 0
+                ), f"{workflow_file.name} may contain hardcoded secrets"
 
-if 'actions/checkout' in uses:
-    # Handle version tags properly
-    if '@v' in uses:
-        version_part = uses.split('@v')[1]
-        version_match = re.search(r'^(\d+)', version_part)
-        if version_match:
-            version = int(version_match.group(1))
-            assert version >= 4, f"{workflow_file.name} uses outdated checkout action"
-    else:
-        # Handle @main, @latest, or other tags
-        assert '@' not in uses or uses.endswith('@v4') or uses.endswith('@main'),
-            f"{workflow_file.name} uses non-versioned checkout action"
+    def test_checkout_actions_use_v4_or_newer(self):
         """Verify checkout actions use v4 or newer."""
         workflow_dir = Path(".github/workflows")
 
+        import re
+
         for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, 'r') as f:
+            with open(workflow_file, "r") as f:
                 workflow = yaml.safe_load(f)
 
-            jobs = workflow.get('jobs', {})
+            jobs = workflow.get("jobs", {})
             for job_id, job_config in jobs.items():
-                steps = job_config.get('steps', [])
+                steps = job_config.get("steps", [])
                 for step in steps:
-                    uses = step.get('uses', '')
-                    if 'actions/checkout' in uses:
-                        # Extract version safely
-                        if '@v' in uses:
+                    uses = step.get("uses", "")
+                    if "actions/checkout" in uses:
+                        if "@v" in uses:
                             try:
-                                version_str = uses.split('@v')[1].split('.')[0]
+                                version_str = uses.split("@v")[1].split(".")[0]
                                 version = int(version_str)
-                                assert version >= 4,
-                                    f"{workflow_file.name} uses outdated checkout action"
+                                assert (
+                                    version >= 4
+                                ), f"{workflow_file.name} uses outdated checkout action"
                             except (IndexError, ValueError):
-                                pytest.fail(f"Could not parse checkout action version in {workflow_file.name}: '{uses}'")
+                                pytest.fail(
+                                    f"Could not parse checkout action version in {workflow_file.name}: '{uses}'"
+                                )
+                        else:
+                            assert uses.endswith("@v4") or uses.endswith(
+                                "@main"
+                            ), f"{workflow_file.name} uses non-versioned checkout action"
 
 
 class TestPRAgentConfigurationRobustness:
