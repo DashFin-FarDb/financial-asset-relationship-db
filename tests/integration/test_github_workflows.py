@@ -2895,13 +2895,15 @@ class TestWorkflowScheduledExecutionBestPractices:
         triggers = data.get("on", {})
 
         if "schedule" in triggers:
+
+
 if "schedule" in triggers:
     schedules = triggers["schedule"]
     for schedule in schedules:
         _ = schedule.get("cron", "")
-            for schedule in schedules:
-                _ = schedule.get("cron", "")
-                pass
+        for schedule in schedules:
+            _ = schedule.get("cron", "")
+            pass
 
 
 # Additional test to verify all new test classes are properly structured
