@@ -14,12 +14,6 @@ interface PaginatedAssetsResponse {
 
 const DEFAULT_PAGE_SIZE = 20;
 
-/**
- * Type guard to check if a value is a PaginatedAssetsResponse.
- *
- * @param value - The value to check.
- * @returns True if the value conforms to PaginatedAssetsResponse, false otherwise.
- */
 const isPaginatedResponse = (
   value: unknown,
 ): value is PaginatedAssetsResponse => {
@@ -37,26 +31,11 @@ const isPaginatedResponse = (
   );
 };
 
-/**
- * Parses a string into a positive integer, returning fallback if parsing fails or non-positive.
- *
- * @param value - The string to parse.
- * @param fallback - The fallback number if parsing fails or result is not positive.
- * @returns The parsed positive integer or the fallback.
- */
 const parsePositiveInteger = (value: string | null, fallback: number) => {
   const parsed = Number.parseInt(value || "", 10);
   return Number.isNaN(parsed) || parsed <= 0 ? fallback : parsed;
 };
 
-/**
- * Builds a summary string describing the current query parameters.
- *
- * @param page - The current page number.
- * @param pageSize - The number of items per page.
- * @param filter - The filter criteria with asset_class and sector.
- * @returns A summary string of the query parameters.
- */
 const buildQuerySummary = (
   page: number,
   pageSize: number,
@@ -103,11 +82,6 @@ export default function AssetList() {
     [filter, page, pageSize],
   );
 
-  /**
-   * Loads asset classes and sectors metadata from the API and updates state.
-   *
-   * @returns A promise that resolves when metadata is loaded.
-   */
   const loadMetadata = async () => {
     try {
       const [classesData, sectorsData] = await Promise.all([
@@ -219,11 +193,6 @@ export default function AssetList() {
 
   const canGoPrev = !loading && page > 1;
 
-  /**
-   * Creates a handler to update filter for the specified field.
-   * @param {"asset_class"|"sector"} field - The filter field to update.
-   * @returns {(event: React.ChangeEvent<HTMLSelectElement>) => void} Change event handler.
-   */
   const handleFilterChange =
     (field: "asset_class" | "sector") =>
     (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -233,10 +202,6 @@ export default function AssetList() {
       updateQueryParams({ [field]: value || null, page: "1" });
     };
 
-  /**
-   * Handles change in page size select element.
-   * @param {React.ChangeEvent<HTMLSelectElement>} event - The select change event.
-   */
   const handlePageSizeChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
@@ -249,10 +214,6 @@ export default function AssetList() {
     updateQueryParams({ per_page: String(nextSize), page: "1" });
   };
 
-  /**
-   * Navigates to the specified page number within valid bounds.
-   * @param {number} requestedPage - The target page number.
-   */
   const _goToPage = (requestedPage: number) => {
     const lowerBounded = Math.max(1, requestedPage);
     const bounded =
@@ -266,149 +227,52 @@ export default function AssetList() {
     updateQueryParams({ page: String(bounded) });
   };
 
-  // Extracted to reduce JSX nesting depth
-const AssetClassFilter: React.FC<{
-  assetClasses: string[];
-  value: string;
-  onChange: React.ChangeEventHandler<HTMLSelectElement>;
-}> = ({ assetClasses, value, onChange }) => {
-    assetClasses: string[];
-    value: string;
-    onChange: React.ChangeEventHandler<HTMLSelectElement>;
-const AssetClassOptions: React.FC<{ isLoading: boolean; assetClasses: string[] }> = ({ isLoading, assetClasses }) => {
-    if (isLoading) {
-      return <option disabled>Loading...</option>;
-    }
-    return (
-      <>
-        {assetClasses.map((cls) => (
-          <option key={cls.id} value={cls.id}>
-            {cls.name}
-          </option>
-        ))}
-      </>
-    );
-  };
-
-const AssetClassFilter: React.FC<{ assetClasses: string[]; value: string; onChange: React.ChangeEventHandler<HTMLSelectElement> }> = ({ assetClasses, value, onChange }) => {
-    const isLoading = assetClasses.length === 0;
-
-    return (
-      <div>
-        <label
-          htmlFor="asset-class-filter"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Asset Class
-        </label>
-        <select
-          id="asset-class-filter"
-          className="w-full border border-gray-300 rounded-md px-3 py-2"
-          value={value}
-          onChange={onChange}
-          disabled={isLoading}
-        >
-          <AssetClassOptions
-            isLoading={isLoading}
-            assetClasses={assetClasses}
-          />
-        </select>
-      </div>
-    );
-  };
-
-  /**
-   * Renders options for the asset class select dropdown.
-   *
-   * @param {Object} props - The component props.
-   * @param {boolean} props.isLoading - Indicates if the options are loading.
-   * @param {string[]} props.assetClasses - List of asset class names.
-   * @returns {JSX.Element} The option elements for the select input.
-   */
-  const AssetClassOptions = ({ isLoading, assetClasses }) => {
-    if (isLoading) {
-      return <option value="">Loading...</option>;
-    }
-    return (
-      <>
-        <option value="">All Classes</option>
-        {assetClasses.map((ac) => (
-          <option key={ac} value={ac}>
-            {ac}
-          </option>
-        ))}
-      </>
-    );
-  };
-
-  /**
-   * Renders the sector filter section.
-   *
-   * @param {Object} props - The component props.
-   * @param {string[]} props.sectors - List of sector names.
-   * @param {string} props.value - Current selected sector.
-   * @param {Function} props.onChange - Change handler for sector filter.
-   * @returns {JSX.Element} The sector filter component.
-   */
-  const SectorFilter = ({ sectors, value, onChange }) => {
-    return (
-      <div>
-        <label
-          htmlFor="sector-filter"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Sector
-        </label>
-        <select
-          className="w-full border border-gray-300 rounded-md px-3 py-2"
-          id="sector-filter"
-          value={value}
-          onChange={onChange}
-          disabled={sectors.length === 0}
-        >
-          {sectors.length === 0 ? (
-            <option value="">Loading...</option>
-          ) : (
-            <>
-              <option value="">All Sectors</option>
-              {sectors.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </>
-          )}
-        </select>
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-6">
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AssetClassFilter
-            assetClasses={assetClasses}
-            value={filter.asset_class}
-            onChange={handleFilterChange("asset_class")}
-          />
-          <SectorFilter
-            sectors={sectors}
-            value={filter.sector}
-            onChange={handleFilterChange("sector")}
-          />
-              ) : (
-                <>
-                  <option value="">All Sectors</option>
-                  {sectors.map((sector) => (
-                    <option key={sector} value={sector}>
-                      {sector}
-                    </option>
-                  ))}
-                </>
-              )}
+          <div>
+            <label
+              htmlFor="asset-class-filter"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Asset Class
+            </label>
+            <select
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              id="asset-class-filter"
+              value={filter.asset_class}
+              onChange={handleFilterChange("asset_class")}
+            >
+              <option value="">All Classes</option>
+              {assetClasses.map((ac) => (
+                <option key={ac} value={ac}>
+                  {ac}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="sector-filter"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Sector
+            </label>
+            <select
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              id="sector-filter"
+              value={filter.sector}
+              onChange={handleFilterChange("sector")}
+            >
+              <option value="">All Sectors</option>
+              {sectors.map((sector) => (
+                <option key={sector} value={sector}>
+                  {sector}
+                </option>
+              ))}
             </select>
           </div>
         </div>
