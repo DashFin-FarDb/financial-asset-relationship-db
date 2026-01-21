@@ -36,7 +36,10 @@ const SelectFilter = ({
   placeholder,
 }: SelectFilterProps) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-2">
+    <label
+      htmlFor={id}
+      className="block text-sm font-medium text-gray-700 mb-2"
+    >
       {label}
     </label>
     <select
@@ -64,7 +67,10 @@ export default function AssetList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [filter, setFilter] = useState<AssetFilter>({ asset_class: "", sector: "" });
+  const [filter, setFilter] = useState<AssetFilter>({
+    asset_class: "",
+    sector: "",
+  });
   const [assetClasses, setAssetClasses] = useState<string[]>([]);
   const [sectors, setSectors] = useState<string[]>([]);
 
@@ -125,7 +131,8 @@ export default function AssetList() {
     );
 
     setFilter((prev) =>
-      prev.asset_class === nextFilter.asset_class && prev.sector === nextFilter.sector
+      prev.asset_class === nextFilter.asset_class &&
+      prev.sector === nextFilter.sector
         ? prev
         : nextFilter,
     );
@@ -153,8 +160,7 @@ export default function AssetList() {
   }, [fetchAssets]);
 
   const handleFilterChange =
-    (field: keyof AssetFilter) =>
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
+    (field: keyof AssetFilter) => (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value;
 
       setFilter((prev) => ({ ...prev, [field]: value }));
@@ -259,19 +265,28 @@ export default function AssetList() {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Loading...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-red-600">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-red-600"
+                  >
                     {error}
                   </td>
                 </tr>
               ) : assets.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     No assets found
                   </td>
                 </tr>

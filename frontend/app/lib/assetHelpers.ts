@@ -25,7 +25,10 @@ const isPaginatedResponse = (
   );
 };
 
-export const parsePositiveInteger = (value: string | null, fallback: number) => {
+export const parsePositiveInteger = (
+  value: string | null,
+  fallback: number,
+) => {
   const parsed = Number.parseInt(value || "", 10);
   return Number.isNaN(parsed) || parsed <= 0 ? fallback : parsed;
 };
