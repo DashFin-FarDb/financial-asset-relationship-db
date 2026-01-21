@@ -70,7 +70,12 @@ class MockIntersectionObserver {
    * @param {Function} callback
    * @param {Object} options
    */
-  constructor (callback = () => { /* no-op placeholder callback */ }, options = {}) {
+  constructor (
+    callback = () => {
+      /* no-op placeholder callback */
+    },
+    options = {}
+  ) {
     this._callback = callback
     this._options = options
     this._elements = new Set()
