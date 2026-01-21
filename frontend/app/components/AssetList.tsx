@@ -104,7 +104,21 @@ export default function AssetList() {
    * Loads asset classes and sectors metadata and updates the state.
    * @returns {Promise<void>} A promise that resolves when the metadata has been loaded.
    */
-  const loadMetadata = useCallback(async () => {
+const loadMetadata = useCallback(async () => {
+  try {
+    const [classesData, sectorsData] = await Promise.all([
+      api.getAssetClasses(),
+      api.getSectors(),
+    ]);
+    setAssetClasses(classesData.asset_classes);
+    setSectors(sectorsData.sectors);
+    // Clear metadata-specific error on success
+    setError((prev) => (prev?.includes("filter options") ? null : prev));
+  } catch (err) {
+    console.error("Error loading metadata:", err);
+    setError("Unable to load filter options. Please try again.");
+  }
+}, []);
     try {
       const [classesData, sectorsData] = await Promise.all([
         api.getAssetClasses(),
