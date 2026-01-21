@@ -1,33 +1,30 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
-const createMatchMedia = ({ defaultMatches = false } = {}) =>
-  jest.fn().mockImplementation((query) => {
-    const listeners = new Set()
+const createMatchMedia = ({ defaultMatches = false } = {}) => {
+  const listeners = new Set()
+  let matches = Boolean(defaultMatches)
+
+  const mqlFactory = (query) => {
     const media = String(query ?? '')
-    let matches = Boolean(defaultMatches)
-    let onchange = null
 
-    const notify = (event) => {
-      listeners.forEach((listener) => listener(event))
-      if (typeof onchange === 'function') onchange(event)
-    }
-
-    return {
+    const mql = {
       get matches () {
         return matches
       },
       media,
-      get onchange () {
-        return onchange
-      },
-      set onchange (nextOnChange) {
-        onchange = nextOnChange
-      },
+      onchange: null,
 
       setMatches (newValue) {
         matches = Boolean(newValue)
-        notify({ type: 'change', matches, media })
+        const event = { type: 'change', matches, media }
+
+        setTimeout(() => {
+          listeners.forEach((listener) => listener(event))
+          if (typeof mql.onchange === 'function') {
+            mql.onchange(event)
+          }
+        }, 0)
       },
 
       addListener: jest.fn((listener) => {
@@ -47,11 +44,23 @@ const createMatchMedia = ({ defaultMatches = false } = {}) =>
       }),
 
       dispatchEvent: jest.fn((event) => {
-        notify(event)
+        listeners.forEach((listener) => listener(event))
+        if (typeof mql.onchange === 'function') {
+          mql.onchange(event)
+        }
         return true
       })
     }
-  })
+
+    return mql
+  }
+
+  const mockFn = jest.fn(mqlFactory)
+
+  mockFn.clearListeners = () => listeners.clear()
+
+  return mockFn
+}
 
 Object.defineProperty(window, 'matchMedia', {
   configurable: true,
@@ -70,7 +79,7 @@ class MockIntersectionObserver {
     })
 
     this.unobserve = jest.fn((element) => {
-      if (element) this._elements.delete(element)
+      this._elements.delete(element)
     })
 
     this.disconnect = jest.fn(() => {
@@ -80,8 +89,10 @@ class MockIntersectionObserver {
     this.takeRecords = jest.fn(() => [])
   }
 
-  _trigger (entries = []) {
-    this._callback(entries, this)
+  triggerCallback (entries = []) {
+    if (typeof this._callback !== 'function') return
+    const normalizedEntries = Array.isArray(entries) ? entries : [entries]
+    this._callback(normalizedEntries, this)
   }
 }
 
@@ -92,23 +103,11 @@ Object.defineProperty(window, 'IntersectionObserver', {
 })
 
 Object.defineProperty(global, 'IntersectionObserver', {
-    this.takeRecords = jest.fn(() => [])
-
-    /**
-     * Manually trigger the stored IntersectionObserver callback.
-     * @param {IntersectionObserverEntry|IntersectionObserverEntry[]} [entries]
-     */
-    this.triggerCallback = (entries = []) => {
-      if (typeof this._callback !== 'function') return
-      const normalizedEntries = Array.isArray(entries) ? entries : [entries]
-      this._callback(normalizedEntries, this)
-    }
+  configurable: true,
   writable: true,
   value: MockIntersectionObserver
 })
 
 afterEach(() => {
-  if (typeof window.matchMedia?.mockClear === 'function') {
-    window.matchMedia.mockClear()
-  }
+  window.matchMedia = createMatchMedia()
 })
