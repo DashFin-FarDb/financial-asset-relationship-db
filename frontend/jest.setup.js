@@ -1,34 +1,35 @@
-// jest.setup.js
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
-/**
- * Creates a mock matchMedia function for Jest.
- * @param {Object} [options]
- * @param {boolean} [options.defaultMatches=false]
- * @returns {jest.Mock}
- */
-const createMatchMedia = ({ defaultMatches = false } = {}) => {
-  return jest.fn().mockImplementation((query) => {
+const createMatchMedia = ({ defaultMatches = false } = {}) =>
+  jest.fn().mockImplementation((query) => {
     const listeners = new Set()
-    let matches = Boolean(defaultMatches)
     const media = String(query ?? '')
-    const mql = {
+    let matches = Boolean(defaultMatches)
+    let onchange = null
+
+    const notify = (event) => {
+      listeners.forEach((listener) => listener(event))
+      if (typeof onchange === 'function') onchange(event)
+    }
+
+    return {
       get matches () {
         return matches
       },
       media,
-      onchange: null,
-
-      /** Set matches value and notify listeners */
-      setMatches (newValue) {
-        matches = Boolean(newValue)
-        const event = { type: 'change', matches, media }
-        listeners.forEach((listener) => listener(event))
-        if (typeof mql.onchange === 'function') mql.onchange(event)
+      get onchange () {
+        return onchange
+      },
+      set onchange (nextOnChange) {
+        onchange = nextOnChange
       },
 
-      /** Deprecated listener methods */
+      setMatches (newValue) {
+        matches = Boolean(newValue)
+        notify({ type: 'change', matches, media })
+      },
+
       addListener: jest.fn((listener) => {
         if (typeof listener === 'function') listeners.add(listener)
       }),
@@ -36,7 +37,6 @@ const createMatchMedia = ({ defaultMatches = false } = {}) => {
         listeners.delete(listener)
       }),
 
-      /** Standard event methods */
       addEventListener: jest.fn((eventName, listener) => {
         if (eventName === 'change' && typeof listener === 'function') {
           listeners.add(listener)
@@ -45,37 +45,22 @@ const createMatchMedia = ({ defaultMatches = false } = {}) => {
       removeEventListener: jest.fn((eventName, listener) => {
         if (eventName === 'change') listeners.delete(listener)
       }),
+
       dispatchEvent: jest.fn((event) => {
-        listeners.forEach((listener) => listener(event))
-        if (typeof mql.onchange === 'function') mql.onchange(event)
+        notify(event)
         return true
       })
     }
-    return mql
   })
-}
 
-// Define mock on window
 Object.defineProperty(window, 'matchMedia', {
   configurable: true,
   writable: true,
   value: createMatchMedia()
 })
 
-/**
- * MockIntersectionObserver simulates IntersectionObserver for Jest.
- */
 class MockIntersectionObserver {
-  /**
-   * @param {Function} callback
-   * @param {Object} options
-   */
-  constructor (
-    callback = () => {
-      /* no-op placeholder callback */
-    },
-    options = {}
-  ) {
+  constructor (callback = () => undefined, options = {}) {
     this._callback = callback
     this._options = options
     this._elements = new Set()
@@ -94,9 +79,12 @@ class MockIntersectionObserver {
 
     this.takeRecords = jest.fn(() => [])
   }
+
+  _trigger (entries = []) {
+    this._callback(entries, this)
+  }
 }
 
-// Assign to window and global
 Object.defineProperty(window, 'IntersectionObserver', {
   configurable: true,
   writable: true,
@@ -109,26 +97,8 @@ Object.defineProperty(global, 'IntersectionObserver', {
   value: MockIntersectionObserver
 })
 
-// Cleanup mocks after each test
 afterEach(() => {
   if (typeof window.matchMedia?.mockClear === 'function') {
     window.matchMedia.mockClear()
-  }
-  if (
-    typeof MockIntersectionObserver.prototype.observe?.mockClear === 'function'
-  ) {
-    MockIntersectionObserver.prototype.observe.mockClear()
-  }
-  if (
-    typeof MockIntersectionObserver.prototype.unobserve?.mockClear ===
-    'function'
-  ) {
-    MockIntersectionObserver.prototype.unobserve.mockClear()
-  }
-  if (
-    typeof MockIntersectionObserver.prototype.disconnect?.mockClear ===
-    'function'
-  ) {
-    MockIntersectionObserver.prototype.disconnect.mockClear()
   }
 })
