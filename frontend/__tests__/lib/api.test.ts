@@ -468,7 +468,7 @@ describe('API Client', () => {
   });
 
   describe('Response Validation', () => {
-    it('should return empty array when API returns null', async () => {
+    it('should return null when API returns null', async () => {
       mockAxiosInstance.get.mockResolvedValue({ data: null });
 
       const result = await api.getAllRelationships();
