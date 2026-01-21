@@ -46,7 +46,9 @@ global.IntersectionObserver = class IntersectionObserver {
    *
    * @returns {void}
    */
-  static unobserve () {
+  unobserve () {
+    // No-op: placeholder for testing environment
+  }
     // No-op: placeholder for testing environment
   }
 }
