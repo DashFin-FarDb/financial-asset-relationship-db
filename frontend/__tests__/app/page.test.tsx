@@ -65,7 +65,14 @@ describe("Centralized Mock Shape Validation", () => {
             size: expect.any(Number),
           }),
         ]),
-        edges: expect.any(Array),
+        edges: expect.arrayContaining([
+          expect.objectContaining({
+            source: expect.any(String),
+            target: expect.any(String),
+            relationship_type: expect.any(String),
+            strength: expect.any(Number),
+          }),
+        ]),
       }),
     );
   });
