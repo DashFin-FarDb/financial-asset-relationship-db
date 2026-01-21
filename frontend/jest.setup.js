@@ -1,14 +1,28 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
+/**
+ * Creates a mock matchMedia function for Jest.
+ * @param {Object} [options] - Configuration options.
+ * @param {boolean} [options.defaultMatches=false] - Initial match status.
+ * @returns {jest.Mock} A Jest mock function simulating matchMedia.
+ */
 const createMatchMedia = ({ defaultMatches = false } = {}) =>
   jest.fn().mockImplementation((query) => {
     const listeners = new Set()
 
+    /**
+     * Adds a listener to be called when the media query changes.
+     * @param {Function} listener - The change event listener.
+     */
     const addChangeListener = (listener) => {
       if (typeof listener === 'function') listeners.add(listener)
     }
 
+    /**
+     * Removes a previously added change listener.
+     * @param {Function} listener - The listener to remove.
+     */
     const removeChangeListener = (listener) => {
       listeners.delete(listener)
     }
@@ -43,8 +57,17 @@ Object.defineProperty(window, 'matchMedia', {
   value: createMatchMedia()
 })
 
+/**
+ * MockIntersectionObserver mimics the IntersectionObserver API for testing purposes.
+ */
 class MockIntersectionObserver {
-  constructor (callback = () => {}, options = {}) {
+  /**
+   * Initializes the mock IntersectionObserver with a callback and options.
+   *
+   * @param {Function} callback - Function to be called when intersections occur.
+   * @param {Object} options - Options to configure the observer.
+   */
+  constructor (callback = () => { /* default no-op callback */ }, options = {}) {
     this._callback = callback
     this._options = options
     this._elements = new Set()
