@@ -28,7 +28,9 @@ global.IntersectionObserver = class IntersectionObserver {
    */
   observe () {
     // Intentionally empty: placeholder for observer
-delete observe () {
+  observe () {
+    // Intentionally empty: placeholder for observer
+  }
     // Intentionally empty: placeholder for observer
   }
 
