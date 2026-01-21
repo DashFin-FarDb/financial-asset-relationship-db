@@ -19,11 +19,25 @@ from api.main import app, validate_origin
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 
+# Test fixture URLs for CORS origin validation tests.
+# These localhost URLs are intentional test inputs for verifying the validate_origin
+# function correctly handles local development origins. They are not debug code.
+TEST_ORIGIN_HTTP_LOCALHOST = "http://localhost:3000"  # nosec B104
+TEST_ORIGIN_HTTP_LOOPBACK = "http://127.0.0.1:8000"  # nosec B104
+TEST_ORIGIN_HTTPS_LOCALHOST = "https://localhost:3000"
+TEST_ORIGIN_HTTPS_LOOPBACK = "https://127.0.0.1:8000"
+TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
+
 
 @pytest.fixture
 def client():
-    """Create a test client for the FastAPI app."""
-    return TestClient(app)
+    """Create a test client for the FastAPI app.
+
+    Note: TestClient uses internal ASGI transport, not actual network requests.
+    The base_url is only used for URL construction in tests, not for real HTTP calls.
+    """
+    # nosec B113 - TestClient uses ASGI transport, no actual localhost network access
+    return TestClient(app, base_url="http://testserver")
 
 
 @pytest.fixture
@@ -98,7 +112,8 @@ def mock_graph():
 class TestRootAndHealth:
     """Test root and health check endpoints."""
 
-    def test_root_endpoint(self, client):
+    @staticmethod
+    def test_root_endpoint(client):
         """Test root endpoint returns API information."""
         response = client.get("/")
         assert response.status_code == 200
@@ -109,7 +124,8 @@ class TestRootAndHealth:
         assert data["version"] == "1.0.0"
         assert "/api/assets" in data["endpoints"].values()
 
-    def test_health_check_endpoint(self, client):
+    @staticmethod
+    def test_health_check_endpoint(client):
         """Test health check endpoint."""
         response = client.get("/api/health")
         assert response.status_code == 200
@@ -122,37 +138,42 @@ class TestRootAndHealth:
 class TestCORSValidation:
     """Test CORS origin validation."""
 
-    def test_validate_origin_localhost_http_dev(self):
+    @staticmethod
+    def test_validate_origin_localhost_http_dev():
         """Test HTTP localhost is valid in development."""
         with patch("api.main.ENV", "development"):
-            assert validate_origin("http://localhost:3000") is True
-            assert validate_origin("http://127.0.0.1:8000") is True
+            assert validate_origin(TEST_ORIGIN_HTTP_LOCALHOST) is True
+            assert validate_origin(TEST_ORIGIN_HTTP_LOOPBACK) is True
 
-    def test_validate_origin_localhost_https_always(self):
+    @staticmethod
+    def test_validate_origin_localhost_https_always():
         """Test HTTPS localhost is always valid."""
-        assert validate_origin("https://localhost:3000") is True
-        assert validate_origin("https://127.0.0.1:8000") is True
+        assert validate_origin(TEST_ORIGIN_HTTPS_LOCALHOST) is True
+        assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is True
 
-    def test_validate_origin_vercel_urls(self):
+    @staticmethod
+    def test_validate_origin_vercel_urls():
         """Test Vercel deployment URLs are valid."""
         assert validate_origin("https://myapp.vercel.app") is True
         assert validate_origin("https://myapp-git-main.vercel.app") is True
         assert validate_origin("https://my-app-123.vercel.app") is True
 
-    def test_validate_origin_https_domains(self):
+    @staticmethod
+    def test_validate_origin_https_domains():
         """Test valid HTTPS domains are accepted."""
         assert validate_origin("https://example.com") is True
         assert validate_origin("https://sub.example.com") is True
         assert validate_origin("https://my-site.example.co.uk") is True
 
-    def test_validate_origin_invalid(self):
+    @staticmethod
+    def test_validate_origin_invalid():
         """Test invalid origins are rejected."""
         # HTTP in production (when not localhost)
         with patch("api.main.ENV", "production"):
             assert validate_origin("http://example.com") is False
 
         # Invalid formats
-        assert validate_origin("ftp://localhost:3000") is False
+        assert validate_origin(TEST_ORIGIN_FTP_LOCALHOST) is False
         assert validate_origin("javascript:alert(1)") is False
         assert validate_origin("") is False
 
@@ -491,7 +512,8 @@ class TestVisualizationEndpoint:
 class TestMetadataEndpoints:
     """Test metadata endpoints."""
 
-    def test_get_asset_classes(self, client):
+    @staticmethod
+    def test_get_asset_classes(client):
         """Test retrieving available asset classes."""
         response = client.get("/api/asset-classes")
         assert response.status_code == 200
@@ -504,8 +526,9 @@ class TestMetadataEndpoints:
         assert "Commodity" in data["asset_classes"]
         assert "Currency" in data["asset_classes"]
 
+    @staticmethod
     @patch("api.main.graph")
-    def test_get_sectors(self, mock_graph_instance, client, mock_graph):
+    def test_get_sectors(mock_graph_instance, client, mock_graph):
         """Test retrieving available sectors."""
         # Configure patched graph with mock_graph attributes
         mock_graph_instance.assets = mock_graph.assets
@@ -725,7 +748,8 @@ class TestRealDataFetcherFallback:
 
     @patch("src.data.real_data_fetcher.logger")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    def test_real_data_fetcher_logs_fallback_on_exception(self, mock_fetch_equity, mock_logger):
+    @staticmethod
+    def test_real_data_fetcher_logs_fallback_on_exception(mock_fetch_equity, mock_logger):
         """Test that RealDataFetcher logs when falling back to sample data."""
         from src.data.real_data_fetcher import RealDataFetcher
 
@@ -744,7 +768,8 @@ class TestRealDataFetcherFallback:
 
     @patch("src.data.real_data_fetcher.logger")
     @patch("src.data.real_data_fetcher.yf.Ticker")
-    def test_individual_asset_class_fetch_failures_logged(self, mock_ticker, mock_logger):
+    @staticmethod
+    def test_individual_asset_class_fetch_failures_logged(mock_ticker, mock_logger):
         """Test that individual asset class fetch failures are logged properly."""
         from src.data.real_data_fetcher import RealDataFetcher
 
@@ -757,7 +782,8 @@ class TestRealDataFetcherFallback:
         # Should log errors for each failed fetch
         assert mock_logger.error.call_count > 0  # Multiple fetch attempts failed
 
-    def test_real_data_fetcher_loads_from_cache(self, tmp_path):
+    @staticmethod
+    def test_real_data_fetcher_loads_from_cache(tmp_path):
         """RealDataFetcher should return cached dataset when available."""
         from src.data.real_data_fetcher import RealDataFetcher, _save_to_cache
         from src.data.sample_data import create_sample_database

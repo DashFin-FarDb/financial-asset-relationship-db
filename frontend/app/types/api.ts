@@ -9,7 +9,7 @@ export interface Asset {
   price: number;
   market_cap?: number;
   currency: string;
-  additional_fields: Record<string, any>;
+  additional_fields: Record<string, unknown>;
 }
 
 export interface Relationship {

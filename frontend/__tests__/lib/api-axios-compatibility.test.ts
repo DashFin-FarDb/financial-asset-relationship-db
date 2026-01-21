@@ -16,17 +16,22 @@
  * and security improvements in the newer version.
  */
 
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import type { Asset, Metrics } from '../../app/types/api';
-import { mockAsset, mockMetrics } from '../test-utils';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+} from "axios";
+import type { Asset, Metrics } from "../../app/types/api";
+import { mockAsset, mockMetrics } from "../test-utils";
 
 // Mock axios
-jest.mock('axios');
+jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-describe('Axios 1.13.2 Compatibility Tests', () => {
+describe("Axios 1.13.2 Compatibility Tests", () => {
   let mockAxiosInstance: jest.Mocked<AxiosInstance>;
-  let api: typeof import('../../app/lib/api')['api'];
+  let api: (typeof import("../../app/lib/api"))["api"];
 
   beforeEach(async () => {
     jest.resetModules();
@@ -52,12 +57,12 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
           delete: {},
           head: {},
         },
-        baseURL: 'http://localhost:8000',
+        baseURL: "http://localhost:8000",
         timeout: 0,
         withCredentials: false,
-        responseType: 'json',
-        xsrfCookieName: 'XSRF-TOKEN',
-        xsrfHeaderName: 'X-XSRF-TOKEN',
+        responseType: "json",
+        xsrfCookieName: "XSRF-TOKEN",
+        xsrfHeaderName: "X-XSRF-TOKEN",
         maxContentLength: -1,
         maxBodyLength: -1,
         validateStatus: (status: number) => status >= 200 && status < 300,
@@ -76,11 +81,11 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
           clear: jest.fn(),
         },
       },
-    } as any;
+    } as unknown as AxiosInstance;
 
     mockedAxios.create.mockReturnValue(mockAxiosInstance);
 
-    const apiModule = await import('../../app/lib/api');
+    const apiModule = await import("../../app/lib/api");
     api = apiModule.api;
   });
 
@@ -88,17 +93,17 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
     jest.clearAllMocks();
   });
 
-  describe('Axios Instance Creation - 1.13.2 Compatibility', () => {
-    it('should create instance with correct configuration for axios 1.13.2', () => {
+  describe("Axios Instance Creation - 1.13.2 Compatibility", () => {
+    it("should create instance with correct configuration for axios 1.13.2", () => {
       expect(mockedAxios.create).toHaveBeenCalledWith({
         baseURL: expect.any(String),
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
     });
 
-    it('should support axios 1.13.2 configuration options', () => {
+    it("should support axios 1.13.2 configuration options", () => {
       const config = mockedAxios.create.mock.calls[0]?.[0];
 
       expect(config).toBeDefined();
@@ -118,7 +123,7 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
       expect(extendedConfig.withCredentials).toBe(true);
     });
 
-    it('should have proper TypeScript types for axios 1.13.2', () => {
+    it("should have proper TypeScript types for axios 1.13.2", () => {
       // Type checking - this test passes if it compiles
       const testInstance: AxiosInstance = mockAxiosInstance;
 
@@ -129,108 +134,110 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
     });
   });
 
-  describe('Request Configuration - Axios 1.13.2 Features', () => {
-    it('should properly handle query parameters with axios 1.13.2', async () => {
+  describe("Request Configuration - Axios 1.13.2 Features", () => {
+    it("should properly handle query parameters with axios 1.13.2", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: [mockAsset],
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.getAssets({
-        asset_class: 'EQUITY',
-        sector: 'Technology',
+        asset_class: "EQUITY",
+        sector: "Technology",
         page: 1,
-        per_page: 10
+        per_page: 10,
       });
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets', {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
         params: {
-          asset_class: 'EQUITY',
-          sector: 'Technology',
+          asset_class: "EQUITY",
+          sector: "Technology",
           page: 1,
           per_page: 10,
         },
       });
     });
 
-    it('should handle undefined query parameters correctly', async () => {
+    it("should handle undefined query parameters correctly", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: [mockAsset],
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.getAssets({ asset_class: undefined });
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets', {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
         params: { asset_class: undefined },
       });
     });
 
-    it('should properly encode special characters in URLs', async () => {
+    it("should properly encode special characters in URLs", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: mockAsset,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // Test with special characters that need encoding
-      await api.getAssetDetail('TEST-ASSET_1.2');
+      await api.getAssetDetail("TEST-ASSET_1.2");
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets/TEST-ASSET_1.2');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/assets/TEST-ASSET_1.2",
+      );
     });
   });
 
-  describe('Response Handling - Axios 1.13.2 Behavior', () => {
-    it('should correctly extract response data in axios 1.13.2 format', async () => {
+  describe("Response Handling - Axios 1.13.2 Behavior", () => {
+    it("should correctly extract response data in axios 1.13.2 format", async () => {
       const mockResponse: AxiosResponse<Asset> = {
         data: mockAsset,
         status: 200,
-        statusText: 'OK',
-        headers: { 'content-type': 'application/json' },
-        config: {} as any,
+        statusText: "OK",
+        headers: { "content-type": "application/json" },
+        config: {} as AxiosRequestConfig,
       };
 
       mockAxiosInstance.get.mockResolvedValue(mockResponse);
 
-      const result = await api.getAssetDetail('ASSET_1');
+      const result = await api.getAssetDetail("ASSET_1");
 
       expect(result).toEqual(mockAsset);
-      expect(result.id).toBe('ASSET_1');
+      expect(result.id).toBe("ASSET_1");
     });
 
-    it('should handle 204 No Content responses correctly', async () => {
+    it("should handle 204 No Content responses correctly", async () => {
       mockAxiosInstance.get.mockResolvedValue({
-        data: '',
+        data: "",
         status: 204,
-        statusText: 'No Content',
+        statusText: "No Content",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.healthCheck();
 
-      expect(result).toBe('');
+      expect(result).toBe("");
     });
 
-    it('should preserve response headers in axios 1.13.2', async () => {
+    it("should preserve response headers in axios 1.13.2", async () => {
       const mockResponse: AxiosResponse = {
         data: mockMetrics,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {
-          'content-type': 'application/json',
-          'x-request-id': 'test-123',
-          'x-ratelimit-remaining': '99',
+          "content-type": "application/json",
+          "x-request-id": "test-123",
+          "x-ratelimit-remaining": "99",
         },
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       };
 
       mockAxiosInstance.get.mockResolvedValue(mockResponse);
@@ -241,20 +248,20 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
     });
   });
 
-  describe('Error Handling - Axios 1.13.2 Improvements', () => {
-    it('should properly type AxiosError in axios 1.13.2', async () => {
+  describe("Error Handling - Axios 1.13.2 Improvements", () => {
+    it("should properly type AxiosError in axios 1.13.2", async () => {
       const axiosError: AxiosError = {
-        name: 'AxiosError',
-        message: 'Request failed with status code 404',
-        code: 'ERR_BAD_REQUEST',
-        config: {} as any,
+        name: "AxiosError",
+        message: "Request failed with status code 404",
+        code: "ERR_BAD_REQUEST",
+        config: {} as AxiosRequestConfig,
         request: {},
         response: {
-          data: { detail: 'Not found' },
+          data: { detail: "Not found" },
           status: 404,
-          statusText: 'Not Found',
+          statusText: "Not Found",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         },
         isAxiosError: true,
         toJSON: () => ({}),
@@ -262,20 +269,20 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
 
       mockAxiosInstance.get.mockRejectedValue(axiosError);
 
-      await expect(api.getAssetDetail('NONEXISTENT')).rejects.toMatchObject({
+      await expect(api.getAssetDetail("NONEXISTENT")).rejects.toMatchObject({
         response: {
           status: 404,
-          data: { detail: 'Not found' },
+          data: { detail: "Not found" },
         },
       });
     });
 
-    it('should handle network errors without response object', async () => {
+    it("should handle network errors without response object", async () => {
       const networkError: AxiosError = {
-        name: 'AxiosError',
-        message: 'Network Error',
-        code: 'ERR_NETWORK',
-        config: {} as any,
+        name: "AxiosError",
+        message: "Network Error",
+        code: "ERR_NETWORK",
+        config: {} as AxiosRequestConfig,
         request: {},
         isAxiosError: true,
         toJSON: () => ({}),
@@ -284,17 +291,17 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
       mockAxiosInstance.get.mockRejectedValue(networkError);
 
       await expect(api.getMetrics()).rejects.toMatchObject({
-        code: 'ERR_NETWORK',
-        message: 'Network Error',
+        code: "ERR_NETWORK",
+        message: "Network Error",
       });
     });
 
-    it('should handle timeout errors with proper error code', async () => {
+    it("should handle timeout errors with proper error code", async () => {
       const timeoutError: AxiosError = {
-        name: 'AxiosError',
-        message: 'timeout of 5000ms exceeded',
-        code: 'ECONNABORTED',
-        config: {} as any,
+        name: "AxiosError",
+        message: "timeout of 5000ms exceeded",
+        code: "ECONNABORTED",
+        config: {} as AxiosRequestConfig,
         request: {},
         isAxiosError: true,
         toJSON: () => ({}),
@@ -303,24 +310,24 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
       mockAxiosInstance.get.mockRejectedValue(timeoutError);
 
       await expect(api.getVisualizationData()).rejects.toMatchObject({
-        code: 'ECONNABORTED',
-        message: expect.stringContaining('timeout'),
+        code: "ECONNABORTED",
+        message: expect.stringContaining("timeout"),
       });
     });
 
-    it('should properly handle 5xx server errors', async () => {
+    it("should properly handle 5xx server errors", async () => {
       const serverError: AxiosError = {
-        name: 'AxiosError',
-        message: 'Request failed with status code 500',
-        code: 'ERR_BAD_RESPONSE',
-        config: {} as any,
+        name: "AxiosError",
+        message: "Request failed with status code 500",
+        code: "ERR_BAD_RESPONSE",
+        config: {} as AxiosRequestConfig,
         request: {},
         response: {
-          data: { error: 'Internal Server Error' },
+          data: { error: "Internal Server Error" },
           status: 500,
-          statusText: 'Internal Server Error',
+          statusText: "Internal Server Error",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         },
         isAxiosError: true,
         toJSON: () => ({}),
@@ -333,19 +340,19 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
       });
     });
 
-    it('should handle 4xx client errors correctly', async () => {
-      const clientError: AxiosError = {
-        name: 'AxiosError',
-        message: 'Request failed with status code 400',
-        code: 'ERR_BAD_REQUEST',
-        config: {} as any,
+    it("should handle 4xx client errors correctly", async () => {
+      const clientError: AxiosError<{ detail: string }> = {
+        name: "AxiosError",
+        message: "Request failed with status code 400",
+        code: "ERR_BAD_REQUEST",
+        config: {} as AxiosRequestConfig,
         request: {},
         response: {
-          data: { detail: 'Invalid request parameters' },
+          data: { detail: "Invalid request parameters" },
           status: 400,
-          statusText: 'Bad Request',
+          statusText: "Bad Request",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         },
         isAxiosError: true,
         toJSON: () => ({}),
@@ -353,41 +360,43 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
 
       mockAxiosInstance.get.mockRejectedValue(clientError);
 
-      await expect(api.getAssets({ asset_class: 'INVALID' })).rejects.toMatchObject({
+      await expect(
+        api.getAssets({ asset_class: "INVALID" }),
+      ).rejects.toMatchObject({
         response: { status: 400 },
       });
     });
   });
 
-  describe('Content-Type Handling - Axios 1.13.2', () => {
-    it('should set correct Content-Type header for JSON', () => {
+  describe("Content-Type Handling - Axios 1.13.2", () => {
+    it("should set correct Content-Type header for JSON", () => {
       const config = mockedAxios.create.mock.calls[0]?.[0];
 
-      expect(config?.headers?.['Content-Type']).toBe('application/json');
+      expect(config?.headers?.["Content-Type"]).toBe("application/json");
     });
 
-    it('should handle JSON response parsing automatically', async () => {
+    it("should handle JSON response parsing automatically", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: mockMetrics,
         status: 200,
-        statusText: 'OK',
-        headers: { 'content-type': 'application/json; charset=utf-8' },
-        config: {} as any,
+        statusText: "OK",
+        headers: { "content-type": "application/json; charset=utf-8" },
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.getMetrics();
 
       expect(result).toEqual(mockMetrics);
-      expect(typeof result).toBe('object');
+      expect(typeof result).toBe("object");
     });
 
-    it('should handle empty response body correctly', async () => {
+    it("should handle empty response body correctly", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: null,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.healthCheck();
@@ -396,86 +405,88 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
     });
   });
 
-  describe('URL Handling - Axios 1.13.2', () => {
-    it('should correctly combine baseURL with relative paths', async () => {
+  describe("URL Handling - Axios 1.13.2", () => {
+    it("should correctly combine baseURL with relative paths", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: mockAsset,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
-      await api.getAssetDetail('ASSET_1');
+      await api.getAssetDetail("ASSET_1");
 
       // Should call with relative URL (baseURL is set on instance)
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets/ASSET_1');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1");
     });
 
-    it('should handle paths with multiple segments', async () => {
+    it("should handle paths with multiple segments", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: [],
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as unknown,
       });
 
-      await api.getAssetRelationships('ASSET_1');
+      await api.getAssetRelationships("ASSET_1");
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/assets/ASSET_1/relationships');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/assets/ASSET_1/relationships",
+      );
     });
 
-    it('should not double-slash URLs', async () => {
+    it("should not double-slash URLs", async () => {
       mockAxiosInstance.get.mockResolvedValue({
-        data: { status: 'ok' },
+        data: { status: "ok" },
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.healthCheck();
 
       // Should use single leading slash
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/health');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health");
     });
   });
 
-  describe('TypeScript Type Safety - Axios 1.13.2', () => {
-    it('should properly type generic responses', async () => {
+  describe("TypeScript Type Safety - Axios 1.13.2", () => {
+    it("should properly type generic responses", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: mockAsset,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // TypeScript should infer correct return type
-      const result: Asset = await api.getAssetDetail('ASSET_1');
+      const result: Asset = await api.getAssetDetail("ASSET_1");
 
       expect(result.id).toBeDefined();
       expect(result.symbol).toBeDefined();
       expect(result.name).toBeDefined();
     });
 
-    it('should properly type array responses', async () => {
+    it("should properly type array responses", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: [mockAsset],
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // TypeScript should infer array type
       const result = await api.getAssets();
 
-      expect(Array.isArray(result) || typeof result === 'object').toBeTruthy();
+      expect(Array.isArray(result) || typeof result === "object").toBeTruthy();
     });
 
-    it('should handle union types correctly', async () => {
+    it("should handle union types correctly", async () => {
       // Test that API can return either array or paginated response
       mockAxiosInstance.get.mockResolvedValue({
         data: {
@@ -485,9 +496,9 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
           per_page: 10,
         },
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.getAssets({ page: 1, per_page: 10 });
@@ -496,27 +507,27 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
     });
   });
 
-  describe('Backward Compatibility - 1.6.0 to 1.13.2', () => {
-    it('should maintain same API for basic GET requests', async () => {
+  describe("Backward Compatibility - 1.6.0 to 1.13.2", () => {
+    it("should maintain same API for basic GET requests", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: mockAsset,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // Same usage pattern as axios 1.6.0
-      const result = await api.getAssetDetail('ASSET_1');
+      const result = await api.getAssetDetail("ASSET_1");
 
       expect(result).toEqual(mockAsset);
     });
 
-    it('should maintain same error handling interface', async () => {
+    it("should maintain same error handling interface", async () => {
       const error: AxiosError = {
-        name: 'AxiosError',
-        message: 'Test error',
-        config: {} as any,
+        name: "AxiosError",
+        message: "Test error",
+        config: {} as AxiosRequestConfig,
         isAxiosError: true,
         toJSON: () => ({}),
       };
@@ -529,13 +540,13 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
       });
     });
 
-    it('should maintain same response structure', async () => {
+    it("should maintain same response structure", async () => {
       const mockResponse: AxiosResponse<Metrics> = {
         data: mockMetrics,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       };
 
       mockAxiosInstance.get.mockResolvedValue(mockResponse);
@@ -548,43 +559,45 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
     });
   });
 
-  describe('Edge Cases - Axios 1.13.2 Robustness', () => {
-    it('should handle very long URLs correctly', async () => {
-      const longId = 'A'.repeat(1000);
+  describe("Edge Cases - Axios 1.13.2 Robustness", () => {
+    it("should handle very long URLs correctly", async () => {
+      const longId = "A".repeat(1000);
 
       mockAxiosInstance.get.mockResolvedValue({
         data: { ...mockAsset, id: longId },
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       await api.getAssetDetail(longId);
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith(`/api/assets/${longId}`);
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        `/api/assets/${longId}`,
+      );
     });
 
-    it('should handle concurrent requests correctly', async () => {
+    it("should handle concurrent requests correctly", async () => {
       mockAxiosInstance.get
         .mockResolvedValueOnce({
           data: mockAsset,
           status: 200,
-          statusText: 'OK',
+          statusText: "OK",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         })
         .mockResolvedValueOnce({
           data: mockMetrics,
           status: 200,
-          statusText: 'OK',
+          statusText: "OK",
           headers: {},
-          config: {} as any,
+          config: {} as AxiosRequestConfig,
         });
 
       // Make concurrent requests
       const [asset, metrics] = await Promise.all([
-        api.getAssetDetail('ASSET_1'),
+        api.getAssetDetail("ASSET_1"),
         api.getMetrics(),
       ]);
 
@@ -593,13 +606,13 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle rapid sequential requests', async () => {
+    it("should handle rapid sequential requests", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: mockAsset,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       // Make rapid sequential requests
@@ -610,7 +623,7 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(10);
     });
 
-    it('should handle null and undefined in response data', async () => {
+    it("should handle null and undefined in response data", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: {
           ...mockAsset,
@@ -618,56 +631,60 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
           additional_fields: undefined,
         },
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
-      const result = await api.getAssetDetail('ASSET_1');
+      const result = await api.getAssetDetail("ASSET_1");
 
       expect(result.market_cap).toBeNull();
     });
   });
 
-  describe('Interceptor Compatibility - Axios 1.13.2', () => {
-    it('should support request interceptors', () => {
+  describe("Interceptor Compatibility - Axios 1.13.2", () => {
+    it("should support request interceptors", () => {
       expect(mockAxiosInstance.interceptors.request.use).toBeDefined();
-      expect(typeof mockAxiosInstance.interceptors.request.use).toBe('function');
+      expect(typeof mockAxiosInstance.interceptors.request.use).toBe(
+        "function",
+      );
     });
 
-    it('should support response interceptors', () => {
+    it("should support response interceptors", () => {
       expect(mockAxiosInstance.interceptors.response.use).toBeDefined();
-      expect(typeof mockAxiosInstance.interceptors.response.use).toBe('function');
+      expect(typeof mockAxiosInstance.interceptors.response.use).toBe(
+        "function",
+      );
     });
 
-    it('should allow interceptor registration', () => {
-      const requestInterceptor = (config: any) => config;
-      const responseInterceptor = (response: any) => response;
+    it("should allow interceptor registration", () => {
+      const requestInterceptor = <T>(config: T) => config;
+      const responseInterceptor = <T>(response: T): T => response;
 
       mockAxiosInstance.interceptors.request.use(requestInterceptor);
       mockAxiosInstance.interceptors.response.use(responseInterceptor);
 
       expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalledWith(
-        requestInterceptor
+        requestInterceptor,
       );
       expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledWith(
-        responseInterceptor
+        responseInterceptor,
       );
     });
   });
 
-  describe('Performance and Optimization - Axios 1.13.2', () => {
-    it('should reuse axios instance across requests', async () => {
+  describe("Performance and Optimization - Axios 1.13.2", () => {
+    it("should reuse axios instance across requests", async () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: mockAsset,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
-      await api.getAssetDetail('ASSET_1');
-      await api.getAssetDetail('ASSET_2');
+      await api.getAssetDetail("ASSET_1");
+      await api.getAssetDetail("ASSET_2");
 
       // Should create instance only once
       expect(mockedAxios.create).toHaveBeenCalledTimes(1);
@@ -675,7 +692,7 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle large response payloads efficiently', async () => {
+    it("should handle large response payloads efficiently", async () => {
       const largeDataset = Array.from({ length: 1000 }, (_, i) => ({
         ...mockAsset,
         id: `ASSET_${i}`,
@@ -684,9 +701,9 @@ describe('Axios 1.13.2 Compatibility Tests', () => {
       mockAxiosInstance.get.mockResolvedValue({
         data: largeDataset,
         status: 200,
-        statusText: 'OK',
+        statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as AxiosRequestConfig,
       });
 
       const result = await api.getAssets();

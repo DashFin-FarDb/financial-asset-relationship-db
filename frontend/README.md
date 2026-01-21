@@ -12,11 +12,13 @@ This is the Next.js frontend for the Financial Asset Relationship Database.
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Create environment file:
+
 ```bash
 cp ../.env.example .env.local
 ```

@@ -35,7 +35,17 @@ jobs:
     name: SOOS DAST Analysis
     runs-on: ubuntu-latest
     steps:
+      - name: Check if SOOS secrets are configured
+        id: check_secrets
+        run: |
+          if [ -z "${{ secrets.SOOS_API_KEY }}" ] || [ -z "${{ secrets.SOOS_CLIENT_ID }}" ]; then
+            echo "SOOS secrets not configured, skipping scan"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
       - name: Run SOOS DAST Analysis
+        if: steps.check_secrets.outputs.skip != 'true'
         uses: soos-io/soos-dast-github-action@a7eb40b94c1c81eb76b178ba1befdc21823f86fa
         with:
           client_id: ${{ secrets.SOOS_CLIENT_ID }}
@@ -46,6 +56,7 @@ jobs:
           export_format: "Sarif"
           export_file_type: "Json"
       - name: Find and rename SARIF file since it is unique
+        if: steps.check_secrets.outputs.skip != 'true'
         run: |
           file=$(find . -name "*.sarif.json" | head -n 1)
           if [ -n "$file" ]; then
@@ -55,6 +66,7 @@ jobs:
             echo "No SARIF file found" && exit 1
           fi
       - name: Upload SOOS DAST SARIF Report
+        if: steps.check_secrets.outputs.skip != 'true'
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: output.sarif.json

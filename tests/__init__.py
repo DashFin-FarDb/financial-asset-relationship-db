@@ -1,4 +1,6 @@
-"""Test package initialization to configure environment for authentication tests."""
+"""Test package initialization to configure environment for
+authentication tests.
+"""
 
 import os
 from pathlib import Path

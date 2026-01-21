@@ -1,6 +1,6 @@
 # Dependency Matrix
 
-*Generated: 2025-11-10T00:22:30.591Z*
+_Generated: 2025-11-10T00:22:30.591Z_
 
 ## Summary
 
@@ -25,11 +25,13 @@ No common dependencies found
 ### JS
 
 Top dependencies:
+
 - @testing-library/jest-dom
 
 ### TS
 
 Top dependencies:
+
 - axios
 - ../../app/lib/api
 - ../../app/types/api
@@ -37,9 +39,11 @@ Top dependencies:
 - ../api
 
 ### TSX
+
 ### TS
 
 Top dependencies:
+
 - axios
 - ../../app/types/api
 - ../types/api
@@ -47,6 +51,7 @@ Top dependencies:
 ### TSX
 
 Top dependencies:
+
 - react
 - next/dynamic
 - ../types/api
@@ -61,6 +66,7 @@ Top dependencies:
 ### JS
 
 Top dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom

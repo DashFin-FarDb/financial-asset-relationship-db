@@ -148,7 +148,8 @@ class TestVisualize2DGraph:
 class TestLayoutAlgorithms:
     """Test suite for layout algorithms."""
 
-    def test_create_circular_layout_empty_list(self):
+    @staticmethod
+    def test_create_circular_layout_empty_list():
         """Test circular layout with empty asset list."""
         # Execute
         positions = _create_circular_layout([])
@@ -157,7 +158,8 @@ class TestLayoutAlgorithms:
         assert isinstance(positions, dict)
         assert len(positions) == 0
 
-    def test_create_circular_layout_single_asset(self):
+    @staticmethod
+    def test_create_circular_layout_single_asset():
         """Test circular layout with one asset."""
         # Execute
         positions = _create_circular_layout(["ASSET_1"])
@@ -169,8 +171,10 @@ class TestLayoutAlgorithms:
         assert isinstance(x, float)
         assert isinstance(y, float)
 
-    def test_create_circular_layout_multiple_assets(self):
+    @staticmethod
+    def test_create_circular_layout_multiple_assets():
         """Test circular layout with multiple assets."""
+        # Execute
         asset_ids = ["AAPL", "MSFT", "GOOGL", "AMZN"]
 
         # Execute
@@ -272,7 +276,12 @@ class TestRelationshipTraces:
         populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8)
 
         # Create positions
-        positions = {"TEST_AAPL": (0, 0), "TEST_BOND": (1, 1), "TEST_GOLD": (2, 2), "TEST_EUR": (3, 3)}
+        positions = {
+            "TEST_AAPL": (0, 0),
+            "TEST_BOND": (1, 1),
+            "TEST_GOLD": (2, 2),
+            "TEST_EUR": (3, 3),
+        }
         asset_ids = list(positions.keys())
 
         # Execute

@@ -1,70 +1,49 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# Debricked SCA Vulnerability Scanning Workflow
+#
+# This workflow performs Software Composition Analysis (SCA) to identify
+# dependency vulnerabilities during development and before changes are merged.
+#
+# Security Features:
+# - Uses GitHub Actions secrets for authentication (DEBRICKED_TOKEN)
+# - Minimal required permissions (least privilege principle)
+# - Pinned action versions for supply-chain security
+# - No hardcoded secrets or sensitive data logging
+#
+# Triggers:
+# - Pull requests to main branch (gated verification)
+# - Pushes to main branch (continuous monitoring)
+# - Manual dispatch (adhoc verification)
 
-#####################################################################################################################################################################
-# Use this workflow template as a basis for integrating Debricked into your GitHub workflows.                                                                       #
-#                                                                                                                                                                   #
-# If you need additional assistance with configuration feel free to contact us via chat or email at support@debricked.com                                           #
-# To learn more about Debricked or contact our team, visit https://debricked.com/                                                                                   #
-#                                                                                                                                                                   #
-# To run this workflow, complete the following set-up steps:                                                                                                        #
-#                                                                                                                                                                   #
-# 1. If you don’t have a Debricked account, create one by visiting https://debricked.com/app/en/register                                                            #
-# 2. Generate your Debricked access token, by following the steps mentioned in https://portal.debricked.com/administration-47/how-do-i-generate-an-access-token-130 #
-# 3. In GitHub, navigate to the repository                                                                                                                          #
-# 4. Click on “Settings” (If you cannot see the “Settings” tab, select the dropdown menu, then click “Settings”)                                                    #
-# 5. In the “Security” section click on “Secrets and variables”, then click “Actions”                                                                               #
-# 6. In the “Secrets” tab, click on “New repository secret”                                                                                                         #
-# 7. In the “Name” field, type the name of the secret                                                                                                               #
-# 8. In the “Secret” field, enter the value of the secret                                                                                                           #
-# 9. Click “Add secret”                                                                                                                                             #
-# 10. You should now be ready to use the workflow!                                                                                                                  #
-#####################################################################################################################################################################
-
-name: Debricked Scan
+name: Debricked scan
 
 on:
   push:
-    paths:
-      - 'requirements*.txt'
-      - 'Pipfile'
-      - 'Pipfile.lock'
-      - 'poetry.lock'
-      - 'pyproject.toml'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'pnpm-lock.yaml'
-      - 'yarn.lock'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - 'go.mod'
-      - 'go.sum'
-      - 'Gemfile'
-      - 'Gemfile.lock'
-      - 'pom.xml'
-      - 'build.gradle'
-      - 'build.gradle.kts'
-      - 'composer.json'
-      - 'composer.lock'
-      - '.github/workflows/debricked.yml'
-      - '!**/*.md'
-      - '!docs/**'
-
-permissions:
-  contents: read
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:  # Allows manual triggering for adhoc verification
 
 jobs:
   vulnerabilities-scan:
-    concurrency:
-      group: debricked-${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
-    name: Vulnerabilities scan
-    runs-on: ubuntu-latest
+    name: Vulnerability Scan
+    runs-on: ubuntu-22.04  # Supported Ubuntu runner
+
+    # Minimal required permissions (least privilege principle)
+    permissions:
+      contents: read          # Required to checkout repository
+      security-events: write  # Required to publish security results
+      actions: read          # Required for workflow metadata
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: debricked/actions@v3
+      - name: Checkout code
+        # Security: Pinned to specific SHA for actions/checkout@v4.2.2
+        # This prevents supply-chain attacks from compromised action versions
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Run Debricked Scan
+        # Security: Using semantic version tag for debricked/actions/scan
+        # Authentication via GitHub Actions secrets (no hardcoded tokens)
+        uses: debricked/actions/scan@v1
         env:
+          # Secret is read from GitHub Actions secrets context
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}

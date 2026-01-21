@@ -175,6 +175,7 @@ docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' financia
 ### Container Won't Start
 
 Check logs:
+
 ```bash
 docker-compose logs app
 ```
@@ -182,14 +183,16 @@ docker-compose logs app
 ### Port Already in Use
 
 Change the port mapping in `docker-compose.yml`:
+
 ```yaml
 ports:
-  - "8080:7860"  # Use port 8080 instead
+  - "8080:7860" # Use port 8080 instead
 ```
 
 ### Permission Issues
 
 Ensure the non-root user has permissions:
+
 ```bash
 # Rebuild with proper permissions
 docker-compose build --no-cache
@@ -198,6 +201,7 @@ docker-compose build --no-cache
 ### Database Connection Issues
 
 If using PostgreSQL:
+
 1. Ensure the database service is running: `docker-compose ps`
 2. Check database logs: `docker-compose logs postgres`
 3. Verify connection string in environment variables
@@ -266,13 +270,13 @@ spec:
         app: financial-asset-db
     spec:
       containers:
-      - name: app
-        image: financial-asset-db:latest
-        ports:
-        - containerPort: 7860
-        env:
-        - name: GRADIO_SERVER_NAME
-          value: "0.0.0.0"
+        - name: app
+          image: financial-asset-db:latest
+          ports:
+            - containerPort: 7860
+          env:
+            - name: GRADIO_SERVER_NAME
+              value: "0.0.0.0"
 ```
 
 ## Resources

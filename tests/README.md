@@ -12,16 +12,19 @@ Comprehensive test suite for the Financial Asset Relationship Database Next.js i
 ## Running Tests
 
 ### Backend (Python)
+
 ```bash
 pytest --cov=api --cov=src -v
 ```
 
 ### Frontend (TypeScript)
+
 ```bash
 cd frontend && npm test
 ```
 
 ## Coverage
+
 - 88+ test methods across all new code
 - All 10 API endpoints tested
 - CORS, error handling, edge cases covered

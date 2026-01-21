@@ -37,7 +37,8 @@ class TestMicroagentValidation:
         assert len(files) > 0, "No microagent files found"
         return files
 
-    def parse_frontmatter(self, content: str) -> tuple[Dict[str, Any], str]:
+    @staticmethod
+    def parse_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
         """
         Parse YAML frontmatter from markdown content.
 
@@ -71,14 +72,16 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     """Test cases for repo_engineer_lead.md microagent."""
 
     @pytest.fixture
-    def repo_engineer_path(self, microagents_dir: Path) -> Path:
+    @staticmethod
+    def repo_engineer_path(microagents_dir: Path) -> Path:
         """Return the path to repo_engineer_lead.md."""
         path = microagents_dir / "repo_engineer_lead.md"
         assert path.exists(), "repo_engineer_lead.md not found"
         return path
 
     @pytest.fixture
-    def repo_engineer_content(self, repo_engineer_path: Path) -> str:
+    @staticmethod
+    def repo_engineer_content(repo_engineer_path: Path) -> str:
         """Load repo_engineer_lead.md content."""
         with open(repo_engineer_path, encoding="utf-8") as f:
             return f.read()
@@ -95,12 +98,14 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         _, body = self.parse_frontmatter(repo_engineer_content)
         return body
 
-    def test_file_exists(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_file_exists(repo_engineer_path: Path):
         """Test that repo_engineer_lead.md exists."""
         assert repo_engineer_path.exists()
         assert repo_engineer_path.is_file()
 
-    def test_file_not_empty(self, repo_engineer_content: str):
+    @staticmethod
+    def test_file_not_empty(repo_engineer_content: str):
         """Test that repo_engineer_lead.md is not empty."""
         assert len(repo_engineer_content.strip()) > 0
 
@@ -111,13 +116,15 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert isinstance(frontmatter, dict)
         assert len(body) > 0
 
-    def test_frontmatter_has_required_fields(self, repo_engineer_frontmatter: Dict[str, Any]):
+    @staticmethod
+    def test_frontmatter_has_required_fields(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that frontmatter contains all required fields."""
         required_fields = ["name", "type", "version", "agent"]
         for field in required_fields:
             assert field in repo_engineer_frontmatter, f"Missing required field: {field}"
 
-    def test_frontmatter_name_field(self, repo_engineer_frontmatter: Dict[str, Any]):
+    @staticmethod
+    def test_frontmatter_name_field(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that name field is valid."""
         assert "name" in repo_engineer_frontmatter
         name = repo_engineer_frontmatter["name"]
@@ -125,7 +132,8 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert len(name) > 0
         assert name == "repo_engineer_lead", "Name should match filename convention"
 
-    def test_frontmatter_type_field(self, repo_engineer_frontmatter: Dict[str, Any]):
+    @staticmethod
+    def test_frontmatter_type_field(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that type field is valid."""
         assert "type" in repo_engineer_frontmatter
         agent_type = repo_engineer_frontmatter["type"]
@@ -133,15 +141,17 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert agent_type in ["knowledge", "action", "hybrid"], "Type must be valid microagent type"
         assert agent_type == "knowledge", "Expected knowledge type for repo_engineer_lead"
 
-    def test_frontmatter_version_field(self, repo_engineer_frontmatter: Dict[str, Any]):
+    @staticmethod
+    def test_frontmatter_version_field(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that version field is valid."""
         assert "version" in repo_engineer_frontmatter
         version = repo_engineer_frontmatter["version"]
         assert isinstance(version, str)
         # Should match semantic versioning pattern
-        assert re.match(r"^\d+\.\d+\.\d+$", version), "Version should follow semver format (x.y.z)"
+        assert re.match(r"^\d+\.\d+\.\d+$$", version), "Version should follow semver format (x.y.z)"
 
-    def test_frontmatter_agent_field(self, repo_engineer_frontmatter: Dict[str, Any]):
+    @staticmethod
+    def test_frontmatter_agent_field(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that agent field is valid."""
         assert "agent" in repo_engineer_frontmatter
         agent = repo_engineer_frontmatter["agent"]
@@ -151,7 +161,8 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         valid_agents = ["CodeActAgent", "PlannerAgent", "BrowsingAgent"]
         assert agent in valid_agents, f"Agent should be one of {valid_agents}"
 
-    def test_frontmatter_no_triggers(self, repo_engineer_frontmatter: Dict[str, Any]):
+    @staticmethod
+    def test_frontmatter_no_triggers(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that triggers field is absent (as documented in the content)."""
         # The content states "the microagent doesn't have any triggers"
         # So triggers should either be absent or empty
@@ -161,11 +172,13 @@ class TestRepoEngineerLead(TestMicroagentValidation):
                 triggers is None or triggers == [] or triggers == ""
             ), "repo_engineer_lead should not have triggers as per documentation"
 
-    def test_body_content_not_empty(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_content_not_empty(repo_engineer_body: str):
         """Test that body content is not empty."""
         assert len(repo_engineer_body.strip()) > 0
 
-    def test_body_describes_purpose(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_describes_purpose(repo_engineer_body: str):
         """Test that body describes the microagent's purpose."""
         body_lower = repo_engineer_body.lower()
         # Should mention key responsibilities
@@ -173,56 +186,66 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             keyword in body_lower for keyword in ["repository engineer", "issues", "prs", "pull requests"]
         ), "Body should describe repository engineering responsibilities"
 
-    def test_body_mentions_issue_review(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_mentions_issue_review(repo_engineer_body: str):
         """Test that body mentions issue review functionality."""
         body_lower = repo_engineer_body.lower()
         assert "issues" in body_lower, "Should mention issue handling"
         assert "review" in body_lower, "Should mention review process"
 
-    def test_body_mentions_pr_handling(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_mentions_pr_handling(repo_engineer_body: str):
         """Test that body mentions PR handling functionality."""
         body_lower = repo_engineer_body.lower()
         assert any(term in body_lower for term in ["pr", "pull request"]), "Should mention PR handling"
 
-    def test_body_mentions_code_changes(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_mentions_code_changes(repo_engineer_body: str):
         """Test that body mentions code change capabilities."""
         body_lower = repo_engineer_body.lower()
         assert "code changes" in body_lower or "changes" in body_lower, "Should mention code change capabilities"
 
-    def test_body_mentions_documentation(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_mentions_documentation(repo_engineer_body: str):
         """Test that body mentions documentation responsibilities."""
         body_lower = repo_engineer_body.lower()
         assert "documentation" in body_lower, "Should mention documentation responsibilities"
 
-    def test_body_mentions_merge_conflicts(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_mentions_merge_conflicts(repo_engineer_body: str):
         """Test that body mentions merge conflict resolution."""
         body_lower = repo_engineer_body.lower()
         assert "merge conflict" in body_lower, "Should mention merge conflict handling"
 
-    def test_body_mentions_branch_hygiene(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_mentions_branch_hygiene(repo_engineer_body: str):
         """Test that body mentions branch hygiene maintenance."""
         body_lower = repo_engineer_body.lower()
         assert "branch hygiene" in body_lower, "Should mention branch hygiene"
 
-    def test_body_mentions_commit_responsibility(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_mentions_commit_responsibility(repo_engineer_body: str):
         """Test that body mentions commit responsibilities."""
         body_lower = repo_engineer_body.lower()
         assert "commit" in body_lower, "Should mention commit responsibilities"
 
-    def test_body_no_malformed_sentences(self, repo_engineer_body: str):
+    @staticmethod
+    def test_body_no_malformed_sentences(repo_engineer_body: str):
         """Test that body doesn't have obviously malformed sentences."""
         # Check for multiple spaces in a row (except after periods)
         assert not re.search(
             r"[^\.]  +", repo_engineer_body
         ), "Should not have multiple consecutive spaces (except after periods)"
 
-    def test_content_appropriate_length(self, repo_engineer_body: str):
+    @staticmethod
+    def test_content_appropriate_length(repo_engineer_body: str):
         """Test that content has appropriate length for a microagent description."""
         word_count = len(repo_engineer_body.split())
         assert word_count >= 30, "Content should be at least 30 words"
         assert word_count <= 1000, "Content should be concise (under 1000 words)"
 
-    def test_yaml_frontmatter_syntax_valid(self, repo_engineer_content: str):
+    @staticmethod
+    def test_yaml_frontmatter_syntax_valid(repo_engineer_content: str):
         """Test that YAML frontmatter has valid syntax."""
         content = repo_engineer_content.lstrip()
         match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
@@ -236,20 +259,23 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         except yaml.YAMLError as e:
             pytest.fail(f"Invalid YAML syntax: {e}")
 
-    def test_no_trailing_whitespace(self, repo_engineer_content: str):
+    @staticmethod
+    def test_no_trailing_whitespace(repo_engineer_content: str):
         """Test that file doesn't have excessive trailing whitespace."""
         lines = repo_engineer_content.split("\n")
         for i, line in enumerate(lines[:-1], 1):  # Check all but last line
             assert not line.endswith("  "), f"Line {i} has trailing spaces"
 
-    def test_proper_line_endings(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_proper_line_endings(repo_engineer_path: Path):
         """Test that file uses Unix line endings."""
         with open(repo_engineer_path, "rb") as f:
             content = f.read()
         # Should not contain Windows line endings
         assert b"\r\n" not in content, "File should use Unix line endings (LF, not CRLF)"
 
-    def test_encoding_is_utf8(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_encoding_is_utf8(repo_engineer_path: Path):
         """Test that file is UTF-8 encoded."""
         try:
             with open(repo_engineer_path, encoding="utf-8") as f:
@@ -261,7 +287,8 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 class TestAllMicroagents(TestMicroagentValidation):
     """Test cases for all microagent files in the directory."""
 
-    def test_all_microagents_have_valid_structure(self, microagent_files: List[Path]):
+    @staticmethod
+    def test_all_microagents_have_valid_structure(microagent_files: List[Path]):
         """Test that all microagent files have valid structure."""
         for file_path in microagent_files:
             with open(file_path, encoding="utf-8") as f:
@@ -363,34 +390,40 @@ class TestMicroagentSemantic:
     """Semantic validation tests for microagent content."""
 
     @pytest.fixture
-    def repo_engineer_path(self) -> Path:
+    @staticmethod
+    def repo_engineer_path() -> Path:
         """Return the path to repo_engineer_lead.md."""
         return Path(".openhands/microagents/repo_engineer_lead.md")
 
     @pytest.fixture
-    def repo_engineer_content(self, repo_engineer_path: Path) -> str:
+    @staticmethod
+    def repo_engineer_content(repo_engineer_path: Path) -> str:
         """Load repo_engineer_lead.md content."""
         with open(repo_engineer_path, encoding="utf-8") as f:
             return f.read()
 
-    def test_autonomous_nature_described(self, repo_engineer_content: str):
+    @staticmethod
+    def test_autonomous_nature_described(repo_engineer_content: str):
         """Test that autonomous nature is described."""
         body_lower = repo_engineer_content.lower()
         assert "autonomous" in body_lower or "automated" in body_lower, "Should describe autonomous/automated nature"
 
-    def test_describes_summary_and_plan(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_summary_and_plan(repo_engineer_content: str):
         """Test that summary and planning is described."""
         body_lower = repo_engineer_content.lower()
         assert "summary" in body_lower and "plan" in body_lower, "Should mention creating summaries and plans"
 
-    def test_describes_reviewer_interaction(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_reviewer_interaction(repo_engineer_content: str):
         """Test that reviewer interaction is described."""
         body_lower = repo_engineer_content.lower()
         assert any(
             term in body_lower for term in ["reviewer", "contributor", "comment"]
         ), "Should describe interaction with reviewers and contributors"
 
-    def test_describes_commit_process(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_commit_process(repo_engineer_content: str):
         """Test that commit process is described."""
         body_lower = repo_engineer_content.lower()
         assert "commit" in body_lower, "Should describe commit process"
@@ -399,17 +432,20 @@ class TestMicroagentSemantic:
             term in body_lower for term in ["commit any changes", "commit changes"]
         ), "Should explain committing changes"
 
-    def test_describes_post_explanation(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_post_explanation(repo_engineer_content: str):
         """Test that posting explanations is described."""
         body_lower = repo_engineer_content.lower()
         assert "post" in body_lower or "explain" in body_lower, "Should mention posting explanations"
 
-    def test_describes_efficiency_focus(self, repo_engineer_content: str):
+    @staticmethod
+    def test_describes_efficiency_focus(repo_engineer_content: str):
         """Test that efficiency focus is described."""
         body_lower = repo_engineer_content.lower()
         assert "efficiency" in body_lower, "Should mention efficiency in code fixes"
 
-    def test_proper_grammar_and_punctuation(self, repo_engineer_content: str):
+    @staticmethod
+    def test_proper_grammar_and_punctuation(repo_engineer_content: str):
         """Test basic grammar and punctuation."""
         # Extract body after frontmatter
         content = repo_engineer_content.lstrip()
@@ -429,7 +465,8 @@ class TestMicroagentSemantic:
         assert ".." not in body, "Should not have double periods"
         assert "  ." not in body, "Should not have space before period"
 
-    def test_consistent_terminology(self, repo_engineer_content: str):
+    @staticmethod
+    def test_consistent_terminology(repo_engineer_content: str):
         """Test that terminology is used consistently."""
         body = repo_engineer_content.lower()
 
@@ -447,17 +484,20 @@ class TestMicroagentEdgeCases:
     """Test edge cases and error conditions."""
 
     @pytest.fixture
-    def repo_engineer_path(self) -> Path:
+    @staticmethod
+    def repo_engineer_path() -> Path:
         """Return the path to repo_engineer_lead.md."""
         return Path(".openhands/microagents/repo_engineer_lead.md")
 
-    def test_file_size_reasonable(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_file_size_reasonable(repo_engineer_path: Path):
         """Test that file size is reasonable."""
         file_size = repo_engineer_path.stat().st_size
         assert file_size > 100, "File should have meaningful content"
         assert file_size < 50000, "File should be concise (under 50KB)"
 
-    def test_no_binary_content(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_no_binary_content(repo_engineer_path: Path):
         """Test that file contains only text (no binary data)."""
         with open(repo_engineer_path, "rb") as f:
             content = f.read()
@@ -468,7 +508,8 @@ class TestMicroagentEdgeCases:
         except UnicodeDecodeError:
             pytest.fail("File should contain only UTF-8 text")
 
-    def test_no_control_characters(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_no_control_characters(repo_engineer_path: Path):
         """Test that file doesn't contain unexpected control characters."""
         with open(repo_engineer_path, encoding="utf-8") as f:
             content = f.read()
@@ -480,7 +521,8 @@ class TestMicroagentEdgeCases:
             if code < 32:  # Control character
                 assert char in ["\n", "\t", "\r"], f"File should not contain control character: {repr(char)}"
 
-    def test_consistent_newlines(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_consistent_newlines(repo_engineer_path: Path):
         """Test that newlines are used consistently."""
         with open(repo_engineer_path, "rb") as f:
             content = f.read()

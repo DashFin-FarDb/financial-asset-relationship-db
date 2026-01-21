@@ -32,42 +32,48 @@ pytest.importorskip("sqlalchemy")
 class TestEngineCreation:
     """Test cases for database engine creation."""
 
-    def test_create_engine_with_default_url(self):
+    @staticmethod
+    def test_create_engine_with_default_url():
         """Test engine creation using default database URL."""
         with patch.dict(os.environ, {}, clear=True):
             engine = create_engine_from_url()
             assert engine is not None
             assert "sqlite" in str(engine.url).lower()
 
-    def test_create_engine_with_custom_url(self):
+    @staticmethod
+    def test_create_engine_with_custom_url():
         """Test engine creation with a custom URL."""
         custom_url = "sqlite:///test_custom.db"
         engine = create_engine_from_url(custom_url)
         assert engine is not None
         assert "test_custom.db" in str(engine.url)
 
-    def test_create_engine_with_in_memory_sqlite(self):
+    @staticmethod
+    def test_create_engine_with_in_memory_sqlite():
         """Test engine creation for in-memory SQLite database."""
         memory_url = "sqlite:///:memory:"
         engine = create_engine_from_url(memory_url)
         assert engine is not None
         assert isinstance(engine.pool, StaticPool)
 
-    def test_create_engine_with_env_variable(self):
+    @staticmethod
+    def test_create_engine_with_env_variable():
         """Test engine creation using environment variable."""
         test_url = "sqlite:///env_test.db"
         with patch.dict(os.environ, {"ASSET_GRAPH_DATABASE_URL": test_url}):
             engine = create_engine_from_url()
             assert "env_test.db" in str(engine.url)
 
-    def test_create_engine_with_postgres_url(self):
+    @staticmethod
+    def test_create_engine_with_postgres_url():
         """Test engine creation with PostgreSQL URL."""
         postgres_url = "postgresql://user:pass@localhost/testdb"
         engine = create_engine_from_url(postgres_url)
         assert engine is not None
         assert "postgresql" in str(engine.url).lower()
 
-    def test_sqlite_memory_has_check_same_thread_false(self):
+    @staticmethod
+    def test_sqlite_memory_has_check_same_thread_false():
         """Test that SQLite memory database has check_same_thread disabled."""
         memory_url = "sqlite:///:memory:"
         engine = create_engine_from_url(memory_url)
@@ -118,7 +124,7 @@ class TestDatabaseInitialization:
         engine = create_engine("sqlite:///:memory:")
 
         # Create a simple test model
-        class TestModel(Base):
+        class _TestModel(Base):
             __tablename__ = "test_model"
             id = Column(Integer, primary_key=True)
             name = Column(String)
@@ -132,7 +138,7 @@ class TestDatabaseInitialization:
         """Test that init_db can be called multiple times safely."""
         engine = create_engine("sqlite:///:memory:")
 
-        class TestModel(Base):
+        class _TestModel(Base):
             __tablename__ = "test_idempotent"
             id = Column(Integer, primary_key=True)
 
@@ -291,15 +297,18 @@ class TestSessionScope:
 class TestDefaultDatabaseURL:
     """Test cases for default database URL configuration."""
 
-    def test_default_database_url_is_sqlite(self):
+    @staticmethod
+    def test_default_database_url_is_sqlite():
         """Test that default database URL uses SQLite."""
         assert "sqlite" in DEFAULT_DATABASE_URL.lower()
 
-    def test_default_database_url_file_path(self):
+    @staticmethod
+    def test_default_database_url_file_path():
         """Test that default database URL points to a file."""
         assert "asset_graph.db" in DEFAULT_DATABASE_URL
 
-    def test_env_override_of_default_url(self):
+    @staticmethod
+    def test_env_override_of_default_url():
         """Test that environment variable can override default URL."""
         custom_url = "postgresql://test:test@localhost/test"
         with patch.dict(os.environ, {"ASSET_GRAPH_DATABASE_URL": custom_url}):
@@ -312,7 +321,8 @@ class TestDefaultDatabaseURL:
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
-    def test_session_scope_with_empty_operations(self):
+    @staticmethod
+    def test_session_scope_with_empty_operations():
         """Test session scope with no operations."""
         engine = create_engine("sqlite:///:memory:")
         factory = create_session_factory(engine)
@@ -321,19 +331,22 @@ class TestEdgeCases:
         with session_scope(factory) as _:
             pass
 
-    def test_create_engine_with_empty_string(self):
+    @staticmethod
+    def test_create_engine_with_empty_string():
         """Test engine creation with empty string defaults to env/default."""
         with patch.dict(os.environ, {}, clear=True):
             engine = create_engine_from_url("")
             # Should fall back to default
             assert engine is not None
 
-    def test_create_engine_with_none(self):
+    @staticmethod
+    def test_create_engine_with_none():
         """Test engine creation with None uses default."""
         engine = create_engine_from_url(None)
         assert engine is not None
 
-    def test_session_scope_with_database_error(self):
+    @staticmethod
+    def test_session_scope_with_database_error():
         """Test session scope behavior with database-level errors."""
         from sqlalchemy.exc import IntegrityError
 

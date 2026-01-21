@@ -83,7 +83,6 @@ def test_uri_style_memory_database_persists_schema_and_data(monkeypatch, restore
     reloaded_database = importlib.reload(database)
 
     reloaded_database.initialize_schema()
-
     with reloaded_database.get_connection() as first_connection:
         first_connection.execute(
             """
@@ -247,8 +246,6 @@ class TestConnectWithMemoryDb:
             conn2.close()
         finally:
             # Clean up temp file
-            import os
-
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
@@ -313,7 +310,10 @@ class TestGetConnectionWithMemoryDb:
 
         # Data should still be accessible in second context
         with reloaded_database.get_connection() as conn2:
-            row = conn2.execute("SELECT username FROM user_credentials WHERE username = ?", ("testuser",)).fetchone()
+            row = conn2.execute(
+                "SELECT username FROM user_credentials WHERE username = ?",
+                ("testuser",),
+            ).fetchone()
             assert row is not None
             assert row["username"] == "testuser"
 
@@ -345,8 +345,6 @@ class TestGetConnectionWithMemoryDb:
             with reloaded_database.get_connection() as conn2:
                 assert conn2 is not conn_ref
         finally:
-            import os
-
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
@@ -458,7 +456,8 @@ class TestEdgeCasesAndErrorHandling:
 
         # Use execute to insert data
         reloaded_database.execute(
-            "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)", ("testuser", "hashed")
+            "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
+            ("testuser", "hashed"),
         )
 
         # Verify data was committed
@@ -473,7 +472,8 @@ class TestEdgeCasesAndErrorHandling:
 
         reloaded_database.initialize_schema()
         reloaded_database.execute(
-            "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)", ("alice", "hashed")
+            "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
+            ("alice", "hashed"),
         )
 
         # Fetch single value
@@ -512,14 +512,16 @@ class TestEdgeCasesAndErrorHandling:
 class TestUriMemoryDatabaseIntegration:
     """Integration tests for URI-style memory databases."""
 
-    def test_uri_memory_database_with_cache_shared(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_uri_memory_database_with_cache_shared(monkeypatch, restore_database_module):
         """Test URI memory database with cache=shared parameter."""
         # Note: This tests the detection logic; actual URI handling depends on SQLite build
         uri = "file::memory:?cache=shared"
 
         assert database._is_memory_db(uri) is True
 
-    def test_uri_memory_database_persists_across_connections(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_uri_memory_database_persists_across_connections(monkeypatch, restore_database_module):
         """Test that URI memory databases can persist across connections when properly configured."""
         # When using :memory: directly, it should use our shared connection logic
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
@@ -530,17 +532,22 @@ class TestUriMemoryDatabaseIntegration:
         # Write data
         with reloaded_database.get_connection() as conn:
             conn.execute(
-                "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)", ("persistent", "hash")
+                "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
+                ("persistent", "hash"),
             )
             conn.commit()
 
         # Read from what should be the same connection
         with reloaded_database.get_connection() as conn:
-            row = conn.execute("SELECT username FROM user_credentials WHERE username = ?", ("persistent",)).fetchone()
+            row = conn.execute(
+                "SELECT username FROM user_credentials WHERE username = ?",
+                ("persistent",),
+            ).fetchone()
             assert row is not None
             assert row["username"] == "persistent"
 
-    def test_multiple_memory_db_formats_detected_correctly(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_multiple_memory_db_formats_detected_correctly(monkeypatch, restore_database_module):
         """Test that various memory database format variations are detected correctly."""
         memory_formats = [
             ":memory:",

@@ -1,18 +1,23 @@
 gradio>=4.0.0,<6.0.0
 plotly>=6.0.0
-numpy==2.2.6
+numpy==2.2.6  # pinned for compatibility with pandas/plotly
 dataclasses-json>=0.5.7
 yfinance>=0.2.51
 requests>=2.32.2
 pandas>=1.5.0
-fastapi==0.127.0
+fastapi==0.127.0  # pinned for API compatibility and stability
 uvicorn[standard]>=0.24.0
-pydantic==2.12.5
-h11>=0.16.0
+pydantic==2.12.5  # pinned for FastAPI compatibility
+h11==0.16.0  # pinned for compatibility with uvicorn/httpx
+
 # Serverless/Database dependencies
 mangum>=0.17.0
 psycopg2-binary>=2.9.9
 sqlalchemy>=2.0.0
+
+# MCP (Model Context Protocol) dependencies
+mcp>=1.0.0
+fastmcp>=0.1.0
 
 # Security dependencies
 PyJWT>=2.8.0
@@ -20,9 +25,8 @@ passlib[bcrypt]>=1.7.4
 slowapi>=0.1.4
 
 # Testing dependencies
-httpx==0.28.1
+httpx==0.28.1  # pinned for test stability
 pytest>=7.0.0
-h11==0.16.0
 urllib3>=2.6.0 # not directly required, pinned by Snyk to avoid a vulnerability
-anyio==4.12.0
+anyio==4.12.0  # pinned for httpx compatibility
 zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability

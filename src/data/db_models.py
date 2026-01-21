@@ -69,7 +69,12 @@ class AssetRelationshipORM(Base):
 
     __tablename__ = "asset_relationships"
     __table_args__ = (
-        UniqueConstraint("source_asset_id", "target_asset_id", "relationship_type", name="uq_relationship"),
+        UniqueConstraint(
+            "source_asset_id",
+            "target_asset_id",
+            "relationship_type",
+            name="uq_relationship",
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -80,10 +85,14 @@ class AssetRelationshipORM(Base):
     bidirectional: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     source: Mapped[AssetORM] = relationship(
-        "AssetORM", foreign_keys=[source_asset_id], back_populates="outgoing_relationships"
+        "AssetORM",
+        foreign_keys=[source_asset_id],
+        back_populates="outgoing_relationships",
     )
     target: Mapped[AssetORM] = relationship(
-        "AssetORM", foreign_keys=[target_asset_id], back_populates="incoming_relationships"
+        "AssetORM",
+        foreign_keys=[target_asset_id],
+        back_populates="incoming_relationships",
     )
 
 

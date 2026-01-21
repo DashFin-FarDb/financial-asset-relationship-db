@@ -48,12 +48,13 @@ class TestFormulaicVisualizer:
         return {
             "formulas": [
                 sample_formula,
-                Formula(
-                    name="Dividend Yield",
-                    formula="Div_Yield = (Annual_Dividends / Price) x 100%",
-                    latex=r"DivYield = \frac{D_{annual}}{P} \times 100\%",
+                dict(
                     description="Percentage return from dividends",
-                    variables={"Div_Yield": "Dividend Yield (%)", "D_annual": "Annual Dividends ($)", "P": "Price ($)"},
+                    variables={
+                        "Div_Yield": "Dividend Yield (%)",
+                        "D_annual": "Annual Dividends ($)",
+                        "P": "Price ($)",
+                    },
                     example_calculation="MSFT: Yield = 2.5%",
                     category="Income",
                     r_squared=1.0,
@@ -67,17 +68,32 @@ class TestFormulaicVisualizer:
                     "MSFT-GOOGL": 0.75,
                 },
                 "strongest_correlations": [
-                    {"asset1": "AAPL", "asset2": "MSFT", "correlation": 0.8, "strength": "Strong"},
-                    {"asset1": "MSFT", "asset2": "GOOGL", "correlation": 0.75, "strength": "Strong"},
+                    {
+                        "asset1": "AAPL",
+                        "asset2": "MSFT",
+                        "correlation": 0.8,
+                        "strength": "Strong",
+                    },
+                    {
+                        "asset1": "MSFT",
+                        "asset2": "GOOGL",
+                        "correlation": 0.75,
+                        "strength": "Strong",
+                    },
                 ],
-                "asset_class_relationships": {"Equity": {"asset_count": 3, "avg_price": 150.0, "total_value": 450.0}},
-                "sector_relationships": {
-                    "Technology": {"asset_count": 3, "avg_price": 150.0, "price_range": "$100.00 - $200.00"}
-                },
+            },
+            "asset_class_relationships": {"Equity": {"asset_count": 3, "avg_price": 150.0, "total_value": 450.0}},
+            "sector_relationships": {
+                "Technology": {
+                    "asset_count": 3,
+                    "avg_price": 150.0,
+                    "price_range": "$100.00 - $200.00",
+                }
             },
         }
 
-    def test_visualizer_initialization(self, visualizer):
+    @staticmethod
+    def test_visualizer_initialization(visualizer):
         """Test FormulaicVisualizer initialization."""
         assert isinstance(visualizer, FormulaicVisualizer)
         assert hasattr(visualizer, "color_scheme")
@@ -85,7 +101,8 @@ class TestFormulaicVisualizer:
         assert "Valuation" in visualizer.color_scheme
         assert "Income" in visualizer.color_scheme
 
-    def test_color_scheme_completeness(self, visualizer):
+    @staticmethod
+    def test_color_scheme_completeness(visualizer):
         """Test that color scheme includes all expected categories."""
         expected_categories = [
             "Valuation",
@@ -102,7 +119,8 @@ class TestFormulaicVisualizer:
             assert category in visualizer.color_scheme, f"Color scheme should include {category}"
             assert isinstance(visualizer.color_scheme[category], str), f"Color for {category} should be a string"
 
-    def test_create_formula_dashboard_with_full_data(self, visualizer, sample_analysis_results):
+    @staticmethod
+    def test_create_formula_dashboard_with_full_data(visualizer, sample_analysis_results):
         """Test creating a formula dashboard with comprehensive data."""
         # Execute
         fig = visualizer.create_formula_dashboard(sample_analysis_results)
@@ -115,7 +133,8 @@ class TestFormulaicVisualizer:
         assert fig.layout.plot_bgcolor == "white"
         assert fig.layout.paper_bgcolor == "#F8F9FA"
 
-    def test_create_formula_dashboard_with_empty_data(self, visualizer):
+    @staticmethod
+    def test_create_formula_dashboard_with_empty_data(visualizer):
         """Test creating a formula dashboard with empty data."""
         empty_results = {
             "formulas": [],
@@ -130,7 +149,8 @@ class TestFormulaicVisualizer:
         assert isinstance(fig, go.Figure)
         assert fig.layout.title.text == "📊 Financial Formulaic Analysis Dashboard"
 
-    def test_create_formula_dashboard_categories_pie_chart(self, visualizer, sample_analysis_results):
+    @staticmethod
+    def test_create_formula_dashboard_categories_pie_chart(visualizer, sample_analysis_results):
         """Test that formula categories pie chart is created correctly."""
         # Execute
         fig = visualizer.create_formula_dashboard(sample_analysis_results)
@@ -144,7 +164,8 @@ class TestFormulaicVisualizer:
         assert len(pie_trace.labels) > 0, "Should have category labels"
         assert len(pie_trace.values) > 0, "Should have category values"
 
-    def test_create_formula_dashboard_reliability_bar_chart(self, visualizer, sample_analysis_results):
+    @staticmethod
+    def test_create_formula_dashboard_reliability_bar_chart(visualizer, sample_analysis_results):
         """Test that formula reliability bar chart is created correctly."""
         # Execute
         fig = visualizer.create_formula_dashboard(sample_analysis_results)
@@ -153,7 +174,8 @@ class TestFormulaicVisualizer:
         bar_traces = [trace for trace in fig.data if trace.type == "bar"]
         assert len(bar_traces) > 0, "Should have at least one bar chart"
 
-    def test_create_formula_dashboard_correlation_heatmap(self, visualizer, sample_analysis_results):
+    @staticmethod
+    def test_create_formula_dashboard_correlation_heatmap(visualizer, sample_analysis_results):
         """Test that correlation heatmap is created correctly."""
         # Execute
         fig = visualizer.create_formula_dashboard(sample_analysis_results)
@@ -167,7 +189,8 @@ class TestFormulaicVisualizer:
         assert heatmap.zmin == -1
         assert heatmap.zmax == 1
 
-    def test_create_formula_dashboard_with_table(self, visualizer, sample_analysis_results):
+    @staticmethod
+    def test_create_formula_dashboard_with_table(visualizer, sample_analysis_results):
         """Test that formula examples table is created."""
         # Execute
         fig = visualizer.create_formula_dashboard(sample_analysis_results)
@@ -180,7 +203,8 @@ class TestFormulaicVisualizer:
         assert hasattr(table, "header")
         assert hasattr(table, "cells")
 
-    def test_create_formula_detail_view(self, visualizer, sample_formula):
+    @staticmethod
+    def test_create_formula_detail_view(visualizer, sample_formula):
         """Test creating a detailed formula view."""
         # Execute
         fig = visualizer.create_formula_detail_view(sample_formula)
@@ -199,7 +223,8 @@ class TestFormulaicVisualizer:
         assert sample_formula.formula in annotation.text
         assert sample_formula.description in annotation.text
 
-    def test_create_formula_detail_view_includes_all_fields(self, visualizer, sample_formula):
+    @staticmethod
+    def test_create_formula_detail_view_includes_all_fields(visualizer, sample_formula):
         """Test that detail view includes all formula fields."""
         # Execute
         fig = visualizer.create_formula_detail_view(sample_formula)
@@ -219,7 +244,8 @@ class TestFormulaicVisualizer:
         for var, desc in sample_formula.variables.items():
             assert var in annotation_text or desc in annotation_text
 
-    def test_create_correlation_network_with_data(self, visualizer, sample_analysis_results):
+    @staticmethod
+    def test_create_correlation_network_with_data(visualizer, sample_analysis_results):
         """Test creating a correlation network with data."""
         # Execute
         fig = visualizer.create_correlation_network(sample_analysis_results["empirical_relationships"])
@@ -229,7 +255,8 @@ class TestFormulaicVisualizer:
         assert "Asset Correlation Network" in fig.layout.title.text
         assert len(fig.data) > 0, "Should have traces for nodes and edges"
 
-    def test_create_correlation_network_without_data(self, visualizer):
+    @staticmethod
+    def test_create_correlation_network_without_data(visualizer):
         """Test creating a correlation network without correlation data."""
         empty_relationships = {"strongest_correlations": []}
 
@@ -241,7 +268,8 @@ class TestFormulaicVisualizer:
         assert len(fig.layout.annotations) > 0
         assert "No correlation data available" in fig.layout.annotations[0].text
 
-    def test_create_correlation_network_node_positioning(self, visualizer, sample_analysis_results):
+    @staticmethod
+    def test_create_correlation_network_node_positioning(visualizer, sample_analysis_results):
         """Test that correlation network positions nodes in a circle."""
         # Execute
         fig = visualizer.create_correlation_network(sample_analysis_results["empirical_relationships"])
@@ -255,14 +283,23 @@ class TestFormulaicVisualizer:
         assert len(node_trace.y) > 0, "Should have node y coordinates"
         assert len(node_trace.x) == len(node_trace.y), "Should have matching x and y coordinates"
 
-    def test_create_correlation_network_edge_colors(self, visualizer):
+    @staticmethod
+    def test_create_correlation_network_edge_colors(visualizer):
         """Test that correlation network uses correct edge colors based on strength."""
         # Modify correlations to test different strengths
         relationships = {
             "strongest_correlations": [
                 {"asset1": "AAPL", "asset2": "MSFT", "correlation": 0.8},  # red (>0.7)
-                {"asset1": "AAPL", "asset2": "GOOGL", "correlation": 0.5},  # orange (>0.4)
-                {"asset1": "MSFT", "asset2": "AMZN", "correlation": 0.3},  # lightgray (<0.4)
+                {
+                    "asset1": "AAPL",
+                    "asset2": "GOOGL",
+                    "correlation": 0.5,
+                },  # orange (>0.4)
+                {
+                    "asset1": "MSFT",
+                    "asset2": "AMZN",
+                    "correlation": 0.3,
+                },  # lightgray (<0.4)
             ]
         }
 
@@ -273,7 +310,8 @@ class TestFormulaicVisualizer:
         edge_traces = [trace for trace in fig.data if trace.mode == "lines"]
         assert len(edge_traces) > 0, "Should have edge traces"
 
-    def test_create_metric_comparison_chart(self, visualizer, sample_analysis_results):
+    @staticmethod
+    def test_create_metric_comparison_chart(visualizer, sample_analysis_results):
         """Test creating a metric comparison chart."""
         # Execute
         fig = visualizer.create_metric_comparison_chart(sample_analysis_results)
@@ -284,7 +322,8 @@ class TestFormulaicVisualizer:
         assert fig.layout.barmode == "group"
         assert fig.layout.plot_bgcolor == "white"
 
-    def test_create_metric_comparison_chart_with_empty_formulas(self, visualizer):
+    @staticmethod
+    def test_create_metric_comparison_chart_with_empty_formulas(visualizer):
         """Test metric comparison chart with no formulas."""
         empty_results = {"formulas": []}
 
@@ -294,7 +333,8 @@ class TestFormulaicVisualizer:
         # Assert - should create valid figure even with no data
         assert isinstance(fig, go.Figure)
 
-    def test_create_metric_comparison_chart_multiple_categories(self, visualizer):
+    @staticmethod
+    def test_create_metric_comparison_chart_multiple_categories(visualizer):
         """Test metric comparison chart with multiple categories."""
         results = {
             "formulas": [
@@ -344,7 +384,9 @@ class TestFormulaicVisualizer:
         assert r_squared_trace is not None, "Should have R-squared trace"
         assert count_trace is not None, "Should have count trace"
 
-    def test_formula_dashboard_handles_large_correlation_matrix(self, visualizer):
+    @staticmethod
+    @staticmethod
+    def test_formula_dashboard_handles_large_correlation_matrix(visualizer):
         """Test dashboard with a large correlation matrix."""
         # Create a large correlation matrix (more than 8x8)
         assets = [f"ASSET_{i}" for i in range(15)]
@@ -372,7 +414,9 @@ class TestFormulaicVisualizer:
             heatmap = heatmap_traces[0]
             assert len(heatmap.z) <= 8, "Should limit heatmap to 8x8"
 
-    def test_formula_detail_view_with_special_characters(self, visualizer):
+    @staticmethod
+    @staticmethod
+    def test_formula_detail_view_with_special_characters(visualizer):
         """Test detail view with formulas containing special characters."""
         special_formula = Formula(
             name="Complex Formula",
@@ -393,12 +437,18 @@ class TestFormulaicVisualizer:
         annotation_text = fig.layout.annotations[0].text
         assert "sigma" in annotation_text or "rho" in annotation_text
 
-    def test_correlation_network_with_many_correlations(self, visualizer):
+    @staticmethod
+    def test_correlation_network_with_many_correlations(visualizer):
         """Test correlation network limits to top 10 correlations."""
         # Create many correlations
         relationships = {
             "strongest_correlations": [
-                {"asset1": f"ASSET_{i}", "asset2": f"ASSET_{i+1}", "correlation": 0.9 - i * 0.05} for i in range(20)
+                {
+                    "asset1": f"ASSET_{i}",
+                    "asset2": f"ASSET_{i + 1}",
+                    "correlation": 0.9 - i * 0.05,
+                }
+                for i in range(20)
             ]
         }
 
@@ -411,7 +461,8 @@ class TestFormulaicVisualizer:
         edge_traces = [trace for trace in fig.data if trace.mode == "lines"]
         assert len(edge_traces) <= 10, "Should limit to top 10 correlations"
 
-    def test_metric_comparison_calculates_averages_correctly(self, visualizer):
+    @staticmethod
+    def test_metric_comparison_calculates_averages_correctly(visualizer):
         """Test that metric comparison correctly calculates category averages."""
         results = {
             "formulas": [

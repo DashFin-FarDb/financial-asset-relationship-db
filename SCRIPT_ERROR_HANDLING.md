@@ -1,6 +1,7 @@
 # Script Error Handling Documentation
 
 ## Overview
+
 Both PR cleanup scripts now include comprehensive error handling to address code review feedback.
 
 ## Error Checks Implemented
@@ -8,6 +9,7 @@ Both PR cleanup scripts now include comprehensive error handling to address code
 ### close_unmergeable_prs.sh
 
 #### Prerequisites Validation
+
 - ✅ **GitHub CLI (`gh`) installation check**
   - Verifies `gh` command is available
   - Exits with clear error message if missing
@@ -21,6 +23,7 @@ Both PR cleanup scripts now include comprehensive error handling to address code
   - Required for processing PR data
 
 #### Operation Error Handling
+
 - ✅ **API call failures**
   - Catches errors from `gh pr list`
   - Handles JSON parsing errors from `jq`
@@ -43,10 +46,12 @@ Both PR cleanup scripts now include comprehensive error handling to address code
 ### close_unmergeable_prs_script.sh
 
 #### Prerequisites Validation
+
 - ✅ **GitHub CLI (`gh`) installation check**
 - ✅ **GitHub authentication check**
 
 #### Input Validation
+
 - ✅ **Missing PR number check**
   - Validates PR argument is provided
   - Shows usage message if missing
@@ -56,6 +61,7 @@ Both PR cleanup scripts now include comprehensive error handling to address code
   - Prevents invalid API calls
 
 #### Operation Error Handling
+
 - ✅ **PR close operation failure**
   - Catches `gh pr close` command failures
   - Handles invalid PR numbers
@@ -69,16 +75,20 @@ Both PR cleanup scripts now include comprehensive error handling to address code
 ## Error Message Standards
 
 ### stderr Usage
+
 All error messages are directed to stderr (`>&2`) following best practices:
+
 ```bash
 echo "Error: message" >&2
 ```
 
 ### Exit Codes
+
 - `0` - Success or no PRs found
 - `1` - Error (missing tool, auth failure, operation failure)
 
 ### Error Message Format
+
 ```
 Error: [Clear description of what went wrong]
 ```
@@ -86,11 +96,13 @@ Error: [Clear description of what went wrong]
 ## Testing
 
 Run the included test script to verify error handling:
+
 ```bash
 bash test_scripts.sh
 ```
 
 Expected output:
+
 ```
 ✅ gh CLI detected successfully
 ✅ Correctly requires PR number
@@ -101,6 +113,7 @@ All error handling tests passed! ✅
 ## Usage Examples
 
 ### Safe execution of close_unmergeable_prs.sh
+
 ```bash
 # Script will:
 # 1. Check for gh CLI and jq
@@ -113,6 +126,7 @@ bash close_unmergeable_prs.sh
 ```
 
 ### Safe execution of close_unmergeable_prs_script.sh
+
 ```bash
 # Valid usage
 bash close_unmergeable_prs_script.sh 123
@@ -124,15 +138,15 @@ bash close_unmergeable_prs_script.sh      # Error: missing PR number
 
 ## Code Review Feedback Addressed
 
-| Review Comment | Implementation | Status |
-|----------------|----------------|--------|
-| Check gh pr list errors | Added error check + exit on failure | ✅ |
-| Check jq command errors | Added error check + exit on failure | ✅ |
-| Verify file exists/non-empty | Added check before loop | ✅ |
-| Check gh CLI installation | Added at script start | ✅ |
-| Verify gh authentication | Added at script start | ✅ |
-| Handle gh pr close errors | Added error check + feedback | ✅ |
-| Validate PR number | Added numeric validation | ✅ |
+| Review Comment               | Implementation                      | Status |
+| ---------------------------- | ----------------------------------- | ------ |
+| Check gh pr list errors      | Added error check + exit on failure | ✅     |
+| Check jq command errors      | Added error check + exit on failure | ✅     |
+| Verify file exists/non-empty | Added check before loop             | ✅     |
+| Check gh CLI installation    | Added at script start               | ✅     |
+| Verify gh authentication     | Added at script start               | ✅     |
+| Handle gh pr close errors    | Added error check + feedback        | ✅     |
+| Validate PR number           | Added numeric validation            | ✅     |
 
 ## Benefits
 

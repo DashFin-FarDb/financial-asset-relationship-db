@@ -13,7 +13,12 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import IntegrityError
 
 from src.data.database import create_session_factory, init_db
-from src.data.db_models import AssetORM, AssetRelationshipORM, RegulatoryEventAssetORM, RegulatoryEventORM
+from src.data.db_models import (
+    AssetORM,
+    AssetRelationshipORM,
+    RegulatoryEventAssetORM,
+    RegulatoryEventORM,
+)
 
 pytest.importorskip("sqlalchemy")
 
@@ -34,18 +39,21 @@ def db_session(tmp_path):
 class TestAssetORM:
     """Test cases for AssetORM model."""
 
-    def test_asset_orm_table_name(self):
+    @staticmethod
+    def test_asset_orm_table_name():
         """Test that AssetORM uses correct table name."""
         assert AssetORM.__tablename__ == "assets"
 
-    def test_asset_orm_primary_key(self):
+    @staticmethod
+    def test_asset_orm_primary_key():
         """Test AssetORM primary key configuration."""
         inspector = inspect(AssetORM)
         pk_columns = [col.name for col in inspector.primary_key]
         assert "id" in pk_columns
         assert len(pk_columns) == 1
 
-    def test_create_equity_asset(self, db_session):
+    @staticmethod
+    def test_create_equity_asset(db_session):
         """Test creating an equity asset."""
         asset = AssetORM(
             id="TEST_EQUITY",
@@ -216,7 +224,8 @@ class TestAssetORM:
 class TestAssetRelationshipORM:
     """Test cases for AssetRelationshipORM model."""
 
-    def test_relationship_table_name(self):
+    @staticmethod
+    def test_relationship_table_name():
         """Test that AssetRelationshipORM uses correct table name."""
         assert AssetRelationshipORM.__tablename__ == "asset_relationships"
 
@@ -224,10 +233,22 @@ class TestAssetRelationshipORM:
         """Test creating a relationship between assets."""
         # Create two assets
         asset1 = AssetORM(
-            id="ASSET1", symbol="A1", name="Asset 1", asset_class="equity", sector="Tech", price=100.0, currency="USD"
+            id="ASSET1",
+            symbol="A1",
+            name="Asset 1",
+            asset_class="equity",
+            sector="Tech",
+            price=100.0,
+            currency="USD",
         )
         asset2 = AssetORM(
-            id="ASSET2", symbol="A2", name="Asset 2", asset_class="equity", sector="Tech", price=200.0, currency="USD"
+            id="ASSET2",
+            symbol="A2",
+            name="Asset 2",
+            asset_class="equity",
+            sector="Tech",
+            price=200.0,
+            currency="USD",
         )
         db_session.add_all([asset1, asset2])
         db_session.commit()
@@ -251,10 +272,22 @@ class TestAssetRelationshipORM:
     def test_relationship_unique_constraint(self, db_session):
         """Test that duplicate relationships are prevented."""
         asset1 = AssetORM(
-            id="ASSET_A", symbol="AA", name="Asset A", asset_class="equity", sector="Tech", price=100.0, currency="USD"
+            id="ASSET_A",
+            symbol="AA",
+            name="Asset A",
+            asset_class="equity",
+            sector="Tech",
+            price=100.0,
+            currency="USD",
         )
         asset2 = AssetORM(
-            id="ASSET_B", symbol="BB", name="Asset B", asset_class="equity", sector="Tech", price=200.0, currency="USD"
+            id="ASSET_B",
+            symbol="BB",
+            name="Asset B",
+            asset_class="equity",
+            sector="Tech",
+            price=200.0,
+            currency="USD",
         )
         db_session.add_all([asset1, asset2])
         db_session.commit()
@@ -323,10 +356,22 @@ class TestAssetRelationshipORM:
     def test_bidirectional_flag(self, db_session):
         """Test bidirectional flag on relationships."""
         asset1 = AssetORM(
-            id="BIDIR1", symbol="B1", name="Bidir 1", asset_class="equity", sector="Tech", price=100.0, currency="USD"
+            id="BIDIR1",
+            symbol="B1",
+            name="Bidir 1",
+            asset_class="equity",
+            sector="Tech",
+            price=100.0,
+            currency="USD",
         )
         asset2 = AssetORM(
-            id="BIDIR2", symbol="B2", name="Bidir 2", asset_class="equity", sector="Tech", price=200.0, currency="USD"
+            id="BIDIR2",
+            symbol="B2",
+            name="Bidir 2",
+            asset_class="equity",
+            sector="Tech",
+            price=200.0,
+            currency="USD",
         )
         db_session.add_all([asset1, asset2])
         db_session.commit()
@@ -385,7 +430,8 @@ class TestAssetRelationshipORM:
 class TestRegulatoryEventORM:
     """Test cases for RegulatoryEventORM model."""
 
-    def test_regulatory_event_table_name(self):
+    @staticmethod
+    def test_regulatory_event_table_name():
         """Test that RegulatoryEventORM uses correct table name."""
         assert RegulatoryEventORM.__tablename__ == "regulatory_events"
 
@@ -419,7 +465,8 @@ class TestRegulatoryEventORM:
         assert retrieved.event_type == "EARNINGS_REPORT"
         assert retrieved.impact_score == 0.8
 
-    def test_regulatory_event_cascade_delete(self, db_session):
+    @staticmethod
+    def test_regulatory_event_cascade_delete(db_session):
         """Test that events are deleted when asset is deleted."""
         asset = AssetORM(
             id="EVENT_CASCADE",
@@ -479,7 +526,7 @@ class TestRegulatoryEventORM:
             name="Related 2",
             asset_class="equity",
             sector="Tech",
-            price=75.0,
+            price=50.0,
             currency="USD",
         )
         db_session.add_all([main_asset, related1, related2])
@@ -511,11 +558,13 @@ class TestRegulatoryEventORM:
 class TestRegulatoryEventAssetORM:
     """Test cases for RegulatoryEventAssetORM join table."""
 
-    def test_event_asset_table_name(self):
+    @staticmethod
+    def test_event_asset_table_name():
         """Test that RegulatoryEventAssetORM uses correct table name."""
         assert RegulatoryEventAssetORM.__tablename__ == "regulatory_event_assets"
 
-    def test_event_asset_unique_constraint(self, db_session):
+    @staticmethod
+    def test_event_asset_unique_constraint(db_session):
         """Test that duplicate event-asset links are prevented."""
         asset = AssetORM(
             id="UNIQUE_ASSET",

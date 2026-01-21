@@ -20,7 +20,7 @@ def test_database_connection():
 
     # Try to connect
     if db.connect():
-        logger.info(f"Connected using: {db.connection_type}")
+        logger.info("Connected using: %s", db.connection_type)
 
         # Try a simple query
         try:
@@ -28,8 +28,8 @@ def test_database_connection():
             results = db.query("assets", limit=5)
 
             if results:
-                logger.info(f"Successfully queried database! Found {len(results)} records.")
-                logger.info(f"Sample data: {results[:2]}")
+                logger.info("Successfully queried database! Found %s records.", len(results))
+                logger.info("Sample data: %s", results[:2])
             else:
                 logger.warning("Query returned no results. This might be normal for a new database.")
 

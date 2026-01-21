@@ -3,12 +3,14 @@
 ## [Unreleased]
 
 ### Fixed
+
 - Removed inappropriate CI/CD workflow files that were causing build failures:
   - Deleted `.github/workflows/objective-c-xcode.yml` - Xcode/Objective-C workflow not applicable to Python/JavaScript project
   - Deleted `.github/workflows/go.yml` - Go workflow not applicable to Python/JavaScript project
   - Deleted `.github/workflows/dotnet-desktop.yml` - .NET Desktop workflow not applicable to Python/JavaScript project
 
 ### Improved
+
 - Cleaned up CI/CD configuration to only include relevant workflows for the project's tech stack (Python, JavaScript/TypeScript, Next.js)
 - Reduced CI/CD execution time and resource usage by removing unnecessary workflow runs
 - Improved maintainability by removing duplicate and conflicting workflow configurations
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Comprehensive testing infrastructure with pytest
 - Unit tests for financial models (test_financial_models.py)
 - Unit tests for asset graph logic (test_asset_graph.py)
@@ -41,12 +44,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CHANGELOG.md (this file)
 
 ### Changed
+
 - Consolidated redundant Python workflows into single ci.yml
 - Updated .gitignore to include test artifacts and cache directories
 - Improved CI/CD pipeline with dependency caching
 - Enhanced workflow to include linting, type checking, and security scanning
 
 ### Removed
+
 - 23 irrelevant workflow files (docker, .NET, Next.js, Node.js, etc.)
 - python-app.yml (merged into ci.yml)
 - python-package.yml (merged into ci.yml)
@@ -56,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2024-10-30
 
 ### Added
+
 - Initial release
 - Financial Asset Relationship Database with 3D visualization
 - Support for multiple asset classes (Equity, Bond, Commodity, Currency, Derivative)
@@ -71,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation (README.md, AI_RULES.md)
 
 ### Asset Classes
+
 - Equities with P/E ratios, dividend yields, EPS
 - Fixed Income with yield, duration, credit ratings
 - Commodities with futures and spot prices
@@ -78,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Regulatory events with impact scoring
 
 ### Relationship Types
+
 - Sector affinity (same_sector)
 - Corporate links (corporate_bond_to_equity)
 - Commodity exposure
@@ -86,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Event impact
 
 ### Visualizations
+
 - 3D network graph with deterministic positioning
 - Asset class color coding
 - Relationship strength visualization
@@ -99,6 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Version Numbering
 
 This project uses [Semantic Versioning](https://semver.org/):
+
 - **MAJOR** version for incompatible API changes
 - **MINOR** version for backwards-compatible functionality additions
 - **PATCH** version for backwards-compatible bug fixes

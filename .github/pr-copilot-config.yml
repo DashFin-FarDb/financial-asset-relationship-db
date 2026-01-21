@@ -1,0 +1,263 @@
+# PR Copilot Agent Configuration
+# Automated PR management, maintenance, and completion workflows
+
+# Agent behavior settings
+agent:
+  name: "pr-copilot"
+  enabled: true
+  version: "1.0.0"
+  description: "Automated PR management and completion agent"
+
+# Trigger configurations
+triggers:
+  # Enable/disable trigger types
+  help_wanted_label: true
+  mention: true
+  pr_opened: true
+  pr_labeled: true
+  pr_synchronize: true
+  review_submitted: true
+  review_comment: true
+  status_check_completion: true
+
+  # Keywords for status updates
+  status_keywords:
+    - "status update"
+    - "progress report"
+    - "show status"
+    - "pr status"
+
+  # Mention patterns to trigger the agent
+  mention_patterns:
+    - "@pr-copilot"
+    - "@pr_copilot"
+
+# PR scope validation rules
+scope:
+  enabled: true
+  warn_on_long_title: 72
+  warn_on_multiple_changes: true
+
+  # Keywords that suggest multiple changes in PR title
+  multiple_change_keywords:
+    - " and "
+    - " & "
+    - " or "
+    - ", "
+
+  # Scope warning message template
+  warning_message: |
+    ⚠️ **PR Scope Notice**
+
+    This PR title suggests multiple changes. Consider splitting into separate PRs for:
+    - Easier review
+    - Cleaner git history
+    - Faster merge cycles
+
+    Current title length: {title_length} characters (recommended: <72)
+
+# Auto-merge settings
+auto_merge:
+  enabled: true
+  require_reviews: 1
+  require_checks: true
+  allow_draft: false
+  delete_branch: true
+  merge_method: "squash"  # Options: squash, merge, rebase
+
+  # Conditions for auto-merge
+  conditions:
+    all_checks_pass: true
+    no_merge_conflicts: true
+    has_approval: true
+    not_draft: true
+    branch_up_to_date: true
+
+  # Auto-merge confirmation message
+  confirmation_message: |
+    🚀 **Auto-Merge Eligible**
+
+    This PR meets all criteria for auto-merge:
+    ✅ All checks passed
+    ✅ Approved by reviewer(s)
+    ✅ No merge conflicts
+    ✅ Branch is up to date
+
+    Ready to merge with method: {merge_method}
+
+# Review comment handling
+review_handling:
+  enabled: true
+  auto_acknowledge: true
+  track_actionable: true
+
+  # Keywords that indicate actionable feedback
+  actionable_keywords:
+    - "please"
+    - "should"
+    - "could you"
+    - "nit"
+    - "typo"
+    - "fix"
+    - "refactor"
+    - "change"
+    - "update"
+    - "add"
+    - "remove"
+
+  # Acknowledgment message template
+  acknowledgment_message: |
+    👋 **Review Feedback Received**
+
+    Thank you for the review! I've identified the following actionable items:
+    {action_items}
+
+    Tracking these items for resolution.
+
+# Status reporting configuration
+status:
+  enabled: true
+  include_commits: true
+  include_files_changed: true
+  include_reviews: true
+  include_checks: true
+  include_threads: true
+  include_labels: true
+
+  # Status report template
+  report_template: |
+    📊 **PR Status Report**
+
+    **PR Information:**
+    - **Author:** {author}
+    - **Title:** {title}
+    - **Commits:** {commit_count}
+    - **Files Changed:** {files_changed}
+    - **Labels:** {labels}
+
+    **Review Status:**
+    {review_status}
+
+    **CI/Check Status:**
+    {check_status}
+
+    **Open Threads:** {open_threads}
+
+    **Task Checklist:**
+    {task_checklist}
+
+    *Last updated: {timestamp}*
+
+# Welcome message configuration
+welcome:
+  enabled: true
+  on_help_wanted: true
+  on_first_mention: true
+
+  # Welcome message template
+  message: |
+    👋 **Welcome to PR Copilot!**
+
+    I'm here to help manage this PR. Here's what I can do:
+
+    **Commands:**
+    - `@pr-copilot status update` - Get detailed PR status
+    - `@pr-copilot help` - Show available commands
+
+    **Automatic Features:**
+    - ✅ Scope validation (warns on large/multi-purpose PRs)
+    - ✅ Review comment tracking
+    - ✅ Auto-merge when ready
+    - ✅ Merge conflict detection
+
+    **Status Updates:**
+    I'll automatically update you on:
+    - Review approvals/changes
+    - Check completions
+    - Merge readiness
+
+    Tag me anytime with `@pr-copilot` for assistance!
+
+# Merge conflict detection
+merge_conflicts:
+  enabled: true
+  auto_detect: true
+
+  # Conflict notification message
+  notification_message: |
+    ⚠️ **Merge Conflicts Detected**
+
+    This PR has merge conflicts with the base branch.
+
+    **Resolution Steps:**
+    1. Update your local branch:
+       ```bash
+       git checkout {branch}
+       git pull origin {base_branch}
+       ```
+    2. Resolve conflicts in affected files
+    3. Commit the resolution:
+       ```bash
+       git add .
+       git commit -m "Resolve merge conflicts"
+       git push
+       ```
+
+    **Affected Files:**
+    {conflicted_files}
+
+    Need help? Ask `@pr-copilot help conflicts`
+
+# Notification settings
+notifications:
+  github_comments: true
+  use_reactions: true
+
+  # Reaction emojis for different events
+  reactions:
+    acknowledged: "eyes"
+    processing: "rocket"
+    completed: "tada"
+    error: "confused"
+
+# Command help documentation
+commands:
+  status:
+    aliases: ["status update", "progress report", "show status"]
+    description: "Get detailed PR status with checks, reviews, and tasks"
+    usage: "@pr-copilot status update"
+
+  help:
+    aliases: ["help", "commands", "usage"]
+    description: "Show available commands and usage"
+    usage: "@pr-copilot help"
+
+  conflicts:
+    aliases: ["help conflicts", "resolve conflicts"]
+    description: "Get guidance on resolving merge conflicts"
+    usage: "@pr-copilot help conflicts"
+
+# Security and permissions
+security:
+  allowed_users: []  # Empty means all users; specify GitHub usernames to restrict
+  allowed_teams: []  # Specify GitHub team slugs
+  require_write_access: false  # Require write access to repo
+
+# Rate limiting and resource management
+limits:
+  max_status_updates_per_hour: 10
+  max_comment_length: 65536
+  max_files_to_analyze: 100
+  status_cache_ttl: 300  # 5 minutes
+
+# Integration with existing workflows
+integration:
+  respect_branch_protection: true
+  wait_for_required_checks: true
+  skip_on_draft: true
+
+# Debugging and logging
+debug:
+  enabled: false
+  verbose_logging: false
+  log_api_calls: false

@@ -6,7 +6,9 @@ import plotly.graph_objects as go
 from src.logic.asset_graph import AssetRelationshipGraph
 
 
-def visualize_metrics(graph: AssetRelationshipGraph) -> Tuple[go.Figure, go.Figure, go.Figure]:
+def visualize_metrics(
+    graph: AssetRelationshipGraph,
+) -> Tuple[go.Figure, go.Figure, go.Figure]:
     """Create visualizations of graph metrics"""
     metrics = graph.calculate_metrics()
 
@@ -49,6 +51,10 @@ def visualize_metrics(graph: AssetRelationshipGraph) -> Tuple[go.Figure, go.Figu
             marker_color=["green" if x > 0 else "red" for x in event_impacts],
         )
     )
-    fig3.update_layout(title="Regulatory Events Timeline", xaxis_title="Date", yaxis_title="Impact Score")
+    fig3.update_layout(
+        title="Regulatory Events Timeline",
+        xaxis_title="Date",
+        yaxis_title="Impact Score",
+    )
 
     return fig1, fig2, fig3

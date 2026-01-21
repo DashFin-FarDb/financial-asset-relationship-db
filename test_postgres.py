@@ -44,13 +44,13 @@ def test_postgres_connection():
         cur.close()
         conn.close()
 
-        logger.info(f"Successfully connected to PostgreSQL database: {result[0]}")
-        logger.info(f"Connected as user: {result[1]}")
-        logger.info(f"PostgreSQL version: {result[2]}")
+        logger.info("Successfully connected to PostgreSQL database: %s", result[0])
+        logger.info("Connected as user: %s", result[1])
+        logger.info("PostgreSQL version: %s", result[2])
 
         return True
 
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to connect to PostgreSQL database")
         return False
 

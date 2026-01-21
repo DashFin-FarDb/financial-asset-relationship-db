@@ -17,14 +17,16 @@ from src.logic.asset_graph import AssetRelationshipGraph
 class TestAssetRelationshipGraphInit:
     """Test suite for AssetRelationshipGraph initialization."""
 
-    def test_init_creates_empty_relationships(self):
+    @staticmethod
+    def test_init_creates_empty_relationships():
         """Test that initialization creates an empty relationships dictionary."""
         graph = AssetRelationshipGraph()
 
         assert isinstance(graph.relationships, dict)
         assert len(graph.relationships) == 0
 
-    def test_init_relationships_type(self):
+    @staticmethod
+    def test_init_relationships_type():
         """Test that relationships dictionary has correct type annotation."""
         graph = AssetRelationshipGraph()
 
@@ -36,7 +38,8 @@ class TestAssetRelationshipGraphInit:
 class TestGet3DVisualizationDataEnhanced:
     """Test suite for get_3d_visualization_data_enhanced method."""
 
-    def test_empty_graph_returns_placeholder(self):
+    @staticmethod
+    def test_empty_graph_returns_placeholder():
         """Test that empty graph returns a single placeholder node."""
         graph = AssetRelationshipGraph()
 
@@ -48,7 +51,8 @@ class TestGet3DVisualizationDataEnhanced:
         assert colors == ["#888888"]
         assert hover_texts == ["Asset A"]
 
-    def test_single_relationship_returns_two_nodes(self):
+    @staticmethod
+    def test_single_relationship_returns_two_nodes():
         """Test graph with single relationship returns two nodes."""
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
@@ -61,7 +65,9 @@ class TestGet3DVisualizationDataEnhanced:
         assert len(colors) == 2
         assert len(hover_texts) == 2
 
-    def test_multiple_relationships_circular_layout(self):
+    @staticmethod
+    @staticmethod
+    def test_multiple_relationships_circular_layout():
         """Test that multiple assets are laid out in a circle."""
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
@@ -81,7 +87,9 @@ class TestGet3DVisualizationDataEnhanced:
         radii = np.sqrt(positions[:, 0] ** 2 + positions[:, 1] ** 2)
         assert np.allclose(radii, 1.0)
 
-    def test_positions_are_numpy_array(self):
+    @staticmethod
+    @staticmethod
+    def test_positions_are_numpy_array():
         """Test that positions are returned as numpy array."""
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
@@ -92,7 +100,9 @@ class TestGet3DVisualizationDataEnhanced:
         assert positions.ndim == 2
         assert positions.shape[1] == 3
 
-    def test_colors_are_consistent(self):
+    @staticmethod
+    @staticmethod
+    def test_colors_are_consistent():
         """Test that all nodes get the same color."""
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
@@ -102,7 +112,9 @@ class TestGet3DVisualizationDataEnhanced:
 
         assert all(color == "#4ECDC4" for color in colors)
 
-    def test_hover_texts_format(self):
+    @staticmethod
+    @staticmethod
+    def test_hover_texts_format():
         """Test that hover texts are properly formatted."""
         graph = AssetRelationshipGraph()
         graph.relationships["AAPL"] = [("GOOGL", "correlation", 0.8)]
@@ -112,7 +124,9 @@ class TestGet3DVisualizationDataEnhanced:
         for asset_id, hover_text in zip(asset_ids, hover_texts):
             assert hover_text == f"Asset: {asset_id}"
 
-    def test_asset_ids_are_sorted(self):
+    @staticmethod
+    @staticmethod
+    def test_asset_ids_are_sorted():
         """Test that asset IDs are returned in sorted order."""
         graph = AssetRelationshipGraph()
         graph.relationships["zebra"] = [("apple", "correlation", 0.8)]
@@ -122,7 +136,9 @@ class TestGet3DVisualizationDataEnhanced:
 
         assert asset_ids == sorted(asset_ids)
 
-    def test_bidirectional_relationships_single_nodes(self):
+    @staticmethod
+    @staticmethod
+    def test_bidirectional_relationships_single_nodes():
         """Test that bidirectional relationships don't duplicate nodes."""
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
@@ -133,7 +149,9 @@ class TestGet3DVisualizationDataEnhanced:
         assert len(asset_ids) == 2
         assert set(asset_ids) == {"asset1", "asset2"}
 
-    def test_complex_graph_with_multiple_targets(self):
+    @staticmethod
+    @staticmethod
+    def test_complex_graph_with_multiple_targets():
         """Test graph where one source has multiple targets."""
         graph = AssetRelationshipGraph()
         graph.relationships["hub"] = [
@@ -151,7 +169,8 @@ class TestGet3DVisualizationDataEnhanced:
         assert "spoke3" in asset_ids
         assert positions.shape == (4, 3)
 
-    def test_isolated_target_nodes(self):
+    @staticmethod
+    def test_isolated_target_nodes():
         """Test that target nodes without outgoing relationships are included."""
         graph = AssetRelationshipGraph()
         graph.relationships["source"] = [("target1", "correlation", 0.8)]
@@ -162,7 +181,8 @@ class TestGet3DVisualizationDataEnhanced:
         assert "source" in asset_ids
         assert "target1" in asset_ids
 
-    def test_return_types(self):
+    @staticmethod
+    def test_return_types():
         """Test that all return values have correct types."""
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
@@ -177,7 +197,8 @@ class TestGet3DVisualizationDataEnhanced:
         assert all(isinstance(c, str) for c in colors)
         assert all(isinstance(h, str) for h in hover_texts)
 
-    def test_consistent_list_lengths(self):
+    @staticmethod
+    def test_consistent_list_lengths():
         """Test that all returned lists have the same length."""
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
