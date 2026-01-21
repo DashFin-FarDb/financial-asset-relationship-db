@@ -104,7 +104,21 @@ export default function AssetList() {
    * Loads asset classes and sectors metadata and updates the state.
    * @returns {Promise<void>} A promise that resolves when the metadata has been loaded.
    */
-  const loadMetadata = async () => {
+const loadMetadata = useCallback(async () => {
+  try {
+    const [classesData, sectorsData] = await Promise.all([
+      api.getAssetClasses(),
+      api.getSectors(),
+    ]);
+    setAssetClasses(classesData.asset_classes);
+    setSectors(sectorsData.sectors);
+    // Clear metadata-specific error on success
+    setError((prev) => (prev?.includes("filter options") ? null : prev));
+  } catch (err) {
+    console.error("Error loading metadata:", err);
+    setError("Unable to load filter options. Please try again.");
+  }
+}, []);
     try {
       const [classesData, sectorsData] = await Promise.all([
         api.getAssetClasses(),
@@ -112,10 +126,13 @@ export default function AssetList() {
       ]);
       setAssetClasses(classesData.asset_classes);
       setSectors(sectorsData.sectors);
-    } catch (error) {
-      console.error("Error loading metadata:", error);
+    } catch (err) {
+      console.error("Error loading metadata:", err);
+      setError("Unable to load filter options. Please try again.");
+        (prev) => prev ?? "Unable to load filter options. Please try again.",
+      );
     }
-  };
+  }, []);
 
   const loadAssets = useCallback(async () => {
     setLoading(true);
@@ -149,7 +166,7 @@ export default function AssetList() {
     } finally {
       setLoading(false);
     }
-  }, [filter, page, pageSize]);
+  }, [filter, page, pageSize, querySummary]);
 
   const syncStateFromParams = useCallback(() => {
     const nextAssetClass = searchParams.get("asset_class") ?? "";
@@ -200,7 +217,7 @@ export default function AssetList() {
 
   useEffect(() => {
     loadMetadata();
-  }, []);
+  }, [loadMetadata]);
 
   useEffect(() => {
     loadAssets();
@@ -265,8 +282,8 @@ export default function AssetList() {
   };
 
   /**
-   * AssetClassFilter component renders a dropdown to select an asset class filter.
-   * @returns JSX.Element select dropdown for asset class filter.
+   * Renders a dropdown filter component for selecting an asset class.
+   * @returns JSX.Element The rendered select dropdown component.
    */
   const AssetClassFilter: React.FC = () => (
     <div>
