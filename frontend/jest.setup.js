@@ -41,6 +41,18 @@ global.IntersectionObserver = class IntersectionObserver {
     // No-op: placeholder for testing environment
   }
 }
+  constructor () {}
+  disconnect () {}
+  observe () {
+    // Intentionally empty: placeholder for observer
+  }
+  static takeRecords () {
+    return []
+  }
+  unobserve () {
+    // No-op: placeholder for testing environment
+  }
+}
     // Intentionally empty: placeholder for observer
   }
     // Intentionally empty: placeholder for observer
