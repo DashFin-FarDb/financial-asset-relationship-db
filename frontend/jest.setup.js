@@ -10,6 +10,8 @@ import '@testing-library/jest-dom'
 const createMatchMedia = ({ defaultMatches = false } = {}) =>
   jest.fn().mockImplementation((query) => {
     const listeners = new Set()
+    const media = String(query ?? '')
+    let matches = defaultMatches
 
     /**
      * Adds a listener to be called when the media query changes.
@@ -27,10 +29,22 @@ const createMatchMedia = ({ defaultMatches = false } = {}) =>
       listeners.delete(listener)
     }
 
-    return {
-      matches: defaultMatches,
-      media: String(query ?? ''),
+    const mql = {
+      get matches () {
+        return matches
+      },
+      media,
       onchange: null,
+
+      // Non-standard test helper
+      setMatches (newValue) {
+        matches = Boolean(newValue)
+        const event = { type: 'change', matches, media }
+        listeners.forEach((listener) => listener(event))
+        if (typeof mql.onchange === 'function') {
+          mql.onchange(event)
+        }
+      },
 
       // Deprecated but still used in some libraries
       addListener: jest.fn(addChangeListener),
@@ -46,9 +60,14 @@ const createMatchMedia = ({ defaultMatches = false } = {}) =>
 
       dispatchEvent: jest.fn((event) => {
         listeners.forEach((listener) => listener(event))
+        if (typeof mql.onchange === 'function') {
+          mql.onchange(event)
+        }
         return true
       })
     }
+
+    return mql
   })
 
 Object.defineProperty(window, 'matchMedia', {
