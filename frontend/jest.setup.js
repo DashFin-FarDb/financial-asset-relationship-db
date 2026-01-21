@@ -1,45 +1,14 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
-/**
- * Creates a mock implementation of window.matchMedia for testing.
- * @param {Object} [options] - Configuration options.
- * @param {boolean} [options.defaultMatches=false] - Default value for media query matches.
- * @returns {Function} Jest mock function for matchMedia.
- */
-/**
-  const intersectionObserverInstances = new Set()
- * Creates a mock implementation of window.matchMedia for testing.
- * @param {object} [options] - Configuration options.
- * @param {boolean} [options.defaultMatches=false] - The default match state.
-    /**
-     * Adds a listener for media query change events.
-     * @param {Function} listener - The listener callback to invoke on change.
-     */
- * @returns {jest.Mock} A jest mock function for matchMedia.
- */
 const createMatchMedia = ({ defaultMatches = false } = {}) =>
   jest.fn().mockImplementation((query) => {
     const listeners = new Set()
-    const intersectionObserverInstances = new Set()
 
     const addChangeListener = (listener) => {
-      // In afterEach hook, consider also clearing listener sets by resetting the mock implementation.
-    /**
-     * Removes a listener for media query change events.
-     * @param {Function} listener - The listener callback to remove.
-     */
-      afterEach(() => {
-        // Reset window.matchMedia to a fresh mock to clear all internal state
-        window.matchMedia = createMatchMedia()
-        intersectionObserverInstances.clear()
-      })
+      if (typeof listener === 'function') listeners.add(listener)
     }
 
-    /**
-     * Removes a change listener from the listeners set.
-     * @param {Function} listener - The listener function to remove.
-     */
     const removeChangeListener = (listener) => {
       listeners.delete(listener)
     }
@@ -74,27 +43,8 @@ Object.defineProperty(window, 'matchMedia', {
   value: createMatchMedia()
 })
 
-const intersectionObserverInstances = new Set()
-
-/**
- * MockIntersectionObserver simulates the browser's IntersectionObserver for testing.
- *
- * It provides jest.fn mocks for observe, unobserve, disconnect, and takeRecords,
- * and allows manual triggering of intersection entries.
- */
 class MockIntersectionObserver {
-  /**
-   * Constructs a new MockIntersectionObserver.
-   *
-   * @param {Function} callback - Callback invoked with intersection entries.
-   * @param {Object} [options={}] - IntersectionObserver options.
-   */
-  constructor (
-    callback = () => {
-      /* default no-op callback */
-    },
-    options = {}
-  ) {
+  constructor (callback = () => {}, options = {}) {
     this._callback = callback
     this._options = options
     this._elements = new Set()
@@ -112,17 +62,6 @@ class MockIntersectionObserver {
     })
 
     this.takeRecords = jest.fn(() => [])
-
-    intersectionObserverInstances.add(this)
-  }
-
-  /**
-   * Test helper: triggers the observer callback.
-   *
-   * @param {Array<Partial<IntersectionObserverEntry>>} entries
-   */
-  _trigger (entries = []) {
-    this._callback(entries, this)
   }
 }
 
@@ -138,14 +77,8 @@ Object.defineProperty(global, 'IntersectionObserver', {
   value: MockIntersectionObserver
 })
 
-Object.defineProperty(global, '__mockIntersectionObservers', {
-  configurable: true,
-  get: () => Array.from(intersectionObserverInstances)
-})
-
 afterEach(() => {
   if (typeof window.matchMedia?.mockClear === 'function') {
     window.matchMedia.mockClear()
   }
-  intersectionObserverInstances.clear()
 })
