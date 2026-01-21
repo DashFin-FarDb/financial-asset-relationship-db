@@ -4,6 +4,13 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { api } from "../lib/api";
 import type { Asset } from "../types/api";
+import {
+  isPaginatedResponse,
+  parsePositiveInteger,
+  buildQuerySummary,
+  loadMetadata,
+  loadAssets,
+} from "../lib/assetHelpers";
 
 interface PaginatedAssetsResponse {
   items: Asset[];
@@ -15,57 +22,24 @@ interface PaginatedAssetsResponse {
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
-/** Type guard to check if response is paginated */
-const isPaginatedResponse = (
-  value: unknown,
-): value is PaginatedAssetsResponse =>
-  typeof value === "object" &&
-  value !== null &&
-  "items" in value &&
-  "total" in value &&
-  "page" in value &&
-  "per_page" in value &&
-  Array.isArray((value as PaginatedAssetsResponse).items);
-
-/** Parse positive integer or fallback */
-const parsePositiveInteger = (value: string | null, fallback: number) => {
-  const parsed = Number.parseInt(value || "", 10);
-  return Number.isNaN(parsed) || parsed <= 0 ? fallback : parsed;
-};
-
-/** Build query summary string */
-const buildQuerySummary = (
-  page: number,
-  pageSize: number,
-  filter: { asset_class: string; sector: string },
-) => {
-  const parts = [`page ${page}`, `${pageSize} per page`];
-  if (filter.asset_class) parts.push(`asset class "${filter.asset_class}"`);
-  if (filter.sector) parts.push(`sector "${filter.sector}"`);
-  return parts.join(", ");
-};
-
-/** Filter select component */
-const FilterSelect = ({
-  label,
+/**
+ * Asset filter select component.
+ */
+const SelectFilter = ({
   id,
+  label,
   options,
   value,
   onChange,
-  placeholder = "All",
 }: {
-  label: string;
   id: string;
+  label: string;
   options: string[];
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  placeholder?: string;
 }) => (
   <div>
-    <label
-      htmlFor={id}
-      className="block text-sm font-medium text-gray-700 mb-2"
-    >
+    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-2">
       {label}
     </label>
     <select
@@ -74,7 +48,7 @@ const FilterSelect = ({
       onChange={onChange}
       className="w-full border border-gray-300 rounded-md px-3 py-2"
     >
-      <option value="">{placeholder}</option>
+      <option value="">All</option>
       {options.map((opt) => (
         <option key={opt} value={opt}>
           {opt}
@@ -84,7 +58,6 @@ const FilterSelect = ({
   </div>
 );
 
-/** Main asset list component */
 export default function AssetList() {
   const router = useRouter();
   const pathname = usePathname();
@@ -93,153 +66,112 @@ export default function AssetList() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [filter, setFilter] = useState({ asset_class: "", sector: "" });
   const [assetClasses, setAssetClasses] = useState<string[]>([]);
   const [sectors, setSectors] = useState<string[]>([]);
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [total, setTotal] = useState<number | null>(null);
 
-  const querySummary = useMemo(
-    () => buildQuerySummary(page, pageSize, filter),
-    [filter, page, pageSize],
-  );
+  const totalPages = useMemo(() => {
+    if (!total || total <= 0) return null;
+    return Math.max(1, Math.ceil(total / pageSize));
+  }, [total, pageSize]);
 
-  /** Load metadata (asset classes + sectors) */
-  const loadMetadata = useCallback(async () => {
-    try {
-      const [classesData, sectorsData] = await Promise.all([
-        api.getAssetClasses(),
-        api.getSectors(),
-      ]);
-      setAssetClasses(classesData.asset_classes);
-      setSectors(sectorsData.sectors);
-    } catch (err) {
-      console.error("Error loading metadata:", err);
-    }
+  const querySummary = useMemo(() => buildQuerySummary(page, pageSize, filter), [
+    page,
+    pageSize,
+    filter,
+  ]);
+
+  /** Load metadata once on mount */
+  useEffect(() => {
+    loadMetadata(setAssetClasses, setSectors);
   }, []);
 
-  /** Load assets based on filters + pagination */
-  const loadAssets = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params: {
-        asset_class?: string;
-        sector?: string;
-        page: number;
-        per_page: number;
-      } = { page, per_page: pageSize };
-      if (filter.asset_class) params.asset_class = filter.asset_class;
-      if (filter.sector) params.sector = filter.sector;
+  /** Sync state from query params */
+  useEffect(() => {
+    if (!searchParams) return;
 
-      const data = await api.getAssets(params);
-      if (isPaginatedResponse(data)) {
-        setAssets(data.items);
-        setTotal(data.total);
-      } else {
-        setAssets(data);
-        setTotal(Array.isArray(data) ? data.length : null);
-      }
-    } catch (err) {
-      console.error("Error loading assets:", err);
-      setAssets([]);
-      setTotal(null);
-      setError(`Unable to load assets for ${querySummary}. Please try again.`);
-    } finally {
-      setLoading(false);
-    }
-  }, [filter, page, pageSize, querySummary]);
-
-  /** Sync state from URL params */
-  const syncStateFromParams = useCallback(() => {
-    const nextAssetClass = searchParams.get("asset_class") ?? "";
-    const nextSector = searchParams.get("sector") ?? "";
+    const nextFilter = {
+      asset_class: searchParams.get("asset_class") ?? "",
+      sector: searchParams.get("sector") ?? "",
+    };
     const nextPage = parsePositiveInteger(searchParams.get("page"), 1);
-    const nextPageSize = parsePositiveInteger(
-      searchParams.get("per_page"),
-      DEFAULT_PAGE_SIZE,
-    );
+    const nextPageSize = parsePositiveInteger(searchParams.get("per_page"), DEFAULT_PAGE_SIZE);
 
     setFilter((prev) =>
-      prev.asset_class === nextAssetClass && prev.sector === nextSector
+      prev.asset_class === nextFilter.asset_class && prev.sector === nextFilter.sector
         ? prev
-        : { asset_class: nextAssetClass, sector: nextSector },
+        : nextFilter
     );
     setPage((prev) => (prev === nextPage ? prev : nextPage));
     setPageSize((prev) => (prev === nextPageSize ? prev : nextPageSize));
   }, [searchParams]);
 
-  /** Update URL query params */
+  /** Load assets when filter/page/pageSize changes */
+  useEffect(() => {
+    const fetchAssets = async () => {
+      setLoading(true);
+      await loadAssets(page, pageSize, filter, setAssets, setTotal, setError);
+      setLoading(false);
+    };
+    fetchAssets();
+  }, [page, pageSize, filter]);
+
+  /** Update URL query parameters */
   const updateQueryParams = useCallback(
     (updates: Record<string, string | null>) => {
-      if (!pathname) return;
+      if (!pathname || !searchParams) return;
+
       const params = new URLSearchParams(searchParams.toString());
-      Object.entries(updates).forEach(([key, value]) =>
-        value === null || value === ""
-          ? params.delete(key)
-          : params.set(key, value),
-      );
-      const qs = params.toString();
-      if (qs !== searchParams.toString()) {
-        router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (!value) params.delete(key);
+        else params.set(key, value);
+      });
+
+      const queryString = params.toString();
+      if (queryString !== searchParams.toString()) {
+        router.replace(`${pathname}${queryString ? `?${queryString}` : ""}`, { scroll: false });
       }
     },
-    [pathname, router, searchParams],
+    [pathname, router, searchParams]
   );
 
-  /** Handlers */
+  /** Handle filter changes */
   const handleFilterChange =
     (field: "asset_class" | "sector") =>
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const { value } = e.target;
+      const value = e.target.value;
       setFilter((prev) => ({ ...prev, [field]: value }));
       setPage(1);
       updateQueryParams({ [field]: value || null, page: "1" });
     };
 
+  /** Handle page size change */
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const size = parsePositiveInteger(e.target.value, DEFAULT_PAGE_SIZE);
-    setPageSize(size);
+    const nextSize = parsePositiveInteger(e.target.value, DEFAULT_PAGE_SIZE);
+    setPageSize(nextSize);
     setPage(1);
-    updateQueryParams({ per_page: String(size), page: "1" });
+    updateQueryParams({ per_page: String(nextSize), page: "1" });
   };
 
-  const totalPages = useMemo(
-    () => (total && total > 0 ? Math.ceil(total / pageSize) : null),
-    [total, pageSize],
-  );
-
-  const canGoNext = !loading && totalPages !== null && page < totalPages;
-  const canGoPrev = !loading && page > 1;
-
+  /** Navigate pages */
   const goToPage = (requestedPage: number) => {
-    const bounded = totalPages
-      ? Math.min(Math.max(1, requestedPage), totalPages)
-      : Math.max(1, requestedPage);
-    if (bounded !== page) {
-      setPage(bounded);
-      updateQueryParams({ page: String(bounded) });
-    }
+    const boundedPage =
+      totalPages !== null ? Math.min(Math.max(1, requestedPage), totalPages) : Math.max(1, requestedPage);
+    if (boundedPage === page) return;
+    setPage(boundedPage);
+    updateQueryParams({ page: String(boundedPage) });
   };
 
-  const handleNextPage = () => goToPage(page + 1);
-  const handlePrevPage = () => goToPage(page - 1);
+  const canGoPrev = page > 1 && !loading;
+  const canGoNext = totalPages !== null && page < totalPages && !loading;
 
-  /** Effects */
-  useEffect(() => {
-    syncStateFromParams();
-  }, [syncStateFromParams]);
-
-  useEffect(() => {
-    loadMetadata();
-  }, [loadMetadata]);
-
-  useEffect(() => {
-    loadAssets();
-  }, [loadAssets]);
-
-  /** Render helpers */
+  /** Render page size options */
   const renderPageSizeOption = (size: number) => (
     <option key={size} value={size}>
       {size}
@@ -250,21 +182,19 @@ export default function AssetList() {
     <div className="space-y-6">
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FilterSelect
-          label="Asset Class"
+        <SelectFilter
           id="asset-class-filter"
+          label="Asset Class"
           options={assetClasses}
           value={filter.asset_class}
           onChange={handleFilterChange("asset_class")}
-          placeholder="All Classes"
         />
-        <FilterSelect
-          label="Sector"
+        <SelectFilter
           id="sector-filter"
+          label="Sector"
           options={sectors}
           value={filter.sector}
           onChange={handleFilterChange("sector")}
-          placeholder="All Sectors"
         />
       </div>
 
@@ -273,32 +203,24 @@ export default function AssetList() {
         {(loading || error) && (
           <div
             className={`px-6 py-3 text-sm ${
-              error
-                ? "bg-red-50 text-red-700 border-b border-red-100"
-                : "bg-blue-50 text-blue-700 border-b border-blue-100"
+              error ? "bg-red-50 text-red-700 border-b border-red-100" : "bg-blue-50 text-blue-700 border-b border-blue-100"
             }`}
             role={error ? "alert" : "status"}
           >
             {error || `Loading results for ${querySummary}...`}
           </div>
         )}
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {[
-                  "Symbol",
-                  "Name",
-                  "Class",
-                  "Sector",
-                  "Price",
-                  "Market Cap",
-                ].map((heading) => (
+                {["Symbol", "Name", "Class", "Sector", "Price", "Market Cap"].map((col) => (
                   <th
-                    key={heading}
+                    key={col}
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    {heading}
+                    {col}
                   </th>
                 ))}
               </tr>
@@ -306,28 +228,19 @@ export default function AssetList() {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                     Loading...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-red-600"
-                  >
+                  <td colSpan={6} className="px-6 py-4 text-center text-red-600">
                     {error}
                   </td>
                 </tr>
               ) : assets.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                     No assets found
                   </td>
                 </tr>
@@ -337,22 +250,14 @@ export default function AssetList() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {asset.symbol}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.asset_class}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.sector}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.asset_class}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.sector}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {asset.currency} {asset.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.market_cap
-                        ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
-                        : "N/A"}
+                      {asset.market_cap ? `$${(asset.market_cap / 1e9).toFixed(2)}B` : "N/A"}
                     </td>
                   </tr>
                 ))
@@ -366,7 +271,7 @@ export default function AssetList() {
           <div className="flex items-center space-x-2">
             <button
               type="button"
-              onClick={handlePrevPage}
+              onClick={() => goToPage(page - 1)}
               disabled={!canGoPrev}
               className={`px-3 py-1 rounded-md border ${
                 canGoPrev
@@ -382,7 +287,7 @@ export default function AssetList() {
             </span>
             <button
               type="button"
-              onClick={handleNextPage}
+              onClick={() => goToPage(page + 1)}
               disabled={!canGoNext}
               className={`px-3 py-1 rounded-md border ${
                 canGoNext
@@ -393,6 +298,7 @@ export default function AssetList() {
               Next
             </button>
           </div>
+
           <div className="flex items-center space-x-2">
             <label htmlFor="asset-page-size" className="text-sm text-gray-600">
               Rows per page
