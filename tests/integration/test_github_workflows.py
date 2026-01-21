@@ -1136,68 +1136,13 @@ class TestWorkflowStepConfiguration:
             )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    def test_workflow_steps_continue_on_error_usage(self, workflow_file: Path):
-        """Test that continue-on-error is used sparingly and intentionally."""
-        config = load_yaml_safe(workflow_file)
-        jobs = config.get("jobs", {})
-
-        for job_name, job_config in jobs.items():
-            steps = job_config.get("steps", [])
-
-            for step in steps:
-                if step.get("continue-on-error") is True:
-                    # Should have a comment or name explaining why
-                    if "name" not in step:
-                        print(f"\nRecommendation: Step in job '{job_name}' of {workflow_file.name} "
-                              "uses continue-on-error but lacks descriptive name")
-
-
-class TestWorkflowEnvAndSecrets:
-    """Tests for environment variables and secrets usage."""
-
-    @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    def test_workflow_env_vars_naming_convention(self, workflow_file: Path):
-        """
-        Validate that environment variable names in a workflow follow the UPPER_CASE naming convention.
-
-        Checks environment mappings at the workflow top level and within each job, and prints a MAINTAINABILITY message listing any environment variable keys that contain characters other than uppercase letters, digits or underscores, or that are not entirely upper-case.
-
-        Parameters:
-            workflow_file (Path): Path to the workflow YAML file being tested; used only for reporting in messages.
-        """
-        config = load_yaml_safe(workflow_file)
-
-        def check_env_vars(env_dict):
-            """
-            Identify environment variable names that do not follow the naming convention of upper-case letters, digits and underscores.
-
-            Parameters:
-                env_dict (dict): Mapping of environment variable names to their values. If a non-dict is provided, it is treated as absent.
-
-            Returns:
-                invalid_keys (List[str]): List of keys from `env_dict` that are not entirely upper-case or that contain characters other than letters, digits or underscores.
-            """
-            if not isinstance(env_dict, dict):
-                return []
-            invalid = []
-            for key in env_dict.keys():
-                if not key.isupper() or not key.replace("_", "").isalnum():
-                    invalid.append(key)
-            return invalid
-
-        # Check top-level env
-        if "env" in config:
-            invalid = check_env_vars(config["env"])
-            if invalid:
-# Check top-level env
-        if "env" in config:
-            invalid = check_env_vars(config["env"])
-            if invalid:
-                print(f"MAINTAINABILITY: Workflow {workflow_file.name} has environment variables "
-                      f"that don't follow UPPER_CASE convention: {invalid}. This can reduce "
-                      f"readability and consistency across workflows.")
-                      f"that don't follow UPPER_CASE convention: {invalid}. This can reduce "
-                      f"readability and consistency across workflows.")
+            # Check top-level env
+            if "env" in config:
+                invalid = check_env_vars(config["env"])
+                if invalid:
+                    print(f"MAINTAINABILITY: Workflow {workflow_file.name} has environment variables "
+                          f"that don't follow UPPER_CASE convention: {invalid}. This can reduce "
+                          f"readability and consistency across workflows.")
 
     @ pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_secrets_not_in_env_values(self, workflow_file: Path):
