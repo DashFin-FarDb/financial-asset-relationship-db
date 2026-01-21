@@ -26,7 +26,9 @@ global.IntersectionObserver = class IntersectionObserver {
    * This method is intentionally left empty and can be overridden to implement observer logic.
    * @returns {void}
    */
-  static observe () {
+  observe () {
+    // Intentionally empty: placeholder for observer
+  }
     // Intentionally empty: placeholder for observer
   }
 
