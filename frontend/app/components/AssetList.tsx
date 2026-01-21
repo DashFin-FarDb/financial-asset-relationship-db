@@ -238,6 +238,8 @@ export default function AssetList() {
               htmlFor="asset-class-filter"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
+              Asset Class
+            </label>
             <select
               className="w-full border border-gray-300 rounded-md px-3 py-2"
               id="asset-class-filter"
