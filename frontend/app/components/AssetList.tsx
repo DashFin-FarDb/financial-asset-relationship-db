@@ -289,7 +289,10 @@ export default function AssetList() {
           onChange={onChange}
           disabled={isLoading}
         >
-          <AssetClassOptions isLoading={isLoading} assetClasses={assetClasses} />
+          <AssetClassOptions
+            isLoading={isLoading}
+            assetClasses={assetClasses}
+          />
         </select>
       </div>
     );
