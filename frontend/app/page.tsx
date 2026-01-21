@@ -46,7 +46,27 @@ async function loadData() {
   useEffect(() => {
     loadData();
   }, []);
-    try {
+const loadData = useCallback(async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const [metricsData, visualizationData] = await Promise.all([
+      api.getMetrics(),
+      api.getVisualizationData(),
+    ]);
+    setMetrics(metricsData);
+    setVizData(visualizationData);
+  } catch (err) {
+    console.error("Error loading data:", err);
+    setError("Failed to load data. Please ensure the API server is running.");
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
+useEffect(() => {
+  void loadData();
+}, [loadData]);
       const [metricsData, visualizationData] = await Promise.all([
         api.getMetrics(),
         api.getVisualizationData(),
