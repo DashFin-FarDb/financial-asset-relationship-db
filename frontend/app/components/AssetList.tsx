@@ -3,91 +3,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Asset } from "../types/api";
+import {
+  buildQuerySummary,
+  loadAssets,
+  loadMetadata,
+  parsePositiveInteger,
+} from "../lib/assetHelpers";
 
-/**
- * Safely parse a positive integer from a string-like value.
- * Falls back to the provided default if parsing fails or the value is not > 0.
- */
-function parsePositiveInteger(
-  value: string | number | null | undefined,
-  defaultValue: number,
-): number {
-  if (typeof value === "number") {
-    return Number.isFinite(value) && value > 0
-      ? Math.floor(value)
-      : defaultValue;
-  }
-  const text = (value ?? "").toString().trim();
-  const parsed = Number.parseInt(text, 10);
-  if (Number.isNaN(parsed) || parsed <= 0) {
-    return defaultValue;
-  }
-  return parsed;
-}
-
-/**
- * Build a human-readable summary of the current query/filters.
- * The first argument is expected to be an object containing filter key/value pairs.
- * Additional arguments (such as pagination info) are ignored for summary purposes.
- */
-function buildQuerySummary(...args: unknown[]): string {
-  if (!args.length || typeof args[0] !== "object" || args[0] === null) {
-    return "All assets";
-  }
-  const filters = args[0] as Record<string, unknown>;
-  const parts: string[] = [];
-
-  Object.entries(filters).forEach(([key, rawValue]) => {
-    if (rawValue === undefined || rawValue === null) {
-      return;
-    }
-    const value = String(rawValue).trim();
-    if (!value) {
-      return;
-    }
-    parts.push(`${key}: ${value}`);
-  });
-
-  if (!parts.length) {
-    return "All assets";
-  }
-
-  return `Assets filtered by ${parts.join(", ")}`;
-}
-
-/**
- * Load asset metadata (e.g., filter option values) from the API.
- * The optional AbortSignal allows the caller to cancel the request.
- */
-async function loadMetadata(signal?: AbortSignal): Promise<any> {
-  const response = await fetch("/api/metadata", { signal });
-  if (!response.ok) {
-    throw new Error("Failed to load asset metadata");
-  }
-  return response.json();
-}
-
-/**
- * Load assets from the API based on the provided query parameters.
- * `params` can be a URLSearchParams instance or a pre-built query string.
- * The optional AbortSignal allows the caller to cancel the request.
- */
-async function loadAssets(
-  params: URLSearchParams | string,
-  signal?: AbortSignal,
-): Promise<any> {
-  const queryString =
-    params instanceof URLSearchParams
-      ? params.toString()
-      : String(params ?? "");
-  const url = queryString ? `/api/assets?${queryString}` : "/api/assets";
-
-  const response = await fetch(url, { signal });
-  if (!response.ok) {
-    throw new Error("Failed to load assets");
-  }
-  return response.json();
-}
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
