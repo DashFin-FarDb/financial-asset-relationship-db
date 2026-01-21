@@ -114,7 +114,7 @@ export default function AssetList() {
       setSectors(sectorsData.sectors);
     } catch (err) {
       console.error("Error loading metadata:", err);
-      setError(
+      setError("Unable to load filter options. Please try again.");
         (prev) => prev ?? "Unable to load filter options. Please try again.",
       );
     }
