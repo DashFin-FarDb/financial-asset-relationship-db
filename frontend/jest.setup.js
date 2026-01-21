@@ -30,7 +30,28 @@ global.IntersectionObserver = class IntersectionObserver {
     // Intentionally empty: placeholder for observer
   }
     // Intentionally empty: placeholder for observer
+  observe () {
+    // Intentionally empty: placeholder for observer
   }
+
+  /**
+   * Retrieves all recorded entries.
+   *
+   * @returns {Array} An array of recorded entries.
+   */
+  static takeRecords () {
+    return []
+  }
+
+  /**
+   * Placeholder method to stop observing changes in a testing environment.
+   *
+   * @returns {void}
+   */
+  unobserve () {
+    // No-op: placeholder for testing environment
+  }
+}
 
   /**
    * Retrieves all recorded entries.
