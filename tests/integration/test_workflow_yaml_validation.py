@@ -58,9 +58,12 @@ class TestWorkflowYAMLSyntax:
                 data = yaml.safe_load(f)
             if data is None:
                 pytest.fail(f"{workflow_file.name} is empty or invalid YAML")
+
+            # Basic required keys for a GitHub Actions workflow
+            required_keys = {"name", "on", "jobs"}
+
             missing_keys = required_keys - set(data.keys())
             assert not missing_keys, f"{workflow_file.name} missing required keys: {missing_keys}"
-            )
 
     def test_workflow_names_are_descriptive(self, workflow_files: List[Path]):
         """Test that workflow names are descriptive and not empty."""
