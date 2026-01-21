@@ -302,7 +302,7 @@ export default function AssetList() {
     assets: Asset[];
     page: number;
     pageSize: number;
-    totalPages: number;
+    totalPages: number | null;
     onPrevPage: () => void;
     onNextPage: () => void;
     onPageSizeChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
