@@ -67,7 +67,12 @@ class MockIntersectionObserver {
    * @param {Function} callback - Function to be called when intersections occur.
    * @param {Object} options - Options to configure the observer.
    */
-  constructor (callback = () => { /* default no-op callback */ }, options = {}) {
+  constructor (
+    callback = () => {
+      /* default no-op callback */
+    },
+    options = {}
+  ) {
     this._callback = callback
     this._options = options
     this._elements = new Set()
