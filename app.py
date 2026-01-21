@@ -348,14 +348,14 @@ class FinancialAssetApp:
                 gr.update(value=error_msg, visible=True),
             )
 
-    def show_formula_details(self, formula_name: str, graph_state: AssetRelationshipGraph):
+    @staticmethod
+    def show_formula_details(formula_name: str, graph_state: AssetRelationshipGraph):
         """Show detailed view of a specific formula."""
         try:
-            # Placeholder successful result until detailed implementation is added.
-            # Return an empty figure and hide any error message.
+            # Placeholder implementation: return an empty figure and hide any error message.
             return (
                 go.Figure(),
-                gr.update(visible=False),
+                gr.update(value=None, visible=False),
             )
         except Exception as e:
             logger.error("Error showing formula details: %s", e)
