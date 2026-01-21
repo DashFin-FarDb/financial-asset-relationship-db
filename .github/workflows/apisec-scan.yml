@@ -86,8 +86,11 @@ jobs:
 
     steps:
        - name: Check for APIsec credentials
+         env:
+           APISEC_USERNAME: ${{ secrets.apisec_username }}
+           APISEC_PASSWORD: ${{ secrets.apisec_password }}
          run: |
-           if [ -z "${{ secrets.apisec_username }}" ] || [ -z "${{ secrets.apisec_password }}" ]; then
+           if [ -z "$APISEC_USERNAME" ] || [ -z "$APISEC_PASSWORD" ]; then
              echo "⚠️ APIsec credentials not configured. Skipping scan."
              echo "To enable APIsec scanning:"
              echo "1. Register at https://cloud.apisec.ai/#/signup"
