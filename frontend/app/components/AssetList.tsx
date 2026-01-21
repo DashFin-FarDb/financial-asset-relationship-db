@@ -1,39 +1,42 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Asset } from "../types/api";
 import {
-  parsePositiveInteger,
   buildQuerySummary,
-  loadMetadata,
   loadAssets,
+  loadMetadata,
+  parsePositiveInteger,
 } from "../lib/assetHelpers";
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
-/**
- * Asset filter select component.
- */
+type AssetFilter = {
+  asset_class: string;
+  sector: string;
+};
+
+type SelectFilterProps = {
+  id: string;
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  placeholder: string;
+};
+
 const SelectFilter = ({
   id,
   label,
   options,
   value,
   onChange,
-}: {
-  id: string;
-  label: string;
-  options: string[];
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-}) => (
+  placeholder,
+}: SelectFilterProps) => (
   <div>
-    <label
-      htmlFor={id}
-      className="block text-sm font-medium text-gray-700 mb-2"
-    >
+    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-2">
       {label}
     </label>
     <select
@@ -42,7 +45,7 @@ const SelectFilter = ({
       onChange={onChange}
       className="w-full border border-gray-300 rounded-md px-3 py-2"
     >
-      <option value="">All</option>
+      <option value="">{placeholder}</option>
       {options.map((opt) => (
         <option key={opt} value={opt}>
           {opt}
@@ -52,11 +55,6 @@ const SelectFilter = ({
   </div>
 );
 
-/**
- * AssetList component displays a list of financial assets with filtering and pagination controls.
- *
- * @returns {JSX.Element} The rendered AssetList component.
- */
 export default function AssetList() {
   const router = useRouter();
   const pathname = usePathname();
@@ -66,7 +64,7 @@ export default function AssetList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [filter, setFilter] = useState({ asset_class: "", sector: "" });
+  const [filter, setFilter] = useState<AssetFilter>({ asset_class: "", sector: "" });
   const [assetClasses, setAssetClasses] = useState<string[]>([]);
   const [sectors, setSectors] = useState<string[]>([]);
 
@@ -77,71 +75,31 @@ export default function AssetList() {
   const totalPages = useMemo(() => {
     if (!total || total <= 0) return null;
     return Math.max(1, Math.ceil(total / pageSize));
-  }, [total, pageSize]);
+  }, [pageSize, total]);
 
   const querySummary = useMemo(
     () => buildQuerySummary(page, pageSize, filter),
-    [page, pageSize, filter],
+    [filter, page, pageSize],
   );
 
-  /** Load metadata once on mount */
-  useEffect(() => {
-    loadMetadata(setAssetClasses, setSectors);
-  }, []);
-
-  /** Sync state from query params */
-  useEffect(() => {
-    if (!searchParams) return;
-
-    const nextFilter = {
-      asset_class: searchParams.get("asset_class") ?? "",
-      sector: searchParams.get("sector") ?? "",
-    };
-    const nextPage = parsePositiveInteger(searchParams.get("page"), 1);
-    const nextPageSize = parsePositiveInteger(
-      searchParams.get("per_page"),
-      DEFAULT_PAGE_SIZE,
-    );
-
-    setFilter((prev) =>
-      prev.asset_class === nextFilter.asset_class &&
-      prev.sector === nextFilter.sector
-        ? prev
-        : nextFilter,
-    );
-    setPage((prev) => (prev === nextPage ? prev : nextPage));
-    setPageSize((prev) => (prev === nextPageSize ? prev : nextPageSize));
-  }, [searchParams]);
-
-  /** Load assets when filter/page/pageSize changes */
-  useEffect(() => {
-    /**
-     * Fetches assets based on the current page, page size, and filter, then updates the assets list, total count, and error state.
-     *
-     * @returns {Promise<void>} Resolves when the assets are loaded and state is updated.
-     */
-    const fetchAssets = async () => {
-      setLoading(true);
-      await loadAssets(page, pageSize, filter, setAssets, setTotal, setError);
-      setLoading(false);
-    };
-    fetchAssets();
-  }, [page, pageSize, filter]);
-
-  /** Update URL query parameters */
   const updateQueryParams = useCallback(
     (updates: Record<string, string | null>) => {
-      if (!pathname || !searchParams) return;
+      if (!pathname) return;
 
       const params = new URLSearchParams(searchParams.toString());
 
       Object.entries(updates).forEach(([key, value]) => {
-        if (!value) params.delete(key);
-        else params.set(key, value);
+        if (value === null || value === "") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
       });
 
       const queryString = params.toString();
-      if (queryString !== searchParams.toString()) {
+      const currentQueryString = searchParams.toString();
+
+      if (queryString !== currentQueryString) {
         router.replace(`${pathname}${queryString ? `?${queryString}` : ""}`, {
           scroll: false,
         });
@@ -150,17 +108,60 @@ export default function AssetList() {
     [pathname, router, searchParams],
   );
 
-  /** Handle filter changes */
+  useEffect(() => {
+    loadMetadata(setAssetClasses, setSectors);
+  }, []);
+
+  useEffect(() => {
+    const nextFilter: AssetFilter = {
+      asset_class: searchParams.get("asset_class") ?? "",
+      sector: searchParams.get("sector") ?? "",
+    };
+
+    const nextPage = parsePositiveInteger(searchParams.get("page"), 1);
+    const nextPageSize = parsePositiveInteger(
+      searchParams.get("per_page"),
+      DEFAULT_PAGE_SIZE,
+    );
+
+    setFilter((prev) =>
+      prev.asset_class === nextFilter.asset_class && prev.sector === nextFilter.sector
+        ? prev
+        : nextFilter,
+    );
+
+    setPage((prev) => (prev === nextPage ? prev : nextPage));
+    setPageSize((prev) => (prev === nextPageSize ? prev : nextPageSize));
+  }, [searchParams]);
+
+  const fetchAssets = useCallback(async () => {
+    setLoading(true);
+    await loadAssets(
+      page,
+      pageSize,
+      filter,
+      setAssets,
+      setTotal,
+      setError,
+      querySummary,
+    );
+    setLoading(false);
+  }, [filter, page, pageSize, querySummary]);
+
+  useEffect(() => {
+    fetchAssets();
+  }, [fetchAssets]);
+
   const handleFilterChange =
-    (field: "asset_class" | "sector") =>
+    (field: keyof AssetFilter) =>
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value;
+
       setFilter((prev) => ({ ...prev, [field]: value }));
       setPage(1);
       updateQueryParams({ [field]: value || null, page: "1" });
     };
 
-  /** Handle page size change */
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nextSize = parsePositiveInteger(e.target.value, DEFAULT_PAGE_SIZE);
     setPageSize(nextSize);
@@ -168,13 +169,14 @@ export default function AssetList() {
     updateQueryParams({ per_page: String(nextSize), page: "1" });
   };
 
-  /** Navigate pages */
   const goToPage = (requestedPage: number) => {
     const boundedPage =
       totalPages !== null
         ? Math.min(Math.max(1, requestedPage), totalPages)
         : Math.max(1, requestedPage);
+
     if (boundedPage === page) return;
+
     setPage(boundedPage);
     updateQueryParams({ page: String(boundedPage) });
   };
@@ -182,7 +184,14 @@ export default function AssetList() {
   const canGoPrev = page > 1 && !loading;
   const canGoNext = totalPages !== null && page < totalPages && !loading;
 
-  /** Render page size options */
+  const handlePrevPage = () => {
+    goToPage(page - 1);
+  };
+
+  const handleNextPage = () => {
+    goToPage(page + 1);
+  };
+
   const renderPageSizeOption = (size: number) => (
     <option key={size} value={size}>
       {size}
@@ -199,6 +208,7 @@ export default function AssetList() {
           options={assetClasses}
           value={filter.asset_class}
           onChange={handleFilterChange("asset_class")}
+          placeholder="All Classes"
         />
         <SelectFilter
           id="sector-filter"
@@ -206,25 +216,17 @@ export default function AssetList() {
           options={sectors}
           value={filter.sector}
           onChange={handleFilterChange("sector")}
+          placeholder="All Sectors"
         />
       </div>
 
-      {/* Asset Table */}
-      <AssetTableContent
-        assets={assets}
-        loading={loading}
-        error={error}
-        renderPageSizeOption={renderPageSizeOption}
-        page={page}
-        perPage={perPage}
-        totalPages={totalPages}
-        goToPage={goToPage}
-        changePageSize={changePageSize}
-        canGoPrev={canGoPrev}
-        canGoNext={canGoNext}
-      />
-    </div>
-  );
+      {/* Asset List */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        {(loading || error) && (
+          <div
+            className={`px-6 py-3 text-sm ${
+              error
+                ? "bg-red-50 text-red-700 border-b border-red-100"
                 : "bg-blue-50 text-blue-700 border-b border-blue-100"
             }`}
             role={error ? "alert" : "status"}
@@ -257,28 +259,19 @@ export default function AssetList() {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                     Loading...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-red-600"
-                  >
+                  <td colSpan={6} className="px-6 py-4 text-center text-red-600">
                     {error}
                   </td>
                 </tr>
               ) : assets.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                     No assets found
                   </td>
                 </tr>
@@ -298,10 +291,12 @@ export default function AssetList() {
                       {asset.sector}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.currency} {asset.price.toFixed(2)}
+                      {typeof asset.price === "number"
+                        ? `${asset.currency} ${asset.price.toFixed(2)}`
+                        : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.market_cap
+                      {typeof asset.market_cap === "number"
                         ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
                         : "N/A"}
                     </td>
