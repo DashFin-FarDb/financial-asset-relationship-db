@@ -406,7 +406,7 @@ Tests will:
 
 ## Conclusion
 
-Successfully generated **1,751 lines** of comprehensive, production-ready tests covering:
+Successfully generated **1,278 lines** of comprehensive, production-ready tests covering:
 
 - ✅ **79 test methods** across 23 test classes
 - ✅ **4 GitHub workflow files** fully validated
