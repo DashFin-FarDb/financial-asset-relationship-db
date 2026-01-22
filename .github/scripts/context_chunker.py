@@ -218,6 +218,8 @@ def _init_encoder(self):
             return content, False
 
         # Apply chunking
+        content = self._build_limited_content(chunks)
+        return content, True
 
     def _extract_chunks(self, pr_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
