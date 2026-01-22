@@ -28,6 +28,16 @@ type SelectFilterProps = {
   placeholder: string;
 };
 
+/**
+ * Renders a select filter input with a label and list of options.
+ * @param {string} id - The id attribute for the select element.
+ * @param {string} label - The text label for the select input.
+ * @param {string[]} options - Array of options to display in the dropdown.
+ * @param {string} value - The current selected value.
+ * @param {(e: React.ChangeEvent<HTMLSelectElement>) => void} onChange - Handler for change events.
+ * @param {string} placeholder - Placeholder text for the default empty option.
+ * @returns {JSX.Element} The SelectFilter component.
+ */
 const SelectFilter = ({
   id,
   label,
@@ -59,6 +69,10 @@ const SelectFilter = ({
   </div>
 );
 
+/**
+ * Fetches and displays a list of assets with filtering and pagination.
+ * @returns {JSX.Element} The AssetList component.
+ */
 export default function AssetList() {
   const router = useRouter();
   const pathname = usePathname();
@@ -114,7 +128,7 @@ export default function AssetList() {
   );
 
   const fetchMetadata = useCallback(() => {
-    void loadMetadata(setAssetClasses, setSectors);
+    loadMetadata(setAssetClasses, setSectors);
   }, [loadMetadata, setAssetClasses, setSectors]);
 
   useEffect(() => {
@@ -162,6 +176,11 @@ export default function AssetList() {
     void fetchAssets();
   }, [fetchAssets]);
 
+  /**
+   * Creates an event handler for changing a filter field.
+   * @param {keyof AssetFilter} field - The filter field to update.
+   * @returns {(e: React.ChangeEvent<HTMLSelectElement>) => void} Event handler for the change event.
+   */
   const handleFilterChange =
     (field: keyof AssetFilter) => (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value;
@@ -171,6 +190,11 @@ export default function AssetList() {
       updateQueryParams({ [field]: value || null, page: "1" });
     };
 
+  /**
+   * Handles page size selection changes.
+   * @param {React.ChangeEvent<HTMLSelectElement>} e - The change event with the new page size.
+   * @returns {void}
+   */
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nextSize = parsePositiveInteger(e.target.value, DEFAULT_PAGE_SIZE);
 
@@ -205,11 +229,28 @@ export default function AssetList() {
     goToPage(page + 1);
   }, [goToPage, page]);
 
+  /**
+   * Renders an option element for the page size selector.
+   * @param {number} size - The page size to render as an option.
+   * @returns {JSX.Element} The rendered option element.
+   */
   const renderPageSizeOption = (size: number) => (
     <option key={size} value={size}>
       {size}
     </option>
   );
+
+  // Extracted component to handle loading and error display
+  const AssetListStatus = ({ loading, error }: { loading: boolean; error: string | null }) => {
+    if (!loading && !error) {
+      return null;
+    }
+    return (
+      <div className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}>
+        {loading ? "Loading..." : `Error: ${error}`}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -235,9 +276,7 @@ export default function AssetList() {
 
       {/* Asset List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {(loading || error) && (
-          <div
-            className={`px-6 py-3 text-sm ${
+        <AssetListStatus loading={loading} error={error} />
               error
                 ? "bg-red-50 text-red-700 border-b border-red-100"
                 : "bg-blue-50 text-blue-700 border-b border-blue-100"
