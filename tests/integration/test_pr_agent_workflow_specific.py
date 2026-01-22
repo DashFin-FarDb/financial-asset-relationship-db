@@ -418,17 +418,17 @@ class TestPRAgentWorkflowPermissions:
         Verify workflow-level and pr-agent-trigger job permissions: the workflow's `contents` permission is set to 'read' and the `pr-agent-trigger` job's `issues` permission is set to 'write'.
         """
         permissions = workflow_content.get("permissions", {})
-        assert permissions.get("contents") == "read", (
+    def test_workflow_permissions_contents_read(self, workflow_content: Dict[str, Any]):
+        """Test that workflow has read access to contents."""
+        permissions = workflow_content.get('permissions', {})
+        assert permissions.get('contents') == 'read', \
             "Workflow should have 'contents: read' permission"
-        )
-        job = workflow_content["jobs"]["pr-agent-trigger"]
-        permissions = job.get("permissions", {})
-        assert permissions.get("issues") == "write", (
-            "pr-agent-trigger job should have 'issues: write' permission"
-        )
-        job = workflow_content["jobs"]["pr-agent-trigger"]
-        permissions = job.get("permissions", {})
-        assert permissions.get("issues") == "write", (
+
+    def test_pr_agent_trigger_has_issues_write(self, workflow_content: Dict[str, Any]):
+        """Test that pr-agent-trigger job has issues write permission."""
+        job = workflow_content['jobs']['pr-agent-trigger']
+        permissions = job.get('permissions', {})
+        assert permissions.get('issues') == 'write', \
             "pr-agent-trigger job should have 'issues: write' permission"
         )
 
