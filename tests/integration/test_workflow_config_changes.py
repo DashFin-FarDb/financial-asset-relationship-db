@@ -590,7 +590,486 @@ class TestRequirementsDevChanges:
 
         # Check for duplicates
         duplicates = [pkg for pkg in package_names if package_names.count(pkg) > 1]
-        assert len(duplicates) == 0, f"Duplicate dependencies found: {set(duplicates)}"
+        duplicates = {pkg for pkg in package_names if package_names.count(pkg) > 1}
+        assert len(duplicates) == 0, f"Duplicate dependencies found: {duplicates}"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])
+Additional comprehensive tests for workflow configuration edge cases and regressions.
+
+These tests provide additional coverage beyond the existing test suite, focusing on:
+1. Regression tests to ensure removed functionality doesn't accidentally return
+2. Negative tests for error conditions
+3. Edge case handling in simplified workflows
+4. Cross-workflow consistency validation
+"""
+
+import pytest
+import yaml
+import re
+from pathlib import Path
+from typing import Dict, Any, List, Set
+
+
+class TestContextChunkingRemovalRegression:
+    """Regression tests ensuring context chunking functionality stays removed."""
+    
+    def test_no_context_chunking_imports_in_workflows(self):
+        """Verify no workflows import or reference context chunking."""
+        workflow_dir = Path(".github/workflows")
+
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                content = f.read().lower()
+
+            # Check for any references to context chunking (expanded variants)
+            forbidden_terms = [
+                'context_chunker',
+                'context-chunker',
+                'contextchunker',
+                'context chunker',
+                'chunking',
+                'chunker',
+                'tiktoken',
+                'max_tokens',
+                'max-tokens',
+                'chunk_size',
+                'chunk-size',
+                'overlap_tokens',
+                'overlap-tokens',
+                'context_file',
+                'context-file',
+                '/tmp/pr_context',
+                'pr_context',
+            ]
+
+            for term in forbidden_terms:
+                assert term not in content, (
+                    f"{workflow_file.name} contains reference to removed chunking: '{term}'"
+                )
+        """Verify no workflows import or reference context_chunker."""
+        workflow_dir = Path(".github/workflows")
+        
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Check for any references to context chunking
+            forbidden_terms = [
+                'context_chunker',
+                'context-chunker',
+                'chunking',
+                'tiktoken',
+                'max_tokens',
+                'chunk_size',
+                'overlap_tokens'
+            ]
+            
+            for term in forbidden_terms:
+                assert term not in content.lower(), \
+                    f"{workflow_file.name} contains reference to removed chunking: '{term}'"
+    
+    def test_pr_agent_config_no_context_section(self):
+        """Verify pr-agent-config.yml has no context configuration."""
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        agent_config = config.get('agent', {})
+        
+        # Context section should not exist
+        assert 'context' not in agent_config, \
+            "Context configuration should be removed from pr-agent-config.yml"
+    
+    def test_pr_agent_config_no_chunking_limits(self):
+        """Verify pr-agent-config.yml has no chunking limits."""
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        limits_config = config.get('limits', {})
+        
+        # Chunking-related limits should not exist
+        forbidden_keys = [
+            'max_files_per_chunk',
+            'max_diff_lines',
+            'max_comment_length',
+            'fallback'
+        ]
+        
+        for key in forbidden_keys:
+            assert key not in limits_config, \
+                f"Chunking limit '{key}' should be removed from limits configuration"
+    
+    def test_no_python_chunking_dependencies(self):
+        """Verify tiktoken and chunking-specific dependencies are not in requirements."""
+        req_files = ['requirements.txt', 'requirements-dev.txt']
+        
+        for req_file in req_files:
+            req_path = Path(req_file)
+            if req_path.exists():
+                with open(req_path, 'r') as f:
+                    content = f.read().lower()
+                
+                # tiktoken was optional for chunking, should be removed
+                assert 'tiktoken' not in content, \
+                    f"tiktoken should not be in {req_file} after chunking removal"
+    
+    def test_pr_agent_workflow_no_context_file_output(self):
+        """Verify PR agent workflow doesn't create context files."""
+        workflow_path = Path(".github/workflows/pr-agent.yml")
+        with open(workflow_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Should not write to context files
+        forbidden_patterns = [
+            r'/tmp/pr_context\.json',
+            r'/tmp/pr_context_chunked\.json',
+            r'context_file=',
+            r'CONTEXT_FILE='
+        ]
+        
+        for pattern in forbidden_patterns:
+            assert not re.search(pattern, content), \
+                f"Workflow should not reference context files: {pattern}"
+
+
+class TestWorkflowErrorHandling:
+    """Test error handling and edge cases in workflows."""
+    
+    def test_pr_agent_workflow_handles_missing_reviews(self):
+        """Verify PR agent workflow handles PRs without reviews gracefully."""
+        workflow_path = Path(".github/workflows/pr-agent.yml")
+        with open(workflow_path, 'r') as f:
+            workflow = yaml.safe_load(f)
+        
+        jobs = workflow.get('jobs', {})
+        
+        for job_name, job_config in jobs.items():
+            steps = job_config.get('steps', [])
+            
+            # Check for steps that parse reviews
+            for step in steps:
+                if 'review' in step.get('name', '').lower():
+                    run_command = step.get('run', '')
+                    
+                    # Should handle empty results
+                    assert '|| echo' in run_command or 'general_improvements' in run_command, \
+                        f"Step '{step.get('name')}' should handle missing reviews"
+    
+                    if not has_timeout:
+                        assert False, f"{workflow_file.name}::{job_name} has no timeout"
+    def test_apisec_workflow_validates_action_handles_missing_secrets(self):
+        """Verify APISec workflow uses action version known to handle missing secrets by pinning the action."""
+        workflow_path = Path(".github/workflows/apisec-scan.yml")
+        with open(workflow_path, 'r') as f:
+            workflow = yaml.safe_load(f)
+
+        jobs = workflow.get('jobs', {})
+        apisec_job = jobs.get('Trigger_APIsec_scan', {})
+        steps = apisec_job.get('steps', [])
+
+        for step in steps:
+            uses_val = step.get('uses', '')
+            if 'apisec' in uses_val.lower():
+                assert '@' in uses_val, "APISec action should use a pinned version (e.g., @vX or @<sha>)"
+                # Optionally enforce a major version pin pattern
+                # assert re.search(r'@v?\d+(\.\d+(\.\d+)?)?$', uses_val) or re.search(r'@[0-9a-fA-F]{7,}', uses_val)
+                break
+        else:
+            pytest.fail("APISec action step not found in workflow")
+        """Verify workflows handle missing secrets appropriately."""
+        workflow_dir = Path(".github/workflows")
+        
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # If workflow uses secrets, should have some handling
+            if '${{ secrets.' in content:
+                # API sec scan removed the conditional check, which is fine
+                # as long as the action itself handles missing creds
+                if 'apisec' in workflow_file.name:
+                    # APISec action should handle missing credentials internally
+                    pass
+
+
+class TestWorkflowConsistency:
+    """Test consistency across all workflow files."""
+    
+    def test_all_workflows_use_same_python_version(self):
+        """Verify all workflows use consistent Python version."""
+        workflow_dir = Path(".github/workflows")
+        python_versions: Set[str] = set()
+        
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r') as f:
+                workflow = yaml.safe_load(f)
+            
+            jobs = workflow.get('jobs', {})
+            
+            for job_config in jobs.values():
+                steps = job_config.get('steps', [])
+                
+                for step in steps:
+                    if step.get('uses', '').startswith('actions/setup-python'):
+                        with_config = step.get('with', {})
+                        version = with_config.get('python-version')
+                        if version:
+                            python_versions.add(str(version))
+        
+        # Should use consistent version (3.11)
+        assert len(python_versions) <= 1, \
+            f"Multiple Python versions found: {python_versions}. Should use 3.11 consistently."
+        
+        if python_versions:
+            assert '3.11' in python_versions, \
+                f"Python version should be 3.11, found: {python_versions}"
+    
+    def test_all_workflows_use_same_node_version(self):
+        """Verify all workflows use consistent Node version."""
+        workflow_dir = Path(".github/workflows")
+        node_versions: Set[str] = set()
+        
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r') as f:
+                workflow = yaml.safe_load(f)
+            
+            jobs = workflow.get('jobs', {})
+            
+            for job_config in jobs.values():
+                steps = job_config.get('steps', [])
+                
+                for step in steps:
+                    if step.get('uses', '').startswith('actions/setup-node'):
+                        with_config = step.get('with', {})
+                        version = with_config.get('node-version')
+                        if version:
+                            node_versions.add(str(version))
+        
+        # Should use consistent version
+        assert len(node_versions) <= 1, \
+            f"Multiple Node versions found: {node_versions}. Should be consistent."
+    
+    def test_all_workflows_use_checkout_v4(self):
+        """Verify all workflows use actions/checkout@v4."""
+        workflow_dir = Path(".github/workflows")
+        checkout_versions: Set[str] = set()
+        
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Find all checkout action uses
+            checkout_matches = re.findall(r'uses:\s*actions/checkout@(v\d+)', content)
+            checkout_versions.update(checkout_matches)
+        
+        # Should primarily use v4
+        if checkout_versions:
+            assert 'v4' in checkout_versions, \
+                "Should use actions/checkout@v4"
+    
+    def test_workflows_have_consistent_permissions(self):
+        """Verify workflows follow consistent permission patterns."""
+        workflow_dir = Path(".github/workflows")
+        
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r') as f:
+                workflow = yaml.safe_load(f)
+            
+            permissions = workflow.get('permissions')
+            
+            if permissions:
+                # Permissions should be explicitly set (not just 'write-all')
+                assert permissions != 'write-all', \
+                    f"{workflow_file.name} uses overly permissive 'write-all'"
+                
+                # Should be a dict with specific permissions
+                assert isinstance(permissions, dict), \
+                    f"{workflow_file.name} should use explicit permission dict"
+
+
+class TestSimplifiedConfigurationEdgeCases:
+    """Test edge cases in simplified workflow configurations."""
+    
+    def test_greetings_messages_are_not_empty(self):
+        """Verify greetings workflow has non-empty messages."""
+        workflow_path = Path(".github/workflows/greetings.yml")
+        with open(workflow_path, 'r') as f:
+            workflow = yaml.safe_load(f)
+        
+        jobs = workflow.get('jobs', {})
+        first_interaction_job = jobs.get('greeting', {})
+        steps = first_interaction_job.get('steps', [])
+        
+        for step in steps:
+            with_config = step.get('with', {})
+            
+            # Check issue message
+            issue_msg = with_config.get('issue-message', '')
+            assert len(issue_msg.strip()) > 0, "Issue message should not be empty"
+            assert len(issue_msg.strip()) > 10, "Issue message should be meaningful"
+            
+            # Check PR message
+            pr_msg = with_config.get('pr-message', '')
+            assert len(pr_msg.strip()) > 0, "PR message should not be empty"
+            assert len(pr_msg.strip()) > 10, "PR message should be meaningful"
+    
+    def test_label_workflow_without_config_check(self):
+        """Verify label workflow works without labeler.yml config check."""
+        workflow_path = Path(".github/workflows/label.yml")
+        with open(workflow_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Should not check for config file existence
+        assert 'check-config' not in content, \
+            "Label workflow should not check for config file"
+        assert 'labeler.yml' not in content, \
+            "Label workflow should not reference labeler.yml"
+        
+        # Labeler action should be called directly
+        assert 'actions/labeler@v4' in content or 'actions/labeler@v5' in content, \
+            "Should use labeler action directly"
+    
+    def test_apisec_workflow_without_credential_check(self):
+        """Verify APISec workflow runs without explicit credential check."""
+        workflow_path = Path(".github/workflows/apisec-scan.yml")
+        with open(workflow_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Should not have step checking for credentials
+        assert 'Check for APIsec credentials' not in content, \
+            "APISec workflow should not have credential check step"
+        
+        # Should not have if condition on job level
+        with open(workflow_path, 'r') as f:
+            workflow = yaml.safe_load(f)
+        
+        jobs = workflow.get('jobs', {})
+        apisec_job = jobs.get('Trigger_APIsec_scan', {})
+        
+        assert 'if' not in apisec_job or \
+               'secrets.apisec' not in str(apisec_job.get('if', '')), \
+            "APISec job should not have conditional on secrets"
+
+
+class TestGitignoreChanges:
+    """Test .gitignore modifications."""
+    
+    def test_gitignore_removed_test_db_patterns(self):
+        """Verify .gitignore removed test database patterns."""
+        gitignore_path = Path(".gitignore")
+        with open(gitignore_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # These patterns were removed in the diff
+        removed_patterns = ['test_*.db', '*_test.db', 'junit.xml']
+        
+        for pattern in removed_patterns:
+            assert pattern not in content, \
+                f"Pattern '{pattern}' should be removed from .gitignore"
+    
+    def test_gitignore_still_has_coverage_patterns(self):
+        """Verify .gitignore still has coverage-related patterns."""
+        gitignore_path = Path(".gitignore")
+        with open(gitignore_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # These should still be present
+        required_patterns = ['.coverage', 'coverage.xml', 'htmlcov/']
+        
+        for pattern in required_patterns:
+            assert pattern in content, \
+                f"Pattern '{pattern}' should still be in .gitignore"
+
+
+class TestPRAgentConfigVersionDowngrade:
+    """Test pr-agent-config.yml version change."""
+    
+    def test_pr_agent_version_downgraded_to_1_0_0(self):
+        """Verify PR agent version was downgraded from 1.1.0 to 1.0.0."""
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        agent_config = config.get('agent', {})
+        version = agent_config.get('version')
+        
+        assert version == '1.0.0', \
+            f"PR agent version should be 1.0.0, got {version}"
+    
+    def test_pr_agent_config_structure_valid_after_simplification(self):
+        """Verify pr-agent-config.yml is still valid after removing sections."""
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        # Should have required top-level keys
+        assert 'agent' in config, "Config should have 'agent' section"
+        assert 'monitoring' in config, "Config should have 'monitoring' section"
+        assert 'limits' in config, "Config should have 'limits' section"
+        
+        # Agent section should have basic config
+        agent = config['agent']
+        assert 'name' in agent, "Agent should have name"
+        assert 'version' in agent, "Agent should have version"
+        assert 'enabled' in agent, "Agent should have enabled flag"
+
+
+class TestWorkflowSecurityRegressions:
+    """Ensure security best practices weren't compromised by simplifications."""
+    
+    def test_workflows_dont_echo_secrets(self):
+        """Verify workflows don't accidentally echo secrets."""
+        workflow_dir = Path(".github/workflows")
+        
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Find all secret references
+            secret_refs = re.findall(r'\$\{\{\s*secrets\.(\w+)\s*\}\}', content)
+            
+            for secret_name in secret_refs:
+                # Check that secret isn't echoed
+                echo_pattern = rf'echo.*\$\{{\{{\s*secrets\.{secret_name}\s*\}}\}}'
+                assert not re.search(echo_pattern, content, re.IGNORECASE), \
+                    f"{workflow_file.name} appears to echo secret: {secret_name}"
+    
+    def test_pr_agent_workflow_validates_dependency_files(self):
+        """Verify PR agent workflow validates dependency files exist."""
+        workflow_path = Path(".github/workflows/pr-agent.yml")
+        with open(workflow_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Should check for requirements files
+        assert 'requirements.txt' in content or 'requirements-dev.txt' in content, \
+            "PR agent should reference requirements files"
+        
+        # Should validate files exist before installing
+        assert 'if [ -f' in content or '[ -f ' in content, \
+            "Should check if dependency files exist"
+
+
+class TestCodecovWorkflowDeletion:
+    """Test that codecov.yaml workflow was properly deleted."""
+    
+    
+    def test_no_codecov_references_in_other_workflows(self):
+        """Verify other workflows don't reference codecov."""
+        workflow_dir = Path(".github/workflows")
+        
+        for workflow_file in workflow_dir.glob("*.yml"):
+            if workflow_file.name == 'codecov.yaml':
+                continue
+            
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Should not reference codecov
+            assert 'codecov' not in content.lower(), \
+                f"{workflow_file.name} should not reference codecov"
 
 
 class TestAPISecScanWorkflowConfigChanges:

@@ -99,7 +99,8 @@ class TestWorkflowSyntax:
     def test_workflow_valid_yaml_syntax(self, workflow_file: Path):
         """Test that workflow files contain valid YAML syntax."""
         try:
-            load_yaml_safe(workflow_file)
+            with open(workflow_file, 'r', encoding='utf-8') as f:
+                yaml.safe_load(f)
         except yaml.YAMLError as e:
             pytest.fail(
                 f"Workflow {workflow_file.name} contains invalid YAML syntax: {e}"

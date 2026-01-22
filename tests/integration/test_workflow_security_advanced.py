@@ -534,7 +534,9 @@ class TestWorkflowIsolationAndSandboxing:
 
                     # Should use a trusted registry or official image
                     is_trusted = any(container_image.startswith(registry) for registry in trusted_registries)
-                    is_official = ':' in container_image and '/' not in container_image.split(':')[0]
+                    # Use a whitelist of official Docker images
+                    official_images = ['python', 'node', 'ubuntu', 'alpine', 'debian', 'centos', 'nginx', 'postgres', 'mysql', 'redis']
+                    is_official = ':' in container_image and '/' not in container_image.split(':')[0] and container_image.split(':')[0] in official_images
 
                     assert is_trusted or is_official, \
                         f"Untrusted container image in {workflow['path']} job '{job_name}': {container_image}"
