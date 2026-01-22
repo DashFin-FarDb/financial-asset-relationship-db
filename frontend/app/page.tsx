@@ -54,7 +54,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    void loadData();
+    loadData();
   }, [loadData]);
 
   const handleVisualizationTabClick = useCallback(() => {
