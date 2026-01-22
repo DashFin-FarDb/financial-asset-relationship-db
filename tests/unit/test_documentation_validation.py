@@ -338,20 +338,12 @@ class TestSystemManifest:
         except ValueError:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
-    def test_system_manifest_has_current_status(self, system_manifest_content):
-        """Test that systemManifest.md has Current Status section."""
-        assert "## Current Status" in system_manifest_content
-
-    def test_system_manifest_has_current_phase(self, system_manifest_content):
-        pass
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
         """Test that systemManifest.md has Current Phase section."""
         assert "## Current Phase" in system_manifest_content
 
-        pass
-        pass
-        pass
+
         Assert that the System Manifest declares a current project phase.
 
         Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
