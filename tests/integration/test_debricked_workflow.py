@@ -64,7 +64,16 @@ def job_steps(scan_job: Dict[str, Any]) -> List[Dict[str, Any]]:
 def get_steps_by_action(
     steps: List[Dict[str, Any]], action_substring: str
 ) -> List[Dict[str, Any]]:
-    """Filter steps by action name (case-insensitive)."""
+    """
+    Filter steps whose "uses" field contains the given action substring (case-insensitive).
+
+    Parameters:
+        steps (List[Dict[str, Any]]): List of workflow step objects.
+        action_substring (str): Substring to match against each step's "uses" value.
+
+    Returns:
+        List[Dict[str, Any]]: Steps where the "uses" field contains `action_substring` (case-insensitive).
+    """
     return [
         s
         for s in steps
@@ -78,13 +87,15 @@ def get_steps_by_action(
 class TestFileBasics:
     """Test file existence and basic properties."""
 
-    def test_workflow_file_exists(self):
+    @staticmethod
+    def test_workflow_file_exists():
         """Test that .github/workflows/debricked.yml exists."""
         assert DEBRICKED_WORKFLOW_FILE.is_file(), (
             "debricked.yml should be a regular file in .github/workflows"
         )
 
-    def test_workflow_not_empty(self, workflow_content: str):
+    @staticmethod
+    def test_workflow_not_empty(workflow_content: str):
         """Test that the file is not empty."""
         assert len(workflow_content) > 0, "debricked.yml should not be empty"
 
@@ -92,16 +103,33 @@ class TestFileBasics:
 class TestWorkflowStructure:
     """Test the structure and required fields."""
 
-    def test_has_valid_name(self, workflow_config: Dict[str, Any]):
-        """Test workflow name presence and description."""
+    @staticmethod
+    def test_has_valid_name(workflow_config: Dict[str, Any]):
+        """
+        Verify the workflow has a non-empty name that includes 'Debricked'.
+
+        Asserts that the top-level "name" field is a non-empty string and contains the substring "debricked" (case-insensitive).
+
+        Parameters:
+            workflow_config (dict): Parsed workflow YAML mapping.
+        """
         name = workflow_config.get("name", "")
         assert isinstance(name, str) and name, (
             "Workflow must have a non-empty string name"
         )
         assert "debricked" in name.lower(), "Workflow name should mention 'Debricked'"
 
-    def test_triggers_events(self, workflow_config: Dict[str, Any]):
-        """Test that workflow triggers on necessary events (PR, push, manual dispatch)."""
+    @staticmethod
+    def test_triggers_events(workflow_config: Dict[str, Any]):
+        """
+        Verify the workflow defines triggers for pull_request, push, and workflow_dispatch.
+
+        Asserts that the workflow's "on" field is present and contains the required trigger keys.
+        Accepts the "on" value as either a mapping (dict) or a list and fails for other types.
+
+        Parameters:
+            workflow_config (dict): Parsed GitHub Actions workflow configuration as returned by yaml.safe_load.
+        """
         triggers = workflow_config.get("on", {})
         assert triggers, "Workflow triggers must not be empty"
 
@@ -126,7 +154,8 @@ class TestWorkflowStructure:
             "Workflow should support 'workflow_dispatch' for manual testing"
         )
 
-    def test_triggers_target_main_branch(self, workflow_config: Dict[str, Any]):
+    @staticmethod
+    def test_triggers_target_main_branch(workflow_config: Dict[str, Any]):
         """Test that PR and push triggers target the main branch."""
         triggers = workflow_config.get("on", {})
 
@@ -143,7 +172,8 @@ class TestWorkflowStructure:
                 push_branches = triggers["push"].get("branches", [])
                 assert "main" in push_branches, "push should target 'main' branch"
 
-    def test_job_permissions(self, scan_job: Dict[str, Any]):
+    @staticmethod
+    def test_job_permissions(scan_job: Dict[str, Any]):
         """Test that job has explicit permissions (Principle of Least Privilege)."""
         permissions = scan_job.get("permissions", {})
         assert permissions, "Job must have explicit permissions defined"
@@ -152,7 +182,8 @@ class TestWorkflowStructure:
             "Job requires 'security-events: write'"
         )
 
-    def test_runs_on_ubuntu(self, scan_job: Dict[str, Any]):
+    @staticmethod
+    def test_runs_on_ubuntu(scan_job: Dict[str, Any]):
         """Test that job runs on a supported Ubuntu runner."""
         runs_on = scan_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), "Job should run on Ubuntu runner"
@@ -225,7 +256,14 @@ class TestSecretHandling:
 
     @staticmethod
     def test_debricked_token_configuration(job_steps: List[Dict[str, Any]]):
-        """Test DEBRICKED_TOKEN injection via secrets."""
+        """
+        Validate that Debricked workflow steps receive the DEBRICKED_TOKEN from GitHub Secrets.
+
+        Ensures at least one step uses the Debricked action and that each such step defines an env variable named `DEBRICKED_TOKEN` whose value exactly matches the GitHub secrets reference `${{ secrets.DEBRICKED_TOKEN }}` (allowing optional surrounding whitespace inside the interpolation).
+
+        Parameters:
+            job_steps (List[Dict[str, Any]]): List of job step dictionaries from the workflow to inspect.
+        """
         debricked_steps = get_steps_by_action(job_steps, "debricked")
         assert debricked_steps, (
             "Job must include Debricked action to configure DEBRICKED_TOKEN"
@@ -248,7 +286,14 @@ class TestSecretHandling:
 
     @staticmethod
     def test_no_hardcoded_secrets(workflow_content: str):
-        """Test for potential hardcoded secrets in the file content."""
+        """
+        Scan a workflow's text for known hardcoded secret prefixes and fail the test if any are found.
+
+        Checks each non-comment line of the provided workflow content for suspicious token prefixes such as GitHub and Debricked tokens; on detection, the test fails with a message indicating the matching pattern and line number.
+
+        Parameters:
+            workflow_content (str): Raw text content of the workflow file to scan.
+        """
         suspicious_patterns = [
             "ghp_",  # GitHub personal access token
             "gho_",  # GitHub OAuth token
@@ -277,7 +322,12 @@ class TestSecurityPatterns:
 
     @staticmethod
     def test_no_script_injection(workflow_content: str):
-        """Check for unsafe interpolation in run scripts."""
+        """
+        Asserts that the workflow content does not include run steps that interpolate GitHub event title/body fields, which could enable script injection.
+
+        Parameters:
+            workflow_content (str): Raw YAML/text content of the GitHub Actions workflow to scan for unsafe interpolations.
+        """
         unsafe_contexts = [
             r"github\\.event\\.issue\\.title",
             r"github\\.event\\.issue\\.body",
@@ -293,7 +343,14 @@ class TestSecurityPatterns:
 
     @staticmethod
     def test_no_secret_logging(workflow_content: str):
-        """Test that secrets are not echoed or printed to logs."""
+        """
+        Ensure the workflow does not contain commands that log GitHub secrets.
+
+        Scans the provided workflow content for run-step patterns that would echo, print, or console.log values from the `secrets` context and fails the test if any such patterns are found.
+
+        Parameters:
+            workflow_content (str): Raw text content of the workflow file to scan for secret-logging patterns.
+        """
         secret_logging_patterns = [
             r"echo.*\$\{\{.*secrets\\.",
             r"print.*\$\{\{.*secrets\\.",
@@ -408,7 +465,11 @@ class TestComplianceWithIssue492:
 
     @staticmethod
     def test_uses_github_secrets(job_steps: List[Dict[str, Any]]):
-        """Test that workflow uses GitHub Actions secrets for authentication."""
+        """
+        Verify Debricked action steps reference the GitHub Actions secret DEBRICKED_TOKEN.
+
+        Checks each step that uses the Debricked action and has an `env` entry for `DEBRICKED_TOKEN`; asserts the value contains "secrets.DEBRICKED_TOKEN".
+        """
         debricked_steps = get_steps_by_action(job_steps, "debricked")
 
         for step in debricked_steps:

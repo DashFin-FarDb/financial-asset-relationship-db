@@ -57,7 +57,11 @@ class TestBearerWorkflowStructure:
 
     @staticmethod
     def test_workflow_has_name(bearer_workflow_content):
-        """Verify the workflow has a name."""
+        """
+        Assert the workflow defines the name "Bearer".
+
+        The test fails if the 'name' key is missing or its value is not "Bearer".
+        """
         assert "name" in bearer_workflow_content, "Workflow should have a name"
         assert bearer_workflow_content["name"] == "Bearer", (
             "Workflow name should be 'Bearer'"
@@ -161,7 +165,11 @@ class TestBearerJobConfiguration:
 
     @staticmethod
     def test_job_has_permissions(bearer_workflow_content):
-        """Verify the job has permissions configured."""
+        """
+        Assert that the workflow's "bearer" job defines a permissions mapping.
+
+        Checks that the "bearer" job includes a "permissions" key and that its value is a dictionary.
+        """
         bearer_job = bearer_workflow_content["jobs"]["bearer"]
         assert "permissions" in bearer_job, "Job should have permissions"
         assert isinstance(bearer_job["permissions"], dict), (
@@ -215,7 +223,7 @@ class TestBearerSteps:
 
     @staticmethod
     def test_checkout_step_exists(bearer_workflow_content):
-        """Verify checkout step is present."""
+        """Asserts the workflow defines a checkout step using actions/checkout."""
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
         checkout_step = next(
             (s for s in steps if "actions/checkout" in s.get("uses", "")), None
@@ -344,7 +352,11 @@ class TestBearerActionConfiguration:
 
     @staticmethod
     def test_bearer_exit_code_configured(bearer_workflow_content):
-        """Verify Bearer exit-code is configured to not fail the workflow."""
+        """
+        Ensure the Bearer action's `exit-code` is set to 0 to prevent the workflow from failing on findings.
+
+        Checks that the Bearer workflow step includes an `exit-code` configuration and that its value equals 0.
+        """
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
         bearer_step = next(
             (s for s in steps if "bearer/bearer-action" in s.get("uses", "")), None
@@ -443,7 +455,11 @@ class TestBearerWorkflowSecurity:
 
     @staticmethod
     def test_actions_pinned_to_versions(bearer_workflow_content):
-        """Verify all actions are pinned to specific versions."""
+        """
+        Ensure every GitHub Action used in the 'bearer' job is pinned to a specific immutable version.
+
+        Checks each step with a `uses` key contains a version separator `@` and that the referenced version is not the branch names "main" or "master".
+        """
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
 
         for step in steps:
@@ -542,7 +558,9 @@ class TestBearerWorkflowEdgeCases:
 
     @staticmethod
     def test_exit_code_zero_prevents_false_failures(bearer_workflow_content):
-        """Verify exit-code: 0 prevents Bearer findings from failing workflow."""
+        """
+        Ensure the Bearer action is configured with exit-code 0 so findings do not fail the workflow.
+        """
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
         bearer_step = next(
             (s for s in steps if "bearer/bearer-action" in s.get("uses", "")), None
@@ -654,7 +672,14 @@ class TestBearerWorkflowParameterized:
         "permission,value", [("contents", "read"), ("security-events", "write")]
     )
     def test_required_permissions(self, bearer_workflow_content, permission, value):
-        """Verify required permissions are set correctly."""
+        """
+        Asserts that a specific permission for the 'bearer' job in the workflow matches the expected value.
+
+        Parameters:
+            bearer_workflow_content (dict): Parsed YAML content of the workflow.
+            permission (str): Permission key to check (e.g., "contents", "security-events").
+            value (str): Expected permission value (e.g., "read", "write").
+        """
         permissions = bearer_workflow_content["jobs"]["bearer"]["permissions"]
         assert permissions.get(permission) == value, (
             f"Permission '{permission}' should be '{value}'"

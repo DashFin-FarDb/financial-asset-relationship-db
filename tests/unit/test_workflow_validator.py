@@ -333,7 +333,11 @@ jobs:
 
     @staticmethod
     def test_workflow_with_many_jobs():
-        """Test workflow with many jobs"""
+        """
+        Validate that a workflow file containing many jobs is parsed as valid and that all job entries are preserved.
+
+        Creates a temporary workflow YAML with 50 job definitions and asserts the validator marks it valid and that the resulting workflow_data contains 50 jobs.
+        """
         jobs = "\n".join(
             [
                 f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo {i}"
@@ -496,6 +500,7 @@ class TestValidationResultDataStructure:
 
         @staticmethod
         def test_validation_result_attributes():
+            """Test that ValidationResult has 'is_valid', 'errors', and 'workflow_data' attributes."""
             data = {"name": "Test", "jobs": {"build": {}}}
             result = ValidationResult(True, [], data)
 
@@ -521,7 +526,8 @@ class TestValidationResultDataStructure:
 class TestAdvancedValidationScenarios:
     """Additional advanced validation scenarios with bias for action"""
 
-    def test_workflow_with_binary_content(self):
+    @staticmethod
+    def test_workflow_with_binary_content():
         """Test handling of binary file mistakenly treated as YAML"""
         with tempfile.NamedTemporaryFile(mode="wb", suffix=".yml", delete=False) as f:
             # Write some binary content
@@ -535,7 +541,8 @@ class TestAdvancedValidationScenarios:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_only_whitespace(self):
+    @staticmethod
+    def test_workflow_with_only_whitespace():
         """Test workflow file containing only whitespace"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("   \n\t\n   \n")
@@ -547,7 +554,8 @@ class TestAdvancedValidationScenarios:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_comments_only(self):
+    @staticmethod
+    def test_workflow_with_comments_only():
         """Test workflow file with only YAML comments"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -565,7 +573,8 @@ class TestAdvancedValidationScenarios:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_null_jobs_value(self):
+    @staticmethod
+    def test_workflow_with_null_jobs_value():
         """Test workflow with null value for jobs key"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -584,7 +593,8 @@ jobs: ~
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_list_as_jobs(self):
+    @staticmethod
+    def test_workflow_with_list_as_jobs():
         """Test workflow where jobs is a list instead of dict"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -605,7 +615,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_integer_values(self):
+    @staticmethod
+    def test_workflow_with_integer_values():
         """Test workflow with integer values in unexpected places"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -627,7 +638,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_path_with_spaces(self):
+    @staticmethod
+    def test_workflow_path_with_spaces():
         """Test workflow file with spaces in path"""
         import os
 
@@ -654,7 +666,8 @@ jobs:
 
             shutil.rmtree(temp_dir)
 
-    def test_workflow_with_extremely_long_line(self):
+    @staticmethod
+    def test_workflow_with_extremely_long_line():
         """Test workflow with extremely long single line"""
         long_string = "A" * 10000
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
@@ -679,7 +692,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_circular_yaml_reference(self):
+    @staticmethod
+    def test_workflow_with_circular_yaml_reference():
         """Test workflow with YAML anchors that could cause circular references"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -709,7 +723,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_multiline_strings(self):
+    @staticmethod
+    def test_workflow_with_multiline_strings():
         """Test workflow with various multiline string formats"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(

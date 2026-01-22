@@ -39,22 +39,24 @@ class ValidationResult:
 
 def validate_workflow(workflow_path: str) -> ValidationResult:
     """
-    Validate a workflow YAML file located at the given filesystem path.
+    Validate the workflow YAML file at the given filesystem path.
 
+    Parses the file as YAML and verifies the parsed document is a mapping
+    that contains a top-level "jobs" key.
 
-
-    Performs YAML parsing and verifies the file is a mapping with a top-level
-    'jobs' key. On success returns a ValidationResult with is_valid set to True
-    and the parsed workflow data; on failure returns a ValidationResult with
-    is_valid set to False and a list of human-readable error messages describing
-    the problem (e.g., missing file, syntax error, invalid structure).
+    On success the parsed workflow mapping is returned in the result;
+    on failure the result contains human-readable error messages
+    describing the problem.
 
     Parameters:
         workflow_path (str): Filesystem path to the workflow YAML file.
 
     Returns:
-        ValidationResult: Validation outcome containing
-            `is_valid`, `errors`, and `workflow_data`.
+        ValidationResult: Contains `is_valid`
+            (True if the workflow is valid, False otherwise),
+            `errors` (list of human-readable error messages), and
+            `workflow_data` (the parsed workflow mapping when available,
+            otherwise an empty dict).
     """
     try:
         # Resolve the full path to ensure we can open it safely

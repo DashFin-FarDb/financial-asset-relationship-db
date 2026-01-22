@@ -14,13 +14,13 @@ from urllib.parse import unquote, urlparse
 
 def _get_database_url() -> str:
     """
-    Read the DATABASE_URL environment variable and return its value.
+    Retrieve the DATABASE_URL environment variable.
 
     Returns:
-        The value of the `DATABASE_URL` environment variable.
+        database_url (str): The value of the DATABASE_URL environment variable.
 
     Raises:
-        ValueError: If the `DATABASE_URL` environment variable is not set.
+        ValueError: If the DATABASE_URL environment variable is not set.
     """
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
@@ -93,19 +93,27 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 
 def _is_memory_db(path: str | None = None) -> bool:
-    """
-    Determine whether the given or configured database refers to an in-memory
-    SQLite database.
+
+"""
+Database API module.
+
+This module provides helper functions and connectors for SQLite database operations,
+including detection of in-memory databases and creation of configured connections.
+"""
+
+ """
+    Check whether the configured or provided SQLite path denotes an in-memory database.
 
     Parameters:
         path (str | None): Optional database path or URI to evaluate.
-        If omitted, the configured DATABASE_PATH is used.
+            If omitted, the configured DATABASE_PATH is used.
+
     Returns:
-        True if the path (or configured database) is an in-memory SQLite database.
-        For example, ":memory:" or "file::memory:?cache=shared", False otherwise.
+        `true` if the path denotes an in-memory SQLite database (for example,
+        `:memory:` or a URI like `file::memory:?cache=shared`), `false` otherwise.
     """
-    target = DATABASE_PATH if path is None else path
-    if target == ":memory:":
+  target = DATABASE_PATH if path is None else path
+   if target == ":memory:":
         return True
 
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
@@ -118,45 +126,61 @@ def _is_memory_db(path: str | None = None) -> bool:
     return False
 
 
-def _connect() -> sqlite3.Connection:
+def _make_connector():
     """
-    Open a configured SQLite connection for the module's database path.
+    Create a connector function for database connections.
 
-
-    Returns a persistent shared connection when the configured database is
-    in-memory; for file-backed databases, returns a new connection instance.
-    The connection has type detection enabled (PARSE_DECLTYPES), allows use from
-    multiple threads (check_same_thread=False) and uses sqlite3.Row for rows.
-    When the database path is a URI beginning with "file:" the connection is
-    opened with URI handling enabled.
-
-    Returns:
-        sqlite3.Connection: A sqlite3 connection to the configured
-            DATABASE_PATH (shared for in-memory, new per call for file-backed).
+    This factory function initializes a persistent shared connection and lock for
+    in-memory SQLite databases and returns a `_connect` function. When called,
+    `_connect` provides a sqlite3.Connection configured with type detection,
+    multi-threading support, and URI handling. For in-memory databases, the
+    connection is shared across calls; for file-backed databases, a new
+    connection is created per call.
     """
-    global _MEMORY_CONNECTION
+    memory_connection = None
+    memory_connection_lock = threading.Lock()
 
-    if _is_memory_db():
-        with _MEMORY_CONNECTION_LOCK:
-            if _MEMORY_CONNECTION is None:
-                _MEMORY_CONNECTION = sqlite3.connect(
-                    DATABASE_PATH,
-                    detect_types=sqlite3.PARSE_DECLTYPES,
-                    check_same_thread=False,
-                    uri=DATABASE_PATH.startswith("file:"),
-                )
-                _MEMORY_CONNECTION.row_factory = sqlite3.Row
-        return _MEMORY_CONNECTION
+    def _connect() -> sqlite3.Connection:
+        """
+        Open a configured SQLite connection for the module's database path.
 
-    # For file-backed databases, create a new connection each time
-    connection = sqlite3.connect(
-        DATABASE_PATH,
-        detect_types=sqlite3.PARSE_DECLTYPES,
-        check_same_thread=False,
-        uri=DATABASE_PATH.startswith("file:"),
-    )
-    connection.row_factory = sqlite3.Row
-    return connection
+        Returns a persistent shared connection when the configured database is
+        in-memory; for file-backed databases, returns a new connection instance.
+        The connection has type detection enabled (PARSE_DECLTYPES), allows use from
+        multiple threads (check_same_thread=False) and uses sqlite3.Row for rows.
+        When the database path is a URI beginning with "file:" the connection is
+        opened with URI handling enabled.
+
+        Returns:
+            sqlite3.Connection: A sqlite3 connection to the configured
+                DATABASE_PATH (shared for in-memory, new per call for file-backed).
+        """
+        if _is_memory_db():
+            with memory_connection_lock:
+                nonlocal memory_connection
+                if memory_connection is None:
+                    memory_connection = sqlite3.connect(
+                        DATABASE_PATH,
+                        detect_types=sqlite3.PARSE_DECLTYPES,
+                        check_same_thread=False,
+                        uri=DATABASE_PATH.startswith("file:"),
+                    )
+                    memory_connection.row_factory = sqlite3.Row
+            return memory_connection
+
+        connection = sqlite3.connect(
+            DATABASE_PATH,
+            detect_types=sqlite3.PARSE_DECLTYPES,
+            check_same_thread=False,
+            uri=DATABASE_PATH.startswith("file:"),
+        )
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    return _connect
+
+
+_connect = _make_connector()
 
 
 @contextmanager
@@ -179,12 +203,12 @@ def get_connection() -> Iterator[sqlite3.Connection]:
             connection.close()
 
 
-def _cleanup_memory_connection():
-    """Clean up the global memory connection when the program exits."""
-    global _MEMORY_CONNECTION
-    if _MEMORY_CONNECTION is not None:
-        _MEMORY_CONNECTION.close()
-        _MEMORY_CONNECTION = None
+def _cleanup_memory_connection(memory_connection):
+    """Clean up the memory connection when the program exits."""
+    if memory_connection is not None:
+        memory_connection.close()
+        memory_connection = None
+    return memory_connection
 
 
 atexit.register(_cleanup_memory_connection)

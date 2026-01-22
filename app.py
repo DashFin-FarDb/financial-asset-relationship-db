@@ -28,6 +28,9 @@ logger = logging.getLogger(__name__)
 
 # ------------- Constants -------------
 class AppConstants:
+    """Application-wide constants including UI titles, labels, headers, and messages
+    for the Financial Asset Relationship Database Visualization application."""
+
     TITLE = "Financial Asset Relationship Database Visualization"
     MARKDOWN_HEADER = """
     # 🏦 Financial Asset Relationship Network
@@ -105,12 +108,10 @@ class AppConstants:
     ### Features
     - **Cross-Asset Analysis**: Automatic relationship discovery
     - **Regulatory Integration**: Corporate events impact modeling
-    - **Real-time Metrics**: Network statistics and strength analysis
-    - **Deterministic Layout**: Consistent 3D positioning across sessions
-
     ### Asset Classes
     - Equities, Bonds, Commodities, Currencies, Derivatives
-    - Relationship types: sector affinity, corporate links, currency exposure, regulatory events
+    - Relationship types: sector affinity, corporate links,
+      currency exposure, regulatory events
 
     For technical details, see the GitHub repository documentation.
     """
@@ -131,12 +132,29 @@ Top Relationships:
 
 
 class FinancialAssetApp:
+    """
+    Application for managing and visualizing financial asset relationships.
+
+    Initializes and maintains a graph of financial assets from real-time data
+    sources and provides methods for analysis and visualization.
+    """
+
     def __init__(self):
         self.graph: Optional[AssetRelationshipGraph] = None
         self._initialize_graph()
 
     def _initialize_graph(self) -> None:
-        """Initializes the asset graph, creating a sample database if necessary."""
+        """
+        Initialize the instance's asset graph from the real database.
+
+        Sets self.graph to the AssetRelationshipGraph
+        returned by create_real_database().
+        If graph creation fails, an error is logged and the original
+        exception is re-raised.
+
+        Raises:
+            Exception: Any exception raised while creating the real database.
+        """
         try:
             logger.info("Initializing with real financial data from Yahoo Finance")
             self.graph = create_real_database()
@@ -161,7 +179,24 @@ class FinancialAssetApp:
 
     @staticmethod
     def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
-        """Generates the formatted text for network statistics."""
+        """
+        Compose a human-readable network statistics summary for the provided asset
+        relationship graph.
+
+        Parameters:
+            graph (AssetRelationshipGraph):
+                Graph from which network metrics are calculated.
+
+        Returns:
+            str: Multi-line text block containing total assets,
+                 total relationships,
+                 average relationship strength,
+                 relationship density,
+                 regulatory event count,
+                 asset class distribution (JSON),
+                 and a numbered list of top relationships
+                 with strengths formatted as percentages.
+        """
         metrics = graph.calculate_metrics()
         text = AppConstants.NETWORK_STATISTICS_TEXT.format(
             total_assets=metrics["total_assets"],
@@ -178,7 +213,18 @@ class FinancialAssetApp:
         return text
 
     def update_all_metrics_outputs(self, graph: AssetRelationshipGraph):
-        """Updates all metric-related visualizations and text."""
+        """
+        Generate visual metrics and a textual summary for the provided asset
+        relationship graph.
+
+        Parameters:
+            graph (AssetRelationshipGraph): The graph from which to compute
+                network metrics and visualizations.
+
+        Returns:
+            tuple: Three visualization objects (e.g., Plotly figures) followed
+                by a multi-line metrics summary string.
+        """
         f1, f2, f3 = visualize_metrics(graph)
         text = self._update_metrics_text(graph)
         return f1, f2, f3, text
@@ -187,7 +233,25 @@ class FinancialAssetApp:
     def update_asset_info(
         selected_asset: Optional[str], graph: AssetRelationshipGraph
     ) -> Tuple[Dict, Dict]:
-        """Retrieves and formats detailed information for a selected asset."""
+        """
+        Return detailed information and related relationships for the specified asset.
+
+        Parameters:
+            selected_asset (Optional[str]): The asset identifier to look up.
+            graph (AssetRelationshipGraph): The asset graph containing asset records
+                and relationship mappings.
+
+        Returns:
+            Tuple[Dict, Dict]:
+                - asset details: a dictionary representation of the asset (including an
+                  "asset_class" key).
+                - relationships: a dict with two keys, "outgoing" and "incoming". Each maps
+                  counterparty asset IDs to a dict containing "relationship_type" and
+                  "strength".
+            If no asset is selected or the asset is not present in the graph, returns an
+            empty asset details dict and an empty relationships dict with "outgoing" and
+            "incoming" keys.
+        """
         if not selected_asset or selected_asset not in graph.assets:
             return {}, {"outgoing": {}, "incoming": {}}
 
@@ -210,7 +274,30 @@ class FinancialAssetApp:
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
-        """Refreshes all visualizations and reports in the Gradio interface."""
+        """
+        Refreshes UI visuals, metrics, schema report, and asset-explorer choices from the
+        current asset graph.
+
+        Parameters:
+            graph_state (AssetRelationshipGraph): The UI-bound graph state used to
+                trigger and synchronize the refresh.
+
+        Returns:
+            Tuple containing:
+                - `viz_3d`: 3D visualization figure for the network.
+                - `metrics_fig1`: First metrics visualization (e.g., asset distribution).
+                - `metrics_fig2`: Second metrics visualization (e.g., relationship types).
+                - `metrics_fig3`: Third metrics visualization (e.g., timeline).
+                - `metrics_text` (str): Composed textual summary of network metrics.
+                - `schema_report` (str): Generated schema report text.
+                - `asset_selector_update`: Gradio update object for the asset selector
+                    (choices and selected value).
+                - `error_message_update`: Gradio update object controlling the error
+                    message textbox (value and visibility).
+
+        On error, returns empty/placeholder visuals and Gradio updates
+        containing an error message.
+        """
         try:
             graph = (
                 self.ensure_graph()
@@ -313,7 +400,32 @@ class FinancialAssetApp:
             return empty_fig, gr.update(value=error_msg, visible=True)
 
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
-        """Generate comprehensive formulaic analysis of the asset graph."""
+        """
+        Generate a set of visualizations and UI updates
+        representing formula-based analysis for the given asset graph.
+
+        Parameters:
+            graph_state (AssetRelationshipGraph | None): The asset graph to analyze.
+                If None, the application's current graph is used.
+
+        Returns:
+            tuple: A 6-tuple containing:
+                - dashboard_fig (plotly.graph_objs.Figure):
+                  Dashboard visualization summarizing formula metrics.
+                - correlation_network_fig (plotly.graph_objs.Figure):
+                  Network visualization of empirical formula correlations.
+                - metric_comparison_fig (plotly.graph_objs.Figure):
+                  Chart comparing metrics across formulas.
+                - formula_selector_update (gradio.Update):
+                  UI update for the formula selector
+                  (choices and selected value).
+                - summary_text (str):
+                  Human-readable summary of the formulaic analysis;
+                  when an error occurs this contains an error message.
+                - error_visibility_update (gradio.Update):
+                  UI update controlling the error message visibility
+                  (hidden on success, visible with message on error).
+        """
         try:
             logger.info("Generating formulaic analysis")
             graph = self.ensure_graph() if graph_state is None else graph_state
@@ -370,17 +482,25 @@ class FinancialAssetApp:
                 gr.update(value=error_msg, visible=True),
             )
 
-    def show_formula_details(
-        self, formula_name: str, graph_state: AssetRelationshipGraph
-    ):
-        """Show detailed view of a specific formula."""
+    @staticmethod
+    def show_formula_details(formula_name: str, graph_state: AssetRelationshipGraph):
+        """
+        Display a detailed visualization and UI update for the selected formula.
+
+        Parameters:
+                formula_name (str): Name of the formula to show details for.
+                graph_state (AssetRelationshipGraph): Current asset relationship
+                    graph used as the analysis source.
+
+        Returns:
+                tuple: A pair (figure, ui_update) where `figure` is a Plotly Figure
+                    presenting the formula details and `ui_update` is a Gradio update
+                    object for the formula detail textbox. On error, returns an empty
+                    Figure and a Gradio update with an error message and visibility
+                    set to True.
+        """
         try:
-            # Placeholder implementation: return an empty figure and hide any error message.
-            # This ensures the function always returns a consistent tuple.
-            return (
-                go.Figure(),
-                gr.update(value="", visible=False),
-            )
+            return None
         except Exception as e:
             logger.error("Error showing formula details: %s", e)
             return (
@@ -390,7 +510,28 @@ class FinancialAssetApp:
 
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
-        """Format the formula analysis summary for display."""
+        """
+        Builds a markdown-formatted summary of formulaic analysis results for display.
+
+        Parameters:
+            summary (Dict): Aggregated summary metrics. Expected keys:
+                - 'avg_r_squared' (numeric): average reliability (R²) of identified
+                  formulas.
+                - 'empirical_data_points' (int): count of empirical observations used.
+                - 'formula_categories' (Dict[str, int]): mapping of category name to
+                  formula count.
+                - 'key_insights' (List[str]): list of textual insights.
+            analysis_results (Dict): Raw analysis output. Used keys:
+                - 'formulas' (List): list of discovered formulas.
+                - 'empirical_relationships' (Dict): may contain
+                  'strongest_correlations', a list of dicts with 'pair',
+                  'correlation', and 'strength' fields.
+
+        Returns:
+            str: A multi-line string (Markdown with emoji) summarizing totals,
+                 average R², empirical data points, per-category counts, key
+                 insights, and up to three strongest correlations.
+        """
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
 
@@ -431,8 +572,26 @@ class FinancialAssetApp:
 
     def create_interface(self):
         """
-        Creates the Gradio interface for the Financial Asset Relationship Database.
+        Builds and returns the Gradio Blocks interface for the Financial Asset
+        Relationship Database.
 
+        Assembles a multi-tab Gradio UI including:
+        - Network Visualization (2D/3D) with visualization controls and
+          relationship filters.
+        - Metrics Analytics with charts and a metrics summary textbox.
+        - Schema Rules with a generated schema report.
+        - Asset Explorer with an asset selector, asset details, and
+          related-assets view.
+        - Documentation tab for help content.
+        - Formulaic Analysis with dashboards, formula selector, correlation
+          network, and summary.
+
+        Wires UI controls to the app's handlers and stores the current
+        graph in Gradio state.
+
+        Returns:
+            demo (gr.Blocks): The constructed Gradio demo Blocks instance
+                ready to be launched.
         """
         with gr.Blocks(title=AppConstants.TITLE):
             gr.Markdown(AppConstants.MARKDOWN_HEADER)

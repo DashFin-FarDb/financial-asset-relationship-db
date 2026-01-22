@@ -98,23 +98,16 @@ def _parse_single_requirement(line: str) -> tuple[str, str] | None:
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
-    """Parse requirements file and return list of (package, version_spec) tuples.
-    Examples:
-        Input line: "requests>=2.25.0"
-        Output: ("requests", ">=2.25.0")
+    """
+    Parse a requirements file into a list of (package, version_spec) tuples.
 
-        Input line: "pytest>=6.0,<7.0 # testing framework"
-        Output: ("pytest", ">=6.0,<7.0")
+    The returned package names preserve the original casing as written in the file and exclude extras and environment markers. Version specifiers are normalized by removing spaces around commas. Blank lines and comment lines are ignored. Lines that fail to parse are skipped (a message is printed); parsing errors are not raised.
 
-        Input line: "pandas"
-        Output: ("pandas", "")
+    Returns:
+        List[Tuple[str, str]]: A list of tuples where the first element is the package token as written in the file and the second element is the normalized version specifier (empty string if none).
 
-        Input line: "package[extra1,extra2]>=1.0"
-        Output: ("package", ">=1.0")
     Raises:
-        ValueError: If a requirement line is malformed.
         OSError: If the requirements file could not be opened or read.
-    ...
     """
     requirements = []
 
@@ -204,7 +197,8 @@ class TestRequirementsFileFormat:
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             f.read()
 
-    def test_no_trailing_whitespace(self, file_lines: List[str]):
+    @staticmethod
+    def test_no_trailing_whitespace(file_lines: List[str]):
         """Test that lines don't have trailing whitespace."""
         lines_with_trailing = [
             (i + 1, repr(line))
@@ -213,7 +207,8 @@ class TestRequirementsFileFormat:
         ]
         assert len(lines_with_trailing) == 0
 
-    def test_ends_with_newline(self, file_content: str):
+    @staticmethod
+    def test_ends_with_newline(file_content: str):
         """Test that file ends with a newline."""
         assert file_content.endswith("\n")
 
@@ -357,12 +352,14 @@ class TestFileOrganization:
     """Test that the file is well-organized."""
 
     @pytest.fixture
-    def file_lines(self) -> List[str]:
+    @staticmethod
+    def file_lines() -> List[str]:
         """Load requirements file as list of lines."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.readlines()
 
-    def test_reasonable_file_size(self, file_lines: List[str]):
+    @staticmethod
+    def test_reasonable_file_size(file_lines: List[str]):
         """Test that file isn't excessively large."""
         assert len(file_lines) < 100
 
@@ -486,7 +483,8 @@ class TestVersionConstraintValidation:
         """Get parsed requirements."""
         return parsed_requirements
 
-    def test_version_operators_valid(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_version_operators_valid(requirements: List[Tuple[str, str]]):
         """Test that all version operators are valid."""
         valid_operators = {">=", "==", "<=", ">", "<", "~=", "!="}
 
@@ -503,7 +501,8 @@ class TestVersionConstraintValidation:
                     f"No valid operator found in '{ver}' for package '{pkg}'"
                 )
 
-    def test_compound_version_specs(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_compound_version_specs(requirements: List[Tuple[str, str]]):
         """Test that compound version specs are properly formatted."""
         for pkg, ver in requirements:
             if "," in ver:
@@ -516,7 +515,12 @@ class TestVersionConstraintValidation:
 
     @staticmethod
     def test_minimum_version_numbers_reasonable(requirements: List[Tuple[str, str]]):
-        """Test that minimum version numbers are reasonable (not 0.0.0)."""
+        """
+        Validate that packages with '>=...' version constraints have a major version number greater than or equal to 0; skips packages whose names start with "types-".
+
+        Parameters:
+            requirements (List[Tuple[str, str]]): List of (package_name, version_spec) tuples as returned by parse_requirements; version_spec is expected to be a string like ">=1.2.3" or similar.
+        """
         for pkg, ver in requirements:
             if ver.startswith(">="):
                 # Extract version number
@@ -529,8 +533,15 @@ class TestVersionConstraintValidation:
                     if not pkg.startswith("types-"):
                         assert major >= 0, f"Version for {pkg} should be >= 0: {ver}"
 
-    def test_no_conflicting_version_specs(self, requirements: List[Tuple[str, str]]):
-        """Test that version specs don't have obvious conflicts."""
+    @staticmethod
+    def test_no_conflicting_version_specs(requirements: List[Tuple[str, str]]):
+        """
+        Validate that two-part version specifiers are not trivially conflicting.
+
+        For compound specs containing a comma and exactly two parts (e.g., ">=X,<Y"),
+        asserts that the minimum and maximum versions are not identical unless the
+        upper bound uses "<=" which would allow equality.
+        """
         for pkg, ver in requirements:
             if "," in ver:
                 # For compound specs like ">=X,<Y", ensure they make sense
@@ -556,7 +567,8 @@ class TestPackageNamingAndCasing:
         """Get parsed requirements."""
         return parsed_requirements
 
-    def test_package_name_casing_preserved(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_package_name_casing_preserved(requirements: List[Tuple[str, str]]):
         """Test that package name casing is preserved as written."""
         # Read raw file to check original casing
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
@@ -571,7 +583,8 @@ class TestPackageNamingAndCasing:
             ]
             assert len(matching_lines) > 0, f"Package {pkg} not found in original file"
 
-    def test_no_underscore_hyphen_conflicts(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_no_underscore_hyphen_conflicts(requirements: List[Tuple[str, str]]):
         """Test that there are no packages differing only in underscore/hyphen."""
         normalized_names = {}
         for pkg, _ in requirements:
@@ -583,7 +596,8 @@ class TestPackageNamingAndCasing:
                 ), f"Potential conflict between {original} and {pkg}"
             normalized_names[normalized] = pkg
 
-    def test_common_package_name_patterns(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_common_package_name_patterns(requirements: List[Tuple[str, str]]):
         """Test that package names follow common patterns."""
         for pkg, _ in requirements:
             # Should not start or end with hyphen or underscore
@@ -702,7 +716,8 @@ class TestTypeStubConsistency:
         """Get parsed requirements."""
         return parsed_requirements
 
-    def test_type_stubs_have_base_packages(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_type_stubs_have_base_packages(requirements: List[Tuple[str, str]]):
         """Test that all type stub packages have corresponding base packages."""
         packages_map = {pkg.lower(): (pkg, ver) for pkg, ver in requirements}
 
@@ -721,8 +736,16 @@ class TestTypeStubConsistency:
                     f"Type stub package {pkg} has no corresponding base package"
                 )
 
-    def test_type_stub_versions_reasonable(self, requirements: List[Tuple[str, str]]):
-        """Test that type stub packages have reasonable version constraints."""
+    @staticmethod
+    def test_type_stub_versions_reasonable(requirements: List[Tuple[str, str]]):
+        """
+        Validate that type stub packages use reasonable version constraints.
+
+        For each requirement whose package name starts with "types-", if a version specifier is present it must include one of the operators: ">=", "==", or "~=".
+
+        Parameters:
+            requirements (List[Tuple[str, str]]): List of (package, version_spec) tuples as returned by the parser.
+        """
         for pkg, ver in requirements:
             if pkg.lower().startswith("types-"):
                 # Type stubs may or may not have version constraints
@@ -738,7 +761,11 @@ class TestFileStructureAndOrganization:
 
     @staticmethod
     def test_comments_have_proper_format():
-        """Test that comments follow a consistent format."""
+        """
+        Ensure comment lines begin with '#' followed by either a space or a second '#' to indicate headings.
+
+        Asserts for each line that starts with '#' that the character immediately after the first '#' is a space or another '#', and reports the offending line number and content on failure.
+        """
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
@@ -791,7 +818,18 @@ class TestSecurityBestPractices:
 
     @staticmethod
     def test_no_very_old_package_versions(requirements: List[Tuple[str, str]]):
-        """Test that packages don't use very old major versions."""
+        """
+        Ensure packages do not specify a very old major version.
+
+        Parameters:
+            requirements (List[Tuple[str, str]]): Sequence of (package, version_spec) pairs as parsed from the requirements file. Each version_spec is expected to be a specifier string (e.g., ">=1.2.3").
+
+        Behavior:
+            For entries whose version specifier starts with ">=", verifies the major version number is at least 1 for most packages. Exemptions: packages named "types-PyYAML" and any package starting with "types-" are not checked.
+
+        Notes:
+            Fails via assertion if an applicable package has a major version less than 1.
+        """
         for pkg, ver in requirements:
             if ver.startswith(">="):
                 version_str = ver.replace(">=", "")
@@ -807,7 +845,16 @@ class TestSecurityBestPractices:
 
     @staticmethod
     def test_critical_packages_pinned(requirements: List[Tuple[str, str]]):
-        """Test that critical security-related packages have minimum versions."""
+        """
+        Ensure critical security-related development packages have version constraints.
+
+        Checks that each of the critical packages ("pytest", "pytest-cov") present in the provided
+        requirements list has a non-empty version specifier.
+
+        Parameters:
+            requirements (List[Tuple[str, str]]): List of (package, version_spec) tuples as produced
+                by parse_requirements; package names may preserve original casing.
+        """
         critical_packages = ["pytest", "pytest-cov"]
 
         for critical in critical_packages:
@@ -838,7 +885,14 @@ class TestPyYAMLIntegration:
 
     @staticmethod
     def test_pyyaml_version_compatible_with_types(requirements: List[Tuple[str, str]]):
-        """Test that PyYAML version is compatible with types-PyYAML."""
+        """
+        Ensure PyYAML is present and constrained to at least version 6.0.
+
+        Asserts that the parsed requirements contain a version specifier for PyYAML and that the first specifier begins with ">=6.0".
+
+        Parameters:
+            requirements (List[Tuple[str, str]]): List of (package, version_spec) tuples parsed from the requirements file.
+        """
         pyyaml_ver = [ver for pkg, ver in requirements if pkg.lower() == "pyyaml"]
 
         # Both should exist
@@ -852,7 +906,9 @@ class TestPyYAMLIntegration:
 
     @staticmethod
     def test_yaml_parsing_capability():
-        """Test that PyYAML can be imported and used (if installed)."""
+        """
+        Verify that PyYAML is importable; if it is not installed, assert that `pyyaml` appears in the development requirements.
+        """
         try:
             import yaml  # noqa: F401
 
@@ -878,7 +934,6 @@ class TestComprehensivePackageValidation:
     @staticmethod
     def test_all_packages_loadable_by_pip(requirements: List[Tuple[str, str]]):
         """Test that all package specifications are valid pip requirements."""
-
         # Re-read file and try to parse each line with pip
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             for line in f:

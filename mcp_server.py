@@ -42,12 +42,14 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 
 def _build_mcp_app():
     """
-    Build and return the FastMCP app.
+    Create and configure the FastMCP application for the DashFin relationship manager.
 
+    Performs a lazy import of the optional `mcp` dependency so importing this module
+    (or showing CLI help) does not require `mcp` to be installed. Registers the
+    `add_equity_node` tool and the `graph://data/3d-layout` resource on the app.
 
-
-    Kept in a function so importing this module (or running `--help`) does not
-    require the optional `mcp` dependency to be importable.
+    Returns:
+        Configured FastMCP application instance.
     """
     from mcp.server.fastmcp import FastMCP  # local import (lazy)
 
@@ -58,14 +60,16 @@ def _build_mcp_app():
         asset_id: str, symbol: str, name: str, sector: str, price: float
     ) -> str:
         """
-        Validate an Equity asset and add it to the graph.
+        Validate an Equity and add it to the thread-safe graph if supported.
 
-        If the graph exposes an `add_asset` method, the asset is added.
-        Otherwise, this tool performs validation only
-        (no persistent changes).
+        Constructs an Equity instance to perform validation. If the global graph
+        exposes an `add_asset` method the new equity is added to the graph;
+        otherwise the function performs validation only and does not mutate the
+        graph.
 
         Returns:
-            Success message or 'Validation Error: <message>'.
+            str: Success message containing the asset name and symbol, or
+                `"Validation Error: <message>"` on validation failure.
         """
         try:
             # Uses existing Equity dataclass for post-init validation.
@@ -110,6 +114,20 @@ def _build_mcp_app():
 
 
 def main(argv: list[str] | None = None) -> int:
+    """
+    Run the MCP server from the command line.
+
+    Parameters:
+        argv (list[str] | None): Optional list of command-line arguments to parse; if
+            None, uses sys.argv[1:].
+
+    Returns:
+        int: Exit code (0 for successful run or when --version is printed).
+
+    Raises:
+        SystemExit: If an optional MCP dependency is missing;
+            message will indicate which package to install.
+    """
     parser = argparse.ArgumentParser(
         prog="mcp_server.py",
         description="DashFin MCP server",

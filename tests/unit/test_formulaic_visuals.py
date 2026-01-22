@@ -44,7 +44,20 @@ class TestFormulaicVisualizer:
 
     @pytest.fixture
     def sample_analysis_results(self, sample_formula):
-        """Create sample analysis results."""
+        """
+        Builds a representative analysis_results dictionary used by tests.
+
+        Parameters:
+            sample_formula (Formula): A Formula instance to include as the first entry in the returned `formulas` list.
+
+        Returns:
+            dict: A sample analysis results mapping with keys:
+                - `formulas`: list of formula entries (includes `sample_formula` and a second sample formula dict).
+                - `categories`: mapping of category names to counts.
+                - `empirical_relationships`: dict containing `correlation_matrix` (pairwise correlations) and `strongest_correlations` (list of top correlations with asset names, correlation value, and strength).
+                - `asset_class_relationships`: mapping of asset class statistics.
+                - `sector_relationships`: mapping of sector statistics.
+        """
         return {
             "formulas": [
                 sample_formula,
