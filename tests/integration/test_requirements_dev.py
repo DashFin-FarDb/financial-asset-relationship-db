@@ -52,7 +52,10 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                     continue
 
                 # Remove inline comments
+# Remove inline comments
                 clean = line.split('#', 1)[0].strip()
+                if not clean:
+                    continue
                 if not clean:
                     continue
 

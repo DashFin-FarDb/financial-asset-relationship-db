@@ -199,7 +199,9 @@ def _init_encoder(self):
         # Add 10% safety margin
         return int(base_tokens * 1.1)
 
-    def process_context(self, pr_data: Dict[str, Any]) -> Tuple[str, bool]:
+# Apply chunking
+        content = self._build_limited_content(chunks)
+        return content, True
         """
         Produce a combined or chunked PR content string based on token limits.
         
@@ -218,6 +220,8 @@ def _init_encoder(self):
             return content, False
 
         # Apply chunking
+        content = self._build_limited_content(chunks)
+        return content, True
 
     def _extract_chunks(self, pr_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
