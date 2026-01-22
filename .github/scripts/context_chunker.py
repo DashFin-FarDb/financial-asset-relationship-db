@@ -222,7 +222,8 @@ def _init_encoder(self):
         # Apply chunking
         content = self._build_limited_content(chunks)
         return content, True
-
+        limited_content = self._build_limited_content(chunks)
+        return limited_content, True
     def _extract_chunks(self, pr_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Builds an ordered list of content chunks extracted from PR data for prioritized processing.
