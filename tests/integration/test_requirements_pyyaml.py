@@ -32,9 +32,9 @@ class TestPyYAMLDependencyAddition:
             requirements_file (Path): Path to the requirements-dev.txt file to read.
 
         Returns:
-            str: The file contents as a UTF-8 decoded string.
-        """
-        with open(requirements_file, "r", encoding="utf-8") as f:
+    def requirements_content(self, requirements_file: Path) -> str:
+        """Load requirements-dev.txt content."""
+        with open(requirements_file, encoding='utf-8') as f:
             return f.read()
 
     @pytest.fixture
