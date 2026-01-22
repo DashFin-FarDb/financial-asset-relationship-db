@@ -78,7 +78,6 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 
     return requirements
 
-
 class TestRequirementsFileExists:
     """Test that requirements-dev.txt exists and is readable."""
 
