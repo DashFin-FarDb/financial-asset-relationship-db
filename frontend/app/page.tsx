@@ -67,7 +67,6 @@ const loadData = useCallback(async () => {
 useEffect(() => {
   void loadData();
 }, [loadData]);
-      const [metricsData, visualizationData] = await Promise.all([
         api.getMetrics(),
         api.getVisualizationData(),
       ]);
