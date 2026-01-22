@@ -48,9 +48,7 @@ jobs:
           # For example `deployment.yaml` for a Kubernetes deployment manifest
           # or `main.tf` for a Terraform configuration file
           file: your-file-to-test.yaml
-          args: --sarif-file-output=snyk.sarif
       - name: Upload result to GitHub Code Scanning
-        if: always() && hashFiles('snyk.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
