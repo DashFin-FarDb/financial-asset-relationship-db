@@ -61,7 +61,8 @@ class AssetGraphRepository:
         List all assets ordered by id.
 
         Returns:
-            List[Asset]: Asset dataclass instances for every record in the database ordered by their `id`.
+            List[Asset]: Asset dataclass instances for every record in the
+                database ordered by their `id`.
         """
 
         result = (
@@ -74,15 +75,14 @@ class AssetGraphRepository:
         Map asset IDs to their corresponding Asset dataclass instances.
 
         Returns:
-            mapping (Dict[str, Asset]): Dictionary keyed by asset id with corresponding Asset objects.
+            mapping (Dict[str, Asset]): Dictionary keyed by asset id
+                with corresponding Asset objects.
         """
-
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
     def delete_asset(self, asset_id: str) -> None:
         """Delete an asset and cascading relationships/events."""
-
         asset = self.session.get(AssetORM, asset_id)
         if asset is not None:
             self.session.delete(asset)
@@ -100,7 +100,6 @@ class AssetGraphRepository:
         bidirectional: bool,
     ) -> None:
         """Insert or update a relationship between two assets."""
-
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -125,10 +124,10 @@ class AssetGraphRepository:
         Retrieve all asset relationships.
 
         Returns:
-            list[RelationshipRecord]: A list of RelationshipRecord instances, each containing
-            source_id, target_id, relationship_type, strength, and bidirectional.
+            list[RelationshipRecord]: A list of RelationshipRecord instances,
+            each containing source_id, target_id, relationship_type,
+            strength, and bidirectional.
         """
-
         result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
             RelationshipRecord(
@@ -145,12 +144,13 @@ class AssetGraphRepository:
         self, source_id: str, target_id: str, rel_type: str
     ) -> Optional[RelationshipRecord]:
         """
-        Retrieve the relationship between two assets with the specified relationship type.
+        Retrieve the relationship between two assets with the
+        specified relationship type.
 
         Returns:
-            RelationshipRecord: The matching relationship record, or `None` if no match is found.
+            RelationshipRecord: The matching relationship record, or
+                `None` if no match is found.
         """
-
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -171,14 +171,14 @@ class AssetGraphRepository:
         self, source_id: str, target_id: str, rel_type: str
     ) -> None:
         """
-        Delete the relationship of the given type between two assets identified by their IDs.
+        Delete the relationship of the given type between two assets
+        identified by their IDs.
 
         Parameters:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
             rel_type (str): Type of the relationship to delete.
         """
-
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -193,7 +193,6 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def upsert_regulatory_event(self, event: RegulatoryEvent) -> None:
         """Create or update a regulatory event record."""
-
         existing = self.session.get(RegulatoryEventORM, event.id)
         if existing is None:
             existing = RegulatoryEventORM(id=event.id)
@@ -211,7 +210,6 @@ class AssetGraphRepository:
 
     def list_regulatory_events(self) -> List[RegulatoryEvent]:
         """Return all regulatory events."""
-
         result = self.session.execute(select(RegulatoryEventORM)).scalars().all()
         return [self._to_regulatory_event_model(record) for record in result]
 
@@ -230,7 +228,10 @@ class AssetGraphRepository:
         """
         Synchronizes an AssetORM instance with values from an Asset model.
 
-        Updates core fields (symbol, name, asset_class, sector, price, market_cap, currency), converts numeric fields as needed, and resets all optional/asset-class-specific ORM attributes to reflect the current Asset's attributes to avoid stale values.
+        Updates core fields (symbol, name, asset_class, sector,
+        price, market_cap, currency), converts numeric fields as needed,
+        and resets all optional/asset-class-specific ORM attributes
+        to reflect the current Asset's attributes to avoid stale values.
 
         Parameters:
             orm (AssetORM): The ORM instance to update in-place.
@@ -268,6 +269,10 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_asset_model(orm: AssetORM) -> Asset:
+        """
+        Convert an AssetORM object into the appropriate Asset model instance
+        based on its asset class, populating all relevant fields.
+        """
         asset_class = AssetClass(orm.asset_class)
         base_kwargs = {
             "id": orm.id,
@@ -315,6 +320,10 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
+        """
+        Convert a RegulatoryEventORM object to a RegulatoryEvent model, mapping
+        its related assets and core event details.
+        """
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(
             id=orm.id,

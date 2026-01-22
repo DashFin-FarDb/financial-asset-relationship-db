@@ -76,9 +76,7 @@ class TestDocumentStructure:
 
     @staticmethod
     def test_has_test_suite_structure_section(summary_content: str):
-        """
-        Verify the summary includes a "## Test Suite Structure" H2 heading.
-        """
+        """Verify the summary includes a "## Test Suite Structure" H2 heading."""
         assert "## Test Suite Structure" in summary_content, (
             "Document should describe test structure"
         )

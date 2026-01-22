@@ -378,7 +378,6 @@ class TestShellScripts:
         """Test that bash scripts have no obvious syntax errors."""
         with open(script_file) as f:
             content = f.read()
-
         # Check for common syntax issues
         # Balanced quotes
         single_quotes = content.count("'")
@@ -392,7 +391,8 @@ class TestShellScripts:
         fi_count = content.count("fi")
         assert if_count == fi_count, f"{script_file} has unbalanced if/fi statements"
 
-    def test_cleanup_branches_references_documentation(self):
+    @staticmethod
+    def test_cleanup_branches_references_documentation():
         """Test that cleanup-branches.sh references relevant documentation."""
         with open("cleanup-branches.sh") as f:
             content = f.read()

@@ -62,10 +62,14 @@ def _build_mcp_app():
         """
         Validate an Equity and add it to the thread-safe graph if supported.
 
-        Constructs an Equity instance to perform validation. If the global graph exposes an `add_asset` method the new equity is added to the graph; otherwise the function performs validation only and does not mutate the graph.
+        Constructs an Equity instance to perform validation. If the global graph
+        exposes an `add_asset` method the new equity is added to the graph;
+        otherwise the function performs validation only and does not mutate the
+        graph.
 
         Returns:
-            str: Success message containing the asset name and symbol, or `"Validation Error: <message>"` on validation failure.
+            str: Success message containing the asset name and symbol, or
+                `"Validation Error: <message>"` on validation failure.
         """
         try:
             # Uses existing Equity dataclass for post-init validation.
@@ -114,13 +118,15 @@ def main(argv: list[str] | None = None) -> int:
     Run the MCP server from the command line.
 
     Parameters:
-        argv (list[str] | None): Optional list of command-line arguments to parse; if None, uses sys.argv[1:].
+        argv (list[str] | None): Optional list of command-line arguments to parse; if
+            None, uses sys.argv[1:].
 
     Returns:
         int: Exit code (0 for successful run or when --version is printed).
 
     Raises:
-        SystemExit: If an optional MCP dependency is missing; message will indicate which package to install.
+        SystemExit: If an optional MCP dependency is missing; message will indicate which
+            package to install.
     """
     parser = argparse.ArgumentParser(
         prog="mcp_server.py",

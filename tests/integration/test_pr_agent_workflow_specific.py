@@ -52,8 +52,9 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         with open(workflow_file, "r", encoding="utf-8") as f:
             return f.read()
 
+    @staticmethod
     def test_no_duplicate_step_name_setup_python(
-        self, workflow_content: Dict[str, Any]
+        workflow_content: Dict[str, Any]
     ):
         """Test that there's no duplicate 'Setup Python' step name."""
         for job_name, job_config in workflow_content.get("jobs", {}).items():
@@ -280,5 +281,7 @@ class TestPRAgentWorkflowSetupSteps:
 
         if python_idx is not None and node_idx is not None:
             assert python_idx < node_idx, (
+                "Setup Python should come before Setup Node.js"
+            )
                 "Setup Python should come before Setup Node.js"
             )

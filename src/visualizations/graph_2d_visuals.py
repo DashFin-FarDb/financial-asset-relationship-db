@@ -94,15 +94,15 @@ def _create_spring_layout_2d(
     if not positions_3d or not asset_ids:
         return {}
 
-    positions_2d = {}
-    for asset_id in asset_ids:
-        if asset_id in positions_3d:
-            pos_3d = positions_3d[asset_id]
-            # Handle both tuple and array-like positions
-            if hasattr(pos_3d, "__getitem__"):
-                positions_2d[asset_id] = (float(pos_3d[0]), float(pos_3d[1]))
+positions_2d = {}
+for asset_id in asset_ids:
+    if asset_id in positions_3d:
+        pos_3d = positions_3d[asset_id]
+        # Handle both tuple and array-like positions
+        if hasattr(pos_3d, "__getitem__"):
+            positions_2d[asset_id] = (float(pos_3d[0]), float(pos_3d[1]))
 
-    return positions_2d
+return positions_2d
 
 
 def _create_2d_relationship_traces(
@@ -119,7 +119,8 @@ def _create_2d_relationship_traces(
     show_all_relationships: bool = False,
 ) -> List[go.Scatter]:
     """
-    Build 2D Plotly line traces representing asset-to-asset relationships, applying the provided relationship-type filters.
+    Build 2D Plotly line traces representing asset-to-asset relationships.
+    Applying the provided relationship-type filters.
 
     Parameters:
         graph (AssetRelationshipGraph): Graph containing assets and their outgoing relationships.
@@ -135,7 +136,9 @@ def _create_2d_relationship_traces(
         show_all_relationships (bool): When True, ignore individual filters and include all relationships.
 
     Returns:
-        List[go.Scatter]: A list of Plotly Scatter traces (one per relationship type) with line segments and hover text; returns an empty list if no traces are produced.
+        List[go.Scatter]: A list of Plotly Scatter traces (one per relationship type).
+        With line segments and hover text;
+        Returns an empty list if no traces are produced.
     """
     if not asset_ids or not positions:
         return []
@@ -236,7 +239,8 @@ def visualize_2d_graph(
     show_all_relationships: bool = False,
 ) -> go.Figure:
     """
-    Render a 2D Plotly figure visualizing an AssetRelationshipGraph with a selectable layout and relationship-type filters.
+    Render a 2D Plotly figure visualizing an AssetRelationshipGraph.
+    Provides selectable layout and relationship-type filters.
 
     Parameters:
         graph (AssetRelationshipGraph): Asset relationship graph to visualize.
@@ -251,7 +255,9 @@ def visualize_2d_graph(
         show_all_relationships (bool): If true, ignore individual show_* flags and include all relationship types.
 
     Returns:
-        go.Figure: Plotly Figure containing node markers (colored and sized by asset class and connectivity) and relationship line traces filtered per the provided flags.
+        go.Figure: Plotly Figure containing node markers.
+        Markers are colored and sized by asset class and connectivity.
+        Relationship line traces are filtered per the provided flags.
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("Invalid graph data provided")

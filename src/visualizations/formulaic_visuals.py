@@ -1,6 +1,5 @@
 import math
 from typing import Any, Dict
-
 import networkx as nx
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -25,20 +24,28 @@ class FormulaicVisualizer:
 
     def create_formula_dashboard(self, analysis_results: Dict[str, Any]) -> go.Figure:
         """
-        Assembles a multi-pane Plotly dashboard visualizing formula analysis, empirical correlations, and related category/sector metrics.
+        Assembles a multi-pane Plotly dashboard
+        visualizing formula analysis, empirical correlations, and related
+        category/sector metrics.
 
         Parameters:
             analysis_results (Dict[str, Any]): Analysis payload expected to include:
-                - "formulas": list of Formula objects (used for names, categories, R², expressions).
-                - "empirical_relationships": dict containing optional keys like "correlation_matrix",
-                  "asset_class_relationships", and "sector_relationships".
-                - "categories": dict mapping category names to counts for the category distribution pie.
+                - "formulas": list of Formula objects (used for names, categories,
+                  R², expressions).
+                - "empirical_relationships": dict containing optional keys like
+                  "correlation_matrix", "asset_class_relationships", and
+                  "sector_relationships".
+                - "categories": dict mapping category names to counts for the category
+                  distribution pie.
 
         Returns:
-            go.Figure: A Plotly Figure containing six subplots: Formula Categories Distribution (pie),
-            Formula Reliability (R² bar chart), Empirical Correlation Matrix (heatmap),
-            Asset Class Relationships (bar chart), Sector Analysis (bar chart), and
-            Key Formula Examples (top formulas table).
+            go.Figure: A Plotly Figure containing six subplots:
+                Formula Categories Distribution (pie),
+                Formula Reliability (R² bar chart),
+                Empirical Correlation Matrix (heatmap),
+                Asset Class Relationships (bar chart),
+                Sector Analysis (bar chart), and
+                Key Formula Examples (top formulas table).
         """
         formulas = analysis_results.get("formulas", [])
         empirical_relationships = analysis_results.get("empirical_relationships", {})
@@ -249,19 +256,23 @@ class FormulaicVisualizer:
         return fig
 
     def create_formula_detail_view(self, formula: Formula) -> go.Figure:
-        """
-        Render a text-based Plotly figure that summarizes a Formula object.
+            """
+            Render a text-based Plotly figure that summarizes a
+            Formula object.
 
-        Parameters:
-            formula (Formula): Formula instance whose fields will be displayed. Expected attributes used:
+            Parameters:
+                formula (Formula): Formula instance whose fields will
+                    be displayed. Expected attributes used:
                 - name, formula, latex, description, category, r_squared,
-                - variables (mapping of variable name to description), and example_calculation.
+                - variables (mapping of variable name to description),
+                - example_calculation.
 
-        Returns:
-            go.Figure: A Plotly Figure containing a single styled annotation with the formula's
-            name, mathematical expression, LaTeX, description, category, R², variable list, and
-            an example calculation.
-        """
+            Returns:
+                go.Figure: A Plotly Figure containing a single styled
+                    annotation with the formula's name, mathematical
+                    expression, LaTeX, description, category, R²,
+                    variable list, and an example calculation.
+            """
         fig = go.Figure()
 
         # Create a text-based visualization of the formula
@@ -293,24 +304,6 @@ class FormulaicVisualizer:
             y=0.5,
             showarrow=False,
             font=dict(size=12, family="Arial, sans-serif"),
-            align="left",
-            bgcolor=self.color_scheme.get(formula.category, "#F0F0F0"),
-            bordercolor="#CCCCCC",
-            borderwidth=2,
-        )
-
-        fig.update_layout(
-            title=f"Formula Details: {formula.name}",
-            xaxis=dict(visible=False),
-            yaxis=dict(visible=False),
-            plot_bgcolor="white",
-            paper_bgcolor="#F8F9FA",
-            height=600,
-            margin=dict(l=50, r=50, t=80, b=50),
-        )
-
-        return fig
-
     @staticmethod
     def create_correlation_network(
         empirical_relationships: Dict[str, Any],
@@ -318,15 +311,23 @@ class FormulaicVisualizer:
         """
         Builds a network graph visualization of asset correlations.
 
-        Constructs a network from the provided empirical_relationships and returns a Plotly Figure showing nodes for assets and edges for significant correlations. If no strongest correlations are present, returns a figure containing a centered annotation stating "No correlation data available".
+        Constructs a network from the provided empirical_relationships and
+        returns a Plotly Figure showing nodes for assets and edges for
+        significant correlations. If no strongest correlations are present,
+        returns a figure containing a centered annotation stating "No
+        correlation data available".
 
         Parameters:
             empirical_relationships (dict): Dictionary expected to contain:
-                - "strongest_correlations": list of dicts with keys "asset1", "asset2", and "correlation".
-                - "correlation_matrix": dict mapping "ASSET1-ASSET2" strings to correlation float values.
+                - "strongest_correlations": list of dicts with keys
+                    "asset1", "asset2", and "correlation".
+                - "correlation_matrix": dict mapping "ASSET1-ASSET2" strings
+                    to correlation float values.
 
         Returns:
-            go.Figure: A Plotly Figure representing the correlation network; when input lacks correlation data the figure contains a centered informative annotation.
+            go.Figure: A Plotly Figure representing the correlation network;
+            when input lacks correlation data, the figure contains
+            a centered informative annotation.
         """
         strongest_correlations = empirical_relationships.get(
             "strongest_correlations", []
@@ -468,13 +469,20 @@ class FormulaicVisualizer:
     @staticmethod
     def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
         """
-        Generate a bar chart comparing average R-squared values of formulas grouped by category.
+        Generate a bar chart comparing average R-squared values of formulas
+        grouped by category.
 
         Parameters:
-            analysis_results (Dict[str, Any]): Mapping expected to contain a "formulas" key with an iterable of Formula-like objects having `category` and `r_squared` attributes.
+            analysis_results (Dict[str, Any]):
+                Mapping expected to contain a "formulas" key with an iterable
+                of Formula-like objects having `category` and `r_squared`
+                attributes.
 
         Returns:
-            go.Figure: A Plotly Figure containing a bar chart of average R-squared by category. Returns an empty Figure if no formulas are provided.
+            go.Figure:
+                A Plotly Figure containing a bar chart of average
+                R-squared by category.
+                Returns an empty Figure if no formulas are provided.
         """
         fig = go.Figure()
 

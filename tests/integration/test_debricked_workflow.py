@@ -87,13 +87,15 @@ def get_steps_by_action(
 class TestFileBasics:
     """Test file existence and basic properties."""
 
-    def test_workflow_file_exists(self):
+    @staticmethod
+    def test_workflow_file_exists():
         """Test that .github/workflows/debricked.yml exists."""
         assert DEBRICKED_WORKFLOW_FILE.is_file(), (
             "debricked.yml should be a regular file in .github/workflows"
         )
 
-    def test_workflow_not_empty(self, workflow_content: str):
+    @staticmethod
+    def test_workflow_not_empty(workflow_content: str):
         """Test that the file is not empty."""
         assert len(workflow_content) > 0, "debricked.yml should not be empty"
 
@@ -101,7 +103,8 @@ class TestFileBasics:
 class TestWorkflowStructure:
     """Test the structure and required fields."""
 
-    def test_has_valid_name(self, workflow_config: Dict[str, Any]):
+    @staticmethod
+    def test_has_valid_name(workflow_config: Dict[str, Any]):
         """
         Verify the workflow has a non-empty name that includes 'Debricked'.
 
@@ -116,7 +119,8 @@ class TestWorkflowStructure:
         )
         assert "debricked" in name.lower(), "Workflow name should mention 'Debricked'"
 
-    def test_triggers_events(self, workflow_config: Dict[str, Any]):
+    @staticmethod
+    def test_triggers_events(workflow_config: Dict[str, Any]):
         """
         Verify the workflow defines triggers for pull_request, push, and workflow_dispatch.
 
@@ -150,7 +154,8 @@ class TestWorkflowStructure:
             "Workflow should support 'workflow_dispatch' for manual testing"
         )
 
-    def test_triggers_target_main_branch(self, workflow_config: Dict[str, Any]):
+    @staticmethod
+    def test_triggers_target_main_branch(workflow_config: Dict[str, Any]):
         """Test that PR and push triggers target the main branch."""
         triggers = workflow_config.get("on", {})
 
@@ -167,7 +172,8 @@ class TestWorkflowStructure:
                 push_branches = triggers["push"].get("branches", [])
                 assert "main" in push_branches, "push should target 'main' branch"
 
-    def test_job_permissions(self, scan_job: Dict[str, Any]):
+    @staticmethod
+    def test_job_permissions(scan_job: Dict[str, Any]):
         """Test that job has explicit permissions (Principle of Least Privilege)."""
         permissions = scan_job.get("permissions", {})
         assert permissions, "Job must have explicit permissions defined"
@@ -176,7 +182,8 @@ class TestWorkflowStructure:
             "Job requires 'security-events: write'"
         )
 
-    def test_runs_on_ubuntu(self, scan_job: Dict[str, Any]):
+    @staticmethod
+    def test_runs_on_ubuntu(scan_job: Dict[str, Any]):
         """Test that job runs on a supported Ubuntu runner."""
         runs_on = scan_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), "Job should run on Ubuntu runner"

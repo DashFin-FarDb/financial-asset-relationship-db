@@ -16,12 +16,16 @@ logger = logging.getLogger(__name__)
 
 def create_sample_database() -> AssetRelationshipGraph:
     """
-    Create an expanded sample financial database populated with diverse assets, regulatory events, and relationships.
+    Create an expanded sample financial database populated with diverse assets,
+    regulatory events, and relationships.
 
-    Populates an AssetRelationshipGraph with equities, corporate and government bonds, commodities, currencies, several regulatory events, and builds relationships among the added entities.
+    Populates an AssetRelationshipGraph with equities, corporate and government
+    bonds, commodities, currencies, several regulatory events, and builds
+    relationships among the added entities.
 
     Returns:
-        AssetRelationshipGraph: Graph populated with sample assets, regulatory events, and their relationships.
+        AssetRelationshipGraph: Graph populated with sample assets,
+        regulatory events, and relationships.
     """
     try:
         logger.info("Creating expanded sample financial database")
