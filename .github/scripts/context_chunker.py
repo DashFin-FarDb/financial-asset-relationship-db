@@ -116,7 +116,7 @@ def _init_encoder(self):
         except Exception as e:
             print(f"Warning: failed to initialize tiktoken encoder: {e}", file=sys.stderr)
             return None
-        self.config: Dict = {}
+        # Remove duplicate initialization code (lines 86-126)
 
         # Load configuration if available
         cfg_file = Path(config_path)
