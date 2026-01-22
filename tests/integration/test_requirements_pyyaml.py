@@ -58,7 +58,6 @@ class TestPyYAMLDependencyAddition:
             if stripped and not line.lstrip().startswith('#'):
                 lines.append(stripped)
         return lines
-            return lines
     
     def test_pyyaml_present(self, requirements_lines: List[str]):
         """
