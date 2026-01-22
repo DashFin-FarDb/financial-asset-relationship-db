@@ -450,7 +450,7 @@ class TestPRAgentConfigSecurity:
                     if any(p in key_l for p in sensitive_patterns):
                         assert v in safe_placeholders, (
                             f"Potential hardcoded credential at '{new_path}'"
-    @staticmethod
+    @ staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """
         Ensure keys or values that indicate credentials or secrets are replaced with safe placeholders.
@@ -463,7 +463,7 @@ class TestPRAgentConfigSecurity:
         Raises:
             AssertionError: If a secret-like string value or a sensitive key mapped to a non-placeholder value is detected; the assertion message includes the path to the problematic node.
         """
-        sensitive_patterns = [
+        sensitive_patterns=[
             "password",
             "secret",
             "token",
@@ -473,19 +473,19 @@ class TestPRAgentConfigSecurity:
             "private_key",
         ]
 
-        allowed_placeholders = {"null", "none", "placeholder", "***"}
+        allowed_placeholders={"null", "none", "placeholder", "***"}
 
         def is_sensitive_key(key: str) -> bool:
             return any(pat in key.lower() for pat in sensitive_patterns)
 
         def is_placeholder(val: str) -> bool:
-            low = val.lower()
+            low=val.lower()
             return low in allowed_placeholders or (low.startswith("${") and low.endswith("}"))
 
-        def validate_node(node, path: str = ""):
+        def validate_node(node, path: str=""):
             if isinstance(node, dict):
                 for key, value in node.items():
-                    current_path = f"{path}.{key}" if path else key
+                    current_path=f"{path}.{key}" if path else key
                     if is_sensitive_key(key):
                         assert (value is None) or (isinstance(value, str) and value.lower() in {"null", "webhook"}), (
                             f"Sensitive key '{key}' must have a safe placeholder at path: {current_path}"
@@ -495,7 +495,7 @@ class TestPRAgentConfigSecurity:
                 for idx, item in enumerate(node):
                     validate_node(item, f"{path}[{idx}]")
             elif isinstance(node, str):
-                low = node.lower()
+                low=node.lower()
                 if any(pat in low for pat in sensitive_patterns) and not is_placeholder(node):
                     assert False, f"Potential hardcoded credential at path: {path}: '{node}'"
             # primitives other than str are ignored
@@ -503,7 +503,7 @@ class TestPRAgentConfigSecurity:
         validate_node(pr_agent_config)
 
         # Final serialized scan to ensure sensitive markers aren't embedded in values
-        config_str = yaml.dump(pr_agent_config)
+        config_str=yaml.dump(pr_agent_config)
         for pat in sensitive_patterns:
             if pat in config_str:
                 assert (" null" in config_str) or ("webhook" in config_str), (
@@ -539,7 +539,7 @@ class TestPRAgentConfigSecurity:
 
         scan_for_secrets(pr_agent_config)
 
-        safe_placeholders = {None, "null", "webhook"}
+        safe_placeholders={None, "null", "webhook"}
 
         def check_node(node, path=""):
             """
@@ -553,8 +553,8 @@ class TestPRAgentConfigSecurity:
             """
             if isinstance(node, dict):
                 for k, v in node.items():
-                    key_l = str(k).lower()
-                    new_path = f"{path}.{k}" if path else str(k)
+                    key_l=str(k).lower()
+                    new_path=f"{path}.{k}" if path else str(k)
                     if any(p in key_l for p in sensitive_patterns):
                         assert v in safe_placeholders, (
                             f"Potential hardcoded credential at '{new_path}'"
@@ -567,7 +567,7 @@ class TestPRAgentConfigSecurity:
 
         check_node(pr_agent_config)
 
-    @staticmethod
+    @ staticmethod
     def test_safe_configuration_values(pr_agent_config):
         """
         Assert that key numeric limits in the PR agent configuration fall within safe bounds.
@@ -577,7 +577,7 @@ class TestPRAgentConfigSecurity:
         - `limits['max_concurrent_prs']` is less than or equal to 10.
         - `limits['rate_limit_requests']` is less than or equal to 1000.
         """
-        limits = pr_agent_config["limits"]
+        limits=pr_agent_config["limits"]
 
         # Check for reasonable numeric limits
         assert limits["max_execution_time"] <= 3600, "Execution time too high"
@@ -588,8 +588,8 @@ class TestPRAgentConfigSecurity:
 class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
-    @pytest.fixture
-    @staticmethod
+    @ pytest.fixture
+    @ staticmethod
     def pr_agent_config_content():
         """
         Return the contents of .github / pr - agent - config.yml as a string.
@@ -599,23 +599,23 @@ class TestPRAgentConfigRemovedComplexity:
         Returns:
             str: Raw YAML content of .github / pr - agent - config.yml.
         """
-        config_path = Path(".github/pr-agent-config.yml")
+        config_path=Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             return f.read()
 
-    @staticmethod
+    @ staticmethod
     def test_no_summarization_settings(pr_agent_config_content):
         """Verify summarization settings removed."""
         assert "summarization" not in pr_agent_config_content.lower()
         assert "max_summary_tokens" not in pr_agent_config_content
 
-    @staticmethod
+    @ staticmethod
     def test_no_token_management(pr_agent_config_content):
         """Verify token management settings removed."""
         assert "max_tokens" not in pr_agent_config_content
         assert "context_length" not in pr_agent_config_content
 
-    @staticmethod
+    @ staticmethod
     def test_no_llm_model_references(pr_agent_config_content):
         """
         Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.

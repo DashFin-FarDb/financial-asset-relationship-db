@@ -37,16 +37,16 @@ class RealDataFetcher:
         controls.
 
         Parameters:
-            cache_path (Optional[str]): Path to a JSON cache file to load a
-                previously persisted AssetRelationshipGraph
-                from and to save the constructed graph to.
-                If omitted, no file-based caching is used.
-            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
+            cache_path(Optional[str]): Path to a JSON cache file to load a
+            previously persisted AssetRelationshipGraph
+            from and to save the constructed graph to.
+            If omitted, no file - based caching is used.
+            fallback_factory(Optional[Callable[[], AssetRelationshipGraph]]):
                 Callable that returns a fallback AssetRelationshipGraph to use
-                when network access is disabled or real-data fetch fails.
+                when network access is disabled or real - data fetch fails.
                 If omitted, the module's bundled sample dataset is used
                 as a fallback.
-            enable_network (bool):
+            enable_network(bool):
                 Controls whether network access is permitted
                 for fetching live data.
                 When False, the fetcher will not attempt network calls
@@ -63,18 +63,19 @@ class RealDataFetcher:
         cached copy and falling back to sample or provided data when network
         fetch is unavailable or fails.
 
-        Loads and returns a cached graph if a valid cache exists; otherwise,
+        Loads and returns a cached graph if a valid cache exists
+        otherwise,
         when network access is enabled, fetches equities, bonds, commodities,
         and currencies, adds regulatory events and relationships, and
         persists the resulting graph to cache if configured.
 
-        If network access is disabled or any fetch/persistence step fails,
+        If network access is disabled or any fetch / persistence step fails,
         obtains a fallback graph from the provided factory or the
-        built-in sample dataset.
+        built - in sample dataset.
 
         Returns:
             AssetRelationshipGraph: The constructed graph containing assets,
-                regulatory events and relationships.
+            regulatory events and relationships.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -149,7 +150,8 @@ class RealDataFetcher:
         Selects a fallback AssetRelationshipGraph to use when real data cannot be
         fetched.
         If a `fallback_factory` was provided to the instance, this calls it and
-        returns its result; otherwise it constructs and returns the built-
+        returns its result
+        otherwise it constructs and returns the built-
         in sample database.
 
         Returns:

@@ -94,6 +94,7 @@ def _create_spring_layout_2d(
     if not positions_3d or not asset_ids:
         return {}
 
+
 positions_2d = {}
 for asset_id in asset_ids:
     if asset_id in positions_3d:

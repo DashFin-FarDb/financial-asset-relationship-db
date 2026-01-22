@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 # ------------- Constants -------------
 class AppConstants:
     """Application-wide constants including UI titles, labels, headers, and messages for the Financial Asset Relationship Database Visualization application."""
+
     TITLE = "Financial Asset Relationship Database Visualization"
     MARKDOWN_HEADER = """
     # 🏦 Financial Asset Relationship Network
@@ -128,6 +129,7 @@ Asset Class Distribution:
 Top Relationships:
 """
 
+
 class FinancialAssetApp:
     """
     Application for managing and visualizing financial asset relationships.
@@ -135,6 +137,7 @@ class FinancialAssetApp:
     Initializes and maintains a graph of financial assets from real-time data
     sources and provides methods for analysis and visualization.
     """
+
     def __init__(self):
         self.graph: Optional[AssetRelationshipGraph] = None
         self._initialize_graph()
@@ -478,9 +481,7 @@ class FinancialAssetApp:
             )
 
     @staticmethod
-    def show_formula_details(
-        formula_name: str, graph_state: AssetRelationshipGraph
-    ):
+    def show_formula_details(formula_name: str, graph_state: AssetRelationshipGraph):
         """
         Display a detailed visualization and UI update for the selected formula.
 

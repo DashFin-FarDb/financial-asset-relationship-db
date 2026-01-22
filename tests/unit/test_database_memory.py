@@ -110,9 +110,7 @@ class TestIsMemoryDb:
     """Comprehensive tests for the _is_memory_db function."""
 
     @staticmethod
-    def test_is_memory_db_with_literal_memory(
-        monkeypatch, restore_database_module
-    ):
+    def test_is_memory_db_with_literal_memory(monkeypatch, restore_database_module):
         """Test that _is_memory_db returns True for literal ':memory:' string."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         reloaded_database = importlib.reload(database)

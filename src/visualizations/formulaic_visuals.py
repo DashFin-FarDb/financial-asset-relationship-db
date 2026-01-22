@@ -1,5 +1,6 @@
 import math
 from typing import Any, Dict
+
 import networkx as nx
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
