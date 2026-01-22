@@ -45,7 +45,7 @@ class TestPRAgentConfigChanges:
         Parse the PR agent configuration.
 
         Returns:
-            config (Dict[str, Any]): Mapping representing the parsed YAML configuration.
+            config(Dict[str, Any]): Mapping representing the parsed YAML configuration.
         """
         with open(config_path, "r") as f:
             return yaml.safe_load(f)
@@ -55,7 +55,7 @@ class TestPRAgentConfigChanges:
         Verify the PR agent configuration declares agent.version equal to "1.0.0".
 
         Parameters:
-            config_data (dict): Parsed YAML content of .github/pr-agent-config.yml.
+            config_data(dict): Parsed YAML content of .github / pr - agent - config.yml.
         """
         assert "agent" in config_data
         assert "version" in config_data["agent"]
@@ -71,10 +71,10 @@ class TestPRAgentConfigChanges:
 
     def test_no_fallback_strategies(self, config_data: Dict[str, Any]):
         """
-        Assert that the top-level 'limits' mapping in the PR Agent config does not include a 'fallback' key.
+        Assert that the top - level 'limits' mapping in the PR Agent config does not include a 'fallback' key.
 
         Parameters:
-            config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`. If a top-level `limits` mapping exists, the test fails when that mapping contains the `fallback` key.
+            config_data(Dict[str, Any]): Parsed contents of `.github / pr - agent - config.yml`. If a top - level `limits` mapping exists, the test fails when that mapping contains the `fallback` key.
         """
         limits = config_data.get("limits")
         if isinstance(limits, dict):
@@ -82,10 +82,10 @@ class TestPRAgentConfigChanges:
 
     def test_basic_sections_present(self, config_data: Dict[str, Any]):
         """
-        Check that the PR agent YAML configuration includes the essential top-level sections.
+        Check that the PR agent YAML configuration includes the essential top - level sections.
 
         Parameters:
-            config_data (dict): Parsed YAML configuration mapping (from .github/pr-agent-config.yml).
+            config_data(dict): Parsed YAML configuration mapping(from .github / pr - agent - config.yml).
         """
         required_sections = ["agent", "monitoring", "actions", "quality"]
 
@@ -96,12 +96,12 @@ class TestPRAgentConfigChanges:
 
     def test_no_complex_token_management(self, config_data: Dict[str, Any]):
         """
-        Ensure the PR Agent configuration does not include chunking or explicit token-limit settings.
+        Ensure the PR Agent configuration does not include chunking or explicit token - limit settings.
 
-        This test fails if the configuration text contains the substring "chunk_size", or if it contains "max_tokens" while the top-level `limits.max_execution_time` key is absent.
+        This test fails if the configuration text contains the substring "chunk_size", or if it contains "max_tokens" while the top - level `limits.max_execution_time` key is absent.
 
         Parameters:
-            config_data (Dict[str, Any]): Parsed PR Agent configuration mapping.
+            config_data(Dict[str, Any]): Parsed PR Agent configuration mapping.
         """
         config_str = str(config_data)
 
@@ -119,7 +119,7 @@ class TestPRAgentConfigChanges:
             config_data: Parsed YAML configuration for the PR agent.
 
         Details:
-            Asserts that the top-level `quality` section contains `python` and `typescript`, and that the Python quality configuration includes a `linter` and a `test_runner` equal to `pytest`.
+            Asserts that the top - level `quality` section contains `python` and `typescript`, and that the Python quality configuration includes a `linter` and a `test_runner` equal to `pytest`.
         """
         assert "quality" in config_data
         assert "python" in config_data["quality"]
@@ -145,7 +145,7 @@ class TestWorkflowSimplifications:
         """
         Validate that the PR Agent GitHub Actions workflow has been simplified.
 
-        Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python dependency installation that references `requirements.txt`.
+        Checks that .github / workflows / pr - agent.yml exists, does not reference `context_chunker` or inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python dependency installation that references `requirements.txt`.
         """
         workflow_file = workflows_dir / "pr-agent.yml"
         assert workflow_file.exists()
@@ -168,7 +168,7 @@ class TestWorkflowSimplifications:
         """
         Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
 
-        Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != ''`).
+        Asserts that .github / workflows / apisec - scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != ''`).
         """
         workflow_file = workflows_dir / "apisec-scan.yml"
         assert workflow_file.exists()
@@ -184,7 +184,7 @@ class TestWorkflowSimplifications:
         """
         Validate that the label workflow uses a simplified configuration.
 
-        Asserts that .github/workflows/label.yml exists and does not contain the substring 'check-config' (case-insensitive) nor the exact text 'labeler.yml not found'.
+        Asserts that .github / workflows / label.yml exists and does not contain the substring 'check-config' (case-insensitive) nor the exact text 'labeler.yml not found'.
         """
         workflow_file = workflows_dir / "label.yml"
         assert workflow_file.exists()
@@ -200,11 +200,11 @@ class TestWorkflowSimplifications:
         """
         Validate that the greetings workflow uses short placeholder messages for first interaction.
 
-        Asserts the .github/workflows/greetings.yml file exists, locates the first-interaction step under jobs.greeting.steps,
-        and verifies that the `issue-message` and `pr-message` values are each shorter than 200 characters.
+        Asserts the .github / workflows / greetings.yml file exists, locates the first - interaction step under jobs.greeting.steps,
+        and verifies that the `issue - message` and `pr - message` values are each shorter than 200 characters.
 
         Parameters:
-            workflows_dir (Path): Path to the .github/workflows directory used to locate greetings.yml.
+            workflows_dir(Path): Path to the .github / workflows directory used to locate greetings.yml.
         """
         workflow_file = workflows_dir / "greetings.yml"
         assert workflow_file.exists()
@@ -243,7 +243,7 @@ class TestDeletedFilesImpact:
 
     def test_labeler_yml_removed(self, repo_root: Path):
         """
-        Assert that the repository no longer contains the .github/labeler.yml file.
+        Assert that the repository no longer contains the .github / labeler.yml file.
         """
         labeler_file = repo_root / ".github" / "labeler.yml"
         assert not labeler_file.exists(), "labeler.yml should be deleted"
@@ -264,13 +264,13 @@ class TestDeletedFilesImpact:
         assert not codecov_file.exists(), "codecov.yaml should be deleted"
 
     def test_vscode_settings_removed(self, repo_root: Path):
-        """Verify .vscode/settings.json has been removed."""
+        """Verify .vscode / settings.json has been removed."""
         vscode_file = repo_root / ".vscode" / "settings.json"
         assert not vscode_file.exists(), ".vscode/settings.json should be deleted"
 
     def test_no_references_to_deleted_files(self, repo_root: Path):
         """
-        Ensure every workflow YAML in .github/workflows does not contain references to deleted repository files.
+        Ensure every workflow YAML in .github / workflows does not contain references to deleted repository files.
 
         Checks for occurrences of "context_chunker.py", "labeler.yml", and ".github/scripts/README.md" and fails the test if any workflow file contains one of these strings.
         """
@@ -293,21 +293,21 @@ class TestDeletedFilesImpact:
 
 
 class TestRequirementsDevChanges:
-    """Validate changes to requirements-dev.txt."""
+    """Validate changes to requirements - dev.txt."""
 
     @pytest.fixture
     @staticmethod
     def req_dev_path() -> Path:
         """
-        Locate the repository's requirements-dev.txt file.
+        Locate the repository's requirements - dev.txt file.
 
         Returns:
-            Path: Path to the requirements-dev.txt file at the repository root.
+            Path: Path to the requirements - dev.txt file at the repository root.
         """
         return Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
     def test_pyyaml_added(self, req_dev_path: Path):
-        """Verify PyYAML has been added to requirements-dev.txt."""
+        """Verify PyYAML has been added to requirements - dev.txt."""
         with open(req_dev_path, "r") as f:
             content = f.read().lower()
 
@@ -375,7 +375,7 @@ class TestGitignoreChanges:
         Verify that the repository .gitignore does not contain the test database ignore pattern 'test_*.db'.
 
         Parameters:
-            gitignore_path (Path): Path to the repository .gitignore file.
+            gitignore_path(Path): Path to the repository .gitignore file.
         """
         with open(gitignore_path, "r") as f:
             content = f.read()
@@ -415,7 +415,7 @@ class TestCodacyInstructionsChanges:
         Compute the path to the repository's Codacy instructions Markdown file.
 
         Returns:
-            Path: Path to .github/instructions/codacy.instructions.md inside the repository.
+            Path: Path to .github / instructions / codacy.instructions.md inside the repository.
         """
         return (
             Path(__file__).parent.parent.parent
@@ -427,12 +427,12 @@ class TestCodacyInstructionsChanges:
     @staticmethod
     def test_codacy_instructions_simplified(codacy_instructions_path: Path):
         """
-        Check that the Codacy instructions have been simplified and do not include repository-specific or prescriptive phrases.
+        Check that the Codacy instructions have been simplified and do not include repository - specific or prescriptive phrases.
 
         Skips the test if the file does not exist. Fails if the file contains either 'git remote -v' or 'unless really necessary'.
 
         Parameters:
-                codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
+                codacy_instructions_path(Path): Path to .github / instructions / codacy.instructions.md
         """
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
@@ -453,7 +453,7 @@ class TestCodacyInstructionsChanges:
         If the file does not exist, the test is skipped. Asserts that the file content contains 'codacy_cli_analyze' and 'CRITICAL'.
 
         Parameters:
-            codacy_instructions_path (Path): Path to the Codacy instructions file (e.g., .github/instructions/codacy.instructions.md).
+            codacy_instructions_path(Path): Path to the Codacy instructions file(e.g., .github / instructions / codacy.instructions.md).
         """
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")

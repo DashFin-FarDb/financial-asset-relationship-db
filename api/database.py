@@ -93,6 +93,7 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 
 def _is_memory_db(path: str | None = None) -> bool:
+
 """
 Database API module.
 
@@ -100,7 +101,7 @@ This module provides helper functions and connectors for SQLite database operati
 including detection of in-memory databases and creation of configured connections.
 """
 
-    """
+ """
     Check whether the configured or provided SQLite path denotes an in-memory database.
 
     Parameters:
@@ -111,8 +112,8 @@ including detection of in-memory databases and creation of configured connection
         `true` if the path denotes an in-memory SQLite database (for example,
         `:memory:` or a URI like `file::memory:?cache=shared`), `false` otherwise.
     """
-    target = DATABASE_PATH if path is None else path
-    if target == ":memory:":
+  target = DATABASE_PATH if path is None else path
+   if target == ":memory:":
         return True
 
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.

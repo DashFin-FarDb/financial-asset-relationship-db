@@ -55,7 +55,6 @@ def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, floa
     return positions
 
 
-
 def _create_grid_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
     """Create grid layout for 2D visualization.
 
