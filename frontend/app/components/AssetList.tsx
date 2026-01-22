@@ -104,21 +104,7 @@ export default function AssetList() {
    * Loads asset classes and sectors metadata and updates the state.
    * @returns {Promise<void>} A promise that resolves when the metadata has been loaded.
    */
-const loadMetadata = useCallback(async () => {
-  try {
-    const [classesData, sectorsData] = await Promise.all([
-      api.getAssetClasses(),
-      api.getSectors(),
-    ]);
-    setAssetClasses(classesData.asset_classes);
-    setSectors(sectorsData.sectors);
-    // Clear metadata-specific error on success
-    setError((prev) => (prev?.includes("filter options") ? null : prev));
-  } catch (err) {
-    console.error("Error loading metadata:", err);
-    setError("Unable to load filter options. Please try again.");
-  }
-}, []);
+  const loadMetadata = useCallback(async () => {
     try {
       const [classesData, sectorsData] = await Promise.all([
         api.getAssetClasses(),
@@ -126,11 +112,10 @@ const loadMetadata = useCallback(async () => {
       ]);
       setAssetClasses(classesData.asset_classes);
       setSectors(sectorsData.sectors);
+      setError((prev) => (prev?.includes("filter options") ? null : prev));
     } catch (err) {
       console.error("Error loading metadata:", err);
       setError("Unable to load filter options. Please try again.");
-        (prev) => prev ?? "Unable to load filter options. Please try again.",
-      );
     }
   }, []);
 
@@ -285,6 +270,11 @@ const loadMetadata = useCallback(async () => {
    * Renders a dropdown filter component for selecting an asset class.
    * @returns JSX.Element The rendered select dropdown component.
    */
+  /**
+   * Renders a dropdown filter for selecting asset classes.
+   *
+   * @returns JSX.Element representing the asset class filter dropdown.
+   */
   const AssetClassFilter: React.FC = () => (
     <div>
       <label
@@ -309,6 +299,11 @@ const loadMetadata = useCallback(async () => {
     </div>
   );
 
+  /**
+   * Renders a dropdown filter for selecting sectors.
+   *
+   * @returns JSX.Element representing the sector filter dropdown.
+   */
   const SectorFilter: React.FC = () => (
     <div>
       <label
@@ -333,34 +328,22 @@ const loadMetadata = useCallback(async () => {
     </div>
   );
 
-  return (
-    <div className="space-y-6">
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold mb-4">Filters</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AssetClassFilter />
-          <SectorFilter />
-          </div>
+  const AssetListTable: React.FC = () => (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      {(loading || error) && (
+        <div
+          className={`px-6 py-3 text-sm ${
+            error
+              ? "bg-red-50 text-red-700 border-b border-red-100"
+              : "bg-blue-50 text-blue-700 border-b border-blue-100"
+          }`}
+          role={error ? "alert" : "status"}
+        >
+          {error || `Loading results for ${querySummary}...`}
         </div>
-      </div>
-
-      {/* Asset List */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {(loading || error) && (
-          <div
-            className={`px-6 py-3 text-sm ${
-              error
-                ? "bg-red-50 text-red-700 border-b border-red-100"
-                : "bg-blue-50 text-blue-700 border-b border-blue-100"
-            }`}
-            role={error ? "alert" : "status"}
-          >
-            {error || `Loading results for ${querySummary}...`}
-          </div>
-        )}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+      )}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
