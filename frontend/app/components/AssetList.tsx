@@ -14,6 +14,11 @@ interface PaginatedAssetsResponse {
 
 const DEFAULT_PAGE_SIZE = 20;
 
+/**
+ * Type guard to determine if a value is a PaginatedAssetsResponse.
+ * @param value The value to check.
+ * @returns True if the value conforms to PaginatedAssetsResponse, else false.
+ */
 const isPaginatedResponse = (
   value: unknown,
 ): value is PaginatedAssetsResponse => {
@@ -31,11 +36,24 @@ const isPaginatedResponse = (
   );
 };
 
+/**
+ * Parses a string to a positive integer, falling back on a default if invalid or non-positive.
+ * @param value The string value to parse.
+ * @param fallback The default number to return if parsing fails or results in non-positive.
+ * @returns The parsed positive integer or the fallback.
+ */
 const parsePositiveInteger = (value: string | null, fallback: number) => {
   const parsed = Number.parseInt(value || "", 10);
   return Number.isNaN(parsed) || parsed <= 0 ? fallback : parsed;
 };
 
+/**
+ * Builds a summary string for the current query including page, page size, and filters.
+ * @param page The current page number.
+ * @param pageSize The number of items per page.
+ * @param filter The filter criteria with asset class and sector.
+ * @returns A string summarizing the query parameters.
+ */
 const buildQuerySummary = (
   page: number,
   pageSize: number,
@@ -82,7 +100,11 @@ export default function AssetList() {
     [filter, page, pageSize],
   );
 
-  const loadMetadata = async () => {
+  /**
+   * Loads asset classes and sectors metadata and updates the state.
+   * @returns {Promise<void>} A promise that resolves when the metadata has been loaded.
+   */
+  const loadMetadata = useCallback(async () => {
     try {
       const [classesData, sectorsData] = await Promise.all([
         api.getAssetClasses(),
@@ -90,10 +112,12 @@ export default function AssetList() {
       ]);
       setAssetClasses(classesData.asset_classes);
       setSectors(sectorsData.sectors);
-    } catch (error) {
-      console.error("Error loading metadata:", error);
+      setError((prev) => (prev?.includes("filter options") ? null : prev));
+    } catch (err) {
+      console.error("Error loading metadata:", err);
+      setError("Unable to load filter options. Please try again.");
     }
-  };
+  }, []);
 
   const loadAssets = useCallback(async () => {
     setLoading(true);
@@ -127,7 +151,7 @@ export default function AssetList() {
     } finally {
       setLoading(false);
     }
-  }, [filter, page, pageSize]);
+  }, [filter, page, pageSize, querySummary]);
 
   const syncStateFromParams = useCallback(() => {
     const nextAssetClass = searchParams.get("asset_class") ?? "";
@@ -178,7 +202,7 @@ export default function AssetList() {
 
   useEffect(() => {
     loadMetadata();
-  }, []);
+  }, [loadMetadata]);
 
   useEffect(() => {
     loadAssets();
@@ -193,6 +217,11 @@ export default function AssetList() {
 
   const canGoPrev = !loading && page > 1;
 
+  /**
+   * Handles filter changes by updating the specified field and resetting to the first page.
+   * @param field - The filter field to update ("asset_class" or "sector").
+   * @returns A function that takes a change event and updates filter and pagination.
+   */
   const handleFilterChange =
     (field: "asset_class" | "sector") =>
     (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -202,6 +231,11 @@ export default function AssetList() {
       updateQueryParams({ [field]: value || null, page: "1" });
     };
 
+  /**
+   * Handles changes to the page size selection, resetting to the first page.
+   * @param event - The change event from the select element.
+   * @returns void
+   */
   const handlePageSizeChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
@@ -214,6 +248,11 @@ export default function AssetList() {
     updateQueryParams({ per_page: String(nextSize), page: "1" });
   };
 
+  /**
+   * Navigates to a specific page within valid bounds and updates pagination state.
+   * @param requestedPage - The desired page number.
+   * @returns void
+   */
   const _goToPage = (requestedPage: number) => {
     const lowerBounded = Math.max(1, requestedPage);
     const bounded =
@@ -227,71 +266,84 @@ export default function AssetList() {
     updateQueryParams({ page: String(bounded) });
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold mb-4">Filters</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="asset-class-filter"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-            <select
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              id="asset-class-filter"
-              value={filter.asset_class}
-              onChange={handleFilterChange("asset_class")}
-            >
-              <option value="">All Classes</option>
-              {assetClasses.map((ac) => (
-                <option key={ac} value={ac}>
-                  {ac}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="sector-filter"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Sector
-            </label>
-            <select
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              id="sector-filter"
-              value={filter.sector}
-              onChange={handleFilterChange("sector")}
-            >
-              <option value="">All Sectors</option>
-              {sectors.map((sector) => (
-                <option key={sector} value={sector}>
-                  {sector}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+  /**
+   * Renders a dropdown filter component for selecting an asset class.
+   * @returns JSX.Element The rendered select dropdown component.
+   */
+  /**
+   * Renders a dropdown filter for selecting asset classes.
+   *
+   * @returns JSX.Element representing the asset class filter dropdown.
+   */
+  const AssetClassFilter: React.FC = () => (
+    <div>
+      <label
+        htmlFor="asset-class-filter"
+        className="block text-sm font-medium text-gray-700 mb-2"
+      >
+        Asset Class
+      </label>
+      <select
+        className="w-full border border-gray-300 rounded-md px-3 py-2"
+        id="asset-class-filter"
+        value={filter.asset_class}
+        onChange={handleFilterChange("asset_class")}
+      >
+        <option value="">All Classes</option>
+        {assetClasses.map((ac) => (
+          <option key={ac} value={ac}>
+            {ac}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 
-      {/* Asset List */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {(loading || error) && (
-          <div
-            className={`px-6 py-3 text-sm ${
-              error
-                ? "bg-red-50 text-red-700 border-b border-red-100"
-                : "bg-blue-50 text-blue-700 border-b border-blue-100"
-            }`}
-            role={error ? "alert" : "status"}
-          >
-            {error || `Loading results for ${querySummary}...`}
-          </div>
-        )}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+  /**
+   * Renders a dropdown filter for selecting sectors.
+   *
+   * @returns JSX.Element representing the sector filter dropdown.
+   */
+  const SectorFilter: React.FC = () => (
+    <div>
+      <label
+        htmlFor="sector-filter"
+        className="block text-sm font-medium text-gray-700 mb-2"
+      >
+        Sector
+      </label>
+      <select
+        className="w-full border border-gray-300 rounded-md px-3 py-2"
+        id="sector-filter"
+        value={filter.sector}
+        onChange={handleFilterChange("sector")}
+      >
+        <option value="">All Sectors</option>
+        {sectors.map((sector) => (
+          <option key={sector} value={sector}>
+            {sector}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const AssetListTable: React.FC = () => (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      {(loading || error) && (
+        <div
+          className={`px-6 py-3 text-sm ${
+            error
+              ? "bg-red-50 text-red-700 border-b border-red-100"
+              : "bg-blue-50 text-blue-700 border-b border-blue-100"
+          }`}
+          role={error ? "alert" : "status"}
+        >
+          {error || `Loading results for ${querySummary}...`}
+        </div>
+      )}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
