@@ -84,7 +84,7 @@ class ContextChunker:
             print(f"Warning: failed to load config from {config_path}: {e}", file=sys.stderr)
             return {}
 
-def _init_encoder(self):
+    def _init_encoder(self):
     """
     Initialize the optional tiktoken encoder.
     
