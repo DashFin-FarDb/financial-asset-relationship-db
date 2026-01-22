@@ -418,6 +418,7 @@ class TestPRAgentWorkflowPermissions:
         Verify workflow-level and pr-agent-trigger job permissions: the workflow's `contents` permission is set to 'read' and the `pr-agent-trigger` job's `issues` permission is set to 'write'.
         """
         permissions = workflow_content.get("permissions", {})
+
     def test_workflow_permissions_contents_read(self, workflow_content: Dict[str, Any]):
         """Test that workflow has read access to contents."""
         permissions = workflow_content.get('permissions', {})
@@ -448,7 +449,7 @@ class TestPRAgentWorkflowPermissions:
 class TestPRAgentWorkflowConditionals:
     """Test conditional execution logic."""
 
-    @pytest.fixture
+    @ pytest.fixture
     def workflow_content(self) -> Dict[str, Any]:
         """
         Load and parse the GitHub Actions workflow YAML at .github/workflows/pr-agent.yml.
