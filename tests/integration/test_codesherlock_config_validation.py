@@ -192,207 +192,207 @@ class TestCodeSherlockConfigContent:
 class TestCodeSherlockConfigBestPractices:
     """Test suite for codesherlock.yaml best practices and recommendations."""
 
-       def test_covers_key_security_characteristics(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """Verify that security-related characteristics are included."""
-            security_characteristics = {
-                "Input Validation",
-                "Code Injection",
-                "Exception Handling",
-            }
-            configured_characteristics = set(
-                codesherlock_config["preferred_characteristics"]
+    def test_covers_key_security_characteristics(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """Verify that security-related characteristics are included."""
+        security_characteristics = {
+            "Input Validation",
+            "Code Injection",
+            "Exception Handling",
+        }
+        configured_characteristics = set(
+            codesherlock_config["preferred_characteristics"]
+        )
+
+        for security_char in security_characteristics:
+            assert security_char in configured_characteristics, (
+                f"Security characteristic '{security_char}' should be included"
             )
 
-            for security_char in security_characteristics:
-                assert security_char in configured_characteristics, (
-                    f"Security characteristic '{security_char}' should be included"
-                )
+    def test_covers_code_quality_characteristics(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """
+        Ensure the configuration includes key code quality characteristics.
 
-        def test_covers_code_quality_characteristics(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """
-            Ensure the configuration includes key code quality characteristics.
+        Asserts that the `preferred_characteristics` list contains "Modularity" and "Dependency Injection".
 
-            Asserts that the `preferred_characteristics` list contains "Modularity" and "Dependency Injection".
+        Parameters:
+            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
+        """
+        quality_characteristics = {"Modularity", "Dependency Injection"}
+        configured_characteristics = set(
+            codesherlock_config["preferred_characteristics"]
+        )
 
-            Parameters:
-                codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
-            """
-            quality_characteristics = {"Modularity", "Dependency Injection"}
-            configured_characteristics = set(
-                codesherlock_config["preferred_characteristics"]
+        for quality_char in quality_characteristics:
+            assert quality_char in configured_characteristics, (
+                f"Code quality characteristic '{quality_char}' should be included"
             )
 
-            for quality_char in quality_characteristics:
-                assert quality_char in configured_characteristics, (
-                    f"Code quality characteristic '{quality_char}' should be included"
-                )
+    def test_covers_operational_characteristics(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """Verify that operational characteristics are included."""
+        operational_characteristics = {"Monitoring and Logging", "Resource Utilization"}
+        configured_characteristics = set(
+            codesherlock_config["preferred_characteristics"]
+        )
 
-        def test_covers_operational_characteristics(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """Verify that operational characteristics are included."""
-            operational_characteristics = {"Monitoring and Logging", "Resource Utilization"}
-            configured_characteristics = set(
-                codesherlock_config["preferred_characteristics"]
+        for operational_char in operational_characteristics:
+            assert operational_char in configured_characteristics, (
+                f"Operational characteristic '{operational_char}' should be included"
             )
 
-            for operational_char in operational_characteristics:
-                assert operational_char in configured_characteristics, (
-                    f"Operational characteristic '{operational_char}' should be included"
-                )
+    def test_reasonable_number_of_characteristics(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """Validate the number of preferred characteristics in the configuration.
 
-        def test_reasonable_number_of_characteristics(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """Validate the number of preferred characteristics in the configuration.
+        Ensures the `preferred_characteristics` list contains a reasonable number of
+        items (between 3 and 10 inclusive) to keep reviews focused and manageable.
 
-            Ensures the `preferred_characteristics` list contains a reasonable number of
-            items (between 3 and 10 inclusive) to keep reviews focused and manageable.
+        Parameters:
+            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
+        """
+        num_characteristics = len(codesherlock_config["preferred_characteristics"])
+        assert 3 <= num_characteristics <= 10, (
+            f"Number of characteristics ({num_characteristics}) should be between 3 and 10 for focused reviews"
+        )
 
-            Parameters:
-                codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
-            """
-            num_characteristics = len(codesherlock_config["preferred_characteristics"])
-            assert 3 <= num_characteristics <= 10, (
-                f"Number of characteristics ({num_characteristics}) should be between 3 and 10 for focused reviews"
-            )
+    def test_includes_common_development_branches(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """Verify that common development branches are considered."""
+        branches = set(codesherlock_config["target_branches"])
 
-        def test_includes_common_development_branches(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """Verify that common development branches are considered."""
-            branches = set(codesherlock_config["target_branches"])
-
-            # At least one of the common branch names should be present
-            common_branches = {"main", "master", "develop", "development"}
-            assert any(branch in branches for branch in common_branches), (
-                "At least one common development branch (main, master, develop) should be included"
-            )
+        # At least one of the common branch names should be present
+        common_branches = {"main", "master", "develop", "development"}
+        assert any(branch in branches for branch in common_branches), (
+            "At least one common development branch (main, master, develop) should be included"
+        )
 
 
 class TestCodeSherlockConfigEdgeCases:
     """Test suite for edge cases in codesherlock.yaml configuration."""
 
-       def test_config_handles_whitespace_in_values(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """Verify that configuration values handle whitespace appropriately."""
-            for branch in codesherlock_config["target_branches"]:
-                assert branch == branch.strip(), (
-                    f"Branch '{branch}' should not have leading/trailing whitespace"
-                )
-
-            for characteristic in codesherlock_config["preferred_characteristics"]:
-                # Characteristics may contain internal spaces (e.g., "Input Validation")
-                assert characteristic == characteristic.strip(), (
-                    f"Characteristic '{characteristic}' should not have leading/trailing whitespace"
-                )
-
-        def test_config_handles_special_characters_in_branch_names(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """
-            Ensure branch names do not contain disallowed characters.
-
-            Branch names should not contain spaces, tabs, newlines, or any of the characters:
-            ~, ^, :, ?, *, [, \\.
-
-            Parameters:
-                codesherlock_config (dict): Parsed codesherlock.yaml containing the "target_branches" list.
-            """
-            for branch in codesherlock_config["target_branches"]:
-                # Branch names should not contain certain invalid characters
-                invalid_chars = [" ", "\t", "\n", "~", "^", ":", "?", "*", "[", "\\"]
-                for char in invalid_chars:
-                    assert char not in branch, (
-                        f"Branch '{branch}' should not contain '{char}'"
-                    )
-
-        def test_config_file_size_reasonable(self, codesherlock_config_path: Path):
-            """
-            Ensure that the codesherlock.yaml file remains reasonably small.
-            Parameters:
-                codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file.
-            """
-            file_size = codesherlock_config_path.stat().st_size
-            assert file_size < 10240, (
-                f"Config file size ({file_size} bytes) should be less than 10KB"
+    def test_config_handles_whitespace_in_values(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """Verify that configuration values handle whitespace appropriately."""
+        for branch in codesherlock_config["target_branches"]:
+            assert branch == branch.strip(), (
+                f"Branch '{branch}' should not have leading/trailing whitespace"
             )
 
-        def test_config_yaml_formatting(self, codesherlock_config_path: Path):
-            """
-            Verify the YAML file uses 2-space indentation for all indented lines.
+        for characteristic in codesherlock_config["preferred_characteristics"]:
+            # Characteristics may contain internal spaces (e.g., "Input Validation")
+            assert characteristic == characteristic.strip(), (
+                f"Characteristic '{characteristic}' should not have leading/trailing whitespace"
+            )
 
-            Asserts that every line with leading spaces has a number of leading spaces divisible by two.
+    def test_config_handles_special_characters_in_branch_names(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """
+        Ensure branch names do not contain disallowed characters.
 
-            Parameters:
-                codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file.
-            """
-            with open(codesherlock_config_path, "r") as f:
-                content = f.read()
+        Branch names should not contain spaces, tabs, newlines, or any of the characters:
+        ~, ^, :, ?, *, [, \\.
 
-            # Check for consistent indentation (2 spaces)
-            lines = content.split("\n")
-            for i, line in enumerate(lines, 1):
-                if line and line[0] == " ":
-                    # Count leading spaces
-                    leading_spaces = len(line) - len(line.lstrip())
-                    assert leading_spaces % 2 == 0, (
-                        f"Line {i} should use 2-space indentation"
-                    )
+        Parameters:
+            codesherlock_config (dict): Parsed codesherlock.yaml containing the "target_branches" list.
+        """
+        for branch in codesherlock_config["target_branches"]:
+            # Branch names should not contain certain invalid characters
+            invalid_chars = [" ", "\t", "\n", "~", "^", ":", "?", "*", "[", "\\"]
+            for char in invalid_chars:
+                assert char not in branch, (
+                    f"Branch '{branch}' should not contain '{char}'"
+                )
+
+    def test_config_file_size_reasonable(self, codesherlock_config_path: Path):
+        """
+        Ensure that the codesherlock.yaml file remains reasonably small.
+        Parameters:
+            codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file.
+        """
+        file_size = codesherlock_config_path.stat().st_size
+        assert file_size < 10240, (
+            f"Config file size ({file_size} bytes) should be less than 10KB"
+        )
+
+    def test_config_yaml_formatting(self, codesherlock_config_path: Path):
+        """
+        Verify the YAML file uses 2-space indentation for all indented lines.
+
+        Asserts that every line with leading spaces has a number of leading spaces divisible by two.
+
+        Parameters:
+            codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file.
+        """
+        with open(codesherlock_config_path, "r") as f:
+            content = f.read()
+
+        # Check for consistent indentation (2 spaces)
+        lines = content.split("\n")
+        for i, line in enumerate(lines, 1):
+            if line and line[0] == " ":
+                # Count leading spaces
+                leading_spaces = len(line) - len(line.lstrip())
+                assert leading_spaces % 2 == 0, (
+                    f"Line {i} should use 2-space indentation"
+                )
 
 
 class TestCodeSherlockConfigIntegration:
     """Integration tests for codesherlock.yaml with the project."""
 
-       def test_config_aligns_with_project_branches(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """
-            Verify that configured branch names meet length constraints.
+    def test_config_aligns_with_project_branches(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """
+        Verify that configured branch names meet length constraints.
 
-            Ensures that all branch names are between 1 and 255 characters long.
-            Parameters:
-                codesherlock_config (dict): Parsed codesherlock.yaml mapping; must contain a "target_branches" list of branch name strings.
-            """
-            branches = codesherlock_config["target_branches"]
+        Ensures that all branch names are between 1 and 255 characters long.
+        Parameters:
+            codesherlock_config (dict): Parsed codesherlock.yaml mapping; must contain a "target_branches" list of branch name strings.
+        """
+        branches = codesherlock_config["target_branches"]
 
-            # These are either standard branches or should exist in the project
-            for branch in branches:
-                # We can't easily check remote branches in tests, but we can verify format
-                assert len(branch) >= 1, f"Branch name '{branch}' is too short"
-                assert len(branch) <= 255, f"Branch name '{branch}' is too long"
+        # These are either standard branches or should exist in the project
+        for branch in branches:
+            # We can't easily check remote branches in tests, but we can verify format
+            assert len(branch) >= 1, f"Branch name '{branch}' is too short"
+            assert len(branch) <= 255, f"Branch name '{branch}' is too long"
 
-        def test_config_characteristics_match_project_needs(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """
-            Assert that the configuration includes critical characteristics required for a financial application.
+    def test_config_characteristics_match_project_needs(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """
+        Assert that the configuration includes critical characteristics required for a financial application.
 
-            Checks that 'Input Validation', 'Exception Handling', and 'Monitoring and Logging'
-            appear in `preferred_characteristics`. The test fails with a message listing any
-            missing characteristics.
+        Checks that 'Input Validation', 'Exception Handling', and 'Monitoring and Logging'
+        appear in `preferred_characteristics`. The test fails with a message listing any
+        missing characteristics.
 
-            Parameters:
-                codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
-            """
-            characteristics = set(codesherlock_config["preferred_characteristics"])
+        Parameters:
+            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
+        """
+        characteristics = set(codesherlock_config["preferred_characteristics"])
 
-            # For a financial application, certain characteristics are critical
-            financial_critical_characteristics = {
-                "Input Validation",
-                "Exception Handling",
-                "Monitoring and Logging",
-            }
+        # For a financial application, certain characteristics are critical
+        financial_critical_characteristics = {
+            "Input Validation",
+            "Exception Handling",
+            "Monitoring and Logging",
+        }
 
-            missing_critical = financial_critical_characteristics - characteristics
-            assert not missing_critical, (
-                f"Critical characteristics for financial applications are missing: {missing_critical}"
-            )
+        missing_critical = financial_critical_characteristics - characteristics
+        assert not missing_critical, (
+            f"Critical characteristics for financial applications are missing: {missing_critical}"
+        )
 
 
 class TestCodeSherlockConfigDocumentation:
