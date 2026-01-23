@@ -318,10 +318,7 @@ class TestCodeSherlockConfigEdgeCases:
 
     def test_config_file_size_reasonable(self, codesherlock_config_path: Path):
         """
-        Assert that the codesherlock.yaml file is smaller than 10KB.
-
-        Checks the file size and fails the test if it is 10,240 bytes or larger.
-
+        Ensure that the codesherlock.yaml file remains reasonably small.
         Parameters:
             codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file.
         """
