@@ -160,7 +160,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             "Version should follow semver format (x.y.z)"
         )
 
-    @staticmethod
+    @ staticmethod
     def test_frontmatter_agent_field(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that agent field is valid."""
         assert "agent" in repo_engineer_frontmatter
@@ -171,7 +171,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         valid_agents = ["CodeActAgent", "PlannerAgent", "BrowsingAgent"]
         assert agent in valid_agents, f"Agent should be one of {valid_agents}"
 
-    @staticmethod
+    @ staticmethod
     def test_frontmatter_no_triggers(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that triggers field is absent (as documented in the content)."""
         # The content states "the microagent doesn't have any triggers"
