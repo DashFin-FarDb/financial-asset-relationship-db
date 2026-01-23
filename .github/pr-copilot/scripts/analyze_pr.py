@@ -192,7 +192,7 @@ def assess_complexity(file_data: Dict[str, Any], commit_count: int) -> Tuple[int
 
 
 def find_scope_issues(
-    pr_title: str, file_data: Dict[str, Any], config: Dict[str, Any]
+    pr_title: str, file_data: dict[str, Any], config: Dict[str, Any]
 ) -> List[str]:
     """Identify potential scope creep."""
     issues = []
