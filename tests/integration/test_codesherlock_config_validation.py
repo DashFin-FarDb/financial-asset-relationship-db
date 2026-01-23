@@ -39,7 +39,8 @@ def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
 class TestCodeSherlockConfigFile:
     """Tests for existence and YAML validity."""
 
-    def test_config_file_exists(self, codesherlock_config_path: Path) -> None:
+    @staticmethod
+    def test_config_file_exists(codesherlock_config_path: Path) -> None:
         assert codesherlock_config_path.exists(), "codesherlock.yaml should exist"
         assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
 
@@ -61,7 +62,8 @@ class TestCodeSherlockConfigFile:
         except yaml.YAMLError as e:
             pytest.fail(f"Invalid YAML syntax: {e}")
 
-    def test_config_has_required_fields(self, codesherlock_config: Dict[str, Any]):
+    @staticmethod
+    def test_config_has_required_fields(codesherlock_config: Dict[str, Any]):
         """
         Ensure the top-level required fields are present in the Codesherlock configuration.
 
@@ -77,34 +79,39 @@ class TestCodeSherlockConfigFile:
             "preferred_characteristics field is required"
         )
 
-    def test_target_branches_is_list(self, codesherlock_config: Dict[str, Any]):
+    @staticmethod
+    def test_target_branches_is_list(codesherlock_config: Dict[str, Any]):
         """Verify that target_branches is a list."""
         assert isinstance(codesherlock_config["target_branches"], list), (
             "target_branches should be a list"
         )
 
-    def test_target_branches_not_empty(self, codesherlock_config: Dict[str, Any]):
+    @staticmethod
+    def test_target_branches_not_empty(codesherlock_config: Dict[str, Any]):
         """Verify that target_branches list is not empty."""
         assert len(codesherlock_config["target_branches"]) > 0, (
             "target_branches should not be empty"
         )
 
-    def test_target_branches_contains_main(self, codesherlock_config: Dict[str, Any]):
+    @staticmethod
+    def test_target_branches_contains_main(codesherlock_config: Dict[str, Any]):
         """Verify that 'main' is included in target_branches."""
         assert "main" in codesherlock_config["target_branches"], (
             "target_branches should include 'main'"
         )
 
+    @staticmethod
     def test_preferred_characteristics_is_list(
-        self, codesherlock_config: Dict[str, Any]
+        codesherlock_config: Dict[str, Any]
     ):
         """Verify that preferred_characteristics is a list."""
         assert isinstance(codesherlock_config["preferred_characteristics"], list), (
             "preferred_characteristics should be a list"
         )
 
+    @staticmethod
     def test_preferred_characteristics_not_empty(
-        self, codesherlock_config: Dict[str, Any]
+        codesherlock_config: Dict[str, Any]
     ):
         """Verify that preferred_characteristics list is not empty."""
         assert len(codesherlock_config["preferred_characteristics"]) > 0, (
