@@ -72,6 +72,7 @@ class TestCodeSherlockConfigStructure:
         Parameters:
             codesherlock_config (Dict[str, Any]): Parsed contents of `codesherlock.yaml` as a mapping.
 
+        This test fails if any of the expected top-level keys are missing from the configuration.
         """
         assert "target_branches" in codesherlock_config, (
             "target_branches field is required"
