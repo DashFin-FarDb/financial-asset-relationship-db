@@ -220,7 +220,7 @@ class TestPRAgentWorkflowSetupSteps:
 
     def test_setup_nodejs_exists(self, pr_agent_job: dict[str, Any]):
         """Assert that the job includes at least one step named "Setup Node.js"
-    ."""
+        ."""
         steps = pr_agent_job.get("steps", [])
         node_steps = [step for step in steps if step.get("name") == "Setup Node.js"]
         assert len(node_steps) >= 1, "Job should have Setup Node.js step"
