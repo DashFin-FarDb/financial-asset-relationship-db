@@ -51,7 +51,7 @@ class TestCodeSherlockConfigFile:
         """
         Verify that the repository's codesherlock.yaml parses as valid YAML.
 
-        Asserts that the file at `codesherlock_config_path` loads to a non-None mapping(dict) and fails the test on YAML syntax errors.
+        Asserts that the file at `codesherlock_config_path` loads to a non - None mapping(dict) and fails the test on YAML syntax errors.
 
         Parameters:
             codesherlock_config_path(Path): Path to the codesherlock.yaml file in the repository root.
