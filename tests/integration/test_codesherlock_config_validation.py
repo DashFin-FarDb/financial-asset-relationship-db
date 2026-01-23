@@ -15,14 +15,27 @@ import yaml
 
 @pytest.fixture
 def codesherlock_config_path() -> Path:
-    """Return the path to the codesherlock.yaml configuration file."""
+    """
+    Get the Path to the repository's codesherlock.yaml file.
+    
+    Returns:
+        path (Path): Path to codesherlock.yaml located at the repository root.
+    """
     repo_root = Path(__file__).parent.parent.parent
     return repo_root / "codesherlock.yaml"
 
 
 @pytest.fixture
 def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
-    """Load and return the codesherlock.yaml configuration."""
+    """
+    Load the codesherlock.yaml file and parse it into a dictionary.
+    
+    Parameters:
+    	codesherlock_config_path (Path): Path to the codesherlock.yaml file at the repository root.
+    
+    Returns:
+    	config (Dict[str, Any]): Parsed YAML content as a dictionary.
+    """
     with open(codesherlock_config_path, "r") as f:
         return yaml.safe_load(f)
 
@@ -36,7 +49,14 @@ class TestCodeSherlockConfigStructure:
         assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
 
     def test_config_is_valid_yaml(self, codesherlock_config_path: Path):
-        """Verify that codesherlock.yaml is valid YAML."""
+        """
+        Verify that the repository's codesherlock.yaml parses as valid YAML.
+        
+        Asserts that the file at `codesherlock_config_path` loads to a non-None mapping (dict) and fails the test on YAML syntax errors.
+        
+        Parameters:
+            codesherlock_config_path (Path): Path to the codesherlock.yaml file in the repository root.
+        """
         try:
             with open(codesherlock_config_path, "r") as f:
                 config = yaml.safe_load(f)
@@ -46,7 +66,13 @@ class TestCodeSherlockConfigStructure:
             pytest.fail(f"Invalid YAML syntax: {e}")
 
     def test_config_has_required_fields(self, codesherlock_config: Dict[str, Any]):
-        """Verify that all required configuration fields are present."""
+        """
+        Ensure the top-level required fields are present in the Codesherlock configuration.
+        
+        Parameters:
+            codesherlock_config (Dict[str, Any]): Parsed contents of `codesherlock.yaml` as a mapping.
+        
+        """
         assert "target_branches" in codesherlock_config, (
             "target_branches field is required"
         )
@@ -93,7 +119,11 @@ class TestCodeSherlockConfigContent:
     """Test suite for codesherlock.yaml configuration content validation."""
 
     def test_target_branches_are_strings(self, codesherlock_config: Dict[str, Any]):
-        """Verify that all target branches are strings."""
+        """
+        Confirm each configured target branch is non-empty.
+        
+        Also asserts that every entry in `target_branches` is a Python `str` and has length greater than zero.
+        """
         for branch in codesherlock_config["target_branches"]:
             assert isinstance(branch, str), f"Branch '{branch}' should be a string"
             assert len(branch) > 0, f"Branch name should not be empty"
@@ -108,7 +138,11 @@ class TestCodeSherlockConfigContent:
     def test_preferred_characteristics_are_strings(
         self, codesherlock_config: Dict[str, Any]
     ):
-        """Verify that all preferred characteristics are strings."""
+        """
+        Check that each entry in preferred_characteristics is a non-empty string.
+        
+        Asserts that every characteristic is an instance of `str` and has length greater than zero.
+        """
         for characteristic in codesherlock_config["preferred_characteristics"]:
             assert isinstance(characteristic, str), (
                 f"Characteristic '{characteristic}' should be a string"
@@ -179,7 +213,11 @@ class TestCodeSherlockConfigBestPractices:
     def test_covers_code_quality_characteristics(
         self, codesherlock_config: Dict[str, Any]
     ):
-        """Verify that code quality characteristics are included."""
+        """
+        Ensure the configuration includes key code quality characteristics.
+        
+        Asserts that the `preferred_characteristics` list contains "Modularity" and "Dependency Injection".
+        """
         quality_characteristics = {"Modularity", "Dependency Injection"}
         configured_characteristics = set(
             codesherlock_config["preferred_characteristics"]
@@ -207,7 +245,12 @@ class TestCodeSherlockConfigBestPractices:
     def test_reasonable_number_of_characteristics(
         self, codesherlock_config: Dict[str, Any]
     ):
-        """Verify that the number of characteristics is reasonable (not too few or too many)."""
+        """
+        Ensure the `preferred_characteristics` list contains between 3 and 10 items inclusive.
+        
+        Parameters:
+            codesherlock_config (dict): Parsed codesherlock.yaml configuration.
+        """
         num_characteristics = len(codesherlock_config["preferred_characteristics"])
         assert 3 <= num_characteristics <= 10, (
             f"Number of characteristics ({num_characteristics}) should be between 3 and 10 for focused reviews"
@@ -247,7 +290,15 @@ class TestCodeSherlockConfigEdgeCases:
     def test_config_handles_special_characters_in_branch_names(
         self, codesherlock_config: Dict[str, Any]
     ):
-        """Verify that branch names with special characters are handled correctly."""
+        """
+        Ensure branch names do not contain disallowed characters.
+        
+        Parameters:
+            codesherlock_config (dict): Parsed codesherlock.yaml containing the "target_branches" list.
+        
+        Description:
+            The test fails if any branch name contains a space, tab, newline, or any of the characters: ~, ^, :, ?, *, [, \.
+        """
         for branch in codesherlock_config["target_branches"]:
             # Branch names should not contain certain invalid characters
             invalid_chars = [" ", "\t", "\n", "~", "^", ":", "?", "*", "[", "\\"]
@@ -257,14 +308,25 @@ class TestCodeSherlockConfigEdgeCases:
                 )
 
     def test_config_file_size_reasonable(self, codesherlock_config_path: Path):
-        """Verify that the configuration file size is reasonable."""
+        """
+        Assert that the codesherlock.yaml file is smaller than 10KB.
+        
+        Checks the file size and fails the test if it is 10,240 bytes or larger.
+        
+        Parameters:
+            codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file.
+        """
         file_size = codesherlock_config_path.stat().st_size
         assert file_size < 10240, (
             f"Config file size ({file_size} bytes) should be less than 10KB"
         )
 
     def test_config_yaml_formatting(self, codesherlock_config_path: Path):
-        """Verify that the YAML file follows consistent formatting."""
+        """
+        Verify the YAML file uses 2-space indentation for all indented lines.
+        
+        Asserts that every line with leading spaces has a number of leading spaces divisible by two.
+        """
         with open(codesherlock_config_path, "r") as f:
             content = f.read()
 
@@ -285,7 +347,12 @@ class TestCodeSherlockConfigIntegration:
     def test_config_aligns_with_project_branches(
         self, codesherlock_config: Dict[str, Any]
     ):
-        """Verify that configured branches exist or are standard."""
+        """
+        Validate that each branch name in the configuration meets project constraints for length.
+        
+        Parameters:
+            codesherlock_config (dict): Parsed codesherlock.yaml mapping; must contain a "target_branches" list of branch name strings.
+        """
         branches = codesherlock_config["target_branches"]
 
         # These are either standard branches or should exist in the project
@@ -297,7 +364,11 @@ class TestCodeSherlockConfigIntegration:
     def test_config_characteristics_match_project_needs(
         self, codesherlock_config: Dict[str, Any]
     ):
-        """Verify that configured characteristics match project requirements."""
+        """
+        Assert that the configuration includes critical characteristics required for a financial application.
+        
+        Checks that 'Input Validation', 'Exception Handling', and 'Monitoring and Logging' appear in `preferred_characteristics`; the test fails with a message listing any missing characteristics.
+        """
         characteristics = set(codesherlock_config["preferred_characteristics"])
 
         # For a financial application, certain characteristics are critical
@@ -330,7 +401,14 @@ class TestCodeSherlockConfigDocumentation:
         )
 
     def test_config_documents_target_branches(self, codesherlock_config_path: Path):
-        """Verify that target_branches section is documented."""
+        """
+        Check that the YAML file documents the `target_branches` section with explanatory comments.
+        
+        Searches the repository's codesherlock.yaml for the `target_branches:` key and asserts there is at least one comment line (a line starting with `#`) within the five lines immediately preceding that key.
+        
+        Parameters:
+            codesherlock_config_path (Path): Path to the codesherlock.yaml file to inspect.
+        """
         with open(codesherlock_config_path, "r") as f:
             content = f.read()
 
@@ -356,7 +434,14 @@ class TestCodeSherlockConfigDocumentation:
     def test_config_documents_preferred_characteristics(
         self, codesherlock_config_path: Path
     ):
-        """Verify that preferred_characteristics section is documented."""
+        """
+        Ensure the preferred_characteristics section in the codesherlock.yaml file is preceded by explanatory comments.
+        
+        Checks up to five lines immediately before the `preferred_characteristics:` field for at least one line that begins with `#`.
+        
+        Parameters:
+        	codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file to inspect.
+        """
         with open(codesherlock_config_path, "r") as f:
             content = f.read()
 
