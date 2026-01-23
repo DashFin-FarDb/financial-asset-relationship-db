@@ -46,10 +46,10 @@ class TestFormulaicVisualizer:
     def sample_analysis_results(self, sample_formula):
         """
         Builds a representative analysis-results dictionary used by tests, incorporating the provided sample formula.
-        
+
         Parameters:
             sample_formula (Formula or dict): A sample formula object or mapping containing keys such as `name`, `formula`, `latex`, `description`, `variables`, `example_calculation`, `category`, and `r_squared`.
-        
+
         Returns:
             dict: A dictionary with keys:
                 - "formulas": list containing `sample_formula` and an additional example formula mapping.
@@ -683,7 +683,7 @@ class TestFormulaicAnalysisStringConcatenation:
     def test_formula_summary_key_insights_formatting(self):
         """
         Assert that analysis summary key insights are non-empty, trimmed strings.
-        
+
         Calls FormulaicdAnalyzer.analyze_graph with an empty AssetRelationshipGraph and verifies that each entry in the resulting summary's `key_insights` is a non-empty `str` and does not have leading or trailing whitespace.
         """
         from src.analysis.formulaic_analysis import FormulaicdAnalyzer

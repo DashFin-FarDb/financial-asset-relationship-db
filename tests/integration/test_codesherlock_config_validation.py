@@ -17,7 +17,7 @@ import yaml
 def codesherlock_config_path() -> Path:
     """
     Path to the repository's codesherlock.yaml configuration file.
-    
+
     Returns:
         Path: Path to codesherlock.yaml located at the repository root.
     """
@@ -29,12 +29,12 @@ def codesherlock_config_path() -> Path:
 def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
     """
     Load the codesherlock.yaml configuration from the given path.
-    
+
     Parameters:
-    	codesherlock_config_path (Path): Filesystem path to the codesherlock.yaml file.
-    
+        codesherlock_config_path (Path): Filesystem path to the codesherlock.yaml file.
+
     Returns:
-    	config (dict): Parsed YAML content as a dictionary mapping configuration keys to values.
+        config (dict): Parsed YAML content as a dictionary mapping configuration keys to values.
     """
     with open(codesherlock_config_path, "r") as f:
         return yaml.safe_load(f)
@@ -51,7 +51,7 @@ class TestCodeSherlockConfigStructure:
     def test_config_is_valid_yaml(self, codesherlock_config_path: Path):
         """
         Assert that codesherlock.yaml parses as valid YAML and yields a mapping.
-        
+
         Fails the test if the file contains invalid YAML syntax or if the parsed content is None or not a dictionary.
         """
         try:
@@ -127,7 +127,7 @@ class TestCodeSherlockConfigContent:
     ):
         """
         Assert that each entry in `preferred_characteristics` is a non-empty string.
-        
+
         Raises an AssertionError if any characteristic is not a `str` or is an empty string.
         """
         for characteristic in codesherlock_config["preferred_characteristics"]:
@@ -170,7 +170,7 @@ class TestCodeSherlockConfigContent:
     ):
         """
         Check that the 'additional_instructions' key is optional and, if present, is a list.
-        
+
         If 'additional_instructions' exists in the config, assert its value is a list.
         """
         # Should not fail if additional_instructions is missing
@@ -259,7 +259,7 @@ class TestCodeSherlockConfigEdgeCases:
     ):
         """
         Ensure target branch names and preferred characteristics contain no leading or trailing whitespace.
-        
+
         Parameters:
             codesherlock_config (dict): Parsed codesherlock.yaml configuration. Validates the values in the
                 "target_branches" and "preferred_characteristics" lists to ensure each string equals its
@@ -291,7 +291,7 @@ class TestCodeSherlockConfigEdgeCases:
     def test_config_file_size_reasonable(self, codesherlock_config_path: Path):
         """
         Ensure the codesherlock.yaml file is smaller than 10KB.
-        
+
         Parameters:
             codesherlock_config_path (Path): Path to the codesherlock.yaml file in the repository root.
         """
@@ -324,10 +324,10 @@ class TestCodeSherlockConfigIntegration:
     ):
         """
         Ensure each configured branch name has a valid length for use in the project.
-        
+
         Validates that every entry in the `target_branches` list of the provided configuration
         is at least 1 character and at most 255 characters long.
-        
+
         Parameters:
             codesherlock_config (dict): Parsed contents of codesherlock.yaml; must include a
                 `target_branches` key whose value is an iterable of branch name strings.
@@ -345,9 +345,9 @@ class TestCodeSherlockConfigIntegration:
     ):
         """
         Assert that the configuration includes critical characteristics required for financial projects.
-        
+
         Checks that the `preferred_characteristics` list contains the following required values: "Input Validation", "Exception Handling", and "Monitoring and Logging". Fails the test if any of these characteristics are missing.
-        
+
         Parameters:
             codesherlock_config (dict): Parsed contents of codesherlock.yaml as a dictionary.
         """
@@ -372,9 +372,9 @@ class TestCodeSherlockConfigDocumentation:
     def test_config_has_inline_documentation(self, codesherlock_config_path: Path):
         """
         Ensure the configuration file contains inline comment documentation.
-        
+
         Asserts that the file at `codesherlock_config_path` contains at least three lines that begin with `#`.
-        
+
         Parameters:
             codesherlock_config_path (Path): Path to the codesherlock.yaml file being validated.
         """
