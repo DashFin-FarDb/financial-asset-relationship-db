@@ -562,9 +562,7 @@ class TestErrorHandling:
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
         mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        mock_graph_instance.get_3d_visualization_data = mock_graph.get_3d_visualization_data
 
         response = client.get("/api/metrics")
         assert response.status_code == 500
@@ -652,9 +650,7 @@ class TestAdditionalFields:
                 "book_value",
             ]
             has_equity_field = any(field in additional for field in possible_fields)
-            assert (
-                has_equity_field or len(additional) == 0
-            )  # Either has fields or empty
+            assert has_equity_field or len(additional) == 0  # Either has fields or empty
 
     @staticmethod
     def test_bond_additional_fields(client):
@@ -840,9 +836,7 @@ class TestAuthErrorMessages:
         error_message = str(exc_info.value)
         expected_fragments = ["No user credentials", "ADMIN_USERNAME", "ADMIN_PASSWORD"]
         for fragment in expected_fragments:
-            assert (
-                fragment in error_message or True
-            )  # Conditional on actual implementation
+            assert fragment in error_message or True  # Conditional on actual implementation
 
 
 class TestDatabaseURLFormatting:
@@ -924,8 +918,7 @@ class TestStringConcatenationEdgeCases:
         """Verify that multi-line string literals are properly formatted."""
         # Test a representative multi-line string from the codebase
         test_string = (
-            "No user credentials available. Provide ADMIN_USERNAME "
-            "and ADMIN_PASSWORD or pre-populate the database."
+            "No user credentials available. Provide ADMIN_USERNAME " "and ADMIN_PASSWORD or pre-populate the database."
         )
 
         # Should be continuous text without embedded newlines
