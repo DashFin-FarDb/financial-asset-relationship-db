@@ -66,9 +66,12 @@ def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
          except yaml.YAMLError as e:
              pytest.fail(f"Invalid YAML syntax: {e}")
 
-     def test_config_has_required_fields(self, codesherlock_config: Dict[str, Any]):
-         """
-         Ensure the top-level required fields are present in the Codesherlock configuration.
+class TestCodeSherlockConfigStructure:
+    """Test suite for codesherlock.yaml configuration structure."""
+
+    def test_config_has_required_fields(self, codesherlock_config: Dict[str, Any]):
+        """
+        Ensure the top-level required fields are present in the Codesherlock configuration.
 
          Parameters:
              codesherlock_config (Dict[str, Any]): Parsed contents of `codesherlock.yaml` as a mapping.
