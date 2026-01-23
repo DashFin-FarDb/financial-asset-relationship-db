@@ -244,9 +244,9 @@ class TestVisualizeMetrics:
         bar_trace = fig1.data[0]
         num_classes = len(bar_trace.x)
 
-        assert (
-            num_classes >= 2
-        ), "Should have at least 2 asset classes in populated graph"
+        assert num_classes >= 2, (
+            "Should have at least 2 asset classes in populated graph"
+        )
         assert len(bar_trace.y) == num_classes, "Should have count for each class"
 
     @staticmethod
@@ -274,9 +274,9 @@ class TestVisualizeMetrics:
         # Verify zero impact is handled correctly
         bar_trace = fig3.data[0]
         assert len(bar_trace.y) > 0, "Should have impact scores"
-        assert 0.0 in bar_trace.y or any(
-            abs(score) < 0.01 for score in bar_trace.y
-        ), "Should include zero impact"
+        assert 0.0 in bar_trace.y or any(abs(score) < 0.01 for score in bar_trace.y), (
+            "Should include zero impact"
+        )
 
     @staticmethod
     def test_figure_return_types(empty_graph):

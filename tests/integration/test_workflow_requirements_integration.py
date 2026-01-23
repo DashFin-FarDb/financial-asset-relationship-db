@@ -165,9 +165,9 @@ class TestPyYAMLAvailability:
             with open(workflow_file, "r") as f:
                 try:
                     content = yaml.safe_load(f)
-                    assert isinstance(
-                        content, dict
-                    ), f"{workflow_file.name} should parse to a dictionary"
+                    assert isinstance(content, dict), (
+                        f"{workflow_file.name} should parse to a dictionary"
+                    )
                 except yaml.YAMLError as e:
                     pytest.fail(f"PyYAML failed to parse {workflow_file.name}: {e}")
 
@@ -200,9 +200,9 @@ class TestRequirementsMatchWorkflowNeeds:
         requirements = parse_requirements(REQUIREMENTS_FILE)
         package_names = [pkg.lower() for pkg, _ in requirements]
 
-        assert (
-            "pytest" in package_names
-        ), "pytest must be in requirements-dev.txt as workflows run pytest for testing"
+        assert "pytest" in package_names, (
+            "pytest must be in requirements-dev.txt as workflows run pytest for testing"
+        )
 
     @staticmethod
     def test_has_required_dev_tools():
@@ -216,9 +216,9 @@ class TestRequirementsMatchWorkflowNeeds:
         essential_tools = ["pytest", "flake8", "black", "mypy"]
 
         for tool in essential_tools:
-            assert (
-                tool in package_names
-            ), f"{tool} should be in requirements-dev.txt for code quality and testing"
+            assert tool in package_names, (
+                f"{tool} should be in requirements-dev.txt for code quality and testing"
+            )
 
     @staticmethod
     def test_requirements_support_python_version_in_workflow():
@@ -252,6 +252,6 @@ class TestRequirementsMatchWorkflowNeeds:
                 major = int(version_parts[0])
                 minor = int(version_parts[1])
 
-                assert (major > 3) or (
-                    major == 3 and minor >= 8
-                ), f"Workflow uses Python {python_version}, but requires 3.8+ for modern tooling"
+                assert (major > 3) or (major == 3 and minor >= 8), (
+                    f"Workflow uses Python {python_version}, but requires 3.8+ for modern tooling"
+                )

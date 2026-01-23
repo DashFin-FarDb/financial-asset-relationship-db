@@ -118,12 +118,12 @@ class TestFormulaicVisualizer:
         ]
 
         for category in expected_categories:
-            assert (
-                category in visualizer.color_scheme
-            ), f"Color scheme should include {category}"
-            assert isinstance(
-                visualizer.color_scheme[category], str
-            ), f"Color for {category} should be a string"
+            assert category in visualizer.color_scheme, (
+                f"Color scheme should include {category}"
+            )
+            assert isinstance(visualizer.color_scheme[category], str), (
+                f"Color for {category} should be a string"
+            )
 
     @staticmethod
     def test_create_formula_dashboard_with_full_data(
@@ -301,9 +301,9 @@ class TestFormulaicVisualizer:
         node_trace = node_traces[-1]
         assert len(node_trace.x) > 0, "Should have node x coordinates"
         assert len(node_trace.y) > 0, "Should have node y coordinates"
-        assert len(node_trace.x) == len(
-            node_trace.y
-        ), "Should have matching x and y coordinates"
+        assert len(node_trace.x) == len(node_trace.y), (
+            "Should have matching x and y coordinates"
+        )
 
     @staticmethod
     def test_create_correlation_network_edge_colors(visualizer):
@@ -525,6 +525,6 @@ class TestFormulaicVisualizer:
         # Average should be (0.9 + 0.7) / 2 = 0.8
         assert len(r_squared_trace.y) > 0
         avg_value = r_squared_trace.y[0]
-        assert (
-            abs(avg_value - 0.8) < 0.01
-        ), "Should correctly calculate average R-squared"
+        assert abs(avg_value - 0.8) < 0.01, (
+            "Should correctly calculate average R-squared"
+        )

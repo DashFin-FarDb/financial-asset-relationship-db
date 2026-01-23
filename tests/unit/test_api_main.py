@@ -603,9 +603,7 @@ def test_cors_headers_present(cors_client):
     assert response.status_code == status.HTTP_200_OK  # nosec B101
 
     # CORS middleware should echo the allowed origin and include credentials header.
-    assert (
-        response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN
-    )  # nosec B101
+    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN  # nosec B101
     assert response.headers["access-control-allow-credentials"] == "true"  # nosec B101
 
 
@@ -617,9 +615,7 @@ def test_cors_rejects_disallowed_origin(cors_client):
     # Endpoint still responds, but CORS headers should not be set for disallowed origins.
     assert response.status_code == status.HTTP_200_OK  # nosec B101
     assert "access-control-allow-origin" not in response.headers  # nosec B101
-    assert (
-        response.headers.get("access-control-allow-origin", "") != disallowed_origin
-    )  # nosec B101
+    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin  # nosec B101
 
 
 @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})

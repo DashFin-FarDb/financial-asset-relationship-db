@@ -298,9 +298,9 @@ class TestFormulaicdAnalyzer:
 
         # Assert
         assert len(strongest) <= 5, "Should return at most 5 correlations"
-        assert all(
-            c["correlation"] < 1.0 for c in strongest
-        ), "Should exclude self-correlations"
+        assert all(c["correlation"] < 1.0 for c in strongest), (
+            "Should exclude self-correlations"
+        )
 
         # Check that results are sorted by correlation strength
         correlations = [c["correlation"] for c in strongest]
@@ -319,9 +319,9 @@ class TestFormulaicdAnalyzer:
             assert "asset_count" in stats
             assert "avg_price" in stats
             assert "price_range" in stats
-            assert (
-                stats["asset_count"] >= 2
-            ), "Sector stats should only include sectors with 2+ assets"
+            assert stats["asset_count"] >= 2, (
+                "Sector stats should only include sectors with 2+ assets"
+            )
 
     @staticmethod
     def test_calculate_asset_class_relationships(analyzer, populated_graph):
@@ -638,9 +638,9 @@ class TestEdgeCases:
         strongest = analyzer._find_strongest_correlations(correlation_matrix, {})
 
         # Assert
-        assert (
-            len(strongest) == 0
-        ), "Should return empty list when no cross-correlations exist"
+        assert len(strongest) == 0, (
+            "Should return empty list when no cross-correlations exist"
+        )
 
     @staticmethod
     def test_sector_relationships_with_single_asset_sectors(analyzer, populated_graph):
@@ -664,9 +664,9 @@ class TestEdgeCases:
         sector_stats = analyzer._calculate_sector_relationships(populated_graph)
 
         # Assert
-        assert (
-            "Aerospace" not in sector_stats
-        ), "Sectors with only one asset should be excluded"
+        assert "Aerospace" not in sector_stats, (
+            "Sectors with only one asset should be excluded"
+        )
 
     @staticmethod
     def test_calculate_avg_correlation_strength_with_no_relationships(
@@ -698,6 +698,6 @@ class TestEdgeCases:
         analyzer.analyze_graph(populated_graph)
 
         # Assert
-        assert (
-            len(analyzer.formulas) == initial_length
-        ), "Should not modify analyzer's formulas list"
+        assert len(analyzer.formulas) == initial_length, (
+            "Should not modify analyzer's formulas list"
+        )

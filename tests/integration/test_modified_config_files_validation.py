@@ -59,9 +59,9 @@ class TestPRAgentConfigChanges:
         """Verify context chunking configuration has been removed."""
         # Should not have context configuration
         if "agent" in config_data:
-            assert (
-                "context" not in config_data["agent"]
-            ), "Context chunking config should be removed in v1.0.0"
+            assert "context" not in config_data["agent"], (
+                "Context chunking config should be removed in v1.0.0"
+            )
 
     def test_no_fallback_strategies(self, config_data: Dict[str, Any]):
         """
@@ -84,9 +84,9 @@ class TestPRAgentConfigChanges:
         required_sections = ["agent", "monitoring", "actions", "quality"]
 
         for section in required_sections:
-            assert (
-                section in config_data
-            ), f"Required section '{section}' missing from config"
+            assert section in config_data, (
+                f"Required section '{section}' missing from config"
+            )
 
     def test_no_complex_token_management(self, config_data: Dict[str, Any]):
         """
@@ -268,9 +268,9 @@ class TestDeletedFilesImpact:
                 content = f.read()
 
             for deleted_ref in deleted_refs:
-                assert (
-                    deleted_ref not in content
-                ), f"{workflow_file.name} still references deleted file: {deleted_ref}"
+                assert deleted_ref not in content, (
+                    f"{workflow_file.name} still references deleted file: {deleted_ref}"
+                )
 
 
 class TestRequirementsDevChanges:
@@ -291,9 +291,9 @@ class TestRequirementsDevChanges:
         with open(req_dev_path, "r") as f:
             content = f.read().lower()
 
-        assert (
-            "pyyaml" in content or "yaml" in content
-        ), "PyYAML should be in requirements-dev.txt"
+        assert "pyyaml" in content or "yaml" in content, (
+            "PyYAML should be in requirements-dev.txt"
+        )
 
     def test_no_tiktoken_requirement(self, req_dev_path: Path):
         """
@@ -305,9 +305,9 @@ class TestRequirementsDevChanges:
             content = f.read().lower()
 
         # tiktoken should not be required anymore
-        assert (
-            "tiktoken" not in content
-        ), "tiktoken should be removed (no longer needed without context chunking)"
+        assert "tiktoken" not in content, (
+            "tiktoken should be removed (no longer needed without context chunking)"
+        )
 
     def test_essential_dev_dependencies_present(self, req_dev_path: Path):
         """Verify essential development dependencies are present."""
@@ -317,9 +317,9 @@ class TestRequirementsDevChanges:
         essential_deps = ["pytest", "pyyaml"]
 
         for dep in essential_deps:
-            assert (
-                dep in content
-            ), f"Essential dev dependency '{dep}' missing from requirements-dev.txt"
+            assert dep in content, (
+                f"Essential dev dependency '{dep}' missing from requirements-dev.txt"
+            )
 
 
 class TestGitignoreChanges:
@@ -345,9 +345,9 @@ class TestGitignoreChanges:
         with open(gitignore_path, "r") as f:
             content = f.read()
 
-        assert (
-            "codacy.instructions.md" in content
-        ), "codacy.instructions.md should be in .gitignore"
+        assert "codacy.instructions.md" in content, (
+            "codacy.instructions.md should be in .gitignore"
+        )
 
     @staticmethod
     def test_test_artifacts_not_ignored(gitignore_path: Path):
@@ -361,9 +361,9 @@ class TestGitignoreChanges:
 
         # junit.xml should not be specifically ignored (removed from gitignore)
         # This allows test results to be tracked if needed
-        assert (
-            "test_*.db" not in content
-        ), "Test database patterns should not be in gitignore"
+        assert "test_*.db" not in content, (
+            "Test database patterns should not be in gitignore"
+        )
 
     @staticmethod
     def test_standard_ignores_present(gitignore_path: Path):
@@ -379,9 +379,9 @@ class TestGitignoreChanges:
         ]
 
         for pattern in standard_patterns:
-            assert (
-                pattern in content
-            ), f"Standard ignore pattern '{pattern}' should be in .gitignore"
+            assert pattern in content, (
+                f"Standard ignore pattern '{pattern}' should be in .gitignore"
+            )
 
 
 class TestCodacyInstructionsChanges:
@@ -438,7 +438,7 @@ class TestCodacyInstructionsChanges:
             content = f.read()
 
         # Critical rules should be preserved
-        assert (
-            "codacy_cli_analyze" in content
-        ), "Critical Codacy CLI analyze rule should be present"
+        assert "codacy_cli_analyze" in content, (
+            "Critical Codacy CLI analyze rule should be present"
+        )
         assert "CRITICAL" in content, "Critical sections should be marked"
