@@ -54,7 +54,7 @@ class TestCodeSherlockConfigFile:
       Asserts that the file at `codesherlock_config_path` loads to a non - None mapping(dict) and fails the test on YAML syntax errors.
 
        Parameters:
-            codesherlock_config_path(Path): Path to the codesherlock.yaml file in the repository root.
+            codesherlock_config_path (Path): Path to the codesherlock.yaml file in the repository root.
         """
         try:
             with codesherlock_config_path.open("r") as f:
