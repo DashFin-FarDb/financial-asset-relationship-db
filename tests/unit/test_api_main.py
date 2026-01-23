@@ -836,9 +836,7 @@ class TestAuthErrorMessages:
         error_message = str(exc_info.value)
         expected_fragments = ["No user credentials", "ADMIN_USERNAME", "ADMIN_PASSWORD"]
         for fragment in expected_fragments:
-            assert (
-                fragment in error_message or True
-            )  # Conditional on actual implementation
+            assert fragment in error_message or True  # Conditional on actual implementation
 
 
 class TestDatabaseURLFormatting:
@@ -920,8 +918,7 @@ class TestStringConcatenationEdgeCases:
         """Verify that multi-line string literals are properly formatted."""
         # Test a representative multi-line string from the codebase
         test_string = (
-            "No user credentials available. Provide ADMIN_USERNAME "
-            "and ADMIN_PASSWORD or pre-populate the database."
+            "No user credentials available. Provide ADMIN_USERNAME " "and ADMIN_PASSWORD or pre-populate the database."
         )
 
         # Should be continuous text without embedded newlines

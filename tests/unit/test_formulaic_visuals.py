@@ -499,9 +499,7 @@ class TestFormulaicVisualizer:
         # Average should be (0.9 + 0.7) / 2 = 0.8
         assert len(r_squared_trace.y) > 0
         avg_value = r_squared_trace.y[0]
-        assert abs(avg_value - 0.8) < 0.01, (
-            "Should correctly calculate average R-squared"
-        )
+        assert abs(avg_value - 0.8) < 0.01, "Should correctly calculate average R-squared"
 
 
 class TestFormulaicVisualsStringFormatting:
@@ -550,9 +548,7 @@ class TestFormulaicVisualsStringFormatting:
                 assert colors is not None
                 assert len(colors) > 0
 
-    def test_correlation_network_position_calculation(
-        self, sample_empirical_relationships
-    ):
+    def test_correlation_network_position_calculation(self, sample_empirical_relationships):
         """Verify correlation network position calculations are correct."""
         import math
 
@@ -561,9 +557,7 @@ class TestFormulaicVisualsStringFormatting:
         visualizer = FormulaicVisualizer()
 
         # Get strongest correlations
-        strongest_correlations = sample_empirical_relationships.get(
-            "strongest_correlations", []
-        )
+        strongest_correlations = sample_empirical_relationships.get("strongest_correlations", [])
         assert isinstance(strongest_correlations, list) and all(
             isinstance(corr, dict) for corr in strongest_correlations
         ), "Invalid correlation data"
@@ -579,17 +573,12 @@ class TestFormulaicVisualsStringFormatting:
             if n_assets > 0:
                 # Calculate positions (circular layout)
                 angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
-                positions = {
-                    asset: (math.cos(angle), math.sin(angle))
-                    for asset, angle in zip(assets, angles)
-                }
+                positions = {asset: (math.cos(angle), math.sin(angle)) for asset, angle in zip(assets, angles)}
 
                 # Verify positions are on unit circle
                 for asset, (x, y) in positions.items():
                     distance = math.sqrt(x**2 + y**2)
-                    assert abs(distance - 1.0) < 0.001, (
-                        f"Position for {asset} not on unit circle"
-                    )
+                    assert abs(distance - 1.0) < 0.001, f"Position for {asset} not on unit circle"
 
     def test_metric_comparison_chart_handles_empty_categories(self):
         """Verify metric comparison chart handles empty category data gracefully."""
@@ -624,10 +613,7 @@ class TestFormulaicAnalysisStringConcatenation:
             name="Test Formula",
             formula="X = Y + Z",
             latex=r"X = Y + Z",
-            description=(
-                "This is a test formula that demonstrates "
-                "proper handling of multi-line string literals"
-            ),
+            description=("This is a test formula that demonstrates " "proper handling of multi-line string literals"),
             variables={"X": "Result", "Y": "Input 1", "Z": "Input 2"},
             example_calculation="Example: 1 + 2 = 3",
             category="Test",

@@ -338,9 +338,7 @@ class TestBearerWorkflowComments:
                 has_bearer_link = True
                 break
 
-        assert has_bearer_link, (
-            "Workflow should reference Bearer documentation via a Bearer-hosted URL"
-        )
+        assert has_bearer_link, "Workflow should reference Bearer documentation via a Bearer-hosted URL"
 
     @staticmethod
     def test_has_inline_comments(bearer_workflow_raw):
