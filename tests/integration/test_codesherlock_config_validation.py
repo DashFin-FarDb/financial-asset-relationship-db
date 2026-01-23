@@ -357,8 +357,9 @@ class TestCodeSherlockConfigIntegration:
         self, codesherlock_config: Dict[str, Any]
     ):
         """
-        Validate that each branch name in the configuration meets project constraints for length.
+        Verify that configured branch names meet length constraints.
 
+        Ensures that all branch names are between 1 and 255 characters long.
         Parameters:
             codesherlock_config (dict): Parsed codesherlock.yaml mapping; must contain a "target_branches" list of branch name strings.
         """
