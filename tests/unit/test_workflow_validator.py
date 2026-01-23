@@ -19,7 +19,6 @@ import pytest
 
 from src.workflow_validator import WorkflowValidator
 from workflow_validator import ValidationResult, validate_workflow
-from workflow_validator import ValidationResult, validate_workflow
 
 # Ensure src is on path BEFORE imports
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
