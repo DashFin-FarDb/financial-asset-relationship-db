@@ -575,7 +575,8 @@ class FinancialAssetApp:
                     gr.Markdown(AppConstants.DOC_MARKDOWN)
 
                 with gr.Tab("📊 Formulaic Analysis"):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                         ## Mathematical Relationships & Formulas
 
                         This section extracts and visualizes mathematical
@@ -583,7 +584,8 @@ class FinancialAssetApp:
                         It includes fundamental financial ratios,
                         correlation patterns, valuation models, and empirical
                         relationships derived from the asset database.
-                        """)
+                        """
+                    )
 
                     with gr.Row():
                         with gr.Column(scale=2):

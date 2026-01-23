@@ -149,7 +149,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             "Expected knowledge type for repo_engineer_lead"
         )
 
-    @staticmethod
+    @ staticmethod
     def test_frontmatter_version_field(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that version field is valid."""
         assert "version" in repo_engineer_frontmatter
@@ -182,7 +182,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
                 "repo_engineer_lead should not have triggers as per documentation"
             )
 
-    @staticmethod
+    @ staticmethod
     def test_body_content_not_empty(repo_engineer_body: str):
         """Test that body content is not empty."""
         assert len(repo_engineer_body.strip()) > 0

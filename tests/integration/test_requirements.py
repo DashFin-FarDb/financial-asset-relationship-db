@@ -128,9 +128,9 @@ class TestRequirementsFileFormat:
             for i, line in enumerate(file_lines)
             if line.rstrip("\n") != line.rstrip()
         ]
-        assert (
-            len(lines_with_trailing) == 0
-        ), f"Lines with trailing whitespace: {lines_with_trailing}"
+        assert len(lines_with_trailing) == 0, (
+            f"Lines with trailing whitespace: {lines_with_trailing}"
+        )
 
     @staticmethod
     def test_ends_with_newline(file_content: str):
@@ -227,17 +227,17 @@ class TestVersionSpecifications:
                 # Split compound version specs (e.g., ">=1.0,<2.0")
                 for spec in ver_spec.split(","):
                     spec = spec.strip()
-                    assert version_pattern.match(
-                        spec
-                    ), f"Invalid version spec '{spec}' for package '{pkg}'"
+                    assert version_pattern.match(spec), (
+                        f"Invalid version spec '{spec}' for package '{pkg}'"
+                    )
 
     def test_zipp_security_version(self, requirements: List[Tuple[str, str]]):
         """Test that zipp has the security-required minimum version."""
         zipp_specs = [ver for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_specs) > 0, "zipp should be present for security fix"
-        assert zipp_specs[0].startswith(
-            ">=3.19"
-        ), f"zipp should be >=3.19.1, got {zipp_specs[0]}"
+        assert zipp_specs[0].startswith(">=3.19"), (
+            f"zipp should be >=3.19.1, got {zipp_specs[0]}"
+        )
 
     def test_uses_minimum_versions(self, requirements: List[Tuple[str, str]]):
         """Test that most packages use >= for version specifications."""
@@ -261,9 +261,9 @@ class TestVersionSpecifications:
             assert len(pkg_lines) > 0, f"Package {pkg} not found in file"
             # Check if there's a comment on the same line or nearby
             has_comment = any("#" in line for line in pkg_lines)
-            assert (
-                has_comment
-            ), f"Exact pin for {pkg} should have a comment explaining why"
+            assert has_comment, (
+                f"Exact pin for {pkg} should have a comment explaining why"
+            )
 
 
 class TestPackageConsistency:
@@ -337,9 +337,9 @@ class TestFileOrganization:
     def test_reasonable_file_size(file_lines: List[str]):
         """Test that file size is reasonable (not too large)."""
         # Production requirements should typically be under 100 lines
-        assert (
-            len(file_lines) < 200
-        ), f"Requirements file is too large: {len(file_lines)} lines"
+        assert len(file_lines) < 200, (
+            f"Requirements file is too large: {len(file_lines)} lines"
+        )
 
     @staticmethod
     def test_has_comments_for_sections(file_lines: List[str]):
@@ -371,9 +371,9 @@ class TestSecurityAndCompliance:
         zipp_entries = [
             (pkg, ver) for pkg, ver in requirements if pkg.lower() == "zipp"
         ]
-        assert (
-            len(zipp_entries) == 1
-        ), "zipp security pin should be present exactly once"
+        assert len(zipp_entries) == 1, (
+            "zipp security pin should be present exactly once"
+        )
         pkg, ver = zipp_entries[0]
         assert ver == ">=3.19.1", f"zipp version should be >=3.19.1, got {ver}"
 
@@ -394,9 +394,9 @@ class TestSecurityAndCompliance:
         assert "#" in zipp_line, "zipp line should have a comment"
         comment = zipp_line.split("#", 1)[1].lower()
         security_keywords = ["security", "vulnerability", "snyk", "pinned"]
-        assert any(
-            keyword in comment for keyword in security_keywords
-        ), f"zipp comment should mention security/vulnerability, got: {comment}"
+        assert any(keyword in comment for keyword in security_keywords), (
+            f"zipp comment should mention security/vulnerability, got: {comment}"
+        )
 
     @staticmethod
     def test_no_known_vulnerable_versions(requirements: List[Tuple[str, str]]):
@@ -447,9 +447,9 @@ class TestEdgeCases:
         # All returned entries should have valid package names
         for pkg, _ in requirements:
             assert len(pkg) > 0, "Package name should not be empty"
-            assert (
-                pkg.strip() == pkg
-            ), f"Package name should not have leading/trailing whitespace: '{pkg}'"
+            assert pkg.strip() == pkg, (
+                f"Package name should not have leading/trailing whitespace: '{pkg}'"
+            )
 
 
 class TestComprehensiveValidation:
@@ -466,9 +466,9 @@ class TestComprehensiveValidation:
         """Test that critical packages have version specifications."""
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         # Allow some packages without versions, but production deps should mostly be pinned
-        assert (
-            len(packages_without_versions) <= len(requirements) * 0.2
-        ), f"Too many packages without versions: {packages_without_versions}"
+        assert len(packages_without_versions) <= len(requirements) * 0.2, (
+            f"Too many packages without versions: {packages_without_versions}"
+        )
 
     @staticmethod
     def test_version_consistency(requirements: List[Tuple[str, str]]):
@@ -487,9 +487,9 @@ class TestComprehensiveValidation:
         if version_styles:
             max_style = max(version_styles.values(), key=len)
             total_versioned = sum(len(v) for v in version_styles.values())
-            assert (
-                len(max_style) >= total_versioned * 0.6
-            ), "Version specifications should be consistent in style"
+            assert len(max_style) >= total_versioned * 0.6, (
+                "Version specifications should be consistent in style"
+            )
 
     @staticmethod
     def test_transitive_dependencies_documented(requirements: List[Tuple[str, str]]):
@@ -503,6 +503,6 @@ class TestComprehensiveValidation:
         for line in lines:
             if any(indicator in line.lower() for indicator in transitive_indicators):
                 # If mentioning transitive/indirect, should have a comment
-                assert (
-                    "#" in line
-                ), f"Transitive dependency line should have comment: {line}"
+                assert "#" in line, (
+                    f"Transitive dependency line should have comment: {line}"
+                )

@@ -47,6 +47,6 @@ class TestDocumentationSections:
 
     def test_has_sufficient_sections(self, section_headers: List[str]):
         """Test that document has sufficient number of sections."""
-        assert (
-            len(section_headers) >= 5
-        ), f"Document should have at least 5 major sections, found {len(section_headers)}"
+        assert len(section_headers) >= 5, (
+            f"Document should have at least 5 major sections, found {len(section_headers)}"
+        )
