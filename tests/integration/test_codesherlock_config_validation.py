@@ -143,6 +143,9 @@ class TestCodeSherlockConfigContent:
         Check that each entry in preferred_characteristics is a non-empty string.
 
         Asserts that every characteristic is an instance of `str` and has length greater than zero.
+
+        Parameters:
+            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
         """
         for characteristic in codesherlock_config["preferred_characteristics"]:
             assert isinstance(characteristic, str), (
