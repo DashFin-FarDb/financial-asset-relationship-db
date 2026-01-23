@@ -17,12 +17,12 @@ from typing import Iterable
 
 import pytest
 
-from src.workflow_validator import WorkflowValidator
-from workflow_validator import ValidationResult, validate_workflow
-
 # Ensure src is on path BEFORE imports
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+from workflow_validator import ValidationResult, validate_workflow
+from src.workflow_validator import WorkflowValidator
 
 
 # ---------------------------------------------------------------------------
