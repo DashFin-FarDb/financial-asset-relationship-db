@@ -57,7 +57,7 @@ class TestCodeSherlockConfigFile:
             codesherlock_config_path(Path): Path to the codesherlock.yaml file in the repository root.
         """
         try:
-            with open(codesherlock_config_path, "r") as f:
+            with codesherlock_config_path.open("r") as f:
                 config = yaml.safe_load(f)
             assert config is not None, "Config should not be None"
             assert isinstance(config, dict), "Config should be a dictionary"
@@ -124,18 +124,18 @@ class TestCodeSherlockConfigContent:
         """
         Verify that all target branches are non - empty strings.
 
-        Asserts that every entry in `target_branches` is a Python `str` and has length greater than zero.
-        """
+    def test_target_branches_are_strings(
+        self, codesherlock_config: Dict[str, Any]
+    ) -> None:
         for branch in codesherlock_config["target_branches"]:
-            assert isinstance(branch, str), f"Branch '{branch}' should be a string"
-            assert len(branch) > 0, "Branch name should not be empty"
+            assert isinstance(branch, str)
+            assert branch
 
-    def test_target_branches_no_duplicates(self, codesherlock_config: Dict[str, Any]):
-        """Verify that target_branches contains no duplicates."""
+    def test_target_branches_no_duplicates(
+        self, codesherlock_config: Dict[str, Any]
+    ) -> None:
         branches = codesherlock_config["target_branches"]
-        assert len(branches) == len(set(branches)), (
-            "target_branches should not contain duplicates"
-        )
+        assert len(branches) == len(set(branches))
 
     def test_preferred_characteristics_are_strings(
         self, codesherlock_config: Dict[str, Any]
@@ -149,25 +149,19 @@ class TestCodeSherlockConfigContent:
             codesherlock_config(Dict[str, Any]): Parsed codesherlock.yaml configuration.
         """
         for characteristic in codesherlock_config["preferred_characteristics"]:
-            assert isinstance(characteristic, str), (
-                f"Characteristic '{characteristic}' should be a string"
-            )
-            assert len(characteristic) > 0, "Characteristic name should not be empty"
+            assert isinstance(characteristic, str)
+            assert characteristic
 
     def test_preferred_characteristics_no_duplicates(
         self, codesherlock_config: Dict[str, Any]
-    ):
-        """Verify that preferred_characteristics contains no duplicates."""
-        characteristics = codesherlock_config["preferred_characteristics"]
-        assert len(characteristics) == len(set(characteristics)), (
-            "preferred_characteristics should not contain duplicates"
-        )
+    ) -> None:
+        chars = codesherlock_config["preferred_characteristics"]
+        assert len(chars) == len(set(chars))
 
     def test_preferred_characteristics_valid_values(
         self, codesherlock_config: Dict[str, Any]
-    ):
-        """Verify that preferred characteristics contain valid values."""
-        valid_characteristics = {
+    ) -> None:
+        valid = {
             "Modularity",
             "Resource Utilization",
             "Exception Handling",
@@ -176,22 +170,14 @@ class TestCodeSherlockConfigContent:
             "Code Injection",
             "Input Validation",
         }
-
         for characteristic in codesherlock_config["preferred_characteristics"]:
-            assert characteristic in valid_characteristics, (
-                f"Characteristic '{characteristic}' is not a recognized value. "
-                f"Valid values: {valid_characteristics}"
-            )
+            assert characteristic in valid
 
     def test_additional_instructions_optional(
         self, codesherlock_config: Dict[str, Any]
-    ):
-        """Verify that additional_instructions field is optional."""
-        # Should not fail if additional_instructions is missing
+    ) -> None:
         if "additional_instructions" in codesherlock_config:
-            assert isinstance(codesherlock_config["additional_instructions"], list), (
-                "additional_instructions should be a list when present"
-            )
+            assert isinstance(codesherlock_config["additional_instructions"], list)
 
 
 class TestCodeSherlockConfigBestPractices:
@@ -278,9 +264,13 @@ class TestCodeSherlockConfigBestPractices:
             "At least one common development branch (main, master, develop) should be included"
         )
 
+    def test_yaml_indentation_consistency(self, codesherlock_config_path: Path) -> None:
+        lines = codesherlock_config_path.read_text().splitlines()
+        for i, line in enumerate(lines, 1):
+            if line.startswith(" "):
+                spaces = len(line) - len(line.lstrip())
+                assert spaces % 2 == 0, f"Line {i} has invalid indentation"
 
-class TestCodeSherlockConfigEdgeCases:
-    """Test suite for edge cases in codesherlock.yaml configuration."""
 
     def test_config_handles_whitespace_in_values(
         self, codesherlock_config: Dict[str, Any]
@@ -352,9 +342,12 @@ class TestCodeSherlockConfigEdgeCases:
                     f"Line {i} should use 2-space indentation"
                 )
 
+    def test_config_has_comments(self, codesherlock_config_path: Path) -> None:
+        lines = codesherlock_config_path.read_text().splitlines()
+        assert sum(1 for line in lines if line.strip().startswith("#")) >= 3
 
-class TestCodeSherlockConfigIntegration:
-    """Integration tests for codesherlock.yaml with the project."""
+    def test_sections_are_documented(self, codesherlock_config_path: Path) -> None:
+        lines = codesherlock_config_path.read_text().splitlines()
 
     def test_config_aligns_with_project_branches(
         self, codesherlock_config: Dict[str, Any]
