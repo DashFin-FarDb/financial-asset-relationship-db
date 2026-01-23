@@ -246,11 +246,13 @@ class TestCodeSherlockConfigBestPractices:
     def test_reasonable_number_of_characteristics(
         self, codesherlock_config: Dict[str, Any]
     ):
-        """
-        Ensure the `preferred_characteristics` list contains between 3 and 10 items inclusive.
+        """Validate the number of preferred characteristics in the configuration.
+
+        Ensures the `preferred_characteristics` list contains a reasonable number of
+        items (between 3 and 10 inclusive) to keep reviews focused and manageable.
 
         Parameters:
-            codesherlock_config (dict): Parsed codesherlock.yaml configuration.
+            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
         """
         num_characteristics = len(codesherlock_config["preferred_characteristics"])
         assert 3 <= num_characteristics <= 10, (
