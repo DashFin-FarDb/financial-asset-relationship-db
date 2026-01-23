@@ -15,9 +15,8 @@ import yaml
 @pytest.fixture
 def codesherlock_config_path() -> Path:
     """
-"""Integration tests for validating the Codesherlock configuration file."""
-
-    """Return the path to the repository's codesherlock.yaml file."""
+    Return the path to the repository's codesherlock.yaml file.
+    """
     repo_root = Path(__file__).parent.parent.parent
     return repo_root / "codesherlock.yaml"
 
