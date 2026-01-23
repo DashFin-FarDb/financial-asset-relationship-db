@@ -35,7 +35,7 @@ def workflow_content() -> str:
 
 
 @pytest.fixture(scope="module")
-def workflow_config(workflow_content: str) -> Dict[str, Any]:
+def workflow_config(workflow_content: str) -> dict[str, Any]:
     """Parse YAML content once for the module."""
     try:
         return yaml.safe_load(workflow_content)
@@ -44,7 +44,7 @@ def workflow_config(workflow_content: str) -> Dict[str, Any]:
 
 
 @pytest.fixture(scope="module")
-def scan_job(workflow_config: Dict[str, Any]) -> Dict[str, Any]:
+def scan_job(workflow_config: dict[str, Any]) -> dict[str, Any]:
     """Get the vulnerabilities-scan job configuration."""
     jobs = workflow_config.get("jobs", {})
     if "vulnerabilities-scan" not in jobs:
@@ -53,7 +53,7 @@ def scan_job(workflow_config: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @pytest.fixture(scope="module")
-def job_steps(scan_job: Dict[str, Any]) -> List[Dict[str, Any]]:
+def job_steps(scan_job: dict[str, Any]) -> List[dict[str, Any]]:
     """Get the list of steps from the scan job."""
     return scan_job.get("steps", [])
 
@@ -62,17 +62,17 @@ def job_steps(scan_job: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def get_steps_by_action(
-    steps: List[Dict[str, Any]], action_substring: str
-) -> List[Dict[str, Any]]:
+    steps: List[dict[str, Any]], action_substring: str
+) -> List[dict[str, Any]]:
     """
     Select steps whose `uses` field contains the given action substring (case-insensitive).
 
     Parameters:
-        steps (List[Dict[str, Any]]): Sequence of step dictionaries (as parsed from a workflow job).
+        steps (List[dict[str, Any]]): Sequence of step dictionaries (as parsed from a workflow job).
         action_substring (str): Substring to search for inside each step's `uses` value; matching is case-insensitive.
 
     Returns:
-        List[Dict[str, Any]]: Subset of `steps` whose `uses` value includes `action_substring`.
+        List[dict[str, Any]]: Subset of `steps` whose `uses` value includes `action_substring`.
     """
     return [
         s
@@ -101,7 +101,7 @@ class TestFileBasics:
 class TestWorkflowStructure:
     """Test the structure and required fields."""
 
-    def test_has_valid_name(self, workflow_config: Dict[str, Any]):
+    def test_has_valid_name(self, workflow_config: dict[str, Any]):
         """
         Assert the workflow defines a non-empty name string and that the name contains "debricked".
 
@@ -114,7 +114,7 @@ class TestWorkflowStructure:
         )
         assert "debricked" in name.lower(), "Workflow name should mention 'Debricked'"
 
-    def test_triggers_events(self, workflow_config: Dict[str, Any]):
+    def test_triggers_events(self, workflow_config: dict[str, Any]):
         """
         Verify the workflow defines the required GitHub Actions triggers: `pull_request`, `push`, and `workflow_dispatch`.
 
@@ -145,7 +145,7 @@ class TestWorkflowStructure:
             "Workflow should support 'workflow_dispatch' for manual testing"
         )
 
-    def test_triggers_target_main_branch(self, workflow_config: Dict[str, Any]):
+    def test_triggers_target_main_branch(self, workflow_config: dict[str, Any]):
         """Test that PR and push triggers target the main branch."""
         triggers = workflow_config.get("on", {})
 
@@ -162,7 +162,7 @@ class TestWorkflowStructure:
                 push_branches = triggers["push"].get("branches", [])
                 assert "main" in push_branches, "push should target 'main' branch"
 
-    def test_job_permissions(self, scan_job: Dict[str, Any]):
+    def test_job_permissions(self, scan_job: dict[str, Any]):
         """Test that job has explicit permissions (Principle of Least Privilege)."""
         permissions = scan_job.get("permissions", {})
         assert permissions, "Job must have explicit permissions defined"
@@ -171,12 +171,12 @@ class TestWorkflowStructure:
             "Job requires 'security-events: write'"
         )
 
-    def test_runs_on_ubuntu(self, scan_job: Dict[str, Any]):
+    def test_runs_on_ubuntu(self, scan_job: dict[str, Any]):
         """
         Assert that the provided job configuration targets an Ubuntu runner.
 
         Parameters:
-            scan_job (Dict[str, Any]): The workflow job dictionary to inspect (e.g., the `vulnerabilities-scan` job).
+            scan_job (dict[str, Any]): The workflow job dictionary to inspect (e.g., the `vulnerabilities-scan` job).
         """
         runs_on = scan_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), "Job should run on Ubuntu runner"
@@ -186,13 +186,13 @@ class TestStepsConfiguration:
     """Test specific steps in the workflow."""
 
     @staticmethod
-    def test_checkout_step_exists(job_steps: List[Dict[str, Any]]):
+    def test_checkout_step_exists(job_steps: List[dict[str, Any]]):
         """Test that checkout action exists."""
         checkout_steps = get_steps_by_action(job_steps, "actions/checkout")
         assert checkout_steps, "Job must include actions/checkout step"
 
     @staticmethod
-    def test_checkout_step_version_pinned(job_steps: List[Dict[str, Any]]):
+    def test_checkout_step_version_pinned(job_steps: List[dict[str, Any]]):
         """
         Verify that each actions/checkout step specifies a pinned version.
 
@@ -201,7 +201,7 @@ class TestStepsConfiguration:
         - a tag indicating v4 or later (e.g., `v4`, `v5.x`).
 
         Parameters:
-            job_steps (List[Dict[str, Any]]): List of job step mappings parsed from the workflow YAML.
+            job_steps (List[dict[str, Any]]): List of job step mappings parsed from the workflow YAML.
         """
         checkout_steps = get_steps_by_action(job_steps, "actions/checkout")
         assert checkout_steps, "Job must include actions/checkout step"
@@ -223,13 +223,13 @@ class TestStepsConfiguration:
                 )
 
     @staticmethod
-    def test_debricked_action_exists(job_steps: List[Dict[str, Any]]):
+    def test_debricked_action_exists(job_steps: List[dict[str, Any]]):
         """Test that Debricked action exists."""
         debricked_steps = get_steps_by_action(job_steps, "debricked")
         assert debricked_steps, "Job must include Debricked action"
 
     @staticmethod
-    def test_debricked_action_version_pinned(job_steps: List[Dict[str, Any]]):
+    def test_debricked_action_version_pinned(job_steps: List[dict[str, Any]]):
         """
         Verify Debricked action steps specify a pinned version.
 
@@ -261,7 +261,7 @@ class TestSecretHandling:
     """Test proper handling of secrets."""
 
     @staticmethod
-    def test_debricked_token_configuration(job_steps: List[Dict[str, Any]]):
+    def test_debricked_token_configuration(job_steps: List[dict[str, Any]]):
         """Test DEBRICKED_TOKEN injection via secrets."""
         debricked_steps = get_steps_by_action(job_steps, "debricked")
         assert debricked_steps, (
@@ -408,12 +408,12 @@ class TestVersionConsistency:
     """Test version consistency and supply-chain security."""
 
     @staticmethod
-    def test_actions_use_consistent_versioning(job_steps: List[Dict[str, Any]]):
+    def test_actions_use_consistent_versioning(job_steps: List[dict[str, Any]]):
         """
         Validate that every workflow step which declares a `uses` reference pins an action to either a 40-character SHA or a semantic version tag.
 
         Parameters:
-            job_steps (List[Dict[str, Any]]): List of job step dictionaries parsed from the workflow; steps that include a `uses` key are checked.
+            job_steps (List[dict[str, Any]]): List of job step dictionaries parsed from the workflow; steps that include a `uses` key are checked.
 
         Raises:
             AssertionError: If a `uses` entry does not include a version (missing `@`) or if the version is not a 40-character hex SHA or a `v`-prefixed semantic version tag containing digits.
@@ -439,12 +439,12 @@ class TestVersionConsistency:
                 )
 
     @staticmethod
-    def test_no_mutable_tags(job_steps: List[Dict[str, Any]]):
+    def test_no_mutable_tags(job_steps: List[dict[str, Any]]):
         """
         Ensure workflow steps do not use mutable action tags such as 'latest', 'main', 'master', or 'develop'.
 
         Parameters:
-            job_steps (List[Dict[str, Any]]): List of job step mappings parsed from the workflow; each step may include a `uses` field with an action reference (e.g., `owner/repo@v1`).
+            job_steps (List[dict[str, Any]]): List of job step mappings parsed from the workflow; each step may include a `uses` field with an action reference (e.g., `owner/repo@v1`).
         """
         mutable_tags = ["latest", "main", "master", "develop"]
 
@@ -470,7 +470,7 @@ class TestComplianceWithIssue492:
         )
 
     @staticmethod
-    def test_supports_all_required_triggers(workflow_config: Dict[str, Any]):
+    def test_supports_all_required_triggers(workflow_config: dict[str, Any]):
         """Test that workflow supports all required trigger events."""
         triggers = workflow_config.get("on", {})
 
@@ -489,14 +489,14 @@ class TestComplianceWithIssue492:
         )
 
     @staticmethod
-    def test_uses_github_secrets(job_steps: List[Dict[str, Any]]):
+    def test_uses_github_secrets(job_steps: List[dict[str, Any]]):
         """
         Verify that any step invoking the Debricked action supplies DEBRICKED_TOKEN via GitHub Secrets.
 
         This test inspects the provided job steps and asserts that each Debricked-related step defines the `DEBRICKED_TOKEN` environment variable referencing `secrets.DEBRICKED_TOKEN`, preventing hardcoded tokens.
 
         Parameters:
-            job_steps (List[Dict[str, Any]]): The list of job step dictionaries to inspect.
+            job_steps (List[dict[str, Any]]): The list of job step dictionaries to inspect.
         """
         debricked_steps = get_steps_by_action(job_steps, "debricked")
 
@@ -509,7 +509,7 @@ class TestComplianceWithIssue492:
                 )
 
     @staticmethod
-    def test_minimal_permissions(scan_job: Dict[str, Any]):
+    def test_minimal_permissions(scan_job: dict[str, Any]):
         """Test that workflow uses minimal required permissions."""
         permissions = scan_job.get("permissions", {})
 
@@ -528,7 +528,7 @@ class TestComplianceWithIssue492:
                 pytest.fail(f"Unnecessary write permission granted: {perm}")
 
     @staticmethod
-    def test_ubuntu_runner(scan_job: Dict[str, Any]):
+    def test_ubuntu_runner(scan_job: dict[str, Any]):
         """Test that workflow uses a supported Ubuntu runner."""
         runs_on = scan_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), (

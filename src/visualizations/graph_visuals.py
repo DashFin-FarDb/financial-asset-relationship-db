@@ -60,14 +60,14 @@ def _is_valid_color_format(color: str) -> bool:
     return True
 
 
-def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
+def _build_asset_id_index(asset_ids: List[str]) -> dict[str, int]:
     """Build O(1) lookup index for asset IDs to their positions."""
     return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
 
 
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
-) -> Dict[Tuple[str, str, str], float]:
+) -> dict[Tuple[str, str, str], float]:
     """Build optimized relationship index for O(1) lookups with pre-filtering and
     thread safety.
 
@@ -199,7 +199,7 @@ def _build_relationship_index(
 
     # Build index outside the lock (no shared state access)
     # This minimizes the time the lock is held
-    relationship_index: Dict[Tuple[str, str, str], float] = {}
+    relationship_index: dict[Tuple[str, str, str], float] = {}
 
     # Process relationships with comprehensive error handling
     for source_id, rels in relevant_relationships.items():
@@ -404,8 +404,8 @@ def _prepare_layout_config(
     num_assets: int,
     relationship_traces: List[go.Scatter3d],
     base_title: str = "Financial Asset Network",
-    layout_options: Optional[Dict[str, object]] = None,
-) -> Tuple[str, Dict[str, object]]:
+    layout_options: Optional[dict[str, object]] = None,
+) -> Tuple[str, dict[str, object]]:
     """Prepare layout configuration with dynamic title based on visualization data.
 
     This function separates layout configuration logic from the main
@@ -446,7 +446,7 @@ def _add_directional_arrows_to_figure(
 def _configure_3d_layout(
     fig: go.Figure,
     title: str,
-    options: Optional[Dict[str, object]] = None,
+    options: Optional[dict[str, object]] = None,
 ) -> None:
     """Configure the 3D layout for the figure.
 
@@ -704,13 +704,13 @@ def _validate_visualization_data(
 def _collect_and_group_relationships(
     graph: AssetRelationshipGraph,
     asset_ids: Iterable[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
-) -> Dict[Tuple[str, bool], List[dict]]:
+    relationship_filters: Optional[dict[str, bool]] = None,
+) -> dict[Tuple[str, bool], List[dict]]:
     """Collect and group relationships with directionality info in a single pass."""
     relationship_index = _build_relationship_index(graph, asset_ids)
 
     processed_pairs: Set[Tuple[str, str, str]] = set()
-    relationship_groups: Dict[Tuple[str, bool], List[dict]] = defaultdict(list)
+    relationship_groups: dict[Tuple[str, bool], List[dict]] = defaultdict(list)
 
     for (source_id, target_id, rel_type), strength in relationship_index.items():
         if (
@@ -749,7 +749,7 @@ def _collect_and_group_relationships(
 def _build_edge_coordinates_optimized(
     relationships: List[dict],
     positions: np.ndarray,
-    asset_id_index: Dict[str, int],
+    asset_id_index: dict[str, int],
 ) -> Tuple[List[Optional[float]], List[Optional[float]], List[Optional[float]]]:
     """Build edge coordinate lists for relationships using optimized O(1) lookups."""
     num_edges = len(relationships)
@@ -829,7 +829,7 @@ def _create_trace_for_group(
     is_bidirectional: bool,
     relationships: List[dict],
     positions: np.ndarray,
-    asset_id_index: Dict[str, int],
+    asset_id_index: dict[str, int],
 ) -> go.Scatter3d:
     """Create a single trace for a relationship group with optimized performance."""
     edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(
@@ -855,7 +855,7 @@ def _create_relationship_traces(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: List[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
+    relationship_filters: Optional[dict[str, bool]] = None,
 ) -> List[go.Scatter3d]:
     """Create separate traces for different types of relationships
     with enhanced visibility.
@@ -996,7 +996,7 @@ def _create_directional_arrows(
     return [arrow_trace]
 
 
-def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
+def _validate_filter_parameters(filter_params: dict[str, bool]) -> None:
     """Validate that all filter parameters are boolean values.
 
     Args:
@@ -1035,7 +1035,7 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
 
 
 def _validate_relationship_filters(
-    relationship_filters: Optional[Dict[str, bool]],
+    relationship_filters: Optional[dict[str, bool]],
 ) -> None:
     """Validate relationship filter dictionary structure and values.
 

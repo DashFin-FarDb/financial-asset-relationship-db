@@ -136,12 +136,12 @@ class TestWorkflowSchemaCompliance:
 
     @staticmethod
     @pytest.fixture
-    def all_workflows() -> List[Dict[str, Any]]:
+    def all_workflows() -> List[dict[str, Any]]:
         """
         Collects and parses all YAML workflow files found in .github/workflows.
 
         Returns:
-            workflows (List[Dict[str, Any]]): A list of dictionaries, each containing:
+            workflows (List[dict[str, Any]]): A list of dictionaries, each containing:
                 - 'path' (Path): Path to the workflow file.
                 - 'content' (Any): Parsed YAML content as returned by yaml.safe_load (typically a dict, or None if the file is empty).
         """

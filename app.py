@@ -465,7 +465,7 @@ class FinancialAssetApp:
             summary (Dict): Summary metrics with expected keys:
                 - "avg_r_squared" (float): average R² across identified formulas.
                 - "empirical_data_points" (int): number of empirical observations used.
-                - "formula_categories" (Dict[str, int]): mapping of category name to formula count.
+                - "formula_categories" (dict[str, int]): mapping of category name to formula count.
                 - "key_insights" (List[str]): short insight strings to highlight.
             analysis_results (Dict): Full analysis output with expected keys:
                 - "formulas" (List): list of identified formulas (only the count is used).

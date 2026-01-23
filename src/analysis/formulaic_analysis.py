@@ -15,7 +15,7 @@ class Formula:
     formula: str
     latex: str
     description: str
-    variables: Dict[str, str]  # variable_name -> description
+    variables: dict[str, str]  # variable_name -> description
     example_calculation: str
     category: str
     r_squared: float = 0.0  # Correlation strength if applicable
@@ -27,7 +27,7 @@ class FormulaicdAnalyzer:
     def __init__(self):
         self.formulas: List[Formula] = []
 
-    def analyze_graph(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
+    def analyze_graph(self, graph: AssetRelationshipGraph) -> dict[str, Any]:
         """
         Analyze an asset relationship graph to extract, categorize, and summarize financial formulas.
 
@@ -294,7 +294,7 @@ class FormulaicdAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Extracts standard risk–return formulas found in the asset graph (for example, Sharpe Ratio and volatility).
+        Extracts standard risk-return formulas found in the asset graph (for example, Sharpe Ratio and volatility).
 
         Parameters:
             graph (AssetRelationshipGraph): AssetRelationshipGraph to inspect for return and risk data used to populate examples and metadata.
@@ -404,7 +404,7 @@ class FormulaicdAnalyzer:
         """
         Extract cross-asset relationship formulas present in the provided asset graph.
 
-        This method identifies and returns formulas that describe relationships between different asset classes detected in the graph, such as triangular currency exchange relationships and inverse commodity–currency relationships for commodity-exporting economies.
+        This method identifies and returns formulas that describe relationships between different asset classes detected in the graph, such as triangular currency exchange relationships and inverse commodity-currency relationships for commodity-exporting economies.
 
         Parameters:
             graph (AssetRelationshipGraph): The asset relationship graph used to detect currencies, commodities, and their interconnections.
@@ -459,7 +459,7 @@ class FormulaicdAnalyzer:
 
     def _calculate_empirical_relationships(
         self, graph: AssetRelationshipGraph
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Compute empirical relationships from the provided asset relationship graph.
 
@@ -484,7 +484,7 @@ class FormulaicdAnalyzer:
             return min(0.75, total_relationships / len(graph.assets) * 0.1)
         return 0.5
 
-    def _categorize_formulas(self, formulas: List[Formula]) -> Dict[str, int]:
+    def _categorize_formulas(self, formulas: List[Formula]) -> dict[str, int]:
         """
         Group formulas by their category and count how many formulas appear in each category.
 
@@ -492,7 +492,7 @@ class FormulaicdAnalyzer:
                 formulas (List[Formula]): List of Formula objects to categorize.
 
         Returns:
-                category_counts (Dict[str, int]): Mapping from category name to the number of formulas in that category.
+                category_counts (dict[str, int]): Mapping from category name to the number of formulas in that category.
         """
         categories = {}
         for formula in formulas:
@@ -502,7 +502,7 @@ class FormulaicdAnalyzer:
 
     def _generate_formula_summary(
         self, formulas: List[Formula], empirical_relationships: Dict
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create an aggregate summary of analyzed formulas together with metrics derived from empirical relationship data.
 
@@ -511,10 +511,10 @@ class FormulaicdAnalyzer:
             empirical_relationships (Dict): Empirical data produced from the graph analysis. Expected to include a "correlation_matrix" key whose value is a mapping of asset-pair identifiers to numeric correlation values.
 
         Returns:
-            summary (Dict[str, Any]): Dictionary with the following keys:
+            summary (dict[str, Any]): Dictionary with the following keys:
                 - total_formulas (int): Number of formulas in `formulas`.
                 - avg_r_squared (float): Average `r_squared` value across `formulas` (0 if `formulas` is empty).
-                - formula_categories (Dict[str, int]): Counts of formulas grouped by category.
+                - formula_categories (dict[str, int]): Counts of formulas grouped by category.
                 - empirical_data_points (int): Number of entries in the `correlation_matrix` (0 if absent).
                 - key_insights (List[str]): Short, high-level observations derived from the formulas and empirical data.
         """

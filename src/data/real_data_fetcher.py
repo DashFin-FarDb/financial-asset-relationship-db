@@ -458,7 +458,7 @@ def _enum_to_value(value: Any) -> Any:
     return value.value if isinstance(value, Enum) else value
 
 
-def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
+def _serialize_dataclass(obj: Any) -> dict[str, Any]:
     """
     Serialize a dataclass instance into a JSON-friendly dictionary
     with enum values converted.
@@ -467,7 +467,7 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
         obj (Any): A dataclass instance (e.g. Asset or subclass) to serialize.
 
     Returns:
-        Dict[str, Any]: A mapping of field names to values where
+        dict[str, Any]: A mapping of field names to values where
         Enum members are replaced by their `.value`, and an additional
         "__type__" key containing the dataclass's class name.
     """
@@ -477,7 +477,7 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     return serialized
 
 
-def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
+def _serialize_graph(graph: AssetRelationshipGraph) -> dict[str, Any]:
     """
     Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
 
@@ -485,7 +485,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
         graph (AssetRelationshipGraph): Graph to serialize.
 
     Returns:
-        Dict[str, Any]: Dictionary with the following keys:
+        dict[str, Any]: Dictionary with the following keys:
             - assets: list of serialized asset objects
             - regulatory_events: list of serialized regulatory event objects
             - relationships: mapping from source id to a list of outgoing relationships,
@@ -523,12 +523,12 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     }
 
 
-def _deserialize_asset(data: Dict[str, Any]) -> Asset:
+def _deserialize_asset(data: dict[str, Any]) -> Asset:
     """
     Deserialize a dictionary representation of an asset back into an Asset instance.
 
     Parameters:
-        data (Dict[str, Any]): Dictionary containing asset data
+        data (dict[str, Any]): Dictionary containing asset data
             with a "__type__" key indicating the asset subclass.
 
     Returns:
@@ -552,7 +552,7 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     return cls(**data)
 
 
-def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
+def _deserialize_event(data: dict[str, Any]) -> RegulatoryEvent:
     """
     Reconstructs a RegulatoryEvent from its serialized dictionary
     representation.
@@ -560,7 +560,7 @@ def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
     the RegulatoryActivity enum before creating the RegulatoryEvent instance.
 
     Parameters:
-        data (Dict[str, Any]): Serialized event payload — must include an
+        data (dict[str, Any]): Serialized event payload — must include an
             "event_type" value compatible with RegulatoryActivity and the
             remaining fields accepted by RegulatoryEvent.
 
@@ -572,12 +572,12 @@ def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
     return RegulatoryEvent(**data)
 
 
-def _deserialize_graph(payload: Dict[str, Any]) -> AssetRelationshipGraph:
+def _deserialize_graph(payload: dict[str, Any]) -> AssetRelationshipGraph:
     """
     Reconstructs an AssetRelationshipGraph from a serialized payload.
 
     Parameters:
-        payload (Dict[str, Any]): Serialized graph payload containing the keys
+        payload (dict[str, Any]): Serialized graph payload containing the keys
             "assets", "regulatory_events", "relationships", etc.
 
     Returns:

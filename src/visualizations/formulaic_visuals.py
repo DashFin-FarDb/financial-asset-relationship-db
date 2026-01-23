@@ -23,7 +23,7 @@ class FormulaicVisualizer:
             "Cross-Asset": "#F7DC6F",
         }
 
-    def create_formula_dashboard(self, analysis_results: Dict[str, Any]) -> go.Figure:
+    def create_formula_dashboard(self, analysis_results: dict[str, Any]) -> go.Figure:
         """Create a comprehensive dashboard showing all formulaic relationships"""
         formulas = analysis_results.get("formulas", [])
         empirical_relationships = analysis_results.get("empirical_relationships", {})
@@ -396,7 +396,7 @@ class FormulaicVisualizer:
 
     @staticmethod
     def create_correlation_network(
-        empirical_relationships: Dict[str, Any],
+        empirical_relationships: dict[str, Any],
     ) -> go.Figure:
         """
         Render a network visualization of the strongest asset correlations.
@@ -518,12 +518,12 @@ class FormulaicVisualizer:
         return fig
 
     @staticmethod
-    def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
+    def create_metric_comparison_chart(analysis_results: dict[str, Any]) -> go.Figure:
         """
         Produce a bar chart of average R-squared grouped by formula category.
 
         Parameters:
-            analysis_results (Dict[str, Any]): Analysis payload expected to contain a "formulas" key
+            analysis_results (dict[str, Any]): Analysis payload expected to contain a "formulas" key
                 mapping to an iterable of formula-like objects. Each formula object must expose
                 `category` (str) and `r_squared` (numeric) attributes or keys.
 

@@ -14,14 +14,14 @@ class AssetRelationshipGraph:
 
 
     Attributes:
-        assets: Dict[str, Asset] mapping asset IDs to Asset objects.
-        relationships: Dict[source_id, List[(target_id, rel_type, strength)]]
+        assets: dict[str, Asset] mapping asset IDs to Asset objects.
+        relationships: dict[source_id, List[(target_id, rel_type, strength)]]
         regulatory_events: List[RegulatoryEvent]
     """
 
     def __init__(self, database_url: str | None = None) -> None:
-        self.assets: Dict[str, Asset] = {}
-        self.relationships: Dict[str, List[Tuple[str, str, float]]] = {}
+        self.assets: dict[str, Asset] = {}
+        self.relationships: dict[str, List[Tuple[str, str, float]]] = {}
         self.regulatory_events: List[RegulatoryEvent] = []
         self.database_url = database_url
 
@@ -122,7 +122,7 @@ class AssetRelationshipGraph:
             ):
                 self.relationships[target_id].append((source_id, rel_type, strength))
 
-    def calculate_metrics(self) -> Dict[str, Any]:
+    def calculate_metrics(self) -> dict[str, Any]:
         """
         Compute network-level metrics and distributions for the asset relationship graph.
 
@@ -131,9 +131,9 @@ class AssetRelationshipGraph:
                 total_assets (int): Effective number of assets (max of explicitly added assets and any asset IDs appearing in relationships).
                 total_relationships (int): Total number of relationship entries across all sources.
                 average_relationship_strength (float): Mean strength of all relationships (0.0 if none).
-                relationship_density (float): Percentage (0–100) of actual relationships relative to possible directed edges among effective assets.
-                relationship_distribution (Dict[str, int]): Counts of relationships keyed by relationship type.
-                asset_class_distribution (Dict[str, int]): Counts of assets keyed by their asset_class value.
+                relationship_density (float): Percentage (0-100) of actual relationships relative to possible directed edges among effective assets.
+                relationship_distribution (dict[str, int]): Counts of relationships keyed by relationship type.
+                asset_class_distribution (dict[str, int]): Counts of assets keyed by their asset_class value.
                 top_relationships (List[Tuple[str, str, str, float]]): Up to 10 relationships sorted by strength descending; each tuple is (source_id, target_id, rel_type, strength).
                 regulatory_event_count (int): Number of stored regulatory events.
         """

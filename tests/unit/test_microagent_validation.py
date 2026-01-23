@@ -38,7 +38,7 @@ class TestMicroagentValidation:
         return files
 
     @staticmethod
-    def parse_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
+    def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
         """
         Parse YAML frontmatter from markdown content.
 
@@ -87,7 +87,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             return f.read()
 
     @pytest.fixture
-    def repo_engineer_frontmatter(self, repo_engineer_content: str) -> Dict[str, Any]:
+    def repo_engineer_frontmatter(self, repo_engineer_content: str) -> dict[str, Any]:
         """Parse and return frontmatter from repo_engineer_lead.md."""
         frontmatter, _ = self.parse_frontmatter(repo_engineer_content)
         return frontmatter
@@ -117,7 +117,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert len(body) > 0
 
     @staticmethod
-    def test_frontmatter_has_required_fields(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_has_required_fields(repo_engineer_frontmatter: dict[str, Any]):
         """Test that frontmatter contains all required fields."""
         required_fields = ["name", "type", "version", "agent"]
         for field in required_fields:
@@ -126,7 +126,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             )
 
     @staticmethod
-    def test_frontmatter_name_field(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_name_field(repo_engineer_frontmatter: dict[str, Any]):
         """Test that name field is valid."""
         assert "name" in repo_engineer_frontmatter
         name = repo_engineer_frontmatter["name"]
@@ -135,7 +135,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert name == "repo_engineer_lead", "Name should match filename convention"
 
     @staticmethod
-    def test_frontmatter_type_field(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_type_field(repo_engineer_frontmatter: dict[str, Any]):
         """Test that type field is valid."""
         assert "type" in repo_engineer_frontmatter
         agent_type = repo_engineer_frontmatter["type"]
@@ -150,7 +150,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         )
 
     @staticmethod
-    def test_frontmatter_version_field(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_version_field(repo_engineer_frontmatter: dict[str, Any]):
         """
         Verify the frontmatter contains a "version" field that is a string and matches semantic version format `x.y.z`.
 
@@ -165,7 +165,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         )
 
     @staticmethod
-    def test_frontmatter_agent_field(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_agent_field(repo_engineer_frontmatter: dict[str, Any]):
         """Test that agent field is valid."""
         assert "agent" in repo_engineer_frontmatter
         agent = repo_engineer_frontmatter["agent"]
@@ -176,7 +176,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert agent in valid_agents, f"Agent should be one of {valid_agents}"
 
     @staticmethod
-    def test_frontmatter_no_triggers(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_no_triggers(repo_engineer_frontmatter: dict[str, Any]):
         """Test that triggers field is absent (as documented in the content)."""
         # The content states "the microagent doesn't have any triggers"
         # So triggers should either be absent or empty

@@ -58,7 +58,7 @@ class PRStatus:
     mergeable_state: str
 
     # Reviews & Checks
-    review_stats: Dict[str, int]
+    review_stats: dict[str, int]
     open_thread_count: int
     check_runs: List[CheckRunInfo]
 

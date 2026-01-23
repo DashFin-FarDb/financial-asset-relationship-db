@@ -81,7 +81,7 @@ class TestWorkflowSecretHandling:
         For every occurrence of a `secrets.<name>` reference in a workflow's raw content, this test checks the containing line does not use `echo`, `print`, or `printf` to output the secret reference. On failure, the assertion message includes the workflow path and offending line number.
 
         Parameters:
-            all_workflows (List[Dict[str, Any]]): Iterable of workflow objects where each object contains at least
+            all_workflows (List[dict[str, Any]]): Iterable of workflow objects where each object contains at least
                 a "raw" key with the workflow YAML as a string and a "path" key for reporting.
 
         Raises:
@@ -112,7 +112,7 @@ class TestWorkflowSecretHandling:
         Ensure workflow steps that use actions/upload-artifact do not reference repository secrets.
 
         Parameters:
-            all_workflows (List[Dict[str, Any]]): Iterable of workflow objects where each item contains
+            all_workflows (List[dict[str, Any]]): Iterable of workflow objects where each item contains
                 a 'content' mapping (parsed YAML) and a 'path' string indicating the workflow file.
 
         Raises:

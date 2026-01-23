@@ -43,7 +43,8 @@ class TestWorkflowYAMLSyntax:
 
 def get_graph() -> AssetRelationshipGraph:
     """
-    Provide the global AssetRelationshipGraph, initialising it on first access if necessary.
+    Provide the global AssetRelationshipGraph, initialising it on first access
+    if necessary.
 
     Returns:
         AssetRelationshipGraph: The global graph instance.
@@ -59,10 +60,12 @@ def get_graph() -> AssetRelationshipGraph:
 
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
-    Set the module-level graph to the provided AssetRelationshipGraph and clear any configured graph factory.
+    Set the module-level graph to the provided AssetRelationshipGraph and clear
+    any configured graph factory.
 
     Parameters:
-        graph_instance (AssetRelationshipGraph): Graph instance to use as the global graph.
+        graph_instance (AssetRelationshipGraph): Graph instance to use as the
+            global graph.
     """
     global graph, graph_factory
     with graph_lock:
@@ -74,10 +77,15 @@ def set_graph_factory(factory: Optional[Callable[[], AssetRelationshipGraph]]) -
     """
     Set the callable used to construct the global AssetRelationshipGraph on demand.
 
-    If `factory` is a callable it will be used to build the graph the next time `get_graph()` is called. Passing `None` clears any configured factory. In all cases the current global graph instance is cleared so a new graph will be created on next access; this operation is performed in a thread-safe manner.
+    If `factory` is a callable it will be used to build the graph the next time
+    `get_graph()` is called. Passing `None` clears any configured factory. In all
+    cases the current global graph instance is cleared so a new graph will be
+    created on next access; this operation is performed in a thread-safe manner.
 
     Parameters:
-        factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns an `AssetRelationshipGraph`, or `None` to remove the factory and force recreation from defaults.
+        factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument
+            callable that returns an `AssetRelationshipGraph`, or `None` to remove
+            the factory and force recreation from defaults.
     """
     global graph, graph_factory
     with graph_lock:
@@ -87,7 +95,8 @@ def set_graph_factory(factory: Optional[Callable[[], AssetRelationshipGraph]]) -
 
 def reset_graph() -> None:
     """
-    Clear the global graph and any configured factory so the graph will be reinitialised on next access.
+    Clear the global graph and any configured factory so the graph will be
+    reinitialised on next access.
 
     This removes any existing graph instance and clears the graph factory.
     """
@@ -96,9 +105,16 @@ def reset_graph() -> None:
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Construct the asset relationship graph using the configured factory or environment-backed data sources.
+    Construct the asset relationship graph using the configured factory or
+    environment-backed data sources.
 
-    If a `graph_factory` is configured it is invoked. Otherwise, if `GRAPH_CACHE_PATH` is set a real-data graph is created (network access enabled when `USE_REAL_DATA_FETCHER` indicates real data should be used). If `GRAPH_CACHE_PATH` is not set but `USE_REAL_DATA_FETCHER` is true, `REAL_DATA_CACHE_PATH` is consulted to create a real-data graph. If neither real-data path nor real-data mode is available, a sample database graph is returned.
+    If a `graph_factory` is configured it is invoked. Otherwise, if
+    `GRAPH_CACHE_PATH` is set a real-data graph is created (network access
+    enabled when `USE_REAL_DATA_FETCHER` indicates real data should be used).
+    If `GRAPH_CACHE_PATH` is not set but `USE_REAL_DATA_FETCHER` is true,
+    `REAL_DATA_CACHE_PATH` is consulted to create a real-data graph. If neither
+    real-data path nor real-data mode is available, a sample database graph is
+    returned.
 
     Returns:
         AssetRelationshipGraph: The initialized graph instance.
@@ -125,10 +141,12 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 def _should_use_real_data_fetcher() -> bool:
     """
-    Decides whether the application should use the real data fetcher based on the `USE_REAL_DATA_FETCHER` environment variable.
+    Decides whether the application should use the real data fetcher based on
+    the `USE_REAL_DATA_FETCHER` environment variable.
 
     Returns:
-        `True` if `USE_REAL_DATA_FETCHER` is set to a truthy value (`1`, `true`, `yes`, `on`), `False` otherwise.
+        `True` if `USE_REAL_DATA_FETCHER` is set to a truthy value
+        (`1`, `true`, `yes`, `on`), `False` otherwise.
     """
     flag = os.getenv("USE_REAL_DATA_FETCHER", "false")
     return flag.strip().lower() in {"1", "true", "yes", "on"}
@@ -137,9 +155,13 @@ def _should_use_real_data_fetcher() -> bool:
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
     """
-    Manage the application's lifespan by initialising the global graph on startup and logging shutdown.
+    Manage the application's lifespan by initialising the global graph on startup
+    and logging shutdown.
 
-    Initialises the global asset relationship graph before the application begins handling requests; if initialisation fails the exception is re-raised to abort startup. Yields control for the application's running lifetime and logs on shutdown.
+    Initialises the global asset relationship graph before the application begins
+    handling requests; if initialisation fails the exception is re-raised to abort
+    startup. Yields control for the application's running lifetime and logs on
+    shutdown.
 
     Parameters:
         fastapi_app (FastAPI): The FastAPI application instance.
@@ -190,10 +212,12 @@ async def login_for_access_token(
     Create a JWT access token for a user authenticated with a username and password.
 
     Parameters:
-        form_data (OAuth2PasswordRequestForm): Client-submitted credentials (`username` and `password`).
+        form_data (OAuth2PasswordRequestForm): Client-submitted credentials
+            (`username` and `password`).
 
     Returns:
-        dict: Mapping with `access_token` (JWT string) and `token_type` set to `'bearer'`.
+        dict: Mapping with `access_token` (JWT string) and `token_type` set to
+            `'bearer'`.
     """
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     _ = request
@@ -339,7 +363,7 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
     raise HTTPException(status_code=404, detail=f"{resource_type} {asset_id} not found")
 
 
-def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
+def serialize_asset(asset: Any, include_issuer: bool = False) -> dict[str, Any]:
     """
     Serialize an Asset object to a dictionary representation.
 
@@ -402,7 +426,7 @@ class AssetResponse(BaseModel):
     price: float
     market_cap: Optional[float] = None
     currency: str = "USD"
-    additional_fields: Dict[str, Any] = {}
+    additional_fields: dict[str, Any] = {}
 
 
 class RelationshipResponse(BaseModel):
@@ -415,7 +439,7 @@ class RelationshipResponse(BaseModel):
 class MetricsResponse(BaseModel):
     total_assets: int
     total_relationships: int
-    asset_classes: Dict[str, int]
+    asset_classes: dict[str, int]
     avg_degree: float
     max_degree: int
     network_density: float
@@ -423,8 +447,8 @@ class MetricsResponse(BaseModel):
 
 
 class VisualizationDataResponse(BaseModel):
-    nodes: List[Dict[str, Any]]
-    edges: List[Dict[str, Any]]
+    nodes: List[dict[str, Any]]
+    edges: List[dict[str, Any]]
 
 
 @app.get("/")
@@ -433,7 +457,7 @@ async def root():
     Provide basic API metadata and a listing of available endpoints.
 
     Returns:
-        Dict[str, Union[str, Dict[str, str]]]: A mapping containing:
+        dict[str, Union[str, dict[str, str]]]: A mapping containing:
             - "message": short API description string.
             - "version": API version string.
             - "endpoints": dict mapping endpoint keys to their URL paths (e.g., "assets": "/api/assets").

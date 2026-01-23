@@ -69,12 +69,12 @@ class AssetGraphRepository:
         )
         return [self._to_asset_model(record) for record in result]
 
-    def get_assets_map(self) -> Dict[str, Asset]:
+    def get_assets_map(self) -> dict[str, Asset]:
         """
         Map asset IDs to their corresponding Asset dataclass instances.
 
         Returns:
-            assets_map (Dict[str, Asset]): Dictionary mapping each asset's `id` to its Asset instance.
+            assets_map (dict[str, Asset]): Dictionary mapping each asset's `id` to its Asset instance.
         """
 
         assets = self.list_assets()

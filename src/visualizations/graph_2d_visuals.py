@@ -31,7 +31,7 @@ REL_TYPE_COLORS = {
 }
 
 
-def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
+def _create_circular_layout(asset_ids: List[str]) -> dict[str, Tuple[float, float]]:
     """Create circular layout for 2D visualization.
 
     Args:
@@ -55,7 +55,7 @@ def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, floa
     return positions
 
 
-def _create_grid_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
+def _create_grid_layout(asset_ids: List[str]) -> dict[str, Tuple[float, float]]:
     """Create grid layout for 2D visualization.
 
     Args:
@@ -80,8 +80,8 @@ def _create_grid_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
 
 
 def _create_spring_layout_2d(
-    positions_3d: Dict[str, Tuple[float, float, float]], asset_ids: List[str]
-) -> Dict[str, Tuple[float, float]]:
+    positions_3d: dict[str, Tuple[float, float, float]], asset_ids: List[str]
+) -> dict[str, Tuple[float, float]]:
     """Convert 3D spring layout positions to 2D by dropping z-coordinate.
 
     Args:
@@ -107,7 +107,7 @@ def _create_spring_layout_2d(
 
 def _create_2d_relationship_traces(
     graph: AssetRelationshipGraph,
-    positions: Dict[str, Tuple[float, float]],
+    positions: dict[str, Tuple[float, float]],
     asset_ids: List[str],
     show_same_sector: bool = True,
     show_market_cap: bool = True,

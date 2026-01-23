@@ -44,7 +44,7 @@ class ContextChunker:
         Parameters:
             config_path (str): Path to the YAML configuration file (default: ".github/pr-agent-config.yml").
         """
-        self.config: Dict[str, Any] = {}
+        self.config: dict[str, Any] = {}
         cfg_file = Path(config_path)
         if cfg_file.exists():
             try:
@@ -76,7 +76,7 @@ class ContextChunker:
                 "full_diff",
             ],
         )
-        self.priority_map: Dict[str, int] = {
+        self.priority_map: dict[str, int] = {
             name: i for i, name in enumerate(self.priority_order)
         }
         self._encoder: Optional[Any] = None
@@ -90,14 +90,14 @@ class ContextChunker:
                 )
                 self._encoder = None
 
-    def process_context(self, payload: Dict[str, Any]) -> tuple[str, bool]:
+    def process_context(self, payload: dict[str, Any]) -> tuple[str, bool]:
         """
         Processes a PR payload dictionary into a single text string.
 
         Args:
-            payload (Dict[str, Any]): Dictionary containing PR context. Expected keys:
-                - 'reviews': Optional[List[Dict[str, Any]]] — each dict may have a 'body' key (str).
-                - 'files': Optional[List[Dict[str, Any]]] — each dict may have a 'patch' key (str).
+            payload (dict[str, Any]): Dictionary containing PR context. Expected keys:
+                - 'reviews': Optional[List[dict[str, Any]]] — each dict may have a 'body' key (str).
+                - 'files': Optional[List[dict[str, Any]]] — each dict may have a 'patch' key (str).
 
         Returns:
             tuple[str, bool]: A tuple containing:

@@ -18,7 +18,7 @@ class ValidationResult:
         self,
         is_valid: bool,
         errors: List[str],
-        workflow_data: Dict[str, Any],
+        workflow_data: dict[str, Any],
     ):
         """
         Initialize a ValidationResult representing the outcome of validating a
@@ -29,7 +29,7 @@ class ValidationResult:
                 more validation checks failed.
             errors (List[str]): Human-readable error messages describing
                 validation failures; empty when is_valid is True.
-            workflow_data (Dict[str, Any]): The parsed workflow data structure
+            workflow_data (dict[str, Any]): The parsed workflow data structure
                 from the YAML file (may be empty or partial on failure).
         """
         self.is_valid = is_valid

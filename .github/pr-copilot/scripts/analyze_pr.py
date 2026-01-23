@@ -69,18 +69,18 @@ EXTENSION_MAP = {
 class AnalysisData:
     """Container for PR analysis results."""
 
-    file_analysis: Dict[str, Any]
+    file_analysis: dict[str, Any]
     complexity_score: int
     risk_level: str
     scope_issues: List[str]
-    related_issues: List[Dict[str, str]]
+    related_issues: List[dict[str, str]]
     commit_count: int
 
 
 # --- Core Logic ---
 
 
-def load_config() -> Dict[str, Any]:
+def load_config() -> dict[str, Any]:
     """
     Load repository configuration from the YAML config file.
 
@@ -89,7 +89,7 @@ def load_config() -> Dict[str, Any]:
     warning message is written to stderr and an empty dictionary is returned.
 
     Returns:
-        config (Dict[str, Any]): Parsed configuration dictionary, or an empty dict if
+        config (dict[str, Any]): Parsed configuration dictionary, or an empty dict if
         the file is missing or cannot be loaded.
     """
     if not os.path.exists(CONFIG_PATH):
@@ -123,7 +123,7 @@ def categorize_filename(filename: str) -> str:
     return EXTENSION_MAP.get(suffix, "other")
 
 
-def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
+def analyze_pr_files(pr_files_iterable: Any) -> dict[str, Any]:
     """
     Analyze an iterable of pull request file objects and summarize file-level change statistics.
 
@@ -131,7 +131,7 @@ def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
         pr_files_iterable (Iterable): An iterable of objects exposing `filename` (str), `additions` (int), and `deletions` (int).
 
     Returns:
-        Dict[str, Any]: A summary dictionary with the following keys:
+        dict[str, Any]: A summary dictionary with the following keys:
             - "file_count": total number of files processed.
             - "file_categories": mapping of category name to count of files in that category.
             - "total_additions": sum of all additions across files.
@@ -140,9 +140,9 @@ def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
             - "large_files": list of dicts for files with more than 500 changes; each dict contains "filename", "changes", "additions", and "deletions".
             - "has_large_files": `True` if any large files were found, `False` otherwise.
     """
-    categories: Dict[str, int] = defaultdict(int)
+    categories: dict[str, int] = defaultdict(int)
     stats = {"additions": 0, "deletions": 0, "changes": 0}
-    large_files: List[Dict[str, Any]] = []
+    large_files: List[dict[str, Any]] = []
     file_count = 0
 
     for pr_file in pr_files_iterable:
@@ -187,16 +187,16 @@ def calculate_score(value: int, thresholds: List[Tuple[int, int]], default: int)
     return default
 
 
-def assess_complexity(file_data: Dict[str, Any], commit_count: int) -> Tuple[int, str]:
+def assess_complexity(file_data: dict[str, Any], commit_count: int) -> Tuple[int, str]:
     """
     Assess overall PR complexity and map it to a risk level.
 
     Parameters:
-        file_data (Dict[str, Any]): Aggregated file change data with keys:
+        file_data (dict[str, Any]): Aggregated file change data with keys:
             - file_count (int): number of files changed
             - total_changes (int): sum of additions and deletions across files
             - has_large_files (bool): whether any files exceed the large-file threshold
-            - large_files (List[Dict[str, int]]): list of large-file entries (used to compute a penalty)
+            - large_files (List[dict[str, int]]): list of large-file entries (used to compute a penalty)
         commit_count (int): number of commits in the pull request
 
     Returns:
@@ -230,16 +230,16 @@ def assess_complexity(file_data: Dict[str, Any], commit_count: int) -> Tuple[int
 
 
 def find_scope_issues(
-    pr_title: str, file_data: Dict[str, Any], config: Dict[str, Any]
+    pr_title: str, file_data: dict[str, Any], config: dict[str, Any]
 ) -> List[str]:
     """
     Identify scope-related issues in a pull request based on its title and aggregated file-change data.
 
     Parameters:
         pr_title (str): The pull request title to evaluate.
-        file_data (Dict[str, Any]): Aggregated file-change metrics produced by analyze_pr_files(), expected to contain
+        file_data (dict[str, Any]): Aggregated file-change metrics produced by analyze_pr_files(), expected to contain
             'file_count' (int), 'total_changes' (int), and 'file_categories' (mapping of category->count).
-        config (Dict[str, Any]): Configuration dictionary; relevant keys under 'scope' include
+        config (dict[str, Any]): Configuration dictionary; relevant keys under 'scope' include
             'warn_on_long_title', 'max_files_changed', 'max_total_changes', and 'max_file_types_changed'.
 
     Returns:
@@ -279,7 +279,7 @@ def find_scope_issues(
     return issues
 
 
-def find_related_issues(pr_body: Optional[str], repo_url: str) -> List[Dict[str, str]]:
+def find_related_issues(pr_body: Optional[str], repo_url: str) -> List[dict[str, str]]:
     """
     Extract referenced issue numbers and build their issue URLs from a pull request body.
 
@@ -290,7 +290,7 @@ def find_related_issues(pr_body: Optional[str], repo_url: str) -> List[Dict[str,
         repo_url (str): Base repository URL used to construct issue links (e.g., "https://github.com/owner/repo").
 
     Returns:
-        List[Dict[str, str]]: A list of dictionaries with keys `"number"` (issue number as a string) and `"url"` (full issue URL). Duplicate issue references are omitted.
+        List[dict[str, str]]: A list of dictionaries with keys `"number"` (issue number as a string) and `"url"` (full issue URL). Duplicate issue references are omitted.
     """
     if not pr_body:
         return []

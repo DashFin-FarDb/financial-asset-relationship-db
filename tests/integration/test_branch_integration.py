@@ -20,7 +20,7 @@ class TestWorkflowConsistency:
     """Test consistency across all modified workflows."""
 
     @pytest.fixture
-    def all_workflows(self) -> Dict[str, Dict]:
+    def all_workflows(self) -> dict[str, Dict]:
         """
         Load a fixed set of GitHub Actions workflow files and parse each existing file's YAML content.
 

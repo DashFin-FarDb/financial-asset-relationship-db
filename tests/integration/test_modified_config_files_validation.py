@@ -31,7 +31,7 @@ class TestPRAgentConfigChanges:
 
     @pytest.fixture
     @staticmethod
-    def config_data(config_path: Path) -> Dict[str, Any]:
+    def config_data(config_path: Path) -> dict[str, Any]:
         """
         Load and parse the PR Agent YAML configuration file.
 
@@ -39,12 +39,12 @@ class TestPRAgentConfigChanges:
             config_path (Path): Path to the `.github/pr-agent-config.yml` file to read.
 
         Returns:
-            config (Dict[str, Any]): Mapping representing the parsed YAML configuration.
+            config (dict[str, Any]): Mapping representing the parsed YAML configuration.
         """
         with open(config_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_version_is_correct(self, config_data: Dict[str, Any]):
+    def test_version_is_correct(self, config_data: dict[str, Any]):
         """
         Verify the PR agent configuration declares agent.version equal to "1.0.0".
 
@@ -55,7 +55,7 @@ class TestPRAgentConfigChanges:
         assert "version" in config_data["agent"]
         assert config_data["agent"]["version"] == "1.0.0"
 
-    def test_no_context_chunking_config(self, config_data: Dict[str, Any]):
+    def test_no_context_chunking_config(self, config_data: dict[str, Any]):
         """Verify context chunking configuration has been removed."""
         # Should not have context configuration
         if "agent" in config_data:
@@ -63,20 +63,20 @@ class TestPRAgentConfigChanges:
                 "Context chunking config should be removed in v1.0.0"
             )
 
-    def test_no_fallback_strategies(self, config_data: Dict[str, Any]):
+    def test_no_fallback_strategies(self, config_data: dict[str, Any]):
         """
         Ensure the top-level 'limits' mapping in the PR Agent config does not define a 'fallback' key.
 
         If a 'limits' mapping exists in the provided config data, this test fails when that mapping contains the 'fallback' key.
 
         Parameters:
-            config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`.
+            config_data (dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`.
         """
         limits = config_data.get("limits")
         if isinstance(limits, dict):
             assert "fallback" not in limits, "Fallback strategies should be removed"
 
-    def test_basic_sections_present(self, config_data: Dict[str, Any]):
+    def test_basic_sections_present(self, config_data: dict[str, Any]):
         """
         Verify the PR agent YAML contains the top-level sections required by the project.
 
@@ -93,14 +93,14 @@ class TestPRAgentConfigChanges:
                 f"Required section '{section}' missing from config"
             )
 
-    def test_no_complex_token_management(self, config_data: Dict[str, Any]):
+    def test_no_complex_token_management(self, config_data: dict[str, Any]):
         """
         Validate the PR agent configuration does not use complex token-chunking or explicit token limits.
 
         Checks that the configuration text does not contain "chunk_size" and that "max_tokens" is not present unless a `limits.max_execution_time` value exists in the configuration.
 
         Parameters:
-            config_data (Dict[str, Any]): Parsed PR agent configuration data.
+            config_data (dict[str, Any]): Parsed PR agent configuration data.
         """
         config_str = str(config_data)
 
@@ -110,12 +110,12 @@ class TestPRAgentConfigChanges:
             "limits", {}
         ).get("max_execution_time"), "Token management should be simplified"
 
-    def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
+    def test_quality_standards_preserved(self, config_data: dict[str, Any]):
         """
         Validate that the configuration preserves required quality settings for supported languages and Python tooling.
 
         Parameters:
-            config_data (Dict[str, Any]): Parsed YAML configuration for the PR agent.
+            config_data (dict[str, Any]): Parsed YAML configuration for the PR agent.
 
         Details:
             Asserts that the top-level `quality` section contains `python` and `typescript`, and that the Python quality configuration includes a `linter` and a `test_runner` set to `pytest`.

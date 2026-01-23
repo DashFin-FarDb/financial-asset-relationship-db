@@ -22,7 +22,7 @@ class TestPRAgentWorkflowChanges:
 
     @staticmethod
     @pytest.fixture
-    def pr_agent_workflow() -> Dict[str, Any]:
+    def pr_agent_workflow() -> dict[str, Any]:
         """
         Load and parse the .github/workflows/pr-agent.yml workflow file.
 
@@ -124,12 +124,12 @@ class TestPRAgentConfigChanges:
     """Tests for pr-agent-config.yml configuration changes."""
 
     @pytest.fixture
-    def pr_agent_config(self) -> Dict[str, Any]:
+    def pr_agent_config(self) -> dict[str, Any]:
         """
         Load and parse the .github/pr-agent-config.yml file.
 
         Returns:
-            config (Dict[str, Any]): Parsed YAML configuration as a dictionary.
+            config (dict[str, Any]): Parsed YAML configuration as a dictionary.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
@@ -195,7 +195,7 @@ class TestGreetingsWorkflowChanges:
     """Tests for greetings.yml workflow changes."""
 
     @pytest.fixture
-    def greetings_workflow(self) -> Dict[str, Any]:
+    def greetings_workflow(self) -> dict[str, Any]:
         """Load greetings.yml workflow."""
         workflow_path = Path(".github/workflows/greetings.yml")
         with open(workflow_path, "r") as f:
@@ -256,7 +256,7 @@ class TestLabelWorkflowChanges:
     """Tests for label.yml workflow changes."""
 
     @pytest.fixture
-    def label_workflow(self) -> Dict[str, Any]:
+    def label_workflow(self) -> dict[str, Any]:
         """
         Load and parse the label GitHub Actions workflow file.
 
