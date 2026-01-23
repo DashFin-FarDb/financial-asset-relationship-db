@@ -26,16 +26,16 @@ def codesherlock_config_path() -> Path:
 
 
 @pytest.fixture
- def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
+def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
      """
      Load the codesherlock.yaml file and parse it into a dictionary.
 
      Parameters:
-         codesherlock_config_path (Path): Path to the codesherlock.yaml file at the repository root.
+        codesherlock_config_path (Path): Path to the codesherlock.yaml file at the repository root.
 
-     Returns:
+    Returns:
          config (Dict[str, Any]): Parsed YAML content as a dictionary.
-     """
+    """
      with open(codesherlock_config_path, "r") as f:
          return yaml.safe_load(f)
 
