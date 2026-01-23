@@ -149,7 +149,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             "Expected knowledge type for repo_engineer_lead"
         )
 
-    @ staticmethod
+    @staticmethod
     def test_frontmatter_version_field(repo_engineer_frontmatter: Dict[str, Any]):
         """Test that version field is valid."""
         assert "version" in repo_engineer_frontmatter
