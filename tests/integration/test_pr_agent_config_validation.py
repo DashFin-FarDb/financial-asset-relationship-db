@@ -172,9 +172,9 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert (
-                        indent % 2 == 0
-                    ), f"Line {i} has inconsistent indentation: {indent} spaces"
+                    assert indent % 2 == 0, (
+                        f"Line {i} has inconsistent indentation: {indent} spaces"
+                    )
 
 
 class TestPRAgentConfigSecurity:
@@ -441,9 +441,9 @@ class TestPRAgentConfigSecurity:
                 key_l = str(k).lower()
                 new_path = f"{path}.{k}"
                 if any(pat in key_l for pat in sensitive_patterns):
-                    assert (
-                        v in allowed_placeholders
-                    ), f"Potential hardcoded credential at '{new_path}'"
+                    assert v in allowed_placeholders, (
+                        f"Potential hardcoded credential at '{new_path}'"
+                    )
                 scan_for_secrets(v, new_path)
 
         def scan_list(node: list, path: str):
@@ -465,9 +465,9 @@ class TestPRAgentConfigSecurity:
                     key_l = str(k).lower()
                     new_path = f"{path}.{k}" if path else str(k)
                     if any(p in key_l for p in sensitive_patterns):
-                        assert (
-                            v in safe_placeholders
-                        ), f"Potential hardcoded credential at '{new_path}'"
+                        assert v in safe_placeholders, (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
                     check_node(v, new_path)
             elif isinstance(node, list):
                 for idx, item in enumerate(node):

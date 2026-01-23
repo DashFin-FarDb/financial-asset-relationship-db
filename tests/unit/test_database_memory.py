@@ -197,9 +197,9 @@ class TestIsMemoryDb:
         ]
 
         for uri in memory_uris_mode_parameter:
-            assert (
-                database._is_memory_db(uri) is False
-            ), f"Unexpectedly detected as memory DB: {uri}"
+            assert database._is_memory_db(uri) is False, (
+                f"Unexpectedly detected as memory DB: {uri}"
+            )
 
     def test_is_memory_db_case_sensitivity(self, monkeypatch, restore_database_module):
         """Test that _is_memory_db is case-sensitive."""
@@ -615,9 +615,9 @@ class TestUriMemoryDatabaseIntegration:
         ]
 
         for fmt in memory_formats:
-            assert (
-                database._is_memory_db(fmt) is True
-            ), f"Failed to detect {fmt} as memory DB"
+            assert database._is_memory_db(fmt) is True, (
+                f"Failed to detect {fmt} as memory DB"
+            )
 
         non_memory_formats = [
             "/path/to/file.db",
@@ -628,6 +628,6 @@ class TestUriMemoryDatabaseIntegration:
         ]
 
         for fmt in non_memory_formats:
-            assert (
-                database._is_memory_db(fmt) is False
-            ), f"Incorrectly detected {fmt} as memory DB"
+            assert database._is_memory_db(fmt) is False, (
+                f"Incorrectly detected {fmt} as memory DB"
+            )

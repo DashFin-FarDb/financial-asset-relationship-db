@@ -303,7 +303,7 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 **Overview**
 - **PR:** #{pr.number} by @{pr.user.login}
 - **Score:** {data.complexity_score}/100 ({risk_emoji} {data.risk_level})
-- **Changes:** {data.file_analysis['file_count']} files, {data.file_analysis['total_changes']} lines
+- **Changes:** {data.file_analysis["file_count"]} files, {data.file_analysis["total_changes"]} lines
 
 **File Breakdown**
 {cat_str}

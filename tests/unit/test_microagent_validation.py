@@ -121,9 +121,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         """Test that frontmatter contains all required fields."""
         required_fields = ["name", "type", "version", "agent"]
         for field in required_fields:
-            assert (
-                field in repo_engineer_frontmatter
-            ), f"Missing required field: {field}"
+            assert field in repo_engineer_frontmatter, (
+                f"Missing required field: {field}"
+            )
 
     @staticmethod
     def test_frontmatter_name_field(repo_engineer_frontmatter: Dict[str, Any]):
@@ -145,9 +145,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             "action",
             "hybrid",
         ], "Type must be valid microagent type"
-        assert (
-            agent_type == "knowledge"
-        ), "Expected knowledge type for repo_engineer_lead"
+        assert agent_type == "knowledge", (
+            "Expected knowledge type for repo_engineer_lead"
+        )
 
     @staticmethod
     def test_frontmatter_version_field(repo_engineer_frontmatter: Dict[str, Any]):
@@ -156,9 +156,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         version = repo_engineer_frontmatter["version"]
         assert isinstance(version, str)
         # Should match semantic versioning pattern
-        assert re.match(
-            r"^\d+\.\d+\.\d+$$", version
-        ), "Version should follow semver format (x.y.z)"
+        assert re.match(r"^\d+\.\d+\.\d+$$", version), (
+            "Version should follow semver format (x.y.z)"
+        )
 
     @staticmethod
     def test_frontmatter_agent_field(repo_engineer_frontmatter: Dict[str, Any]):
@@ -178,9 +178,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         # So triggers should either be absent or empty
         if "triggers" in repo_engineer_frontmatter:
             triggers = repo_engineer_frontmatter["triggers"]
-            assert (
-                triggers is None or triggers == [] or triggers == ""
-            ), "repo_engineer_lead should not have triggers as per documentation"
+            assert triggers is None or triggers == [] or triggers == "", (
+                "repo_engineer_lead should not have triggers as per documentation"
+            )
 
     @staticmethod
     def test_body_content_not_empty(repo_engineer_body: str):
@@ -208,25 +208,25 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_mentions_pr_handling(repo_engineer_body: str):
         """Test that body mentions PR handling functionality."""
         body_lower = repo_engineer_body.lower()
-        assert any(
-            term in body_lower for term in ["pr", "pull request"]
-        ), "Should mention PR handling"
+        assert any(term in body_lower for term in ["pr", "pull request"]), (
+            "Should mention PR handling"
+        )
 
     @staticmethod
     def test_body_mentions_code_changes(repo_engineer_body: str):
         """Test that body mentions code change capabilities."""
         body_lower = repo_engineer_body.lower()
-        assert (
-            "code changes" in body_lower or "changes" in body_lower
-        ), "Should mention code change capabilities"
+        assert "code changes" in body_lower or "changes" in body_lower, (
+            "Should mention code change capabilities"
+        )
 
     @staticmethod
     def test_body_mentions_documentation(repo_engineer_body: str):
         """Test that body mentions documentation responsibilities."""
         body_lower = repo_engineer_body.lower()
-        assert (
-            "documentation" in body_lower
-        ), "Should mention documentation responsibilities"
+        assert "documentation" in body_lower, (
+            "Should mention documentation responsibilities"
+        )
 
     @staticmethod
     def test_body_mentions_merge_conflicts(repo_engineer_body: str):
@@ -250,9 +250,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_no_malformed_sentences(repo_engineer_body: str):
         """Test that body doesn't have obviously malformed sentences."""
         # Check for multiple spaces in a row (except after periods)
-        assert not re.search(
-            r"[^\.]  +", repo_engineer_body
-        ), "Should not have multiple consecutive spaces (except after periods)"
+        assert not re.search(r"[^\.]  +", repo_engineer_body), (
+            "Should not have multiple consecutive spaces (except after periods)"
+        )
 
     @staticmethod
     def test_content_appropriate_length(repo_engineer_body: str):
@@ -289,9 +289,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         with open(repo_engineer_path, "rb") as f:
             content = f.read()
         # Should not contain Windows line endings
-        assert (
-            b"\r\n" not in content
-        ), "File should use Unix line endings (LF, not CRLF)"
+        assert b"\r\n" not in content, (
+            "File should use Unix line endings (LF, not CRLF)"
+        )
 
     @staticmethod
     def test_encoding_is_utf8(repo_engineer_path: Path):
@@ -315,9 +315,9 @@ class TestAllMicroagents(TestMicroagentValidation):
 
             # Should have frontmatter (after stripping leading whitespace)
             content = content.lstrip()
-            assert re.match(
-                r"^---\s*\n.*?\n---\s*\n", content, re.DOTALL
-            ), f"{file_path.name} should have valid frontmatter"
+            assert re.match(r"^---\s*\n.*?\n---\s*\n", content, re.DOTALL), (
+                f"{file_path.name} should have valid frontmatter"
+            )
 
     def test_all_microagents_have_required_fields(self, microagent_files: List[Path]):
         """Test that all microagent files have required frontmatter fields."""
@@ -330,9 +330,9 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
 
             for field in required_fields:
-                assert (
-                    field in frontmatter
-                ), f"{file_path.name} is missing required field: {field}"
+                assert field in frontmatter, (
+                    f"{file_path.name} is missing required field: {field}"
+                )
 
     def test_all_microagents_have_unique_names(self, microagent_files: List[Path]):
         """Test that all microagent names are unique."""
@@ -356,9 +356,9 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
             version = frontmatter["version"]
 
-            assert re.match(
-                r"^\d+\.\d+\.\d+$", version
-            ), f"{file_path.name} should have valid semver version, got: {version}"
+            assert re.match(r"^\d+\.\d+\.\d+$", version), (
+                f"{file_path.name} should have valid semver version, got: {version}"
+            )
 
     def test_all_microagents_valid_types(self, microagent_files: List[Path]):
         """Test that all microagents have valid type values."""
@@ -371,9 +371,9 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
             agent_type = frontmatter["type"]
 
-            assert (
-                agent_type in valid_types
-            ), f"{file_path.name} has invalid type: {agent_type}, must be one of {valid_types}"
+            assert agent_type in valid_types, (
+                f"{file_path.name} has invalid type: {agent_type}, must be one of {valid_types}"
+            )
 
     def test_all_microagents_valid_agents(self, microagent_files: List[Path]):
         """Test that all microagents have valid agent values."""
@@ -386,9 +386,9 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
             agent = frontmatter["agent"]
 
-            assert (
-                agent in valid_agents
-            ), f"{file_path.name} has invalid agent: {agent}, must be one of {valid_agents}"
+            assert agent in valid_agents, (
+                f"{file_path.name} has invalid agent: {agent}, must be one of {valid_agents}"
+            )
 
     def test_triggers_field_is_optional(self, microagent_files: List[Path]):
         """Test that triggers field is optional and properly formatted when present."""
@@ -403,16 +403,16 @@ class TestAllMicroagents(TestMicroagentValidation):
                 triggers = frontmatter["triggers"]
                 # If present, should be a list of strings or None/empty
                 if triggers:
-                    assert isinstance(
-                        triggers, list
-                    ), f"{file_path.name} triggers should be a list"
+                    assert isinstance(triggers, list), (
+                        f"{file_path.name} triggers should be a list"
+                    )
                     for trigger in triggers:
-                        assert isinstance(
-                            trigger, str
-                        ), f"{file_path.name} each trigger should be a string"
-                        assert (
-                            len(trigger.strip()) > 0
-                        ), f"{file_path.name} triggers should not be empty strings"
+                        assert isinstance(trigger, str), (
+                            f"{file_path.name} each trigger should be a string"
+                        )
+                        assert len(trigger.strip()) > 0, (
+                            f"{file_path.name} triggers should not be empty strings"
+                        )
 
 
 class TestMicroagentSemantic:
@@ -435,17 +435,17 @@ class TestMicroagentSemantic:
     def test_autonomous_nature_described(repo_engineer_content: str):
         """Test that autonomous nature is described."""
         body_lower = repo_engineer_content.lower()
-        assert (
-            "autonomous" in body_lower or "automated" in body_lower
-        ), "Should describe autonomous/automated nature"
+        assert "autonomous" in body_lower or "automated" in body_lower, (
+            "Should describe autonomous/automated nature"
+        )
 
     @staticmethod
     def test_describes_summary_and_plan(repo_engineer_content: str):
         """Test that summary and planning is described."""
         body_lower = repo_engineer_content.lower()
-        assert (
-            "summary" in body_lower and "plan" in body_lower
-        ), "Should mention creating summaries and plans"
+        assert "summary" in body_lower and "plan" in body_lower, (
+            "Should mention creating summaries and plans"
+        )
 
     @staticmethod
     def test_describes_reviewer_interaction(repo_engineer_content: str):
@@ -469,9 +469,9 @@ class TestMicroagentSemantic:
     def test_describes_post_explanation(repo_engineer_content: str):
         """Test that posting explanations is described."""
         body_lower = repo_engineer_content.lower()
-        assert (
-            "post" in body_lower or "explain" in body_lower
-        ), "Should mention posting explanations"
+        assert "post" in body_lower or "explain" in body_lower, (
+            "Should mention posting explanations"
+        )
 
     @staticmethod
     def test_describes_efficiency_focus(repo_engineer_content: str):

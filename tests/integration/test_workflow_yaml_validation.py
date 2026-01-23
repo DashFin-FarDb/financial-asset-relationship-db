@@ -61,9 +61,9 @@ class TestWorkflowYAMLValidation:
                 assert workflow is not None, f"Empty YAML in {workflow_file}"
 
                 for key in required_keys:
-                    assert (
-                        key in workflow
-                    ), f"Workflow {workflow_file} missing required key: {key}"
+                    assert key in workflow, (
+                        f"Workflow {workflow_file} missing required key: {key}"
+                    )
             except yaml.YAMLError as e:
                 pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
             except FileNotFoundError:
@@ -85,17 +85,17 @@ class TestWorkflowYAMLValidation:
         content_lower = content.lower()
 
         # Should NOT contain chunking references
-        assert (
-            "context_chunker" not in content_lower
-        ), "PR agent workflow still references context chunker"
-        assert (
-            "chunking" not in content_lower
-        ), "PR agent workflow still has chunking logic"
+        assert "context_chunker" not in content_lower, (
+            "PR agent workflow still references context chunker"
+        )
+        assert "chunking" not in content_lower, (
+            "PR agent workflow still has chunking logic"
+        )
 
         # SHOULD contain essential functionality
-        assert (
-            "parse-comments" in content_lower or "parse" in content_lower
-        ), "PR agent workflow missing comment parsing"
+        assert "parse-comments" in content_lower or "parse" in content_lower, (
+            "PR agent workflow missing comment parsing"
+        )
         assert "python" in content_lower, "PR agent workflow missing Python setup"
 
 
@@ -126,6 +126,6 @@ class TestRequirementsDevChanges:
             for line in content.splitlines()
             if line.strip() and not line.strip().startswith("#")
         ]
-        assert any(
-            line.lower().startswith("pyyaml") for line in lines
-        ), "PyYAML not found in requirements-dev.txt"
+        assert any(line.lower().startswith("pyyaml") for line in lines), (
+            "PyYAML not found in requirements-dev.txt"
+        )
