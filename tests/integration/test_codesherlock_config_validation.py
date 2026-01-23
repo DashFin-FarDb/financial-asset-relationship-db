@@ -49,11 +49,11 @@ class TestCodeSherlockConfigFile:
     @staticmethod
     def test_config_is_valid_yaml(codesherlock_config_path: Path):
         """
-        Verify that the repository's codesherlock.yaml parses as valid YAML.
+     Verify that the repository's codesherlock.yaml parses as valid YAML.
 
-        Asserts that the file at `codesherlock_config_path` loads to a non - None mapping(dict) and fails the test on YAML syntax errors.
+      Asserts that the file at `codesherlock_config_path` loads to a non - None mapping(dict) and fails the test on YAML syntax errors.
 
-        Parameters:
+       Parameters:
             codesherlock_config_path(Path): Path to the codesherlock.yaml file in the repository root.
         """
         try:
@@ -270,7 +270,6 @@ class TestCodeSherlockConfigBestPractices:
             if line.startswith(" "):
                 spaces = len(line) - len(line.lstrip())
                 assert spaces % 2 == 0, f"Line {i} has invalid indentation"
-
 
     def test_config_handles_whitespace_in_values(
         self, codesherlock_config: Dict[str, Any]
