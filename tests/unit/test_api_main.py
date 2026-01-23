@@ -562,7 +562,9 @@ class TestErrorHandling:
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
         mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = mock_graph.get_3d_visualization_data
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
 
         response = client.get("/api/metrics")
         assert response.status_code == 500
@@ -601,7 +603,9 @@ def test_cors_headers_present(cors_client):
     assert response.status_code == status.HTTP_200_OK  # nosec B101
 
     # CORS middleware should echo the allowed origin and include credentials header.
-    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN  # nosec B101
+    assert (
+        response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN
+    )  # nosec B101
     assert response.headers["access-control-allow-credentials"] == "true"  # nosec B101
 
 
@@ -613,7 +617,9 @@ def test_cors_rejects_disallowed_origin(cors_client):
     # Endpoint still responds, but CORS headers should not be set for disallowed origins.
     assert response.status_code == status.HTTP_200_OK  # nosec B101
     assert "access-control-allow-origin" not in response.headers  # nosec B101
-    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin  # nosec B101
+    assert (
+        response.headers.get("access-control-allow-origin", "") != disallowed_origin
+    )  # nosec B101
 
 
 @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
@@ -650,7 +656,9 @@ class TestAdditionalFields:
                 "book_value",
             ]
             has_equity_field = any(field in additional for field in possible_fields)
-            assert has_equity_field or len(additional) == 0  # Either has fields or empty
+            assert (
+                has_equity_field or len(additional) == 0
+            )  # Either has fields or empty
 
     @staticmethod
     def test_bond_additional_fields(client):

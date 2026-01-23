@@ -231,7 +231,9 @@ class TestDataQualityScore:
         assert re.search(pattern, report)
 
     @staticmethod
-    def test_quality_score_calculation_with_events(populated_graph, sample_regulatory_event):
+    def test_quality_score_calculation_with_events(
+        populated_graph, sample_regulatory_event
+    ):
         """Test quality score calculation with regulatory events."""
         populated_graph.add_regulatory_event(sample_regulatory_event)
         report = generate_schema_report(populated_graph)

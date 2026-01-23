@@ -33,7 +33,11 @@ class TestDocumentationSections:
 
     def test_has_generated_files_section(self, section_headers: List[str]):
         """Test that there's a section about generated files."""
-        generated = [h for h in section_headers if "generated" in h.lower() or "file" in h.lower()]
+        generated = [
+            h
+            for h in section_headers
+            if "generated" in h.lower() or "file" in h.lower()
+        ]
         assert len(generated) > 0, "Should have a section about generated files"
 
     def test_has_running_section(self, section_headers: List[str]):
