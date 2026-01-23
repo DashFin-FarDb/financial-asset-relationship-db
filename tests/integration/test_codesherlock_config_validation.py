@@ -275,7 +275,7 @@ class TestCodeSherlockConfigBestPractices:
 
 
 class TestCodeSherlockConfigEdgeCases:
-    """Test suite for edge cases in codesherlock.yaml configuration."""
+            """Test suite for edge cases in codesherlock.yaml configuration."""
 
        def test_config_handles_whitespace_in_values(
             self, codesherlock_config: Dict[str, Any]
@@ -396,7 +396,7 @@ class TestCodeSherlockConfigIntegration:
 
 
 class TestCodeSherlockConfigDocumentation:
-    """Test suite for documentation and comments in codesherlock.yaml."""
+        """Test suite for documentation and comments in codesherlock.yaml."""
 
     def test_config_has_inline_documentation(self, codesherlock_config_path: Path):
         """Verify that the configuration file includes helpful comments."""
