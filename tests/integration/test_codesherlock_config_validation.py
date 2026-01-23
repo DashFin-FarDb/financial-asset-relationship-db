@@ -15,8 +15,9 @@ import yaml
 @pytest.fixture
 def codesherlock_config_path() -> Path:
     """
-    Return the path to the repository's codesherlock.yaml file.
-    """
+"""Integration tests for validating the Codesherlock configuration file."""
+
+    """Return the path to the repository's codesherlock.yaml file."""
     repo_root = Path(__file__).parent.parent.parent
     return repo_root / "codesherlock.yaml"
 
@@ -41,6 +42,7 @@ class TestCodeSherlockConfigFile:
 
     @staticmethod
     def test_config_file_exists(codesherlock_config_path: Path) -> None:
+        """Test that the codesherlock.yaml file exists and is a file."""
         assert codesherlock_config_path.exists(), "codesherlock.yaml should exist"
         assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
 
@@ -315,7 +317,8 @@ class TestCodeSherlockConfigEdgeCases:
                     f"Branch '{branch}' should not contain '{char}'"
                 )
 
-    def test_config_file_size_reasonable(self, codesherlock_config_path: Path):
+    @staticmethod
+    def test_config_file_size_reasonable(codesherlock_config_path: Path):
         """
         Ensure that the codesherlock.yaml file remains reasonably small.
         Parameters:
@@ -326,7 +329,8 @@ class TestCodeSherlockConfigEdgeCases:
             f"Config file size ({file_size} bytes) should be less than 10KB"
         )
 
-    def test_config_yaml_formatting(self, codesherlock_config_path: Path):
+    @staticmethod
+    def test_config_yaml_formatting(codesherlock_config_path: Path):
         """
         Verify the YAML file uses 2-space indentation for all indented lines.
 
