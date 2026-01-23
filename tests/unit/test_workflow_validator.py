@@ -17,12 +17,13 @@ from typing import Iterable
 
 import pytest
 
+from src.workflow_validator import WorkflowValidator
+from workflow_validator import ValidationResult, validate_workflow
+
 # Ensure src is on path BEFORE imports
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from src.workflow_validator import WorkflowValidator
-from workflow_validator import ValidationResult, validate_workflow
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -30,7 +31,9 @@ from workflow_validator import ValidationResult, validate_workflow
 
 
 def write_temp_yaml(content: str) -> Path:
-    file = tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False, encoding="utf-8")
+    file = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".yml", delete=False, encoding="utf-8"
+    )
     file.write(content)
     file.flush()
     file.close()
@@ -129,7 +132,9 @@ class TestWorkflowValidation:
         assert_invalid(result)
 
     def test_permission_denied(self):
-        path = write_temp_yaml("name: Test\non: push\njobs:\n  test:\n    runs-on: ubuntu-latest")
+        path = write_temp_yaml(
+            "name: Test\non: push\njobs:\n  test:\n    runs-on: ubuntu-latest"
+        )
         try:
             path.chmod(0o000)
             assert_invalid(validate_workflow(str(path)))
@@ -163,7 +168,8 @@ class TestWorkflowEdgeCases:
 
     def test_large_workflow(self):
         jobs = "\n".join(
-            f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo {i}" for i in range(100)
+            f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo {i}"
+            for i in range(100)
         )
         path = write_temp_yaml(f"name: Big\non: push\njobs:\n{jobs}")
         try:
