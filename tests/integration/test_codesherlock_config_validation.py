@@ -441,7 +441,7 @@ class TestCodeSherlockConfigDocumentation:
         Checks up to five lines immediately before the `preferred_characteristics:` field for at least one line that begins with `#`.
 
         Parameters:
-                codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file to inspect.
+            codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file to inspect.
         """
         with open(codesherlock_config_path, "r") as f:
             content = f.read()
