@@ -436,11 +436,11 @@ def codesherlock_config_path() -> Path:
          )
 
          # Check for comments in the lines before target_branches
-         preceding_lines = lines[
-            max(0, target_branches_line_idx - 5) : target_branches_line_idx
-        ]
-        has_comment = any(line.strip().startswith("#") for line in preceding_lines)
-        assert has_comment, "target_branches section should have explanatory comments"
+         has_comment = any(
+             line.strip().startswith("#")
+             for line in lines[max(0, target_branches_line_idx - 5) : target_branches_line_idx]
+         )
+         assert has_comment, "target_branches section should have explanatory comments"
 
     def test_config_documents_preferred_characteristics(
         self, codesherlock_config_path: Path
@@ -455,10 +455,10 @@ def codesherlock_config_path() -> Path:
         assert preferred_char_line_idx is not None, (
             "preferred_characteristics field should be present"
         )
-        preceding_lines = lines[
-            max(0, preferred_char_line_idx - 5) : preferred_char_line_idx
-        ]
-        has_comment = any(line.strip().startswith("#") for line in preceding_lines)
+        has_comment = any(
+            line.strip().startswith("#")
+            for line in lines[max(0, preferred_char_line_idx - 5) : preferred_char_line_idx]
+        )
         assert has_comment, (
             "preferred_characteristics section should have explanatory comments"
         )
