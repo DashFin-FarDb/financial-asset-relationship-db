@@ -949,7 +949,7 @@ class TestDatabaseModelFieldFormatting:
     def test_foreign_key_constraint_formatting(self, memory_repository):
         """
         Verify that the AssetRelationshipORM model defines source and target foreign key columns and that both columns are non-nullable.
-        
+
         This test asserts:
         - The ORM has `source_asset_id` and `target_asset_id` attributes/columns.
         - Both `source_asset_id` and `target_asset_id` columns are configured with `nullable=False`.
