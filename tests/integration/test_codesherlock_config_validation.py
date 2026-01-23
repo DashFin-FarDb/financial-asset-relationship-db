@@ -221,6 +221,9 @@ class TestCodeSherlockConfigBestPractices:
         Ensure the configuration includes key code quality characteristics.
 
         Asserts that the `preferred_characteristics` list contains "Modularity" and "Dependency Injection".
+
+        Parameters:
+            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
         """
         quality_characteristics = {"Modularity", "Dependency Injection"}
         configured_characteristics = set(
