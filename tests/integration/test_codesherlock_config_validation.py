@@ -5,7 +5,6 @@ This module validates the codesherlock configuration file structure,
 content, and adherence to expected patterns.
 """
 
-import os
 from pathlib import Path
 from typing import Any, Dict
 
@@ -16,10 +15,7 @@ import yaml
 @pytest.fixture
 def codesherlock_config_path() -> Path:
     """
-    Get the Path to the repository's codesherlock.yaml file.
-
-    Returns:
-        path (Path): Path to codesherlock.yaml located at the repository root.
+    Return the path to the repository's codesherlock.yaml file.
     """
     repo_root = Path(__file__).parent.parent.parent
     return repo_root / "codesherlock.yaml"
@@ -36,16 +32,14 @@ def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
     Returns:
         config (Dict[str, Any]): Parsed YAML content as a dictionary.
     """
-    with open(codesherlock_config_path, "r") as f:
+    with codesherlock_config_path.open("r") as f:
         return yaml.safe_load(f)
 
 
-class TestCodeSherlockConfigStructure:
-    """Test suite for codesherlock.yaml configuration structure."""
+class TestCodeSherlockConfigFile:
+    """Tests for existence and YAML validity."""
 
-    @staticmethod
-    def test_config_file_exists(codesherlock_config_path: Path):
-        """Verify that codesherlock.yaml exists in the repository root."""
+    def test_config_file_exists(self, codesherlock_config_path: Path) -> None:
         assert codesherlock_config_path.exists(), "codesherlock.yaml should exist"
         assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
 
