@@ -447,28 +447,6 @@ class TestPRAgentConfigSecurity:
                 scan_list(node, path)
             # primitives ignored
 
-        scan_for_secrets(pr_agent_config)
-
-        # Final serialized scan to ensure sensitive markers aren't embedded in values
-        config_str = yaml.dump(pr_agent_config)
-        for pat in sensitive_patterns:
-            if pat in config_str:
-                assert (" null" in config_str) or (
-                    "webhook" in config_str
-                ), f"Potential hardcoded credential found around pattern: {pat}"
-            if isinstance(node, dict):
-                for k, v in node.items():
-                    scan_for_secrets(v, f"{path}.{k}")
-            elif isinstance(node, list):
-                for idx, item in enumerate(node):
-                    scan_for_secrets(item, f"{path}[{idx}]")
-            elif isinstance(node, str):
-                # Fail if a string value looks like it may contain a secret
-                assert not value_contains_secret(node), f"Potential hardcoded credential value at {path}"
-            # Non-string scalars (int, float, bool, None) are safe to ignore
-
-        scan_for_secrets(pr_agent_config)
-
         safe_placeholders = {None, "null", "webhook"}
 
         def check_node(node, path=""):
