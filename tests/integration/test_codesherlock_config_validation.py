@@ -294,11 +294,11 @@ class TestCodeSherlockConfigEdgeCases:
         """
         Ensure branch names do not contain disallowed characters.
 
+        Branch names should not contain spaces, tabs, newlines, or any of the characters:
+        ~, ^, :, ?, *, [, \.
+
         Parameters:
             codesherlock_config (dict): Parsed codesherlock.yaml containing the "target_branches" list.
-
-        Description:
-            The test fails if any branch name contains a space, tab, newline, or any of the characters: ~, ^, :, ?, *, [, \.
         """
         for branch in codesherlock_config["target_branches"]:
             # Branch names should not contain certain invalid characters
