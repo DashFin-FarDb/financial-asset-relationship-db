@@ -43,7 +43,8 @@ def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
 class TestCodeSherlockConfigStructure:
     """Test suite for codesherlock.yaml configuration structure."""
 
-    def test_config_file_exists(self, codesherlock_config_path: Path):
+    @staticmethod
+    def test_config_file_exists(codesherlock_config_path: Path):
         """Verify that codesherlock.yaml exists in the repository root."""
         assert codesherlock_config_path.exists(), "codesherlock.yaml should exist"
         assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
@@ -303,7 +304,7 @@ class TestCodeSherlockConfigEdgeCases:
         Ensure branch names do not contain disallowed characters.
 
         Branch names should not contain spaces, tabs, newlines, or any of the characters:
-        ~, ^, :, ?, *, [, \.
+        ~, ^, :, ?, *, [, \\.
 
         Parameters:
             codesherlock_config (dict): Parsed codesherlock.yaml containing the "target_branches" list.
@@ -449,29 +450,6 @@ class TestCodeSherlockConfigDocumentation:
     def test_config_documents_preferred_characteristics(
         self, codesherlock_config_path: Path
     ):
-        """
-        Ensure the preferred_characteristics section in the codesherlock.yaml file is preceded by explanatory comments.
-
-        Checks up to five lines immediately before the `preferred_characteristics:` field for at least one line that begins with `#`.
-
-        Parameters:
-            codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file to inspect.
-        """
-        with open(codesherlock_config_path, "r") as f:
-            content = f.read()
-
-        lines = content.split("\n")
-        preferred_char_line_idx = None
-        for i, line in enumerate(lines):
-            if "preferred_characteristics:" in line:
-                preferred_char_line_idx = i
-                break
-
-        assert preferred_char_line_idx is not None, (
-            "preferred_characteristics field should be present"
-        )
-
-        # Check for comments in the lines before preferred_characteristics
         preceding_lines = lines[
             max(0, preferred_char_line_idx - 5) : preferred_char_line_idx
         ]
