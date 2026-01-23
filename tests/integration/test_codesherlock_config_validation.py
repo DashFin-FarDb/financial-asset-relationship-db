@@ -61,57 +61,58 @@ class TestCodeSherlockConfigFile:
         except yaml.YAMLError as e:
             pytest.fail(f"Invalid YAML syntax: {e}")
 
-     def test_config_has_required_fields(self, codesherlock_config: Dict[str, Any]):
-         """
-         Ensure the top-level required fields are present in the Codesherlock configuration.
+    def test_config_has_required_fields(self, codesherlock_config: Dict[str, Any]):
+        """
+        Ensure the top-level required fields are present in the Codesherlock configuration.
 
-         Parameters:
-             codesherlock_config (Dict[str, Any]): Parsed contents of `codesherlock.yaml` as a mapping.
+        Parameters:
+            codesherlock_config (Dict[str, Any]): Parsed contents of `codesherlock.yaml` as a mapping.
 
-         This test fails if any of the expected top-level keys are missing from the configuration.
-         """
-         assert "target_branches" in codesherlock_config, (
-             "target_branches field is required"
-         )
-         assert "preferred_characteristics" in codesherlock_config, (
-             "preferred_characteristics field is required"
-         )
+        This test fails if any of the expected top-level keys are missing from the configuration.
+        """
+        assert "target_branches" in codesherlock_config, (
+            "target_branches field is required"
+        )
+        assert "preferred_characteristics" in codesherlock_config, (
+            "preferred_characteristics field is required"
+        )
 
-     def test_target_branches_is_list(self, codesherlock_config: Dict[str, Any]):
-         """Verify that target_branches is a list."""
-         assert isinstance(codesherlock_config["target_branches"], list), (
-             "target_branches should be a list"
-         )
+    def test_target_branches_is_list(self, codesherlock_config: Dict[str, Any]):
+        """Verify that target_branches is a list."""
+        assert isinstance(codesherlock_config["target_branches"], list), (
+            "target_branches should be a list"
+        )
 
-     def test_target_branches_not_empty(self, codesherlock_config: Dict[str, Any]):
-         """Verify that target_branches list is not empty."""
-         assert len(codesherlock_config["target_branches"]) > 0, (
-             "target_branches should not be empty"
-         )
+    def test_target_branches_not_empty(self, codesherlock_config: Dict[str, Any]):
+        """Verify that target_branches list is not empty."""
+        assert len(codesherlock_config["target_branches"]) > 0, (
+            "target_branches should not be empty"
+        )
 
-     def test_target_branches_contains_main(self, codesherlock_config: Dict[str, Any]):
-         """Verify that 'main' is included in target_branches."""
-         assert "main" in codesherlock_config["target_branches"], (
-             "target_branches should include 'main'"
-         )
+    def test_target_branches_contains_main(self, codesherlock_config: Dict[str, Any]):
+        """Verify that 'main' is included in target_branches."""
+        assert "main" in codesherlock_config["target_branches"], (
+            "target_branches should include 'main'"
+        )
 
-     def test_preferred_characteristics_is_list(
-         self, codesherlock_config: Dict[str, Any]
-     ):
-         """Verify that preferred_characteristics is a list."""
-         assert isinstance(codesherlock_config["preferred_characteristics"], list), (
-             "preferred_characteristics should be a list"
-         )
+    def test_preferred_characteristics_is_list(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """Verify that preferred_characteristics is a list."""
+        assert isinstance(codesherlock_config["preferred_characteristics"], list), (
+            "preferred_characteristics should be a list"
+        )
 
-     def test_preferred_characteristics_not_empty(
-         self, codesherlock_config: Dict[str, Any]
-     ):
-         """Verify that preferred_characteristics list is not empty."""
-         assert len(codesherlock_config["preferred_characteristics"]) > 0, (
-             "preferred_characteristics should not be empty"
-         )
+    def test_preferred_characteristics_not_empty(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """Verify that preferred_characteristics list is not empty."""
+        assert len(codesherlock_config["preferred_characteristics"]) > 0, (
+            "preferred_characteristics should not be empty"
+        )
 
- class TestCodeSherlockConfigContent:
+
+class TestCodeSherlockConfigContent:
      """Test suite for codesherlock.yaml configuration content validation."""
 
      def test_target_branches_are_strings(self, codesherlock_config: Dict[str, Any]):
@@ -187,8 +188,8 @@ class TestCodeSherlockConfigFile:
                  "additional_instructions should be a list when present"
              )
 
- class TestCodeSherlockConfigBestPractices:
-     """Test suite for codesherlock.yaml best practices and recommendations."""
+class TestCodeSherlockConfigBestPractices:
+    """Test suite for codesherlock.yaml best practices and recommendations."""
 
      def test_covers_key_security_characteristics(
          self, codesherlock_config: Dict[str, Any]
@@ -271,8 +272,8 @@ class TestCodeSherlockConfigFile:
              "At least one common development branch (main, master, develop) should be included"
          )
 
- class TestCodeSherlockConfigEdgeCases:
-     """Test suite for edge cases in codesherlock.yaml configuration."""
+class TestCodeSherlockConfigEdgeCases:
+    """Test suite for edge cases in codesherlock.yaml configuration."""
 
      def test_config_handles_whitespace_in_values(
          self, codesherlock_config: Dict[str, Any]
@@ -342,8 +343,8 @@ class TestCodeSherlockConfigFile:
                      f"Line {i} should use 2-space indentation"
                  )
 
- class TestCodeSherlockConfigIntegration:
-     """Integration tests for codesherlock.yaml with the project."""
+class TestCodeSherlockConfigIntegration:
+    """Integration tests for codesherlock.yaml with the project."""
 
      def test_config_aligns_with_project_branches(
          self, codesherlock_config: Dict[str, Any]
@@ -390,48 +391,48 @@ class TestCodeSherlockConfigFile:
              f"Critical characteristics for financial applications are missing: {missing_critical}"
          )
 
- class TestCodeSherlockConfigDocumentation:
-     """Test suite for documentation and comments in codesherlock.yaml."""
+class TestCodeSherlockConfigDocumentation:
+    """Test suite for documentation and comments in codesherlock.yaml."""
 
-     def test_config_has_inline_documentation(self, codesherlock_config_path: Path):
-         """Verify that the configuration file includes helpful comments."""
-         with open(codesherlock_config_path, "r") as f:
-             content = f.read()
+    def test_config_has_inline_documentation(self, codesherlock_config_path: Path):
+        """Verify that the configuration file includes helpful comments."""
+        with open(codesherlock_config_path, "r") as f:
+            content = f.read()
 
-         # Should have at least some comment lines
-         comment_lines = [
-             line for line in content.split("\n") if line.strip().startswith("#")
-         ]
-         assert len(comment_lines) >= 3, (
-             "Config file should include explanatory comments"
-         )
+        # Should have at least some comment lines
+        comment_lines = [
+            line for line in content.split("\n") if line.strip().startswith("#")
+        ]
+        assert len(comment_lines) >= 3, (
+            "Config file should include explanatory comments"
+        )
 
-     def test_config_documents_target_branches(self, codesherlock_config_path: Path):
-         """
-         Check that the YAML file documents the `target_branches` section with explanatory comments.
+    def test_config_documents_target_branches(self, codesherlock_config_path: Path):
+        """
+        Check that the YAML file documents the `target_branches` section with explanatory comments.
 
-         Searches the repository's codesherlock.yaml for the `target_branches:` key and asserts there is at least one comment line (a line starting with `#`) within the five lines immediately preceding that key.
+        Searches the repository's codesherlock.yaml for the `target_branches:` key and asserts there is at least one comment line (a line starting with `#`) within the five lines immediately preceding that key.
 
-         Parameters:
-             codesherlock_config_path (Path): Path to the codesherlock.yaml file to inspect.
-         """
-         with open(codesherlock_config_path, "r") as f:
-             content = f.read()
+        Parameters:
+            codesherlock_config_path (Path): Path to the codesherlock.yaml file to inspect.
+        """
+        with open(codesherlock_config_path, "r") as f:
+            content = f.read()
 
-         # Should have comments explaining target_branches before the field
-         lines = content.split("\n")
-         target_branches_line_idx = None
-         for i, line in enumerate(lines):
-             if "target_branches:" in line:
-                 target_branches_line_idx = i
-                 break
+        # Should have comments explaining target_branches before the field
+        lines = content.split("\n")
+        target_branches_line_idx = None
+        for i, line in enumerate(lines):
+            if "target_branches:" in line:
+                target_branches_line_idx = i
+                break
 
-         assert target_branches_line_idx is not None, (
-             "target_branches field should be present"
-         )
+        assert target_branches_line_idx is not None, (
+            "target_branches field should be present"
+        )
 
-         # Check for comments in the lines before target_branches
-         preceding_lines = lines[
+        # Check for comments in the lines before target_branches
+        preceding_lines = lines[
             max(0, target_branches_line_idx - 5) : target_branches_line_idx
         ]
         has_comment = any(line.strip().startswith("#") for line in preceding_lines)
