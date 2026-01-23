@@ -27,35 +27,36 @@ def codesherlock_config_path() -> Path:
 
 @pytest.fixture
 def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
-     Load the codesherlock.yaml file and parse it into a dictionary.
+    """
+    Load the codesherlock.yaml file and parse it into a dictionary.
 
-     Parameters:
+    Parameters:
         codesherlock_config_path(Path): Path to the codesherlock.yaml file at the repository root.
 
     Returns:
-         config (Dict[str, Any]): Parsed YAML content as a dictionary.
+        config (Dict[str, Any]): Parsed YAML content as a dictionary.
     """
-     with open(codesherlock_config_path, "r") as f:
-         return yaml.safe_load(f)
+    with open(codesherlock_config_path, "r") as f:
+        return yaml.safe_load(f)
 
- class TestCodeSherlockConfigStructure:
-     """Test suite for codesherlock.yaml configuration structure."""
+class TestCodeSherlockConfigStructure:
+    """Test suite for codesherlock.yaml configuration structure."""
 
-     @staticmethod
-     def test_config_file_exists(codesherlock_config_path: Path):
-         """Verify that codesherlock.yaml exists in the repository root."""
-         assert codesherlock_config_path.exists(), "codesherlock.yaml should exist"
-         assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
+    @staticmethod
+    def test_config_file_exists(codesherlock_config_path: Path):
+        """Verify that codesherlock.yaml exists in the repository root."""
+        assert codesherlock_config_path.exists(), "codesherlock.yaml should exist"
+        assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
 
-     @staticmethod
-     def test_config_is_valid_yaml(codesherlock_config_path: Path):
-         """
-         Verify that the repository's codesherlock.yaml parses as valid YAML.
+    @staticmethod
+    def test_config_is_valid_yaml(codesherlock_config_path: Path):
+        """
+        Verify that the repository's codesherlock.yaml parses as valid YAML.
 
-         Asserts that the file at `codesherlock_config_path` loads to a non-None mapping (dict) and fails the test on YAML syntax errors.
+        Asserts that the file at `codesherlock_config_path` loads to a non-None mapping (dict) and fails the test on YAML syntax errors.
 
-         Parameters:
-             codesherlock_config_path (Path): Path to the codesherlock.yaml file in the repository root.
+        Parameters:
+            codesherlock_config_path (Path): Path to the codesherlock.yaml file in the repository root.
          """
          try:
              with open(codesherlock_config_path, "r") as f:
