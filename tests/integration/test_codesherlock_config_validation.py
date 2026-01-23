@@ -21,6 +21,8 @@ def codesherlock_config_path() -> Path:
 
 @pytest.fixture
 def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
+
+
 @pytest.fixture
 def codesherlock_config_path() -> Path:
     Load the codesherlock.yaml file and parse it into a dictionary.
