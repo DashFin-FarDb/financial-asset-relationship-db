@@ -11,6 +11,7 @@ from typing import Any, Dict
 import pytest
 import yaml
 
+
 @pytest.fixture
 def codesherlock_config_path() -> Path:
     """Return the path to the repository's codesherlock.yaml file."""
